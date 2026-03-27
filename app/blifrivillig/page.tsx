@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { createClient } from "@/utils/supabase/client"
+import { useState } from "react"
 
 // ADD THIS IN SUPABASE
 const groups = [
@@ -58,21 +59,23 @@ const groups = [
     },
 ]
 
-export default function BlifilvrilligPage() {
-    const [selectedGroup, setSelectedGroup] = React.useState<string>("")
-    const [name, setName] = React.useState<string>("")
-    const [email, setEmail] = React.useState<string>("")
-    const [message, setMessage] = React.useState<string>("")
-    const [consent, setConsent] = React.useState<boolean>(false)
+export default function BlifrivilligPage() {
+    const [selectedGroup, setSelectedGroup] = useState<string>("")
+    const [name, setName] = useState<string>("")
+    const [email, setEmail] = useState<string>("")
+    const [message, setMessage] = useState<string>("")
+    const [consent, setConsent] = useState<boolean>(false)
+    const [institution, setInstitution] = useState<string>("")
 
-    const [error, setError] = React.useState<string>("")
-    const [success, setSuccess] = React.useState<string>("")
+    const [error, setError] = useState<string>("")
+    const [success, setSuccess] = useState<string>("")
 
     function isValidEmail(value: string) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
     }
 
-    function onSubmit() {
+    async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
         setError("")
         setSuccess("")
 
@@ -81,6 +84,22 @@ export default function BlifilvrilligPage() {
         if (!isValidEmail(email)) return setError("Skriv inn en gyldig e-post.")
         if (!consent) {
             return setError("Du må samtykke for å sende inn skjemaet.")
+        }
+
+        const signup = {
+            email,
+            name,
+            group: selectedGroup,
+            message,
+            institution,
+        }
+
+        const supabase = createClient()
+        const { error } = await supabase.from("volunteer_signup").insert(signup)
+
+        if (error) {
+            setError(error.message)
+            return
         }
 
         setSuccess("Vi har mottatt søknaden. Vi vil ta kontakt snartest.")
@@ -162,6 +181,18 @@ export default function BlifilvrilligPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="EMAIL"
                                     autoComplete="email"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="message">Institusjon</Label>
+                                <Input
+                                    id="institution"
+                                    value={institution}
+                                    onChange={(e) =>
+                                        setInstitution(e.target.value)
+                                    }
+                                    placeholder="UiB, HVL, jobb, andre..."
                                 />
                             </div>
 
