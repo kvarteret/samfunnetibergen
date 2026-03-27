@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skyss — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────
+   COLOR SCALES — 50–950 per family
+   ───────────────────────────────────────────── */
+:root {
+  /* Amber */
+  --amber-50:  oklch(97% 0.027 56);
+  --amber-100: oklch(94% 0.045 56);
+  --amber-200: oklch(88% 0.072 56);
+  --amber-300: oklch(80% 0.117 56);
+  --amber-400: oklch(70% 0.153 56);
+  --amber-500: oklch(60% 0.180 56);
+  --amber-600: oklch(50% 0.171 56);
+  --amber-700: oklch(40% 0.153 56);
+  --amber-800: oklch(30% 0.126 56);
+  --amber-900: oklch(20% 0.090 56);
+  --amber-950: oklch(14% 0.063 56);
+
+  /* Gold */
+  --gold-50:  oklch(97% 0.026 65);
+  --gold-100: oklch(94% 0.043 65);
+  --gold-200: oklch(88% 0.068 65);
+  --gold-300: oklch(80% 0.111 65);
+  --gold-400: oklch(70% 0.145 65);
+  --gold-500: oklch(60% 0.170 65);
+  --gold-600: oklch(50% 0.162 65);
+  --gold-700: oklch(40% 0.145 65);
+  --gold-800: oklch(30% 0.119 65);
+  --gold-900: oklch(20% 0.085 65);
+  --gold-950: oklch(14% 0.059 65);
+
+  /* Navy */
+  --navy-50:  oklch(97% 0.015 258);
+  --navy-100: oklch(94% 0.025 258);
+  --navy-200: oklch(88% 0.040 258);
+  --navy-300: oklch(80% 0.065 258);
+  --navy-400: oklch(70% 0.085 258);
+  --navy-500: oklch(60% 0.100 258);
+  --navy-600: oklch(50% 0.095 258);
+  --navy-700: oklch(40% 0.085 258);
+  --navy-800: oklch(30% 0.070 258);
+  --navy-900: oklch(20% 0.050 258);
+  --navy-950: oklch(14% 0.035 258);
+
+  /* Slate */
+  --slate-50:  oklch(97% 0.011 256);
+  --slate-100: oklch(94% 0.019 256);
+  --slate-200: oklch(88% 0.030 256);
+  --slate-300: oklch(80% 0.049 256);
+  --slate-400: oklch(70% 0.064 256);
+  --slate-500: oklch(60% 0.075 256);
+  --slate-600: oklch(50% 0.071 256);
+  --slate-700: oklch(40% 0.064 256);
+  --slate-800: oklch(30% 0.052 256);
+  --slate-900: oklch(20% 0.037 256);
+  --slate-950: oklch(14% 0.026 256);
+
+  /* Mist */
+  --mist-50:  oklch(97% 0.008 258);
+  --mist-100: oklch(94% 0.014 258);
+  --mist-200: oklch(88% 0.022 258);
+  --mist-300: oklch(80% 0.036 258);
+  --mist-400: oklch(70% 0.047 258);
+  --mist-500: oklch(60% 0.055 258);
+  --mist-600: oklch(50% 0.052 258);
+  --mist-700: oklch(40% 0.047 258);
+  --mist-800: oklch(30% 0.038 258);
+  --mist-900: oklch(20% 0.028 258);
+  --mist-950: oklch(14% 0.019 258);
+
+  /* Cream */
+  --cream-50:  oklch(99% 0.003 87);
+  --cream-100: oklch(97% 0.005 87);
+  --cream-200: oklch(94% 0.009 87);
+  --cream-300: oklch(92% 0.014 87);
+  --cream-400: oklch(88% 0.019 87);
+  --cream-500: oklch(80% 0.022 87);
+  --cream-600: oklch(70% 0.021 87);
+  --cream-700: oklch(55% 0.019 87);
+  --cream-800: oklch(40% 0.015 87);
+  --cream-900: oklch(25% 0.011 87);
+  --cream-950: oklch(15% 0.008 87);
+
+  /* Red */
+  --red-50:  oklch(97% 0.033 25);
+  --red-100: oklch(94% 0.055 25);
+  --red-200: oklch(88% 0.088 25);
+  --red-300: oklch(80% 0.143 25);
+  --red-400: oklch(70% 0.187 25);
+  --red-500: oklch(60% 0.220 25);
+  --red-600: oklch(50% 0.209 25);
+  --red-700: oklch(40% 0.187 25);
+  --red-800: oklch(30% 0.154 25);
+  --red-900: oklch(20% 0.110 25);
+  --red-950: oklch(14% 0.077 25);
+
+  /* ─── Semantic tokens ─── */
+  --background:            var(--cream-300);
+  --foreground:            var(--navy-950);
+  --primary:               var(--amber-500);
+  --primary-fg:            var(--navy-950);
+  --secondary:             var(--navy-700);
+  --secondary-fg:          var(--cream-200);
+  --accent:                var(--gold-400);
+  --accent-fg:             var(--navy-950);
+  --destructive:           var(--red-500);
+  --destructive-fg:        var(--cream-100);
+  --muted-bg:              var(--slate-200);
+  --muted-fg:              var(--slate-700);
+  --border:                var(--navy-950);
+  --border-width:          2px;
+  --shadow-offset:         4px;
+  --radius:                0px;
+  --font-display:          'Syne', sans-serif;
+  --font-body:             'Syne', sans-serif;
+  --font-serif:            'Instrument Serif', serif;
+  --font-mono:             'DM Mono', monospace;
+}
+
+/* ─── Reset ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cream-300);
+  color: var(--navy-950);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Layout ─── */
+.page { max-width: 1200px; margin: 0 auto; padding: 0 32px 120px; }
+.section { margin-top: 80px; }
+.section + .section { border-top: var(--border-width) solid var(--border); padding-top: 80px; }
+
+/* ─── Typography ─── */
+.ds-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--slate-600);
+  display: block;
+  margin-bottom: 6px;
+}
+.ds-heading {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+.ds-subheading {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  margin-bottom: 24px;
+}
+
+/* ─── Hero ─── */
+.hero {
+  border-bottom: var(--border-width) solid var(--border);
+  padding: 64px 0 56px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 32px;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--amber-600);
+  margin-bottom: 12px;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  line-height: .95;
+  letter-spacing: -.04em;
+}
+.hero-title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--amber-500);
+}
+.hero-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--slate-600);
+  text-align: right;
+  line-height: 2;
+}
+.hero-badge {
+  display: inline-block;
+  background: var(--navy-800);
+  color: var(--cream-100);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  padding: 4px 10px;
+  margin-bottom: 16px;
+}
+
+/* ─── Color scale ─── */
+.scale-grid { display: flex; flex-direction: column; gap: 0; border: var(--border-width) solid var(--border); }
+.scale-row { display: flex; border-bottom: var(--border-width) solid var(--border); }
+.scale-row:last-child { border-bottom: none; }
+.scale-label {
+  width: 120px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  border-right: var(--border-width) solid var(--border);
+  background: var(--cream-200);
+}
+.scale-swatches { display: flex; flex: 1; }
+.swatch-cell {
+  flex: 1;
+  height: 56px;
+  position: relative;
+  border-right: 1px solid rgba(0,0,0,.08);
+  cursor: pointer;
+  transition: transform .1s;
+}
+.swatch-cell:last-child { border-right: none; }
+.swatch-cell:hover { transform: scaleY(1.15); z-index: 2; }
+.swatch-cell .tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy-950);
+  color: var(--cream-100);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  white-space: nowrap;
+  padding: 4px 7px;
+  pointer-events: none;
+  z-index: 10;
+}
+.swatch-cell:hover .tip { display: block; }
+.stop-labels {
+  display: flex;
+  margin-left: 120px;
+  border-left: var(--border-width) solid var(--border);
+}
+.stop-label {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--slate-600);
+  padding: 4px 0 12px;
+  border-right: 1px solid transparent;
+}
+
+/* ─── Semantic tokens table ─── */
+.token-table { width: 100%; border-collapse: collapse; border: var(--border-width) solid var(--border); }
+.token-table th {
+  background: var(--navy-950);
+  color: var(--cream-100);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  text-align: left;
+  border-right: var(--border-width) solid var(--cream-800);
+}
+.token-table th:last-child { border-right: none; }
+.token-table td {
+  padding: 9px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-bottom: 1px solid oklch(18% .006 240 / .1);
+  border-right: var(--border-width) solid var(--border);
+  vertical-align: middle;
+}
+.token-table td:last-child { border-right: none; }
+.token-table tr:last-child td { border-bottom: none; }
+.token-table tr:hover td { background: var(--amber-50); }
+.tok-swatch {
+  width: 24px; height: 24px;
+  border: 1.5px solid var(--border);
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.tok-name { font-weight: 500; color: var(--navy-800); }
+.tok-val { color: var(--slate-600); font-size: 11px; }
+
+/* ─── Typography specimens ─── */
+.type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: var(--border-width) solid var(--border); }
+.type-cell {
+  padding: 32px 28px;
+  border-bottom: var(--border-width) solid var(--border);
+  border-right: var(--border-width) solid var(--border);
+}
+.type-cell:nth-child(even) { border-right: none; }
+.type-cell:nth-last-child(-n+2) { border-bottom: none; }
+.type-meta { font-family: var(--font-mono); font-size: 10px; color: var(--slate-500); margin-bottom: 10px; }
+.type-sample { line-height: 1.1; }
+
+/* ─── Component demos ─── */
+.comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: var(--border-width) solid var(--border); }
+.comp-cell {
+  padding: 36px 32px;
+  border-bottom: var(--border-width) solid var(--border);
+  border-right: var(--border-width) solid var(--border);
+}
+.comp-cell:nth-child(even) { border-right: none; }
+.comp-cell:nth-last-child(-n+2) { border-bottom: none; }
+.comp-label { font-family: var(--font-mono); font-size: 10px; color: var(--slate-500); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px; }
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border: var(--border-width) solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .08s, box-shadow .08s;
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+}
+.btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--border); }
+.btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--border); }
+.btn-primary { background: var(--primary); color: var(--primary-fg); }
+.btn-secondary { background: var(--secondary); color: var(--secondary-fg); }
+.btn-ghost { background: transparent; color: var(--foreground); }
+.btn-destructive { background: var(--destructive); color: var(--destructive-fg); }
+.btn-accent { background: var(--accent); color: var(--accent-fg); }
+.btn-sm { font-size: 11px; padding: 7px 14px; }
+.btn-lg { font-size: 15px; padding: 14px 28px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* ─── Input / form ─── */
+.input-field {
+  display: block;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 14px;
+  border: var(--border-width) solid var(--border);
+  background: var(--cream-100);
+  color: var(--foreground);
+  outline: none;
+  transition: box-shadow .1s;
+  margin-bottom: 10px;
+}
+.input-field:focus { box-shadow: 4px 4px 0 var(--primary); }
+.input-label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+
+/* ─── Badge / pill ─── */
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: var(--border-width) solid var(--border);
+}
+.badge-amber { background: var(--amber-200); color: var(--amber-800); }
+.badge-navy  { background: var(--navy-700); color: var(--cream-100); }
+.badge-red   { background: var(--red-200); color: var(--red-800); }
+.badge-gold  { background: var(--gold-300); color: var(--gold-900); }
+.badge-slate { background: var(--slate-200); color: var(--slate-800); }
+
+/* ─── Card ─── */
+.card {
+  border: var(--border-width) solid var(--border);
+  background: var(--cream-100);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+  padding: 24px;
+}
+.card-header {
+  border-bottom: var(--border-width) solid var(--border);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-title { font-family: var(--font-display); font-weight: 800; font-size: 16px; }
+.card-body { font-size: 13px; color: var(--slate-700); line-height: 1.6; }
+
+/* ─── Alert ─── */
+.alert {
+  border: var(--border-width) solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.alert-icon { font-size: 16px; line-height: 1.4; flex-shrink: 0; }
+.alert-body { font-size: 13px; }
+.alert-title { font-family: var(--font-display); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.alert-info { background: var(--navy-100); border-left: 4px solid var(--navy-500); }
+.alert-warn { background: var(--amber-100); border-left: 4px solid var(--amber-500); }
+.alert-danger { background: var(--red-100); border-left: 4px solid var(--red-500); }
+.alert-success { background: oklch(94% 0.06 145); border-left: 4px solid oklch(50% 0.14 145); }
+
+/* ─── Nav demo ─── */
+.nav-demo {
+  border: var(--border-width) solid var(--border);
+  background: var(--navy-900);
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--amber-400);
+  padding: 14px 24px;
+  border-right: var(--border-width) solid oklch(18% .05 258);
+  letter-spacing: -.02em;
+}
+.nav-links { display: flex; flex: 1; }
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--mist-300);
+  padding: 14px 20px;
+  text-decoration: none;
+  border-right: 1px solid oklch(18% .05 258 / .4);
+  transition: background .1s, color .1s;
+  cursor: pointer;
+}
+.nav-link:hover, .nav-link.active { background: var(--amber-500); color: var(--navy-950); }
+.nav-cta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: var(--amber-500);
+  color: var(--navy-950);
+  border: none;
+  border-left: var(--border-width) solid oklch(18% .05 258);
+  padding: 14px 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ─── Spacing scale ─── */
+.space-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+.space-bar-wrap { flex: 1; display: flex; align-items: center; gap: 0; height: 24px; }
+.space-bar { height: 20px; background: var(--amber-400); border: var(--border-width) solid var(--border); }
+.space-token { font-family: var(--font-mono); font-size: 11px; color: var(--slate-600); width: 80px; }
+.space-px { font-family: var(--font-mono); font-size: 11px; color: var(--navy-700); width: 48px; text-align: right; }
+
+/* ─── Shadow examples ─── */
+.shadow-row { display: flex; gap: 24px; flex-wrap: wrap; }
+.shadow-card {
+  border: var(--border-width) solid var(--border);
+  background: var(--cream-100);
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--slate-600);
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ─── P3 note ─── */
+.p3-strip {
+  display: flex;
+  border: var(--border-width) solid var(--border);
+  overflow: hidden;
+}
+.p3-cell {
+  flex: 1;
+  padding: 18px 12px;
+  text-align: center;
+  border-right: var(--border-width) solid var(--border);
+}
+.p3-cell:last-child { border-right: none; }
+.p3-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
+
+/* ─── Motion guide ─── */
+.motion-table { width: 100%; border-collapse: collapse; border: var(--border-width) solid var(--border); }
+.motion-table td, .motion-table th {
+  padding: 9px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-bottom: 1px solid oklch(18% .006 240 / .1);
+  border-right: var(--border-width) solid var(--border);
+}
+.motion-table th {
+  background: var(--navy-950);
+  color: var(--cream-100);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.motion-table td:last-child, .motion-table th:last-child { border-right: none; }
+.motion-table tr:last-child td { border-bottom: none; }
+
+/* ─── Misc ─── */
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.rule { border: none; border-top: var(--border-width) solid var(--border); margin: 0; }
+.code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--navy-950);
+  color: var(--amber-300);
+  padding: 20px 24px;
+  line-height: 2;
+  border: var(--border-width) solid var(--border);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+@media (max-width: 768px) {
+  .type-grid, .comp-grid, .cols-2 { grid-template-columns: 1fr; }
+  .type-cell:nth-child(even), .comp-cell:nth-child(even) { border-right: none; }
+  .type-cell, .comp-cell { border-right: none !important; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-meta { text-align: left; }
+  .scale-label { width: 80px; font-size: 9px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<header class="hero">
+  <div>
+    <div class="hero-eyebrow">Skyss · Design System · v1.0</div>
+    <h1 class="hero-title">Design<br><em>Profile</em></h1>
+  </div>
+  <div class="hero-meta">
+    <div class="hero-badge">Neobrutalist</div><br>
+    Color space: OKLCH + P3<br>
+    Typeface: Syne + DM Mono<br>
+    Border: 2px solid ink<br>
+    Radius: 0px<br>
+    Shadows: offset, no blur
+  </div>
+</header>
+
+<!-- DESIGN PRINCIPLES -->
+<section class="section">
+  <span class="ds-tag">01 — Principles</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">What this system is</h2>
+  <div class="cols-2" style="gap:0;border: 2px solid var(--border);">
+    <div style="padding:32px;border-right:2px solid var(--border)">
+      <div class="comp-label">Honest</div>
+      <p style="font-size:14px;line-height:1.7">Structure is visible. Borders are real and heavy. No blurred shadows pretending to float. Elements sit on the surface and own their edges. Everything is what it looks like.</p>
+    </div>
+    <div style="padding:32px">
+      <div class="comp-label">Warm contrast</div>
+      <p style="font-size:14px;line-height:1.7">The tension between amber warmth and navy cold is the system's core energy — directly from the Skyss illustration. That dynamic drives every color decision.</p>
+    </div>
+    <div style="padding:32px;border-right:2px solid var(--border);border-top:2px solid var(--border)">
+      <div class="comp-label">Typographic weight</div>
+      <p style="font-size:14px;line-height:1.7">Syne's heavy display weight carries hierarchy. DM Mono grounds technical and labeling contexts. Instrument Serif adds editorial warmth as a counterpoint.</p>
+    </div>
+    <div style="padding:32px;border-top:2px solid var(--border)">
+      <div class="comp-label">Restrained motion</div>
+      <p style="font-size:14px;line-height:1.7">Transitions are short and functional — translate + box-shadow on hover, nothing else. Motion communicates state, not delight.</p>
+    </div>
+  </div>
+</section>
+
+<!-- COLOR SCALES -->
+<section class="section">
+  <span class="ds-tag">02 — Color scales</span>
+  <h2 class="ds-heading" style="margin-bottom:8px">7 families · 11 stops</h2>
+  <p style="font-size:13px;color:var(--slate-600);margin-bottom:32px;font-family:var(--font-mono)">50 = lightest · 950 = darkest · all values in OKLCH</p>
+
+  <div class="stop-labels">
+    <div class="stop-label">50</div><div class="stop-label">100</div><div class="stop-label">200</div>
+    <div class="stop-label">300</div><div class="stop-label">400</div><div class="stop-label">500</div>
+    <div class="stop-label">600</div><div class="stop-label">700</div><div class="stop-label">800</div>
+    <div class="stop-label">900</div><div class="stop-label">950</div>
+  </div>
+
+  <div class="scale-grid">
+    <!-- Amber -->
+    <div class="scale-row">
+      <div class="scale-label">Amber</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--amber-50)"><span class="tip">amber-50<br>oklch(97% .027 56)</span></div>
+        <div class="swatch-cell" style="background:var(--amber-100)"><span class="tip">amber-100</span></div>
+        <div class="swatch-cell" style="background:var(--amber-200)"><span class="tip">amber-200</span></div>
+        <div class="swatch-cell" style="background:var(--amber-300)"><span class="tip">amber-300</span></div>
+        <div class="swatch-cell" style="background:var(--amber-400)"><span class="tip">amber-400</span></div>
+        <div class="swatch-cell" style="background:var(--amber-500)"><span class="tip">amber-500 ★ primary</span></div>
+        <div class="swatch-cell" style="background:var(--amber-600)"><span class="tip">amber-600</span></div>
+        <div class="swatch-cell" style="background:var(--amber-700)"><span class="tip">amber-700</span></div>
+        <div class="swatch-cell" style="background:var(--amber-800)"><span class="tip">amber-800</span></div>
+        <div class="swatch-cell" style="background:var(--amber-900)"><span class="tip">amber-900</span></div>
+        <div class="swatch-cell" style="background:var(--amber-950)"><span class="tip">amber-950</span></div>
+      </div>
+    </div>
+    <!-- Gold -->
+    <div class="scale-row">
+      <div class="scale-label">Gold</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--gold-50)"><span class="tip">gold-50</span></div>
+        <div class="swatch-cell" style="background:var(--gold-100)"><span class="tip">gold-100</span></div>
+        <div class="swatch-cell" style="background:var(--gold-200)"><span class="tip">gold-200</span></div>
+        <div class="swatch-cell" style="background:var(--gold-300)"><span class="tip">gold-300</span></div>
+        <div class="swatch-cell" style="background:var(--gold-400)"><span class="tip">gold-400 ★ accent</span></div>
+        <div class="swatch-cell" style="background:var(--gold-500)"><span class="tip">gold-500</span></div>
+        <div class="swatch-cell" style="background:var(--gold-600)"><span class="tip">gold-600</span></div>
+        <div class="swatch-cell" style="background:var(--gold-700)"><span class="tip">gold-700</span></div>
+        <div class="swatch-cell" style="background:var(--gold-800)"><span class="tip">gold-800</span></div>
+        <div class="swatch-cell" style="background:var(--gold-900)"><span class="tip">gold-900</span></div>
+        <div class="swatch-cell" style="background:var(--gold-950)"><span class="tip">gold-950</span></div>
+      </div>
+    </div>
+    <!-- Red -->
+    <div class="scale-row">
+      <div class="scale-label">Red</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--red-50)"><span class="tip">red-50</span></div>
+        <div class="swatch-cell" style="background:var(--red-100)"><span class="tip">red-100</span></div>
+        <div class="swatch-cell" style="background:var(--red-200)"><span class="tip">red-200</span></div>
+        <div class="swatch-cell" style="background:var(--red-300)"><span class="tip">red-300</span></div>
+        <div class="swatch-cell" style="background:var(--red-400)"><span class="tip">red-400</span></div>
+        <div class="swatch-cell" style="background:var(--red-500)"><span class="tip">red-500 ★ destructive<br>#f54b4b source</span></div>
+        <div class="swatch-cell" style="background:var(--red-600)"><span class="tip">red-600</span></div>
+        <div class="swatch-cell" style="background:var(--red-700)"><span class="tip">red-700</span></div>
+        <div class="swatch-cell" style="background:var(--red-800)"><span class="tip">red-800</span></div>
+        <div class="swatch-cell" style="background:var(--red-900)"><span class="tip">red-900</span></div>
+        <div class="swatch-cell" style="background:var(--red-950)"><span class="tip">red-950</span></div>
+      </div>
+    </div>
+    <!-- Navy -->
+    <div class="scale-row">
+      <div class="scale-label">Navy</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--navy-50)"><span class="tip">navy-50</span></div>
+        <div class="swatch-cell" style="background:var(--navy-100)"><span class="tip">navy-100</span></div>
+        <div class="swatch-cell" style="background:var(--navy-200)"><span class="tip">navy-200</span></div>
+        <div class="swatch-cell" style="background:var(--navy-300)"><span class="tip">navy-300</span></div>
+        <div class="swatch-cell" style="background:var(--navy-400)"><span class="tip">navy-400</span></div>
+        <div class="swatch-cell" style="background:var(--navy-500)"><span class="tip">navy-500</span></div>
+        <div class="swatch-cell" style="background:var(--navy-600)"><span class="tip">navy-600</span></div>
+        <div class="swatch-cell" style="background:var(--navy-700)"><span class="tip">navy-700 ★ secondary</span></div>
+        <div class="swatch-cell" style="background:var(--navy-800)"><span class="tip">navy-800</span></div>
+        <div class="swatch-cell" style="background:var(--navy-900)"><span class="tip">navy-900</span></div>
+        <div class="swatch-cell" style="background:var(--navy-950)"><span class="tip">navy-950 ★ foreground/border</span></div>
+      </div>
+    </div>
+    <!-- Slate -->
+    <div class="scale-row">
+      <div class="scale-label">Slate</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--slate-50)"><span class="tip">slate-50</span></div>
+        <div class="swatch-cell" style="background:var(--slate-100)"><span class="tip">slate-100</span></div>
+        <div class="swatch-cell" style="background:var(--slate-200)"><span class="tip">slate-200</span></div>
+        <div class="swatch-cell" style="background:var(--slate-300)"><span class="tip">slate-300</span></div>
+        <div class="swatch-cell" style="background:var(--slate-400)"><span class="tip">slate-400</span></div>
+        <div class="swatch-cell" style="background:var(--slate-500)"><span class="tip">slate-500</span></div>
+        <div class="swatch-cell" style="background:var(--slate-600)"><span class="tip">slate-600</span></div>
+        <div class="swatch-cell" style="background:var(--slate-700)"><span class="tip">slate-700 ★ muted-fg</span></div>
+        <div class="swatch-cell" style="background:var(--slate-800)"><span class="tip">slate-800</span></div>
+        <div class="swatch-cell" style="background:var(--slate-900)"><span class="tip">slate-900</span></div>
+        <div class="swatch-cell" style="background:var(--slate-950)"><span class="tip">slate-950</span></div>
+      </div>
+    </div>
+    <!-- Mist -->
+    <div class="scale-row">
+      <div class="scale-label">Mist</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--mist-50)"><span class="tip">mist-50</span></div>
+        <div class="swatch-cell" style="background:var(--mist-100)"><span class="tip">mist-100</span></div>
+        <div class="swatch-cell" style="background:var(--mist-200)"><span class="tip">mist-200</span></div>
+        <div class="swatch-cell" style="background:var(--mist-300)"><span class="tip">mist-300</span></div>
+        <div class="swatch-cell" style="background:var(--mist-400)"><span class="tip">mist-400</span></div>
+        <div class="swatch-cell" style="background:var(--mist-500)"><span class="tip">mist-500</span></div>
+        <div class="swatch-cell" style="background:var(--mist-600)"><span class="tip">mist-600</span></div>
+        <div class="swatch-cell" style="background:var(--mist-700)"><span class="tip">mist-700</span></div>
+        <div class="swatch-cell" style="background:var(--mist-800)"><span class="tip">mist-800</span></div>
+        <div class="swatch-cell" style="background:var(--mist-900)"><span class="tip">mist-900</span></div>
+        <div class="swatch-cell" style="background:var(--mist-950)"><span class="tip">mist-950</span></div>
+      </div>
+    </div>
+    <!-- Cream -->
+    <div class="scale-row">
+      <div class="scale-label">Cream</div>
+      <div class="scale-swatches">
+        <div class="swatch-cell" style="background:var(--cream-50)"><span class="tip">cream-50</span></div>
+        <div class="swatch-cell" style="background:var(--cream-100)"><span class="tip">cream-100</span></div>
+        <div class="swatch-cell" style="background:var(--cream-200)"><span class="tip">cream-200</span></div>
+        <div class="swatch-cell" style="background:var(--cream-300)"><span class="tip">cream-300 ★ background</span></div>
+        <div class="swatch-cell" style="background:var(--cream-400)"><span class="tip">cream-400</span></div>
+        <div class="swatch-cell" style="background:var(--cream-500)"><span class="tip">cream-500</span></div>
+        <div class="swatch-cell" style="background:var(--cream-600)"><span class="tip">cream-600</span></div>
+        <div class="swatch-cell" style="background:var(--cream-700)"><span class="tip">cream-700</span></div>
+        <div class="swatch-cell" style="background:var(--cream-800)"><span class="tip">cream-800</span></div>
+        <div class="swatch-cell" style="background:var(--cream-900)"><span class="tip">cream-900</span></div>
+        <div class="swatch-cell" style="background:var(--cream-950)"><span class="tip">cream-950</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- P3 BOOST -->
+<section class="section">
+  <span class="ds-tag">02b — P3 display-p3 boosts</span>
+  <h2 class="ds-heading" style="margin-bottom:8px">Wider gamut, where it counts</h2>
+  <p style="font-size:13px;color:var(--slate-600);margin-bottom:24px;font-family:var(--font-mono)">Use @supports (color: color(display-p3 0 0 0)) to conditionally apply</p>
+  <div class="p3-strip">
+    <div class="p3-cell" style="background:var(--amber-500)">
+      <div style="height:32px;background:color(display-p3 0.88 0.48 0.10);border:1px solid rgba(0,0,0,.2)"></div>
+      <div class="p3-label" style="color:var(--amber-900)">amber-500 P3</div>
+    </div>
+    <div class="p3-cell" style="background:var(--gold-400)">
+      <div style="height:32px;background:color(display-p3 0.96 0.64 0.12);border:1px solid rgba(0,0,0,.2)"></div>
+      <div class="p3-label" style="color:var(--gold-900)">gold-400 P3</div>
+    </div>
+    <div class="p3-cell" style="background:var(--red-500)">
+      <div style="height:32px;background:color(display-p3 0.92 0.30 0.28);border:1px solid rgba(0,0,0,.2)"></div>
+      <div class="p3-label" style="color:var(--cream-100)">red-500 P3</div>
+    </div>
+    <div class="p3-cell" style="background:var(--navy-700)">
+      <div style="height:32px;background:color(display-p3 0.22 0.29 0.45);border:1px solid rgba(0,0,0,.15)"></div>
+      <div class="p3-label" style="color:var(--cream-200)">navy-700 P3</div>
+    </div>
+    <div class="p3-cell" style="background:var(--cream-300)">
+      <div style="height:32px;background:color(display-p3 0.93 0.92 0.88);border:1px solid rgba(0,0,0,.15)"></div>
+      <div class="p3-label" style="color:var(--cream-800)">cream-300 P3</div>
+    </div>
+  </div>
+</section>
+
+<!-- SEMANTIC TOKENS -->
+<section class="section">
+  <span class="ds-tag">03 — Semantic tokens</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">shadcn-compatible mapping</h2>
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Value (OKLCH)</th>
+        <th>Scale ref</th>
+        <th>Usage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="tok-swatch" style="background:var(--background)"></span><span class="tok-name">--background</span></td><td class="tok-val">oklch(92% .014 87)</td><td class="tok-val">cream-300</td><td>Page background</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--foreground)"></span><span class="tok-name">--foreground</span></td><td class="tok-val">oklch(14% .035 258)</td><td class="tok-val">navy-950</td><td>Body text, borders</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--primary)"></span><span class="tok-name">--primary</span></td><td class="tok-val">oklch(60% .180 56)</td><td class="tok-val">amber-500</td><td>CTA buttons, active states</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--primary-fg);border-color:var(--cream-500)"></span><span class="tok-name">--primary-foreground</span></td><td class="tok-val">oklch(14% .035 258)</td><td class="tok-val">navy-950</td><td>Text on primary</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--secondary)"></span><span class="tok-name">--secondary</span></td><td class="tok-val">oklch(40% .085 258)</td><td class="tok-val">navy-700</td><td>Secondary buttons, nav bg</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--secondary-fg)"></span><span class="tok-name">--secondary-foreground</span></td><td class="tok-val">oklch(94% .009 87)</td><td class="tok-val">cream-200</td><td>Text on secondary</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--accent)"></span><span class="tok-name">--accent</span></td><td class="tok-val">oklch(70% .145 65)</td><td class="tok-val">gold-400</td><td>Highlights, hover fills</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--destructive)"></span><span class="tok-name">--destructive</span></td><td class="tok-val">oklch(60% .220 25)</td><td class="tok-val">red-500</td><td>Delete, error, alert</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--muted-bg)"></span><span class="tok-name">--muted</span></td><td class="tok-val">oklch(88% .030 256)</td><td class="tok-val">slate-200</td><td>Disabled bg, subtle fills</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--muted-fg)"></span><span class="tok-name">--muted-foreground</span></td><td class="tok-val">oklch(40% .064 256)</td><td class="tok-val">slate-700</td><td>Captions, secondary text</td></tr>
+      <tr><td><span class="tok-swatch" style="background:var(--border)"></span><span class="tok-name">--border</span></td><td class="tok-val">oklch(14% .035 258)</td><td class="tok-val">navy-950</td><td>All borders (2px solid)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- TYPOGRAPHY -->
+<section class="section">
+  <span class="ds-tag">04 — Typography</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">Type system</h2>
+  <div class="type-grid">
+    <div class="type-cell">
+      <div class="type-meta">Syne 800 · Display · 64px · −.04em</div>
+      <div class="type-sample" style="font-family:var(--font-display);font-weight:800;font-size:64px;letter-spacing:-.04em;line-height:.95">Route<br>Plan</div>
+    </div>
+    <div class="type-cell">
+      <div class="type-meta">Instrument Serif · Italic · 56px</div>
+      <div class="type-sample" style="font-family:var(--font-serif);font-style:italic;font-size:56px;line-height:.95;color:var(--amber-500)">Explore<br>your city</div>
+    </div>
+    <div class="type-cell">
+      <div class="type-meta">Syne 700 · Heading · 28px · −.02em</div>
+      <div class="type-sample" style="font-family:var(--font-display);font-weight:700;font-size:28px;letter-spacing:-.02em">Semester pass benefits</div>
+    </div>
+    <div class="type-cell">
+      <div class="type-meta">Syne 400 · Body · 15px · 1.65lh</div>
+      <div class="type-sample" style="font-size:15px;line-height:1.65">Valid on all Skyss routes within zone 1–3. Show your student ID or app QR code when boarding. Transfers included at no extra cost during the validity period.</div>
+    </div>
+    <div class="type-cell">
+      <div class="type-meta">DM Mono 500 · Label · 11px · .1em tracking</div>
+      <div class="type-sample" style="font-family:var(--font-mono);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase">Departure · Platform 3 · Zone 1</div>
+    </div>
+    <div class="type-cell">
+      <div class="type-meta">DM Mono 400 · Code / value · 13px</div>
+      <div class="type-sample" style="font-family:var(--font-mono);font-size:13px;line-height:1.9;color:var(--navy-700)">oklch(60% 0.180 56)<br>--primary: var(--amber-500)<br>border: 2px solid var(--border)</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section class="section">
+  <span class="ds-tag">05 — Components</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">UI patterns</h2>
+
+  <!-- Nav -->
+  <div class="comp-label" style="margin-bottom:8px">Navigation</div>
+  <nav class="nav-demo" style="margin-bottom:32px">
+    <div class="nav-logo">Skyss</div>
+    <div class="nav-links">
+      <a class="nav-link active">Routes</a>
+      <a class="nav-link">Tickets</a>
+      <a class="nav-link">Student</a>
+      <a class="nav-link">Journey planner</a>
+    </div>
+    <button class="nav-cta">Buy pass</button>
+  </nav>
+
+  <div class="comp-grid">
+    <!-- Buttons -->
+    <div class="comp-cell">
+      <div class="comp-label">Buttons</div>
+      <div class="btn-row" style="margin-bottom:14px">
+        <button class="btn btn-primary">Buy ticket</button>
+        <button class="btn btn-secondary">Learn more</button>
+        <button class="btn btn-ghost">Cancel</button>
+      </div>
+      <div class="btn-row" style="margin-bottom:14px">
+        <button class="btn btn-destructive">Delete</button>
+        <button class="btn btn-accent">Highlight</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-primary btn-lg">Large</button>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="comp-cell">
+      <div class="comp-label">Badges</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <span class="badge badge-amber">Student</span>
+        <span class="badge badge-navy">Zone 1</span>
+        <span class="badge badge-red">Cancelled</span>
+        <span class="badge badge-gold">Limited</span>
+        <span class="badge badge-slate">Scheduled</span>
+      </div>
+      <div class="comp-label" style="margin-top:20px">Cards</div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Route 5B</span>
+          <span class="badge badge-amber">On time</span>
+        </div>
+        <div class="card-body">Bergen sentrum → Laksevåg via Fyllingsdalen. Next departure in 4 min from Platform 2.</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="comp-cell">
+      <div class="comp-label">Form fields</div>
+      <label class="input-label">From</label>
+      <input class="input-field" placeholder="Enter stop or address" />
+      <label class="input-label">To</label>
+      <input class="input-field" placeholder="Enter destination" />
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px">Plan journey</button>
+    </div>
+
+    <!-- Alerts -->
+    <div class="comp-cell">
+      <div class="comp-label">Alerts</div>
+      <div class="alert alert-info">
+        <span class="alert-icon">ℹ</span>
+        <div class="alert-body">
+          <div class="alert-title">Service update</div>
+          Route 12 is running with delays due to roadworks on Nygårdsgaten.
+        </div>
+      </div>
+      <div class="alert alert-warn">
+        <span class="alert-icon">△</span>
+        <div class="alert-body">
+          <div class="alert-title">Ticket expiring</div>
+          Your semester pass expires in 3 days. Renew before it lapses.
+        </div>
+      </div>
+      <div class="alert alert-danger">
+        <span class="alert-icon">✕</span>
+        <div class="alert-body">
+          <div class="alert-title">Route suspended</div>
+          Route 6 is suspended until 18:00 today due to an incident.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPACING -->
+<section class="section">
+  <span class="ds-tag">06 — Spacing</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">4px base grid</h2>
+  <div>
+    <div class="space-row"><span class="space-token">space-1</span><div class="space-bar-wrap"><div class="space-bar" style="width:4px"></div></div><span class="space-px">4px</span></div>
+    <div class="space-row"><span class="space-token">space-2</span><div class="space-bar-wrap"><div class="space-bar" style="width:8px"></div></div><span class="space-px">8px</span></div>
+    <div class="space-row"><span class="space-token">space-3</span><div class="space-bar-wrap"><div class="space-bar" style="width:12px"></div></div><span class="space-px">12px</span></div>
+    <div class="space-row"><span class="space-token">space-4</span><div class="space-bar-wrap"><div class="space-bar" style="width:16px"></div></div><span class="space-px">16px</span></div>
+    <div class="space-row"><span class="space-token">space-5</span><div class="space-bar-wrap"><div class="space-bar" style="width:20px"></div></div><span class="space-px">20px</span></div>
+    <div class="space-row"><span class="space-token">space-6</span><div class="space-bar-wrap"><div class="space-bar" style="width:24px"></div></div><span class="space-px">24px</span></div>
+    <div class="space-row"><span class="space-token">space-8</span><div class="space-bar-wrap"><div class="space-bar" style="width:32px"></div></div><span class="space-px">32px</span></div>
+    <div class="space-row"><span class="space-token">space-10</span><div class="space-bar-wrap"><div class="space-bar" style="width:40px"></div></div><span class="space-px">40px</span></div>
+    <div class="space-row"><span class="space-token">space-12</span><div class="space-bar-wrap"><div class="space-bar" style="width:48px"></div></div><span class="space-px">48px</span></div>
+    <div class="space-row"><span class="space-token">space-16</span><div class="space-bar-wrap"><div class="space-bar" style="width:64px"></div></div><span class="space-px">64px</span></div>
+    <div class="space-row"><span class="space-token">space-20</span><div class="space-bar-wrap"><div class="space-bar" style="width:80px"></div></div><span class="space-px">80px</span></div>
+  </div>
+</section>
+
+<!-- SHADOWS -->
+<section class="section">
+  <span class="ds-tag">07 — Elevation (offset shadows)</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">No blur — hard offset only</h2>
+  <div class="shadow-row">
+    <div class="shadow-card" style="box-shadow:2px 2px 0 var(--border)">sm<br>2px 2px</div>
+    <div class="shadow-card" style="box-shadow:4px 4px 0 var(--border)">md<br>4px 4px</div>
+    <div class="shadow-card" style="box-shadow:6px 6px 0 var(--border)">lg<br>6px 6px</div>
+    <div class="shadow-card" style="box-shadow:8px 8px 0 var(--border)">xl<br>8px 8px</div>
+    <div class="shadow-card" style="box-shadow:4px 4px 0 var(--amber-500)">accent<br>amber</div>
+    <div class="shadow-card" style="box-shadow:4px 4px 0 var(--red-500)">danger<br>red</div>
+  </div>
+</section>
+
+<!-- MOTION -->
+<section class="section">
+  <span class="ds-tag">08 — Motion</span>
+  <h2 class="ds-heading" style="margin-bottom:32px">Transitions</h2>
+  <table class="motion-table">
+    <thead>
+      <tr><th>Token</th><th>Value</th><th>Use case</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>--ease-out</td><td>cubic-bezier(0, 0, 0.2, 1)</td><td>Elements entering the screen</td></tr>
+      <tr><td>--ease-in</td><td>cubic-bezier(0.4, 0, 1, 1)</td><td>Elements leaving the screen</td></tr>
+      <tr><td>--ease-inout</td><td>cubic-bezier(0.4, 0, 0.2, 1)</td><td>State changes, toggles</td></tr>
+      <tr><td>--duration-fast</td><td>80ms</td><td>Hover, active press</td></tr>
+      <tr><td>--duration-base</td><td>150ms</td><td>Expand, collapse, focus</td></tr>
+      <tr><td>--duration-slow</td><td>300ms</td><td>Page transitions, overlays</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CSS OUTPUT -->
+<section class="section">
+  <span class="ds-tag">09 — CSS output</span>
+  <h2 class="ds-heading" style="margin-bottom:24px">Copy → globals.css</h2>
+  <div class="code">@layer base {
+  :root {
+    /* ── Amber ── */
+    --amber-50: oklch(97% 0.027 56);   --amber-100: oklch(94% 0.045 56);
+    --amber-200: oklch(88% 0.072 56);  --amber-300: oklch(80% 0.117 56);
+    --amber-400: oklch(70% 0.153 56);  --amber-500: oklch(60% 0.180 56);
+    --amber-600: oklch(50% 0.171 56);  --amber-700: oklch(40% 0.153 56);
+    --amber-800: oklch(30% 0.126 56);  --amber-900: oklch(20% 0.090 56);
+    --amber-950: oklch(14% 0.063 56);
+
+    /* ── Gold ── */
+    --gold-50: oklch(97% 0.026 65);    --gold-100: oklch(94% 0.043 65);
+    --gold-200: oklch(88% 0.068 65);   --gold-300: oklch(80% 0.111 65);
+    --gold-400: oklch(70% 0.145 65);   --gold-500: oklch(60% 0.170 65);
+    --gold-600: oklch(50% 0.162 65);   --gold-700: oklch(40% 0.145 65);
+    --gold-800: oklch(30% 0.119 65);   --gold-900: oklch(20% 0.085 65);
+    --gold-950: oklch(14% 0.059 65);
+
+    /* ── Red ── */
+    --red-50: oklch(97% 0.033 25);     --red-100: oklch(94% 0.055 25);
+    --red-200: oklch(88% 0.088 25);    --red-300: oklch(80% 0.143 25);
+    --red-400: oklch(70% 0.187 25);    --red-500: oklch(60% 0.220 25);
+    --red-600: oklch(50% 0.209 25);    --red-700: oklch(40% 0.187 25);
+    --red-800: oklch(30% 0.154 25);    --red-900: oklch(20% 0.110 25);
+    --red-950: oklch(14% 0.077 25);
+
+    /* ── Navy ── */
+    --navy-50: oklch(97% 0.015 258);   --navy-100: oklch(94% 0.025 258);
+    --navy-200: oklch(88% 0.040 258);  --navy-300: oklch(80% 0.065 258);
+    --navy-400: oklch(70% 0.085 258);  --navy-500: oklch(60% 0.100 258);
+    --navy-600: oklch(50% 0.095 258);  --navy-700: oklch(40% 0.085 258);
+    --navy-800: oklch(30% 0.070 258);  --navy-900: oklch(20% 0.050 258);
+    --navy-950: oklch(14% 0.035 258);
+
+    /* ── Slate ── */
+    --slate-50: oklch(97% 0.011 256);  --slate-100: oklch(94% 0.019 256);
+    --slate-200: oklch(88% 0.030 256); --slate-300: oklch(80% 0.049 256);
+    --slate-400: oklch(70% 0.064 256); --slate-500: oklch(60% 0.075 256);
+    --slate-600: oklch(50% 0.071 256); --slate-700: oklch(40% 0.064 256);
+    --slate-800: oklch(30% 0.052 256); --slate-900: oklch(20% 0.037 256);
+    --slate-950: oklch(14% 0.026 256);
+
+    /* ── Mist ── */
+    --mist-50: oklch(97% 0.008 258);   --mist-100: oklch(94% 0.014 258);
+    --mist-200: oklch(88% 0.022 258);  --mist-300: oklch(80% 0.036 258);
+    --mist-400: oklch(70% 0.047 258);  --mist-500: oklch(60% 0.055 258);
+    --mist-600: oklch(50% 0.052 258);  --mist-700: oklch(40% 0.047 258);
+    --mist-800: oklch(30% 0.038 258);  --mist-900: oklch(20% 0.028 258);
+    --mist-950: oklch(14% 0.019 258);
+
+    /* ── Cream ── */
+    --cream-50: oklch(99% 0.003 87);   --cream-100: oklch(97% 0.005 87);
+    --cream-200: oklch(94% 0.009 87);  --cream-300: oklch(92% 0.014 87);
+    --cream-400: oklch(88% 0.019 87);  --cream-500: oklch(80% 0.022 87);
+    --cream-600: oklch(70% 0.021 87);  --cream-700: oklch(55% 0.019 87);
+    --cream-800: oklch(40% 0.015 87);  --cream-900: oklch(25% 0.011 87);
+    --cream-950: oklch(15% 0.008 87);
+
+    /* ── Semantic tokens ── */
+    --background:            var(--cream-300);
+    --foreground:            var(--navy-950);
+    --primary:               var(--amber-500);
+    --primary-foreground:    var(--navy-950);
+    --secondary:             var(--navy-700);
+    --secondary-foreground:  var(--cream-200);
+    --accent:                var(--gold-400);
+    --accent-foreground:     var(--navy-950);
+    --destructive:           var(--red-500);
+    --destructive-foreground:var(--cream-100);
+    --muted:                 var(--slate-200);
+    --muted-foreground:      var(--slate-700);
+    --card:                  var(--cream-100);
+    --card-foreground:       var(--navy-950);
+    --popover:               var(--cream-100);
+    --popover-foreground:    var(--navy-950);
+    --border:                var(--navy-950);
+    --input:                 var(--navy-950);
+    --ring:                  var(--amber-500);
+    --radius:                0rem;
+
+    /* ── Motion ── */
+    --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+    --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+    --ease-inout:     cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast:  80ms;
+    --duration-base:  150ms;
+    --duration-slow:  300ms;
+  }
+}
+
+/* P3 boost for supported displays */
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    --amber-500: color(display-p3 0.88 0.48 0.10);
+    --gold-400:  color(display-p3 0.96 0.64 0.12);
+    --red-500:   color(display-p3 0.92 0.30 0.28);
+    --navy-700:  color(display-p3 0.22 0.29 0.45);
+  }
+}</div>
+</section>
+
+</div>
+</body>
+</html>

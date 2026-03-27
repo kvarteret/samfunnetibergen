@@ -3,139 +3,179 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-    --border-radius: 5px;
-    --box-shadow-x: 4px;
-    --box-shadow-y: 4px;
-    --reverse-box-shadow-x: -4px;
-    --reverse-box-shadow-y: -4px;
+@layer base {
+  :root {
+    /* ── Amber ── */
+    --amber-50: oklch(97% 0.027 56);
+    --amber-100: oklch(94% 0.045 56);
+    --amber-200: oklch(88% 0.072 56);
+    --amber-300: oklch(80% 0.117 56);
+    --amber-400: oklch(70% 0.153 56);
+    --amber-500: oklch(60% 0.180 56);
+    --amber-600: oklch(50% 0.171 56);
+    --amber-700: oklch(40% 0.153 56);
+    --amber-800: oklch(30% 0.126 56);
+    --amber-900: oklch(20% 0.090 56);
+    --amber-950: oklch(14% 0.063 56);
 
-    --heading-font-weight: 700;
-    --base-font-weight: 500;
+    /* ── Gold ── */
+    --gold-50: oklch(97% 0.026 65);
+    --gold-100: oklch(94% 0.043 65);
+    --gold-200: oklch(88% 0.068 65);
+    --gold-300: oklch(80% 0.111 65);
+    --gold-400: oklch(70% 0.145 65);
+    --gold-500: oklch(60% 0.170 65);
+    --gold-600: oklch(50% 0.162 65);
+    --gold-700: oklch(40% 0.145 65);
+    --gold-800: oklch(30% 0.119 65);
+    --gold-900: oklch(20% 0.085 65);
+    --gold-950: oklch(14% 0.059 65);
 
-    --background: oklch(93.46% 0.0304 254.32);
-    --secondary-background: oklch(100% 0 0);
-    --foreground: oklch(0% 0 0);
-    --main-foreground: oklch(0% 0 0);
+    /* ── Red ── */
+    --red-50: oklch(97% 0.033 25);
+    --red-100: oklch(94% 0.055 25);
+    --red-200: oklch(88% 0.088 25);
+    --red-300: oklch(80% 0.143 25);
+    --red-400: oklch(70% 0.187 25);
+    --red-500: oklch(60% 0.220 25);
+    --red-600: oklch(50% 0.209 25);
+    --red-700: oklch(40% 0.187 25);
+    --red-800: oklch(30% 0.154 25);
+    --red-900: oklch(20% 0.110 25);
+    --red-950: oklch(14% 0.077 25);
 
-    --main: oklch(67.47% 0.1725 259.61);
-    --border: oklch(0% 0 0);
-    --ring: oklch(0% 0 0);
-    --overlay: oklch(0% 0 0 / 0.8);
+    /* ── Navy ── */
+    --navy-50: oklch(97% 0.015 258);
+    --navy-100: oklch(94% 0.025 258);
+    --navy-200: oklch(88% 0.040 258);
+    --navy-300: oklch(80% 0.065 258);
+    --navy-400: oklch(70% 0.085 258);
+    --navy-500: oklch(60% 0.100 258);
+    --navy-600: oklch(50% 0.095 258);
+    --navy-700: oklch(40% 0.085 258);
+    --navy-800: oklch(30% 0.070 258);
+    --navy-900: oklch(20% 0.050 258);
+    --navy-950: oklch(14% 0.035 258);
 
-    --shadow: var(--box-shadow-x) var(--box-shadow-y) 0 0 var(--border);
+    /* ── Cream ── */
+    --cream-50: oklch(99% 0.003 87);
+    --cream-100: oklch(97% 0.005 87);
+    --cream-200: oklch(94% 0.009 87);
+    --cream-300: oklch(92% 0.014 87);
+    --cream-400: oklch(88% 0.019 87);
+    --cream-500: oklch(80% 0.022 87);
+    --cream-600: oklch(70% 0.021 87);
+    --cream-700: oklch(55% 0.019 87);
+    --cream-800: oklch(40% 0.015 87);
+    --cream-900: oklch(25% 0.011 87);
+    --cream-950: oklch(15% 0.008 87);
 
-    --chart-1: oklch(67.47% 0.1726 259.49);
-    --chart-2: oklch(67.28% 0.2147 24.22);
-    --chart-3: oklch(86.03% 0.176 92.36);
-    --chart-4: oklch(79.76% 0.2044 153.08);
-    --chart-5: oklch(66.34% 0.1806 277.2);
-}
+    /* ── Semantic tokens ── */
+    --background: var(--cream-300);
+    --foreground: var(--navy-950);
+    --primary: var(--amber-500);
+    --primary-foreground: var(--navy-950);
+    --secondary: var(--navy-700);
+    --secondary-foreground: var(--cream-200);
+    --accent: var(--gold-400);
+    --accent-foreground: var(--navy-950);
+    --destructive: var(--red-500);
+    --destructive-foreground: var(--cream-100);
+    --muted: var(--cream-400);
+    --muted-foreground: var(--navy-600);
+    --card: var(--cream-100);
+    --card-foreground: var(--navy-950);
+    --popover: var(--cream-100);
+    --popover-foreground: var(--navy-950);
+    --border: var(--navy-950);
+    --input: var(--navy-950);
+    --ring: var(--amber-500);
+    --radius: 0rem;
 
-.dark {
-    --background: oklch(29.12% 0.0633 270.86);
-    --secondary-background: oklch(23.93% 0 0);
-    --foreground: oklch(92.49% 0 0);
-    --main-foreground: oklch(0% 0 0);
+    /* ── Shadow ── */
+    --shadow: 4px 4px 0 0 var(--border);
 
-    --border: oklch(0% 0 0);
-    --ring: oklch(100% 0 0);
-
-    --shadow: var(--box-shadow-x) var(--box-shadow-y) 0 0 var(--border);
+    /* ── Motion ── */
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 80ms;
+    --duration-base: 150ms;
+    --duration-slow: 300ms;
+  }
 }
 
 @theme inline {
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+  --font-sans:  var(--font-syne);
+  --font-mono:  var(--font-dm-mono);
+  --font-serif: var(--font-instrument-serif);
 
-    --color-main: var(--main);
-    --color-background: var(--background);
-    --color-secondary-background: var(--secondary-background);
-    --color-foreground: var(--foreground);
-    --color-main-foreground: var(--main-foreground);
-    --color-border: var(--border);
-    --color-overlay: var(--overlay);
-    --color-ring: var(--ring);
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
 
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
+  --shadow-shadow: var(--shadow);
 
-    --spacing-boxShadowX: var(--box-shadow-x);
-    --spacing-boxShadowY: var(--box-shadow-y);
-    --spacing-reverseBoxShadowX: var(--reverse-box-shadow-x);
-    --spacing-reverseBoxShadowY: var(--reverse-box-shadow-y);
+  --radius-base: var(--radius);
 
-    --radius-base: var(--border-radius);
-
-    --shadow-shadow: var(--shadow);
-
-    --font-weight-base: var(--base-font-weight);
-    --font-weight-heading: var(--heading-font-weight);
+  --font-weight-base:    500;
+  --font-weight-heading: 800;
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
-
-    html {
-        @apply bg-background font-sans;
-    }
-
-    body {
-        @apply bg-background text-foreground font-sans font-base;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        @apply font-heading;
-    }
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply bg-background font-sans;
+  }
+  body {
+    @apply bg-background text-foreground font-sans font-base;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }
 
-body,
-.scrollbar {
-    --sb-track-color: #ffffff;
-    --sb-thumb-color: #000000;
+@utility btn-brutal {
+  border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 var(--color-border);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--color-border);
+  }
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--color-border);
+  }
 }
 
-html.dark body,
-html.dark .scrollbar {
-    --sb-track-color: #1f1f1f;
-    --sb-thumb-color: #e6e6e6;
-}
-
-.scrollbar::-webkit-scrollbar {
-    width: 16px;
-}
-
-body::-webkit-scrollbar {
-    width: 20px;
-}
-
-body::-webkit-scrollbar-track,
-.scrollbar::-webkit-scrollbar-track {
-    background: var(--sb-track-color);
-}
-
-body::-webkit-scrollbar-track {
-    border-left: 4px solid #000;
-}
-
-body::-webkit-scrollbar-thumb,
-.scrollbar::-webkit-scrollbar-thumb {
-    background: var(--sb-thumb-color);
-}
-
-@supports not selector(::-webkit-scrollbar) {
-    body,
-    .scrollbar {
-        scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
-    }
+/* P3 boost for supported displays */
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    --amber-500: color(display-p3 0.88 0.48 0.10);
+    --gold-400: color(display-p3 0.96 0.64 0.12);
+    --red-500: color(display-p3 0.92 0.30 0.28);
+    --navy-700: color(display-p3 0.22 0.29 0.45);
+  }
 }

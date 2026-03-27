@@ -1,0 +1,235 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, sans-serif); }
+  .wrap { padding: 1.5rem 0; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-secondary); margin: 0 0 10px; }
+  .swatches { display: flex; gap: 0; border: 2px solid var(--color-text-primary); border-radius: 0; overflow: hidden; margin-bottom: 28px; }
+  .swatch { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 10px 8px 10px; min-height: 110px; border-right: 2px solid var(--color-text-primary); cursor: pointer; transition: transform .12s; position: relative; }
+  .swatch:last-child { border-right: none; }
+  .swatch:hover { transform: scale(1.04); z-index: 2; }
+  .swatch-name { font-size: 11px; font-weight: 500; line-height: 1.3; }
+  .swatch-val { font-size: 10px; opacity: .8; margin-top: 2px; line-height: 1.4; }
+  .rel-row { display: flex; gap: 0; border: 2px solid var(--color-text-primary); overflow: hidden; margin-bottom: 28px; }
+  .rel-cell { flex: 1; padding: 12px 10px; border-right: 2px solid var(--color-text-primary); }
+  .rel-cell:last-child { border-right: none; }
+  .rel-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .rel-body { font-size: 13px; line-height: 1.5; color: var(--color-text-primary); }
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 2px solid var(--color-text-primary); margin-bottom: 28px; }
+  .token-row { display: flex; align-items: stretch; border-bottom: 2px solid var(--color-text-primary); }
+  .token-row:last-child { border-bottom: none; }
+  .token-swatch { width: 36px; min-height: 36px; flex-shrink: 0; border-right: 2px solid var(--color-text-primary); }
+  .token-info { padding: 7px 10px; flex: 1; }
+  .token-name { font-size: 11px; font-weight: 500; color: var(--color-text-primary); font-family: var(--font-mono, monospace); }
+  .token-desc { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+  .code-block { background: var(--color-background-secondary); border: 2px solid var(--color-text-primary); padding: 14px 16px; font-size: 11px; font-family: var(--font-mono, monospace); line-height: 1.8; color: var(--color-text-primary); white-space: pre; overflow-x: auto; margin-bottom: 28px; }
+  .divider-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-secondary); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .divider-label::after { content: ''; flex: 1; height: 1px; background: var(--color-border-tertiary); }
+  .harmony-row { display: flex; gap: 0; border: 2px solid var(--color-text-primary); overflow: hidden; margin-bottom: 28px; }
+  .harmony-cell { flex: 1; padding: 0; border-right: 2px solid var(--color-text-primary); }
+  .harmony-cell:last-child { border-right: none; }
+  .harmony-top { height: 52px; }
+  .harmony-bot { height: 52px; border-top: 2px solid var(--color-text-primary); }
+  .harmony-label { padding: 8px 10px; font-size: 10px; color: var(--color-text-secondary); font-weight: 500; }
+</style>
+<div class="wrap">
+
+<div class="section-label">Extracted palette — source colors</div>
+<div class="swatches">
+  <div class="swatch" style="background:#EDE9DC" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#2d2d2d">Cream</span>
+    <span class="swatch-val" style="color:#3d3d3d">oklch(92% .018 87)<br>#EDE9DC</span>
+  </div>
+  <div class="swatch" style="background:#1A1A1A" onclick="this.style.outline='3px solid #f54b4b'">
+    <span class="swatch-name" style="color:#e0e0e0">Ink</span>
+    <span class="swatch-val" style="color:#bbb">oklch(18% .006 240)<br>#1A1A1A</span>
+  </div>
+  <div class="swatch" style="background:#E07818" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#1a0e00">Amber</span>
+    <span class="swatch-val" style="color:#1a0e00">oklch(65% .175 56)<br>#E07818</span>
+  </div>
+  <div class="swatch" style="background:#F5A020" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#1a0e00">Gold</span>
+    <span class="swatch-val" style="color:#1a0e00">oklch(74% .17 65)<br>#F5A020</span>
+  </div>
+  <div class="swatch" style="background:#3A4A72" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#d0d8f0">Navy</span>
+    <span class="swatch-val" style="color:#bbc4de">oklch(38% .095 258)<br>#3A4A72</span>
+  </div>
+  <div class="swatch" style="background:#5C6A8E" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#e8ecf6">Slate</span>
+    <span class="swatch-val" style="color:#cdd3e6">oklch(50% .075 256)<br>#5C6A8E</span>
+  </div>
+  <div class="swatch" style="background:#8593B5" onclick="this.style.outline='3px solid #000'">
+    <span class="swatch-name" style="color:#101830">Mist</span>
+    <span class="swatch-val" style="color:#101830">oklch(63% .06 258)<br>#8593B5</span>
+  </div>
+</div>
+
+<div class="divider-label">Relationship: your red #f54b4b</div>
+
+<div class="harmony-row">
+  <div class="harmony-cell">
+    <div class="harmony-top" style="background:#f54b4b"></div>
+    <div class="harmony-label">Your red<br>oklch(60% .22 25)</div>
+  </div>
+  <div class="harmony-cell">
+    <div class="harmony-top" style="background:#E07818"></div>
+    <div class="harmony-label">Amber<br>oklch(65% .175 56)</div>
+  </div>
+  <div class="harmony-cell">
+    <div class="harmony-top" style="background:#F5A020"></div>
+    <div class="harmony-label">Gold<br>oklch(74% .17 65)</div>
+  </div>
+  <div class="harmony-cell">
+    <div class="harmony-top" style="background:#3A4A72"></div>
+    <div class="harmony-label">Navy<br>oklch(38% .095 258)</div>
+  </div>
+</div>
+
+<div class="rel-row">
+  <div class="rel-cell">
+    <div class="rel-title">Red → Amber / Gold</div>
+    <div class="rel-body">Analogous. All three sit between hue 25–65° in OKLCH — a tight warm arc. Chroma drops from .22 to .17 as you move toward gold. Red is the most saturated and darkest; gold is the lightest.</div>
+  </div>
+  <div class="rel-cell">
+    <div class="rel-title">Red → Navy / Slate</div>
+    <div class="rel-body">High-contrast complement. Navy is hue 258° — roughly 233° away from red's 25°. Near-split-complementary. Red pops hard against any blue tone. This is the poster's core tension.</div>
+  </div>
+  <div class="rel-cell">
+    <div class="rel-title">Role in system</div>
+    <div class="rel-body">Red sits naturally as <strong>destructive / alert</strong> accent. Amber handles <strong>primary action</strong>. They share chroma range (.17–.22) so they feel tonally related, not clashing.</div>
+  </div>
+</div>
+
+<div class="divider-label">Token system — neobrutalist shadcn</div>
+
+<div class="token-grid">
+  <div class="token-row">
+    <div class="token-swatch" style="background:#EDE9DC"></div>
+    <div class="token-info"><div class="token-name">--background</div><div class="token-desc">oklch(92% .018 87) — page bg</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--foreground</div><div class="token-desc">oklch(18% .006 240) — ink</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#E07818"></div>
+    <div class="token-info"><div class="token-name">--primary</div><div class="token-desc">oklch(65% .175 56) — amber</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--primary-foreground</div><div class="token-desc">oklch(18% .006 240) — ink on amber</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#3A4A72"></div>
+    <div class="token-info"><div class="token-name">--secondary</div><div class="token-desc">oklch(38% .095 258) — navy</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#EDE9DC"></div>
+    <div class="token-info"><div class="token-name">--secondary-foreground</div><div class="token-desc">oklch(92% .018 87) — cream on navy</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#F5A020"></div>
+    <div class="token-info"><div class="token-name">--accent</div><div class="token-desc">oklch(74% .17 65) — gold highlight</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--accent-foreground</div><div class="token-desc">oklch(18% .006 240)</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#f54b4b"></div>
+    <div class="token-info"><div class="token-name">--destructive</div><div class="token-desc">oklch(60% .22 25) — your red</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#EDE9DC"></div>
+    <div class="token-info"><div class="token-name">--destructive-foreground</div><div class="token-desc">oklch(92% .018 87)</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#8593B5"></div>
+    <div class="token-info"><div class="token-name">--muted</div><div class="token-desc">oklch(63% .06 258) — mist</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--muted-foreground</div><div class="token-desc">oklch(18% .006 240)</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#5C6A8E"></div>
+    <div class="token-info"><div class="token-name">--card</div><div class="token-desc">oklch(50% .075 256) — slate surface</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#EDE9DC"></div>
+    <div class="token-info"><div class="token-name">--card-foreground</div><div class="token-desc">oklch(92% .018 87)</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--border</div><div class="token-desc">oklch(18% .006 240) — brutal border</div></div>
+  </div>
+  <div class="token-row">
+    <div class="token-swatch" style="background:#1A1A1A"></div>
+    <div class="token-info"><div class="token-name">--ring</div><div class="token-desc">oklch(18% .006 240) — focus ring</div></div>
+  </div>
+</div>
+
+<div class="divider-label">CSS variables — ready to paste</div>
+<div class="code-block">@layer base {
+  :root {
+    --background:           92% .018 87;
+    --foreground:           18% .006 240;
+
+    --primary:              65% .175 56;
+    --primary-foreground:   18% .006 240;
+
+    --secondary:            38% .095 258;
+    --secondary-foreground: 92% .018 87;
+
+    --accent:               74% .17 65;
+    --accent-foreground:    18% .006 240;
+
+    --destructive:          60% .22 25;
+    --destructive-foreground: 92% .018 87;
+
+    --muted:                63% .06 258;
+    --muted-foreground:     18% .006 240;
+
+    --card:                 50% .075 256;
+    --card-foreground:      92% .018 87;
+
+    --popover:              92% .018 87;
+    --popover-foreground:   18% .006 240;
+
+    --border:               18% .006 240;
+    --input:                18% .006 240;
+    --ring:                 18% .006 240;
+
+    --radius: 0rem; /* brutal — no rounding */
+  }
+
+  /* Usage: background: oklch(var(--primary)); */
+}</div>
+
+<div class="divider-label">P3 boost — where it pays off</div>
+<div class="swatches" style="border-color:var(--color-border-secondary)">
+  <div class="swatch" style="background: color(display-p3 0.88 0.48 0.10); border-right-color:var(--color-border-secondary)">
+    <span class="swatch-name" style="color:#1a0800">Amber P3+</span>
+    <span class="swatch-val" style="color:#1a0800">color(display-p3<br>.88 .48 .10)</span>
+  </div>
+  <div class="swatch" style="background: color(display-p3 0.96 0.64 0.12); border-right-color:var(--color-border-secondary)">
+    <span class="swatch-name" style="color:#1a0800">Gold P3+</span>
+    <span class="swatch-val" style="color:#1a0800">color(display-p3<br>.96 .64 .12)</span>
+  </div>
+  <div class="swatch" style="background: color(display-p3 0.92 0.30 0.28); border-right-color:var(--color-border-secondary)">
+    <span class="swatch-name" style="color:#1a0000">Red P3+</span>
+    <span class="swatch-val" style="color:#1a0000">color(display-p3<br>.92 .30 .28)</span>
+  </div>
+  <div class="swatch" style="background: color(display-p3 0.22 0.29 0.45); border-right-color:var(--color-border-secondary)">
+    <span class="swatch-name" style="color:#d0d8f0">Navy P3+</span>
+    <span class="swatch-val" style="color:#d0d8f0">color(display-p3<br>.22 .29 .45)</span>
+  </div>
+  <div class="swatch" style="background: color(display-p3 0.86 0.86 0.84); border-right-color:var(--color-border-secondary)">
+    <span class="swatch-name" style="color:#2d2d2d">Cream P3+</span>
+    <span class="swatch-val" style="color:#3d3d3d">color(display-p3<br>.86 .86 .84)</span>
+  </div>
+</div>
+
+</div>
