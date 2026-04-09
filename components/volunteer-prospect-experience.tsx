@@ -517,7 +517,7 @@ export function VolunteerProspectExperience({
                         <CardHeader>
                             <CardTitle className="text-3xl">{tForm("title")}</CardTitle>
                         </CardHeader>
-                        <CardContent className="max-h-[calc(100vh-6rem)] overflow-y-auto">
+                        <CardContent>
                             <form
                                 className="space-y-5"
                                 onSubmit={event => {

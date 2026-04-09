@@ -4,7 +4,9 @@ import { DM_Mono, Instrument_Serif } from "next/font/google"
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
+import { Suspense } from "react"
 
+import { LanguageSelector } from "@/components/language-selector"
 import { Providers } from "@/app/providers"
 import { routing } from "@/i18n/routing"
 import "../globals.css"
@@ -73,7 +75,12 @@ export default async function LocaleLayout({
         >
             <body className="min-h-full flex flex-col">
                 <NextIntlClientProvider messages={messages}>
-                    <Providers>{children}</Providers>
+                    <Providers>
+                        <Suspense fallback={null}>
+                            <LanguageSelector />
+                        </Suspense>
+                        {children}
+                    </Providers>
                 </NextIntlClientProvider>
             </body>
         </html>
