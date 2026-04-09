@@ -71,7 +71,7 @@
     --cream-950: oklch(15% 0.008 87);
 
     /* ── Semantic tokens ── */
-    --background: var(--cream-300);
+    --background: #fff7e4;
     --foreground: var(--navy-950);
     --primary: var(--amber-500);
     --primary-foreground: var(--navy-950);
@@ -106,7 +106,7 @@
 }
 
 @theme inline {
-  --font-sans:  var(--font-syne);
+  --font-sans:  var(--font-hegval-display);
   --font-mono:  var(--font-dm-mono);
   --font-serif: var(--font-instrument-serif);
 

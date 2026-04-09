@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,58 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import type { VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 import { createClient } from "@/utils/supabase/client"
 
-// ADD THIS IN SUPABASE
-const groups = [
-    {
-        name: "Skjenkegruppen",
-        description:
-            "Vi drifter Samfunnets faste skjenkepunkter og er med på å skape den gode stemningen på hus. Hos oss kan du få gjøre alt fra å tappe eksotisk øl i Grøndahls, lage kaffekunst og servere både søtt og salt i stjernesalen, og shake himmelske drinker i halvtimen. Medbrakt kunnskap er alltid velkommen, men er man åpen for å lære triks og tips så står vi klar for å hjelpe deg.",
-    },
-    {
-        name: "Vaktetaten",
-        description:
-            "Vi sørger for at Samfunnets gjester og frivillige er trygge når de er på huset. Vi har fokus på situasjonsmestring og våre frivillige får både ordensvaktkurs og intern opplæring. Hos oss opplever du natten fra en annen side.",
-    },
-    {
-        name: "Kraftetaten",
-        description:
-            "Vi styrer lyd og lys på Samfunnets arrangementer og har en stor utstyrspark vi kan leke med. Samfunnet har en av landets beste intimscener og hos oss kan du styre teknikk både for konserter, teater, revy og debatter.",
-    },
-    {
-        name: "Kokkegruppen",
-        description:
-            "Kokkegruppen er strengt tatt en del av Skjenkegruppen, men for den matglade! Her lærer du grunnleggende kjøkkenferdigheter, som hvordan den klassiske stjerneburgeren blir til! Man får også kreativ frihet til å bake noe godt til kafeén. Uansett om du er en nybegynner eller allerede er flink på kjøkkenet, så er du hjertelig velkommen hos oss! Du får all opplæringen du trenger. ",
-    },
-    {
-        name: "E-tjenesten",
-        description:
-            "E-tjenesten er IT-gruppen til Samfunnet i Bergen. Gruppen drifter og videreutvikler Samfunnets nettsider og vår interne databaser. Oppgavene er allsidige og gjelder både frontend og backend. IT-gruppen er en sosial gjeng hvor du lett lærer av og sammen med andre.",
-    },
-    {
-        name: "PR-etaten",
-        description:
-            "Vi sørger for at Samfunnet er synlig overalt. Vi har undergruppene So-Me, grafisk design og foto. Vi drifter våre kanaler på sosiale medier, dokumenterer alt som skjer på hus, lager annonseringsplaner for digitale flater, skriver pressemeldinger og designer alle trykksaker. Her lærer du markedsføring i praksis.",
-    },
-    {
-        name: "Produksjonavdelingene",
-        description:
-            "Vi står bak Samfunnets egne program i løpet av semesteret. Her er det rom for nye påfunn - både hverdag og helg! Oppgavene er varierte og studentbergen venter i spenning. Produksjonsavdelingen består av tre undergrupper: Quizgruppen, DJ-gruppen og Arrangementsgruppen.",
-    },
-    {
-        name: "Personalgruppen",
-        description:
-            "Personalgruppen har ansvar for sosiale høydepunkter, rekruttering, kortproduksjon, kurs- og kompetansetiltak på huset. Gruppen består av et styre og Samfunnets egne band - Villa People - som gjerne opptrer på internfester og andre arrangementer. For å være med i Personalgruppen må man ha vært aktiv i Samfunnet eller en tilknyttet drifts- eller brukerorganisasjon i minst ett semester.",
-    },
-    {
-        name: "Rettsvesenet",
-        description:
-            "Rettsvesenet er en gruppe jusstudenter som bistår Samfunnet i Bergen med juridisk rådgivning. Som medlem i Rettsvesenet vil du få nyttig erfaring som kommer godt med både i de videre studiene, og senere i arbeidslivet. Gjennom Rettsvesenet blir du også kjent med studenter fra andre studieår enn ditt eget. Vervet hos oss lar seg godt kombinere med både studier og deltidsjobb. Vi er mange saksbehandlere, så arbeidet fordeles godt, men det er nok til at alle får prøvd seg i rollen.",
-    },
-]
+export function VolunteerSignupPage({
+    groups,
+}: {
+    groups: VolunteerGroupSummary[]
+}) {
+    const t = useTranslations("VolunteerSignupPage")
 
-export default function BlifrivilligPage() {
     const [selectedGroup, setSelectedGroup] = useState<string>("")
     const [name, setName] = useState<string>("")
     const [email, setEmail] = useState<string>("")
@@ -79,11 +39,11 @@ export default function BlifrivilligPage() {
         setError("")
         setSuccess("")
 
-        if (!selectedGroup) return setError("Velg en gruppe du vil bli med i.")
-        if (!name.trim()) return setError("Skriv inn navn.")
-        if (!isValidEmail(email)) return setError("Skriv inn en gyldig e-post.")
+        if (!selectedGroup) return setError(t("groupRequired"))
+        if (!name.trim()) return setError(t("nameRequired"))
+        if (!isValidEmail(email)) return setError(t("emailInvalid"))
         if (!consent) {
-            return setError("Du må samtykke for å sende inn skjemaet.")
+            return setError(t("consentRequired"))
         }
 
         const signup = {
@@ -102,7 +62,7 @@ export default function BlifrivilligPage() {
             return
         }
 
-        setSuccess("Vi har mottatt søknaden. Vi vil ta kontakt snartest.")
+        setSuccess(t("successMessage"))
         setName("")
         setEmail("")
         setMessage("")
@@ -113,30 +73,33 @@ export default function BlifrivilligPage() {
     return (
         <div className="p-6 sm:p-10">
             <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold tracking-tight">BLI FRIVILLIG</h1>
-                <p className="mt-3 text-sm text-muted-foreground">
-                    Velg en gruppe og send inn informasjonen din. Vi svarer så snart vi kan.
-                </p>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                <p className="mt-3 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Card className="bg-secondary-background">
                     <CardHeader>
-                        <CardTitle>Velg gruppe</CardTitle>
+                        <CardTitle>{t("selectGroupTitle")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-col gap-3">
-                            {groups.map((group, i) => {
+                            {groups.map(group => {
                                 const active = selectedGroup === group.name
                                 return (
                                     <Button
-                                        key={i}
+                                        key={group.name}
                                         type="button"
                                         onClick={() => setSelectedGroup(group.name)}
-                                        className="h-14 justify-start px-4"
+                                        className="h-auto min-h-14 justify-start px-4 py-4"
                                         variant={active ? "default" : "neutral"}
                                     >
-                                        {group.name.toUpperCase()}
+                                        <span className="text-left">
+                                            <span className="block">{group.name.toUpperCase()}</span>
+                                            <span className="mt-1 block text-xs font-normal normal-case opacity-80">
+                                                {group.description}
+                                            </span>
+                                        </span>
                                     </Button>
                                 )
                             })}
@@ -144,58 +107,58 @@ export default function BlifrivilligPage() {
 
                         <div className="mt-4 text-xs text-muted-foreground">
                             {selectedGroup
-                                ? `Du har valgt: ${selectedGroup}`
-                                : "Velg en av gruppene for å fortsette."}
+                                ? t("selectedGroup", { group: selectedGroup })
+                                : t("selectedGroupFallback")}
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card className="bg-secondary-background">
                     <CardHeader>
-                        <CardTitle>Kontaktinfo</CardTitle>
+                        <CardTitle>{t("contactInfoTitle")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={onSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Navn</Label>
+                                <Label htmlFor="name">{t("nameLabel")}</Label>
                                 <Input
                                     id="name"
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    placeholder="NAME"
+                                    placeholder={t("namePlaceholder")}
                                     autoComplete="name"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="email">E-post</Label>
+                                <Label htmlFor="email">{t("emailLabel")}</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
-                                    placeholder="EMAIL"
+                                    placeholder={t("emailPlaceholder")}
                                     autoComplete="email"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="message">Institusjon</Label>
+                                <Label htmlFor="institution">{t("institutionLabel")}</Label>
                                 <Input
                                     id="institution"
                                     value={institution}
                                     onChange={e => setInstitution(e.target.value)}
-                                    placeholder="UiB, HVL, jobb, andre..."
+                                    placeholder={t("institutionPlaceholder")}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="message">Melding (valgfritt)</Label>
+                                <Label htmlFor="message">{t("messageLabel")}</Label>
                                 <Textarea
                                     id="message"
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
-                                    placeholder="Si litt om hva du ønsker å bidra med..."
+                                    placeholder={t("messagePlaceholder")}
                                     rows={4}
                                 />
                             </div>
@@ -208,26 +171,25 @@ export default function BlifrivilligPage() {
                                 />
                                 <div className="grid gap-1.5 leading-none">
                                     <Label htmlFor="consent" className="cursor-pointer">
-                                        Jeg samtykker til at dere kan kontakte meg om
-                                        frivillighetsrolen.
+                                        {t("consentLabel")}
                                     </Label>
                                 </div>
                             </div>
 
                             <Button type="submit" className="h-14 w-full">
-                                SUBMIT
+                                {t("submit")}
                             </Button>
 
                             {error ? (
                                 <Alert variant="destructive" className="mb-4">
-                                    <AlertTitle>Noe gikk galt</AlertTitle>
+                                    <AlertTitle>{t("errorTitle")}</AlertTitle>
                                     <AlertDescription>{error}</AlertDescription>
                                 </Alert>
                             ) : null}
 
                             {success ? (
                                 <Alert className="mb-4">
-                                    <AlertTitle>Sendt!</AlertTitle>
+                                    <AlertTitle>{t("successTitle")}</AlertTitle>
                                     <AlertDescription>{success}</AlertDescription>
                                 </Alert>
                             ) : null}

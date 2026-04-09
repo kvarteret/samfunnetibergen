@@ -1,0 +1,316 @@
+{
+  "Metadata": {
+    "siteTitle": "Samfunnet i Bergen",
+    "siteDescription": "Studentenes kulturhus i Bergen.",
+    "homeTitle": "Bli frivillig | Samfunnet / Det Akademiske Kvarter",
+    "homeDescription": "Meld interesse for Skjenkegruppen, Kraft eller Vaktetaten og kom i gang med prøvedugnad.",
+    "volunteerSignupTitle": "Bli frivillig | Oversikt over grupper",
+    "volunteerSignupDescription": "Se gruppene på huset og meld interesse som frivillig.",
+    "groupPageTitle": "{group} | Bli frivillig",
+    "groupPageDescription": "Les mer om {group} og velg gruppen i frivilligskjemaet."
+  },
+  "HomePage": {
+    "badge": "Samfunnet / Det Akademiske Kvarter",
+    "heroDescription": "Studentersamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!",
+    "footer": "Med 💛 fra E-tjenesten"
+  },
+  "VolunteerProspectForm": {
+    "title": "Bli frivillig",
+    "firstChoiceLabel": "Førstevalg",
+    "firstChoicePlaceholder": "Velg en gruppe ved å trykke på et kort.",
+    "firstNameLabel": "Fornavn",
+    "lastNameLabel": "Etternavn",
+    "emailLabel": "E-postadresse",
+    "emailPlaceholder": "navn@example.no",
+    "phoneLabel": "Telefon",
+    "phonePlaceholder": "91234567",
+    "studyInstitutionLabel": "Studiested",
+    "studyInstitutionPlaceholder": "Velg studiested",
+    "backgroundDetailsLabel": "Annen skole? Privatist? I arbeid? Ung og engasjert? Spesifiser gjerne!",
+    "backgroundDetailsPlaceholder": "Fortell kort om bakgrunnen din eller om noe vi bør vite.",
+    "secondChoiceLabel": "Andrevalg",
+    "optionalLabel": "Valgfritt",
+    "clearSecondChoice": "Fjern andrevalg",
+    "submitIdle": "Bli Frivillig",
+    "submitPending": "Sender...",
+    "successTitle": "Registrering sendt",
+    "errorTitle": "Noe gikk galt",
+    "invalidFormMessage": "Skjemaet mangler noen opplysninger.",
+    "submittedMessage": "Registreringen er sendt inn. Gruppene du valgte får beskjed, og dere kan avtale prøvedugnad videre på e-post.",
+    "submitErrorFallback": "Noe gikk galt da registreringen skulle sendes inn.",
+    "primaryActionIdle": "Velg som førstevalg",
+    "primaryActionSelected": "Valgt som førstevalg",
+    "secondaryActionIdle": "Velg som andrevalg",
+    "secondaryActionSelected": "Valgt som andrevalg",
+    "secondaryActionDisabled": "Allerede førstevalg",
+    "selectionActionIdle": "Velg prioritet",
+    "selectionActionPrimary": "Førstevalg valgt",
+    "selectionActionSecondary": "Andrevalg valgt",
+    "choiceModalTitle": "Velg prioritet",
+    "choiceModalDescription": "Velg om {group} skal være førstevalg eller andrevalg.",
+    "choiceModalFirst": "Sett som førstevalg",
+    "choiceModalSecond": "Sett som andrevalg",
+    "choiceModalRemoveSecond": "Fjern andrevalg",
+    "choiceModalClose": "Lukk",
+    "accordionAction": "Les litt mer",
+    "detailAction": "Les enda mer om {group}",
+    "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg."
+  },
+  "GroupPage": {
+    "backToGroups": "Tilbake til grupper",
+    "selectInForm": "Velg {group} i skjemaet"
+  },
+  "VolunteerSignupPage": {
+    "title": "Bli frivillig",
+    "subtitle": "Velg en gruppe og send inn informasjonen din. Vi svarer så snart vi kan.",
+    "selectGroupTitle": "Velg gruppe",
+    "selectedGroup": "Du har valgt: {group}",
+    "selectedGroupFallback": "Velg en av gruppene for å fortsette.",
+    "contactInfoTitle": "Kontaktinfo",
+    "nameLabel": "Navn",
+    "namePlaceholder": "NAVN",
+    "emailLabel": "E-post",
+    "emailPlaceholder": "E-POST",
+    "institutionLabel": "Institusjon",
+    "institutionPlaceholder": "UiB, HVL, jobb, andre...",
+    "messageLabel": "Melding (valgfritt)",
+    "messagePlaceholder": "Si litt om hva du ønsker å bidra med...",
+    "consentLabel": "Jeg samtykker til at dere kan kontakte meg om frivillighetsrollen.",
+    "submit": "SEND INN",
+    "successTitle": "Sendt!",
+    "successMessage": "Vi har mottatt søknaden. Vi vil ta kontakt snartest.",
+    "errorTitle": "Noe gikk galt",
+    "groupRequired": "Velg en gruppe du vil bli med i.",
+    "nameRequired": "Skriv inn navn.",
+    "emailInvalid": "Skriv inn en gyldig e-post.",
+    "consentRequired": "Du må samtykke for å sende inn skjemaet."
+  },
+  "Validation": {
+    "firstNameRequired": "Skriv inn fornavn.",
+    "lastNameRequired": "Skriv inn etternavn.",
+    "emailInvalid": "Skriv inn en gyldig e-postadresse.",
+    "phoneRequired": "Skriv inn telefonnummer.",
+    "studyInstitutionRequired": "Velg studiested.",
+    "firstChoiceRequired": "Velg en gruppe som førstevalg.",
+    "unsupportedGroup": "Denne gruppen støttes ikke i denne lanseringen.",
+    "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg."
+  },
+  "Api": {
+    "invalidRequest": "Ugyldig forespørsel.",
+    "formIncomplete": "Skjemaet mangler noen opplysninger.",
+    "submitFailure": "Noe gikk galt da registreringen skulle sendes inn. Prøv igjen om litt.",
+    "serviceUnavailable": "Kunne ikke kontakte registreringstjenesten akkurat nå. Prøv igjen om litt."
+  },
+  "InstitutionOptions": [
+    { "value": "NHH", "label": "NHH" },
+    { "value": "UiB", "label": "UiB" },
+    { "value": "HVL", "label": "HVL" },
+    { "value": "BI", "label": "BI" },
+    { "value": "NLA", "label": "NLA" },
+    { "value": "ViD", "label": "ViD" },
+    { "value": "Høyskolen Kristiania", "label": "Høyskolen Kristiania" },
+    { "value": "Noroff", "label": "Noroff" },
+    { "value": "Annet / ikke student", "label": "Annet / ikke student" }
+  ],
+  "LaunchGroups": [
+    {
+      "slug": "skjenkegruppen",
+      "name": "Skjenkegruppen",
+      "eyebrow": "Bar, kafé, kjøkken og drinkbar",
+      "lead": "Skjenkegruppen er Kvarterets kokker, servitører og bartendere. Her driver man husets faste barer og kjøkken, blir del av den største arbeidsgruppen på huset, og får opplæring underveis enten man vil lære kaffe, mat, øl eller cocktails.",
+      "accordionSections": [
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "De fleste undergruppene går med omtrent ett skift i uken. Halvtimen skiller seg ut med tre skift i måneden.",
+            "Et prøveskift er den naturlige starten hvis man vil kjenne på stemningen før man bestemmer seg."
+          ]
+        },
+        {
+          "title": "Undergrupper",
+          "paragraphs": [
+            "Stjernesalen passer for deg som vil jobbe med kafé, kaffe, mocktails og vinutvalg.",
+            "Kokkegruppen er for deg som vil lage mat til huset og bidra på catering til arrangementer og konserter.",
+            "Halvtimen er drinkbaren for deg over 20 som vil fordype deg i cocktails, mens Grøndahls er puben med tempo, utvalg og mye frivilligliv etter skift."
+          ]
+        }
+      ],
+      "detailSections": [
+        {
+          "title": "Om gruppen",
+          "paragraphs": [
+            "Skjenkegruppen er Kvarterets kokker, servitører og bartendere. De holder i husets faste barer og kjøkken, og er samtidig den største arbeidsgruppen på Kvarteret.",
+            "Det gjør gruppen til et sted hvor man både jobber tett sammen og raskt blir kjent med mange nye mennesker gjennom skift og sosiale arrangementer.",
+            "Det kreves ingen forkunnskaper for å lykkes her. Også på kjøkkenet får nye frivillige opplæringen de trenger fra start."
+          ]
+        },
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "I de fleste undergruppene ligger arbeidsmengden rundt ett skift i uken. Skiftene fordeler seg over dag, kveld og helg, med lengre åpningstider på helgedager.",
+            "Halvtimen er et unntak og organiseres som tre skift i måneden.",
+            "Det vanligste første steget er et uforpliktende prøveskift, slik at man kan teste oppgavene, møte folkene og kjenne om miljøet passer."
+          ]
+        },
+        {
+          "title": "Stjernesalen",
+          "paragraphs": [
+            "Stjernesalen er husets kafé. Her jobber man med matservering, kaffe, kaker, mocktails og vin i et roligere, gjestevendt miljø."
+          ]
+        },
+        {
+          "title": "Kokkegruppen",
+          "paragraphs": [
+            "Kokkegruppen jobber på Kvarterets eget kjøkken og er for deg som vil lære eller bruke matfaglige ferdigheter i et kreativt og sosialt miljø.",
+            "Arbeidet spenner fra servering til husets gjester til catering for større arrangementer, fester og konserter."
+          ]
+        },
+        {
+          "title": "Halvtimen",
+          "paragraphs": [
+            "Halvtimen er Kvarterets drinkbar. Her må man være fylt 20 år, og miljøet passer spesielt godt for deg som vil lære mer om cocktails, smaker og presentasjon."
+          ]
+        },
+        {
+          "title": "Grøndahls",
+          "paragraphs": [
+            "Grøndahls er puben med høyt tempo og bredt sortiment. Den passer godt for deg som liker drift, flyt og mye kontakt med både gjester og andre frivillige."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "kraft",
+      "name": "Kraft",
+      "eyebrow": "Lyd, lys og produksjon",
+      "lead": "Kraftetaten er Kvarterets lyd- og lysteknikere. Her styrer man teknikk på konserter, teater, debatter og andre produksjoner, og får jobbe med en utstyrspark som holder bransjestandard og gir rom for både læring og nettverk.",
+      "accordionSections": [
+        {
+          "title": "Hva du gjør",
+          "paragraphs": [
+            "Som krafter er man med på å planlegge og kjøre teknikk på en av Bergens sterkeste intimscener.",
+            "Man kan prøve seg på alt fra konserter og debatter til større produksjoner og streaming, og de fleste starter med å fokusere på enten lyd eller lys."
+          ]
+        },
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "Minimumet er ett skift i uken, med mange arrangementer å velge mellom.",
+            "Mandager brukes til dugnad, vedlikehold, kurs og sosialt samvær, og nye medlemmer går gjennom en prøvetid før ordinær kontrakt."
+          ]
+        }
+      ],
+      "detailSections": [
+        {
+          "title": "Om gruppen",
+          "paragraphs": [
+            "Kraftetaten er Kvarterets lyd- og lysteknikere. Her styrer man teknikken på konserter, teaterforestillinger, debatter og andre produksjoner som skal se og høres best mulig ut.",
+            "Som frivillig får man tilgang til en stor og moderne utstyrspark, inkludert streamingutstyr, og et miljø der læring står sentralt.",
+            "Det kreves ingen forkunnskaper. Gruppen passer godt for folk som er kreative, praktiske, utadvendte og motivert for å lære."
+          ]
+        },
+        {
+          "title": "Hva en krafter gjør",
+          "paragraphs": [
+            "Som krafter er man med på å planlegge og kjøre teknikken på en av Bergens beste intimscener, og man får samtidig møte erfarne teknikere som bidrar med både nettverk og nye arbeidsmåter.",
+            "Arbeidet favner mer enn konserter. Det er også rom for teater, debatter, TV-lignende produksjoner og andre større og mindre arrangementer i huset.",
+            "Kraftetaten er delt i lyd og lys. Mange kombinerer etter hvert, men det anbefales å starte med ett hovedspor i det første semesteret."
+          ]
+        },
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "Som frivillig i Kraftetaten jobber man minimum ett skift i uken, og det er vanligvis flere arrangementer hver dag å velge mellom.",
+            "Mandag kveld brukes til dugnad, vedlikehold, opplæring, kurs og det sosiale som bygger gruppen.",
+            "Nye medlemmer går inn i en prøvetid med midlertidig internbevis før ordinær frivilligkontrakt vurderes."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "vaktetaten",
+      "name": "Vaktetaten",
+      "eyebrow": "Sikkerhet, ansvar og samhold",
+      "lead": "Vaktetaten er Kvarterets ordensvakter og vektere. Her jobber man alltid sammen med andre, lærer konflikthåndtering, førstehjelp og brannsikkerhet, og bidrar til trygghet og trivsel for både frivillige og gjester på huset.",
+      "accordionSections": [
+        {
+          "title": "Hva du lærer",
+          "paragraphs": [
+            "Vaktetaten gir intern opplæring i konflikthåndtering, førstehjelp og brannsikkerhet.",
+            "Det finnes også muligheter for å ta ordensvaktkurs og vekterkurs gjennom gruppen."
+          ]
+        },
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "Vakter går vanligvis tre skift i måneden, og man kan samle dem på en helg eller spre dem utover.",
+            "Det starter med et uforpliktende prøveskift, så terskelen for å teste miljøet er lav."
+          ]
+        }
+      ],
+      "detailSections": [
+        {
+          "title": "Om gruppen",
+          "paragraphs": [
+            "Vaktetaten er Kvarterets ordensvakter og vektere. Hovedoppgaven er å ivareta sikkerheten og trivselen til både frivillige og gjester på huset.",
+            "Som vakt jobber man aldri alene, og det gjør gruppen til et tett miljø hvor man blir godt kjent både internt og på tvers av huset.",
+            "Arbeidet handler om mer enn adgangskontroll. Vaktetaten bidrar til at lover og regler følges, har ansvar for brannsikkerhet og bemanner også scenevaktoppgaver under større arrangementer."
+          ]
+        },
+        {
+          "title": "Opplæring og rolle",
+          "paragraphs": [
+            "Gruppen gir opplæring i konflikthåndtering, førstehjelp og brannsikkerhet, og åpner også for ordensvaktkurs og vekterkurs.",
+            "Det kreves ingen tidligere erfaring. Gruppen søker folk som er rolige, beherskede, bestemte, rettferdige, ansvarsbevisste og sosiale."
+          ]
+        },
+        {
+          "title": "Tidsbruk",
+          "paragraphs": [
+            "Som vakt jobber man tre skift i måneden og velger i stor grad selv når de tas.",
+            "Skiftene ligger først og fremst på torsdager samt fredager og lørdager på kvelds- og nattestid, og de kan legges samlet eller fordeles utover måneden.",
+            "Hvis man er nysgjerrig, starter man ganske enkelt med et uforpliktende prøveskift."
+          ]
+        }
+      ]
+    }
+  ],
+  "VolunteerGroupSummaries": [
+    {
+      "name": "Skjenkegruppen",
+      "description": "Vi drifter kvarterets faste skjenkepunkter og er med på å skape den gode stemningen på hus. Hos oss kan du få gjøre alt fra å tappe eksotisk øl i Grøndahls, lage kaffekunst og servere både søtt og salt i stjernesalen, og shake himmelske drinker i halvtimen. Medbrakt kunnskap er alltid velkommen, men er man åpen for å lære triks og tips så står vi klar for å hjelpe deg."
+    },
+    {
+      "name": "Vaktetaten",
+      "description": "Vi sørger for at Kvarterets gjester og frivillige er trygge når de er på huset. Vi har fokus på situasjonsmestring og våre frivillige får både ordensvaktkurs og intern opplæring. Hos oss opplever du natten fra en annen side."
+    },
+    {
+      "name": "Kraftetaten",
+      "description": "Vi styrer lyd og lys på Kvarterets arrangementer og har en stor utstyrspark vi kan leke med. Kvarteret har en av landets beste intimscener og hos oss kan du styre teknikk både for konserter, teater, revy og debatter."
+    },
+    {
+      "name": "Kokkegruppen",
+      "description": "Kokkegruppen er strengt tatt en del av Skjenkegruppen, men for den matglade! Her lærer du grunnleggende kjøkkenferdigheter, som hvordan den klassiske stjerneburgeren blir til! Man får også kreativ frihet til å bake noe godt til kafeén. Uansett om du er en nybegynner eller allerede er flink på kjøkkenet, så er du hjertelig velkommen hos oss! Du får all opplæringen du trenger."
+    },
+    {
+      "name": "E-tjenesten",
+      "description": "E-tjenesten er IT-gruppen til Det Akademiske Kvarter. Gruppen drifter og videreutvikler Kvarterets nettsider og vår interne databaser. Oppgavene er allsidige og gjelder både frontend og backend. IT-gruppen er en sosial gjeng hvor du lett lærer av og sammen med andre."
+    },
+    {
+      "name": "PR-etaten",
+      "description": "Vi sørger for at Kvarteret er synlig overalt. Vi har undergruppene So-Me, grafisk design og foto. Vi drifter våre kanaler på sosiale medier, dokumenterer alt som skjer på hus, lager annonseringsplaner for digitale flater, skriver pressemeldinger og designer alle trykksaker. Her lærer du markedsføring i praksis."
+    },
+    {
+      "name": "Produksjonavdelingene",
+      "description": "Vi står bak Kvarterets egne program i løpet av semesteret. Her er det rom for nye påfunn - både hverdag og helg! Oppgavene er varierte og studentbergen venter i spenning. Produksjonsavdelingen består av tre undergrupper: Quizgruppen, DJ-gruppen og Arrangementsgruppen."
+    },
+    {
+      "name": "Personalgruppen",
+      "description": "Personalgruppen har ansvar for sosiale høydepunkter, rekruttering, kortproduksjon, kurs- og kompetansetiltak på huset. Gruppen består av et styre og Kvarterets egne band - Villa People - som gjerne opptrer på internfester og andre arrangementer. For å være med i Personalgruppen må man ha vært aktiv i Kvarteret eller en tilknyttet drifts- eller brukerorganisasjon i minst ett semester."
+    },
+    {
+      "name": "Rettsvesenet",
+      "description": "Rettsvesenet er en gruppe jusstudenter som bistår Det Akademiske Kvarter med juridisk rådgivning. Som medlem i Rettsvesenet vil du få nyttig erfaring som kommer godt med både i de videre studiene, og senere i arbeidslivet. Gjennom Rettsvesenet blir du også kjent med studenter fra andre studieår enn ditt eget. Vervet hos oss lar seg godt kombinere med både studier og deltidsjobb. Vi er mange saksbehandlere, så arbeidet fordeles godt, men det er nok til at alle får prøvd seg i rollen."
+    }
+  ]
+}
