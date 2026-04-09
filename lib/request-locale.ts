@@ -1,6 +1,29 @@
 import type { AppLocale } from "@/i18n/routing"
 
-const localeOrder: AppLocale[] = ["nb", "en"]
+function normalizeLocaleToken(locale: string): AppLocale | null {
+    const normalizedLocale = locale.trim().toLowerCase()
+
+    if (!normalizedLocale) {
+        return null
+    }
+
+    if (
+        normalizedLocale === "nb" ||
+        normalizedLocale === "nn" ||
+        normalizedLocale === "no" ||
+        normalizedLocale.startsWith("nb-") ||
+        normalizedLocale.startsWith("nn-") ||
+        normalizedLocale.startsWith("no-")
+    ) {
+        return "nb"
+    }
+
+    if (normalizedLocale === "en" || normalizedLocale.startsWith("en-")) {
+        return "en"
+    }
+
+    return null
+}
 
 export function resolveRequestLocale(
     requestedLocale: string | null | undefined,
@@ -9,19 +32,28 @@ export function resolveRequestLocale(
         return "en"
     }
 
-    const normalizedRequestedLocale = requestedLocale.toLowerCase()
+    const requestedLocales = requestedLocale
+        .split(",")
+        .map(part => part.split(";")[0]?.trim() ?? "")
 
-    for (const locale of localeOrder) {
-        if (normalizedRequestedLocale === locale) {
-            return locale
-        }
-
-        if (normalizedRequestedLocale.startsWith(`${locale}-`)) {
-            return locale
+    for (const locale of requestedLocales) {
+        const normalizedLocale = normalizeLocaleToken(locale)
+        if (normalizedLocale) {
+            return normalizedLocale
         }
     }
 
-    if (normalizedRequestedLocale.includes("en")) {
+    const normalizedRequestedLocale = normalizeLocaleToken(requestedLocale)
+    if (normalizedRequestedLocale) {
+        return normalizedRequestedLocale
+    }
+
+    const fallback = requestedLocale.toLowerCase()
+    if (fallback.includes("no") || fallback.includes("nn") || fallback.includes("nb")) {
+        return "nb"
+    }
+
+    if (fallback.includes("en")) {
         return "en"
     }
 

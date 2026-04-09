@@ -4,7 +4,7 @@ import { useForm, useStore } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { X } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
-import posthog from "posthog-js"
+import { posthog } from "posthog-js"
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
     Accordion,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import posthog from "posthog-js"
+import { posthog } from "posthog-js"
 import { useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
