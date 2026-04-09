@@ -1,5 +1,6 @@
 "use client"
 
+import { X } from "lucide-react"
 import { useForm, useStore } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils"
 import {
     defaultVolunteerProspectValues,
     loadVolunteerProspectDraft,
+    normalizeVolunteerPhoneNumber,
     validateVolunteerProspectValues,
     volunteerProspectDraftStorageKey,
     type VolunteerProspectErrorResponse,
@@ -59,6 +61,25 @@ function FieldError({ message }: { message?: string }) {
     return <p className="text-sm text-destructive">{message}</p>
 }
 
+function SelectionChip({
+    label,
+    onRemove,
+}: {
+    label: string
+    onRemove: () => void
+}) {
+    return (
+        <button
+            className="inline-flex items-center gap-2 border-2 border-border bg-secondary-background px-3 py-2 text-sm shadow-shadow transition-none"
+            onClick={onRemove}
+            type="button"
+        >
+            <span>{label}</span>
+            <X aria-hidden="true" className="size-4" />
+        </button>
+    )
+}
+
 export function VolunteerProspectExperience({
     groups,
     institutionOptions,
@@ -72,7 +93,6 @@ export function VolunteerProspectExperience({
     const tHome = useTranslations("HomePage")
     const tForm = useTranslations("VolunteerProspectForm")
     const tValidation = useTranslations("Validation")
-
     const validationMessages = useMemo<VolunteerProspectValidationMessages>(
         () => ({
             firstNameRequired: tValidation("firstNameRequired"),
@@ -159,7 +179,10 @@ export function VolunteerProspectExperience({
         defaultValues: initialValues,
         canSubmitWhenInvalid: false,
         onSubmit: async ({ value }) => {
-            const submittedValues = value as VolunteerProspectValues
+            const submittedValues = {
+                ...(value as VolunteerProspectValues),
+                phone: normalizeVolunteerPhoneNumber(value.phone),
+            }
             const fieldErrors = validateVolunteerProspectValues(
                 submittedValues,
                 validationMessages,
@@ -299,6 +322,27 @@ export function VolunteerProspectExperience({
             form.setFieldValue("secondChoiceGroupSlug", slug)
         } else {
             form.setFieldValue("secondChoiceGroupSlug", currentSecond === slug ? "" : slug)
+        }
+
+        form.setFieldMeta("firstChoiceGroupSlug", previous => ({
+            ...previous,
+            isTouched: true,
+        }))
+        form.setFieldMeta("secondChoiceGroupSlug", previous => ({
+            ...previous,
+            isTouched: true,
+        }))
+        setFormMessage(null)
+    }
+
+    function removeChoice(target: "first" | "second") {
+        const currentSecond = form.state.values.secondChoiceGroupSlug
+
+        if (target === "first") {
+            form.setFieldValue("firstChoiceGroupSlug", currentSecond || "")
+            form.setFieldValue("secondChoiceGroupSlug", "")
+        } else {
+            form.setFieldValue("secondChoiceGroupSlug", "")
         }
 
         form.setFieldMeta("firstChoiceGroupSlug", previous => ({
@@ -477,25 +521,6 @@ export function VolunteerProspectExperience({
                                     void form.handleSubmit()
                                 }}
                             >
-                                <div className="space-y-2">
-                                    <RequiredLabel>{tForm("firstChoiceLabel")}</RequiredLabel>
-                                    <div className="border-2 border-border bg-secondary-background px-4 py-3 text-sm shadow-shadow">
-                                        {formValues.firstChoiceGroupSlug
-                                            ? groups.find(
-                                                  group =>
-                                                      group.slug ===
-                                                      formValues.firstChoiceGroupSlug,
-                                              )?.name
-                                            : tForm("firstChoicePlaceholder")}
-                                    </div>
-                                    <FieldError
-                                        message={
-                                            form.state.fieldMeta.firstChoiceGroupSlug?.errorMap
-                                                ?.onSubmit as string | undefined
-                                        }
-                                    />
-                                </div>
-
                                 <div className="grid gap-5 sm:grid-cols-2">
                                     <form.Field
                                         name="firstName"
@@ -630,7 +655,14 @@ export function VolunteerProspectExperience({
                                                     autoComplete="tel"
                                                     id={field.name}
                                                     name={field.name}
-                                                    onBlur={field.handleBlur}
+                                                    onBlur={event => {
+                                                        field.handleChange(
+                                                            normalizeVolunteerPhoneNumber(
+                                                                event.target.value,
+                                                            ),
+                                                        )
+                                                        field.handleBlur()
+                                                    }}
                                                     onChange={event =>
                                                         field.handleChange(event.target.value)
                                                     }
@@ -724,39 +756,61 @@ export function VolunteerProspectExperience({
                                     )}
                                 </form.Field>
 
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <Label>{tForm("secondChoiceLabel")}</Label>
-                                        <span className="text-xs uppercase tracking-[0.2em] text-foreground/60">
-                                            {tForm("optionalLabel")}
-                                        </span>
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <RequiredLabel>{tForm("firstChoiceLabel")}</RequiredLabel>
+                                        <div className="flex min-h-12 flex-wrap items-center gap-2">
+                                            {formValues.firstChoiceGroupSlug ? (
+                                                <SelectionChip
+                                                    label={
+                                                        groups.find(
+                                                            group =>
+                                                                group.slug ===
+                                                                formValues.firstChoiceGroupSlug,
+                                                        )?.name ?? ""
+                                                    }
+                                                    onRemove={() => removeChoice("first")}
+                                                />
+                                            ) : null}
+                                        </div>
+                                        <FieldError
+                                            message={
+                                                form.state.fieldMeta.firstChoiceGroupSlug
+                                                    ?.errorMap?.onSubmit as string | undefined
+                                            }
+                                        />
                                     </div>
-                                    <div className="border-2 border-border bg-secondary-background px-4 py-3 text-sm shadow-shadow">
-                                        {formValues.secondChoiceGroupSlug
-                                            ? groups.find(
-                                                  group =>
-                                                      group.slug ===
-                                                      formValues.secondChoiceGroupSlug,
-                                              )?.name
-                                            : tForm("clearSecondChoice")}
+                                    <div className="grid gap-2">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <Label>{tForm("secondChoiceLabel")}</Label>
+                                            <span className="text-xs uppercase tracking-[0.2em] text-foreground/60">
+                                                {tForm("optionalLabel")}
+                                            </span>
+                                        </div>
+                                        <div className="flex min-h-12 flex-wrap items-center gap-2">
+                                            {formValues.secondChoiceGroupSlug ? (
+                                                <SelectionChip
+                                                    label={
+                                                        groups.find(
+                                                            group =>
+                                                                group.slug ===
+                                                                formValues.secondChoiceGroupSlug,
+                                                        )?.name ?? ""
+                                                    }
+                                                    onRemove={() => removeChoice("second")}
+                                                />
+                                            ) : null}
+                                        </div>
+                                        <FieldError
+                                            message={
+                                                secondChoiceConflict
+                                                    ? tForm("secondChoiceConflict")
+                                                    : ((form.state.fieldMeta.secondChoiceGroupSlug
+                                                          ?.errorMap?.onSubmit as string | undefined) ??
+                                                      undefined)
+                                            }
+                                        />
                                     </div>
-                                    <Button
-                                        className="w-full"
-                                        onClick={() => form.setFieldValue("secondChoiceGroupSlug", "")}
-                                        type="button"
-                                        variant="neutral"
-                                    >
-                                        {tForm("clearSecondChoice")}
-                                    </Button>
-                                    <FieldError
-                                        message={
-                                            secondChoiceConflict
-                                                ? tForm("secondChoiceConflict")
-                                                : ((form.state.fieldMeta.secondChoiceGroupSlug
-                                                      ?.errorMap?.onSubmit as string | undefined) ??
-                                                  undefined)
-                                        }
-                                    />
                                 </div>
 
                                 {formMessage ? (

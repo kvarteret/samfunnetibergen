@@ -55,6 +55,7 @@ export const defaultVolunteerProspectValues: VolunteerProspectValues = {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const NON_DIGIT_PATTERN = /\D/g
 
 export function validateVolunteerProspectValues(
     values: VolunteerProspectValues,
@@ -98,11 +99,37 @@ export function validateVolunteerProspectValues(
     return fieldErrors
 }
 
+export function normalizeVolunteerPhoneNumber(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return ""
+
+    const withoutTelPrefix = trimmed.replace(/^tel:/i, "")
+    const digits = withoutTelPrefix.replace(NON_DIGIT_PATTERN, "")
+
+    if (withoutTelPrefix.startsWith("+") && digits) {
+        return `+${digits}`
+    }
+
+    if (digits.startsWith("00") && digits.length > 2) {
+        return `+${digits.slice(2)}`
+    }
+
+    if (digits.length === 8) {
+        return `+47${digits}`
+    }
+
+    if (digits.startsWith("47") && digits.length === 10) {
+        return `+${digits}`
+    }
+
+    return trimmed
+}
+
 export function buildVolunteerProspectPayload(values: VolunteerProspectValues) {
     return {
         full_name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
         email: values.email.trim().toLowerCase(),
-        phone: values.phone.trim(),
+        phone: normalizeVolunteerPhoneNumber(values.phone),
         study_institution: values.studyInstitution.trim(),
         background_details: values.backgroundDetails.trim() || null,
         first_choice_group_slug: values.firstChoiceGroupSlug || null,
