@@ -71,7 +71,7 @@ export default async function VolunteerGroupPage({
                 <div className="flex flex-wrap items-center gap-3">
                     <Link
                         className="inline-flex min-h-12 items-center border-2 border-border bg-card px-5 py-2 text-sm font-semibold shadow-shadow"
-                        href="/blifrivillig"
+                        href="/"
                     >
                         {t("backToGroups")}
                     </Link>

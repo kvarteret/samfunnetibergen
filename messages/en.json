@@ -62,7 +62,7 @@
     "secondChoiceConflict": "Second choice must be different from first choice."
   },
   "GroupPage": {
-    "backToGroups": "Back to groups",
+    "backToGroups": "Back",
     "selectInForm": "Choose {group} in the form"
   },
   "VolunteerSignupPage": {

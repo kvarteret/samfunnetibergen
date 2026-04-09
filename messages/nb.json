@@ -62,7 +62,7 @@
     "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg."
   },
   "GroupPage": {
-    "backToGroups": "Tilbake til grupper",
+    "backToGroups": "Tilbake",
     "selectInForm": "Velg {group} i skjemaet"
   },
   "VolunteerSignupPage": {
