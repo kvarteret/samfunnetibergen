@@ -1,18 +1,18 @@
 "use client"
 
-import { X } from "lucide-react"
 import { useForm, useStore } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
+import { X } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import posthog from "posthog-js"
 import { useEffect, useMemo, useRef, useState } from "react"
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,34 +20,32 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
-import {
-    defaultVolunteerProspectValues,
-    loadVolunteerProspectDraft,
-    normalizeVolunteerPhoneNumber,
-    validateVolunteerProspectValues,
-    volunteerProspectDraftStorageKey,
-    type VolunteerProspectErrorResponse,
-    type VolunteerProspectResponse,
-    type VolunteerProspectValidationMessages,
-    type VolunteerProspectValues,
-} from "@/lib/volunteer-prospect"
 import type {
     InstitutionOption,
     LaunchGroupContent,
     LaunchGroupSlug,
 } from "@/lib/volunteer-launch-content"
+import {
+    defaultVolunteerProspectValues,
+    loadVolunteerProspectDraft,
+    normalizeVolunteerPhoneNumber,
+    type VolunteerProspectErrorResponse,
+    type VolunteerProspectResponse,
+    type VolunteerProspectValidationMessages,
+    type VolunteerProspectValues,
+    validateVolunteerProspectValues,
+    volunteerProspectDraftStorageKey,
+} from "@/lib/volunteer-prospect"
 
 function RequiredStar() {
-    return <span aria-hidden="true" className="text-destructive">*</span>
+    return (
+        <span aria-hidden="true" className="text-destructive">
+            *
+        </span>
+    )
 }
 
-function RequiredLabel({
-    htmlFor,
-    children,
-}: {
-    htmlFor?: string
-    children: React.ReactNode
-}) {
+function RequiredLabel({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
     return (
         <Label className="flex items-center gap-1" htmlFor={htmlFor}>
             <span>{children}</span>
@@ -61,13 +59,7 @@ function FieldError({ message }: { message?: string }) {
     return <p className="text-sm text-destructive">{message}</p>
 }
 
-function SelectionChip({
-    label,
-    onRemove,
-}: {
-    label: string
-    onRemove: () => void
-}) {
+function SelectionChip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
         <button
             className="inline-flex items-center gap-2 border-2 border-border bg-secondary-background px-3 py-2 text-sm shadow-shadow transition-none"
@@ -122,9 +114,7 @@ export function VolunteerProspectExperience({
         status: "success" | "error"
         message: string
     } | null>(null)
-    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<LaunchGroupSlug | null>(
-        null,
-    )
+    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<LaunchGroupSlug | null>(null)
     const hasRestoredDraftRef = useRef(false)
 
     const createProspectMutation = useMutation<
@@ -138,6 +128,7 @@ export function VolunteerProspectExperience({
                 headers: {
                     "Content-Type": "application/json",
                     "Accept-Language": locale,
+                    "x-posthog-distinct-id": posthog.get_distinct_id() ?? "",
                 },
                 body: JSON.stringify(values),
             })
@@ -160,14 +151,23 @@ export function VolunteerProspectExperience({
 
             return payload as VolunteerProspectResponse
         },
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
+            posthog.capture("volunteer_form_submitted", {
+                first_choice_group: variables.firstChoiceGroupSlug,
+                second_choice_group: variables.secondChoiceGroupSlug || null,
+            })
             window.localStorage.removeItem(volunteerProspectDraftStorageKey)
             setFormMessage({
                 status: "success",
                 message: tForm("submittedMessage"),
             })
         },
-        onError: error => {
+        onError: (error, variables) => {
+            posthog.capture("volunteer_form_submission_failed", {
+                first_choice_group: variables.firstChoiceGroupSlug,
+                second_choice_group: variables.secondChoiceGroupSlug || null,
+                error_detail: error.detail,
+            })
             setFormMessage({
                 status: "error",
                 message: error.detail,
@@ -183,10 +183,7 @@ export function VolunteerProspectExperience({
                 ...(value as VolunteerProspectValues),
                 phone: normalizeVolunteerPhoneNumber(value.phone),
             }
-            const fieldErrors = validateVolunteerProspectValues(
-                submittedValues,
-                validationMessages,
-            )
+            const fieldErrors = validateVolunteerProspectValues(submittedValues, validationMessages)
 
             if (Object.keys(fieldErrors).length > 0) {
                 setFormMessage({
@@ -223,17 +220,14 @@ export function VolunteerProspectExperience({
 
     useEffect(() => {
         if (!hasRestoredDraftRef.current) return
-        window.localStorage.setItem(
-            volunteerProspectDraftStorageKey,
-            JSON.stringify(formValues),
-        )
+        window.localStorage.setItem(volunteerProspectDraftStorageKey, JSON.stringify(formValues))
     }, [formValues])
 
     useEffect(() => {
         if (createProspectMutation.isError && createProspectMutation.error.fieldErrors) {
-            const errorEntries = Object.entries(
-                createProspectMutation.error.fieldErrors,
-            ) as Array<[keyof VolunteerProspectValues, string]>
+            const errorEntries = Object.entries(createProspectMutation.error.fieldErrors) as Array<
+                [keyof VolunteerProspectValues, string]
+            >
 
             for (const [fieldName, message] of errorEntries) {
                 form.setFieldMeta(fieldName, previous => ({
@@ -249,6 +243,10 @@ export function VolunteerProspectExperience({
     }, [createProspectMutation.error, createProspectMutation.isError, form])
 
     function selectPrimaryGroup(slug: LaunchGroupSlug) {
+        posthog.capture("volunteer_group_selected", {
+            group_slug: slug,
+            choice: "first",
+        })
         form.setFieldValue("firstChoiceGroupSlug", slug)
         form.setFieldMeta("firstChoiceGroupSlug", previous => ({
             ...previous,
@@ -270,6 +268,10 @@ export function VolunteerProspectExperience({
     }
 
     function applyChoice(slug: LaunchGroupSlug, target: "first" | "second") {
+        posthog.capture("volunteer_group_selected", {
+            group_slug: slug,
+            choice: target,
+        })
         const currentFirst = form.state.values.firstChoiceGroupSlug
         const currentSecond = form.state.values.secondChoiceGroupSlug
 
@@ -370,7 +372,7 @@ export function VolunteerProspectExperience({
     }, [choiceModalGroupSlug])
 
     const choiceModalGroup = choiceModalGroupSlug
-        ? groups.find(group => group.slug === choiceModalGroupSlug) ?? null
+        ? (groups.find(group => group.slug === choiceModalGroupSlug) ?? null)
         : null
     const modalFirstChoiceSlug = formValues.firstChoiceGroupSlug
     const modalSecondChoiceSlug = formValues.secondChoiceGroupSlug
@@ -391,8 +393,7 @@ export function VolunteerProspectExperience({
 
                     <div className="grid gap-5">
                         {groups.map(group => {
-                            const isSelected =
-                                form.state.values.firstChoiceGroupSlug === group.slug
+                            const isSelected = form.state.values.firstChoiceGroupSlug === group.slug
                             const isSecondChoice =
                                 form.state.values.secondChoiceGroupSlug === group.slug
 
@@ -471,7 +472,10 @@ export function VolunteerProspectExperience({
                                                     )}
                                                 >
                                                     {group.accordionSections.map(section => (
-                                                        <div className="grid gap-2" key={section.title}>
+                                                        <div
+                                                            className="grid gap-2"
+                                                            key={section.title}
+                                                        >
                                                             <h3 className="text-sm font-heading uppercase tracking-[0.2em]">
                                                                 {section.title}
                                                             </h3>
@@ -712,10 +716,7 @@ export function VolunteerProspectExperience({
                                                     {tForm("studyInstitutionPlaceholder")}
                                                 </option>
                                                 {institutionOptions.map(option => (
-                                                    <option
-                                                        key={option.value}
-                                                        value={option.value}
-                                                    >
+                                                    <option key={option.value} value={option.value}>
                                                         {option.label}
                                                     </option>
                                                 ))}
@@ -746,9 +747,7 @@ export function VolunteerProspectExperience({
                                                 onChange={event =>
                                                     field.handleChange(event.target.value)
                                                 }
-                                                placeholder={tForm(
-                                                    "backgroundDetailsPlaceholder",
-                                                )}
+                                                placeholder={tForm("backgroundDetailsPlaceholder")}
                                                 rows={4}
                                                 value={field.state.value}
                                             />
@@ -775,8 +774,8 @@ export function VolunteerProspectExperience({
                                         </div>
                                         <FieldError
                                             message={
-                                                form.state.fieldMeta.firstChoiceGroupSlug
-                                                    ?.errorMap?.onSubmit as string | undefined
+                                                form.state.fieldMeta.firstChoiceGroupSlug?.errorMap
+                                                    ?.onSubmit as string | undefined
                                             }
                                         />
                                     </div>
@@ -806,8 +805,9 @@ export function VolunteerProspectExperience({
                                                 secondChoiceConflict
                                                     ? tForm("secondChoiceConflict")
                                                     : ((form.state.fieldMeta.secondChoiceGroupSlug
-                                                          ?.errorMap?.onSubmit as string | undefined) ??
-                                                      undefined)
+                                                          ?.errorMap?.onSubmit as
+                                                          | string
+                                                          | undefined) ?? undefined)
                                             }
                                         />
                                     </div>
@@ -872,9 +872,7 @@ export function VolunteerProspectExperience({
                         role="dialog"
                     >
                         <div className="grid gap-3">
-                            <h3 className="text-2xl leading-none">
-                                {tForm("choiceModalTitle")}
-                            </h3>
+                            <h3 className="text-2xl leading-none">{tForm("choiceModalTitle")}</h3>
                             <p className="text-sm leading-6 text-foreground/75">
                                 {tForm("choiceModalDescription", {
                                     group: choiceModalGroup.name,

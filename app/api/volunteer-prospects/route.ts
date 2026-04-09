@@ -1,11 +1,12 @@
-import enMessages from "@/messages/en.json"
-import nbMessages from "@/messages/nb.json"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { resolveRequestLocale } from "@/lib/request-locale"
 import {
     buildVolunteerProspectPayload,
-    validateVolunteerProspectValues,
     type VolunteerProspectValues,
+    validateVolunteerProspectValues,
 } from "@/lib/volunteer-prospect"
+import enMessages from "@/messages/en.json"
+import nbMessages from "@/messages/nb.json"
 
 const PERSONAL_APP_BASE_URL =
     process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
@@ -44,16 +45,10 @@ export async function POST(request: Request) {
     try {
         payload = (await request.json()) as VolunteerProspectValues
     } catch {
-        return Response.json(
-            { detail: messages.Api.invalidRequest },
-            { status: 400 },
-        )
+        return Response.json({ detail: messages.Api.invalidRequest }, { status: 400 })
     }
 
-    const fieldErrors = validateVolunteerProspectValues(
-        payload,
-        messages.Validation,
-    )
+    const fieldErrors = validateVolunteerProspectValues(payload, messages.Validation)
     if (Object.keys(fieldErrors).length > 0) {
         return Response.json(
             {
@@ -74,11 +69,24 @@ export async function POST(request: Request) {
             body: JSON.stringify(buildVolunteerProspectPayload(payload)),
         })
 
-        const responseBody = (await response.json().catch(() => null)) as
-            | Record<string, unknown>
-            | null
+        const responseBody = (await response.json().catch(() => null)) as Record<
+            string,
+            unknown
+        > | null
+
+        const posthog = getPostHogClient()
+        const distinctId = request.headers.get("x-posthog-distinct-id") ?? payload.email
 
         if (!response.ok) {
+            posthog.capture({
+                distinctId,
+                event: "volunteer_prospect_creation_failed",
+                properties: {
+                    first_choice_group: payload.firstChoiceGroupSlug,
+                    second_choice_group: payload.secondChoiceGroupSlug || null,
+                    status_code: response.status,
+                },
+            })
             return Response.json(
                 {
                     detail: extractErrorDetail(responseBody) ?? messages.Api.submitFailure,
@@ -86,6 +94,15 @@ export async function POST(request: Request) {
                 { status: response.status },
             )
         }
+
+        posthog.capture({
+            distinctId,
+            event: "volunteer_prospect_created",
+            properties: {
+                first_choice_group: payload.firstChoiceGroupSlug,
+                second_choice_group: payload.secondChoiceGroupSlug || null,
+            },
+        })
 
         return Response.json(responseBody, { status: 201 })
     } catch {

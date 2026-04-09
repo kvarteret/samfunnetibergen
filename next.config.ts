@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
     turbopack: {
         root: process.cwd(),
     },
+    async rewrites() {
+        return [
+            {
+                source: "/ingest/static/:path*",
+                destination: "https://eu-assets.i.posthog.com/static/:path*",
+            },
+            {
+                source: "/ingest/:path*",
+                destination: "https://eu.i.posthog.com/:path*",
+            },
+        ]
+    },
+    skipTrailingSlashRedirect: true,
 }
 
 export default withNextIntl(nextConfig)

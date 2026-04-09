@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { useTranslations } from "next-intl"
+import posthog from "posthog-js"
+import { useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -13,11 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import type { VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 import { createClient } from "@/utils/supabase/client"
 
-export function VolunteerSignupPage({
-    groups,
-}: {
-    groups: VolunteerGroupSummary[]
-}) {
+export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[] }) {
     const t = useTranslations("VolunteerSignupPage")
 
     const [selectedGroup, setSelectedGroup] = useState<string>("")
@@ -62,6 +59,9 @@ export function VolunteerSignupPage({
             return
         }
 
+        posthog.capture("volunteer_signup_submitted", {
+            group: selectedGroup,
+        })
         setSuccess(t("successMessage"))
         setName("")
         setEmail("")
@@ -95,7 +95,9 @@ export function VolunteerSignupPage({
                                         variant={active ? "default" : "neutral"}
                                     >
                                         <span className="text-left">
-                                            <span className="block">{group.name.toUpperCase()}</span>
+                                            <span className="block">
+                                                {group.name.toUpperCase()}
+                                            </span>
                                             <span className="mt-1 block text-xs font-normal normal-case opacity-80">
                                                 {group.description}
                                             </span>
