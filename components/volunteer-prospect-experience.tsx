@@ -406,6 +406,30 @@ export function VolunteerProspectExperience({
                         <p className="max-w-4xl text-base leading-8 text-foreground/85 sm:text-lg">
                             {tHome("heroDescription")}
                         </p>
+                        <p className="max-w-4xl text-base leading-8 text-foreground/85 sm:text-lg">
+                            {tHome.rich("heroDescriptionFusion", {
+                                kvarteret: chunks => (
+                                    <a
+                                        className="underline underline-offset-4"
+                                        href="https://kvarteret.no"
+                                        rel="noreferrer"
+                                        target="_blank"
+                                    >
+                                        {chunks}
+                                    </a>
+                                ),
+                                samfunnetibergen: chunks => (
+                                    <a
+                                        className="underline underline-offset-4"
+                                        href="https://samfunnetibergen.no"
+                                        rel="noreferrer"
+                                        target="_blank"
+                                    >
+                                        {chunks}
+                                    </a>
+                                ),
+                            })}
+                        </p>
                     </div>
 
                     <div className="grid gap-5">

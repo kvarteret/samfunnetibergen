@@ -12,6 +12,7 @@
   "HomePage": {
     "badge": "Samfunnet / Det Akademiske Kvarter",
     "heroDescription": "Studentersamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!",
+    "heroDescriptionFusion": "Samfunnet er en fusjon av <kvarteret>Kvarteret</kvarteret> og <samfunnetibergen>Samfunnet i Bergen</samfunnetibergen>. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Ved å bli frivillig nå kan du være med å sette ditt preg på studentlivet!",
     "footer": "Med 💛 fra E-tjenesten"
   },
   "VolunteerProspectForm": {
