@@ -138,12 +138,14 @@ export function VolunteerProspectExperience({
         VolunteerProspectValues
     >({
         mutationFn: async values => {
+            const distinctId = posthog.get_distinct_id()?.trim()
             const response = await fetch("/api/volunteer-prospects", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Accept-Language": locale,
-                    "x-posthog-distinct-id": posthog.get_distinct_id() ?? "",
+                    ...(distinctId ? { "x-posthog-distinct-id": distinctId } : {}),
+                    "x-posthog-session-id": posthog.get_session_id() ?? "",
                 },
                 body: JSON.stringify(values),
             })

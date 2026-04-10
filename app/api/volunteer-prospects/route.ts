@@ -74,19 +74,22 @@ export async function POST(request: Request) {
             unknown
         > | null
 
-        const posthog = getPostHogClient()
-        const distinctId = request.headers.get("x-posthog-distinct-id") ?? payload.email
+        const distinctId = request.headers.get("x-posthog-distinct-id")?.trim()
+        const sessionId = request.headers.get("x-posthog-session-id") || undefined
 
         if (!response.ok) {
-            posthog.capture({
-                distinctId,
-                event: "volunteer_prospect_creation_failed",
-                properties: {
-                    first_choice_group: payload.firstChoiceGroupSlug,
-                    second_choice_group: payload.secondChoiceGroupSlug || null,
-                    status_code: response.status,
-                },
-            })
+            if (distinctId) {
+                getPostHogClient().capture({
+                    distinctId,
+                    event: "volunteer_prospect_creation_failed",
+                    properties: {
+                        $session_id: sessionId,
+                        first_choice_group: payload.firstChoiceGroupSlug,
+                        second_choice_group: payload.secondChoiceGroupSlug || null,
+                        status_code: response.status,
+                    },
+                })
+            }
             return Response.json(
                 {
                     detail: extractErrorDetail(responseBody) ?? messages.Api.submitFailure,
@@ -95,14 +98,17 @@ export async function POST(request: Request) {
             )
         }
 
-        posthog.capture({
-            distinctId,
-            event: "volunteer_prospect_created",
-            properties: {
-                first_choice_group: payload.firstChoiceGroupSlug,
-                second_choice_group: payload.secondChoiceGroupSlug || null,
-            },
-        })
+        if (distinctId) {
+            getPostHogClient().capture({
+                distinctId,
+                event: "volunteer_prospect_created",
+                properties: {
+                    $session_id: sessionId,
+                    first_choice_group: payload.firstChoiceGroupSlug,
+                    second_choice_group: payload.secondChoiceGroupSlug || null,
+                },
+            })
+        }
 
         return Response.json(responseBody, { status: 201 })
     } catch {
