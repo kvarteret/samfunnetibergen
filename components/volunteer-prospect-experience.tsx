@@ -116,6 +116,21 @@ export function VolunteerProspectExperience({
     } | null>(null)
     const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<LaunchGroupSlug | null>(null)
     const hasRestoredDraftRef = useRef(false)
+    const hasStartedFormRef = useRef(false)
+
+    function captureFormStarted(source: "change" | "submit", fieldName?: string) {
+        if (hasStartedFormRef.current) {
+            return
+        }
+
+        hasStartedFormRef.current = true
+        posthog.capture("volunteer_form_started", {
+            source,
+            field_name: fieldName ?? null,
+            first_choice_group: form.state.values.firstChoiceGroupSlug || null,
+            second_choice_group: form.state.values.secondChoiceGroupSlug || null,
+        })
+    }
 
     const createProspectMutation = useMutation<
         VolunteerProspectResponse,
@@ -157,6 +172,7 @@ export function VolunteerProspectExperience({
                 second_choice_group: variables.secondChoiceGroupSlug || null,
             })
             window.localStorage.removeItem(volunteerProspectDraftStorageKey)
+            hasStartedFormRef.current = false
             setFormMessage({
                 status: "success",
                 message: tForm("submittedMessage"),
@@ -179,6 +195,7 @@ export function VolunteerProspectExperience({
         defaultValues: initialValues,
         canSubmitWhenInvalid: false,
         onSubmit: async ({ value }) => {
+            captureFormStarted("submit")
             const submittedValues = {
                 ...(value as VolunteerProspectValues),
                 phone: normalizeVolunteerPhoneNumber(value.phone),
@@ -544,9 +561,10 @@ export function VolunteerProspectExperience({
                                                     id={field.name}
                                                     name={field.name}
                                                     onBlur={field.handleBlur}
-                                                    onChange={event =>
+                                                    onChange={event => {
+                                                        captureFormStarted("change", field.name)
                                                         field.handleChange(event.target.value)
-                                                    }
+                                                    }}
                                                     value={field.state.value}
                                                 />
                                                 <FieldError
@@ -580,9 +598,10 @@ export function VolunteerProspectExperience({
                                                     id={field.name}
                                                     name={field.name}
                                                     onBlur={field.handleBlur}
-                                                    onChange={event =>
+                                                    onChange={event => {
+                                                        captureFormStarted("change", field.name)
                                                         field.handleChange(event.target.value)
-                                                    }
+                                                    }}
                                                     value={field.state.value}
                                                 />
                                                 <FieldError
@@ -621,9 +640,10 @@ export function VolunteerProspectExperience({
                                                     id={field.name}
                                                     name={field.name}
                                                     onBlur={field.handleBlur}
-                                                    onChange={event =>
+                                                    onChange={event => {
+                                                        captureFormStarted("change", field.name)
                                                         field.handleChange(event.target.value)
-                                                    }
+                                                    }}
                                                     placeholder={tForm("emailPlaceholder")}
                                                     type="email"
                                                     value={field.state.value}
@@ -660,6 +680,7 @@ export function VolunteerProspectExperience({
                                                     id={field.name}
                                                     name={field.name}
                                                     onBlur={event => {
+                                                        captureFormStarted("change", field.name)
                                                         field.handleChange(
                                                             normalizeVolunteerPhoneNumber(
                                                                 event.target.value,
@@ -667,9 +688,10 @@ export function VolunteerProspectExperience({
                                                         )
                                                         field.handleBlur()
                                                     }}
-                                                    onChange={event =>
+                                                    onChange={event => {
+                                                        captureFormStarted("change", field.name)
                                                         field.handleChange(event.target.value)
-                                                    }
+                                                    }}
                                                     placeholder={tForm("phonePlaceholder")}
                                                     type="tel"
                                                     value={field.state.value}
@@ -707,9 +729,10 @@ export function VolunteerProspectExperience({
                                                 id={field.name}
                                                 name={field.name}
                                                 onBlur={field.handleBlur}
-                                                onChange={event =>
+                                                onChange={event => {
+                                                    captureFormStarted("change", field.name)
                                                     field.handleChange(event.target.value)
-                                                }
+                                                }}
                                                 value={field.state.value}
                                             >
                                                 <option value="">
@@ -744,9 +767,10 @@ export function VolunteerProspectExperience({
                                                 id={field.name}
                                                 name={field.name}
                                                 onBlur={field.handleBlur}
-                                                onChange={event =>
+                                                onChange={event => {
+                                                    captureFormStarted("change", field.name)
                                                     field.handleChange(event.target.value)
-                                                }
+                                                }}
                                                 placeholder={tForm("backgroundDetailsPlaceholder")}
                                                 rows={4}
                                                 value={field.state.value}
