@@ -412,7 +412,6 @@ export function VolunteerProspectExperience({
                                     <a
                                         className="underline underline-offset-4"
                                         href="https://kvarteret.no"
-                                        rel="noreferrer"
                                         target="_blank"
                                     >
                                         {chunks}
@@ -422,7 +421,6 @@ export function VolunteerProspectExperience({
                                     <a
                                         className="underline underline-offset-4"
                                         href="https://samfunnetibergen.no"
-                                        rel="noreferrer"
                                         target="_blank"
                                     >
                                         {chunks}
