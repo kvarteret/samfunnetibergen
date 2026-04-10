@@ -1,3 +1,4 @@
+import { isValidEmailAddress } from "@/lib/contact"
 import { getLaunchGroupBySlug, type LaunchGroupSlug } from "@/lib/volunteer-launch-content"
 
 export type VolunteerProspectField =
@@ -54,7 +55,6 @@ export const defaultVolunteerProspectValues: VolunteerProspectValues = {
     secondChoiceGroupSlug: "",
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const NON_DIGIT_PATTERN = /\D/g
 
 export function validateVolunteerProspectValues(
@@ -67,7 +67,7 @@ export function validateVolunteerProspectValues(
     if (!values.lastName.trim()) fieldErrors.lastName = messages.lastNameRequired
 
     const normalizedEmail = values.email.trim().toLowerCase()
-    if (!normalizedEmail || !EMAIL_PATTERN.test(normalizedEmail)) {
+    if (!normalizedEmail || !isValidEmailAddress(normalizedEmail)) {
         fieldErrors.email = messages.emailInvalid
     }
 
@@ -82,10 +82,7 @@ export function validateVolunteerProspectValues(
         fieldErrors.firstChoiceGroupSlug = messages.unsupportedGroup
     }
 
-    if (
-        values.secondChoiceGroupSlug &&
-        !getLaunchGroupBySlug("nb", values.secondChoiceGroupSlug)
-    ) {
+    if (values.secondChoiceGroupSlug && !getLaunchGroupBySlug("nb", values.secondChoiceGroupSlug)) {
         fieldErrors.secondChoiceGroupSlug = messages.unsupportedGroup
     }
 

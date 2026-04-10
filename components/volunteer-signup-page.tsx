@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { isValidEmailAddress } from "@/lib/contact"
 import type { VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 import { createClient } from "@/utils/supabase/client"
 
@@ -27,10 +28,6 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
     const [error, setError] = useState<string>("")
     const [success, setSuccess] = useState<string>("")
 
-    function isValidEmail(value: string) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
-    }
-
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setError("")
@@ -38,7 +35,7 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
 
         if (!selectedGroup) return setError(t("groupRequired"))
         if (!name.trim()) return setError(t("nameRequired"))
-        if (!isValidEmail(email)) return setError(t("emailInvalid"))
+        if (!isValidEmailAddress(email)) return setError(t("emailInvalid"))
         if (!consent) {
             return setError(t("consentRequired"))
         }

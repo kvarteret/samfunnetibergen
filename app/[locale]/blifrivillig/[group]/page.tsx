@@ -1,42 +1,20 @@
-import { hasLocale } from "next-intl"
-import { getTranslations, setRequestLocale } from "next-intl/server"
-import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
-import { routing, type AppLocale } from "@/i18n/routing"
-import {
-    getLaunchGroupBySlug,
-    getLaunchGroups,
-} from "@/lib/volunteer-launch-content"
+import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
+import { getVolunteerGroupStaticParams, resolveVolunteerGroup } from "@/lib/volunteer-group-page"
 
 export function generateStaticParams() {
-    return routing.locales.flatMap(locale =>
-        getLaunchGroups(locale as AppLocale).map(group => ({
-            locale,
-            group: group.slug,
-        })),
-    )
+    return getVolunteerGroupStaticParams()
 }
 
-export async function generateMetadata({
-    params,
-}: PageProps<"/[locale]/blifrivillig/[group]">) {
-    const { locale, group } = await params
-
-    if (!hasLocale(routing.locales, locale)) {
-        notFound()
-    }
-
-    const resolvedGroup = getLaunchGroupBySlug(locale as AppLocale, group)
-    if (!resolvedGroup) {
-        notFound()
-    }
-
-    const t = await getTranslations({
-        locale,
-        namespace: "Metadata",
-    })
+export async function generateMetadata({ params }: PageProps<"/[locale]/blifrivillig/[group]">) {
+    const resolvedParams = await params
+    const locale = await resolvePageLocale(Promise.resolve({ locale: resolvedParams.locale }))
+    const { group } = resolvedParams
+    const resolvedGroup = resolveVolunteerGroup(locale, group)
+    const t = await getTranslations({ locale, namespace: "Metadata" })
 
     return {
         title: t("groupPageTitle", { group: resolvedGroup.name }),
@@ -47,23 +25,12 @@ export async function generateMetadata({
 export default async function VolunteerGroupPage({
     params,
 }: PageProps<"/[locale]/blifrivillig/[group]">) {
-    const { locale, group: groupSlug } = await params
-
-    if (!hasLocale(routing.locales, locale)) {
-        notFound()
-    }
-
-    setRequestLocale(locale)
-
-    const group = getLaunchGroupBySlug(locale as AppLocale, groupSlug)
-    if (!group) {
-        notFound()
-    }
-
-    const t = await getTranslations({
-        locale,
-        namespace: "GroupPage",
-    })
+    const resolvedParams = await params
+    const locale = await resolvePageLocale(Promise.resolve({ locale: resolvedParams.locale }))
+    const { group: groupSlug } = resolvedParams
+    activateRequestLocale(locale)
+    const group = resolveVolunteerGroup(locale, groupSlug)
+    const t = await getTranslations({ locale, namespace: "GroupPage" })
 
     return (
         <main className="flex-1 px-6 py-10 sm:px-10 lg:px-14">
@@ -88,9 +55,7 @@ export default async function VolunteerGroupPage({
                         {group.eyebrow}
                     </p>
                     <h1 className="text-5xl leading-none sm:text-6xl">{group.name}</h1>
-                    <p className="max-w-4xl text-xl leading-8 text-foreground/85">
-                        {group.lead}
-                    </p>
+                    <p className="max-w-4xl text-xl leading-8 text-foreground/85">{group.lead}</p>
                 </header>
 
                 <div className="grid gap-5">

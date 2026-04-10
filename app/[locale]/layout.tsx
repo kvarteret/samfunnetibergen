@@ -1,14 +1,12 @@
 import type { Metadata } from "next"
-import localFont from "next/font/local"
 import { DM_Mono, Instrument_Serif } from "next/font/google"
-import { hasLocale, NextIntlClientProvider } from "next-intl"
-import { getMessages, setRequestLocale } from "next-intl/server"
-import { notFound } from "next/navigation"
+import localFont from "next/font/local"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages } from "next-intl/server"
 import { Suspense } from "react"
-
-import { LanguageSelector } from "@/components/language-selector"
 import { Providers } from "@/app/providers"
-import { routing } from "@/i18n/routing"
+import { LanguageSelector } from "@/components/language-selector"
+import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import "../globals.css"
 
 const hegvalDisplay = localFont({
@@ -52,20 +50,12 @@ export const metadata: Metadata = {
 }
 
 export function generateStaticParams() {
-    return routing.locales.map(locale => ({ locale }))
+    return getLocaleStaticParams()
 }
 
-export default async function LocaleLayout({
-    children,
-    params,
-}: LayoutProps<"/[locale]">) {
-    const { locale } = await params
-
-    if (!hasLocale(routing.locales, locale)) {
-        notFound()
-    }
-
-    setRequestLocale(locale)
+export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
+    const locale = await resolvePageLocale(params)
+    activateRequestLocale(locale)
     const messages = await getMessages()
 
     return (

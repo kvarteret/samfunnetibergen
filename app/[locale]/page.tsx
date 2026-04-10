@@ -1,26 +1,17 @@
-import { hasLocale } from "next-intl"
-import { getTranslations, setRequestLocale } from "next-intl/server"
-import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { VolunteerProspectExperience } from "@/components/volunteer-prospect-experience"
-import { routing } from "@/i18n/routing"
-import {
-    getInstitutionOptions,
-    getLaunchGroups,
-} from "@/lib/volunteer-launch-content"
+import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { resolveInitialLaunchGroupSlug } from "@/lib/volunteer-groups"
+import { getInstitutionOptions, getLaunchGroups } from "@/lib/volunteer-launch-content"
 
 export function generateStaticParams() {
-    return routing.locales.map(locale => ({ locale }))
+    return getLocaleStaticParams()
 }
 
-export async function generateMetadata({
-    params,
-}: PageProps<"/[locale]">) {
-    const { locale } = await params
-    const t = await getTranslations({
-        locale,
-        namespace: "Metadata",
-    })
+export async function generateMetadata({ params }: PageProps<"/[locale]">) {
+    const locale = await resolvePageLocale(params)
+    const t = await getTranslations({ locale, namespace: "Metadata" })
 
     return {
         title: t("homeTitle"),
@@ -34,23 +25,16 @@ export default async function Home({
 }: PageProps<"/[locale]"> & {
     searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-    const { locale } = await params
+    const locale = await resolvePageLocale(params)
+    activateRequestLocale(locale)
 
-    if (!hasLocale(routing.locales, locale)) {
-        notFound()
-    }
-
-    setRequestLocale(locale)
-
+    const groups = getLaunchGroups(locale)
     const resolvedSearchParams = (await searchParams) ?? {}
-    const requestedGroup = resolvedSearchParams.group
-    const initialGroupSlug =
-        typeof requestedGroup === "string" ? requestedGroup : undefined
 
     return (
         <VolunteerProspectExperience
-            groups={getLaunchGroups(locale)}
-            initialGroupSlug={initialGroupSlug}
+            groups={groups}
+            initialGroupSlug={resolveInitialLaunchGroupSlug(groups, resolvedSearchParams.group)}
             institutionOptions={getInstitutionOptions(locale)}
         />
     )
