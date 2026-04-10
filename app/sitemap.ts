@@ -1,22 +1,8 @@
 import type { MetadataRoute } from "next"
 
 import { routing, type AppLocale } from "@/i18n/routing"
+import { resolveSiteUrl } from "@/lib/site-url"
 import { getLaunchGroups } from "@/lib/volunteer-launch-content"
-
-function resolveSiteUrl() {
-    const configuredSiteUrl =
-        process.env.SITE_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-        process.env.VERCEL_URL ||
-        "http://localhost:3000"
-
-    const normalizedSiteUrl = configuredSiteUrl.startsWith("http")
-        ? configuredSiteUrl
-        : `https://${configuredSiteUrl}`
-
-    return normalizedSiteUrl.replace(/\/+$/, "")
-}
 
 function localizedPath(locale: AppLocale, path = "") {
     return path === "/" ? `/${locale}` : `/${locale}${path}`
