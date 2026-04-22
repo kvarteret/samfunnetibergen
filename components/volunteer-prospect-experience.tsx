@@ -81,9 +81,9 @@ export function VolunteerProspectExperience({
           undefined)
 
     return (
-        <main className="flex-1 px-6 py-10 sm:px-10 lg:px-14">
-            <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-                <section className="space-y-8">
+        <>
+            <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-start">
+                <section className="flex flex-col gap-8 lg:flex-[1.15]">
                     <VolunteerProspectHero
                         badge={tHome("badge")}
                         description={tHome("heroDescription")}
@@ -122,7 +122,7 @@ export function VolunteerProspectExperience({
                     />
                 </section>
 
-                <aside className="lg:sticky lg:top-8 lg:self-start">
+                <aside className="lg:sticky lg:top-8 lg:flex-[0.85] lg:self-start">
                     <Card className="bg-card" id="registration-form">
                         <CardHeader>
                             <CardTitle className="text-3xl">{tForm("title")}</CardTitle>
@@ -409,6 +409,6 @@ export function VolunteerProspectExperience({
             <footer className="w-full py-8 text-center text-lg text-foreground/75">
                 {tHome("footer")}
             </footer>
-        </main>
+        </>
     )
 }

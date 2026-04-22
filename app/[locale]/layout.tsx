@@ -63,13 +63,17 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
             lang={locale}
             className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${dmMono.variable} ${instrumentSerif.variable} h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">
+            <body className="min-h-full">
                 <NextIntlClientProvider messages={messages}>
                     <Providers>
-                        <Suspense fallback={null}>
-                            <LanguageSelector />
-                        </Suspense>
-                        {children}
+                        <div className="flex min-h-full flex-col">
+                            <Suspense fallback={null}>
+                                <LanguageSelector />
+                            </Suspense>
+                            <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
+                                {children}
+                            </main>
+                        </div>
                     </Providers>
                 </NextIntlClientProvider>
             </body>

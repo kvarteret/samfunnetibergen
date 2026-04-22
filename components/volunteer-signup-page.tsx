@@ -68,14 +68,14 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
     }
 
     return (
-        <div className="p-6 sm:p-10">
-            <div className="mb-8 text-center">
+        <div className="flex flex-col gap-8">
+            <div className="text-center">
                 <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
                 <p className="mt-3 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card className="bg-secondary-background">
+            <div className="flex flex-col gap-6 md:flex-row">
+                <Card className="bg-secondary-background md:flex-1">
                     <CardHeader>
                         <CardTitle>{t("selectGroupTitle")}</CardTitle>
                     </CardHeader>
@@ -112,7 +112,7 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
                     </CardContent>
                 </Card>
 
-                <Card className="bg-secondary-background">
+                <Card className="bg-secondary-background md:flex-1">
                     <CardHeader>
                         <CardTitle>{t("contactInfoTitle")}</CardTitle>
                     </CardHeader>
@@ -168,7 +168,7 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
                                     checked={consent}
                                     onCheckedChange={v => setConsent(Boolean(v))}
                                 />
-                                <div className="grid gap-1.5 leading-none">
+                                <div className="flex flex-col gap-1.5 leading-none">
                                     <Label htmlFor="consent" className="cursor-pointer">
                                         {t("consentLabel")}
                                     </Label>
