@@ -25,6 +25,11 @@
         "description": "Upcoming public events at Det Akademiske Kvarter, fetched directly from the programme database and grouped by programme category.",
         "empty": "No upcoming events right now.",
         "error": "We could not load events right now. Please try again later.",
+        "filterAll": "All",
+        "filterMore": "All filters",
+        "filterType": "Event type",
+        "filterOrganizer": "Organizer",
+        "filterResultCount": "{count, plural, =0 {No events} one {# event} other {# events}}",
         "tickets": "Tickets",
         "facebook": "Facebook"
     },
