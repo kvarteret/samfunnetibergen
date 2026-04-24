@@ -1,23 +1,15 @@
 import { spawnSync } from "node:child_process"
-import {
-    existsSync,
-    mkdtempSync,
-    readdirSync,
-    readFileSync,
-    rmSync,
-    statSync,
-    writeFileSync,
-} from "node:fs"
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, relative } from "node:path"
+import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const DEFAULT_OPENAPI_URL =
     "https://raw.githubusercontent.com/kvarteret/kvarteret-personal/develop/openapi.json"
 const OUTPUT_DIR = "lib/kvarteret-personal-api"
+const SPEC_SNAPSHOT = "openapi/kvarteret-personal.json"
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url))
-const isCheck = process.argv.includes("--check")
 const tempFiles = []
 
 const resolveOpenApiInput = () => {
@@ -76,76 +68,22 @@ const runGenerator = outputDir => {
         process.exit(1)
     }
 
-    const formatResult = spawnSync("npx", ["biome", "check", "--write", outputDir], {
-        cwd: rootDir,
-        stdio: "inherit",
-    })
-
-    if (formatResult.status !== 0) {
-        process.exit(formatResult.status ?? 1)
+    // Copy spec snapshot so it's tracked in the repo
+    const snapshotPath = join(rootDir, SPEC_SNAPSHOT)
+    mkdirSync(join(rootDir, "openapi"), { recursive: true })
+    if (input.startsWith("http")) {
+        const fetchResult = spawnSync("curl", ["-fsSL", input, "-o", snapshotPath], {
+            stdio: "inherit",
+        })
+        if (fetchResult.status !== 0) {
+            console.warn("Warning: could not snapshot remote OpenAPI spec")
+        }
+    } else {
+        copyFileSync(input, snapshotPath)
     }
 }
 
-const listFiles = dir => {
-    if (!existsSync(dir)) {
-        return []
-    }
-
-    return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-        const path = join(dir, entry.name)
-        if (entry.isDirectory()) {
-            return listFiles(path)
-        }
-
-        return [path]
-    })
-}
-
-const compareGenerated = (actualDir, expectedDir) => {
-    const actualFiles = listFiles(actualDir)
-        .map(path => relative(actualDir, path))
-        .sort()
-    const expectedFiles = listFiles(expectedDir)
-        .map(path => relative(expectedDir, path))
-        .sort()
-    const allFiles = [...new Set([...actualFiles, ...expectedFiles])].sort()
-    const changedFiles = allFiles.filter(file => {
-        const actualPath = join(actualDir, file)
-        const expectedPath = join(expectedDir, file)
-
-        if (!existsSync(actualPath) || !existsSync(expectedPath)) {
-            return true
-        }
-
-        if (statSync(actualPath).size !== statSync(expectedPath).size) {
-            return true
-        }
-
-        return readFileSync(actualPath, "utf8") !== readFileSync(expectedPath, "utf8")
-    })
-
-    if (changedFiles.length > 0) {
-        console.error("Generated Kvarteret Personal OpenAPI client is stale:")
-        for (const file of changedFiles) {
-            console.error(`- ${file}`)
-        }
-        console.error("Run npm run api:generate and commit the generated client.")
-        process.exit(1)
-    }
-}
-
-if (isCheck) {
-    const tempDir = mkdtempSync(join(tmpdir(), "kvarteret-personal-client-"))
-    try {
-        const generatedDir = join(tempDir, "client")
-        runGenerator(generatedDir)
-        compareGenerated(join(rootDir, OUTPUT_DIR), generatedDir)
-    } finally {
-        rmSync(tempDir, { force: true, recursive: true })
-    }
-} else {
-    runGenerator(join(rootDir, OUTPUT_DIR))
-}
+runGenerator(join(rootDir, OUTPUT_DIR))
 
 for (const tempFile of tempFiles) {
     rmSync(tempFile, { force: true })

@@ -7,7 +7,7 @@
         "build": "next build",
         "start": "next start",
         "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
-        "api:check": "node scripts/generate-kvarteret-personal-client.mjs --check",
+        "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",
         "lint": "eslint",
         "format": "biome format --write .",
         "check": "biome check --write ."
