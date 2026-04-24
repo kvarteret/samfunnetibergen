@@ -12,6 +12,7 @@ import { client } from "@/lib/kvarteret-personal-api/client.gen"
 const DEFAULT_API_BASE_URL = "https://personal.kvarteret.no/api/v1"
 const EVENTS_LIMIT = 100
 const FALLBACK_TAXONOMY_GROUP = "Annet"
+const PRIMARY_TAXONOMY_GROUPS = ["Musikk", "Scenekunst", "Faglig", "Sosialt", "Organisasjon"]
 
 const TAXONOMY_GROUP_LABELS: Record<string, Record<AppLocale, string>> = {
     Musikk: { nb: "Musikk", en: "Music" },
@@ -39,6 +40,12 @@ export type PublicEventsResult =
           events: []
           taxonomy: null
       }
+
+export type EventFilters = {
+    taxonomyGroup: string | null
+    eventTypeIds: string[]
+    organizerGroupIds: string[]
+}
 
 const getApiClientBaseUrl = (): string => {
     const configuredBaseUrl =
@@ -97,8 +104,66 @@ export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsRe
 const getTaxonomyGroupName = (event: EventDetail): string =>
     event.event_type?.taxonomy_group?.trim() || FALLBACK_TAXONOMY_GROUP
 
-const getTaxonomyGroupLabel = (groupName: string, locale: AppLocale): string =>
+export const getTaxonomyGroupLabel = (groupName: string, locale: AppLocale): string =>
     TAXONOMY_GROUP_LABELS[groupName]?.[locale] ?? groupName
+
+export const getPrimaryTaxonomyGroups = (taxonomy: EventTaxonomy | null): string[] => {
+    const availableGroups = new Set(taxonomy?.event_type_groups.map(group => group.name) ?? [])
+    return PRIMARY_TAXONOMY_GROUPS.filter(groupName => availableGroups.has(groupName))
+}
+
+const normalizeSearchParamArray = (value: string | string[] | undefined): string[] => {
+    if (!value) {
+        return []
+    }
+
+    return (Array.isArray(value) ? value : [value])
+        .flatMap(item => item.split(","))
+        .map(item => item.trim())
+        .filter(Boolean)
+}
+
+export function parseEventFilters(
+    searchParams: Record<string, string | string[] | undefined>,
+): EventFilters {
+    return {
+        taxonomyGroup: normalizeSearchParamArray(searchParams.taxonomy)[0] ?? null,
+        eventTypeIds: normalizeSearchParamArray(searchParams.type),
+        organizerGroupIds: normalizeSearchParamArray(searchParams.organizer),
+    }
+}
+
+export function countEventFilters(filters: EventFilters): number {
+    return (
+        (filters.taxonomyGroup ? 1 : 0) +
+        filters.eventTypeIds.length +
+        filters.organizerGroupIds.length
+    )
+}
+
+export function filterEvents(events: EventDetail[], filters: EventFilters): EventDetail[] {
+    const eventTypeIds = new Set(filters.eventTypeIds)
+    const organizerGroupIds = new Set(filters.organizerGroupIds)
+
+    return events.filter(event => {
+        if (filters.taxonomyGroup && getTaxonomyGroupName(event) !== filters.taxonomyGroup) {
+            return false
+        }
+
+        if (eventTypeIds.size > 0 && !eventTypeIds.has(event.event_type_id)) {
+            return false
+        }
+
+        if (
+            organizerGroupIds.size > 0 &&
+            !event.organizer_groups.some(group => organizerGroupIds.has(group.id))
+        ) {
+            return false
+        }
+
+        return true
+    })
+}
 
 export function groupEventsByTaxonomy(
     events: EventDetail[],

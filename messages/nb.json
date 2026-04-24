@@ -25,6 +25,11 @@
         "description": "Kommende åpne arrangementer på Det Akademiske Kvarter, hentet direkte fra programdatabasen og sortert etter programkategori.",
         "empty": "Ingen kommende arrangementer akkurat nå.",
         "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",
+        "filterAll": "Alle",
+        "filterMore": "Alle filter",
+        "filterType": "Type arrangement",
+        "filterOrganizer": "Arrangør",
+        "filterResultCount": "{count, plural, =0 {Ingen arrangementer} one {# arrangement} other {# arrangementer}}",
         "tickets": "Billetter",
         "facebook": "Facebook"
     },
