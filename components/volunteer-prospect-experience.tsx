@@ -87,7 +87,6 @@ export function VolunteerProspectExperience({
                     <VolunteerProspectHero
                         badge={tHome("badge")}
                         description={tHome("heroDescription")}
-                        eventsLinkLabel={tHome("eventsLink")}
                         fusionDescription={tHome.rich("heroDescriptionFusion", {
                             kvarteret: chunks => (
                                 <a
