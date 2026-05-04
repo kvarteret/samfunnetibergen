@@ -28,7 +28,7 @@ export default async function Home({
     const locale = await resolvePageLocale(params)
     activateRequestLocale(locale)
 
-    const groups = getLaunchGroups(locale)
+    const groups = await getLaunchGroups(locale)
     const resolvedSearchParams = (await searchParams) ?? {}
 
     return (

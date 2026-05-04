@@ -63,7 +63,11 @@ export function useVolunteerProspectController({
                 ...(value as VolunteerProspectValues),
                 phone: normalizeVolunteerPhoneNumber(value.phone),
             }
-            const fieldErrors = validateVolunteerProspectValues(submittedValues, validationMessages)
+            const fieldErrors = validateVolunteerProspectValues(
+                submittedValues,
+                validationMessages,
+                groups.map(g => g.slug),
+            )
 
             if (Object.keys(fieldErrors).length > 0) {
                 setFormMessage({

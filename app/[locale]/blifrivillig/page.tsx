@@ -22,5 +22,5 @@ export default async function BlifrivilligPage({ params }: PageProps<"/[locale]/
     const locale = await resolvePageLocale(params)
     activateRequestLocale(locale)
 
-    return <VolunteerSignupPage groups={getVolunteerGroupSummaries(locale)} />
+    return <VolunteerSignupPage groups={await getVolunteerGroupSummaries(locale)} />
 }

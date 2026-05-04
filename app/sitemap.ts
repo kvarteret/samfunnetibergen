@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-import { routing, type AppLocale } from "@/i18n/routing"
+import { type AppLocale, routing } from "@/i18n/routing"
 import { resolveSiteUrl } from "@/lib/site-url"
 import { getLaunchGroups } from "@/lib/volunteer-launch-content"
 
@@ -14,7 +14,7 @@ function localizedAlternates(siteUrl: string, path = "") {
     )
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const siteUrl = resolveSiteUrl()
     const lastModified = new Date()
 
@@ -30,11 +30,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
         })),
     )
 
-    const groupEntries: MetadataRoute.Sitemap = routing.locales.flatMap(locale =>
-        getLaunchGroups(locale as AppLocale).map(group => ({
-            url: `${siteUrl}${localizedPath(locale as AppLocale, `/blifrivillig/${group.slug}`)}`,
+    const groupsByLocale = await Promise.all(
+        routing.locales.map(async locale => ({
+            locale: locale as AppLocale,
+            groups: await getLaunchGroups(locale as AppLocale),
+        })),
+    )
+
+    const groupEntries: MetadataRoute.Sitemap = groupsByLocale.flatMap(({ locale, groups }) =>
+        groups.map(group => ({
+            url: `${siteUrl}${localizedPath(locale, `/blifrivillig/${group.slug}`)}`,
             lastModified,
-            changeFrequency: "monthly",
+            changeFrequency: "monthly" as const,
             priority: 0.7,
             alternates: {
                 languages: localizedAlternates(siteUrl, `/blifrivillig/${group.slug}`),

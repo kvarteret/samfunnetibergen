@@ -1,5 +1,5 @@
 import { isValidEmailAddress } from "@/lib/contact"
-import { getLaunchGroupBySlug, type LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { LaunchGroupSlug } from "@/lib/volunteer-launch-content"
 
 export type VolunteerProspectField =
     | "firstName"
@@ -60,6 +60,7 @@ const NON_DIGIT_PATTERN = /\D/g
 export function validateVolunteerProspectValues(
     values: VolunteerProspectValues,
     messages: VolunteerProspectValidationMessages,
+    validGroupSlugs: ReadonlyArray<string>,
 ) {
     const fieldErrors: Partial<Record<VolunteerProspectField, string>> = {}
 
@@ -78,11 +79,11 @@ export function validateVolunteerProspectValues(
 
     if (!values.firstChoiceGroupSlug) {
         fieldErrors.firstChoiceGroupSlug = messages.firstChoiceRequired
-    } else if (!getLaunchGroupBySlug("nb", values.firstChoiceGroupSlug)) {
+    } else if (!validGroupSlugs.includes(values.firstChoiceGroupSlug)) {
         fieldErrors.firstChoiceGroupSlug = messages.unsupportedGroup
     }
 
-    if (values.secondChoiceGroupSlug && !getLaunchGroupBySlug("nb", values.secondChoiceGroupSlug)) {
+    if (values.secondChoiceGroupSlug && !validGroupSlugs.includes(values.secondChoiceGroupSlug)) {
         fieldErrors.secondChoiceGroupSlug = messages.unsupportedGroup
     }
 

@@ -1,7 +1,7 @@
+import type { AppLocale } from "@/i18n/routing"
+import { fetchLaunchGroups, fetchVolunteerGroupSummaries } from "@/lib/sanity/queries"
 import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
-
-import type { AppLocale } from "@/i18n/routing"
 
 export type LaunchGroupSlug = "skjenkegruppen" | "kraft" | "vaktetaten"
 
@@ -29,32 +29,33 @@ export type VolunteerGroupSummary = {
     description: string
 }
 
+export function getInstitutionOptions(locale: AppLocale): InstitutionOption[] {
+    return messagesByLocale[locale].InstitutionOptions as InstitutionOption[]
+}
+
+export async function getLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
+    return fetchLaunchGroups(locale)
+}
+
+export async function getLaunchGroupBySlug(
+    locale: AppLocale,
+    slug: string,
+): Promise<LaunchGroupContent | undefined> {
+    const groups = await fetchLaunchGroups(locale)
+    return groups.find(group => group.slug === slug)
+}
+
+export async function getVolunteerGroupSummaries(
+    locale: AppLocale,
+): Promise<VolunteerGroupSummary[]> {
+    return fetchVolunteerGroupSummaries(locale)
+}
+
 const messagesByLocale = {
     nb: nbMessages,
     en: enMessages,
 } as const
 
-function getMessages(locale: AppLocale) {
-    return messagesByLocale[locale]
-}
-
-export function getInstitutionOptions(locale: AppLocale) {
-    return getMessages(locale).InstitutionOptions as InstitutionOption[]
-}
-
-export function getLaunchGroups(locale: AppLocale) {
-    return getMessages(locale).LaunchGroups as LaunchGroupContent[]
-}
-
-export function getLaunchGroupBySlug(locale: AppLocale, slug: string) {
-    return getLaunchGroups(locale).find(group => group.slug === slug)
-}
-
-export function getVolunteerGroupSummaries(locale: AppLocale) {
-    return getMessages(locale).VolunteerGroupSummaries as VolunteerGroupSummary[]
-}
-
-// Compatibility exports for stale dev graphs that may still reference the
+// Compatibility export for stale dev graphs that may still reference the
 // pre-i18n module shape while Turbopack refreshes.
 export const institutionOptions = getInstitutionOptions("nb")
-export const launchGroups = getLaunchGroups("nb")

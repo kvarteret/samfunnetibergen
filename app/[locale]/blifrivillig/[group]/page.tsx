@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/blifrivi
     const resolvedParams = await params
     const locale = await resolvePageLocale(Promise.resolve({ locale: resolvedParams.locale }))
     const { group } = resolvedParams
-    const resolvedGroup = resolveVolunteerGroup(locale, group)
+    const resolvedGroup = await resolveVolunteerGroup(locale, group)
     const t = await getTranslations({ locale, namespace: "Metadata" })
 
     return {
@@ -29,7 +29,7 @@ export default async function VolunteerGroupPage({
     const locale = await resolvePageLocale(Promise.resolve({ locale: resolvedParams.locale }))
     const { group: groupSlug } = resolvedParams
     activateRequestLocale(locale)
-    const group = resolveVolunteerGroup(locale, groupSlug)
+    const group = await resolveVolunteerGroup(locale, groupSlug)
     const t = await getTranslations({ locale, namespace: "GroupPage" })
 
     return (
