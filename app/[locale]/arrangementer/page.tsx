@@ -17,9 +17,10 @@ import {
     getTaxonomyGroupLabel,
     groupEventsByTaxonomy,
     parseEventFilters,
+    type EventDetail,
     type EventFilters,
+    type EventTaxonomy,
 } from "@/lib/events"
-import type { EventDetail, EventTaxonomy } from "@/lib/kvarteret-personal-api"
 
 export const revalidate = 60
 

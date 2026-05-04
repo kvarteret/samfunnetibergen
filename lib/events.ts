@@ -1,16 +1,10 @@
 import "server-only"
 
 import type { AppLocale } from "@/i18n/routing"
-import {
-    getEventTaxonomy,
-    listEvents,
-    type EventDetail,
-    type EventTaxonomy,
-} from "@/lib/kvarteret-personal-api"
-import { client } from "@/lib/kvarteret-personal-api/client.gen"
 
 const DEFAULT_API_BASE_URL = "https://personal.kvarteret.no/api/v1"
 const EVENTS_LIMIT = 100
+const EVENTS_REVALIDATE_SECONDS = 300
 const FALLBACK_TAXONOMY_GROUP = "Annet"
 const PRIMARY_TAXONOMY_GROUPS = ["Musikk", "Scenekunst", "Faglig", "Sosialt", "Organisasjon"]
 
@@ -27,6 +21,88 @@ export type EventSection = {
     key: string
     title: string
     events: EventDetail[]
+}
+
+export type EventOrganizerGroup = {
+    default_event_type_id?: string | null
+    id: string
+    is_active: boolean
+    name: string
+    slug: string
+    sort_order: number
+}
+
+export type EventRoom = {
+    id: string
+    is_active: boolean
+    name: string
+    slug: string
+    sort_order: number
+}
+
+export type EventTranslation = {
+    available?: boolean
+    description?: string | null
+    image_caption?: string | null
+    title: string
+}
+
+export type EventTranslations = {
+    en?: EventTranslation | null
+    no?: EventTranslation | null
+}
+
+export type EventType = {
+    description?: string | null
+    id: string
+    is_active: boolean
+    name: string
+    slug: string
+    sort_order: number
+    taxonomy_group: string
+}
+
+export type EventTypeGroup = {
+    event_types: EventType[]
+    name: string
+}
+
+export type EventDetail = {
+    created_at: string
+    description?: string | null
+    ends_at: string
+    event_type?: EventType | null
+    event_type_id: string
+    facebook_url?: string | null
+    id: string
+    image_caption?: string | null
+    image_url?: string | null
+    is_featured: boolean
+    is_internal: boolean
+    language: "no" | "en"
+    organizer_groups: EventOrganizerGroup[]
+    price?: string | null
+    recurring_interval_days?: number | null
+    room?: EventRoom | null
+    room_id?: string | null
+    room_text?: string | null
+    slug: string
+    starts_at: string
+    status: "published" | "draft" | "archived"
+    ticket_url?: string | null
+    title: string
+    translations: EventTranslations
+    updated_at: string
+}
+
+export type EventList = {
+    events: EventDetail[]
+}
+
+export type EventTaxonomy = {
+    event_type_groups: EventTypeGroup[]
+    organizer_groups: EventOrganizerGroup[]
+    rooms: EventRoom[]
 }
 
 export type PublicEventsResult =
@@ -56,26 +132,44 @@ const getApiClientBaseUrl = (): string => {
 
 const toAcceptLanguage = (locale: AppLocale): "no" | "en" => (locale === "en" ? "en" : "no")
 
-const configureClient = (): void => {
-    client.setConfig({
-        baseUrl: getApiClientBaseUrl(),
-    })
-}
+type ApiQuery = Record<string, boolean | number | string | null | undefined>
 
-const unwrapApiResponse = <T>(result: { data?: T; error?: unknown; response: Response }): T => {
-    if (!result.response.ok || result.error || !result.data) {
-        throw new Error(`Kvarteret Personal API request failed (${result.response.status}).`)
+const buildApiUrl = (path: string, query: ApiQuery = {}): URL => {
+    const url = new URL(path, `${getApiClientBaseUrl()}/`)
+
+    for (const [key, value] of Object.entries(query)) {
+        if (value === null || value === undefined) {
+            continue
+        }
+        url.searchParams.set(key, String(value))
     }
 
-    return result.data
+    return url
+}
+
+const fetchPersonalApi = async <T>(
+    path: string,
+    options: { headers?: HeadersInit; query?: ApiQuery } = {},
+): Promise<T> => {
+    const response = await fetch(buildApiUrl(path, options.query), {
+        headers: options.headers,
+        next: {
+            revalidate: EVENTS_REVALIDATE_SECONDS,
+            tags: ["kvarteret-personal-events"],
+        },
+    })
+
+    if (!response.ok) {
+        throw new Error(`Kvarteret Personal API request failed (${response.status}).`)
+    }
+
+    return (await response.json()) as T
 }
 
 export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsResult> {
-    configureClient()
-
     try {
-        const [eventsResult, taxonomyResult] = await Promise.all([
-            listEvents({
+        const [eventList, taxonomy] = await Promise.all([
+            fetchPersonalApi<EventList>("/api/v1/events", {
                 headers: {
                     "accept-language": toAcceptLanguage(locale),
                 },
@@ -84,13 +178,13 @@ export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsRe
                     limit: EVENTS_LIMIT,
                 },
             }),
-            getEventTaxonomy(),
+            fetchPersonalApi<EventTaxonomy>("/api/v1/events/taxonomy"),
         ])
 
         return {
             ok: true,
-            events: unwrapApiResponse(eventsResult).events,
-            taxonomy: unwrapApiResponse(taxonomyResult),
+            events: eventList.events,
+            taxonomy,
         }
     } catch {
         return {
