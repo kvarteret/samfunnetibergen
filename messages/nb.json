@@ -4,6 +4,8 @@
         "siteDescription": "Studentenes kulturhus i Bergen.",
         "homeTitle": "Bli frivillig | Samfunnet / Det Akademiske Kvarter",
         "homeDescription": "Meld interesse for Skjenkegruppen, Kraft eller Vaktetaten og kom i gang med prøvedugnad.",
+        "eventsTitle": "Arrangementer | Samfunnet / Det Akademiske Kvarter",
+        "eventsDescription": "Se kommende arrangementer på Det Akademiske Kvarter, gruppert etter programtype.",
         "volunteerSignupTitle": "Bli frivillig | Oversikt over grupper",
         "volunteerSignupDescription": "Se gruppene på huset og meld interesse som frivillig.",
         "groupPageTitle": "{group} | Bli frivillig",
@@ -13,7 +15,23 @@
         "badge": "Samfunnet / Det Akademiske Kvarter",
         "heroDescription": "Studentersamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!",
         "heroDescriptionFusion": "Samfunnet er en fusjon av <kvarteret>Kvarteret</kvarteret> og <samfunnetibergen>Samfunnet i Bergen</samfunnetibergen>. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Som student i Bergen er det å bli frivillig på Samfunnet en fantastisk måte å sette ditt preg på studentlivet.",
+        "eventsLink": "Se arrangementer",
         "footer": "Med 💛 fra E-tjenesten"
+    },
+    "EventsPage": {
+        "back": "Tilbake til forsiden",
+        "eyebrow": "Program",
+        "title": "Arrangementer",
+        "description": "Kommende åpne arrangementer på Det Akademiske Kvarter, hentet direkte fra programdatabasen og sortert etter programkategori.",
+        "empty": "Ingen kommende arrangementer akkurat nå.",
+        "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",
+        "filterAll": "Alle",
+        "filterMore": "Alle filter",
+        "filterType": "Type arrangement",
+        "filterOrganizer": "Arrangør",
+        "filterResultCount": "{count, plural, =0 {Ingen arrangementer} one {# arrangement} other {# arrangementer}}",
+        "tickets": "Billetter",
+        "facebook": "Facebook"
     },
     "VolunteerProspectForm": {
         "title": "Bli frivillig",
