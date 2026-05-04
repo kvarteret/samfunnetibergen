@@ -1,19 +1,12 @@
 "use client"
 
-import { CalendarDays } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Link } from "@/i18n/navigation"
-
 export function VolunteerProspectHero({
     badge,
     description,
-    eventsLinkLabel,
     fusionDescription,
 }: {
     badge: string
     description: string
-    eventsLinkLabel: string
     fusionDescription: React.ReactNode
 }) {
     return (
@@ -29,15 +22,6 @@ export function VolunteerProspectHero({
                 <div className="max-w-4xl text-base leading-8 text-foreground/85 sm:text-lg">
                     {fusionDescription}
                 </div>
-            </div>
-
-            <div>
-                <Button asChild variant="neutral">
-                    <Link href="/arrangementer">
-                        <CalendarDays aria-hidden="true" />
-                        {eventsLinkLabel}
-                    </Link>
-                </Button>
             </div>
         </>
     )

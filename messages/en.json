@@ -4,8 +4,6 @@
         "siteDescription": "The students' cultural house in Bergen.",
         "homeTitle": "Become a volunteer | Samfunnet / Det Akademiske Kvarter",
         "homeDescription": "Register your interest for Skjenkegruppen, Kraft or Vaktetaten and get started with a trial shift.",
-        "eventsTitle": "Events | Samfunnet / Det Akademiske Kvarter",
-        "eventsDescription": "See upcoming events at Det Akademiske Kvarter, grouped by programme type.",
         "volunteerSignupTitle": "Become a volunteer | Group overview",
         "volunteerSignupDescription": "Explore the groups in the house and register your interest as a volunteer.",
         "groupPageTitle": "{group} | Become a volunteer",
@@ -15,23 +13,7 @@
         "badge": "Samfunnet / Det Akademiske Kvarter",
         "heroDescription": "Studentersamfunnet i Bergen is the student house in Bergen and one of Norway's most active cultural venues. Every year, more than 1,500 events are arranged, all run by about 500 volunteer students. We have three bars that are entirely volunteer-operated as well as countless groups that cover students' different interests and needs. Samfunnet is a meeting place for students across Bergen, whether it is for morning coffee or a late night out.",
         "heroDescriptionFusion": "Samfunnet is a merger of <kvarteret>Kvarteret</kvarteret> and <samfunnetibergen>Samfunnet i Bergen</samfunnetibergen>. We are still in the same place as always, in the same building called Det Akademiske Kvarter. As a student in Bergen, becoming a volunteer at Samfunnet is a fantastic way to leave your mark on student life.",
-        "eventsLink": "See events",
         "footer": "Made with 💛 by E-tjenesten"
-    },
-    "EventsPage": {
-        "back": "Back to front page",
-        "eyebrow": "Programme",
-        "title": "Events",
-        "description": "Upcoming public events at Det Akademiske Kvarter, fetched directly from the programme database and grouped by programme category.",
-        "empty": "No upcoming events right now.",
-        "error": "We could not load events right now. Please try again later.",
-        "filterAll": "All",
-        "filterMore": "All filters",
-        "filterType": "Event type",
-        "filterOrganizer": "Organizer",
-        "filterResultCount": "{count, plural, =0 {No events} one {# event} other {# events}}",
-        "tickets": "Tickets",
-        "facebook": "Facebook"
     },
     "VolunteerProspectForm": {
         "title": "Become a volunteer",

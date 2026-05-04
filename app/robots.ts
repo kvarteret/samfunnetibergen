@@ -9,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: "*",
             allow: "/",
+            disallow: ["/nb/arrangementer", "/en/arrangementer", "/arrangementer"],
         },
         host: siteUrl,
         sitemap: `${siteUrl}/sitemap.xml`,
