@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import type { HomePageContent } from "@/lib/sanity/types"
 import type { InstitutionOption, LaunchGroupContent } from "@/lib/volunteer-launch-content"
 import type { VolunteerProspectValidationMessages } from "@/lib/volunteer-prospect"
 import { normalizeVolunteerPhoneNumber } from "@/lib/volunteer-prospect"
@@ -24,10 +25,12 @@ import { useVolunteerProspectController } from "./volunteer-prospect/use-volunte
 
 export function VolunteerProspectExperience({
     groups,
+    homeContent,
     institutionOptions,
     initialGroupSlug,
 }: {
     groups: LaunchGroupContent[]
+    homeContent: HomePageContent | null
     institutionOptions: InstitutionOption[]
     initialGroupSlug?: string
 }) {
@@ -85,29 +88,10 @@ export function VolunteerProspectExperience({
             <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-start">
                 <section className="flex flex-col gap-8 lg:flex-[1.15]">
                     <VolunteerProspectHero
-                        badge={tHome("badge")}
-                        description={tHome("heroDescription")}
-                        eventsLinkLabel={tHome("eventsLink")}
-                        fusionDescription={tHome.rich("heroDescriptionFusion", {
-                            kvarteret: chunks => (
-                                <a
-                                    className="underline underline-offset-4"
-                                    href="https://kvarteret.no"
-                                    target="_blank"
-                                >
-                                    {chunks}
-                                </a>
-                            ),
-                            samfunnetibergen: chunks => (
-                                <a
-                                    className="underline underline-offset-4"
-                                    href="https://samfunnetibergen.no"
-                                    target="_blank"
-                                >
-                                    {chunks}
-                                </a>
-                            ),
-                        })}
+                        badge={homeContent?.badge ?? ""}
+                        description={homeContent?.heroDescription ?? ""}
+                        eventsLinkLabel={homeContent?.eventsLink ?? ""}
+                        fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
                     />
 
                     <VolunteerProspectGroupList

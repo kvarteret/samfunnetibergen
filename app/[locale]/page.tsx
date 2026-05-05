@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { VolunteerProspectExperience } from "@/components/volunteer-prospect-experience"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { fetchHomePageContent } from "@/lib/sanity/queries"
 import { resolveInitialLaunchGroupSlug } from "@/lib/volunteer-groups"
 import { getInstitutionOptions, getLaunchGroups } from "@/lib/volunteer-launch-content"
 
@@ -28,12 +29,16 @@ export default async function Home({
     const locale = await resolvePageLocale(params)
     activateRequestLocale(locale)
 
-    const groups = await getLaunchGroups(locale)
+    const [groups, homeContent] = await Promise.all([
+        getLaunchGroups(locale),
+        fetchHomePageContent(locale),
+    ])
     const resolvedSearchParams = (await searchParams) ?? {}
 
     return (
         <VolunteerProspectExperience
             groups={groups}
+            homeContent={homeContent}
             initialGroupSlug={resolveInitialLaunchGroupSlug(groups, resolvedSearchParams.group)}
             institutionOptions={getInstitutionOptions(locale)}
         />

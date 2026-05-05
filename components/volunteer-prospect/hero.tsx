@@ -14,7 +14,7 @@ export function VolunteerProspectHero({
     badge: string
     description: string
     eventsLinkLabel: string
-    fusionDescription: React.ReactNode
+    fusionDescription: string
 }) {
     return (
         <>
