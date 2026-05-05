@@ -9,7 +9,7 @@ const StudioClient = dynamicImport(
             import("../../../sanity.config"),
         ])
         return function Studio() {
-            return <NextStudio config={config} />
+            return <NextStudio config={config} unstable__noScript={false} />
         }
     },
     { ssr: false },

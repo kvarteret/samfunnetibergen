@@ -2,6 +2,11 @@ import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { structureTool } from "sanity/structure"
 
+import { dataset, projectId } from "./sanity/env"
+import { singletonTypeNames, structure } from "./sanity/structure"
+
+const singletonTypes = new Set<string>(singletonTypeNames)
+
 const groupSection = {
     name: "groupSection",
     title: "Group Section",
@@ -127,10 +132,32 @@ const homeBar = {
 }
 
 export default defineConfig({
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
+    projectId,
+    dataset,
+    basePath: "/studio",
     title: "Samfunnet i Bergen",
-    plugins: [structureTool(), visionTool()],
+    plugins: [structureTool({ structure }), visionTool()],
+    document: {
+        newDocumentOptions: (prev, { creationContext }) => {
+            if (creationContext.type !== "global") {
+                return prev
+            }
+
+            return prev.filter(templateItem => !singletonTypes.has(templateItem.templateId))
+        },
+        actions: (prev, { schemaType }) => {
+            if (!singletonTypes.has(schemaType)) {
+                return prev
+            }
+
+            return prev.filter(
+                action =>
+                    action.action !== "delete" &&
+                    action.action !== "duplicate" &&
+                    action.action !== "unpublish",
+            )
+        },
+    },
     schema: {
         types: [groupSection, launchGroup, volunteerGroupSummary, homePage, eventsPage, homeBar],
     },
