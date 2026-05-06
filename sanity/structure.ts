@@ -1,6 +1,6 @@
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
-export const singletonTypeNames = ["homePage", "eventsPage"] as const
+export const singletonTypeNames = ["siteMetadata", "homePage", "eventsPage"] as const
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -14,6 +14,7 @@ export const structure: StructureResolver = S =>
     S.list()
         .title("Content")
         .items([
+            singletonListItem(S, "siteMetadata", "Site Metadata"),
             singletonListItem(S, "homePage", "Home Page"),
             singletonListItem(S, "eventsPage", "Events Page"),
             S.divider(),

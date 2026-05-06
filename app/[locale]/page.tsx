@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { VolunteerProspectExperience } from "@/components/volunteer-prospect-experience"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchHomePageContent } from "@/lib/sanity/queries"
+import { fetchHomePageContent, fetchSiteMetadata } from "@/lib/sanity/queries"
 import { resolveInitialLaunchGroupSlug } from "@/lib/volunteer-groups"
 import { getInstitutionOptions, getLaunchGroups } from "@/lib/volunteer-launch-content"
 
@@ -12,11 +12,14 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     const locale = await resolvePageLocale(params)
-    const t = await getTranslations({ locale, namespace: "Metadata" })
+    const [t, siteMetadata] = await Promise.all([
+        getTranslations({ locale, namespace: "Metadata" }),
+        fetchSiteMetadata(locale),
+    ])
 
     return {
-        title: t("homeTitle"),
-        description: t("homeDescription"),
+        title: siteMetadata?.homeTitle ?? t("homeTitle"),
+        description: siteMetadata?.homeDescription ?? t("homeDescription"),
     }
 }
 

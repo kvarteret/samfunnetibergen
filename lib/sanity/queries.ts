@@ -4,7 +4,12 @@ import type { AppLocale } from "@/i18n/routing"
 import type { LaunchGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 
 import { sanityClient } from "./client"
-import type { EventsPageContent, HomeBarContent, HomePageContent } from "./types"
+import type {
+    EventsPageContent,
+    HomeBarContent,
+    HomePageContent,
+    SiteMetadataContent,
+} from "./types"
 
 const localeSuffix = (locale: AppLocale): "Nb" | "En" => (locale === "en" ? "En" : "Nb")
 
@@ -47,7 +52,7 @@ export async function fetchVolunteerGroupSummaries(
 export async function fetchHomePageContent(locale: AppLocale): Promise<HomePageContent | null> {
     const s = localeSuffix(locale)
     const results = await sanityClient.fetch<HomePageContent[]>(
-        `*[_type == "homePage"][0..0] {
+        `*[_id == "homePage"][0..0] {
             "badge": badge${s},
             "heroDescription": heroDescription${s},
             "heroDescriptionFusion": heroDescriptionFusion${s},
@@ -62,13 +67,34 @@ export async function fetchHomePageContent(locale: AppLocale): Promise<HomePageC
 export async function fetchEventsPageContent(locale: AppLocale): Promise<EventsPageContent | null> {
     const s = localeSuffix(locale)
     const results = await sanityClient.fetch<EventsPageContent[]>(
-        `*[_type == "eventsPage"][0..0] {
+        `*[_id == "eventsPage"][0..0] {
             "eyebrow": eyebrow${s},
             "title": title${s},
             "description": description${s}
         }`,
         {},
         { next: { revalidate: 300, tags: ["eventsPage"] } },
+    )
+    return results[0] ?? null
+}
+
+export async function fetchSiteMetadata(locale: AppLocale): Promise<SiteMetadataContent | null> {
+    const s = localeSuffix(locale)
+    const results = await sanityClient.fetch<SiteMetadataContent[]>(
+        `*[_id == "siteMetadata"][0..0] {
+            "siteTitle": siteTitle${s},
+            "siteDescription": siteDescription${s},
+            "homeTitle": homeTitle${s},
+            "homeDescription": homeDescription${s},
+            "eventsTitle": eventsTitle${s},
+            "eventsDescription": eventsDescription${s},
+            "volunteerSignupTitle": volunteerSignupTitle${s},
+            "volunteerSignupDescription": volunteerSignupDescription${s},
+            "groupPageTitle": groupPageTitle${s},
+            "groupPageDescription": groupPageDescription${s}
+        }`,
+        {},
+        { next: { revalidate: 300, tags: ["siteMetadata"] } },
     )
     return results[0] ?? null
 }

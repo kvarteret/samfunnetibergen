@@ -115,6 +115,61 @@ const eventsPage = {
     },
 }
 
+const siteMetadata = {
+    name: "siteMetadata",
+    title: "Site Metadata",
+    type: "document",
+    fields: [
+        { name: "siteTitleNb", title: "Site Title (Norwegian)", type: "string" },
+        { name: "siteTitleEn", title: "Site Title (English)", type: "string" },
+        { name: "siteDescriptionNb", title: "Site Description (Norwegian)", type: "text" },
+        { name: "siteDescriptionEn", title: "Site Description (English)", type: "text" },
+        { name: "homeTitleNb", title: "Home Title (Norwegian)", type: "string" },
+        { name: "homeTitleEn", title: "Home Title (English)", type: "string" },
+        { name: "homeDescriptionNb", title: "Home Description (Norwegian)", type: "text" },
+        { name: "homeDescriptionEn", title: "Home Description (English)", type: "text" },
+        { name: "eventsTitleNb", title: "Events Title (Norwegian)", type: "string" },
+        { name: "eventsTitleEn", title: "Events Title (English)", type: "string" },
+        { name: "eventsDescriptionNb", title: "Events Description (Norwegian)", type: "text" },
+        { name: "eventsDescriptionEn", title: "Events Description (English)", type: "text" },
+        {
+            name: "volunteerSignupTitleNb",
+            title: "Volunteer Signup Title (Norwegian)",
+            type: "string",
+        },
+        {
+            name: "volunteerSignupTitleEn",
+            title: "Volunteer Signup Title (English)",
+            type: "string",
+        },
+        {
+            name: "volunteerSignupDescriptionNb",
+            title: "Volunteer Signup Description (Norwegian)",
+            type: "text",
+        },
+        {
+            name: "volunteerSignupDescriptionEn",
+            title: "Volunteer Signup Description (English)",
+            type: "text",
+        },
+        { name: "groupPageTitleNb", title: "Group Page Title (Norwegian)", type: "string" },
+        { name: "groupPageTitleEn", title: "Group Page Title (English)", type: "string" },
+        {
+            name: "groupPageDescriptionNb",
+            title: "Group Page Description (Norwegian)",
+            type: "text",
+        },
+        {
+            name: "groupPageDescriptionEn",
+            title: "Group Page Description (English)",
+            type: "text",
+        },
+    ],
+    preview: {
+        select: { title: "siteTitleNb", subtitle: "siteDescriptionNb" },
+    },
+}
+
 const homeBar = {
     name: "homeBar",
     title: "Home Bar",
@@ -159,6 +214,14 @@ export default defineConfig({
         },
     },
     schema: {
-        types: [groupSection, launchGroup, volunteerGroupSummary, homePage, eventsPage, homeBar],
+        types: [
+            groupSection,
+            launchGroup,
+            volunteerGroupSummary,
+            siteMetadata,
+            homePage,
+            eventsPage,
+            homeBar,
+        ],
     },
 })
