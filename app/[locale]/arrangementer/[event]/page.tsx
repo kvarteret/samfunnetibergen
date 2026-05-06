@@ -159,7 +159,7 @@ function EventSchedule({
 
     return (
         <section>
-            <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-3 font-heading text-xs uppercase tracking-[0.18em] text-foreground sm:gap-4 sm:text-sm">
+            <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading text-xs uppercase tracking-[0.18em] text-foreground sm:gap-4 sm:text-sm">
                 <p>{dateLabel}</p>
                 <p>{timeLabel}</p>
                 <p>{placeLabel}</p>
