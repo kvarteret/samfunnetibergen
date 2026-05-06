@@ -22,11 +22,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/blifrivi
 
     return {
         title:
-            siteMetadata?.groupPageTitle?.replaceAll("{group}", resolvedGroup.name) ??
-            t("groupPageTitle", { group: resolvedGroup.name }),
+            siteMetadata?.groupPageTitle?.replaceAll("{group}", resolvedGroup.name ?? "") ??
+            t("groupPageTitle", { group: resolvedGroup.name ?? "" }),
         description:
-            siteMetadata?.groupPageDescription?.replaceAll("{group}", resolvedGroup.name) ??
-            t("groupPageDescription", { group: resolvedGroup.name }),
+            siteMetadata?.groupPageDescription?.replaceAll("{group}", resolvedGroup.name ?? "") ??
+            t("groupPageDescription", { group: resolvedGroup.name ?? "" }),
     }
 }
 
@@ -53,7 +53,7 @@ export default async function VolunteerGroupPage({
                     className="inline-flex min-h-12 items-center border-2 border-border bg-primary px-5 py-2 text-sm font-semibold shadow-shadow"
                     href={`/?group=${group.slug}#registration-form`}
                 >
-                    {t("selectInForm", { group: group.name })}
+                    {t("selectInForm", { group: group.name ?? "" })}
                 </Link>
             </div>
 

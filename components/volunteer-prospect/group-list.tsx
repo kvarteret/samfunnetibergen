@@ -135,7 +135,7 @@ export function VolunteerProspectGroupList({
                                     variant="neutral"
                                 >
                                     <Link href={`/blifrivillig/${group.slug}`}>
-                                        {detailActionLabel(group.name)}
+                                        {detailActionLabel(group.name ?? "")}
                                     </Link>
                                 </Button>
                             </div>
