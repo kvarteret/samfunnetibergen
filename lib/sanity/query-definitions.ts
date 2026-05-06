@@ -199,5 +199,6 @@ export const studentGroupBySlugQuery =
     email,
     category,
     "image": image ${sourcedImageProjection},
+    sourceUrl,
     sourceNote
 }`)

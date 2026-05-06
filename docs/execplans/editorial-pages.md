@@ -15,6 +15,7 @@ The existing `/arrangementer` routes remain out of scope because they already ha
 
 - Room listing and room detail content: `https://kvarteret.no/booking/` and linked room pages.
 - Group content: `/Users/kluvin/Downloads/Hvem er vi_.md`.
+- Follow-up group imports: Samfunnet committee pages and Kvarteret arbeidsgruppe pages.
 - English translations are intentionally out of scope for this run.
 
 ## Plan
@@ -28,6 +29,8 @@ The existing `/arrangementer` routes remain out of scope because they already ha
 - [x] Implement listing/detail routes for rooms and groups.
 - [x] Run TypeGen, typecheck, lint, and build.
 - [x] Commit, push, and open a PR without merging.
+- [x] Import follow-up group page content and tag Samfunnet groups as `komitee`.
+- [x] Import follow-up Kvarteret group page content and tag Kvarteret groups as `arbeidsgruppe`.
 
 ## Non-Obvious Decisions
 
@@ -35,3 +38,4 @@ The existing `/arrangementer` routes remain out of scope because they already ha
 - `roomsPage` and `groupsPage` are singleton documents because their introductory/FAQ copy belongs to the page, not to an individual room or group.
 - Room images support both Sanity assets and source URLs. This keeps the source images visible immediately while allowing editors to replace them with Sanity-managed assets later.
 - Group copy is Norwegian-only in this pass, matching the requested scope instead of adding placeholder English fields.
+- Group `category` is a source/organization tag, not a presentation grouping: `arbeidsgruppe` for Kvarteret groups and `komitee` for Samfunnet groups.

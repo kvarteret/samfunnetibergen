@@ -282,14 +282,14 @@ const studentGroup = defineType({
             type: "string",
             options: {
                 list: [
-                    { title: "Drift", value: "drift" },
-                    { title: "Program", value: "program" },
-                    { title: "Organisasjon", value: "organisasjon" },
+                    { title: "Arbeidsgruppe", value: "arbeidsgruppe" },
+                    { title: "Komité", value: "komitee" },
                 ],
                 layout: "radio",
             },
         }),
         defineField({ name: "image", title: "Image", type: "sourcedImage" }),
+        defineField({ name: "sourceUrl", title: "Source URL", type: "url" }),
         defineField({ name: "sourceNote", title: "Source Note", type: "string" }),
         defineField({
             name: "order",

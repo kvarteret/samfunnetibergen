@@ -6,6 +6,18 @@ import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/queries
 
 export const revalidate = 300
 
+const groupCategoryLabel = (category: string | null | undefined) => {
+    if (category === "arbeidsgruppe") {
+        return "Arbeidsgruppe"
+    }
+
+    if (category === "komitee") {
+        return "Komité"
+    }
+
+    return "Gruppe"
+}
+
 export function generateStaticParams() {
     return getLocaleStaticParams()
 }
@@ -79,7 +91,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
                     >
                         <div className="space-y-2">
                             <p className="w-fit bg-secondary-background px-2 py-1 font-heading text-xs uppercase text-foreground">
-                                {group.category ?? "gruppe"}
+                                {groupCategoryLabel(group.category)}
                             </p>
                             <h2 className="font-heading text-3xl leading-none text-foreground">
                                 {group.name}

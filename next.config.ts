@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     images: {
         remotePatterns: [
             { protocol: "https", hostname: "cdn.sanity.io" },
+            { protocol: "https", hostname: "cdn.prod.website-files.com" },
             { protocol: "https", hostname: "cms.kvarteret.no" },
             { protocol: "https", hostname: "personal.kvarteret.no" },
             { protocol: "https", hostname: "personaldatabasen.blob.core.windows.net" },

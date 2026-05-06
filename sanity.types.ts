@@ -12,899 +12,901 @@
  * ---------------------------------------------------------------------------------
  */
 
-export declare const internalGroqTypeReferenceTo: unique symbol
+export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: .sanity/schema.json
 export type StudentGroup = {
-    _id: string
-    _type: "studentGroup"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    name?: string
-    slug?: Slug
-    summary?: string
-    body?: Array<string>
-    email?: string
-    category?: "drift" | "program" | "organisasjon"
-    image?: SourcedImage
-    sourceNote?: string
-    order?: number
-}
+  _id: string;
+  _type: "studentGroup";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  slug?: Slug;
+  summary?: string;
+  body?: Array<string>;
+  email?: string;
+  category?: "arbeidsgruppe" | "komitee";
+  image?: SourcedImage;
+  sourceUrl?: string;
+  sourceNote?: string;
+  order?: number;
+};
 
 export type SanityImageAssetReference = {
-    _ref: string
-    _type: "reference"
-    _weak?: boolean
-    [internalGroqTypeReferenceTo]?: "sanity.imageAsset"
-}
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
 
 export type SourcedImage = {
-    _type: "sourcedImage"
-    image?: {
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        _type: "image"
-    }
-    sourceUrl?: string
-    alt?: string
-    caption?: string
-}
+  _type: "sourcedImage";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  sourceUrl?: string;
+  alt?: string;
+  caption?: string;
+};
 
 export type Slug = {
-    _type: "slug"
-    current?: string
-    source?: string
-}
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
 
 export type GroupsPage = {
-    _id: string
-    _type: "groupsPage"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    eyebrow?: string
-    title?: string
-    description?: string
-    sections?: Array<
-        {
-            _key: string
-        } & EditorialSection
-    >
-    faq?: Array<
-        {
-            _key: string
-        } & FaqItem
-    >
-}
+  _id: string;
+  _type: "groupsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & EditorialSection
+  >;
+  faq?: Array<
+    {
+      _key: string;
+    } & FaqItem
+  >;
+};
 
 export type Room = {
-    _id: string
-    _type: "room"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    title?: string
-    slug?: Slug
-    summary?: string
-    capacity?: string
-    suitedPurposes?: Array<string>
-    floor?: string
-    sections?: Array<
-        {
-            _key: string
-        } & EditorialSection
-    >
-    images?: Array<
-        {
-            _key: string
-        } & SourcedImage
-    >
-    sourceUrl?: string
-    order?: number
-}
+  _id: string;
+  _type: "room";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  summary?: string;
+  capacity?: string;
+  suitedPurposes?: Array<string>;
+  floor?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & EditorialSection
+  >;
+  images?: Array<
+    {
+      _key: string;
+    } & SourcedImage
+  >;
+  sourceUrl?: string;
+  order?: number;
+};
 
 export type RoomsPage = {
-    _id: string
-    _type: "roomsPage"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    eyebrow?: string
-    title?: string
-    description?: string
-    sections?: Array<
-        {
-            _key: string
-        } & EditorialSection
-    >
-    bookingLink?: SourceLink
-}
+  _id: string;
+  _type: "roomsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & EditorialSection
+  >;
+  bookingLink?: SourceLink;
+};
 
 export type SourceLink = {
-    _type: "sourceLink"
-    label?: string
-    url?: string
-}
+  _type: "sourceLink";
+  label?: string;
+  url?: string;
+};
 
 export type FaqItem = {
-    _type: "faqItem"
-    question?: string
-    answer?: Array<string>
-}
+  _type: "faqItem";
+  question?: string;
+  answer?: Array<string>;
+};
 
 export type SanityImageCrop = {
-    _type: "sanity.imageCrop"
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-}
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
 
 export type SanityImageHotspot = {
-    _type: "sanity.imageHotspot"
-    x?: number
-    y?: number
-    height?: number
-    width?: number
-}
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
 
 export type EditorialSection = {
-    _type: "editorialSection"
-    title?: string
-    paragraphs?: Array<string>
-    links?: Array<
-        {
-            _key: string
-        } & SourceLink
-    >
-}
+  _type: "editorialSection";
+  title?: string;
+  paragraphs?: Array<string>;
+  links?: Array<
+    {
+      _key: string;
+    } & SourceLink
+  >;
+};
 
 export type HomeBar = {
-    _id: string
-    _type: "homeBar"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    nameNb?: string
-    nameEn?: string
-    descriptionNb?: string
-    descriptionEn?: string
-    image?: {
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        _type: "image"
-    }
-    order?: number
-}
+  _id: string;
+  _type: "homeBar";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  nameNb?: string;
+  nameEn?: string;
+  descriptionNb?: string;
+  descriptionEn?: string;
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  order?: number;
+};
 
 export type EventsPage = {
-    _id: string
-    _type: "eventsPage"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    eyebrowNb?: string
-    eyebrowEn?: string
-    titleNb?: string
-    titleEn?: string
-    descriptionNb?: string
-    descriptionEn?: string
-}
+  _id: string;
+  _type: "eventsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrowNb?: string;
+  eyebrowEn?: string;
+  titleNb?: string;
+  titleEn?: string;
+  descriptionNb?: string;
+  descriptionEn?: string;
+};
 
 export type HomePage = {
-    _id: string
-    _type: "homePage"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    badgeNb?: string
-    badgeEn?: string
-    heroDescriptionNb?: string
-    heroDescriptionEn?: string
-    heroDescriptionFusionNb?: string
-    heroDescriptionFusionEn?: string
-    eventsLinkNb?: string
-    eventsLinkEn?: string
-}
+  _id: string;
+  _type: "homePage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  badgeNb?: string;
+  badgeEn?: string;
+  heroDescriptionNb?: string;
+  heroDescriptionEn?: string;
+  heroDescriptionFusionNb?: string;
+  heroDescriptionFusionEn?: string;
+  eventsLinkNb?: string;
+  eventsLinkEn?: string;
+};
 
 export type SiteMetadata = {
-    _id: string
-    _type: "siteMetadata"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    siteTitleNb?: string
-    siteTitleEn?: string
-    siteDescriptionNb?: string
-    siteDescriptionEn?: string
-    homeTitleNb?: string
-    homeTitleEn?: string
-    homeDescriptionNb?: string
-    homeDescriptionEn?: string
-    eventsTitleNb?: string
-    eventsTitleEn?: string
-    eventsDescriptionNb?: string
-    eventsDescriptionEn?: string
-    volunteerSignupTitleNb?: string
-    volunteerSignupTitleEn?: string
-    volunteerSignupDescriptionNb?: string
-    volunteerSignupDescriptionEn?: string
-    groupPageTitleNb?: string
-    groupPageTitleEn?: string
-    groupPageDescriptionNb?: string
-    groupPageDescriptionEn?: string
-}
+  _id: string;
+  _type: "siteMetadata";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  siteTitleNb?: string;
+  siteTitleEn?: string;
+  siteDescriptionNb?: string;
+  siteDescriptionEn?: string;
+  homeTitleNb?: string;
+  homeTitleEn?: string;
+  homeDescriptionNb?: string;
+  homeDescriptionEn?: string;
+  eventsTitleNb?: string;
+  eventsTitleEn?: string;
+  eventsDescriptionNb?: string;
+  eventsDescriptionEn?: string;
+  volunteerSignupTitleNb?: string;
+  volunteerSignupTitleEn?: string;
+  volunteerSignupDescriptionNb?: string;
+  volunteerSignupDescriptionEn?: string;
+  groupPageTitleNb?: string;
+  groupPageTitleEn?: string;
+  groupPageDescriptionNb?: string;
+  groupPageDescriptionEn?: string;
+};
 
 export type VolunteerGroupSummary = {
-    _id: string
-    _type: "volunteerGroupSummary"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    name?: string
-    descriptionNb?: string
-    descriptionEn?: string
-    order?: number
-}
+  _id: string;
+  _type: "volunteerGroupSummary";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  descriptionNb?: string;
+  descriptionEn?: string;
+  order?: number;
+};
 
 export type LaunchGroup = {
-    _id: string
-    _type: "launchGroup"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    slug?: string
-    nameNb?: string
-    nameEn?: string
-    eyebrowNb?: string
-    eyebrowEn?: string
-    leadNb?: string
-    leadEn?: string
-    image?: {
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        _type: "image"
-    }
-    accordionSections?: Array<
-        {
-            _key: string
-        } & GroupSection
-    >
-    detailSections?: Array<
-        {
-            _key: string
-        } & GroupSection
-    >
-}
+  _id: string;
+  _type: "launchGroup";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  slug?: string;
+  nameNb?: string;
+  nameEn?: string;
+  eyebrowNb?: string;
+  eyebrowEn?: string;
+  leadNb?: string;
+  leadEn?: string;
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  accordionSections?: Array<
+    {
+      _key: string;
+    } & GroupSection
+  >;
+  detailSections?: Array<
+    {
+      _key: string;
+    } & GroupSection
+  >;
+};
 
 export type GroupSection = {
-    _type: "groupSection"
-    titleNb?: string
-    titleEn?: string
-    paragraphsNb?: Array<string>
-    paragraphsEn?: Array<string>
-}
+  _type: "groupSection";
+  titleNb?: string;
+  titleEn?: string;
+  paragraphsNb?: Array<string>;
+  paragraphsEn?: Array<string>;
+};
 
 export type SanityImagePaletteSwatch = {
-    _type: "sanity.imagePaletteSwatch"
-    background?: string
-    foreground?: string
-    population?: number
-    title?: string
-}
+  _type: "sanity.imagePaletteSwatch";
+  background?: string;
+  foreground?: string;
+  population?: number;
+  title?: string;
+};
 
 export type SanityImagePalette = {
-    _type: "sanity.imagePalette"
-    darkMuted?: SanityImagePaletteSwatch
-    lightVibrant?: SanityImagePaletteSwatch
-    darkVibrant?: SanityImagePaletteSwatch
-    vibrant?: SanityImagePaletteSwatch
-    dominant?: SanityImagePaletteSwatch
-    lightMuted?: SanityImagePaletteSwatch
-    muted?: SanityImagePaletteSwatch
-}
+  _type: "sanity.imagePalette";
+  darkMuted?: SanityImagePaletteSwatch;
+  lightVibrant?: SanityImagePaletteSwatch;
+  darkVibrant?: SanityImagePaletteSwatch;
+  vibrant?: SanityImagePaletteSwatch;
+  dominant?: SanityImagePaletteSwatch;
+  lightMuted?: SanityImagePaletteSwatch;
+  muted?: SanityImagePaletteSwatch;
+};
 
 export type SanityImageDimensions = {
-    _type: "sanity.imageDimensions"
-    height?: number
-    width?: number
-    aspectRatio?: number
-}
+  _type: "sanity.imageDimensions";
+  height?: number;
+  width?: number;
+  aspectRatio?: number;
+};
 
 export type SanityImageMetadata = {
-    _type: "sanity.imageMetadata"
-    location?: Geopoint
-    dimensions?: SanityImageDimensions
-    palette?: SanityImagePalette
-    lqip?: string
-    blurHash?: string
-    thumbHash?: string
-    hasAlpha?: boolean
-    isOpaque?: boolean
-}
+  _type: "sanity.imageMetadata";
+  location?: Geopoint;
+  dimensions?: SanityImageDimensions;
+  palette?: SanityImagePalette;
+  lqip?: string;
+  blurHash?: string;
+  thumbHash?: string;
+  hasAlpha?: boolean;
+  isOpaque?: boolean;
+};
 
 export type SanityFileAsset = {
-    _id: string
-    _type: "sanity.fileAsset"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    originalFilename?: string
-    label?: string
-    title?: string
-    description?: string
-    altText?: string
-    sha1hash?: string
-    extension?: string
-    mimeType?: string
-    size?: number
-    assetId?: string
-    uploadId?: string
-    path?: string
-    url?: string
-    source?: SanityAssetSourceData
-}
+  _id: string;
+  _type: "sanity.fileAsset";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  originalFilename?: string;
+  label?: string;
+  title?: string;
+  description?: string;
+  altText?: string;
+  sha1hash?: string;
+  extension?: string;
+  mimeType?: string;
+  size?: number;
+  assetId?: string;
+  uploadId?: string;
+  path?: string;
+  url?: string;
+  source?: SanityAssetSourceData;
+};
 
 export type SanityAssetSourceData = {
-    _type: "sanity.assetSourceData"
-    name?: string
-    id?: string
-    url?: string
-}
+  _type: "sanity.assetSourceData";
+  name?: string;
+  id?: string;
+  url?: string;
+};
 
 export type SanityImageAsset = {
-    _id: string
-    _type: "sanity.imageAsset"
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    originalFilename?: string
-    label?: string
-    title?: string
-    description?: string
-    altText?: string
-    sha1hash?: string
-    extension?: string
-    mimeType?: string
-    size?: number
-    assetId?: string
-    uploadId?: string
-    path?: string
-    url?: string
-    metadata?: SanityImageMetadata
-    source?: SanityAssetSourceData
-}
+  _id: string;
+  _type: "sanity.imageAsset";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  originalFilename?: string;
+  label?: string;
+  title?: string;
+  description?: string;
+  altText?: string;
+  sha1hash?: string;
+  extension?: string;
+  mimeType?: string;
+  size?: number;
+  assetId?: string;
+  uploadId?: string;
+  path?: string;
+  url?: string;
+  metadata?: SanityImageMetadata;
+  source?: SanityAssetSourceData;
+};
 
 export type Geopoint = {
-    _type: "geopoint"
-    lat?: number
-    lng?: number
-    alt?: number
-}
+  _type: "geopoint";
+  lat?: number;
+  lng?: number;
+  alt?: number;
+};
 
 export type AllSanitySchemaTypes =
-    | StudentGroup
-    | SanityImageAssetReference
-    | SourcedImage
-    | Slug
-    | GroupsPage
-    | Room
-    | RoomsPage
-    | SourceLink
-    | FaqItem
-    | SanityImageCrop
-    | SanityImageHotspot
-    | EditorialSection
-    | HomeBar
-    | EventsPage
-    | HomePage
-    | SiteMetadata
-    | VolunteerGroupSummary
-    | LaunchGroup
-    | GroupSection
-    | SanityImagePaletteSwatch
-    | SanityImagePalette
-    | SanityImageDimensions
-    | SanityImageMetadata
-    | SanityFileAsset
-    | SanityAssetSourceData
-    | SanityImageAsset
-    | Geopoint
+  | StudentGroup
+  | SanityImageAssetReference
+  | SourcedImage
+  | Slug
+  | GroupsPage
+  | Room
+  | RoomsPage
+  | SourceLink
+  | FaqItem
+  | SanityImageCrop
+  | SanityImageHotspot
+  | EditorialSection
+  | HomeBar
+  | EventsPage
+  | HomePage
+  | SiteMetadata
+  | VolunteerGroupSummary
+  | LaunchGroup
+  | GroupSection
+  | SanityImagePaletteSwatch
+  | SanityImagePalette
+  | SanityImageDimensions
+  | SanityImageMetadata
+  | SanityFileAsset
+  | SanityAssetSourceData
+  | SanityImageAsset
+  | Geopoint;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: launchGroupsNbQuery
 // Query: *[_type == "launchGroup"] | order(_createdAt asc) {    slug,    "name": nameNb,    "eyebrow": eyebrowNb,    "lead": leadNb,    "imageUrl": image.asset->url,    "accordionSections": accordionSections[] {        "title": titleNb,        "paragraphs": paragraphsNb    },    "detailSections": detailSections[] {        "title": titleNb,        "paragraphs": paragraphsNb    }}
 export type LaunchGroupsNbQueryResult = Array<{
-    slug: string | null
-    name: string | null
-    eyebrow: string | null
-    lead: string | null
-    imageUrl: string | null
-    accordionSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-    detailSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-}>
+  slug: string | null;
+  name: string | null;
+  eyebrow: string | null;
+  lead: string | null;
+  imageUrl: string | null;
+  accordionSections: Array<{
+    title: string | null;
+    paragraphs: Array<string> | null;
+  }> | null;
+  detailSections: Array<{
+    title: string | null;
+    paragraphs: Array<string> | null;
+  }> | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: launchGroupsEnQuery
 // Query: *[_type == "launchGroup"] | order(_createdAt asc) {    slug,    "name": nameEn,    "eyebrow": eyebrowEn,    "lead": leadEn,    "imageUrl": image.asset->url,    "accordionSections": accordionSections[] {        "title": titleEn,        "paragraphs": paragraphsEn    },    "detailSections": detailSections[] {        "title": titleEn,        "paragraphs": paragraphsEn    }}
 export type LaunchGroupsEnQueryResult = Array<{
-    slug: string | null
-    name: string | null
-    eyebrow: string | null
-    lead: string | null
-    imageUrl: string | null
-    accordionSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-    detailSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-}>
+  slug: string | null;
+  name: string | null;
+  eyebrow: string | null;
+  lead: string | null;
+  imageUrl: string | null;
+  accordionSections: Array<{
+    title: string | null;
+    paragraphs: Array<string> | null;
+  }> | null;
+  detailSections: Array<{
+    title: string | null;
+    paragraphs: Array<string> | null;
+  }> | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupSummariesNbQuery
 // Query: *[_type == "volunteerGroupSummary"] | order(order asc) {    name,    "description": descriptionNb}
 export type VolunteerGroupSummariesNbQueryResult = Array<{
-    name: string | null
-    description: string | null
-}>
+  name: string | null;
+  description: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupSummariesEnQuery
 // Query: *[_type == "volunteerGroupSummary"] | order(order asc) {    name,    "description": descriptionEn}
 export type VolunteerGroupSummariesEnQueryResult = Array<{
-    name: string | null
-    description: string | null
-}>
+  name: string | null;
+  description: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: homePageContentNbQuery
 // Query: *[_id == "homePage"][0] {    "badge": badgeNb,    "heroDescription": heroDescriptionNb,    "heroDescriptionFusion": heroDescriptionFusionNb,    "eventsLink": eventsLinkNb}
 export type HomePageContentNbQueryResult =
-    | {
-          badge: null
-          heroDescription: null
-          heroDescriptionFusion: null
-          eventsLink: null
-      }
-    | {
-          badge: string | null
-          heroDescription: string | null
-          heroDescriptionFusion: string | null
-          eventsLink: string | null
-      }
-    | null
+  | {
+      badge: null;
+      heroDescription: null;
+      heroDescriptionFusion: null;
+      eventsLink: null;
+    }
+  | {
+      badge: string | null;
+      heroDescription: string | null;
+      heroDescriptionFusion: string | null;
+      eventsLink: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: homePageContentEnQuery
 // Query: *[_id == "homePage"][0] {    "badge": badgeEn,    "heroDescription": heroDescriptionEn,    "heroDescriptionFusion": heroDescriptionFusionEn,    "eventsLink": eventsLinkEn}
 export type HomePageContentEnQueryResult =
-    | {
-          badge: null
-          heroDescription: null
-          heroDescriptionFusion: null
-          eventsLink: null
-      }
-    | {
-          badge: string | null
-          heroDescription: string | null
-          heroDescriptionFusion: string | null
-          eventsLink: string | null
-      }
-    | null
+  | {
+      badge: null;
+      heroDescription: null;
+      heroDescriptionFusion: null;
+      eventsLink: null;
+    }
+  | {
+      badge: string | null;
+      heroDescription: string | null;
+      heroDescriptionFusion: string | null;
+      eventsLink: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: eventsPageContentNbQuery
 // Query: *[_id == "eventsPage"][0] {    "eyebrow": eyebrowNb,    "title": titleNb,    "description": descriptionNb}
 export type EventsPageContentNbQueryResult =
-    | {
-          eyebrow: null
-          title: null
-          description: null
-      }
-    | {
-          eyebrow: string | null
-          title: null
-          description: null
-      }
-    | {
-          eyebrow: null
-          title: null
-          description: string | null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-      }
-    | null
+  | {
+      eyebrow: null;
+      title: null;
+      description: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: null;
+      description: null;
+    }
+  | {
+      eyebrow: null;
+      title: null;
+      description: string | null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: eventsPageContentEnQuery
 // Query: *[_id == "eventsPage"][0] {    "eyebrow": eyebrowEn,    "title": titleEn,    "description": descriptionEn}
 export type EventsPageContentEnQueryResult =
-    | {
-          eyebrow: null
-          title: null
-          description: null
-      }
-    | {
-          eyebrow: string | null
-          title: null
-          description: null
-      }
-    | {
-          eyebrow: null
-          title: null
-          description: string | null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-      }
-    | null
+  | {
+      eyebrow: null;
+      title: null;
+      description: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: null;
+      description: null;
+    }
+  | {
+      eyebrow: null;
+      title: null;
+      description: string | null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: siteMetadataNbQuery
 // Query: *[_id == "siteMetadata"][0] {    "siteTitle": siteTitleNb,    "siteDescription": siteDescriptionNb,    "homeTitle": homeTitleNb,    "homeDescription": homeDescriptionNb,    "eventsTitle": eventsTitleNb,    "eventsDescription": eventsDescriptionNb,    "volunteerSignupTitle": volunteerSignupTitleNb,    "volunteerSignupDescription": volunteerSignupDescriptionNb,    "groupPageTitle": groupPageTitleNb,    "groupPageDescription": groupPageDescriptionNb}
 export type SiteMetadataNbQueryResult =
-    | {
-          siteTitle: null
-          siteDescription: null
-          homeTitle: null
-          homeDescription: null
-          eventsTitle: null
-          eventsDescription: null
-          volunteerSignupTitle: null
-          volunteerSignupDescription: null
-          groupPageTitle: null
-          groupPageDescription: null
-      }
-    | {
-          siteTitle: string | null
-          siteDescription: string | null
-          homeTitle: string | null
-          homeDescription: string | null
-          eventsTitle: string | null
-          eventsDescription: string | null
-          volunteerSignupTitle: string | null
-          volunteerSignupDescription: string | null
-          groupPageTitle: string | null
-          groupPageDescription: string | null
-      }
-    | null
+  | {
+      siteTitle: null;
+      siteDescription: null;
+      homeTitle: null;
+      homeDescription: null;
+      eventsTitle: null;
+      eventsDescription: null;
+      volunteerSignupTitle: null;
+      volunteerSignupDescription: null;
+      groupPageTitle: null;
+      groupPageDescription: null;
+    }
+  | {
+      siteTitle: string | null;
+      siteDescription: string | null;
+      homeTitle: string | null;
+      homeDescription: string | null;
+      eventsTitle: string | null;
+      eventsDescription: string | null;
+      volunteerSignupTitle: string | null;
+      volunteerSignupDescription: string | null;
+      groupPageTitle: string | null;
+      groupPageDescription: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: siteMetadataEnQuery
 // Query: *[_id == "siteMetadata"][0] {    "siteTitle": siteTitleEn,    "siteDescription": siteDescriptionEn,    "homeTitle": homeTitleEn,    "homeDescription": homeDescriptionEn,    "eventsTitle": eventsTitleEn,    "eventsDescription": eventsDescriptionEn,    "volunteerSignupTitle": volunteerSignupTitleEn,    "volunteerSignupDescription": volunteerSignupDescriptionEn,    "groupPageTitle": groupPageTitleEn,    "groupPageDescription": groupPageDescriptionEn}
 export type SiteMetadataEnQueryResult =
-    | {
-          siteTitle: null
-          siteDescription: null
-          homeTitle: null
-          homeDescription: null
-          eventsTitle: null
-          eventsDescription: null
-          volunteerSignupTitle: null
-          volunteerSignupDescription: null
-          groupPageTitle: null
-          groupPageDescription: null
-      }
-    | {
-          siteTitle: string | null
-          siteDescription: string | null
-          homeTitle: string | null
-          homeDescription: string | null
-          eventsTitle: string | null
-          eventsDescription: string | null
-          volunteerSignupTitle: string | null
-          volunteerSignupDescription: string | null
-          groupPageTitle: string | null
-          groupPageDescription: string | null
-      }
-    | null
+  | {
+      siteTitle: null;
+      siteDescription: null;
+      homeTitle: null;
+      homeDescription: null;
+      eventsTitle: null;
+      eventsDescription: null;
+      volunteerSignupTitle: null;
+      volunteerSignupDescription: null;
+      groupPageTitle: null;
+      groupPageDescription: null;
+    }
+  | {
+      siteTitle: string | null;
+      siteDescription: string | null;
+      homeTitle: string | null;
+      homeDescription: string | null;
+      eventsTitle: string | null;
+      eventsDescription: string | null;
+      volunteerSignupTitle: string | null;
+      volunteerSignupDescription: string | null;
+      groupPageTitle: string | null;
+      groupPageDescription: string | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: homeBarsNbQuery
 // Query: *[_type == "homeBar"] | order(order asc) {    "name": nameNb,    "description": descriptionNb,    "imageUrl": image.asset->url}
 export type HomeBarsNbQueryResult = Array<{
-    name: string | null
-    description: string | null
-    imageUrl: string | null
-}>
+  name: string | null;
+  description: string | null;
+  imageUrl: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: homeBarsEnQuery
 // Query: *[_type == "homeBar"] | order(order asc) {    "name": nameEn,    "description": descriptionEn,    "imageUrl": image.asset->url}
 export type HomeBarsEnQueryResult = Array<{
-    name: string | null
-    description: string | null
-    imageUrl: string | null
-}>
+  name: string | null;
+  description: string | null;
+  imageUrl: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomsPageQuery
 // Query: *[_id == "roomsPage"][0] {    eyebrow,    title,    description,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {        _key,        label,        url    }},    bookingLink {        label,        url    }}
 export type RoomsPageQueryResult =
-    | {
-          eyebrow: null
-          title: null
-          description: null
-          sections: null
-          bookingLink: null
-      }
-    | {
-          eyebrow: null
-          title: string | null
-          description: null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          bookingLink: null
-      }
-    | {
-          eyebrow: null
-          title: string | null
-          description: string | null
-          sections: null
-          bookingLink: null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          bookingLink: null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          bookingLink: {
-              label: string | null
-              url: string | null
-          } | null
-      }
-    | null
+  | {
+      eyebrow: null;
+      title: null;
+      description: null;
+      sections: null;
+      bookingLink: null;
+    }
+  | {
+      eyebrow: null;
+      title: string | null;
+      description: null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      bookingLink: null;
+    }
+  | {
+      eyebrow: null;
+      title: string | null;
+      description: string | null;
+      sections: null;
+      bookingLink: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      bookingLink: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      bookingLink: {
+        label: string | null;
+        url: string | null;
+      } | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomsQuery
 // Query: *[_type == "room"] | order(order asc) {    title,    "slug": slug.current,    summary,    capacity,    suitedPurposes,    floor,    "image": images[0] {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption}}
 export type RoomsQueryResult = Array<{
-    title: string | null
-    slug: string | null
-    summary: string | null
-    capacity: string | null
-    suitedPurposes: Array<string> | null
-    floor: string | null
-    image: {
-        _key: string
-        assetUrl: string | null
-        sourceUrl: string | null
-        alt: string | null
-        caption: string | null
-    } | null
-}>
+  title: string | null;
+  slug: string | null;
+  summary: string | null;
+  capacity: string | null;
+  suitedPurposes: Array<string> | null;
+  floor: string | null;
+  image: {
+    _key: string;
+    assetUrl: string | null;
+    sourceUrl: string | null;
+    alt: string | null;
+    caption: string | null;
+  } | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomSlugsQuery
 // Query: *[_type == "room" && defined(slug.current)] {    "slug": slug.current}
 export type RoomSlugsQueryResult = Array<{
-    slug: string | null
-}>
+  slug: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomBySlugQuery
 // Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacity,    suitedPurposes,    floor,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {        _key,        label,        url    }},    "images": images[] {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption},    sourceUrl}
 export type RoomBySlugQueryResult = {
-    title: string | null
-    slug: string | null
-    summary: string | null
-    capacity: string | null
-    suitedPurposes: Array<string> | null
-    floor: string | null
-    sections: Array<{
-        _key: string
-        title: string | null
-        paragraphs: Array<string> | null
-        links: Array<{
-            _key: string
-            label: string | null
-            url: string | null
-        }> | null
-    }> | null
-    images: Array<{
-        _key: string
-        assetUrl: string | null
-        sourceUrl: string | null
-        alt: string | null
-        caption: string | null
-    }> | null
-    sourceUrl: string | null
-} | null
+  title: string | null;
+  slug: string | null;
+  summary: string | null;
+  capacity: string | null;
+  suitedPurposes: Array<string> | null;
+  floor: string | null;
+  sections: Array<{
+    _key: string;
+    title: string | null;
+    paragraphs: Array<string> | null;
+    links: Array<{
+      _key: string;
+      label: string | null;
+      url: string | null;
+    }> | null;
+  }> | null;
+  images: Array<{
+    _key: string;
+    assetUrl: string | null;
+    sourceUrl: string | null;
+    alt: string | null;
+    caption: string | null;
+  }> | null;
+  sourceUrl: string | null;
+} | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: groupsPageQuery
 // Query: *[_id == "groupsPage"][0] {    eyebrow,    title,    description,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {        _key,        label,        url    }},    faq[] {        _key,        question,        answer    }}
 export type GroupsPageQueryResult =
-    | {
-          eyebrow: null
-          title: null
-          description: null
-          sections: null
-          faq: null
-      }
-    | {
-          eyebrow: null
-          title: string | null
-          description: null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          faq: null
-      }
-    | {
-          eyebrow: null
-          title: string | null
-          description: string | null
-          sections: null
-          faq: null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          faq: null
-      }
-    | {
-          eyebrow: string | null
-          title: string | null
-          description: string | null
-          sections: Array<{
-              _key: string
-              title: string | null
-              paragraphs: Array<string> | null
-              links: Array<{
-                  _key: string
-                  label: string | null
-                  url: string | null
-              }> | null
-          }> | null
-          faq: Array<{
-              _key: string
-              question: string | null
-              answer: Array<string> | null
-          }> | null
-      }
-    | null
+  | {
+      eyebrow: null;
+      title: null;
+      description: null;
+      sections: null;
+      faq: null;
+    }
+  | {
+      eyebrow: null;
+      title: string | null;
+      description: null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      faq: null;
+    }
+  | {
+      eyebrow: null;
+      title: string | null;
+      description: string | null;
+      sections: null;
+      faq: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      faq: null;
+    }
+  | {
+      eyebrow: string | null;
+      title: string | null;
+      description: string | null;
+      sections: Array<{
+        _key: string;
+        title: string | null;
+        paragraphs: Array<string> | null;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          url: string | null;
+        }> | null;
+      }> | null;
+      faq: Array<{
+        _key: string;
+        question: string | null;
+        answer: Array<string> | null;
+      }> | null;
+    }
+  | null;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: studentGroupsQuery
 // Query: *[_type == "studentGroup"] | order(order asc) {    name,    "slug": slug.current,    summary,    email,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption}}
 export type StudentGroupsQueryResult = Array<{
-    name: string | null
-    slug: string | null
-    summary: string | null
-    email: string | null
-    category: "drift" | "organisasjon" | "program" | null
-    image: {
-        _key: null
-        assetUrl: string | null
-        sourceUrl: string | null
-        alt: string | null
-        caption: string | null
-    } | null
-}>
+  name: string | null;
+  slug: string | null;
+  summary: string | null;
+  email: string | null;
+  category: "arbeidsgruppe" | "komitee" | null;
+  image: {
+    _key: null;
+    assetUrl: string | null;
+    sourceUrl: string | null;
+    alt: string | null;
+    caption: string | null;
+  } | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: studentGroupSlugsQuery
 // Query: *[_type == "studentGroup" && defined(slug.current)] {    "slug": slug.current}
 export type StudentGroupSlugsQueryResult = Array<{
-    slug: string | null
-}>
+  slug: string | null;
+}>;
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: studentGroupBySlugQuery
-// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    name,    "slug": slug.current,    summary,    body,    email,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption},    sourceNote}
+// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    name,    "slug": slug.current,    summary,    body,    email,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption},    sourceUrl,    sourceNote}
 export type StudentGroupBySlugQueryResult = {
-    name: string | null
-    slug: string | null
-    summary: string | null
-    body: Array<string> | null
-    email: string | null
-    category: "drift" | "organisasjon" | "program" | null
-    image: {
-        _key: null
-        assetUrl: string | null
-        sourceUrl: string | null
-        alt: string | null
-        caption: string | null
-    } | null
-    sourceNote: string | null
-} | null
+  name: string | null;
+  slug: string | null;
+  summary: string | null;
+  body: Array<string> | null;
+  email: string | null;
+  category: "arbeidsgruppe" | "komitee" | null;
+  image: {
+    _key: null;
+    assetUrl: string | null;
+    sourceUrl: string | null;
+    alt: string | null;
+    caption: string | null;
+  } | null;
+  sourceUrl: string | null;
+  sourceNote: string | null;
+} | null;
 
 // Query TypeMap
-import "@sanity/client"
+import "@sanity/client";
 declare module "@sanity/client" {
-    interface SanityQueries {
-        '*[_type == "launchGroup"] | order(_createdAt asc) {\n    slug,\n    "name": nameNb,\n    "eyebrow": eyebrowNb,\n    "lead": leadNb,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    },\n    "detailSections": detailSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    }\n}': LaunchGroupsNbQueryResult
-        '*[_type == "launchGroup"] | order(_createdAt asc) {\n    slug,\n    "name": nameEn,\n    "eyebrow": eyebrowEn,\n    "lead": leadEn,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    },\n    "detailSections": detailSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    }\n}': LaunchGroupsEnQueryResult
-        '*[_type == "volunteerGroupSummary"] | order(order asc) {\n    name,\n    "description": descriptionNb\n}': VolunteerGroupSummariesNbQueryResult
-        '*[_type == "volunteerGroupSummary"] | order(order asc) {\n    name,\n    "description": descriptionEn\n}': VolunteerGroupSummariesEnQueryResult
-        '*[_id == "homePage"][0] {\n    "badge": badgeNb,\n    "heroDescription": heroDescriptionNb,\n    "heroDescriptionFusion": heroDescriptionFusionNb,\n    "eventsLink": eventsLinkNb\n}': HomePageContentNbQueryResult
-        '*[_id == "homePage"][0] {\n    "badge": badgeEn,\n    "heroDescription": heroDescriptionEn,\n    "heroDescriptionFusion": heroDescriptionFusionEn,\n    "eventsLink": eventsLinkEn\n}': HomePageContentEnQueryResult
-        '*[_id == "eventsPage"][0] {\n    "eyebrow": eyebrowNb,\n    "title": titleNb,\n    "description": descriptionNb\n}': EventsPageContentNbQueryResult
-        '*[_id == "eventsPage"][0] {\n    "eyebrow": eyebrowEn,\n    "title": titleEn,\n    "description": descriptionEn\n}': EventsPageContentEnQueryResult
-        '*[_id == "siteMetadata"][0] {\n    "siteTitle": siteTitleNb,\n    "siteDescription": siteDescriptionNb,\n    "homeTitle": homeTitleNb,\n    "homeDescription": homeDescriptionNb,\n    "eventsTitle": eventsTitleNb,\n    "eventsDescription": eventsDescriptionNb,\n    "volunteerSignupTitle": volunteerSignupTitleNb,\n    "volunteerSignupDescription": volunteerSignupDescriptionNb,\n    "groupPageTitle": groupPageTitleNb,\n    "groupPageDescription": groupPageDescriptionNb\n}': SiteMetadataNbQueryResult
-        '*[_id == "siteMetadata"][0] {\n    "siteTitle": siteTitleEn,\n    "siteDescription": siteDescriptionEn,\n    "homeTitle": homeTitleEn,\n    "homeDescription": homeDescriptionEn,\n    "eventsTitle": eventsTitleEn,\n    "eventsDescription": eventsDescriptionEn,\n    "volunteerSignupTitle": volunteerSignupTitleEn,\n    "volunteerSignupDescription": volunteerSignupDescriptionEn,\n    "groupPageTitle": groupPageTitleEn,\n    "groupPageDescription": groupPageDescriptionEn\n}': SiteMetadataEnQueryResult
-        '*[_type == "homeBar"] | order(order asc) {\n    "name": nameNb,\n    "description": descriptionNb,\n    "imageUrl": image.asset->url\n}': HomeBarsNbQueryResult
-        '*[_type == "homeBar"] | order(order asc) {\n    "name": nameEn,\n    "description": descriptionEn,\n    "imageUrl": image.asset->url\n}': HomeBarsEnQueryResult
-        '*[_id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    bookingLink {\n        label,\n        url\n    }\n}': RoomsPageQueryResult
-        '*[_type == "room"] | order(order asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacity,\n    suitedPurposes,\n    floor,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': RoomsQueryResult
-        '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
-        '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacity,\n    suitedPurposes,\n    floor,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n},\n    sourceUrl\n}': RoomBySlugQueryResult
-        '*[_id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult
-        '*[_type == "studentGroup"] | order(order asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupsQueryResult
-        '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
-        '*[_type == "studentGroup" && slug.current == $slug][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n},\n    sourceNote\n}': StudentGroupBySlugQueryResult
-    }
+  interface SanityQueries {
+    '*[_type == "launchGroup"] | order(_createdAt asc) {\n    slug,\n    "name": nameNb,\n    "eyebrow": eyebrowNb,\n    "lead": leadNb,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    },\n    "detailSections": detailSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    }\n}': LaunchGroupsNbQueryResult;
+    '*[_type == "launchGroup"] | order(_createdAt asc) {\n    slug,\n    "name": nameEn,\n    "eyebrow": eyebrowEn,\n    "lead": leadEn,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    },\n    "detailSections": detailSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    }\n}': LaunchGroupsEnQueryResult;
+    '*[_type == "volunteerGroupSummary"] | order(order asc) {\n    name,\n    "description": descriptionNb\n}': VolunteerGroupSummariesNbQueryResult;
+    '*[_type == "volunteerGroupSummary"] | order(order asc) {\n    name,\n    "description": descriptionEn\n}': VolunteerGroupSummariesEnQueryResult;
+    '*[_id == "homePage"][0] {\n    "badge": badgeNb,\n    "heroDescription": heroDescriptionNb,\n    "heroDescriptionFusion": heroDescriptionFusionNb,\n    "eventsLink": eventsLinkNb\n}': HomePageContentNbQueryResult;
+    '*[_id == "homePage"][0] {\n    "badge": badgeEn,\n    "heroDescription": heroDescriptionEn,\n    "heroDescriptionFusion": heroDescriptionFusionEn,\n    "eventsLink": eventsLinkEn\n}': HomePageContentEnQueryResult;
+    '*[_id == "eventsPage"][0] {\n    "eyebrow": eyebrowNb,\n    "title": titleNb,\n    "description": descriptionNb\n}': EventsPageContentNbQueryResult;
+    '*[_id == "eventsPage"][0] {\n    "eyebrow": eyebrowEn,\n    "title": titleEn,\n    "description": descriptionEn\n}': EventsPageContentEnQueryResult;
+    '*[_id == "siteMetadata"][0] {\n    "siteTitle": siteTitleNb,\n    "siteDescription": siteDescriptionNb,\n    "homeTitle": homeTitleNb,\n    "homeDescription": homeDescriptionNb,\n    "eventsTitle": eventsTitleNb,\n    "eventsDescription": eventsDescriptionNb,\n    "volunteerSignupTitle": volunteerSignupTitleNb,\n    "volunteerSignupDescription": volunteerSignupDescriptionNb,\n    "groupPageTitle": groupPageTitleNb,\n    "groupPageDescription": groupPageDescriptionNb\n}': SiteMetadataNbQueryResult;
+    '*[_id == "siteMetadata"][0] {\n    "siteTitle": siteTitleEn,\n    "siteDescription": siteDescriptionEn,\n    "homeTitle": homeTitleEn,\n    "homeDescription": homeDescriptionEn,\n    "eventsTitle": eventsTitleEn,\n    "eventsDescription": eventsDescriptionEn,\n    "volunteerSignupTitle": volunteerSignupTitleEn,\n    "volunteerSignupDescription": volunteerSignupDescriptionEn,\n    "groupPageTitle": groupPageTitleEn,\n    "groupPageDescription": groupPageDescriptionEn\n}': SiteMetadataEnQueryResult;
+    '*[_type == "homeBar"] | order(order asc) {\n    "name": nameNb,\n    "description": descriptionNb,\n    "imageUrl": image.asset->url\n}': HomeBarsNbQueryResult;
+    '*[_type == "homeBar"] | order(order asc) {\n    "name": nameEn,\n    "description": descriptionEn,\n    "imageUrl": image.asset->url\n}': HomeBarsEnQueryResult;
+    '*[_id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    bookingLink {\n        label,\n        url\n    }\n}': RoomsPageQueryResult;
+    '*[_type == "room"] | order(order asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacity,\n    suitedPurposes,\n    floor,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': RoomsQueryResult;
+    '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult;
+    '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacity,\n    suitedPurposes,\n    floor,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n},\n    sourceUrl\n}': RoomBySlugQueryResult;
+    '*[_id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult;
+    '*[_type == "studentGroup"] | order(order asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupsQueryResult;
+    '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult;
+    '*[_type == "studentGroup" && slug.current == $slug][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n},\n    sourceUrl,\n    sourceNote\n}': StudentGroupBySlugQueryResult;
+  }
 }

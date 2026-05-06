@@ -1,10 +1,22 @@
-import { Mail } from "lucide-react"
+import { ExternalLink, Mail } from "lucide-react"
 import { notFound } from "next/navigation"
 
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchStudentGroupBySlug, fetchStudentGroupSlugs } from "@/lib/sanity/queries"
 
 export const revalidate = 300
+
+const groupCategoryLabel = (category: string | null | undefined) => {
+    if (category === "arbeidsgruppe") {
+        return "Arbeidsgruppe"
+    }
+
+    if (category === "komitee") {
+        return "Komité"
+    }
+
+    return null
+}
 
 type GroupPageProps = {
     params: Promise<{
@@ -49,9 +61,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
         <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="space-y-8">
                 <header className="space-y-5">
-                    {group.category ? (
+                    {groupCategoryLabel(group.category) ? (
                         <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
-                            {group.category}
+                            {groupCategoryLabel(group.category)}
                         </p>
                     ) : null}
                     <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
@@ -84,6 +96,17 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     <section className="space-y-3 border-2 border-border bg-card p-5">
                         <h2 className="font-heading text-xl text-foreground">Kilde</h2>
                         <p className="text-base leading-7 text-foreground">{group.sourceNote}</p>
+                        {group.sourceUrl ? (
+                            <a
+                                className="inline-flex items-center gap-2 text-base underline underline-offset-4"
+                                href={group.sourceUrl}
+                                rel="noreferrer"
+                                target="_blank"
+                            >
+                                Les originalen
+                                <ExternalLink aria-hidden="true" className="size-4" />
+                            </a>
+                        ) : null}
                     </section>
                 ) : null}
             </aside>
