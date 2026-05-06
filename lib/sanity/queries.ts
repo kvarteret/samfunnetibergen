@@ -21,6 +21,7 @@ export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupC
             "name": name${s},
             "eyebrow": eyebrow${s},
             "lead": lead${s},
+            "imageUrl": image.asset->url,
             "accordionSections": accordionSections[] {
                 "title": title${s},
                 "paragraphs": paragraphs${s}
@@ -104,7 +105,8 @@ export async function fetchHomeBars(locale: AppLocale): Promise<HomeBarContent[]
     return sanityClient.fetch(
         `*[_type == "homeBar"] | order(order asc) {
             "name": name${s},
-            "description": description${s}
+            "description": description${s},
+            "imageUrl": image.asset->url
         }`,
         {},
         { next: { revalidate: 300, tags: ["homeBars"] } },

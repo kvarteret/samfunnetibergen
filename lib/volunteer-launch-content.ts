@@ -17,6 +17,7 @@ export type LaunchGroupContent = {
     lead: string
     accordionSections: GroupSection[]
     detailSections: GroupSection[]
+    imageUrl?: string | null
 }
 
 export type InstitutionOption = {

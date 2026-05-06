@@ -1,8 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
-
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
@@ -24,7 +23,15 @@ interface EventCardImageProps {
 const EventCardImage = ({ alt, href, src }: EventCardImageProps) =>
     src ? (
         <Link href={href}>
-            <img alt={alt} className="aspect-[16/9] w-full object-cover" loading="lazy" src={src} />
+            <div className="relative aspect-[16/9] w-full">
+                <Image
+                    alt={alt}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    src={src}
+                />
+            </div>
         </Link>
     ) : null
 

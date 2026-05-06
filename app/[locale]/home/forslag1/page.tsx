@@ -1,12 +1,13 @@
+import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
-import { getPublicEvents, type EventDetail } from "@/lib/events"
+import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchHomeBars } from "@/lib/sanity/queries"
 import type { HomeBarContent } from "@/lib/sanity/types"
 import { getLaunchGroups, type LaunchGroupContent } from "@/lib/volunteer-launch-content"
-import Link from "next/link"
 
 // should be in own components folder but chose not to, to to minimize mental effort while prototyping
 // ALSO NO LANGUAGE TRANSLATION FOR THE SAME REASON STATED ABOVE
@@ -58,11 +59,18 @@ function HomeGroups({ groups, locale }: { groups: LaunchGroupContent[]; locale: 
                             key={group.slug}
                             href={`/${locale}/blifrivillig/${group.slug}`}
                         >
-                            <Card className="h-24 bg-gray-200"></Card>
+                            <Card className="h-24 bg-gray-200 overflow-hidden relative">
+                                {group.imageUrl && (
+                                    <Image
+                                        src={group.imageUrl}
+                                        alt={group.name}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                )}
+                            </Card>
                             <p className="font-bold">{group.name}</p>
-                            <p className="text-xs lg:text-base">
-                                {group.lead}
-                            </p>
+                            <p className="text-xs lg:text-base">{group.lead}</p>
                         </Link>
                     )
                 })}
@@ -86,7 +94,16 @@ function HomeBars({ bars, locale }: { bars: HomeBarContent[]; locale: AppLocale 
                             <h3 className="text-center text-xl">{bar.name}</h3>
                             <div className="h-0.5 bg-destructive" />
                             <div className="flex gap-4">
-                                <div className="h-48 bg-gray-200 flex-1"></div>
+                                <div className="h-48 bg-gray-200 flex-1 relative overflow-hidden">
+                                    {bar.imageUrl && (
+                                        <Image
+                                            src={bar.imageUrl}
+                                            alt={bar.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    )}
+                                </div>
                                 <p className="flex-1 lg:flex-2 text-xs md:text-sm lg:text-base whitespace-pre-wrap">
                                     {bar.description}
                                 </p>
@@ -110,12 +127,17 @@ function HomeEvents({ events, locale }: { events: EventDetail[]; locale: AppLoca
             <div className="flex w-full gap-4">
                 {events.map(event => {
                     return (
-                        <Link
-                            key={event.id}
-                            className="flex-1 "
-                            href={`/${locale}/arrangementer`}
-                        >
-                            <Card className="h-24 bg-gray-200"></Card>
+                        <Link key={event.id} className="flex-1 " href={`/${locale}/arrangementer`}>
+                            <Card className="h-24 bg-gray-200 overflow-hidden relative">
+                                {event.image_url && (
+                                    <Image
+                                        src={event.image_url}
+                                        alt={event.title}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                )}
+                            </Card>
                             <div className="flex justify-between pt-2 text-xs">
                                 <p>{event.event_type?.name ?? ""}</p>
                                 <p>{formatEventDate(event, locale)}</p>
@@ -129,9 +151,7 @@ function HomeEvents({ events, locale }: { events: EventDetail[]; locale: AppLoca
     )
 }
 
-export default async function HomePage({
-    params,
-}: PageProps<"/[locale]/home/forslag1">) {
+export default async function HomePage({ params }: PageProps<"/[locale]/home/forslag1">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
     const [bars, groups, eventsResult] = await Promise.all([
@@ -161,14 +181,12 @@ export default async function HomePage({
                 <div className="h-42 bg-gray-200 my-2 w-full"></div>
 
                 <p className="text-center px-6">
-                    Studentersamfunnet i Bergen er byens eldste allmenne
-                    studentorgansisasjon og Vestlandets største politisk
-                    uavhengige forum for samfunns- og kulturdebatt. Vi er byens
-                    seudentkulturhus og holder til på Det akademiske Kvarter.
-                    Med over 100 frivillige og en rik historie driver vi med ett
-                    mål for øyet: &quot;Å samle studenter og byen forøvrig til tiltak
-                    som kan fremme samhold, åndsdannelse og interesse for
-                    allmennkulturelle spørsmål.&quot;
+                    Studentersamfunnet i Bergen er byens eldste allmenne studentorgansisasjon og
+                    Vestlandets største politisk uavhengige forum for samfunns- og kulturdebatt. Vi
+                    er byens seudentkulturhus og holder til på Det akademiske Kvarter. Med over 100
+                    frivillige og en rik historie driver vi med ett mål for øyet: &quot;Å samle
+                    studenter og byen forøvrig til tiltak som kan fremme samhold, åndsdannelse og
+                    interesse for allmennkulturelle spørsmål.&quot;
                 </p>
 
                 <Button className="bg-destructive w-32 m-auto" size={"lg"}>
