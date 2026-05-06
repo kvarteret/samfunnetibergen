@@ -31,7 +31,7 @@ export default async function VolunteerGroupPage({
     activateRequestLocale(locale)
     const group = resolveVolunteerGroup(locale, groupSlug)
     const t = await getTranslations({ locale, namespace: "GroupPage" })
-
+  
     return (
         <main className="flex-1 px-6 py-10 sm:px-10 lg:px-14">
             <div className="mx-auto grid max-w-5xl gap-6">

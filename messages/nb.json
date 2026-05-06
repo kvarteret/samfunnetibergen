@@ -7,13 +7,45 @@
     "volunteerSignupTitle": "Bli frivillig | Oversikt over grupper",
     "volunteerSignupDescription": "Se gruppene på huset og meld interesse som frivillig.",
     "groupPageTitle": "{group} | Bli frivillig",
-    "groupPageDescription": "Les mer om {group} og velg gruppen i frivilligskjemaet."
+    "groupPageDescription": "Les mer om {group} og velg gruppen i frivilligskjemaet.",
+    "bookingPageTitle":"Booking",
+    "bookingPageDescription":"Booking page"
   },
   "HomePage": {
     "badge": "Samfunnet / Det Akademiske Kvarter",
     "heroDescription": "Studentersamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!",
     "heroDescriptionFusion": "Samfunnet er en fusjon av <kvarteret>Kvarteret</kvarteret> og <samfunnetibergen>Samfunnet i Bergen</samfunnetibergen>. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Som student i Bergen er det å bli frivillig på Samfunnet en fantastisk måte å sette ditt preg på studentlivet.",
     "footer": "Med 💛 fra E-tjenesten"
+  },
+  "BookingPage":{
+    "title": "BOOKING",
+    "subtitle": "Underorganisasjoner og eksterne kan booke rom på kvarteret. Her finner du alt om booking.",
+    "howToBookTitle":"HVORDAN BOOKE ET ROM",
+    "howToBookp1" : "Du må selv legge inn en forespørsel i vårt bookingsystem som deretter behandles av romkoordinator. Bookingen er først gyldig når du får godkjenning på mail.",
+    "howToBookp2": "Detaljene om arrangementet må fylles ut så nøyaktig og fullstendig som mulig i booking-skjemaet. Det er viktig å inkludere hvilke fasiliteter du trenger.",
+    "howToBookp3": "Bookingforespørsler for vårsemesteret behandles fom. 01/12. Høstsemesterets bookinger behandles fom. 01/06.",
+    "bookingTimesTitle":"TIDER DU KAN BOOKE ROM",
+    "monday":"Mandag",
+    "to":"til",
+    "wednesday":"onsdag",
+    "thursday":"Torsdag",
+    "friday":"fredag",
+    "saturday":"Lørdag",
+    "sunday":"Søndag",
+    "servicesTitle": "MAT, DRIKKE OG UNDERHOLDNING?",
+    "cateringInfo" : "Kvarterets eget kjøkken skredderssyr gjerne en meny for diett, allergén, budsjett og ønske til både store og små tilstelninger. Legg ved litt info om hva du ønsker i bookingforespørselen din, så tar vi kontakt.",
+    "entertainment":"Vi leier også ut underholdningspakker som KARAOKE og SILENT DISCO eller hjelper deg med å sette opp drømmekonserten.",
+    "linkWallTitle": "FAQ & INFO",
+    "doYouHaveAQuestion":" Har du Spørsmål om",
+    "guardianArrangement":"vergeordningen",
+    "bookHereTitle":"BOOK HER",
+    "rulesLink1":"Gjør deg først kjent med våre avbestillingsvilkår.",
+    "rulesLink2":"Gjør deg kjent med våre vilkår for leie av rom. ",
+    "technicalSpecs":"TEKNISKE SPESIFIKASJONER",
+    "crescatButtonText":"BOOK ROM HER",
+    "roomInfoTitle":" INFO OM ROMMENE",
+    "selectedRoom":"Valgt rom: ",
+    "selectedRoomFallback":"ukjent"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",
@@ -317,6 +349,48 @@
     {
       "name": "Rettsvesenet",
       "description": "Rettsvesenet er en gruppe jusstudenter som bistår Det Akademiske Kvarter med juridisk rådgivning. Som medlem i Rettsvesenet vil du få nyttig erfaring som kommer godt med både i de videre studiene, og senere i arbeidslivet. Gjennom Rettsvesenet blir du også kjent med studenter fra andre studieår enn ditt eget. Vervet hos oss lar seg godt kombinere med både studier og deltidsjobb. Vi er mange saksbehandlere, så arbeidet fordeles godt, men det er nok til at alle får prøvd seg i rollen."
+    }
+  ],
+  "roomSummaries": [
+    {
+      "name": "Teglverket",
+      "description":"Teglverket er vår største konsertsal, og er en av de beste intimscenene i landet. Rommet passer perfekt til alt fra debatter og møter til konserter og fester."
+    },
+    {
+      "name": "Tivoli",
+      "description":"Tivoli er vår black box, noe som gjør det til vårt mest funksjonelle rom. Det egner seg både til kino, klubbarrrangementer, teater, konserter, debatter og alt annet du måtte tenke deg. Salen er utstyrt med et amfi du kan gjemme helt bort om du ikke trenger det."
+    },
+    {
+      "name": "Storelogen",
+      "description":"Her arrangeres det en rekke jazzkonserter, revyer, åpen scene-arrangementer, debatter og lignende. Det er også et bra lokale for lukkede fester, da det er litt avskjermet fra omgivelsene."
+    },
+    {
+      "name": "Speilsalen",
+      "description":"Speilsalen passer til de fleste arrangement – møter, fester, mindre debatter og foredrag, eller konserter."
+    },
+    {
+      "name": "Maos lille røde",
+      "description":"Maos er et lite forsamlingslokale i 2. etasje med fast prosjektor og lerret. Rommet passer til de fleste mindre formål – om det skulle være møte, filmvisning, karaoke eller akustiske konserter."
+    },
+    {
+      "name": "Stillhet",
+      "description":"Stillhet fungerer som både møtelokale og backstage. Dette vil si at møblementet består både av sofaer og konferansebord."
+    },
+    {
+      "name": "Støy",
+      "description":"Støy er et lite forsamlingslokale i 3. etasje, som passer bra til all typer mindre møter og sosiale arrangement. Rommet har i tillegg blitt brukt til øving av både teater, sang og lignende. "
+    },
+    {
+      "name": "Grøndahls",
+      "description":"Kvarterets pub. I utgangspunktet leier vi ikke ut dette rommet til lukkede arrangementer i åpningstiden, men enkelte gratisarrangementer kunne absolutt være interessant, så det er lov til å si ifra om en er interessert i å arrangere ting her."
+    },
+    {
+      "name": "Halvtimen",
+      "description":"Cocktailbaren Halvtimen pleide å være åpen hver fredag og lørdag med 20-års aldersgrense, men er for tiden stengt. Rommet kan brukes til mer uformelle møter og samlinger, men man må da være klar over at Halvtimen også er et gangareale, og at det derfor kan hende at folk må gå gjennom for å komme seg til andre rom."
+    },
+    {
+      "name": "Stjernesalen",
+      "description":"Stjernesalen er vår fantastiske kafé, restaurant og bar i 2. etasje, med inngang på baksiden av bygget. Vi booker normalt ikke vekk rommet til arrangementer, men om du ønsker å få til et åpent gratisarrangement som passer inn her, må du ikke nøle med å ta kontakt!"
     }
   ]
 }

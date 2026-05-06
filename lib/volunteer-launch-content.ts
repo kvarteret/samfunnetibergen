@@ -29,6 +29,10 @@ export type VolunteerGroupSummary = {
     description: string
 }
 
+export type RoomSummary = {
+    name: string
+    description: string
+}
 const messagesByLocale = {
     nb: nbMessages,
     en: enMessages,
@@ -52,6 +56,11 @@ export function getLaunchGroupBySlug(locale: AppLocale, slug: string) {
 
 export function getVolunteerGroupSummaries(locale: AppLocale) {
     return getMessages(locale).VolunteerGroupSummaries as VolunteerGroupSummary[]
+}
+
+// TODO: fix location of this function
+export function getRoomSummaries(locale: AppLocale) {
+    return getMessages(locale).roomSummaries as RoomSummary[]
 }
 
 // Compatibility exports for stale dev graphs that may still reference the

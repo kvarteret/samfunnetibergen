@@ -7,13 +7,48 @@
     "volunteerSignupTitle": "Become a volunteer | Group overview",
     "volunteerSignupDescription": "Explore the groups in the house and register your interest as a volunteer.",
     "groupPageTitle": "{group} | Become a volunteer",
-    "groupPageDescription": "Learn more about {group} and choose the group in the volunteer form."
+    "groupPageDescription": "Learn more about {group} and choose the group in the volunteer form.",
+    "bookingPageTitle":"Booking",
+    "bookingPageDescription":"Booking side"
   },
   "HomePage": {
     "badge": "Samfunnet / Det Akademiske Kvarter",
     "heroDescription": "Studentersamfunnet i Bergen is the student house in Bergen and one of Norway's most active cultural venues. Every year, more than 1,500 events are arranged, all run by about 500 volunteer students. We have three bars that are entirely volunteer-operated as well as countless groups that cover students' different interests and needs. Samfunnet is a meeting place for students across Bergen, whether it is for morning coffee or a late night out.",
     "heroDescriptionFusion": "Samfunnet is a merger of <kvarteret>Kvarteret</kvarteret> and <samfunnetibergen>Samfunnet i Bergen</samfunnetibergen>. We are still in the same place as always, in the same building called Det Akademiske Kvarter. As a student in Bergen, becoming a volunteer at Samfunnet is a fantastic way to leave your mark on student life.",
     "footer": "Made with 💛 by E-tjenesten"
+  },
+  
+  "BookingPage":{
+    "title": "BOOKING",
+    "subtitle": "Internal and external groups can book rooms at the campus. Here you will find everything you need to know about booking.",
+    "howToBookTitle":"HOW TO BOOK A ROOM",
+    "howToBookp1" : "You must submit a request yourself in our booking system, which will then be processed by the room coordinator. The booking is only valid once you receive approval via email.",
+    "howToBookp2": "Please fill out the event details as accurately and completely as possible in the booking form. It is important to include the facilities you need.",
+    "howToBookp3": "Booking requests for the spring semester will be processed starting December 1. Bookings for the fall semester will be processed starting June 1.",
+    "bookingTimesTitle":"TIMES YOU CAN BOOK ROOMS",
+    "monday":"Monday",
+    "to" : "to",
+    "wednesday":"Wednesday",
+    "thursday":"Thursday",
+    "friday":"Friday",
+    "saturday":"Saturday",
+    "sunday":"Sunday",
+    "servicesTitle": "FOOD, DRINKS, AND ENTERTAINMENT?",
+    "cateringInfo" : "Our in-house kitchen is happy to tailor a menu to accommodate dietary restrictions, allergies, budgets, and preferences for both large and small events. Please include some details about your preferences in your booking request, and we’ll get in touch.",
+    "entertainment":"We also rent out entertainment packages such as KARAOKE and SILENT DISCO, or help you put together your dream concert.",
+    "linkWallTitle": "FAQ & INFO",
+    "doYouHaveAQuestion": "Do you have a question",
+    "guardianArrangement":"guardian arrangement",
+    "FAQLinks":"Do you have questions about booking? Do you have questions about the guardian program? Do you have questions about promotions?",
+    "bookHereTitle":"BOOK HERE",
+    "rulesLink1":"Please review our cancellation policy first.",
+    "rulesLink2":"Please review our room rental terms and conditions.",
+    "rulesLinks":"Please review our cancellation policy first. Please review our room rental terms and conditions.",
+    "technicalSpecs":"TECHNICAL SPECIFICATIONS",
+    "crescatButtonText":"BOOK ROOM HERE",
+    "roomInfoTitle":"ROOM INFORMATION",
+    "selectedRoom":"Selected room: ",
+    "selectedRoomFallback":"unknown"
   },
   "VolunteerProspectForm": {
     "title": "Become a volunteer",
@@ -317,6 +352,49 @@
     {
       "name": "Rettsvesenet",
       "description": "Rettsvesenet is a group of law students who assist Det Akademiske Kvarter with legal advice. As a member of Rettsvesenet, you gain useful experience that will help both in your studies and later in working life. Through Rettsvesenet, you also get to know students from other years of study. The role combines well with both studies and part-time work. We are many case handlers, so the workload is shared well, but there is still enough work for everyone to try themselves in the role."
+    }
+  ],
+  
+  "roomSummaries": [
+    {
+      "name": "Teglverket",
+      "description":"Teglverket is our largest concert hall and one of the best intimate venues in the country. The space is perfect for everything from debates and meetings to concerts and parties."
+    },
+    {
+      "name": "Tivoli",
+      "description":"Tivoli is our black box, making it our most versatile space. It is suitable for cinema screenings, club events, theater performances, concerts, debates, and anything else you can imagine. The hall is equipped with an amphitheater that you can completely hide away if you don’t need it."
+    },
+    {
+      "name": "Storelogen",
+      "description":"This venue hosts a variety of jazz concerts, revues, open-mic nights, debates, and similar events. It’s also a great venue for private parties, as it’s somewhat secluded from the surrounding area."
+    },
+    {
+      "name": "Speilsalen",
+      "description":"Speilsalen is suitable for most events—meetings, parties, small debates and lectures, or concerts."
+    },
+    {
+      "name": "Maos lille røde",
+      "description":"Mao's lille røde is a small meeting room on the second floor equipped with a projector and screen. The room is suitable for most small-scale events—whether it's a meeting, a film screening, karaoke, or an acoustic concert."
+    },
+    {
+      "name": "Stillhet",
+      "description":"Stillhet serves as both a meeting room and a backstage area. This means that the furnishings include both sofas and conference tables."
+    },
+    {
+      "name": "Støy",
+      "description":"Støy is a small meeting room on the 3rd floor, well-suited for all types of small meetings and social events. The room has also been used for theater, singing, and similar rehearsals."
+    },
+    {
+      "name": "Grøndahls",
+      "description":"The neighborhood pub. Generally speaking, we don't rent out this space for private events during business hours, but certain free events could definitely be of interest, so feel free to let us know if you're interested in hosting something here."
+    },
+    {
+      "name": "Halvtimen",
+      "description":"The Halvtimen cocktail bar used to be open every Friday and Saturday with a 20-year-old age limit, but is currently closed. The room can be used for more informal meetings and gatherings, but please be aware that Halvtimen is also a walkway, so people may need to pass through it to get to other rooms."
+    },
+    {
+      "name": "Stjernesalen",
+      "description":"Stjernesalen is our fantastic café, restaurant, and bar on the second floor, with an entrance at the back of the building. We don't normally book out the space for events, but if you'd like to organize a free, open event that fits in here, don't hesitate to get in touch!"
     }
   ]
 }
