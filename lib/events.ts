@@ -1,7 +1,9 @@
 import "server-only"
 
+import { cache } from "react"
+
 import type { AppLocale } from "@/i18n/routing"
-import type { EventList, EventTaxonomy, PublicEventsResult } from "@/lib/events-utils"
+import type { EventDetail, EventList, EventTaxonomy, PublicEventsResult } from "@/lib/events-utils"
 
 export * from "@/lib/events-utils"
 
@@ -80,3 +82,19 @@ export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsRe
         }
     }
 }
+
+export const getPublicEvent = cache(
+    async (locale: AppLocale, eventSlugOrId: string): Promise<EventDetail | null> => {
+        const result = await getPublicEvents(locale)
+
+        if (!result.ok) {
+            return null
+        }
+
+        return (
+            result.events.find(
+                event => event.slug === eventSlugOrId || event.id === eventSlugOrId,
+            ) ?? null
+        )
+    },
+)

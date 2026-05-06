@@ -150,6 +150,54 @@ export function parseEventFilters(
     }
 }
 
+export function resolveEventFilterIds(
+    filters: EventFilters,
+    taxonomy: EventTaxonomy,
+): EventFilters {
+    const eventTypesByNameOrId = new Map<string, string>()
+
+    for (const group of taxonomy.event_type_groups) {
+        for (const eventType of group.event_types) {
+            eventTypesByNameOrId.set(eventType.name, eventType.id)
+        }
+    }
+
+    return {
+        ...filters,
+        eventTypeIds: filters.eventTypeIds
+            .map(value => eventTypesByNameOrId.get(value))
+            .filter((id): id is string => Boolean(id)),
+    }
+}
+
+export function serializeEventFilters(filters: EventFilters, taxonomy: EventTaxonomy): string {
+    const searchParams = new URLSearchParams()
+    const eventTypesById = new Map<string, EventType>()
+
+    for (const group of taxonomy.event_type_groups) {
+        for (const eventType of group.event_types) {
+            eventTypesById.set(eventType.id, eventType)
+        }
+    }
+
+    if (filters.taxonomyGroup) {
+        searchParams.set("taxonomy", filters.taxonomyGroup)
+    }
+
+    if (filters.eventTypeIds.length > 0) {
+        searchParams.set(
+            "type",
+            filters.eventTypeIds.map(id => eventTypesById.get(id)?.name ?? id).join(","),
+        )
+    }
+
+    if (filters.organizerGroupIds.length > 0) {
+        searchParams.set("organizer", filters.organizerGroupIds.join(","))
+    }
+
+    return searchParams.toString()
+}
+
 export function countEventFilters(filters: EventFilters): number {
     return (
         (filters.taxonomyGroup ? 1 : 0) +
@@ -209,7 +257,17 @@ export function groupEventsByTaxonomy(
 }
 
 export function getEventDescriptionPreview(description: string | null | undefined): string {
-    const text = (description ?? "")
+    const text = getEventPlainTextDescription(description)
+
+    if (text.length <= 180) {
+        return text
+    }
+
+    return `${text.slice(0, 180).trimEnd()}...`
+}
+
+export function getEventPlainTextDescription(description: string | null | undefined): string {
+    return (description ?? "")
         .replace(/<[^>]+>/g, " ")
         .replace(/&nbsp;/gi, " ")
         .replace(/&amp;/gi, "&")
@@ -219,12 +277,36 @@ export function getEventDescriptionPreview(description: string | null | undefine
         .replace(/&#39;/gi, "'")
         .replace(/\s+/g, " ")
         .trim()
+}
 
-    if (text.length <= 180) {
-        return text
-    }
+export function getEventDescriptionParagraphs(description: string | null | undefined): string[] {
+    return (description ?? "")
+        .replace(/<\/(p|div|br|li|h[1-6])>/gi, "\n")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .split(/\n+/)
+        .map(paragraph => paragraph.replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+}
 
-    return `${text.slice(0, 180).trimEnd()}...`
+export function formatEventDate(event: EventDetail, locale: AppLocale): string {
+    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+        dateStyle: "full",
+        timeZone: "Europe/Oslo",
+    }).format(new Date(event.starts_at))
+}
+
+export function formatEventTime(event: EventDetail, locale: AppLocale): string {
+    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Oslo",
+    }).format(new Date(event.starts_at))
 }
 
 export function formatEventTimeRange(event: EventDetail, locale: AppLocale): string {

@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useContext, useMemo, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { createContext, useCallback, useContext, useMemo, useState } from "react"
 
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -11,6 +12,8 @@ import {
     filterEvents,
     groupEventsByTaxonomy,
     parseEventFilters,
+    resolveEventFilterIds,
+    serializeEventFilters,
 } from "@/lib/events-utils"
 
 type EventsContextValue = {
@@ -37,8 +40,21 @@ export function EventsProvider({
     initialSearchParams: Record<string, string | string[] | undefined>
     locale: AppLocale
 }) {
+    const pathname = usePathname()
+    const router = useRouter()
     const [filters, setFilters] = useState<EventFilters>(() =>
-        parseEventFilters(initialSearchParams),
+        resolveEventFilterIds(parseEventFilters(initialSearchParams), initialTaxonomy),
+    )
+    const updateFilters = useCallback(
+        (nextFilters: EventFilters) => {
+            setFilters(nextFilters)
+
+            const serializedFilters = serializeEventFilters(nextFilters, initialTaxonomy)
+            router.replace(serializedFilters ? `${pathname}?${serializedFilters}` : pathname, {
+                scroll: false,
+            })
+        },
+        [pathname, router, initialTaxonomy],
     )
 
     const filteredEvents = useMemo(
@@ -57,7 +73,7 @@ export function EventsProvider({
                 events: initialEvents,
                 taxonomy: initialTaxonomy,
                 filters,
-                setFilters,
+                setFilters: updateFilters,
                 filteredEvents,
                 sections,
             }}
