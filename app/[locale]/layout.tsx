@@ -28,8 +28,8 @@ export default async function LocaleLayout({
                     <Suspense fallback={null}>
                         <LanguageSelector />
                     </Suspense>
-                    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
-                        <div className="mx-6 my-10 sm:mx-10 lg:mx-14">
+                    <main className="mx-auto flex w-full flex-1 flex-col">
+                        <div className="mx-6 my-10 sm:mx-10 lg:mx-14 bg-background">
                             {children}
                         </div>
                     </main>
