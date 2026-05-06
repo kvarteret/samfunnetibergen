@@ -54,7 +54,7 @@ export function EventsProvider({
                 scroll: false,
             })
         },
-        [pathname, router],
+        [pathname, router, initialTaxonomy],
     )
 
     const filteredEvents = useMemo(
