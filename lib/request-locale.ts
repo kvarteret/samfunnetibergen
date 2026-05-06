@@ -25,9 +25,7 @@ function normalizeLocaleToken(locale: string): AppLocale | null {
     return null
 }
 
-export function resolveRequestLocale(
-    requestedLocale: string | null | undefined,
-): AppLocale {
+export function resolveRequestLocale(requestedLocale: string | null | undefined): AppLocale {
     if (!requestedLocale) {
         return "en"
     }

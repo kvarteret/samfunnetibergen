@@ -26,6 +26,16 @@
         "tickets": "Billetter",
         "facebook": "Facebook"
     },
+    "EventPage": {
+        "price": "Pris",
+        "date": "Dato",
+        "time": "Tid",
+        "place": "Sted",
+        "organizer": "Arrangeres av",
+        "description": "Om arrangementet",
+        "tickets": "Kjøp billetter",
+        "facebook": "Gå til Facebook-event"
+    },
     "VolunteerProspectForm": {
         "title": "Bli frivillig",
         "firstChoiceLabel": "Førstevalg",

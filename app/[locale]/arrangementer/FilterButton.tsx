@@ -13,7 +13,9 @@ export function FilterButton({ isActive, label, onClick }: FilterButtonProps) {
         <button
             className={cn(
                 "inline-flex min-h-11 items-center justify-center border-2 border-border px-4 py-2 font-bold transition-colors",
-                isActive ? "bg-foreground text-background" : "bg-muted text-foreground/80 hover:bg-card",
+                isActive
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-foreground/80 hover:bg-card",
             )}
             onClick={onClick}
             type="button"

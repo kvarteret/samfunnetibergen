@@ -5,6 +5,7 @@ import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import {
     type EventDetail,
@@ -16,12 +17,15 @@ import {
 
 interface EventCardImageProps {
     alt: string
+    href: string
     src?: string | null
 }
 
-const EventCardImage = ({ alt, src }: EventCardImageProps) =>
+const EventCardImage = ({ alt, href, src }: EventCardImageProps) =>
     src ? (
-        <img alt={alt} className="aspect-[16/9] w-full object-cover" loading="lazy" src={src} />
+        <Link href={href}>
+            <img alt={alt} className="aspect-[16/9] w-full object-cover" loading="lazy" src={src} />
+        </Link>
     ) : null
 
 // ─── EventCardHeader ──────────────────────────────────────────────────────────
@@ -125,12 +129,19 @@ export function EventCard({ event, facebookLabel, locale, ticketsLabel }: EventC
         .join(" / ")
     const room = event.room?.name ?? event.room_text
     const time = formatEventTimeRange(event, locale)
+    const href = `/arrangementer/${event.slug || event.id}`
 
     return (
         <Card className="overflow-hidden bg-card py-0">
-            <EventCardImage alt={event.image_caption || event.title} src={event.image_url} />
+            <EventCardImage
+                alt={event.image_caption || event.title}
+                href={href}
+                src={event.image_url}
+            />
             <CardContent className="flex h-full flex-col gap-4 p-5">
-                <EventCardHeader price={event.price} taxonomy={taxonomy} title={event.title} />
+                <Link className="hover:underline hover:underline-offset-4" href={href}>
+                    <EventCardHeader price={event.price} taxonomy={taxonomy} title={event.title} />
+                </Link>
                 <EventCardDetails room={room} time={time} />
                 {preview ? <p className="text-sm leading-6 text-foreground/80">{preview}</p> : null}
                 <EventCardActions

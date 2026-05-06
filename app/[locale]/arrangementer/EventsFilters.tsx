@@ -54,7 +54,7 @@ export function EventsFilters({
         })
 
     return (
-        <div className="space-y-6 border-y-2 border-border py-6">
+        <div className="space-y-6 py-6">
             <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
                     <FilterButton

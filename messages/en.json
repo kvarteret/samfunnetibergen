@@ -26,6 +26,16 @@
         "tickets": "Tickets",
         "facebook": "Facebook"
     },
+    "EventPage": {
+        "price": "Price",
+        "date": "Date",
+        "time": "Time",
+        "place": "Place",
+        "organizer": "Organized by",
+        "description": "About the event",
+        "tickets": "Buy tickets",
+        "facebook": "Go to Facebook event"
+    },
     "VolunteerProspectForm": {
         "title": "Become a volunteer",
         "firstChoiceLabel": "First choice",
