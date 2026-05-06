@@ -88,11 +88,13 @@ export function HomeBars({
 const fallbackBars: HomeBarContent[] = [
     {
         name: "Stjernesalen",
+        imageUrl: null,
         description:
             "Kvarterets kafé er et vannhull som kan passe til så mangt - men kanskje først og fremst til et realt måltid eller en ekstra digg kaffe. \n \n Stjernesalen ligger i 2. etasje, og er åpent alle hverdager for å redde ditt blodsukker. Til hverdags er inngangen på oversiden av bygget (du som kommer ned bakken fra HF ramler lett inn). Barens åpningstider i Stjernesalen følger stort sett kjøkkenet. \n \n I Stjernesalen kan du delta på Kvarterets egne quiz hver tirsdag. Det er også et passende sted for å lese avisquiz sammen med venner, eller for å slå ihjel tid med laptop og kaffikopp på enmannshånd.",
     },
     {
         name: "Grøndahls",
+        imageUrl: null,
         description: `Dette er Kvarterets egne pub i pålitelig pratestil og med stort utvalg.
 
 Grøndahls ligger i byggets 1. etasje og er åpent alle dager utenom søndag. I hverdagene har puben inngang på gateplan i Håkonsgaten. I helgene må man benytte hovedinngang på siden av bygget. På mandager huser Grøndahls mikromandag - vårt faste konsept som gjør det enklere å bli kjent med mikrobrygg fra fjern og nær.
@@ -101,6 +103,7 @@ I Grøndahls er musikknivået alltid i favør for engasjerende samtaler. Her kan
     },
     {
         name: "Halvtimen",
+        imageUrl: null,
         description: `Vår cocktailbar holder kun åpent i helgene, og her er det 20-årsgrense for alle gjester.
 
 Det kan godt være den heter Halvtimen fordi den tar litt tid å finne. Her står de frivillige klare med shakere og drinkglass for å gi deg en best mulig smaksopplevelse, og musikken er oppstemt. I Halvtimen selges det også rista brød til sultne natteravner. På torsdager arrangeres det faste konseptet TønneTorsdag, der fokuset er på alt som har vært lagra mellom planker og tønnebånd.
@@ -142,7 +145,7 @@ function HomeGroups({
                                 {group.imageUrl && (
                                     <Image
                                         src={group.imageUrl}
-                                        alt={group.name}
+                                        alt={group.name ?? ""}
                                         fill
                                         className="object-cover"
                                     />

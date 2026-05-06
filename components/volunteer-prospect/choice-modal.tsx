@@ -46,7 +46,7 @@ export function VolunteerChoiceModal({
                 <div className="grid gap-3">
                     <h3 className="text-2xl leading-none">{choiceModalTitle}</h3>
                     <p className="text-sm leading-6 text-foreground/75">
-                        {choiceModalDescriptionLabel(choiceModalGroup.name)}
+                        {choiceModalDescriptionLabel(choiceModalGroup.name ?? "")}
                     </p>
                 </div>
 
