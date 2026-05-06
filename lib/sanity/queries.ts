@@ -4,6 +4,20 @@ import type { AppLocale } from "@/i18n/routing"
 import type { LaunchGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 
 import { sanityClient } from "./client"
+import {
+    eventsPageContentEnQuery,
+    eventsPageContentNbQuery,
+    homeBarsEnQuery,
+    homeBarsNbQuery,
+    homePageContentEnQuery,
+    homePageContentNbQuery,
+    launchGroupsEnQuery,
+    launchGroupsNbQuery,
+    siteMetadataEnQuery,
+    siteMetadataNbQuery,
+    volunteerGroupSummariesEnQuery,
+    volunteerGroupSummariesNbQuery,
+} from "./query-definitions"
 import type {
     EventsPageContent,
     HomeBarContent,
@@ -11,103 +25,74 @@ import type {
     SiteMetadataContent,
 } from "./types"
 
-const localeSuffix = (locale: AppLocale): "Nb" | "En" => (locale === "en" ? "En" : "Nb")
-
 export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
-    const s = localeSuffix(locale)
-    return sanityClient.fetch(
-        `*[_type == "launchGroup"] | order(_createdAt asc) {
-            slug,
-            "name": name${s},
-            "eyebrow": eyebrow${s},
-            "lead": lead${s},
-            "imageUrl": image.asset->url,
-            "accordionSections": accordionSections[] {
-                "title": title${s},
-                "paragraphs": paragraphs${s}
-            },
-            "detailSections": detailSections[] {
-                "title": title${s},
-                "paragraphs": paragraphs${s}
-            }
-        }`,
+    const groups = await sanityClient.fetch(
+        locale === "en" ? launchGroupsEnQuery : launchGroupsNbQuery,
         {},
         { next: { revalidate: 300, tags: ["launchGroups"] } },
     )
+
+    return groups.flatMap(group => {
+        if (!group.slug) {
+            return []
+        }
+
+        return [
+            {
+                ...group,
+                slug: group.slug,
+                accordionSections: (group.accordionSections ?? []).map(section => ({
+                    ...section,
+                    paragraphs: section.paragraphs ?? [],
+                })),
+                detailSections: (group.detailSections ?? []).map(section => ({
+                    ...section,
+                    paragraphs: section.paragraphs ?? [],
+                })),
+            },
+        ]
+    })
 }
 
 export async function fetchVolunteerGroupSummaries(
     locale: AppLocale,
 ): Promise<VolunteerGroupSummary[]> {
-    const s = localeSuffix(locale)
-    return sanityClient.fetch(
-        `*[_type == "volunteerGroupSummary"] | order(order asc) {
-            name,
-            "description": description${s}
-        }`,
+    const groups = await sanityClient.fetch(
+        locale === "en" ? volunteerGroupSummariesEnQuery : volunteerGroupSummariesNbQuery,
         {},
         { next: { revalidate: 300, tags: ["volunteerGroupSummaries"] } },
     )
+
+    return groups.flatMap(group => (group.name ? [{ ...group, name: group.name }] : []))
 }
 
 export async function fetchHomePageContent(locale: AppLocale): Promise<HomePageContent | null> {
-    const s = localeSuffix(locale)
-    const results = await sanityClient.fetch<HomePageContent[]>(
-        `*[_id == "homePage"][0..0] {
-            "badge": badge${s},
-            "heroDescription": heroDescription${s},
-            "heroDescriptionFusion": heroDescriptionFusion${s},
-            "eventsLink": eventsLink${s}
-        }`,
+    return sanityClient.fetch(
+        locale === "en" ? homePageContentEnQuery : homePageContentNbQuery,
         {},
         { next: { revalidate: 300, tags: ["homePage"] } },
     )
-    return results[0] ?? null
 }
 
 export async function fetchEventsPageContent(locale: AppLocale): Promise<EventsPageContent | null> {
-    const s = localeSuffix(locale)
-    const results = await sanityClient.fetch<EventsPageContent[]>(
-        `*[_id == "eventsPage"][0..0] {
-            "eyebrow": eyebrow${s},
-            "title": title${s},
-            "description": description${s}
-        }`,
+    return sanityClient.fetch(
+        locale === "en" ? eventsPageContentEnQuery : eventsPageContentNbQuery,
         {},
         { next: { revalidate: 300, tags: ["eventsPage"] } },
     )
-    return results[0] ?? null
 }
 
 export async function fetchSiteMetadata(locale: AppLocale): Promise<SiteMetadataContent | null> {
-    const s = localeSuffix(locale)
-    const results = await sanityClient.fetch<SiteMetadataContent[]>(
-        `*[_id == "siteMetadata"][0..0] {
-            "siteTitle": siteTitle${s},
-            "siteDescription": siteDescription${s},
-            "homeTitle": homeTitle${s},
-            "homeDescription": homeDescription${s},
-            "eventsTitle": eventsTitle${s},
-            "eventsDescription": eventsDescription${s},
-            "volunteerSignupTitle": volunteerSignupTitle${s},
-            "volunteerSignupDescription": volunteerSignupDescription${s},
-            "groupPageTitle": groupPageTitle${s},
-            "groupPageDescription": groupPageDescription${s}
-        }`,
+    return sanityClient.fetch(
+        locale === "en" ? siteMetadataEnQuery : siteMetadataNbQuery,
         {},
         { next: { revalidate: 300, tags: ["siteMetadata"] } },
     )
-    return results[0] ?? null
 }
 
 export async function fetchHomeBars(locale: AppLocale): Promise<HomeBarContent[]> {
-    const s = localeSuffix(locale)
     return sanityClient.fetch(
-        `*[_type == "homeBar"] | order(order asc) {
-            "name": name${s},
-            "description": description${s},
-            "imageUrl": image.asset->url
-        }`,
+        locale === "en" ? homeBarsEnQuery : homeBarsNbQuery,
         {},
         { next: { revalidate: 300, tags: ["homeBars"] } },
     )

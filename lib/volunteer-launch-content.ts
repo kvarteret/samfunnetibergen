@@ -3,21 +3,21 @@ import { fetchLaunchGroups, fetchVolunteerGroupSummaries } from "@/lib/sanity/qu
 import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
 
-export type LaunchGroupSlug = "skjenkegruppen" | "kraft" | "vaktetaten"
+export type LaunchGroupSlug = string
 
 type GroupSection = {
-    title: string
+    title: string | null
     paragraphs: string[]
 }
 
 export type LaunchGroupContent = {
     slug: LaunchGroupSlug
-    name: string
-    eyebrow: string
-    lead: string
+    name: string | null
+    eyebrow: string | null
+    lead: string | null
     accordionSections: GroupSection[]
     detailSections: GroupSection[]
-    imageUrl?: string | null
+    imageUrl: string | null
 }
 
 export type InstitutionOption = {
@@ -27,7 +27,7 @@ export type InstitutionOption = {
 
 export type VolunteerGroupSummary = {
     name: string
-    description: string
+    description: string | null
 }
 
 export function getInstitutionOptions(locale: AppLocale): InstitutionOption[] {

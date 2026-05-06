@@ -356,8 +356,9 @@ export function useVolunteerProspectController({
     return {
         applyChoice,
         captureFormStarted,
-        choiceModalGroup:
-            choiceModalGroupSlug && groups.find(group => group.slug === choiceModalGroupSlug),
+        choiceModalGroup: choiceModalGroupSlug
+            ? groups.find(group => group.slug === choiceModalGroupSlug)
+            : null,
         closeChoiceModal: () => setChoiceModalGroupSlug(null),
         createProspectMutation,
         form,

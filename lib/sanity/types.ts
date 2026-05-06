@@ -1,31 +1,16 @@
-export type HomePageContent = {
-    badge: string
-    heroDescription: string
-    heroDescriptionFusion: string
-    eventsLink: string
-}
+import type { ClientReturn } from "next-sanity"
 
-export type EventsPageContent = {
-    eyebrow: string
-    title: string
-    description: string
-}
+import type {
+    eventsPageContentNbQuery,
+    homeBarsNbQuery,
+    homePageContentNbQuery,
+    siteMetadataNbQuery,
+} from "./query-definitions"
 
-export type HomeBarContent = {
-    name: string
-    description: string
-    imageUrl?: string | null
-}
+export type HomePageContent = NonNullable<ClientReturn<typeof homePageContentNbQuery>>
 
-export type SiteMetadataContent = {
-    siteTitle?: string
-    siteDescription?: string
-    homeTitle?: string
-    homeDescription?: string
-    eventsTitle?: string
-    eventsDescription?: string
-    volunteerSignupTitle?: string
-    volunteerSignupDescription?: string
-    groupPageTitle?: string
-    groupPageDescription?: string
-}
+export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
+
+export type HomeBarContent = ClientReturn<typeof homeBarsNbQuery>[number]
+
+export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
