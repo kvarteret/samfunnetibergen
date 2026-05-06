@@ -15,3 +15,16 @@ export type HomeBarContent = {
     name: string
     description: string
 }
+
+export type SiteMetadataContent = {
+    siteTitle?: string
+    siteDescription?: string
+    homeTitle?: string
+    homeDescription?: string
+    eventsTitle?: string
+    eventsDescription?: string
+    volunteerSignupTitle?: string
+    volunteerSignupDescription?: string
+    groupPageTitle?: string
+    groupPageDescription?: string
+}

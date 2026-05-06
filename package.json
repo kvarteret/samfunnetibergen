@@ -10,6 +10,7 @@
         "studio:build": "sanity build",
         "studio:deploy": "sanity deploy",
         "studio:register": "sanity deploy --external",
+        "studio:seed": "sanity exec scripts/seed-sanity-content.mjs --with-user-token",
         "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
         "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",
         "lint": "eslint",

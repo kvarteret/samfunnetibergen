@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
+import { fetchSiteMetadata } from "@/lib/sanity/queries"
 import { getVolunteerGroupStaticParams, resolveVolunteerGroup } from "@/lib/volunteer-group-page"
 
 export function generateStaticParams() {
@@ -14,11 +15,18 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/blifrivi
     const locale = await resolvePageLocale(Promise.resolve({ locale: resolvedParams.locale }))
     const { group } = resolvedParams
     const resolvedGroup = await resolveVolunteerGroup(locale, group)
-    const t = await getTranslations({ locale, namespace: "Metadata" })
+    const [t, siteMetadata] = await Promise.all([
+        getTranslations({ locale, namespace: "Metadata" }),
+        fetchSiteMetadata(locale),
+    ])
 
     return {
-        title: t("groupPageTitle", { group: resolvedGroup.name }),
-        description: t("groupPageDescription", { group: resolvedGroup.name }),
+        title:
+            siteMetadata?.groupPageTitle?.replaceAll("{group}", resolvedGroup.name) ??
+            t("groupPageTitle", { group: resolvedGroup.name }),
+        description:
+            siteMetadata?.groupPageDescription?.replaceAll("{group}", resolvedGroup.name) ??
+            t("groupPageDescription", { group: resolvedGroup.name }),
     }
 }
 
