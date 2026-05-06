@@ -12,6 +12,36 @@ import {
     type LaunchGroupContent,
 } from "@/lib/volunteer-launch-content"
 import ExpandableText from "../components/ExpandableText"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    User,
+    CreditCard,
+    Settings,
+    Keyboard,
+    Users,
+    UserPlus,
+    Mail,
+    MessageSquare,
+    PlusCircle,
+    Plus,
+    LifeBuoy,
+    Cloud,
+    LogOut,
+} from "lucide-react"
+import Navbar from "../components/Navbar"
 
 export function HomeBars({
     bars,
@@ -191,9 +221,7 @@ export default async function HomePage({
 
     return (
         <div className="h-full bg-background border-1 border-destructive flex flex-col gap-8 pb-12">
-            <header className="p-4 text-center text-xl">
-                <h1>STUDENTERSAMFUNNET I BERGEN</h1>
-            </header>
+            <Navbar />
 
             <div className="h-42 bg-gray-200 my-2 w-full"></div>
 

@@ -21,7 +21,7 @@ export default function ExpandableText({ text }: { text: string }) {
             </div>
             <button
                 onClick={() => setExpanded((prev) => !prev)}
-                className={`self-start border border-black px-2 mx-auto w-16 py-0.5 text-xs font-mono uppercase hover:bg-black hover:text-white cursor-pointer ${
+                className={`self-start border border-black px-2 mx-auto w-16 py-0.5 text-xs font-mono uppercase hover:bg-black hover:text-white bg-background cursor-pointer ${
                     expanded ? "mt-2" : "relative z-10 -mt-6"
                 }`}
             >
