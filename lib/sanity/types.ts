@@ -2,9 +2,15 @@ import type { ClientReturn } from "next-sanity"
 
 import type {
     eventsPageContentNbQuery,
+    groupsPageQuery,
     homeBarsNbQuery,
     homePageContentNbQuery,
+    roomBySlugQuery,
+    roomsPageQuery,
+    roomsQuery,
     siteMetadataNbQuery,
+    studentGroupBySlugQuery,
+    studentGroupsQuery,
 } from "./query-definitions"
 
 export type HomePageContent = NonNullable<ClientReturn<typeof homePageContentNbQuery>>
@@ -14,3 +20,23 @@ export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageConten
 export type HomeBarContent = ClientReturn<typeof homeBarsNbQuery>[number]
 
 export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
+
+export type EditorialSection = NonNullable<
+    NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]
+>[number]
+
+export type SourcedImage = NonNullable<
+    NonNullable<ClientReturn<typeof roomBySlugQuery>>["images"]
+>[number]
+
+export type RoomsPageContent = NonNullable<ClientReturn<typeof roomsPageQuery>>
+
+export type RoomSummary = ClientReturn<typeof roomsQuery>[number]
+
+export type RoomDetail = NonNullable<ClientReturn<typeof roomBySlugQuery>>
+
+export type GroupsPageContent = NonNullable<ClientReturn<typeof groupsPageQuery>>
+
+export type StudentGroupSummary = ClientReturn<typeof studentGroupsQuery>[number]
+
+export type StudentGroupDetail = NonNullable<ClientReturn<typeof studentGroupBySlugQuery>>

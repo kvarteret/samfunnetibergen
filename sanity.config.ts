@@ -1,8 +1,8 @@
 import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { structureTool } from "sanity/structure"
-
 import { dataset, projectId } from "./sanity/env"
+import { editorialPageSchemaTypes } from "./sanity/schemaTypes/editorial-pages"
 import { singletonTypeNames, structure } from "./sanity/structure"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
@@ -224,6 +224,7 @@ export default defineConfig({
             homePage,
             eventsPage,
             homeBar,
+            ...editorialPageSchemaTypes,
         ],
     },
 })

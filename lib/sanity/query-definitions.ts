@@ -32,12 +32,14 @@ export const launchGroupsEnQuery = defineQuery(`*[_type == "launchGroup"] | orde
     }
 }`)
 
-export const volunteerGroupSummariesNbQuery = defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
+export const volunteerGroupSummariesNbQuery =
+    defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
     name,
     "description": descriptionNb
 }`)
 
-export const volunteerGroupSummariesEnQuery = defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
+export const volunteerGroupSummariesEnQuery =
+    defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
     name,
     "description": descriptionEn
 }`)
@@ -104,4 +106,98 @@ export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(order 
     "name": nameEn,
     "description": descriptionEn,
     "imageUrl": image.asset->url
+}`)
+
+const editorialSectionProjection = `{
+    _key,
+    title,
+    paragraphs,
+    links[] {
+        _key,
+        label,
+        url
+    }
+}`
+
+const sourcedImageProjection = `{
+    _key,
+    "assetUrl": image.asset->url,
+    sourceUrl,
+    alt,
+    caption
+}`
+
+export const roomsPageQuery = defineQuery(`*[_id == "roomsPage"][0] {
+    eyebrow,
+    title,
+    description,
+    "sections": sections[] ${editorialSectionProjection},
+    bookingLink {
+        label,
+        url
+    }
+}`)
+
+export const roomsQuery = defineQuery(`*[_type == "room"] | order(order asc) {
+    title,
+    "slug": slug.current,
+    summary,
+    capacity,
+    suitedPurposes,
+    floor,
+    "image": images[0] ${sourcedImageProjection}
+}`)
+
+export const roomSlugsQuery = defineQuery(`*[_type == "room" && defined(slug.current)] {
+    "slug": slug.current
+}`)
+
+export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current == $slug][0] {
+    title,
+    "slug": slug.current,
+    summary,
+    capacity,
+    suitedPurposes,
+    floor,
+    "sections": sections[] ${editorialSectionProjection},
+    "images": images[] ${sourcedImageProjection},
+    sourceUrl
+}`)
+
+export const groupsPageQuery = defineQuery(`*[_id == "groupsPage"][0] {
+    eyebrow,
+    title,
+    description,
+    "sections": sections[] ${editorialSectionProjection},
+    faq[] {
+        _key,
+        question,
+        answer
+    }
+}`)
+
+export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | order(order asc) {
+    name,
+    "slug": slug.current,
+    summary,
+    email,
+    category,
+    "image": image ${sourcedImageProjection}
+}`)
+
+export const studentGroupSlugsQuery =
+    defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
+    "slug": slug.current
+}`)
+
+export const studentGroupBySlugQuery =
+    defineQuery(`*[_type == "studentGroup" && slug.current == $slug][0] {
+    name,
+    "slug": slug.current,
+    summary,
+    body,
+    email,
+    category,
+    "image": image ${sourcedImageProjection},
+    sourceNote
 }`)

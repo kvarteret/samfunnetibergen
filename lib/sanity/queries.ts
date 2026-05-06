@@ -7,22 +7,36 @@ import { sanityClient } from "./client"
 import {
     eventsPageContentEnQuery,
     eventsPageContentNbQuery,
+    groupsPageQuery,
     homeBarsEnQuery,
     homeBarsNbQuery,
     homePageContentEnQuery,
     homePageContentNbQuery,
     launchGroupsEnQuery,
     launchGroupsNbQuery,
+    roomBySlugQuery,
+    roomSlugsQuery,
+    roomsPageQuery,
+    roomsQuery,
     siteMetadataEnQuery,
     siteMetadataNbQuery,
+    studentGroupBySlugQuery,
+    studentGroupSlugsQuery,
+    studentGroupsQuery,
     volunteerGroupSummariesEnQuery,
     volunteerGroupSummariesNbQuery,
 } from "./query-definitions"
 import type {
     EventsPageContent,
+    GroupsPageContent,
     HomeBarContent,
     HomePageContent,
+    RoomDetail,
+    RoomSummary,
+    RoomsPageContent,
     SiteMetadataContent,
+    StudentGroupDetail,
+    StudentGroupSummary,
 } from "./types"
 
 export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
@@ -95,5 +109,77 @@ export async function fetchHomeBars(locale: AppLocale): Promise<HomeBarContent[]
         locale === "en" ? homeBarsEnQuery : homeBarsNbQuery,
         {},
         { next: { revalidate: 300, tags: ["homeBars"] } },
+    )
+}
+
+export async function fetchRoomsPageContent(): Promise<RoomsPageContent | null> {
+    return sanityClient.fetch(
+        roomsPageQuery,
+        {},
+        { next: { revalidate: 300, tags: ["roomsPage"] } },
+    )
+}
+
+export async function fetchRooms(): Promise<RoomSummary[]> {
+    const rooms = await sanityClient.fetch(
+        roomsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["rooms"] } },
+    )
+
+    return rooms.flatMap(room => (room.slug ? [{ ...room, slug: room.slug }] : []))
+}
+
+export async function fetchRoomSlugs(): Promise<string[]> {
+    const rooms = await sanityClient.fetch(
+        roomSlugsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["rooms"] } },
+    )
+
+    return rooms.flatMap(room => (room.slug ? [room.slug] : []))
+}
+
+export async function fetchRoomBySlug(slug: string): Promise<RoomDetail | null> {
+    return sanityClient.fetch(
+        roomBySlugQuery,
+        { slug },
+        { next: { revalidate: 300, tags: ["rooms"] } },
+    )
+}
+
+export async function fetchGroupsPageContent(): Promise<GroupsPageContent | null> {
+    return sanityClient.fetch(
+        groupsPageQuery,
+        {},
+        { next: { revalidate: 300, tags: ["groupsPage"] } },
+    )
+}
+
+export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
+    const groups = await sanityClient.fetch(
+        studentGroupsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+
+    return groups.flatMap(group => (group.slug ? [{ ...group, slug: group.slug }] : []))
+}
+
+export async function fetchStudentGroupSlugs(): Promise<string[]> {
+    const groups = await sanityClient.fetch(
+        studentGroupSlugsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+
+    return groups.flatMap(group => (group.slug ? [group.slug] : []))
+}
+
+export async function fetchStudentGroupBySlug(slug: string): Promise<StudentGroupDetail | null> {
+    return sanityClient.fetch(
+        studentGroupBySlugQuery,
+        { slug },
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
     )
 }
