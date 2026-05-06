@@ -14,6 +14,7 @@ export type EventsPageContent = {
 export type HomeBarContent = {
     name: string
     description: string
+    imageUrl?: string | null
 }
 
 export type SiteMetadataContent = {

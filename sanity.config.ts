@@ -46,6 +46,7 @@ const launchGroup = {
         { name: "eyebrowEn", title: "Eyebrow (English)", type: "string" },
         { name: "leadNb", title: "Lead (Norwegian)", type: "text" },
         { name: "leadEn", title: "Lead (English)", type: "text" },
+        { name: "image", title: "Image", type: "image" },
         {
             name: "accordionSections",
             title: "Accordion Sections",
@@ -179,6 +180,7 @@ const homeBar = {
         { name: "nameEn", title: "Name (English)", type: "string" },
         { name: "descriptionNb", title: "Description (Norwegian)", type: "text" },
         { name: "descriptionEn", title: "Description (English)", type: "text" },
+        { name: "image", title: "Image", type: "image" },
         { name: "order", title: "Sort Order", type: "number" },
     ],
     preview: {

@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import { ExternalLink, Ticket } from "lucide-react"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
@@ -125,11 +125,16 @@ function EventHero({ event, ticketLabel }: { event: EventDetail; ticketLabel: st
 
             <div className="border-2 border-border bg-muted shadow-shadow">
                 {event.image_url ? (
-                    <img
-                        alt={event.image_caption || event.title}
-                        className="aspect-[16/10] max-h-[28rem] w-full object-cover lg:aspect-[16/9]"
-                        src={event.image_url}
-                    />
+                    <div className="relative aspect-[16/10] max-h-[28rem] lg:aspect-[16/9]">
+                        <Image
+                            alt={event.image_caption || event.title}
+                            className="object-cover"
+                            fill
+                            priority
+                            sizes="(max-width: 1024px) 100vw, 80vw"
+                            src={event.image_url}
+                        />
+                    </div>
                 ) : (
                     <div className="flex aspect-[16/10] max-h-[28rem] items-center justify-center p-8 text-center lg:aspect-[16/9]">
                         <p className="max-w-md font-heading text-4xl leading-tight text-foreground/50">
