@@ -28,10 +28,11 @@ export function ImageCarousel({ images }: { images: CarouselImage[] }) {
 
     useEffect(() => {
         if (!api) return
-        onSelect(api)
+        const init = setTimeout(() => onSelect(api), 0)
         api.on("select", onSelect)
         api.on("reInit", onSelect)
         return () => {
+            clearTimeout(init)
             api.off("select", onSelect)
             api.off("reInit", onSelect)
         }
