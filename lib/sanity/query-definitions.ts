@@ -1,5 +1,39 @@
 import { defineQuery } from "next-sanity"
 
+// ─── Shared projections ─────────────────────────────────────────────────────
+
+const editorialSectionProjection = `{
+    _key,
+    title,
+    paragraphs,
+    links[] {
+        _key,
+        label,
+        url
+    }
+}`
+
+const sourcedImageProjection = `{
+    _key,
+    "assetUrl": image.asset->url,
+    sourceUrl,
+    alt,
+    caption
+}`
+
+const openingHoursProjection = `{
+    note,
+    hours[] {
+        _key,
+        day,
+        opens,
+        closes,
+        closed
+    }
+}`
+
+// ─── Legacy volunteer / home content (blifrivillig – kept for compat) ────────
+
 export const launchGroupsNbQuery = defineQuery(`*[_type == "launchGroup"] | order(_createdAt asc) {
     slug,
     "name": nameNb,
@@ -44,6 +78,8 @@ export const volunteerGroupSummariesEnQuery =
     "description": descriptionEn
 }`)
 
+// ─── Home page ───────────────────────────────────────────────────────────────
+
 export const homePageContentNbQuery = defineQuery(`*[_id == "homePage"][0] {
     "badge": badgeNb,
     "heroDescription": heroDescriptionNb,
@@ -58,6 +94,8 @@ export const homePageContentEnQuery = defineQuery(`*[_id == "homePage"][0] {
     "eventsLink": eventsLinkEn
 }`)
 
+// ─── Events page ─────────────────────────────────────────────────────────────
+
 export const eventsPageContentNbQuery = defineQuery(`*[_id == "eventsPage"][0] {
     "eyebrow": eyebrowNb,
     "title": titleNb,
@@ -70,6 +108,8 @@ export const eventsPageContentEnQuery = defineQuery(`*[_id == "eventsPage"][0] {
     "description": descriptionEn
 }`)
 
+// ─── Site metadata ────────────────────────────────────────────────────────────
+
 export const siteMetadataNbQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "siteTitle": siteTitleNb,
     "siteDescription": siteDescriptionNb,
@@ -77,8 +117,6 @@ export const siteMetadataNbQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "homeDescription": homeDescriptionNb,
     "eventsTitle": eventsTitleNb,
     "eventsDescription": eventsDescriptionNb,
-    "volunteerSignupTitle": volunteerSignupTitleNb,
-    "volunteerSignupDescription": volunteerSignupDescriptionNb,
     "groupPageTitle": groupPageTitleNb,
     "groupPageDescription": groupPageDescriptionNb
 }`)
@@ -90,11 +128,11 @@ export const siteMetadataEnQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "homeDescription": homeDescriptionEn,
     "eventsTitle": eventsTitleEn,
     "eventsDescription": eventsDescriptionEn,
-    "volunteerSignupTitle": volunteerSignupTitleEn,
-    "volunteerSignupDescription": volunteerSignupDescriptionEn,
     "groupPageTitle": groupPageTitleEn,
     "groupPageDescription": groupPageDescriptionEn
 }`)
+
+// ─── Home bars ────────────────────────────────────────────────────────────────
 
 export const homeBarsNbQuery = defineQuery(`*[_type == "homeBar"] | order(order asc) {
     "name": nameNb,
@@ -108,24 +146,7 @@ export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(order 
     "imageUrl": image.asset->url
 }`)
 
-const editorialSectionProjection = `{
-    _key,
-    title,
-    paragraphs,
-    links[] {
-        _key,
-        label,
-        url
-    }
-}`
-
-const sourcedImageProjection = `{
-    _key,
-    "assetUrl": image.asset->url,
-    sourceUrl,
-    alt,
-    caption
-}`
+// ─── Rooms ────────────────────────────────────────────────────────────────────
 
 export const roomsPageQuery = defineQuery(`*[_id == "roomsPage"][0] {
     eyebrow,
@@ -142,9 +163,14 @@ export const roomsQuery = defineQuery(`*[_type == "room"] | order(order asc) {
     title,
     "slug": slug.current,
     summary,
-    capacity,
+    capacityStanding,
+    capacitySeated,
     suitedPurposes,
     floor,
+    bar,
+    hasSound,
+    hasLighting,
+    hasAV,
     "image": images[0] ${sourcedImageProjection}
 }`)
 
@@ -156,13 +182,20 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
     title,
     "slug": slug.current,
     summary,
-    capacity,
+    capacityStanding,
+    capacitySeated,
     suitedPurposes,
     floor,
+    bar,
+    hasSound,
+    hasLighting,
+    hasAV,
+    "openingHours": openingHours ${openingHoursProjection},
     "sections": sections[] ${editorialSectionProjection},
-    "images": images[] ${sourcedImageProjection},
-    sourceUrl
+    "images": images[] ${sourcedImageProjection}
 }`)
+
+// ─── Groups ───────────────────────────────────────────────────────────────────
 
 export const groupsPageQuery = defineQuery(`*[_id == "groupsPage"][0] {
     eyebrow,
@@ -181,6 +214,18 @@ export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | orde
     "slug": slug.current,
     summary,
     email,
+    website,
+    category,
+    "image": image ${sourcedImageProjection}
+}`)
+
+export const studentGroupsByCategory = defineQuery(`
+    *[_type == "studentGroup" && category == $category] | order(order asc) {
+    name,
+    "slug": slug.current,
+    summary,
+    email,
+    website,
     category,
     "image": image ${sourcedImageProjection}
 }`)
@@ -197,8 +242,78 @@ export const studentGroupBySlugQuery =
     summary,
     body,
     email,
+    website,
     category,
-    "image": image ${sourcedImageProjection},
-    sourceUrl,
-    sourceNote
+    "parentGroup": parentGroup-> {
+        name,
+        "slug": slug.current
+    },
+    "image": image ${sourcedImageProjection}
+}`)
+
+// ─── Pages (page builder) ─────────────────────────────────────────────────────
+
+export const pageSlugsQuery = defineQuery(`*[_type == "page" && defined(slug.current)] {
+    "slug": slug.current
+}`)
+
+export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current == $slug][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    seoTitle,
+    seoDescription,
+    pageBuilder[] {
+        _key,
+        _type,
+        // heroBlock
+        _type == "heroBlock" => {
+            eyebrow,
+            title,
+            lead,
+            "imageUrl": image.asset->url,
+            cta { label, url }
+        },
+        // richTextBlock
+        _type == "richTextBlock" => {
+            title,
+            content,
+            columns
+        },
+        // imageBlock
+        _type == "imageBlock" => {
+            "imageUrl": image.asset->url,
+            alt,
+            caption,
+            size
+        },
+        // calloutBlock
+        _type == "calloutBlock" => {
+            title,
+            content,
+            tone,
+            links[] { _key, label, url }
+        }
+    }
+}`)
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
+export const navbarQuery = defineQuery(`*[_id == "navbar"][0] {
+    items[] {
+        _key,
+        label,
+        href,
+        externalUrl,
+        children[] {
+            _key,
+            groupLabel,
+            items[] {
+                _key,
+                label,
+                href,
+                externalUrl
+            }
+        }
+    }
 }`)

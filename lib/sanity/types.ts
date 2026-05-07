@@ -5,6 +5,8 @@ import type {
     groupsPageQuery,
     homeBarsNbQuery,
     homePageContentNbQuery,
+    navbarQuery,
+    pageBySlugQuery,
     roomBySlugQuery,
     roomsPageQuery,
     roomsQuery,
@@ -40,3 +42,15 @@ export type GroupsPageContent = NonNullable<ClientReturn<typeof groupsPageQuery>
 export type StudentGroupSummary = ClientReturn<typeof studentGroupsQuery>[number]
 
 export type StudentGroupDetail = NonNullable<ClientReturn<typeof studentGroupBySlugQuery>>
+
+export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
+
+export type PageBlock = NonNullable<PageContent["pageBuilder"]>[number]
+
+export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
+
+export type NavItem = NonNullable<NavbarContent["items"]>[number]
+
+export type NavGroup = NonNullable<NavItem["children"]>[number]
+
+export type NavLeaf = NonNullable<NavGroup["items"]>[number]

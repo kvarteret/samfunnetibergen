@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { ClientReturn } from "next-sanity"
 import type { AppLocale } from "@/i18n/routing"
 import type { LaunchGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
 
@@ -14,6 +15,9 @@ import {
     homePageContentNbQuery,
     launchGroupsEnQuery,
     launchGroupsNbQuery,
+    navbarQuery,
+    pageBySlugQuery,
+    pageSlugsQuery,
     roomBySlugQuery,
     roomSlugsQuery,
     roomsPageQuery,
@@ -22,6 +26,7 @@ import {
     siteMetadataNbQuery,
     studentGroupBySlugQuery,
     studentGroupSlugsQuery,
+    studentGroupsByCategory,
     studentGroupsQuery,
     volunteerGroupSummariesEnQuery,
     volunteerGroupSummariesNbQuery,
@@ -31,6 +36,8 @@ import type {
     GroupsPageContent,
     HomeBarContent,
     HomePageContent,
+    NavbarContent,
+    PageContent,
     RoomDetail,
     RoomSummary,
     RoomsPageContent,
@@ -38,6 +45,8 @@ import type {
     StudentGroupDetail,
     StudentGroupSummary,
 } from "./types"
+
+// ─── Volunteer / launch groups (blifrivillig – kept for compat) ──────────────
 
 export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
     const groups = await sanityClient.fetch(
@@ -47,10 +56,7 @@ export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupC
     )
 
     return groups.flatMap(group => {
-        if (!group.slug) {
-            return []
-        }
-
+        if (!group.slug) return []
         return [
             {
                 ...group,
@@ -79,6 +85,8 @@ export async function fetchVolunteerGroupSummaries(
 
     return groups.flatMap(group => (group.name ? [{ ...group, name: group.name }] : []))
 }
+
+// ─── Home / events / site ────────────────────────────────────────────────────
 
 export async function fetchHomePageContent(locale: AppLocale): Promise<HomePageContent | null> {
     return sanityClient.fetch(
@@ -112,6 +120,8 @@ export async function fetchHomeBars(locale: AppLocale): Promise<HomeBarContent[]
     )
 }
 
+// ─── Rooms ────────────────────────────────────────────────────────────────────
+
 export async function fetchRoomsPageContent(): Promise<RoomsPageContent | null> {
     return sanityClient.fetch(
         roomsPageQuery,
@@ -126,8 +136,8 @@ export async function fetchRooms(): Promise<RoomSummary[]> {
         {},
         { next: { revalidate: 300, tags: ["rooms"] } },
     )
-
-    return rooms.flatMap(room => (room.slug ? [{ ...room, slug: room.slug }] : []))
+    type R = ClientReturn<typeof roomsQuery>[number]
+    return rooms.flatMap((room: R) => (room.slug ? [{ ...room, slug: room.slug }] : []))
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {
@@ -136,8 +146,7 @@ export async function fetchRoomSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["rooms"] } },
     )
-
-    return rooms.flatMap(room => (room.slug ? [room.slug] : []))
+    return rooms.flatMap((room: { slug?: string | null }) => (room.slug ? [room.slug] : []))
 }
 
 export async function fetchRoomBySlug(slug: string): Promise<RoomDetail | null> {
@@ -147,6 +156,8 @@ export async function fetchRoomBySlug(slug: string): Promise<RoomDetail | null> 
         { next: { revalidate: 300, tags: ["rooms"] } },
     )
 }
+
+// ─── Groups ───────────────────────────────────────────────────────────────────
 
 export async function fetchGroupsPageContent(): Promise<GroupsPageContent | null> {
     return sanityClient.fetch(
@@ -162,8 +173,20 @@ export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )
+    type G = ClientReturn<typeof studentGroupsQuery>[number]
+    return groups.flatMap((group: G) => (group.slug ? [{ ...group, slug: group.slug }] : []))
+}
 
-    return groups.flatMap(group => (group.slug ? [{ ...group, slug: group.slug }] : []))
+export async function fetchStudentGroupsByCategory(
+    category: string,
+): Promise<StudentGroupSummary[]> {
+    const groups = await sanityClient.fetch(
+        studentGroupsByCategory,
+        { category },
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+    type G = ClientReturn<typeof studentGroupsQuery>[number]
+    return groups.flatMap((group: G) => (group.slug ? [{ ...group, slug: group.slug }] : []))
 }
 
 export async function fetchStudentGroupSlugs(): Promise<string[]> {
@@ -172,8 +195,7 @@ export async function fetchStudentGroupSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )
-
-    return groups.flatMap(group => (group.slug ? [group.slug] : []))
+    return groups.flatMap((group: { slug?: string | null }) => (group.slug ? [group.slug] : []))
 }
 
 export async function fetchStudentGroupBySlug(slug: string): Promise<StudentGroupDetail | null> {
@@ -181,5 +203,34 @@ export async function fetchStudentGroupBySlug(slug: string): Promise<StudentGrou
         studentGroupBySlugQuery,
         { slug },
         { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+}
+
+// ─── Pages (page builder) ─────────────────────────────────────────────────────
+
+export async function fetchPageSlugs(): Promise<string[]> {
+    const pages = await sanityClient.fetch(
+        pageSlugsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["pages"] } },
+    )
+    return pages.flatMap((p: { slug?: string | null }) => (p.slug ? [p.slug] : []))
+}
+
+export async function fetchPageBySlug(slug: string): Promise<PageContent | null> {
+    return sanityClient.fetch(
+        pageBySlugQuery,
+        { slug },
+        { next: { revalidate: 300, tags: ["pages"] } },
+    )
+}
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
+export async function fetchNavbar(): Promise<NavbarContent | null> {
+    return sanityClient.fetch(
+        navbarQuery,
+        {},
+        { next: { revalidate: 300, tags: ["navbar"] } },
     )
 }
