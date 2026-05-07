@@ -1,5 +1,5 @@
 import { DocumentIcon } from "@sanity/icons"
-import { defineArrayMember, defineField, defineType } from "sanity"
+import { defineField, defineType } from "sanity"
 
 export const page = defineType({
     name: "page",
@@ -29,35 +29,8 @@ export const page = defineType({
         defineField({
             name: "pageBuilder",
             title: "Sidebygger",
-            type: "array",
+            type: "portableTextContent",
             group: "content",
-            of: [
-                defineArrayMember({ type: "heroBlock" }),
-                defineArrayMember({ type: "richTextBlock" }),
-                defineArrayMember({ type: "imageBlock" }),
-                defineArrayMember({ type: "calloutBlock" }),
-            ],
-            options: {
-                insertMenu: {
-                    groups: [
-                        {
-                            name: "text",
-                            title: "Tekst",
-                            of: ["richTextBlock", "calloutBlock"],
-                        },
-                        {
-                            name: "media",
-                            title: "Media",
-                            of: ["imageBlock"],
-                        },
-                        {
-                            name: "layout",
-                            title: "Layout",
-                            of: ["heroBlock"],
-                        },
-                    ],
-                },
-            },
         }),
         defineField({
             name: "seoTitle",

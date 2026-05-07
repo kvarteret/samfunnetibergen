@@ -25,7 +25,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: GroupPageProps) {
     const { slug, locale: localeParam } = await params
     await resolvePageLocale(Promise.resolve({ locale: localeParam }))
-    const group = await fetchStudentGroupBySlug(slug)
+    const group = await fetchStudentGroupBySlug(slug, { stega: false })
     if (!group) return {}
 
     return {

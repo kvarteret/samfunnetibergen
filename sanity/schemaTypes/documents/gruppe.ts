@@ -1,4 +1,5 @@
 import { UsersIcon } from "@sanity/icons"
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const GRUPPE_CATEGORIES = [
@@ -80,23 +81,9 @@ export const gruppe = defineType({
             title: "Bilde",
             type: "sourcedImage",
         }),
-        defineField({
-            name: "order",
-            title: "Sorteringsrekkefølge",
-            type: "number",
-            validation: rule => rule.required(),
-        }),
+        orderRankField({ type: "studentGroup" }),
     ],
-    orderings: [
-        {
-            title: "Kategori, deretter navn",
-            name: "categoryThenName",
-            by: [
-                { field: "category", direction: "asc" },
-                { field: "order", direction: "asc" },
-            ],
-        },
-    ],
+    orderings: [orderRankOrdering],
     preview: {
         select: {
             title: "name",

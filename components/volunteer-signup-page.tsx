@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { isValidEmailAddress } from "@/lib/contact"
-import type { VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
+import type { StudentGroupSummary } from "@/lib/sanity/types"
 import { createClient } from "@/utils/supabase/client"
 
-export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[] }) {
+export function VolunteerSignupPage({ groups }: { groups: StudentGroupSummary[] }) {
     const t = useTranslations("VolunteerSignupPage")
 
     const [selectedGroup, setSelectedGroup] = useState<string>("")
@@ -82,21 +82,22 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
                     <CardContent>
                         <div className="flex flex-col gap-3">
                             {groups.map(group => {
-                                const active = selectedGroup === group.name
+                                const id = group.slug ?? group.name ?? ""
+                                const active = selectedGroup === id
                                 return (
                                     <Button
-                                        key={group.name}
+                                        key={id}
                                         type="button"
-                                        onClick={() => setSelectedGroup(group.name)}
+                                        onClick={() => setSelectedGroup(id)}
                                         className="h-auto min-h-14 justify-start px-4 py-4"
                                         variant={active ? "default" : "neutral"}
                                     >
                                         <span className="text-left">
                                             <span className="block">
-                                                {group.name.toUpperCase()}
+                                                {(group.name ?? "").toUpperCase()}
                                             </span>
                                             <span className="mt-1 block text-xs font-normal normal-case opacity-80">
-                                                {group.description}
+                                                {group.summary}
                                             </span>
                                         </span>
                                     </Button>
@@ -106,7 +107,12 @@ export function VolunteerSignupPage({ groups }: { groups: VolunteerGroupSummary[
 
                         <div className="mt-4 text-xs text-muted-foreground">
                             {selectedGroup
-                                ? t("selectedGroup", { group: selectedGroup })
+                                ? t("selectedGroup", {
+                                      group:
+                                          groups.find(
+                                              g => (g.slug ?? g.name ?? "") === selectedGroup,
+                                          )?.name ?? selectedGroup,
+                                  })
                                 : t("selectedGroupFallback")}
                         </div>
                     </CardContent>

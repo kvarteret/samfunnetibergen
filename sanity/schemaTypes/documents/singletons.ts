@@ -1,4 +1,4 @@
-import { CogIcon, DocumentIcon, DocumentTextIcon, HomeIcon, UsersIcon } from "@sanity/icons"
+import { CogIcon, DocumentIcon, HeartIcon, HomeIcon, StarIcon, UsersIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -45,6 +45,26 @@ export const siteMetadata = defineType({
         defineField({
             name: "eventsDescriptionEn",
             title: "Arrangementbeskrivelse (engelsk)",
+            type: "text",
+        }),
+        defineField({
+            name: "volunteerSignupTitleNb",
+            title: "Frivilligside-tittel (norsk)",
+            type: "string",
+        }),
+        defineField({
+            name: "volunteerSignupTitleEn",
+            title: "Volunteer page title (engelsk)",
+            type: "string",
+        }),
+        defineField({
+            name: "volunteerSignupDescriptionNb",
+            title: "Frivilligside-beskrivelse (norsk)",
+            type: "text",
+        }),
+        defineField({
+            name: "volunteerSignupDescriptionEn",
+            title: "Volunteer page description (engelsk)",
             type: "text",
         }),
         defineField({
@@ -174,6 +194,82 @@ export const roomsPage = defineType({
         select: { title: "title" },
         prepare({ title }) {
             return { title: title ?? "Rom-side" }
+        },
+    },
+})
+
+export const blifrivilligPage = defineType({
+    name: "blifrivilligPage",
+    title: "Bli frivillig-side",
+    type: "document",
+    icon: HeartIcon,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore – experimental API not yet in typedefs
+    __experimental_actions: ["update", "publish"],
+    fields: [
+        defineField({
+            name: "description",
+            title: "Beskrivelse",
+            description: "Tekst øverst på siden, over påmeldingsskjemaet",
+            type: "portableTextContent",
+        }),
+        defineField({ name: "titleNb", title: "Sidetittel (norsk)", type: "string" }),
+        defineField({ name: "titleEn", title: "Page title (English)", type: "string" }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
+    ],
+    preview: {
+        prepare() {
+            return { title: "Bli frivillig-side" }
+        },
+    },
+})
+
+export const internbevisBenefit = defineType({
+    name: "internbevisBenefit",
+    title: "Frivilligfordel",
+    type: "document",
+    icon: StarIcon,
+    fields: [
+        defineField({
+            name: "name",
+            title: "Fordel",
+            type: "string",
+            validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "tier",
+            title: "Trinn",
+            description: "Hvilket frivilligtrinn denne fordelen gjelder for",
+            type: "string",
+            options: {
+                list: [
+                    { title: "Trinn 1 – Arbeidsgruppe (Arg)", value: "trinn1" },
+                    { title: "Trinn 2 – Driftsorganisasjon (Dorg)", value: "trinn2" },
+                    { title: "Trinn 3 – Brukerorganisasjon (Borg)", value: "trinn3" },
+                ],
+                layout: "radio",
+            },
+            validation: rule => rule.required(),
+        }),
+    ],
+    preview: {
+        select: { title: "name", subtitle: "tier" },
+        prepare({ title, subtitle }) {
+            const tierLabels: Record<string, string> = {
+                trinn1: "Trinn 1",
+                trinn2: "Trinn 2",
+                trinn3: "Trinn 3",
+            }
+            return {
+                title: title ?? "Fordel",
+                subtitle: tierLabels[subtitle] ?? subtitle,
+            }
         },
     },
 })

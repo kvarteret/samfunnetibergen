@@ -1,6 +1,7 @@
 import type { ClientReturn } from "next-sanity"
 
 import type {
+    blifrivilligPageNbQuery,
     eventsPageContentNbQuery,
     groupsPageQuery,
     homeBarsNbQuery,
@@ -42,6 +43,8 @@ export type GroupsPageContent = NonNullable<ClientReturn<typeof groupsPageQuery>
 export type StudentGroupSummary = ClientReturn<typeof studentGroupsQuery>[number]
 
 export type StudentGroupDetail = NonNullable<ClientReturn<typeof studentGroupBySlugQuery>>
+
+export type BlifrivilligPageContent = NonNullable<ClientReturn<typeof blifrivilligPageNbQuery>>
 
 export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
 

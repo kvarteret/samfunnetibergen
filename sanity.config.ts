@@ -3,7 +3,7 @@ import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { dataset, projectId } from "./sanity/env"
-import { resolve } from "./sanity/presentation/resolve"
+import { resolve, resolvePresentationInitialUrl } from "./sanity/presentation/resolve"
 import { schemaTypes } from "./sanity/schemaTypes"
 import { singletonTypeNames, structure } from "./sanity/structure"
 
@@ -19,6 +19,7 @@ export default defineConfig({
         presentationTool({
             resolve,
             previewUrl: {
+                initial: resolvePresentationInitialUrl(),
                 previewMode: {
                     enable: "/api/draft-mode/enable",
                 },

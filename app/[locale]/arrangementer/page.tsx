@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/arrangem
     const locale = await resolvePageLocale(params)
     const [t, siteMetadata] = await Promise.all([
         getTranslations({ locale, namespace: "Metadata" }),
-        fetchSiteMetadata(locale),
+        fetchSiteMetadata(locale, { stega: false }),
     ])
 
     return {

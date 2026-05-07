@@ -1,4 +1,15 @@
-import { CogIcon, ComponentIcon, DocumentIcon, HomeIcon, MenuIcon, UsersIcon } from "@sanity/icons"
+import {
+    CogIcon,
+    ComponentIcon,
+    DocumentIcon,
+    EnvelopeIcon,
+    HeartIcon,
+    HomeIcon,
+    MenuIcon,
+    StarIcon,
+    UsersIcon,
+} from "@sanity/icons"
+import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
 export const singletonTypeNames = [
@@ -7,10 +18,10 @@ export const singletonTypeNames = [
     "eventsPage",
     "roomsPage",
     "groupsPage",
+    "blifrivilligPage",
+    "kontaktPage",
     "navbar",
 ] as const
-
-const singletonTypes = new Set<string>(singletonTypeNames)
 
 function singletonListItem(
     S: StructureBuilder,
@@ -24,11 +35,11 @@ function singletonListItem(
         .child(S.document().schemaType(typeName).documentId(typeName).title(title))
 }
 
-export const structure: StructureResolver = S =>
+export const structure: StructureResolver = (S, context) =>
     S.list()
         .title("Samfunnet i Bergen")
         .items([
-            // — Singletons —
+            // — Innstillinger —
             S.listItem()
                 .title("Innstillinger")
                 .icon(CogIcon)
@@ -43,7 +54,7 @@ export const structure: StructureResolver = S =>
 
             S.divider(),
 
-            // — Pages —
+            // — Sider —
             S.listItem()
                 .title("Sider")
                 .icon(DocumentIcon)
@@ -55,6 +66,8 @@ export const structure: StructureResolver = S =>
                             singletonListItem(S, "eventsPage", "Arrangementer-side", DocumentIcon),
                             singletonListItem(S, "roomsPage", "Rom-side", ComponentIcon),
                             singletonListItem(S, "groupsPage", "Grupper-side", UsersIcon),
+                            singletonListItem(S, "blifrivilligPage", "Bli frivillig", HeartIcon),
+                            singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
                             S.divider(),
                             S.documentTypeListItem("page").title("Andre sider"),
                         ]),
@@ -62,12 +75,92 @@ export const structure: StructureResolver = S =>
 
             S.divider(),
 
-            // — Content collections —
+            // — Frivilligfordeler —
+            S.listItem()
+                .title("Frivilligfordeler (internbevis)")
+                .icon(StarIcon)
+                .child(
+                    S.list()
+                        .title("Frivilligfordeler")
+                        .items([
+                            S.listItem()
+                                .title("Trinn 1 – Arg")
+                                .child(
+                                    S.documentList()
+                                        .title("Trinn 1 – Arg")
+                                        .filter(
+                                            '_type == "internbevisBenefit" && tier == "trinn1"',
+                                        ),
+                                ),
+                            S.listItem()
+                                .title("Trinn 2 – Dorg")
+                                .child(
+                                    S.documentList()
+                                        .title("Trinn 2 – Dorg")
+                                        .filter(
+                                            '_type == "internbevisBenefit" && tier == "trinn2"',
+                                        ),
+                                ),
+                            S.listItem()
+                                .title("Trinn 3 – Borg")
+                                .child(
+                                    S.documentList()
+                                        .title("Trinn 3 – Borg")
+                                        .filter(
+                                            '_type == "internbevisBenefit" && tier == "trinn3"',
+                                        ),
+                                ),
+                            S.divider(),
+                            S.documentTypeListItem("internbevisBenefit").title("Alle fordeler"),
+                        ]),
+                ),
+
+            S.divider(),
+
+            // — Rom —
             S.listItem()
                 .title("Rom")
                 .icon(ComponentIcon)
-                .child(S.documentTypeList("room").title("Rom")),
+                .child(
+                    S.list()
+                        .title("Rom")
+                        .items([
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "room",
+                                id: "orderable-room-floor-1",
+                                title: "1. etasje",
+                                filter: '_type == "room" && (floor == "1" || floor == 1)',
+                            }),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "room",
+                                id: "orderable-room-floor-2",
+                                title: "2. etasje",
+                                filter: '_type == "room" && (floor == "2" || floor == 2)',
+                            }),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "room",
+                                id: "orderable-room-floor-3",
+                                title: "3. etasje",
+                                filter: '_type == "room" && (floor == "3" || floor == 3)',
+                            }),
+                            S.divider(),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "room",
+                                id: "orderable-room-all",
+                                title: "Alle rom",
+                            }),
+                        ]),
+                ),
 
+            // — Grupper —
             S.listItem()
                 .title("Grupper")
                 .icon(UsersIcon)
@@ -75,42 +168,46 @@ export const structure: StructureResolver = S =>
                     S.list()
                         .title("Grupper")
                         .items([
-                            S.listItem()
-                                .title("Arbeidsgrupper")
-                                .child(
-                                    S.documentList()
-                                        .title("Arbeidsgrupper")
-                                        .schemaType("studentGroup")
-                                        .filter(
-                                            '_type == "studentGroup" && category == "arbeidsgruppe"',
-                                        ),
-                                ),
-                            S.listItem()
-                                .title("Komiteer")
-                                .child(
-                                    S.documentList()
-                                        .title("Komiteer")
-                                        .schemaType("studentGroup")
-                                        .filter('_type == "studentGroup" && category == "komitee"'),
-                                ),
-                            S.listItem()
-                                .title("Faste samarbeidspartnere (Dorg)")
-                                .child(
-                                    S.documentList()
-                                        .title("Faste samarbeidspartnere")
-                                        .schemaType("studentGroup")
-                                        .filter('_type == "studentGroup" && category == "dorg"'),
-                                ),
-                            S.listItem()
-                                .title("Brukerorganisasjoner (Borg)")
-                                .child(
-                                    S.documentList()
-                                        .title("Brukerorganisasjoner")
-                                        .schemaType("studentGroup")
-                                        .filter('_type == "studentGroup" && category == "borg"'),
-                                ),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "studentGroup",
+                                id: "orderable-student-group-arbeidsgruppe",
+                                title: "Arbeidsgrupper",
+                                filter: '_type == "studentGroup" && category == "arbeidsgruppe"',
+                            }),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "studentGroup",
+                                id: "orderable-student-group-komitee",
+                                title: "Komiteer",
+                                filter: '_type == "studentGroup" && category == "komitee"',
+                            }),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "studentGroup",
+                                id: "orderable-student-group-dorg",
+                                title: "Faste samarbeidspartnere (Dorg)",
+                                filter: '_type == "studentGroup" && category == "dorg"',
+                            }),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "studentGroup",
+                                id: "orderable-student-group-borg",
+                                title: "Brukerorganisasjoner (Borg)",
+                                filter: '_type == "studentGroup" && category == "borg"',
+                            }),
                             S.divider(),
-                            S.documentTypeListItem("studentGroup").title("Alle grupper"),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "studentGroup",
+                                id: "orderable-student-group-all",
+                                title: "Alle grupper",
+                            }),
                         ]),
                 ),
         ])

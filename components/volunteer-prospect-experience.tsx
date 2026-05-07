@@ -28,11 +28,13 @@ export function VolunteerProspectExperience({
     homeContent,
     institutionOptions,
     initialGroupSlug,
+    hideHero = false,
 }: {
     groups: LaunchGroupContent[]
     homeContent: HomePageContent | null
     institutionOptions: InstitutionOption[]
     initialGroupSlug?: string
+    hideHero?: boolean
 }) {
     const locale = useLocale()
     const tHome = useTranslations("HomePage")
@@ -87,12 +89,14 @@ export function VolunteerProspectExperience({
         <>
             <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-start">
                 <section className="flex flex-col gap-8 lg:flex-[1.15]">
-                    <VolunteerProspectHero
-                        badge={homeContent?.badge ?? ""}
-                        description={homeContent?.heroDescription ?? ""}
-                        eventsLinkLabel={homeContent?.eventsLink ?? ""}
-                        fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
-                    />
+                    {!hideHero && (
+                        <VolunteerProspectHero
+                            badge={homeContent?.badge ?? ""}
+                            description={homeContent?.heroDescription ?? ""}
+                            eventsLinkLabel={homeContent?.eventsLink ?? ""}
+                            fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
+                        />
+                    )}
 
                     <VolunteerProspectGroupList
                         accordionActionLabel={tForm("accordionAction")}

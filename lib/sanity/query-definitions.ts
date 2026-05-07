@@ -34,7 +34,8 @@ const openingHoursProjection = `{
 
 // ─── Legacy volunteer / home content (blifrivillig – kept for compat) ────────
 
-export const launchGroupsNbQuery = defineQuery(`*[_type == "launchGroup"] | order(_createdAt asc) {
+export const launchGroupsNbQuery =
+    defineQuery(`*[_type == "launchGroup"] | order(orderRank asc, order asc, _createdAt asc) {
     slug,
     "name": nameNb,
     "eyebrow": eyebrowNb,
@@ -50,7 +51,8 @@ export const launchGroupsNbQuery = defineQuery(`*[_type == "launchGroup"] | orde
     }
 }`)
 
-export const launchGroupsEnQuery = defineQuery(`*[_type == "launchGroup"] | order(_createdAt asc) {
+export const launchGroupsEnQuery =
+    defineQuery(`*[_type == "launchGroup"] | order(orderRank asc, order asc, _createdAt asc) {
     slug,
     "name": nameEn,
     "eyebrow": eyebrowEn,
@@ -67,13 +69,13 @@ export const launchGroupsEnQuery = defineQuery(`*[_type == "launchGroup"] | orde
 }`)
 
 export const volunteerGroupSummariesNbQuery =
-    defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
+    defineQuery(`*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {
     name,
     "description": descriptionNb
 }`)
 
 export const volunteerGroupSummariesEnQuery =
-    defineQuery(`*[_type == "volunteerGroupSummary"] | order(order asc) {
+    defineQuery(`*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {
     name,
     "description": descriptionEn
 }`)
@@ -117,6 +119,8 @@ export const siteMetadataNbQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "homeDescription": homeDescriptionNb,
     "eventsTitle": eventsTitleNb,
     "eventsDescription": eventsDescriptionNb,
+    "volunteerSignupTitle": volunteerSignupTitleNb,
+    "volunteerSignupDescription": volunteerSignupDescriptionNb,
     "groupPageTitle": groupPageTitleNb,
     "groupPageDescription": groupPageDescriptionNb
 }`)
@@ -128,19 +132,35 @@ export const siteMetadataEnQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "homeDescription": homeDescriptionEn,
     "eventsTitle": eventsTitleEn,
     "eventsDescription": eventsDescriptionEn,
+    "volunteerSignupTitle": volunteerSignupTitleEn,
+    "volunteerSignupDescription": volunteerSignupDescriptionEn,
     "groupPageTitle": groupPageTitleEn,
     "groupPageDescription": groupPageDescriptionEn
 }`)
 
+// ─── Blifrivillig page ────────────────────────────────────────────────────────
+
+export const blifrivilligPageNbQuery = defineQuery(`*[_id == "blifrivilligPage"][0] {
+    "title": titleNb,
+    "seoDescription": seoDescription,
+    "description": description[]
+}`)
+
+export const blifrivilligPageEnQuery = defineQuery(`*[_id == "blifrivilligPage"][0] {
+    "title": titleEn,
+    "seoDescription": seoDescription,
+    "description": description[]
+}`)
+
 // ─── Home bars ────────────────────────────────────────────────────────────────
 
-export const homeBarsNbQuery = defineQuery(`*[_type == "homeBar"] | order(order asc) {
+export const homeBarsNbQuery = defineQuery(`*[_type == "homeBar"] | order(orderRank asc) {
     "name": nameNb,
     "description": descriptionNb,
     "imageUrl": image.asset->url
 }`)
 
-export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(order asc) {
+export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(orderRank asc) {
     "name": nameEn,
     "description": descriptionEn,
     "imageUrl": image.asset->url
@@ -159,7 +179,7 @@ export const roomsPageQuery = defineQuery(`*[_id == "roomsPage"][0] {
     }
 }`)
 
-export const roomsQuery = defineQuery(`*[_type == "room"] | order(order asc) {
+export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc) {
     title,
     "slug": slug.current,
     summary,
@@ -190,6 +210,7 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
     hasSound,
     hasLighting,
     hasAV,
+    specsUrl,
     "openingHours": openingHours ${openingHoursProjection},
     "sections": sections[] ${editorialSectionProjection},
     "images": images[] ${sourcedImageProjection}
@@ -209,7 +230,7 @@ export const groupsPageQuery = defineQuery(`*[_id == "groupsPage"][0] {
     }
 }`)
 
-export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | order(order asc) {
+export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
@@ -220,7 +241,7 @@ export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | orde
 }`)
 
 export const studentGroupsByCategory = defineQuery(`
-    *[_type == "studentGroup" && category == $category] | order(order asc) {
+    *[_type == "studentGroup" && category == $category] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
@@ -266,6 +287,15 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
     pageBuilder[] {
         _key,
         _type,
+        ...,
+        markDefs[] {
+            ...,
+        },
+        _type == "image" => {
+            "imageUrl": asset->url,
+            alt,
+            caption
+        },
         // heroBlock
         _type == "heroBlock" => {
             eyebrow,

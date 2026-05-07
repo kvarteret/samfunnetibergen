@@ -17,11 +17,22 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     return (
         <NextIntlClientProvider messages={messages}>
             <Providers>
-                <div className="flex min-h-full flex-col">
-                    <Navbar navbar={navbar} />
-                    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
-                        {children}
-                    </main>
+                <div
+                    className="min-h-full"
+                    style={{
+                        backgroundImage: `
+                            linear-gradient(#FF6669 1px, transparent 1px),
+                            linear-gradient(90deg, #FF6669 1px, transparent 1px)
+                        `,
+                        backgroundSize: "20px 20px",
+                    }}
+                >
+                    <div className="flex min-h-screen flex-col bg-background/95 backdrop-blur-[1px]">
+                        <Navbar navbar={navbar} />
+                        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
+                            {children}
+                        </main>
+                    </div>
                 </div>
             </Providers>
         </NextIntlClientProvider>

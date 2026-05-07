@@ -19,7 +19,7 @@ type RoomsPageProps = {
 
 export async function generateMetadata({ params }: RoomsPageProps) {
     await resolvePageLocale(params)
-    const content = await fetchRoomsPageContent()
+    const content = await fetchRoomsPageContent({ stega: false })
 
     return {
         title: `${content?.title ?? "Rom"} | Samfunnet i Bergen`,
@@ -106,8 +106,18 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                             </div>
                             {section.links?.length ? (
                                 <div className="flex flex-wrap gap-3">
-                                    {section.links.map(link =>
-                                        link.url ? (
+                                    {section.links.map(link => {
+                                        if (!link.url) return null
+                                        const isLocal = link.url.startsWith("/")
+                                        return isLocal ? (
+                                            <Link
+                                                className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+                                                href={link.url}
+                                                key={link._key}
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        ) : (
                                             <a
                                                 className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
                                                 href={link.url}
@@ -121,8 +131,8 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                                                     className="size-4"
                                                 />
                                             </a>
-                                        ) : null,
-                                    )}
+                                        )
+                                    })}
                                 </div>
                             ) : null}
                         </article>

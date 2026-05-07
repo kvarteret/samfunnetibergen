@@ -11,6 +11,8 @@ const FALLBACK_ITEMS = [
     { label: "Arrangementer", href: "/arrangementer" },
     { label: "Rom", href: "/rom" },
     { label: "Grupper", href: "/grupper" },
+    { label: "Bli frivillig", href: "/blifrivillig" },
+    { label: "Kontakt", href: "/kontakt" },
 ]
 
 function resolveHref(item: { href?: string | null; externalUrl?: string | null }) {

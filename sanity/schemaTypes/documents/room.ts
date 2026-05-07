@@ -1,4 +1,5 @@
 import { ClockIcon, ComponentIcon } from "@sanity/icons"
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const room = defineType({
@@ -8,6 +9,7 @@ export const room = defineType({
     icon: ComponentIcon,
     groups: [
         { name: "info", title: "Info", default: true },
+        { name: "menu", title: "Meny" },
         { name: "specs", title: "Tekniske specs" },
         { name: "hours", title: "Åpningstider" },
         { name: "media", title: "Bilder" },
@@ -46,12 +48,13 @@ export const room = defineType({
             of: [defineArrayMember({ type: "editorialSection" })],
         }),
         defineField({
-            name: "order",
-            title: "Sorteringsrekkefølge",
-            type: "number",
-            group: "info",
-            validation: rule => rule.required(),
+            name: "menu",
+            title: "Meny",
+            description: "Menyen som serveres i dette rommet / baren",
+            type: "menu",
+            group: "menu",
         }),
+        orderRankField({ type: "room" }),
 
         // — Tech specs —
         defineField({
@@ -111,6 +114,14 @@ export const room = defineType({
             type: "boolean",
             initialValue: false,
             group: "specs",
+        }),
+        defineField({
+            name: "specsUrl",
+            title: "Tekniske spesifikasjoner (lenke)",
+            description: "URL til PDF eller dokument med tekniske spesifikasjoner",
+            type: "url",
+            group: "specs",
+            validation: rule => rule.uri({ scheme: ["http", "https"] }),
         }),
 
         // — Opening hours —

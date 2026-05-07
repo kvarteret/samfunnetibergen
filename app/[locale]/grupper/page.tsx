@@ -28,7 +28,7 @@ type GroupsPageProps = {
 
 export async function generateMetadata({ params }: GroupsPageProps) {
     await resolvePageLocale(params)
-    const content = await fetchGroupsPageContent()
+    const content = await fetchGroupsPageContent({ stega: false })
 
     return {
         title: `${content?.title ?? "Grupper"} | Samfunnet i Bergen`,

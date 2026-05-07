@@ -32,7 +32,10 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
 
             {open && (
                 <div className="fixed inset-0 top-[calc(var(--navbar-height,57px))] z-40 border-t-2 border-border bg-background lg:hidden">
-                    <nav aria-label="Mobilnavigasjon" className="flex flex-col divide-y-2 divide-border">
+                    <nav
+                        aria-label="Mobilnavigasjon"
+                        className="flex flex-col divide-y-2 divide-border"
+                    >
                         {items.length > 0
                             ? items.map(item => (
                                   <div key={item._key}>
