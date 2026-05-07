@@ -157,14 +157,17 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                                     ) : null}
                                 </div>
                                 <dl className="mt-auto grid gap-3 text-sm text-foreground">
-                                    {room.capacityStanding != null || room.capacitySeated != null ? (
+                                    {room.capacityStanding != null ||
+                                    room.capacitySeated != null ? (
                                         <div className="flex items-center gap-2">
                                             <Users aria-hidden="true" className="size-4" />
                                             <dt className="font-heading">Kapasitet</dt>
                                             <dd>
                                                 {[
-                                                    room.capacityStanding != null && `${room.capacityStanding} stående`,
-                                                    room.capacitySeated != null && `${room.capacitySeated} sittende`,
+                                                    room.capacityStanding != null &&
+                                                        `${room.capacityStanding} stående`,
+                                                    room.capacitySeated != null &&
+                                                        `${room.capacitySeated} sittende`,
                                                 ]
                                                     .filter(Boolean)
                                                     .join(" / ")}

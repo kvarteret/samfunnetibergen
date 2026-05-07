@@ -77,12 +77,16 @@ function RichTextBlock({ block }: { block: Extract<PageBlock, { _type: "richText
     return (
         <section className="space-y-4">
             {block.title && (
-                <h2 className="font-heading text-3xl leading-tight text-foreground">{block.title}</h2>
+                <h2 className="font-heading text-3xl leading-tight text-foreground">
+                    {block.title}
+                </h2>
             )}
             <div className={`space-y-4 text-lg leading-8 text-foreground ${cols}`}>
                 {block.content?.map((node: Record<string, unknown>) => {
                     if (node._type !== "block") return null
-                    const children = node.children as Array<{ _key: string; text?: string; marks?: string[] }> | undefined
+                    const children = node.children as
+                        | Array<{ _key: string; text?: string; marks?: string[] }>
+                        | undefined
                     const text = children?.map(c => c.text ?? "").join("") ?? ""
                     if (!text) return null
 
@@ -140,31 +144,32 @@ function ImageBlock({ block }: { block: Extract<PageBlock, { _type: "imageBlock"
 function CalloutBlock({ block }: { block: Extract<PageBlock, { _type: "calloutBlock" }> }) {
     return (
         <aside className="space-y-3 border-2 border-border bg-card p-5">
-            {block.title && (
-                <h2 className="font-heading text-xl text-foreground">{block.title}</h2>
-            )}
+            {block.title && <h2 className="font-heading text-xl text-foreground">{block.title}</h2>}
             <div className="space-y-3 text-base leading-7 text-foreground">
                 {block.content?.map((node: Record<string, unknown>) => {
                     if (node._type !== "block") return null
-                    const children = node.children as Array<{ _key: string; text?: string }> | undefined
+                    const children = node.children as
+                        | Array<{ _key: string; text?: string }>
+                        | undefined
                     const text = children?.map(c => c.text ?? "").join("") ?? ""
                     return text ? <p key={node._key as string}>{text}</p> : null
                 })}
             </div>
             {block.links?.length ? (
                 <div className="flex flex-wrap gap-3">
-                    {block.links.map((link: { _key: string; label: string | null; url: string | null }) =>
-                        link.url ? (
-                            <a
-                                className="font-heading text-sm underline underline-offset-4"
-                                href={link.url}
-                                key={link._key}
-                                rel="noreferrer"
-                                target="_blank"
-                            >
-                                {link.label}
-                            </a>
-                        ) : null,
+                    {block.links.map(
+                        (link: { _key: string; label: string | null; url: string | null }) =>
+                            link.url ? (
+                                <a
+                                    className="font-heading text-sm underline underline-offset-4"
+                                    href={link.url}
+                                    key={link._key}
+                                    rel="noreferrer"
+                                    target="_blank"
+                                >
+                                    {link.label}
+                                </a>
+                            ) : null,
                     )}
                 </div>
             ) : null}

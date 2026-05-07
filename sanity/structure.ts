@@ -1,11 +1,4 @@
-import {
-    CogIcon,
-    ComponentIcon,
-    DocumentIcon,
-    HomeIcon,
-    MenuIcon,
-    UsersIcon,
-} from "@sanity/icons"
+import { CogIcon, ComponentIcon, DocumentIcon, HomeIcon, MenuIcon, UsersIcon } from "@sanity/icons"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
 export const singletonTypeNames = [
@@ -98,9 +91,7 @@ export const structure: StructureResolver = S =>
                                     S.documentList()
                                         .title("Komiteer")
                                         .schemaType("studentGroup")
-                                        .filter(
-                                            '_type == "studentGroup" && category == "komitee"',
-                                        ),
+                                        .filter('_type == "studentGroup" && category == "komitee"'),
                                 ),
                             S.listItem()
                                 .title("Faste samarbeidspartnere (Dorg)")

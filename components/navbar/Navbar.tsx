@@ -1,10 +1,17 @@
-import { ChevronDown, Menu, X } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import { MobileMenu } from "./MobileMenu"
 
 type NavbarProps = {
     navbar: NavbarContent | null
 }
+
+const FALLBACK_ITEMS = [
+    { label: "Arrangementer", href: "/arrangementer" },
+    { label: "Rom", href: "/rom" },
+    { label: "Grupper", href: "/grupper" },
+]
 
 function resolveHref(item: { href?: string | null; externalUrl?: string | null }) {
     return item.href ?? item.externalUrl ?? "#"
@@ -12,6 +19,29 @@ function resolveHref(item: { href?: string | null; externalUrl?: string | null }
 
 function isExternal(item: { href?: string | null; externalUrl?: string | null }) {
     return !item.href && Boolean(item.externalUrl)
+}
+
+function NavLink({
+    href,
+    external,
+    children,
+}: {
+    href: string
+    external?: boolean
+    children: React.ReactNode
+}) {
+    const cls =
+        "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
+
+    return external ? (
+        <a className={cls} href={href} rel="noreferrer" target="_blank">
+            {children}
+        </a>
+    ) : (
+        <Link className={cls} href={href}>
+            {children}
+        </Link>
+    )
 }
 
 function TopLevelItem({ item }: { item: NavItem }) {
@@ -22,23 +52,9 @@ function TopLevelItem({ item }: { item: NavItem }) {
     if (!hasDropdown) {
         return (
             <li>
-                {external ? (
-                    <a
-                        className="flex items-center gap-1 px-3 py-2 font-heading text-sm text-foreground transition-colors hover:text-foreground/70"
-                        href={href}
-                        rel="noreferrer"
-                        target="_blank"
-                    >
-                        {item.label}
-                    </a>
-                ) : (
-                    <Link
-                        className="flex items-center gap-1 px-3 py-2 font-heading text-sm text-foreground transition-colors hover:text-foreground/70"
-                        href={href}
-                    >
-                        {item.label}
-                    </Link>
-                )}
+                <NavLink external={external} href={href}>
+                    {item.label}
+                </NavLink>
             </li>
         )
     }
@@ -46,23 +62,23 @@ function TopLevelItem({ item }: { item: NavItem }) {
     return (
         <li className="group relative">
             <button
-                className="flex items-center gap-1 px-3 py-2 font-heading text-sm text-foreground transition-colors hover:text-foreground/70"
+                className="relative flex items-center gap-1 px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
                 type="button"
             >
                 {item.label}
                 <ChevronDown
                     aria-hidden
-                    className="size-4 transition-transform group-hover:rotate-180"
+                    className="size-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-180"
                 />
             </button>
 
             {/* Dropdown */}
-            <div className="invisible absolute left-0 top-full z-50 min-w-[16rem] border-2 border-border bg-background opacity-0 shadow-shadow transition-all group-hover:visible group-hover:opacity-100">
-                <div className="grid gap-0 p-4 sm:grid-cols-2">
+            <div className="invisible absolute left-0 top-[calc(100%+12px)] z-50 min-w-[14rem] border-2 border-border bg-background opacity-0 shadow-shadow transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <div className="p-3">
                     {item.children?.map((group: NavGroup) => (
-                        <div className="space-y-1" key={group._key}>
+                        <div className="space-y-0.5" key={group._key}>
                             {group.groupLabel && (
-                                <p className="px-2 py-1 font-heading text-xs uppercase tracking-wider text-foreground/50">
+                                <p className="px-2 py-1.5 font-heading text-[10px] uppercase tracking-widest text-foreground/40">
                                     {group.groupLabel}
                                 </p>
                             )}
@@ -71,7 +87,7 @@ function TopLevelItem({ item }: { item: NavItem }) {
                                 const leafExternal = isExternal(leaf)
                                 return leafExternal ? (
                                     <a
-                                        className="block rounded px-2 py-1.5 text-sm text-foreground hover:bg-muted"
+                                        className="block px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
                                         href={leafHref}
                                         key={leaf._key}
                                         rel="noreferrer"
@@ -81,7 +97,7 @@ function TopLevelItem({ item }: { item: NavItem }) {
                                     </a>
                                 ) : (
                                     <Link
-                                        className="block rounded px-2 py-1.5 text-sm text-foreground hover:bg-muted"
+                                        className="block px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
                                         href={leafHref}
                                         key={leaf._key}
                                     >
@@ -98,37 +114,35 @@ function TopLevelItem({ item }: { item: NavItem }) {
 }
 
 export function Navbar({ navbar }: NavbarProps) {
-    if (!navbar?.items?.length) return null
+    const items = navbar?.items ?? []
 
     return (
-        <header className="border-b-2 border-border bg-background">
+        <header className="sticky top-0 z-30 border-b-2 border-border bg-background">
             <nav
                 aria-label="Hovednavigasjon"
                 className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
             >
-                {/* Logo / site name */}
+                {/* Wordmark */}
                 <Link
-                    className="py-4 font-heading text-lg text-foreground"
+                    className="py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
                     href="/"
                 >
                     Samfunnet i Bergen
                 </Link>
 
                 {/* Desktop nav */}
-                <ul className="hidden items-center gap-1 lg:flex">
-                    {navbar.items.map((item: NavItem) => (
-                        <TopLevelItem item={item} key={item._key} />
-                    ))}
+                <ul className="hidden items-center gap-7 lg:flex">
+                    {items.length > 0
+                        ? items.map((item: NavItem) => <TopLevelItem item={item} key={item._key} />)
+                        : FALLBACK_ITEMS.map(item => (
+                              <li key={item.href}>
+                                  <NavLink href={item.href}>{item.label}</NavLink>
+                              </li>
+                          ))}
                 </ul>
 
-                {/* Mobile: just a placeholder — full implementation beyond this scope */}
-                <button
-                    aria-label="Åpne meny"
-                    className="p-2 lg:hidden"
-                    type="button"
-                >
-                    <Menu aria-hidden className="size-6 text-foreground" />
-                </button>
+                {/* Mobile toggle */}
+                <MobileMenu fallbackItems={FALLBACK_ITEMS} items={items} />
             </nav>
         </header>
     )

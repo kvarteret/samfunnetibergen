@@ -64,11 +64,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     <div className="space-y-4 text-lg leading-8 text-foreground">
                         {group.body.map((block: Record<string, unknown>) => {
                             if (block._type !== "block") return null
-                            const children = block.children as Array<{ _key: string; text?: string }> | undefined
+                            const children = block.children as
+                                | Array<{ _key: string; text?: string }>
+                                | undefined
                             const text = children?.map(c => c.text ?? "").join("") ?? ""
-                            return text ? (
-                                <p key={block._key as string}>{text}</p>
-                            ) : null
+                            return text ? <p key={block._key as string}>{text}</p> : null
                         })}
                     </div>
                 )}

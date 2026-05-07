@@ -179,15 +179,27 @@ export default async function RoomPage({ params }: RoomPageProps) {
                             </div>
                             {section.links?.length ? (
                                 <div className="flex flex-wrap gap-3 pt-1">
-                                    {section.links.map((link: { _key: string; label: string | null; url: string | null }) =>
-                                        link.url ? (
-                                            <Button asChild key={link._key} variant="neutral">
-                                                <a href={link.url} rel="noreferrer" target="_blank">
-                                                    <ExternalLink aria-hidden className="size-4" />
-                                                    {link.label}
-                                                </a>
-                                            </Button>
-                                        ) : null,
+                                    {section.links.map(
+                                        (link: {
+                                            _key: string
+                                            label: string | null
+                                            url: string | null
+                                        }) =>
+                                            link.url ? (
+                                                <Button asChild key={link._key} variant="neutral">
+                                                    <a
+                                                        href={link.url}
+                                                        rel="noreferrer"
+                                                        target="_blank"
+                                                    >
+                                                        <ExternalLink
+                                                            aria-hidden
+                                                            className="size-4"
+                                                        />
+                                                        {link.label}
+                                                    </a>
+                                                </Button>
+                                            ) : null,
                                     )}
                                 </div>
                             ) : null}
@@ -214,10 +226,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
                                     <TechSpec label="Sittende" value={room.capacitySeated} />
                                 )}
                                 {room.suitedPurposes?.length ? (
-                                    <TechSpec
-                                        label="Bruk"
-                                        value={room.suitedPurposes.join(", ")}
-                                    />
+                                    <TechSpec label="Bruk" value={room.suitedPurposes.join(", ")} />
                                 ) : null}
                                 {room.bar != null && (
                                     <TechSpec label="Bar" value={room.bar || "Nei"} />
@@ -242,21 +251,27 @@ export default async function RoomPage({ params }: RoomPageProps) {
                                 </p>
                             )}
                             <dl className="space-y-1">
-                                {room.openingHours?.hours?.map((entry: NonNullable<NonNullable<RoomDetail["openingHours"]>["hours"]>[number]) => (
-                                    <div
-                                        className="flex justify-between text-sm text-foreground"
-                                        key={entry._key}
-                                    >
-                                        <dt className="font-heading">
-                                            {DAY_LABELS[entry.day ?? ""] ?? entry.day}
-                                        </dt>
-                                        <dd>
-                                            {entry.closed
-                                                ? "Stengt"
-                                                : `${entry.opens ?? "?"} – ${entry.closes ?? "?"}`}
-                                        </dd>
-                                    </div>
-                                ))}
+                                {room.openingHours?.hours?.map(
+                                    (
+                                        entry: NonNullable<
+                                            NonNullable<RoomDetail["openingHours"]>["hours"]
+                                        >[number],
+                                    ) => (
+                                        <div
+                                            className="flex justify-between text-sm text-foreground"
+                                            key={entry._key}
+                                        >
+                                            <dt className="font-heading">
+                                                {DAY_LABELS[entry.day ?? ""] ?? entry.day}
+                                            </dt>
+                                            <dd>
+                                                {entry.closed
+                                                    ? "Stengt"
+                                                    : `${entry.opens ?? "?"} – ${entry.closes ?? "?"}`}
+                                            </dd>
+                                        </div>
+                                    ),
+                                )}
                             </dl>
                         </section>
                     )}

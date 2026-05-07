@@ -1,5 +1,7 @@
 import { defineLocations, type PresentationPluginOptions } from "sanity/presentation"
 
+const defaultLocale = "nb"
+
 export const resolve: PresentationPluginOptions["resolve"] = {
     locations: {
         room: defineLocations({
@@ -8,9 +10,9 @@ export const resolve: PresentationPluginOptions["resolve"] = {
                 locations: [
                     {
                         title: doc?.title ?? "Ukjent rom",
-                        href: `/rom/${doc?.slug}`,
+                        href: `/${defaultLocale}/rom/${doc?.slug}`,
                     },
-                    { title: "Alle rom", href: "/rom" },
+                    { title: "Alle rom", href: `/${defaultLocale}/rom` },
                 ],
             }),
         }),
@@ -21,9 +23,9 @@ export const resolve: PresentationPluginOptions["resolve"] = {
                 locations: [
                     {
                         title: doc?.title ?? "Ukjent gruppe",
-                        href: `/grupper/${doc?.slug}`,
+                        href: `/${defaultLocale}/grupper/${doc?.slug}`,
                     },
-                    { title: "Alle grupper", href: "/grupper" },
+                    { title: "Alle grupper", href: `/${defaultLocale}/grupper` },
                 ],
             }),
         }),
@@ -34,7 +36,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
                 locations: [
                     {
                         title: doc?.title ?? "Ukjent side",
-                        href: `/${doc?.slug}`,
+                        href: `/${defaultLocale}/${doc?.slug}`,
                     },
                 ],
             }),
@@ -43,28 +45,28 @@ export const resolve: PresentationPluginOptions["resolve"] = {
         roomsPage: defineLocations({
             select: {},
             resolve: () => ({
-                locations: [{ title: "Rom", href: "/rom" }],
+                locations: [{ title: "Rom", href: `/${defaultLocale}/rom` }],
             }),
         }),
 
         groupsPage: defineLocations({
             select: {},
             resolve: () => ({
-                locations: [{ title: "Grupper", href: "/grupper" }],
+                locations: [{ title: "Grupper", href: `/${defaultLocale}/grupper` }],
             }),
         }),
 
         homePage: defineLocations({
             select: {},
             resolve: () => ({
-                locations: [{ title: "Forside", href: "/" }],
+                locations: [{ title: "Forside", href: `/${defaultLocale}` }],
             }),
         }),
 
         eventsPage: defineLocations({
             select: {},
             resolve: () => ({
-                locations: [{ title: "Arrangementer", href: "/arrangementer" }],
+                locations: [{ title: "Arrangementer", href: `/${defaultLocale}/arrangementer` }],
             }),
         }),
     },

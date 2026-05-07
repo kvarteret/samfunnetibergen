@@ -1,10 +1,4 @@
-import {
-    CogIcon,
-    DocumentIcon,
-    DocumentTextIcon,
-    HomeIcon,
-    UsersIcon,
-} from "@sanity/icons"
+import { CogIcon, DocumentIcon, DocumentTextIcon, HomeIcon, UsersIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -38,7 +32,11 @@ export const siteMetadata = defineType({
             type: "text",
         }),
         defineField({ name: "eventsTitleNb", title: "Arrangementtittel (norsk)", type: "string" }),
-        defineField({ name: "eventsTitleEn", title: "Arrangementtittel (engelsk)", type: "string" }),
+        defineField({
+            name: "eventsTitleEn",
+            title: "Arrangementtittel (engelsk)",
+            type: "string",
+        }),
         defineField({
             name: "eventsDescriptionNb",
             title: "Arrangementbeskrivelse (norsk)",

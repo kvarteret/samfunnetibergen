@@ -228,9 +228,5 @@ export async function fetchPageBySlug(slug: string): Promise<PageContent | null>
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export async function fetchNavbar(): Promise<NavbarContent | null> {
-    return sanityClient.fetch(
-        navbarQuery,
-        {},
-        { next: { revalidate: 300, tags: ["navbar"] } },
-    )
+    return sanityClient.fetch(navbarQuery, {}, { next: { revalidate: 300, tags: ["navbar"] } })
 }
