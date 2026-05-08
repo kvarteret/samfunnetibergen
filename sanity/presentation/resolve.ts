@@ -1,4 +1,8 @@
-import { defineDocuments, defineLocations, type PresentationPluginOptions } from "sanity/presentation"
+import {
+    defineDocuments,
+    defineLocations,
+    type PresentationPluginOptions,
+} from "sanity/presentation"
 
 const defaultLocale = "nb"
 const defaultPreviewPath = `/${defaultLocale}`
@@ -34,10 +38,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             filter: `_type == "studentGroup" && slug.current == $slug`,
         },
         {
-            route: "/:locale/blifrivillig/:group",
-            filter: `_type == "launchGroup" && slug == $group`,
-        },
-        {
             route: "/:locale/:slug",
             filter: `_type == "page" && slug.current == $slug`,
         },
@@ -52,17 +52,17 @@ export const resolve: PresentationPluginOptions["resolve"] = {
                 ],
             }),
         }),
-        launchGroup: defineLocations({
+        volunteerGroup: defineLocations({
             select: { title: "nameNb", slug: "slug" },
             resolve: doc => ({
                 locations: [
                     {
                         title: doc?.title ?? "Frivilliggruppe",
-                        href: `/${defaultLocale}/blifrivillig/${doc?.slug}`,
+                        href: `/${defaultLocale}/grupper/${doc?.slug}`,
                     },
                     {
                         title: "Volunteer group",
-                        href: `/en/blifrivillig/${doc?.slug}`,
+                        href: `/en/grupper/${doc?.slug}`,
                     },
                     { title: "Bli frivillig", href: `/${defaultLocale}/blifrivillig` },
                     { title: "Volunteer signup", href: "/en/blifrivillig" },
@@ -73,7 +73,10 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             select: { title: "name" },
             resolve: doc => ({
                 locations: [
-                    { title: doc?.title ?? "Bli frivillig", href: `/${defaultLocale}/blifrivillig` },
+                    {
+                        title: doc?.title ?? "Bli frivillig",
+                        href: `/${defaultLocale}/blifrivillig`,
+                    },
                     { title: "Volunteer signup", href: "/en/blifrivillig" },
                 ],
             }),

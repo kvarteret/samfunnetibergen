@@ -1,19 +1,19 @@
 "use client"
 
 import { Label } from "@/components/ui/label"
-import { getLaunchGroupName } from "@/lib/volunteer-groups"
-import type { LaunchGroupContent, LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
+import { getVolunteerGroupName } from "@/lib/volunteer-groups"
 import { FieldError, RequiredLabel, SelectionChip } from "./shared"
 
 type VolunteerChoiceSummaryProps = {
     firstChoiceError?: string
-    firstChoiceGroupSlug: LaunchGroupSlug | ""
+    firstChoiceGroupSlug: VolunteerGroupSlug | ""
     firstChoiceLabel: string
-    groups: LaunchGroupContent[]
+    groups: VolunteerGroupContent[]
     onRemoveChoice: (target: "first" | "second") => void
     optionalLabel: string
     secondChoiceError?: string
-    secondChoiceGroupSlug: LaunchGroupSlug | ""
+    secondChoiceGroupSlug: VolunteerGroupSlug | ""
     secondChoiceLabel: string
 }
 
@@ -35,7 +35,7 @@ export function VolunteerChoiceSummary({
                 <div className="flex min-h-12 flex-wrap items-center gap-2">
                     {firstChoiceGroupSlug ? (
                         <SelectionChip
-                            label={getLaunchGroupName(groups, firstChoiceGroupSlug)}
+                            label={getVolunteerGroupName(groups, firstChoiceGroupSlug)}
                             onRemove={() => onRemoveChoice("first")}
                         />
                     ) : null}
@@ -53,7 +53,7 @@ export function VolunteerChoiceSummary({
                 <div className="flex min-h-12 flex-wrap items-center gap-2">
                     {secondChoiceGroupSlug ? (
                         <SelectionChip
-                            label={getLaunchGroupName(groups, secondChoiceGroupSlug)}
+                            label={getVolunteerGroupName(groups, secondChoiceGroupSlug)}
                             onRemove={() => onRemoveChoice("second")}
                         />
                     ) : null}

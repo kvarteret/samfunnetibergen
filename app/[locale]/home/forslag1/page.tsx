@@ -7,10 +7,7 @@ import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchHomeBars } from "@/lib/sanity/queries"
 import type { HomeBarContent } from "@/lib/sanity/types"
-import { getLaunchGroups, type LaunchGroupContent } from "@/lib/volunteer-launch-content"
-
-// should be in own components folder but chose not to, to to minimize mental effort while prototyping
-// ALSO NO LANGUAGE TRANSLATION FOR THE SAME REASON STATED ABOVE
+import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
 
 const fallbackBars: HomeBarContent[] = [
     {
@@ -46,120 +43,12 @@ const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
         timeZone: "Europe/Oslo",
     }).format(new Date(event.starts_at))
 
-function HomeGroups({ groups, locale }: { groups: LaunchGroupContent[]; locale: AppLocale }) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between">
-                <p>GRUPPER</p>
-                <Link href={`/${locale}/blifrivillig`}>SE MER</Link>
-            </Card>
-
-            <div className="grid grid-cols-3 gap-4">
-                {groups.map(group => {
-                    return (
-                        <Link
-                            className="flex flex-col gap-1"
-                            key={group.slug}
-                            href={`/${locale}/blifrivillig/${group.slug}`}
-                        >
-                            <Card className="h-24 bg-gray-200 overflow-hidden relative">
-                                {group.imageUrl && (
-                                    <Image
-                                        src={group.imageUrl}
-                                        alt={group.name ?? ""}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                )}
-                            </Card>
-                            <p className="font-bold">{group.name}</p>
-                            <p className="text-xs lg:text-base">{group.lead}</p>
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-function HomeBars({ bars, locale }: { bars: HomeBarContent[]; locale: AppLocale }) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between">
-                <p>BARER</p>
-                <Link href={`/${locale}/home`}>SE MER</Link>
-            </Card>
-
-            <div className="flex flex-col pt-4 gap-12">
-                {bars.map((bar, i) => {
-                    return (
-                        <div className="flex flex-col gap-4" key={i}>
-                            <h3 className="text-center text-xl">{bar.name}</h3>
-                            <div className="h-0.5 bg-destructive" />
-                            <div className="flex gap-4">
-                                <div className="h-48 bg-gray-200 flex-1 relative overflow-hidden">
-                                    {bar.imageUrl && (
-                                        <Image
-                                            src={bar.imageUrl}
-                                            alt={bar.name ?? ""}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    )}
-                                </div>
-                                <p className="flex-1 lg:flex-2 text-xs md:text-sm lg:text-base whitespace-pre-wrap">
-                                    {bar.description}
-                                </p>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-function HomeEvents({ events, locale }: { events: EventDetail[]; locale: AppLocale }) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between">
-                <p>ARRANGEMENTER</p>
-                <Link href={`/${locale}/arrangementer`}>SE MER</Link>
-            </Card>
-
-            <div className="flex w-full gap-4">
-                {events.map(event => {
-                    return (
-                        <Link key={event.id} className="flex-1 " href={`/${locale}/arrangementer`}>
-                            <Card className="h-24 bg-gray-200 overflow-hidden relative">
-                                {event.image_url && (
-                                    <Image
-                                        src={event.image_url}
-                                        alt={event.title}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                )}
-                            </Card>
-                            <div className="flex justify-between pt-2 text-xs">
-                                <p>{event.event_type?.name ?? ""}</p>
-                                <p>{formatEventDate(event, locale)}</p>
-                            </div>
-                            <p className="text-lg">{event.title}</p>
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
 export default async function HomePage({ params }: PageProps<"/[locale]/home/forslag1">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
     const [bars, groups, eventsResult] = await Promise.all([
         fetchHomeBars(locale),
-        getLaunchGroups(locale),
+        getVolunteerGroups(locale),
         getPublicEvents(locale),
     ])
     const visibleBars = bars.length > 0 ? bars : fallbackBars
@@ -201,6 +90,123 @@ export default async function HomePage({ params }: PageProps<"/[locale]/home/for
                 <HomeBars bars={visibleBars} locale={locale} />
 
                 <HomeGroups groups={groups} locale={locale} />
+            </div>
+        </div>
+    )
+}
+
+interface HomeEventsProps {
+    events: EventDetail[]
+    locale: AppLocale
+}
+
+function HomeEvents({ events, locale }: HomeEventsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>ARRANGEMENTER</p>
+                <Link href={`/${locale}/arrangementer`}>SE MER</Link>
+            </Card>
+
+            <div className="flex w-full gap-4">
+                {events.map(event => (
+                    <Link className="flex-1" href={`/${locale}/arrangementer`} key={event.id}>
+                        <Card className="relative h-24 overflow-hidden bg-gray-200">
+                            {event.image_url && (
+                                <Image
+                                    alt={event.title}
+                                    className="object-cover"
+                                    fill
+                                    src={event.image_url}
+                                />
+                            )}
+                        </Card>
+                        <div className="flex justify-between pt-2 text-xs">
+                            <p>{event.event_type?.name ?? ""}</p>
+                            <p>{formatEventDate(event, locale)}</p>
+                        </div>
+                        <p className="text-lg">{event.title}</p>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+interface HomeBarsProps {
+    bars: HomeBarContent[]
+    locale: AppLocale
+}
+
+function HomeBars({ bars, locale }: HomeBarsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>BARER</p>
+                <Link href={`/${locale}/home`}>SE MER</Link>
+            </Card>
+
+            <div className="flex flex-col gap-12 pt-4">
+                {bars.map(bar => (
+                    <div className="flex flex-col gap-4" key={bar.name}>
+                        <h3 className="text-center text-xl">{bar.name}</h3>
+                        <div className="h-0.5 bg-destructive" />
+                        <div className="flex gap-4">
+                            <div className="relative h-48 flex-1 overflow-hidden bg-gray-200">
+                                {bar.imageUrl && (
+                                    <Image
+                                        alt={bar.name ?? ""}
+                                        className="object-cover"
+                                        fill
+                                        src={bar.imageUrl}
+                                    />
+                                )}
+                            </div>
+                            <p className="flex-1 whitespace-pre-wrap text-xs md:text-sm lg:flex-2 lg:text-base">
+                                {bar.description}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+interface HomeGroupsProps {
+    groups: VolunteerGroupContent[]
+    locale: AppLocale
+}
+
+function HomeGroups({ groups, locale }: HomeGroupsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>GRUPPER</p>
+                <Link href={`/${locale}/grupper`}>SE MER</Link>
+            </Card>
+
+            <div className="grid grid-cols-3 gap-4">
+                {groups.map(group => (
+                    <Link
+                        className="flex flex-col gap-1"
+                        href={`/${locale}/grupper/${group.slug}`}
+                        key={group.slug}
+                    >
+                        <Card className="relative h-24 overflow-hidden bg-gray-200">
+                            {group.imageUrl && (
+                                <Image
+                                    alt={group.name ?? ""}
+                                    className="object-cover"
+                                    fill
+                                    src={group.imageUrl}
+                                />
+                            )}
+                        </Card>
+                        <p className="font-bold">{group.name}</p>
+                        <p className="text-xs lg:text-base">{group.lead}</p>
+                    </Link>
+                ))}
             </div>
         </div>
     )

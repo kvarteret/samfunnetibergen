@@ -11,7 +11,7 @@ export const room = defineType({
         { name: "info", title: "Info", default: true },
         { name: "menu", title: "Meny" },
         { name: "specs", title: "Tekniske specs" },
-        { name: "hours", title: "Åpningstider" },
+        { name: "hours", title: "Åpningstid" },
         { name: "media", title: "Bilder" },
     ],
     fields: [
@@ -40,12 +40,11 @@ export const room = defineType({
             validation: rule => rule.required(),
         }),
         defineField({
-            name: "sections",
-            title: "Informasjon",
+            name: "body",
+            title: "Fullstendig beskrivelse",
             description: "Utdypende tekst om rommet",
-            type: "array",
+            type: "portableTextContent",
             group: "info",
-            of: [defineArrayMember({ type: "editorialSection" })],
         }),
         defineField({
             name: "menu",

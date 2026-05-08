@@ -79,41 +79,7 @@ export const structure: StructureResolver = (S, context) =>
             S.listItem()
                 .title("Frivilligfordeler (internbevis)")
                 .icon(StarIcon)
-                .child(
-                    S.list()
-                        .title("Frivilligfordeler")
-                        .items([
-                            S.listItem()
-                                .title("Trinn 1 – Arg")
-                                .child(
-                                    S.documentList()
-                                        .title("Trinn 1 – Arg")
-                                        .filter(
-                                            '_type == "internbevisBenefit" && tier == "trinn1"',
-                                        ),
-                                ),
-                            S.listItem()
-                                .title("Trinn 2 – Dorg")
-                                .child(
-                                    S.documentList()
-                                        .title("Trinn 2 – Dorg")
-                                        .filter(
-                                            '_type == "internbevisBenefit" && tier == "trinn2"',
-                                        ),
-                                ),
-                            S.listItem()
-                                .title("Trinn 3 – Borg")
-                                .child(
-                                    S.documentList()
-                                        .title("Trinn 3 – Borg")
-                                        .filter(
-                                            '_type == "internbevisBenefit" && tier == "trinn3"',
-                                        ),
-                                ),
-                            S.divider(),
-                            S.documentTypeListItem("internbevisBenefit").title("Alle fordeler"),
-                        ]),
-                ),
+                .child(S.documentTypeList("internbevisBenefit").title("Frivilligfordeler")),
 
             S.divider(),
 

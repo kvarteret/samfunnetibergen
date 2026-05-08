@@ -4,85 +4,11 @@ import { PortableText } from "next-sanity"
 
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchPageBySlug, fetchPageSlugs } from "@/lib/sanity/queries"
-import type { PageContent } from "@/lib/sanity/types"
 
 export const revalidate = 300
 
 type PageProps = {
     params: Promise<{ locale: string; slug: string }>
-}
-
-type PortableTextBlock = {
-    _key: string
-    _type: string
-    [key: string]: unknown
-}
-
-type Span = {
-    _key: string
-    _type: "span"
-    text: string
-    marks?: string[]
-}
-
-function textBlock(key: string, style: string, text: string): PortableTextBlock {
-    return {
-        _key: key,
-        _type: "block",
-        style,
-        markDefs: [],
-        children: [{ _key: `${key}-span`, _type: "span", text, marks: [] } satisfies Span],
-    }
-}
-
-function normalizeLegacyBlock(block: PortableTextBlock): PortableTextBlock[] {
-    if (block._type === "block" || block._type === "image") {
-        return [block]
-    }
-
-    if (block._type === "heroBlock") {
-        return [
-            typeof block.eyebrow === "string" ? textBlock(`${block._key}-eyebrow`, "normal", block.eyebrow) : null,
-            typeof block.title === "string" ? textBlock(`${block._key}-title`, "h1", block.title) : null,
-            typeof block.lead === "string" ? textBlock(`${block._key}-lead`, "normal", block.lead) : null,
-            typeof block.imageUrl === "string"
-                ? {
-                      _key: `${block._key}-image`,
-                      _type: "image",
-                      imageUrl: block.imageUrl,
-                      alt: typeof block.title === "string" ? block.title : "",
-                  }
-                : null,
-        ].filter((item): item is PortableTextBlock => item != null)
-    }
-
-    if (block._type === "richTextBlock" || block._type === "calloutBlock") {
-        const content = Array.isArray(block.content) ? (block.content as PortableTextBlock[]) : []
-        return [
-            typeof block.title === "string" ? textBlock(`${block._key}-title`, "h2", block.title) : null,
-            ...content,
-        ].filter((item): item is PortableTextBlock => item != null)
-    }
-
-    if (block._type === "imageBlock") {
-        return typeof block.imageUrl === "string"
-            ? [
-                  {
-                      _key: block._key,
-                      _type: "image",
-                      imageUrl: block.imageUrl,
-                      alt: typeof block.alt === "string" ? block.alt : "",
-                      caption: block.caption,
-                  },
-              ]
-            : []
-    }
-
-    return []
-}
-
-function normalizePageBuilder(pageBuilder: PageContent["pageBuilder"]) {
-    return (pageBuilder ?? []).flatMap(block => normalizeLegacyBlock(block as PortableTextBlock))
 }
 
 export async function generateStaticParams() {
@@ -100,6 +26,21 @@ export async function generateMetadata({ params }: PageProps) {
         title: `${page.seoTitle ?? page.title} | Samfunnet i Bergen`,
         description: page.seoDescription ?? undefined,
     }
+}
+
+export default async function DynamicPage({ params }: PageProps) {
+    const { slug, locale: localeParam } = await params
+    const locale = await resolvePageLocale(Promise.resolve({ locale: localeParam }))
+    activateRequestLocale(locale)
+
+    const page = await fetchPageBySlug(slug)
+    if (!page) notFound()
+
+    return (
+        <div className="max-w-4xl space-y-8">
+            <PortableText components={portableTextComponents} value={page.content ?? []} />
+        </div>
+    )
 }
 
 const portableTextComponents = {
@@ -153,7 +94,9 @@ const portableTextComponents = {
     },
     list: {
         bullet: ({ children }: { children?: React.ReactNode }) => (
-            <ul className="ml-6 list-disc space-y-2 text-lg leading-8 text-foreground">{children}</ul>
+            <ul className="ml-6 list-disc space-y-2 text-lg leading-8 text-foreground">
+                {children}
+            </ul>
         ),
         number: ({ children }: { children?: React.ReactNode }) => (
             <ol className="ml-6 list-decimal space-y-2 text-lg leading-8 text-foreground">
@@ -187,21 +130,4 @@ const portableTextComponents = {
             )
         },
     },
-}
-
-export default async function DynamicPage({ params }: PageProps) {
-    const { slug, locale: localeParam } = await params
-    const locale = await resolvePageLocale(Promise.resolve({ locale: localeParam }))
-    activateRequestLocale(locale)
-
-    const page = await fetchPageBySlug(slug)
-    if (!page) notFound()
-
-    const pageBuilder = normalizePageBuilder(page.pageBuilder)
-
-    return (
-        <div className="max-w-4xl space-y-8">
-            <PortableText components={portableTextComponents} value={pageBuilder} />
-        </div>
-    )
 }

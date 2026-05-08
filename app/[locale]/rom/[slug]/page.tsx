@@ -1,17 +1,20 @@
-import { Check, Clock, ExternalLink, FileText, Users, X } from "lucide-react"
+import { Check, Clock, FileText, Users, X } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { PortableText } from "next-sanity"
 
 import { ImageCarousel } from "@/components/room/ImageCarousel"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/queries"
-import type { EditorialSection, RoomDetail, SourcedImage } from "@/lib/sanity/types"
+import type { SourcedImage } from "@/lib/sanity/types"
 
 export const revalidate = 300
 
 type RoomPageProps = {
     params: Promise<{ locale: string; slug: string }>
 }
+
+type Room = NonNullable<Awaited<ReturnType<typeof fetchRoomBySlug>>>
 
 export async function generateStaticParams() {
     const [locales, slugs] = await Promise.all([getLocaleStaticParams(), fetchRoomSlugs()])
@@ -40,39 +43,6 @@ export async function generateMetadata({ params }: RoomPageProps) {
     }
 }
 
-const DAY_LABELS: Record<string, string> = {
-    monday: "Mandag",
-    tuesday: "Tirsdag",
-    wednesday: "Onsdag",
-    thursday: "Torsdag",
-    friday: "Fredag",
-    saturday: "Lørdag",
-    sunday: "Søndag",
-}
-
-function BoolSpec({ label, value }: { label: string; value: boolean }) {
-    return (
-        <div className="flex gap-8 py-3">
-            <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                {label}
-            </dt>
-            <dd className="text-sm text-foreground">
-                {value ? (
-                    <span className="inline-flex items-center gap-1.5 text-foreground">
-                        <Check aria-hidden className="size-4 text-green-700 dark:text-green-400" />
-                        Ja
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1.5 text-foreground/40">
-                        <X aria-hidden className="size-4" />
-                        Nei
-                    </span>
-                )}
-            </dd>
-        </div>
-    )
-}
-
 export default async function RoomPage({ params }: RoomPageProps) {
     const { slug, locale: localeParam } = await params
     const locale = await resolvePageLocale(Promise.resolve({ locale: localeParam }))
@@ -90,30 +60,15 @@ export default async function RoomPage({ params }: RoomPageProps) {
             : []
     })
 
-    const hasCapacity = room.capacityStanding != null || room.capacitySeated != null
-    const hasSpecs =
-        room.floor != null ||
-        hasCapacity ||
-        room.suitedPurposes?.length ||
-        room.bar != null ||
-        room.hasSound != null ||
-        room.hasLighting != null ||
-        room.hasAV != null
-
-    const hasOpeningHours = (room.openingHours?.hours?.length ?? 0) > 0
-
     return (
         <article>
-            {/* Full-bleed carousel */}
             {carouselImages.length > 0 && (
                 <div className="-mx-6 sm:-mx-10 lg:-mx-14">
                     <ImageCarousel images={carouselImages} />
                 </div>
             )}
 
-            {/* Page content */}
             <div className="mt-8 space-y-10">
-                {/* Title block */}
                 <header className="space-y-3">
                     <Link
                         className="font-heading text-xs uppercase tracking-widest text-foreground/50 hover:text-foreground"
@@ -131,167 +86,229 @@ export default async function RoomPage({ params }: RoomPageProps) {
                     )}
                 </header>
 
-                {/* Editorial sections */}
-                {room.sections?.map((section: EditorialSection) => (
-                    <section className="max-w-2xl space-y-3" key={section._key}>
-                        {section.title && (
-                            <h2 className="font-heading text-2xl leading-tight text-foreground">
-                                {section.title}
-                            </h2>
-                        )}
-                        <div className="space-y-3 text-base leading-7 text-foreground/80">
-                            {section.paragraphs?.map((paragraph: string) => (
-                                <p key={paragraph}>{paragraph}</p>
-                            ))}
-                        </div>
-                        {section.links?.length ? (
-                            <div className="flex flex-wrap gap-3 pt-1">
-                                {section.links.map(
-                                    (link: {
-                                        _key: string
-                                        label: string | null
-                                        url: string | null
-                                    }) =>
-                                        link.url ? (
-                                            <a
-                                                className="inline-flex items-center gap-1.5 font-heading text-sm underline underline-offset-4"
-                                                href={link.url}
-                                                key={link._key}
-                                                rel="noreferrer"
-                                                target="_blank"
-                                            >
-                                                <ExternalLink aria-hidden className="size-3.5" />
-                                                {link.label}
-                                            </a>
-                                        ) : null,
-                                )}
-                            </div>
-                        ) : null}
-                    </section>
-                ))}
-
-                {/* Tech specs */}
-                {hasSpecs && (
-                    <section className="space-y-6">
-                        <hr className="border-border" />
-                        <dl className="max-w-md divide-y divide-border">
-                            {room.floor != null && (
-                                <div className="flex gap-8 py-3">
-                                    <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                                        Etasje
-                                    </dt>
-                                    <dd className="text-sm text-foreground">
-                                        {room.floor}. etasje
-                                    </dd>
-                                </div>
-                            )}
-                            {room.capacityStanding != null && (
-                                <div className="flex gap-8 py-3">
-                                    <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                                        Stående
-                                    </dt>
-                                    <dd className="flex items-center gap-1.5 text-sm text-foreground">
-                                        <Users
-                                            aria-hidden
-                                            className="size-3.5 text-foreground/40"
-                                        />
-                                        {room.capacityStanding} personer
-                                    </dd>
-                                </div>
-                            )}
-                            {room.capacitySeated != null && (
-                                <div className="flex gap-8 py-3">
-                                    <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                                        Sittende
-                                    </dt>
-                                    <dd className="flex items-center gap-1.5 text-sm text-foreground">
-                                        <Users
-                                            aria-hidden
-                                            className="size-3.5 text-foreground/40"
-                                        />
-                                        {room.capacitySeated} personer
-                                    </dd>
-                                </div>
-                            )}
-                            {room.suitedPurposes?.length ? (
-                                <div className="flex gap-8 py-3">
-                                    <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                                        Passer til
-                                    </dt>
-                                    <dd className="text-sm text-foreground">
-                                        {room.suitedPurposes.join(", ")}
-                                    </dd>
-                                </div>
-                            ) : null}
-                            {room.bar != null && (
-                                <div className="flex gap-8 py-3">
-                                    <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-                                        Bar
-                                    </dt>
-                                    <dd className="text-sm text-foreground">
-                                        {room.bar ? room.bar : "Nei"}
-                                    </dd>
-                                </div>
-                            )}
-                            {room.hasSound != null && (
-                                <BoolSpec label="Lyd" value={room.hasSound} />
-                            )}
-                            {room.hasLighting != null && (
-                                <BoolSpec label="Lys" value={room.hasLighting} />
-                            )}
-                            {room.hasAV != null && <BoolSpec label="A/V" value={room.hasAV} />}
-                        </dl>
-
-                        {room.specsUrl && (
-                            <a
-                                className="inline-flex items-center gap-2 border-2 border-border bg-card px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
-                                href={room.specsUrl}
-                                rel="noreferrer"
-                                target="_blank"
-                            >
-                                Tekniske spesifikasjoner
-                                <FileText aria-hidden className="size-4" />
-                            </a>
-                        )}
+                {room.body && room.body.length > 0 && (
+                    <section className="max-w-2xl space-y-3">
+                        <PortableText components={portableTextComponents} value={room.body} />
                     </section>
                 )}
 
-                {/* Opening hours */}
-                {hasOpeningHours && (
-                    <section className="space-y-4">
-                        <h2 className="flex items-center gap-2 font-heading text-lg text-foreground">
-                            <Clock aria-hidden className="size-4" />
-                            Åpningstider
-                        </h2>
-                        {room.openingHours?.note && (
-                            <p className="text-sm text-foreground/60">{room.openingHours.note}</p>
-                        )}
-                        <dl className="max-w-xs divide-y divide-border">
-                            {room.openingHours?.hours?.map(
-                                (
-                                    entry: NonNullable<
-                                        NonNullable<RoomDetail["openingHours"]>["hours"]
-                                    >[number],
-                                ) => (
-                                    <div
-                                        className="flex justify-between py-2 text-sm"
-                                        key={entry._key}
-                                    >
-                                        <dt className="font-heading text-foreground">
-                                            {DAY_LABELS[entry.day ?? ""] ?? entry.day}
-                                        </dt>
-                                        <dd className="text-foreground/70">
-                                            {entry.closed
-                                                ? "Stengt"
-                                                : `${entry.opens ?? "?"} – ${entry.closes ?? "?"}`}
-                                        </dd>
-                                    </div>
-                                ),
-                            )}
-                        </dl>
-                    </section>
-                )}
+                <RoomSpecs room={room} />
+                <RoomOpeningHours room={room} />
             </div>
         </article>
     )
+}
+
+interface RoomSpecsProps {
+    room: Room
+}
+
+function RoomSpecs({ room }: RoomSpecsProps) {
+    const hasCapacity = room.capacityStanding != null || room.capacitySeated != null
+    const hasSpecs =
+        room.floor != null ||
+        hasCapacity ||
+        room.suitedPurposes?.length ||
+        room.bar != null ||
+        room.hasSound != null ||
+        room.hasLighting != null ||
+        room.hasAV != null
+
+    if (!hasSpecs) {
+        return null
+    }
+
+    return (
+        <section className="space-y-6">
+            <hr className="border-border" />
+            <dl className="max-w-md divide-y divide-border">
+                {room.floor != null && (
+                    <SpecRow label="Etasje">
+                        <dd className="text-sm text-foreground">{room.floor}. etasje</dd>
+                    </SpecRow>
+                )}
+                {room.capacityStanding != null && (
+                    <SpecRow label="Stående">
+                        <dd className="flex items-center gap-1.5 text-sm text-foreground">
+                            <Users aria-hidden className="size-3.5 text-foreground/40" />
+                            {room.capacityStanding} personer
+                        </dd>
+                    </SpecRow>
+                )}
+                {room.capacitySeated != null && (
+                    <SpecRow label="Sittende">
+                        <dd className="flex items-center gap-1.5 text-sm text-foreground">
+                            <Users aria-hidden className="size-3.5 text-foreground/40" />
+                            {room.capacitySeated} personer
+                        </dd>
+                    </SpecRow>
+                )}
+                {room.suitedPurposes?.length ? (
+                    <SpecRow label="Passer til">
+                        <dd className="text-sm text-foreground">
+                            {room.suitedPurposes.join(", ")}
+                        </dd>
+                    </SpecRow>
+                ) : null}
+                {room.bar != null && (
+                    <SpecRow label="Bar">
+                        <dd className="text-sm text-foreground">{room.bar ? room.bar : "Nei"}</dd>
+                    </SpecRow>
+                )}
+                {room.hasSound != null && <BoolSpec label="Lyd" value={room.hasSound} />}
+                {room.hasLighting != null && <BoolSpec label="Lys" value={room.hasLighting} />}
+                {room.hasAV != null && <BoolSpec label="A/V" value={room.hasAV} />}
+            </dl>
+
+            {room.specsUrl && (
+                <a
+                    className="inline-flex items-center gap-2 border-2 border-border bg-card px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
+                    href={room.specsUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                >
+                    Tekniske spesifikasjoner
+                    <FileText aria-hidden className="size-4" />
+                </a>
+            )}
+        </section>
+    )
+}
+
+interface SpecRowProps {
+    children: React.ReactNode
+    label: string
+}
+
+function SpecRow({ children, label }: SpecRowProps) {
+    return (
+        <div className="flex gap-8 py-3">
+            <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
+                {label}
+            </dt>
+            {children}
+        </div>
+    )
+}
+
+interface BoolSpecProps {
+    label: string
+    value: boolean
+}
+
+function BoolSpec({ label, value }: BoolSpecProps) {
+    return (
+        <SpecRow label={label}>
+            <dd className="text-sm text-foreground">
+                {value ? (
+                    <span className="inline-flex items-center gap-1.5 text-foreground">
+                        <Check aria-hidden className="size-4 text-green-700 dark:text-green-400" />
+                        Ja
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1.5 text-foreground/40">
+                        <X aria-hidden className="size-4" />
+                        Nei
+                    </span>
+                )}
+            </dd>
+        </SpecRow>
+    )
+}
+
+interface RoomOpeningHoursProps {
+    room: Room
+}
+
+function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
+    if (!room.openingHours?.rows?.length) {
+        return null
+    }
+
+    return (
+        <section className="space-y-4">
+            <h2 className="flex items-center gap-2 font-heading text-lg text-foreground">
+                <Clock aria-hidden className="size-4" />
+                Åpningstider
+            </h2>
+            <dl className="max-w-md divide-y divide-border">
+                {room.openingHours.rows.map(row => (
+                    <div
+                        className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                        key={row._key}
+                    >
+                        <dt className="font-heading text-foreground">{row.label}</dt>
+                        <dd className="text-foreground/70">
+                            {row.closed
+                                ? "Stengt"
+                                : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
+                            {row.note && (
+                                <span className="mt-1 block text-foreground/60">{row.note}</span>
+                            )}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+        </section>
+    )
+}
+
+const portableTextComponents = {
+    block: {
+        h2: ({ children }: { children?: React.ReactNode }) => (
+            <h2 className="font-heading text-2xl leading-tight text-foreground">{children}</h2>
+        ),
+        h3: ({ children }: { children?: React.ReactNode }) => (
+            <h3 className="font-heading text-xl leading-tight text-foreground">{children}</h3>
+        ),
+        h4: ({ children }: { children?: React.ReactNode }) => (
+            <h4 className="font-heading text-lg leading-tight text-foreground">{children}</h4>
+        ),
+        normal: ({ children }: { children?: React.ReactNode }) => (
+            <p className="text-base leading-7 text-foreground/80">{children}</p>
+        ),
+        blockquote: ({ children }: { children?: React.ReactNode }) => (
+            <blockquote className="border-l-4 border-primary pl-4 text-base leading-7 italic text-foreground/80">
+                {children}
+            </blockquote>
+        ),
+    },
+    list: {
+        bullet: ({ children }: { children?: React.ReactNode }) => (
+            <ul className="ml-6 list-disc space-y-2 text-base leading-7 text-foreground/80">
+                {children}
+            </ul>
+        ),
+        number: ({ children }: { children?: React.ReactNode }) => (
+            <ol className="ml-6 list-decimal space-y-2 text-base leading-7 text-foreground/80">
+                {children}
+            </ol>
+        ),
+    },
+    listItem: {
+        bullet: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
+        number: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
+    },
+    marks: {
+        link: ({
+            children,
+            value,
+        }: {
+            children?: React.ReactNode
+            value?: { href?: string; blank?: boolean }
+        }) => {
+            if (!value?.href) return children
+
+            return (
+                <a
+                    className="underline underline-offset-4"
+                    href={value.href}
+                    rel={value.blank ? "noreferrer" : undefined}
+                    target={value.blank ? "_blank" : undefined}
+                >
+                    {children}
+                </a>
+            )
+        },
+    },
 }

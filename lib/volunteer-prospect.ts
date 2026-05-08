@@ -1,5 +1,5 @@
 import { isValidEmailAddress } from "@/lib/contact"
-import type { LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 
 export type VolunteerProspectField =
     | "firstName"
@@ -18,8 +18,8 @@ export type VolunteerProspectValues = {
     phone: string
     studyInstitution: string
     backgroundDetails: string
-    firstChoiceGroupSlug: LaunchGroupSlug | ""
-    secondChoiceGroupSlug: LaunchGroupSlug | ""
+    firstChoiceGroupSlug: VolunteerGroupSlug | ""
+    secondChoiceGroupSlug: VolunteerGroupSlug | ""
 }
 
 export type VolunteerProspectResponse = {

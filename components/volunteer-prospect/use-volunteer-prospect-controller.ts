@@ -5,8 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { posthog } from "posthog-js"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { resolveInitialLaunchGroupSlug } from "@/lib/volunteer-groups"
-import type { LaunchGroupContent, LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 import {
     defaultVolunteerProspectValues,
     loadVolunteerProspectDraft,
@@ -21,8 +20,7 @@ import {
 import type { VolunteerFormMessage } from "./shared"
 
 type UseVolunteerProspectControllerProps = {
-    groups: LaunchGroupContent[]
-    initialGroupSlug?: string
+    groups: VolunteerGroupContent[]
     invalidFormMessage: string
     locale: string
     submitErrorFallback: string
@@ -32,7 +30,6 @@ type UseVolunteerProspectControllerProps = {
 
 export function useVolunteerProspectController({
     groups,
-    initialGroupSlug,
     invalidFormMessage,
     locale,
     submitErrorFallback,
@@ -40,18 +37,17 @@ export function useVolunteerProspectController({
     validationMessages,
 }: UseVolunteerProspectControllerProps) {
     const [formMessage, setFormMessage] = useState<VolunteerFormMessage | null>(null)
-    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<LaunchGroupSlug | null>(null)
+    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<VolunteerGroupSlug | null>(
+        null,
+    )
     const hasRestoredDraftRef = useRef(false)
     const hasStartedFormRef = useRef(false)
 
     const initialValues = useMemo<VolunteerProspectValues>(() => {
-        const resolvedInitialGroup = resolveInitialLaunchGroupSlug(groups, initialGroupSlug)
-
         return {
             ...defaultVolunteerProspectValues,
-            firstChoiceGroupSlug: resolvedInitialGroup ?? "",
         }
-    }, [groups, initialGroupSlug])
+    }, [])
 
     const form = useForm({
         defaultValues: initialValues,
@@ -167,13 +163,11 @@ export function useVolunteerProspectController({
 
     function restoreDraftIntoForm() {
         const draft = loadVolunteerProspectDraft()
-        const resolvedInitialGroup =
-            resolveInitialLaunchGroupSlug(groups, initialGroupSlug) ?? draft.firstChoiceGroupSlug
 
         form.reset({
             ...defaultVolunteerProspectValues,
             ...draft,
-            firstChoiceGroupSlug: resolvedInitialGroup || "",
+            firstChoiceGroupSlug: draft.firstChoiceGroupSlug || "",
         })
         hasRestoredDraftRef.current = true
     }
@@ -224,7 +218,7 @@ export function useVolunteerProspectController({
 
     useEffect(() => {
         restoreDraftIntoForm()
-    }, [form, groups, initialGroupSlug])
+    }, [form, groups])
 
     useEffect(() => {
         persistDraftToLocalStorage()
@@ -253,7 +247,7 @@ export function useVolunteerProspectController({
         setFormMessage(null)
     }
 
-    function selectPrimaryGroup(slug: LaunchGroupSlug) {
+    function selectPrimaryGroup(slug: VolunteerGroupSlug) {
         posthog.capture("volunteer_group_selected", {
             group_slug: slug,
             choice: "first",
@@ -279,7 +273,7 @@ export function useVolunteerProspectController({
         }
     }
 
-    function applyChoice(slug: LaunchGroupSlug, target: "first" | "second") {
+    function applyChoice(slug: VolunteerGroupSlug, target: "first" | "second") {
         posthog.capture("volunteer_group_selected", {
             group_slug: slug,
             choice: target,

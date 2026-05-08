@@ -11,7 +11,6 @@
         "studio:deploy": "sanity deploy",
         "studio:register": "sanity deploy --external",
         "studio:seed": "sanity exec scripts/seed-sanity-content.mjs --with-user-token",
-        "studio:migrate-page-builder": "node scripts/migrate-page-builder-to-portable-text.mjs",
         "sanity:typegen": "sanity schema extract --path .sanity/schema.json && sanity typegen generate",
         "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
         "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",

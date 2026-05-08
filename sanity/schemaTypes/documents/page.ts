@@ -27,8 +27,8 @@ export const page = defineType({
             validation: rule => rule.required(),
         }),
         defineField({
-            name: "pageBuilder",
-            title: "Sidebygger",
+            name: "content",
+            title: "Innhold",
             type: "portableTextContent",
             group: "content",
         }),

@@ -21,21 +21,25 @@ const sourcedImageProjection = `{
     caption
 }`
 
+const durationProjection = `{
+    start,
+    end
+}`
+
 const openingHoursProjection = `{
-    note,
-    hours[] {
+    rows[] {
         _key,
-        day,
-        opens,
-        closes,
-        closed
+        label,
+        closed,
+        note,
+        "duration": duration ${durationProjection}
     }
 }`
 
-// ─── Legacy volunteer / home content (blifrivillig – kept for compat) ────────
+// ─── Volunteer content ───────────────────────────────────────────────────────
 
-export const launchGroupsNbQuery =
-    defineQuery(`*[_type == "launchGroup"] | order(orderRank asc, order asc, _createdAt asc) {
+export const volunteerGroupsNbQuery =
+    defineQuery(`*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {
     slug,
     "name": nameNb,
     "eyebrow": eyebrowNb,
@@ -51,8 +55,8 @@ export const launchGroupsNbQuery =
     }
 }`)
 
-export const launchGroupsEnQuery =
-    defineQuery(`*[_type == "launchGroup"] | order(orderRank asc, order asc, _createdAt asc) {
+export const volunteerGroupsEnQuery =
+    defineQuery(`*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {
     slug,
     "name": nameEn,
     "eyebrow": eyebrowEn,
@@ -82,14 +86,14 @@ export const volunteerGroupSummariesEnQuery =
 
 // ─── Home page ───────────────────────────────────────────────────────────────
 
-export const homePageContentNbQuery = defineQuery(`*[_id == "homePage"][0] {
+export const homePageContentNbQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
     "badge": badgeNb,
     "heroDescription": heroDescriptionNb,
     "heroDescriptionFusion": heroDescriptionFusionNb,
     "eventsLink": eventsLinkNb
 }`)
 
-export const homePageContentEnQuery = defineQuery(`*[_id == "homePage"][0] {
+export const homePageContentEnQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
     "badge": badgeEn,
     "heroDescription": heroDescriptionEn,
     "heroDescriptionFusion": heroDescriptionFusionEn,
@@ -98,13 +102,15 @@ export const homePageContentEnQuery = defineQuery(`*[_id == "homePage"][0] {
 
 // ─── Events page ─────────────────────────────────────────────────────────────
 
-export const eventsPageContentNbQuery = defineQuery(`*[_id == "eventsPage"][0] {
+export const eventsPageContentNbQuery =
+    defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
     "eyebrow": eyebrowNb,
     "title": titleNb,
     "description": descriptionNb
 }`)
 
-export const eventsPageContentEnQuery = defineQuery(`*[_id == "eventsPage"][0] {
+export const eventsPageContentEnQuery =
+    defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
     "eyebrow": eyebrowEn,
     "title": titleEn,
     "description": descriptionEn
@@ -112,7 +118,8 @@ export const eventsPageContentEnQuery = defineQuery(`*[_id == "eventsPage"][0] {
 
 // ─── Site metadata ────────────────────────────────────────────────────────────
 
-export const siteMetadataNbQuery = defineQuery(`*[_id == "siteMetadata"][0] {
+export const siteMetadataNbQuery =
+    defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
     "siteTitle": siteTitleNb,
     "siteDescription": siteDescriptionNb,
     "homeTitle": homeTitleNb,
@@ -125,7 +132,8 @@ export const siteMetadataNbQuery = defineQuery(`*[_id == "siteMetadata"][0] {
     "groupPageDescription": groupPageDescriptionNb
 }`)
 
-export const siteMetadataEnQuery = defineQuery(`*[_id == "siteMetadata"][0] {
+export const siteMetadataEnQuery =
+    defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
     "siteTitle": siteTitleEn,
     "siteDescription": siteDescriptionEn,
     "homeTitle": homeTitleEn,
@@ -140,13 +148,15 @@ export const siteMetadataEnQuery = defineQuery(`*[_id == "siteMetadata"][0] {
 
 // ─── Blifrivillig page ────────────────────────────────────────────────────────
 
-export const blifrivilligPageNbQuery = defineQuery(`*[_id == "blifrivilligPage"][0] {
+export const blifrivilligPageNbQuery =
+    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {
     "title": titleNb,
     "seoDescription": seoDescription,
     "description": description[]
 }`)
 
-export const blifrivilligPageEnQuery = defineQuery(`*[_id == "blifrivilligPage"][0] {
+export const blifrivilligPageEnQuery =
+    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {
     "title": titleEn,
     "seoDescription": seoDescription,
     "description": description[]
@@ -168,7 +178,7 @@ export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(orderR
 
 // ─── Rooms ────────────────────────────────────────────────────────────────────
 
-export const roomsPageQuery = defineQuery(`*[_id == "roomsPage"][0] {
+export const roomsPageQuery = defineQuery(`*[_type == "roomsPage" && _id == "roomsPage"][0] {
     eyebrow,
     title,
     description,
@@ -212,13 +222,25 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
     hasAV,
     specsUrl,
     "openingHours": openingHours ${openingHoursProjection},
-    "sections": sections[] ${editorialSectionProjection},
+    body[] {
+        _key,
+        _type,
+        ...,
+        markDefs[] {
+            ...,
+        },
+        _type == "image" => {
+            "imageUrl": asset->url,
+            alt,
+            caption
+        }
+    },
     "images": images[] ${sourcedImageProjection}
 }`)
 
 // ─── Groups ───────────────────────────────────────────────────────────────────
 
-export const groupsPageQuery = defineQuery(`*[_id == "groupsPage"][0] {
+export const groupsPageQuery = defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
     eyebrow,
     title,
     description,
@@ -272,7 +294,7 @@ export const studentGroupBySlugQuery =
     "image": image ${sourcedImageProjection}
 }`)
 
-// ─── Pages (page builder) ─────────────────────────────────────────────────────
+// ─── Pages ───────────────────────────────────────────────────────────────────
 
 export const pageSlugsQuery = defineQuery(`*[_type == "page" && defined(slug.current)] {
     "slug": slug.current
@@ -284,7 +306,7 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
     "slug": slug.current,
     seoTitle,
     seoDescription,
-    pageBuilder[] {
+    content[] {
         _key,
         _type,
         ...,
@@ -295,41 +317,13 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
             "imageUrl": asset->url,
             alt,
             caption
-        },
-        // heroBlock
-        _type == "heroBlock" => {
-            eyebrow,
-            title,
-            lead,
-            "imageUrl": image.asset->url,
-            cta { label, url }
-        },
-        // richTextBlock
-        _type == "richTextBlock" => {
-            title,
-            content,
-            columns
-        },
-        // imageBlock
-        _type == "imageBlock" => {
-            "imageUrl": image.asset->url,
-            alt,
-            caption,
-            size
-        },
-        // calloutBlock
-        _type == "calloutBlock" => {
-            title,
-            content,
-            tone,
-            links[] { _key, label, url }
         }
     }
 }`)
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
-export const navbarQuery = defineQuery(`*[_id == "navbar"][0] {
+export const navbarQuery = defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {
     items[] {
         _key,
         label,

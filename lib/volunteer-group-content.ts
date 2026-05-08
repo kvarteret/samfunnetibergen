@@ -1,17 +1,17 @@
 import type { AppLocale } from "@/i18n/routing"
-import { fetchLaunchGroups, fetchVolunteerGroupSummaries } from "@/lib/sanity/queries"
+import { fetchVolunteerGroupSummaries, fetchVolunteerGroups } from "@/lib/sanity/queries"
 import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
 
-export type LaunchGroupSlug = string
+export type VolunteerGroupSlug = string
 
 type GroupSection = {
     title: string | null
     paragraphs: string[]
 }
 
-export type LaunchGroupContent = {
-    slug: LaunchGroupSlug
+export type VolunteerGroupContent = {
+    slug: VolunteerGroupSlug
     name: string | null
     eyebrow: string | null
     lead: string | null
@@ -34,15 +34,15 @@ export function getInstitutionOptions(locale: AppLocale): InstitutionOption[] {
     return messagesByLocale[locale].InstitutionOptions as InstitutionOption[]
 }
 
-export async function getLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
-    return fetchLaunchGroups(locale)
+export async function getVolunteerGroups(locale: AppLocale): Promise<VolunteerGroupContent[]> {
+    return fetchVolunteerGroups(locale)
 }
 
-export async function getLaunchGroupBySlug(
+export async function getVolunteerGroupBySlug(
     locale: AppLocale,
     slug: string,
-): Promise<LaunchGroupContent | undefined> {
-    const groups = await fetchLaunchGroups(locale)
+): Promise<VolunteerGroupContent | undefined> {
+    const groups = await fetchVolunteerGroups(locale)
     return groups.find(group => group.slug === slug)
 }
 

@@ -45,8 +45,8 @@ const groupSection = defineType({
     },
 })
 
-export const launchGroup = defineType({
-    name: "launchGroup",
+export const volunteerGroup = defineType({
+    name: "volunteerGroup",
     title: "Frivilliggruppe",
     type: "document",
     icon: UsersIcon,
@@ -135,7 +135,7 @@ export const launchGroup = defineType({
             readOnly: true,
             deprecated: { reason: "Bruk dra-og-slipp-sortering i Studio." },
         }),
-        orderRankField({ type: "launchGroup" }),
+        orderRankField({ type: "volunteerGroup" }),
     ],
     orderings: [orderRankOrdering],
     preview: {

@@ -243,9 +243,8 @@ export const internbevisBenefit = defineType({
             validation: rule => rule.required(),
         }),
         defineField({
-            name: "tier",
-            title: "Trinn",
-            description: "Hvilket frivilligtrinn denne fordelen gjelder for",
+            name: "minimumTier",
+            title: "Gyldig fra",
             type: "string",
             options: {
                 list: [
@@ -259,8 +258,8 @@ export const internbevisBenefit = defineType({
         }),
     ],
     preview: {
-        select: { title: "name", subtitle: "tier" },
-        prepare({ title, subtitle }) {
+        select: { title: "name", minimumTier: "minimumTier" },
+        prepare({ title, minimumTier }) {
             const tierLabels: Record<string, string> = {
                 trinn1: "Trinn 1",
                 trinn2: "Trinn 2",
@@ -268,7 +267,9 @@ export const internbevisBenefit = defineType({
             }
             return {
                 title: title ?? "Fordel",
-                subtitle: tierLabels[subtitle] ?? subtitle,
+                subtitle: minimumTier
+                    ? `Gyldig fra ${tierLabels[minimumTier]}`
+                    : "Gyldig fra mangler",
             }
         },
     },

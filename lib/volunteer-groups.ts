@@ -1,19 +1,9 @@
-import type { LaunchGroupContent, LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 
-export function resolveInitialLaunchGroupSlug(
-    groups: LaunchGroupContent[],
-    requestedGroup: string | string[] | undefined,
+export function getVolunteerGroupName(
+    groups: VolunteerGroupContent[],
+    slug: VolunteerGroupSlug | "",
 ) {
-    if (typeof requestedGroup !== "string") {
-        return undefined
-    }
-
-    return groups.some(group => group.slug === requestedGroup)
-        ? (requestedGroup as LaunchGroupSlug)
-        : undefined
-}
-
-export function getLaunchGroupName(groups: LaunchGroupContent[], slug: LaunchGroupSlug | "") {
     if (!slug) {
         return ""
     }

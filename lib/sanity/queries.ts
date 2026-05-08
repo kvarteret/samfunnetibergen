@@ -2,7 +2,7 @@ import "server-only"
 
 import type { ClientReturn } from "next-sanity"
 import type { AppLocale } from "@/i18n/routing"
-import type { LaunchGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-group-content"
 
 import { sanityClient } from "./client"
 import { sanityFetch } from "./live"
@@ -16,8 +16,6 @@ import {
     homeBarsNbQuery,
     homePageContentEnQuery,
     homePageContentNbQuery,
-    launchGroupsEnQuery,
-    launchGroupsNbQuery,
     navbarQuery,
     pageBySlugQuery,
     pageSlugsQuery,
@@ -33,6 +31,8 @@ import {
     studentGroupsQuery,
     volunteerGroupSummariesEnQuery,
     volunteerGroupSummariesNbQuery,
+    volunteerGroupsEnQuery,
+    volunteerGroupsNbQuery,
 } from "./query-definitions"
 import type {
     BlifrivilligPageContent,
@@ -68,13 +68,13 @@ export async function fetchBlifrivilligPage(
     return data
 }
 
-// ─── Volunteer / launch groups (blifrivillig – kept for compat) ──────────────
+// ─── Volunteer groups ────────────────────────────────────────────────────────
 
-export async function fetchLaunchGroups(locale: AppLocale): Promise<LaunchGroupContent[]> {
+export async function fetchVolunteerGroups(locale: AppLocale): Promise<VolunteerGroupContent[]> {
     const groups = await sanityClient.fetch(
-        locale === "en" ? launchGroupsEnQuery : launchGroupsNbQuery,
+        locale === "en" ? volunteerGroupsEnQuery : volunteerGroupsNbQuery,
         {},
-        { next: { revalidate: 300, tags: ["launchGroups"] } },
+        { next: { revalidate: 300, tags: ["volunteerGroups"] } },
     )
 
     return groups.flatMap(group => {

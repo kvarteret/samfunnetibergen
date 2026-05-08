@@ -48,8 +48,6 @@ export type BlifrivilligPageContent = NonNullable<ClientReturn<typeof blifrivill
 
 export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
 
-export type PageBlock = NonNullable<PageContent["pageBuilder"]>[number]
-
 export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
 
 export type NavItem = NonNullable<NavbarContent["items"]>[number]

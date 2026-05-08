@@ -1,7 +1,3 @@
-import { calloutBlock } from "./blocks/calloutBlock"
-import { heroBlock } from "./blocks/heroBlock"
-import { imageBlock } from "./blocks/imageBlock"
-import { richTextBlock } from "./blocks/richTextBlock"
 import { gruppe } from "./documents/gruppe"
 import { homeBar } from "./documents/homeBar"
 import { contactGroupSchema, contactPersonSchema, kontaktPage } from "./documents/kontaktPage"
@@ -19,12 +15,13 @@ import {
 } from "./documents/singletons"
 import {
     groupSectionSchema,
-    launchGroup,
+    volunteerGroup,
     volunteerGroupSummary,
 } from "./documents/volunteerContent"
+import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
 import { menuItem, menuSchema, menuSection } from "./objects/menu"
-import { openingHours, openingHoursDaySchema } from "./objects/openingHours"
+import { openingHours, openingHoursRow } from "./objects/openingHours"
 import { portableTextContent } from "./objects/portableText"
 import { sourcedImage } from "./objects/sourcedImage"
 import { sourceLink } from "./objects/sourceLink"
@@ -34,7 +31,9 @@ export const schemaTypes = [
     sourceLink,
     sourcedImage,
     editorialSection,
-    openingHoursDaySchema,
+    timeValue,
+    duration,
+    openingHoursRow,
     openingHours,
     portableTextContent,
     navItemSchema,
@@ -46,18 +45,12 @@ export const schemaTypes = [
     contactGroupSchema,
     internbevisBenefit,
 
-    // Page builder blocks
-    heroBlock,
-    richTextBlock,
-    imageBlock,
-    calloutBlock,
-
     // Documents
     room,
     gruppe,
     homeBar,
     kontaktPage,
-    launchGroup,
+    volunteerGroup,
     volunteerGroupSummary,
     page,
     navbar,
