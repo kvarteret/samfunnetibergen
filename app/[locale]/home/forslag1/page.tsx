@@ -8,6 +8,7 @@ import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchHomeBars } from "@/lib/sanity/queries"
 import type { HomeBarContent } from "@/lib/sanity/types"
 import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
+import ExpandableText from "../components/ExpandableText"
 
 const fallbackBars: HomeBarContent[] = [
     {
@@ -56,7 +57,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]/home/for
 
     return (
         <div
-            className="p-8 min-h-screen"
+            className="min-h-screen p-8"
             style={{
                 backgroundImage: `
                     linear-gradient(#FF6669 1px, transparent 1px),
@@ -65,14 +66,14 @@ export default async function HomePage({ params }: PageProps<"/[locale]/home/for
                 backgroundSize: "20px 20px",
             }}
         >
-            <div className="h-full bg-background border-1 border-destructive flex flex-col gap-8 pb-12">
+            <div className="flex h-full flex-col gap-8 border-1 border-destructive bg-background pb-12">
                 <header className="p-4 text-center text-xl">
                     <h1>STUDENTERSAMFUNNET I BERGEN</h1>
                 </header>
 
-                <div className="h-42 bg-gray-200 my-2 w-full"></div>
+                <div className="my-2 h-42 w-full bg-gray-200"></div>
 
-                <p className="text-center px-6">
+                <p className="px-6 text-center">
                     Studentersamfunnet i Bergen er byens eldste allmenne studentorgansisasjon og
                     Vestlandets største politisk uavhengige forum for samfunns- og kulturdebatt. Vi
                     er byens seudentkulturhus og holder til på Det akademiske Kvarter. Med over 100
@@ -81,7 +82,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]/home/for
                     interesse for allmennkulturelle spørsmål.&quot;
                 </p>
 
-                <Button className="bg-destructive w-32 m-auto" size={"lg"}>
+                <Button className="m-auto w-32 bg-destructive" size={"lg"}>
                     BLI FRIVILLIG
                 </Button>
 
@@ -151,8 +152,8 @@ function HomeBars({ bars, locale }: HomeBarsProps) {
                     <div className="flex flex-col gap-4" key={bar.name}>
                         <h3 className="text-center text-xl">{bar.name}</h3>
                         <div className="h-0.5 bg-destructive" />
-                        <div className="flex gap-4">
-                            <div className="relative h-48 flex-1 overflow-hidden bg-gray-200">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="relative h-48 overflow-hidden bg-gray-200">
                                 {bar.imageUrl && (
                                     <Image
                                         alt={bar.name ?? ""}
@@ -162,9 +163,7 @@ function HomeBars({ bars, locale }: HomeBarsProps) {
                                     />
                                 )}
                             </div>
-                            <p className="flex-1 whitespace-pre-wrap text-xs md:text-sm lg:flex-2 lg:text-base">
-                                {bar.description}
-                            </p>
+                            <ExpandableText text={bar.description} />
                         </div>
                     </div>
                 ))}
