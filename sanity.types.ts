@@ -46,7 +46,7 @@ export type PortableTextContent = Array<
       listItem?: "bullet" | "number";
       markDefs?: Array<{
         href?: string;
-        blank?: boolean;
+        target?: "self" | "blank";
         _type: "link";
         _key: string;
       }>;
@@ -479,7 +479,7 @@ export type NavItem = {
 export type OpeningHoursRow = {
   _type: "openingHoursRow";
   label?: string;
-  closed?: boolean;
+  status?: "open" | "closed";
   duration?: Duration;
   note?: string;
 };
@@ -835,7 +835,7 @@ export type BlifrivilligPageNbQueryResult = {
         listItem?: "bullet" | "number";
         markDefs?: Array<{
           href?: string;
-          blank?: boolean;
+          target?: "blank" | "self";
           _type: "link";
           _key: string;
         }>;
@@ -874,7 +874,7 @@ export type BlifrivilligPageEnQueryResult = {
         listItem?: "bullet" | "number";
         markDefs?: Array<{
           href?: string;
-          blank?: boolean;
+          target?: "blank" | "self";
           _type: "link";
           _key: string;
         }>;
@@ -969,7 +969,7 @@ export type RoomSlugsQueryResult = Array<{
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomBySlugQuery
-// Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    hasSound,    hasLighting,    hasAV,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        label,        closed,        note,        "duration": duration {    start,    end}    }},    body[] {        _key,        _type,        ...,        markDefs[] {            ...,        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    },    "images": images[] {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption}}
+// Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    hasSound,    hasLighting,    hasAV,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        label,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    body[] {        _key,        _type,        ...,        markDefs[] {            ...,            _type == "link" => {                ...,                "target": coalesce(target, select(blank == true => "blank", "self"))            }        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    },    "images": images[] {    _key,    "assetUrl": image.asset->url,    sourceUrl,    alt,    caption}}
 export type RoomBySlugQueryResult = {
   title: string | null;
   slug: string | null;
@@ -987,7 +987,7 @@ export type RoomBySlugQueryResult = {
     rows: Array<{
       _key: string;
       label: string | null;
-      closed: boolean | null;
+      status: "closed" | "open";
       note: string | null;
       duration: {
         start: TimeValue | null;
@@ -1009,7 +1009,7 @@ export type RoomBySlugQueryResult = {
         listItem?: "bullet" | "number";
         markDefs: Array<{
           href?: string;
-          blank?: boolean;
+          target: "blank" | "self";
           _type: "link";
           _key: string;
         }> | null;
@@ -1139,7 +1139,7 @@ export type PageSlugsQueryResult = Array<{
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: pageBySlugQuery
-// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    seoTitle,    seoDescription,    content[] {        _key,        _type,        ...,        markDefs[] {            ...,        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    }}
+// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    seoTitle,    seoDescription,    content[] {        _key,        _type,        ...,        markDefs[] {            ...,            _type == "link" => {                ...,                "target": coalesce(target, select(blank == true => "blank", "self"))            }        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    }}
 export type PageBySlugQueryResult = {
   _id: string;
   title: string | null;
@@ -1160,7 +1160,7 @@ export type PageBySlugQueryResult = {
         listItem?: "bullet" | "number";
         markDefs: Array<{
           href?: string;
-          blank?: boolean;
+          target: "blank" | "self";
           _type: "link";
           _key: string;
         }> | null;
@@ -1224,14 +1224,14 @@ declare module "@sanity/client" {
     '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    bookingLink {\n        label,\n        url\n    }\n}': RoomsPageQueryResult;
     '*[_type == "room"] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    hasLighting,\n    hasAV,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': RoomsQueryResult;
     '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult;
-    '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    hasLighting,\n    hasAV,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        label,\n        closed,\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    },\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': RoomBySlugQueryResult;
+    '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    hasLighting,\n    hasAV,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        label,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    },\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': RoomBySlugQueryResult;
     '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult;
     '*[_type == "studentGroup"] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupsQueryResult;
     '\n    *[_type == "studentGroup" && category == $category] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupsByCategoryResult;
     '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult;
     '*[_type == "studentGroup" && slug.current == $slug][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult;
     '*[_type == "page" && defined(slug.current)] {\n    "slug": slug.current\n}': PageSlugsQueryResult;
-    '*[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    seoTitle,\n    seoDescription,\n    content[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': PageBySlugQueryResult;
+    '*[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    seoTitle,\n    seoDescription,\n    content[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': PageBySlugQueryResult;
     '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult;
   }
 }

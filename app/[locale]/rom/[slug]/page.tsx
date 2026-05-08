@@ -1,10 +1,10 @@
 import { Check, Clock, FileText, Users, X } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { PortableText } from "next-sanity"
 
 import { ImageCarousel } from "@/components/room/ImageCarousel"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/queries"
 import type { SourcedImage } from "@/lib/sanity/types"
 
@@ -87,8 +87,8 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 </header>
 
                 {room.body && room.body.length > 0 && (
-                    <section className="max-w-2xl space-y-3">
-                        <PortableText components={portableTextComponents} value={room.body} />
+                    <section className="max-w-4xl space-y-8">
+                        <PortableTextContent value={room.body} />
                     </section>
                 )}
 
@@ -239,7 +239,7 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
                     >
                         <dt className="font-heading text-foreground">{row.label}</dt>
                         <dd className="text-foreground/70">
-                            {row.closed
+                            {row.status === "closed"
                                 ? "Stengt"
                                 : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
                             {row.note && (
@@ -251,64 +251,4 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
             </dl>
         </section>
     )
-}
-
-const portableTextComponents = {
-    block: {
-        h2: ({ children }: { children?: React.ReactNode }) => (
-            <h2 className="font-heading text-2xl leading-tight text-foreground">{children}</h2>
-        ),
-        h3: ({ children }: { children?: React.ReactNode }) => (
-            <h3 className="font-heading text-xl leading-tight text-foreground">{children}</h3>
-        ),
-        h4: ({ children }: { children?: React.ReactNode }) => (
-            <h4 className="font-heading text-lg leading-tight text-foreground">{children}</h4>
-        ),
-        normal: ({ children }: { children?: React.ReactNode }) => (
-            <p className="text-base leading-7 text-foreground/80">{children}</p>
-        ),
-        blockquote: ({ children }: { children?: React.ReactNode }) => (
-            <blockquote className="border-l-4 border-primary pl-4 text-base leading-7 italic text-foreground/80">
-                {children}
-            </blockquote>
-        ),
-    },
-    list: {
-        bullet: ({ children }: { children?: React.ReactNode }) => (
-            <ul className="ml-6 list-disc space-y-2 text-base leading-7 text-foreground/80">
-                {children}
-            </ul>
-        ),
-        number: ({ children }: { children?: React.ReactNode }) => (
-            <ol className="ml-6 list-decimal space-y-2 text-base leading-7 text-foreground/80">
-                {children}
-            </ol>
-        ),
-    },
-    listItem: {
-        bullet: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
-        number: ({ children }: { children?: React.ReactNode }) => <li>{children}</li>,
-    },
-    marks: {
-        link: ({
-            children,
-            value,
-        }: {
-            children?: React.ReactNode
-            value?: { href?: string; blank?: boolean }
-        }) => {
-            if (!value?.href) return children
-
-            return (
-                <a
-                    className="underline underline-offset-4"
-                    href={value.href}
-                    rel={value.blank ? "noreferrer" : undefined}
-                    target={value.blank ? "_blank" : undefined}
-                >
-                    {children}
-                </a>
-            )
-        },
-    },
 }

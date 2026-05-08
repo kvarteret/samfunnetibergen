@@ -30,7 +30,7 @@ const openingHoursProjection = `{
     rows[] {
         _key,
         label,
-        closed,
+        "status": coalesce(status, select(closed == true => "closed", "open")),
         note,
         "duration": duration ${durationProjection}
     }
@@ -228,6 +228,10 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
         ...,
         markDefs[] {
             ...,
+            _type == "link" => {
+                ...,
+                "target": coalesce(target, select(blank == true => "blank", "self"))
+            }
         },
         _type == "image" => {
             "imageUrl": asset->url,
@@ -312,6 +316,10 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
         ...,
         markDefs[] {
             ...,
+            _type == "link" => {
+                ...,
+                "target": coalesce(target, select(blank == true => "blank", "self"))
+            }
         },
         _type == "image" => {
             "imageUrl": asset->url,

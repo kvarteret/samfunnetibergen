@@ -34,10 +34,17 @@ export const portableTextContent = defineType({
                                     rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
                             },
                             {
-                                name: "blank",
-                                type: "boolean",
-                                title: "Åpne i ny fane",
-                                initialValue: false,
+                                name: "target",
+                                type: "string",
+                                title: "Åpning",
+                                initialValue: "self",
+                                options: {
+                                    list: [
+                                        { title: "Samme fane", value: "self" },
+                                        { title: "Ny fane", value: "blank" },
+                                    ],
+                                    layout: "radio",
+                                },
                             },
                         ],
                     },

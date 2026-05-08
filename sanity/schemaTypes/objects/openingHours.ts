@@ -14,21 +14,34 @@ export const openingHoursRow = defineType({
             validation: rule => rule.required(),
         }),
         defineField({
-            name: "closed",
-            title: "Stengt",
-            type: "boolean",
-            initialValue: false,
+            name: "status",
+            title: "Status",
+            type: "string",
+            initialValue: "open",
+            options: {
+                list: [
+                    { title: "Åpen", value: "open" },
+                    { title: "Stengt", value: "closed" },
+                ],
+                layout: "radio",
+            },
         }),
         defineField({
             name: "duration",
             title: "Tid",
             type: "duration",
-            hidden: ({ parent }) => Boolean(parent?.closed),
+            hidden: ({ parent }) => parent?.status === "closed" || parent?.closed === true,
             validation: rule =>
                 rule.custom((duration, context) => {
-                    const parent = context.parent as { closed?: boolean } | undefined
+                    const parent = context.parent as
+                        | { closed?: boolean; status?: string }
+                        | undefined
                     const value = duration as { start?: string; end?: string } | undefined
-                    if (parent?.closed || (value?.start && value?.end)) {
+                    if (
+                        parent?.status === "closed" ||
+                        parent?.closed === true ||
+                        (value?.start && value?.end)
+                    ) {
                         return true
                     }
                     return "Velg tidspunkt eller marker raden som stengt"
@@ -44,13 +57,15 @@ export const openingHoursRow = defineType({
     preview: {
         select: {
             label: "label",
+            status: "status",
             closed: "closed",
             start: "duration.start",
             end: "duration.end",
             note: "note",
         },
-        prepare({ label, closed, start, end, note }) {
-            const time = closed ? "Stengt" : `${start ?? "?"}-${end ?? "?"}`
+        prepare({ label, status, closed, start, end, note }) {
+            const time =
+                status === "closed" || closed === true ? "Stengt" : `${start ?? "?"}-${end ?? "?"}`
             return {
                 title: label ? `${label}: ${time}` : time,
                 subtitle: note,

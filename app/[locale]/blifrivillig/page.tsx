@@ -1,7 +1,6 @@
-import { PortableText } from "next-sanity"
-
 import { VolunteerProspectExperience } from "@/components/volunteer-prospect-experience"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchBlifrivilligPage } from "@/lib/sanity/queries"
 import { getInstitutionOptions, getVolunteerGroups } from "@/lib/volunteer-group-content"
 
@@ -29,11 +28,7 @@ export default async function BlifrivilligPage({ params }: PageProps<"/[locale]/
 
     return (
         <div className="flex flex-col gap-8">
-            {page?.description && page.description.length > 0 && (
-                <div className="prose prose-neutral max-w-none dark:prose-invert">
-                    <PortableText value={page.description} />
-                </div>
-            )}
+            <PortableTextContent value={page?.description ?? []} />
             <VolunteerProspectExperience
                 groups={groups}
                 hideHero
