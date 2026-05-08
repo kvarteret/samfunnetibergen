@@ -12,7 +12,6 @@ type MobileMenuProps = {
 
 export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
-    const navItems = items.length > 0 ? items : fallbackItems
 
     return (
         <>

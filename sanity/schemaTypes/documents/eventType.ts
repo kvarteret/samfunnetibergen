@@ -1,4 +1,5 @@
 import { TagIcon } from "@sanity/icons"
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
 import { defineField, defineType } from "sanity"
 
 export const eventType = defineType({
@@ -25,6 +26,7 @@ export const eventType = defineType({
             title: "Taksonomigruppe",
             type: "reference",
             to: [{ type: "eventTaxonomyGroup" }],
+            validation: rule => rule.required(),
         }),
         defineField({
             name: "description",
@@ -33,17 +35,12 @@ export const eventType = defineType({
             rows: 2,
         }),
         defineField({
-            name: "sortOrder",
-            title: "Sorteringsrekkefølge",
-            type: "number",
-            initialValue: 0,
-        }),
-        defineField({
             name: "isActive",
             title: "Aktiv",
             type: "boolean",
             initialValue: true,
         }),
+        orderRankField({ type: "eventType" }),
     ],
     preview: {
         select: {
@@ -54,11 +51,5 @@ export const eventType = defineType({
             return { title: title ?? "Type", subtitle: group }
         },
     },
-    orderings: [
-        {
-            title: "Sorteringsrekkefølge",
-            name: "sortOrder",
-            by: [{ field: "sortOrder", direction: "asc" }],
-        },
-    ],
+    orderings: [orderRankOrdering],
 })

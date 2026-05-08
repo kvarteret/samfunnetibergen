@@ -39,7 +39,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
             {person.imageUrl && (
                 <div className="relative size-14 shrink-0 overflow-hidden bg-muted">
                     <Image
-                        alt={person.name}
+                        alt={person.name ?? "Kontaktperson"}
                         className="object-cover"
                         fill
                         sizes="56px"

@@ -48,10 +48,8 @@ interface EventsContentProps {
 
 function EventsContent({
     backLabel,
-    description,
     emptyLabel,
     errorLabel,
-    eyebrow,
     facebookLabel,
     filterAllLabel,
     filterMoreLabel,
@@ -60,7 +58,6 @@ function EventsContent({
     hasError,
     locale,
     ticketsLabel,
-    title,
 }: EventsContentProps) {
     return (
         <div className="flex flex-col gap-10">

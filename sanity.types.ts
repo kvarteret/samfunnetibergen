@@ -169,6 +169,126 @@ export type SiteMetadata = {
     groupPageDescriptionEn?: string
 }
 
+export type EventTypeReference = {
+    _ref: string
+    _type: "reference"
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: "eventType"
+}
+
+export type RoomReference = {
+    _ref: string
+    _type: "reference"
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: "room"
+}
+
+export type StudentGroupReference = {
+    _ref: string
+    _type: "reference"
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: "studentGroup"
+}
+
+export type Arrangement = {
+    _id: string
+    _type: "arrangement"
+    _createdAt: string
+    _updatedAt: string
+    _rev: string
+    title?: string
+    slug?: Slug
+    eventType?: EventTypeReference
+    description?: PortableTextContent
+    language?: "nb" | "en"
+    dates?: Array<
+        {
+            _key: string
+        } & ArrangementDate
+    >
+    isRecurring?: boolean
+    rrule?: string
+    image?: {
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        _type: "image"
+    }
+    imageCaption?: string
+    room?: RoomReference
+    roomText?: string
+    organizerGroup?: StudentGroupReference
+    organizerText?: string
+    isFree?: boolean
+    priceOrdinar?: number
+    priceStudent?: number
+    priceMedlem?: number
+    ticketUrl?: string
+    facebookUrl?: string
+    approvalStatus?: "pending" | "approved" | "rejected" | "archived"
+    submittedBy?: string
+    submittedByEmail?: string
+    submittedByOrganization?: string
+    adminNote?: string
+}
+
+export type SanityImageCrop = {
+    _type: "sanity.imageCrop"
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+}
+
+export type SanityImageHotspot = {
+    _type: "sanity.imageHotspot"
+    x?: number
+    y?: number
+    height?: number
+    width?: number
+}
+
+export type Slug = {
+    _type: "slug"
+    current?: string
+    source?: string
+}
+
+export type EventTaxonomyGroupReference = {
+    _ref: string
+    _type: "reference"
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: "eventTaxonomyGroup"
+}
+
+export type EventType = {
+    _id: string
+    _type: "eventType"
+    _createdAt: string
+    _updatedAt: string
+    _rev: string
+    name?: string
+    slug?: Slug
+    taxonomyGroup?: EventTaxonomyGroupReference
+    description?: string
+    isActive?: boolean
+    orderRank?: string
+}
+
+export type EventTaxonomyGroup = {
+    _id: string
+    _type: "eventTaxonomyGroup"
+    _createdAt: string
+    _updatedAt: string
+    _rev: string
+    name?: string
+    nameEn?: string
+    slug?: Slug
+    isActive?: boolean
+    orderRank?: string
+}
+
 export type Navbar = {
     _id: string
     _type: "navbar"
@@ -193,12 +313,6 @@ export type Page = {
     content?: PortableTextContent
     seoTitle?: string
     seoDescription?: string
-}
-
-export type Slug = {
-    _type: "slug"
-    current?: string
-    source?: string
 }
 
 export type VolunteerGroupSummary = {
@@ -248,22 +362,6 @@ export type VolunteerGroup = {
     orderRank?: string
 }
 
-export type SanityImageCrop = {
-    _type: "sanity.imageCrop"
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-}
-
-export type SanityImageHotspot = {
-    _type: "sanity.imageHotspot"
-    x?: number
-    y?: number
-    height?: number
-    width?: number
-}
-
 export type KontaktPage = {
     _id: string
     _type: "kontaktPage"
@@ -302,13 +400,6 @@ export type HomeBar = {
         _type: "image"
     }
     orderRank?: string
-}
-
-export type StudentGroupReference = {
-    _ref: string
-    _type: "reference"
-    _weak?: boolean
-    [internalGroqTypeReferenceTo]?: "studentGroup"
 }
 
 export type StudentGroup = {
@@ -390,6 +481,13 @@ export type Menu = {
     >
     allergenNote?: string
     allergenNoteEn?: string
+}
+
+export type ArrangementDate = {
+    _type: "arrangementDate"
+    startDate?: string
+    startTime?: string
+    endTime?: string
 }
 
 export type InternbevisBenefit = {
@@ -551,6 +649,14 @@ export type EditorialSection = {
     >
 }
 
+export type RecurringDates = {
+    _type: "recurringDates"
+    startDate?: string
+    endDate?: string
+    recurs?: boolean
+    rrule?: string
+}
+
 export type SanityImagePaletteSwatch = {
     _type: "sanity.imagePaletteSwatch"
     background?: string
@@ -658,21 +764,28 @@ export type AllSanitySchemaTypes =
     | EventsPage
     | HomePage
     | SiteMetadata
-    | Navbar
-    | Page
-    | Slug
-    | VolunteerGroupSummary
-    | VolunteerGroup
+    | EventTypeReference
+    | RoomReference
+    | StudentGroupReference
+    | Arrangement
     | SanityImageCrop
     | SanityImageHotspot
+    | Slug
+    | EventTaxonomyGroupReference
+    | EventType
+    | EventTaxonomyGroup
+    | Navbar
+    | Page
+    | VolunteerGroupSummary
+    | VolunteerGroup
     | KontaktPage
     | HomeBar
-    | StudentGroupReference
     | StudentGroup
     | SourcedImage
     | Room
     | OpeningHours
     | Menu
+    | ArrangementDate
     | InternbevisBenefit
     | ContactGroup
     | ContactPerson
@@ -684,6 +797,7 @@ export type AllSanitySchemaTypes =
     | Duration
     | TimeValue
     | EditorialSection
+    | RecurringDates
     | SanityImagePaletteSwatch
     | SanityImagePalette
     | SanityImageDimensions
@@ -695,45 +809,33 @@ export type AllSanitySchemaTypes =
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupsNbQuery
-// Query: *[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {    slug,    "name": nameNb,    "eyebrow": eyebrowNb,    "lead": leadNb,    "imageUrl": image.asset->url,    "accordionSections": accordionSections[] {        "title": titleNb,        "paragraphs": paragraphsNb    },    "detailSections": detailSections[] {        "title": titleNb,        "paragraphs": paragraphsNb    }}
+// Query: *[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {    "slug": slug.current,    name,    "eyebrow": null,    "lead": summary,    "imageUrl": image.image.asset->url,    "accordionSections": [],    "detailSections": []}
 export type VolunteerGroupsNbQueryResult = Array<{
     slug: string | null
     name: string | null
-    eyebrow: string | null
+    eyebrow: null
     lead: string | null
     imageUrl: string | null
-    accordionSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-    detailSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
+    accordionSections: Array<never>
+    detailSections: Array<never>
 }>
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupsEnQuery
-// Query: *[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {    slug,    "name": nameEn,    "eyebrow": eyebrowEn,    "lead": leadEn,    "imageUrl": image.asset->url,    "accordionSections": accordionSections[] {        "title": titleEn,        "paragraphs": paragraphsEn    },    "detailSections": detailSections[] {        "title": titleEn,        "paragraphs": paragraphsEn    }}
+// Query: *[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {    "slug": slug.current,    name,    "eyebrow": null,    "lead": summary,    "imageUrl": image.image.asset->url,    "accordionSections": [],    "detailSections": []}
 export type VolunteerGroupsEnQueryResult = Array<{
     slug: string | null
     name: string | null
-    eyebrow: string | null
+    eyebrow: null
     lead: string | null
     imageUrl: string | null
-    accordionSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
-    detailSections: Array<{
-        title: string | null
-        paragraphs: Array<string> | null
-    }> | null
+    accordionSections: Array<never>
+    detailSections: Array<never>
 }>
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupSummariesNbQuery
-// Query: *[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {    name,    "description": descriptionNb}
+// Query: *[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {    name,    "description": summary}
 export type VolunteerGroupSummariesNbQueryResult = Array<{
     name: string | null
     description: string | null
@@ -741,7 +843,7 @@ export type VolunteerGroupSummariesNbQueryResult = Array<{
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: volunteerGroupSummariesEnQuery
-// Query: *[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {    name,    "description": descriptionEn}
+// Query: *[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {    name,    "description": summary}
 export type VolunteerGroupSummariesEnQueryResult = Array<{
     name: string | null
     description: string | null
@@ -1182,6 +1284,236 @@ export type PageBySlugQueryResult = {
 } | null
 
 // Source: lib/sanity/query-definitions.ts
+// Variable: arrangementRoomsQuery
+// Query: *[_type == "room"] | order(orderRank asc) {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, "")}
+export type ArrangementRoomsQueryResult = Array<{
+    _id: string
+    title: string | ""
+    slug: string | ""
+}>
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: arrangementEventTypesQuery
+// Query: *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    "slug": coalesce(slug.current, ""),    "taxonomyGroup": taxonomyGroup-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, "")    }}
+export type ArrangementEventTypesQueryResult = Array<{
+    _id: string
+    name: string | ""
+    slug: string | ""
+    taxonomyGroup: {
+        _id: string
+        name: string | ""
+        slug: string | ""
+    } | null
+}>
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: arrangementGroupsQuery
+// Query: *[_type == "studentGroup"] | order(orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    "category": coalesce(category, "")}
+export type ArrangementGroupsQueryResult = Array<{
+    _id: string
+    name: string | ""
+    category: "" | "arbeidsgruppe" | "borg" | "dorg" | "komitee"
+}>
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: publishedArrangementsQuery
+// Query: *[_type == "arrangement" && approvalStatus == "approved"] | order(dates[0].startDate asc) {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, ""),    approvalStatus,    language,    isRecurring,    rrule,    "dates": dates[] {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    description[] {        _key,        _type,        ...,        markDefs[] {            ...,            _type == "link" => {                ...,                "target": coalesce(target, select(blank == true => "blank", "self"))            }        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    }}
+export type PublishedArrangementsQueryResult = Array<{
+    _id: string
+    title: string | ""
+    slug: string | ""
+    approvalStatus: "approved"
+    language: "en" | "nb" | null
+    isRecurring: boolean | null
+    rrule: string | null
+    dates: Array<{
+        _key: string
+        startDate: string | ""
+        startTime: string | null
+        endTime: string | null
+    }> | null
+    isFree: boolean | null
+    priceOrdinar: number | null
+    priceStudent: number | null
+    priceMedlem: number | null
+    ticketUrl: string | null
+    facebookUrl: string | null
+    imageUrl: string | null
+    imageCaption: string | null
+    room: {
+        _id: string
+        title: string | ""
+        slug: string | ""
+    } | null
+    roomText: string | null
+    organizerGroup: {
+        _id: string
+        name: string | ""
+        slug: string | ""
+    } | null
+    organizerText: string | null
+    eventType: {
+        _id: string
+        name: string | ""
+        slug: string | ""
+        taxonomyGroup: {
+            _id: string
+            name: string | ""
+            slug: string | ""
+        } | null
+    } | null
+    description: Array<
+        | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                  marks?: Array<string>
+                  text?: string
+                  _type: "span"
+                  _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                  href?: string
+                  target: "blank" | "self"
+                  _type: "link"
+                  _key: string
+              }> | null
+              level?: number
+          }
+        | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string | null
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+          }
+    > | null
+}>
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: arrangementBySlugQuery
+// Query: *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved"][0] {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, ""),    approvalStatus,    language,    isRecurring,    rrule,    "dates": dates[] {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    description[] {        _key,        _type,        ...,        markDefs[] {            ...,            _type == "link" => {                ...,                "target": coalesce(target, select(blank == true => "blank", "self"))            }        },        _type == "image" => {            "imageUrl": asset->url,            alt,            caption        }    }}
+export type ArrangementBySlugQueryResult = {
+    _id: string
+    title: string | ""
+    slug: string | ""
+    approvalStatus: "approved" | "archived" | "pending" | "rejected" | null
+    language: "en" | "nb" | null
+    isRecurring: boolean | null
+    rrule: string | null
+    dates: Array<{
+        _key: string
+        startDate: string | ""
+        startTime: string | null
+        endTime: string | null
+    }> | null
+    isFree: boolean | null
+    priceOrdinar: number | null
+    priceStudent: number | null
+    priceMedlem: number | null
+    ticketUrl: string | null
+    facebookUrl: string | null
+    imageUrl: string | null
+    imageCaption: string | null
+    room: {
+        _id: string
+        title: string | ""
+        slug: string | ""
+    } | null
+    roomText: string | null
+    organizerGroup: {
+        _id: string
+        name: string | ""
+        slug: string | ""
+    } | null
+    organizerText: string | null
+    eventType: {
+        _id: string
+        name: string | ""
+        slug: string | ""
+        taxonomyGroup: {
+            _id: string
+            name: string | ""
+            slug: string | ""
+        } | null
+    } | null
+    description: Array<
+        | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                  marks?: Array<string>
+                  text?: string
+                  _type: "span"
+                  _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                  href?: string
+                  target: "blank" | "self"
+                  _type: "link"
+                  _key: string
+              }> | null
+              level?: number
+          }
+        | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string | null
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+          }
+    > | null
+} | null
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: eventTaxonomyGroupsQuery
+// Query: *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    nameEn,    "slug": coalesce(slug.current, "")}
+export type EventTaxonomyGroupsQueryResult = Array<{
+    _id: string
+    name: string | ""
+    nameEn: string | null
+    slug: string | ""
+}>
+
+// Source: lib/sanity/query-definitions.ts
+// Variable: kontaktPageQuery
+// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    "contactGroups": contactGroups[] {        _key,        title,        "persons": persons[] {            _key,            name,            email,            phone,            "imageUrl": image.asset->url        }    }}
+export type KontaktPageQueryResult = {
+    visitAddress: string | null
+    postAddress: string | null
+    invoiceAddress: string | null
+    invoiceEmail: string | null
+    ehf: string | null
+    generalContact: string | null
+    pressContact: string | null
+    contactGroups: Array<{
+        _key: string
+        title: string | null
+        persons: Array<{
+            _key: string
+            name: string | null
+            email: string | null
+            phone: string | null
+            imageUrl: string | null
+        }> | null
+    }> | null
+} | null
+
+// Source: lib/sanity/query-definitions.ts
 // Variable: navbarQuery
 // Query: *[_type == "navbar" && _id == "navbar"][0] {    items[] {        _key,        label,        href,        externalUrl,        children[] {            _key,            groupLabel,            items[] {                _key,                label,                href,                externalUrl            }        }    }}
 export type NavbarQueryResult = {
@@ -1207,10 +1539,12 @@ export type NavbarQueryResult = {
 import "@sanity/client"
 declare module "@sanity/client" {
     interface SanityQueries {
-        '*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {\n    slug,\n    "name": nameNb,\n    "eyebrow": eyebrowNb,\n    "lead": leadNb,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    },\n    "detailSections": detailSections[] {\n        "title": titleNb,\n        "paragraphs": paragraphsNb\n    }\n}': VolunteerGroupsNbQueryResult
-        '*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {\n    slug,\n    "name": nameEn,\n    "eyebrow": eyebrowEn,\n    "lead": leadEn,\n    "imageUrl": image.asset->url,\n    "accordionSections": accordionSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    },\n    "detailSections": detailSections[] {\n        "title": titleEn,\n        "paragraphs": paragraphsEn\n    }\n}': VolunteerGroupsEnQueryResult
-        '*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {\n    name,\n    "description": descriptionNb\n}': VolunteerGroupSummariesNbQueryResult
-        '*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {\n    name,\n    "description": descriptionEn\n}': VolunteerGroupSummariesEnQueryResult
+        '*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {\n    "slug": slug.current,\n    name,\n    "eyebrow": null,\n    "lead": summary,\n    "imageUrl": image.image.asset->url,\n    "accordionSections": [],\n    "detailSections": []\n}':
+            | VolunteerGroupsNbQueryResult
+            | VolunteerGroupsEnQueryResult
+        '*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {\n    name,\n    "description": summary\n}':
+            | VolunteerGroupSummariesNbQueryResult
+            | VolunteerGroupSummariesEnQueryResult
         '*[_type == "homePage" && _id == "homePage"][0] {\n    "badge": badgeNb,\n    "heroDescription": heroDescriptionNb,\n    "heroDescriptionFusion": heroDescriptionFusionNb,\n    "eventsLink": eventsLinkNb\n}': HomePageContentNbQueryResult
         '*[_type == "homePage" && _id == "homePage"][0] {\n    "badge": badgeEn,\n    "heroDescription": heroDescriptionEn,\n    "heroDescriptionFusion": heroDescriptionFusionEn,\n    "eventsLink": eventsLinkEn\n}': HomePageContentEnQueryResult
         '*[_type == "eventsPage" && _id == "eventsPage"][0] {\n    "eyebrow": eyebrowNb,\n    "title": titleNb,\n    "description": descriptionNb\n}': EventsPageContentNbQueryResult
@@ -1232,6 +1566,13 @@ declare module "@sanity/client" {
         '*[_type == "studentGroup" && slug.current == $slug][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    sourceUrl,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
         '*[_type == "page" && defined(slug.current)] {\n    "slug": slug.current\n}': PageSlugsQueryResult
         '*[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    seoTitle,\n    seoDescription,\n    content[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': PageBySlugQueryResult
+        '\n    *[_type == "room"] | order(orderRank asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, "")\n}': ArrangementRoomsQueryResult
+        '\n    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "slug": coalesce(slug.current, ""),\n    "taxonomyGroup": taxonomyGroup-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, "")\n    }\n}': ArrangementEventTypesQueryResult
+        '\n    *[_type == "studentGroup"] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "category": coalesce(category, "")\n}': ArrangementGroupsQueryResult
+        '\n    *[_type == "arrangement" && approvalStatus == "approved"] | order(dates[0].startDate asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    language,\n    isRecurring,\n    rrule,\n    "dates": dates[] {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': PublishedArrangementsQueryResult
+        '\n    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved"][0] {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    language,\n    isRecurring,\n    rrule,\n    "dates": dates[] {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': ArrangementBySlugQueryResult
+        '\n    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    nameEn,\n    "slug": coalesce(slug.current, "")\n}': EventTaxonomyGroupsQueryResult
+        '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    "contactGroups": contactGroups[] {\n        _key,\n        title,\n        "persons": persons[] {\n            _key,\n            name,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }\n    }\n}': KontaktPageQueryResult
         '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult
     }
 }

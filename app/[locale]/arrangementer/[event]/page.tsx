@@ -4,7 +4,6 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
-import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
@@ -61,7 +60,6 @@ export default async function EventPage({ params }: EventPageProps) {
 
     if (!arrangement) notFound()
 
-    const primaryDate = arrangement.dates?.[0]
     const room = arrangement.room?.title ?? arrangement.roomText
     const organizer = arrangement.organizerGroup?.name ?? arrangement.organizerText
     const taxonomy = arrangement.eventType?.name

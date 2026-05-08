@@ -1,5 +1,5 @@
-import { ClockIcon, ComponentIcon } from "@sanity/icons"
-import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
+import { ComponentIcon } from "@sanity/icons"
+import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const room = defineType({

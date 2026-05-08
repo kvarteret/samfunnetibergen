@@ -3,7 +3,7 @@
 import { useForm, useStore } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { posthog } from "posthog-js"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 import {
@@ -161,7 +161,7 @@ export function useVolunteerProspectController({
         !!formValues.secondChoiceGroupSlug &&
         formValues.secondChoiceGroupSlug === formValues.firstChoiceGroupSlug
 
-    function restoreDraftIntoForm() {
+    const restoreDraftIntoForm = useCallback(() => {
         const draft = loadVolunteerProspectDraft()
 
         form.reset({
@@ -170,17 +170,17 @@ export function useVolunteerProspectController({
             firstChoiceGroupSlug: draft.firstChoiceGroupSlug || "",
         })
         hasRestoredDraftRef.current = true
-    }
+    }, [form])
 
-    function persistDraftToLocalStorage() {
+    const persistDraftToLocalStorage = useCallback(() => {
         if (!hasRestoredDraftRef.current) {
             return
         }
 
         window.localStorage.setItem(volunteerProspectDraftStorageKey, JSON.stringify(formValues))
-    }
+    }, [formValues])
 
-    function syncServerFieldErrorsToForm() {
+    const syncServerFieldErrorsToForm = useCallback(() => {
         if (!createProspectMutation.isError || !createProspectMutation.error.fieldErrors) {
             return
         }
@@ -199,9 +199,9 @@ export function useVolunteerProspectController({
                 isTouched: true,
             }))
         }
-    }
+    }, [createProspectMutation.error, createProspectMutation.isError, form])
 
-    function closeChoiceModalOnEscape() {
+    const closeChoiceModalOnEscape = useCallback(() => {
         if (!choiceModalGroupSlug) {
             return
         }
@@ -214,23 +214,23 @@ export function useVolunteerProspectController({
 
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }
+    }, [choiceModalGroupSlug])
 
     useEffect(() => {
         restoreDraftIntoForm()
-    }, [form, groups])
+    }, [restoreDraftIntoForm, groups])
 
     useEffect(() => {
         persistDraftToLocalStorage()
-    }, [formValues])
+    }, [persistDraftToLocalStorage])
 
     useEffect(() => {
         syncServerFieldErrorsToForm()
-    }, [createProspectMutation.error, createProspectMutation.isError, form])
+    }, [syncServerFieldErrorsToForm])
 
     useEffect(() => {
         return closeChoiceModalOnEscape()
-    }, [choiceModalGroupSlug])
+    }, [closeChoiceModalOnEscape])
 
     function markChoiceFieldsTouched() {
         form.setFieldMeta("firstChoiceGroupSlug", previous => ({

@@ -322,41 +322,41 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
 export const arrangementRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
-    title,
-    "slug": slug.current
+    "title": coalesce(title, ""),
+    "slug": coalesce(slug.current, "")
 }`)
 
 export const arrangementEventTypesQuery = defineQuery(`
-    *[_type == "eventType" && isActive != false] | order(sortOrder asc, name asc) {
+    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
     _id,
-    name,
-    "slug": slug.current,
+    "name": coalesce(name, ""),
+    "slug": coalesce(slug.current, ""),
     "taxonomyGroup": taxonomyGroup-> {
         _id,
-        name,
-        "slug": slug.current
+        "name": coalesce(name, ""),
+        "slug": coalesce(slug.current, "")
     }
 }`)
 
 export const arrangementGroupsQuery = defineQuery(`
     *[_type == "studentGroup"] | order(orderRank asc, name asc) {
     _id,
-    name,
-    category
+    "name": coalesce(name, ""),
+    "category": coalesce(category, "")
 }`)
 
 export const publishedArrangementsQuery = defineQuery(`
     *[_type == "arrangement" && approvalStatus == "approved"] | order(dates[0].startDate asc) {
     _id,
-    title,
-    "slug": slug.current,
+    "title": coalesce(title, ""),
+    "slug": coalesce(slug.current, ""),
     approvalStatus,
     language,
     isRecurring,
     rrule,
     "dates": dates[] {
         _key,
-        startDate,
+        "startDate": coalesce(startDate, ""),
         startTime,
         endTime
     },
@@ -368,15 +368,15 @@ export const publishedArrangementsQuery = defineQuery(`
     facebookUrl,
     "imageUrl": image.asset->url,
     imageCaption,
-    "room": room-> { _id, title, "slug": slug.current },
+    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },
     roomText,
-    "organizerGroup": organizerGroup-> { _id, name, "slug": slug.current },
+    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },
     organizerText,
     "eventType": eventType-> {
         _id,
-        name,
-        "slug": slug.current,
-        "taxonomyGroup": taxonomyGroup-> { _id, name, "slug": slug.current }
+        "name": coalesce(name, ""),
+        "slug": coalesce(slug.current, ""),
+        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }
     },
     description[] {
         _key,
@@ -400,15 +400,15 @@ export const publishedArrangementsQuery = defineQuery(`
 export const arrangementBySlugQuery = defineQuery(`
     *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved"][0] {
     _id,
-    title,
-    "slug": slug.current,
+    "title": coalesce(title, ""),
+    "slug": coalesce(slug.current, ""),
     approvalStatus,
     language,
     isRecurring,
     rrule,
     "dates": dates[] {
         _key,
-        startDate,
+        "startDate": coalesce(startDate, ""),
         startTime,
         endTime
     },
@@ -420,15 +420,15 @@ export const arrangementBySlugQuery = defineQuery(`
     facebookUrl,
     "imageUrl": image.asset->url,
     imageCaption,
-    "room": room-> { _id, title, "slug": slug.current },
+    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },
     roomText,
-    "organizerGroup": organizerGroup-> { _id, name, "slug": slug.current },
+    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },
     organizerText,
     "eventType": eventType-> {
         _id,
-        name,
-        "slug": slug.current,
-        "taxonomyGroup": taxonomyGroup-> { _id, name, "slug": slug.current }
+        "name": coalesce(name, ""),
+        "slug": coalesce(slug.current, ""),
+        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }
     },
     description[] {
         _key,
@@ -450,11 +450,11 @@ export const arrangementBySlugQuery = defineQuery(`
 }`)
 
 export const eventTaxonomyGroupsQuery = defineQuery(`
-    *[_type == "eventTaxonomyGroup" && isActive != false] | order(sortOrder asc, name asc) {
+    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {
     _id,
-    name,
+    "name": coalesce(name, ""),
     nameEn,
-    "slug": slug.current
+    "slug": coalesce(slug.current, "")
 }`)
 
 // ─── Kontakt page ─────────────────────────────────────────────────────────────

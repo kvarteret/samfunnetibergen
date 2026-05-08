@@ -43,11 +43,6 @@ export type ArrangementSummary = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const DAY_NAMES: Record<AppLocale, string[]> = {
-    nb: ["søn", "man", "tir", "ons", "tor", "fre", "lør"],
-    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-}
-
 const MONTH_NAMES: Record<AppLocale, string[]> = {
     nb: ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"],
     en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],

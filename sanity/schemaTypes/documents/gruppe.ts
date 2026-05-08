@@ -1,6 +1,6 @@
 import { UsersIcon } from "@sanity/icons"
 import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
-import { defineArrayMember, defineField, defineType } from "sanity"
+import { defineField, defineType } from "sanity"
 
 export const GRUPPE_CATEGORIES = [
     { title: "Arbeidsgruppe", value: "arbeidsgruppe" },
