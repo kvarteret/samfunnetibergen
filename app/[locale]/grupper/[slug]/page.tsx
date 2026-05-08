@@ -1,7 +1,7 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import { notFound } from "next/navigation"
-
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchStudentGroupBySlug, fetchStudentGroupSlugs } from "@/lib/sanity/queries"
 
 export const revalidate = 300
@@ -59,17 +59,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     <p className="text-xl leading-8 text-foreground">{group.summary}</p>
                 </header>
 
-                {/* Body: portable text rendered as plain paragraphs */}
                 {group.body && group.body.length > 0 && (
-                    <div className="space-y-4 text-lg leading-8 text-foreground">
-                        {group.body.map((block: Record<string, unknown>) => {
-                            if (block._type !== "block") return null
-                            const children = block.children as
-                                | Array<{ _key: string; text?: string }>
-                                | undefined
-                            const text = children?.map(c => c.text ?? "").join("") ?? ""
-                            return text ? <p key={block._key as string}>{text}</p> : null
-                        })}
+                    <div className="text-lg leading-8 text-foreground">
+                        <PortableTextContent value={group.body} />
                     </div>
                 )}
             </div>
