@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { HomePageContent } from "@/lib/sanity/types"
-import type { InstitutionOption, LaunchGroupContent } from "@/lib/volunteer-launch-content"
+import type { InstitutionOption, VolunteerGroupContent } from "@/lib/volunteer-group-content"
 import type { VolunteerProspectValidationMessages } from "@/lib/volunteer-prospect"
 import { normalizeVolunteerPhoneNumber } from "@/lib/volunteer-prospect"
 import { VolunteerChoiceModal } from "./volunteer-prospect/choice-modal"
@@ -27,12 +27,12 @@ export function VolunteerProspectExperience({
     groups,
     homeContent,
     institutionOptions,
-    initialGroupSlug,
+    hideHero = false,
 }: {
-    groups: LaunchGroupContent[]
+    groups: VolunteerGroupContent[]
     homeContent: HomePageContent | null
     institutionOptions: InstitutionOption[]
-    initialGroupSlug?: string
+    hideHero?: boolean
 }) {
     const locale = useLocale()
     const tHome = useTranslations("HomePage")
@@ -67,7 +67,6 @@ export function VolunteerProspectExperience({
         secondChoiceConflict,
     } = useVolunteerProspectController({
         groups,
-        initialGroupSlug,
         invalidFormMessage: tForm("invalidFormMessage"),
         locale,
         submitErrorFallback: tForm("submitErrorFallback"),
@@ -87,12 +86,14 @@ export function VolunteerProspectExperience({
         <>
             <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-start">
                 <section className="flex flex-col gap-8 lg:flex-[1.15]">
-                    <VolunteerProspectHero
-                        badge={homeContent?.badge ?? ""}
-                        description={homeContent?.heroDescription ?? ""}
-                        eventsLinkLabel={homeContent?.eventsLink ?? ""}
-                        fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
-                    />
+                    {!hideHero && (
+                        <VolunteerProspectHero
+                            badge={homeContent?.badge ?? ""}
+                            description={homeContent?.heroDescription ?? ""}
+                            eventsLinkLabel={homeContent?.eventsLink ?? ""}
+                            fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
+                        />
+                    )}
 
                     <VolunteerProspectGroupList
                         accordionActionLabel={tForm("accordionAction")}

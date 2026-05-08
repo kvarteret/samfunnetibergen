@@ -1,6 +1,9 @@
 import type { Metadata } from "next"
 import { DM_Mono, Instrument_Serif } from "next/font/google"
 import localFont from "next/font/local"
+import { draftMode } from "next/headers"
+import { VisualEditing } from "next-sanity/visual-editing"
+import { SanityLive } from "@/lib/sanity/live"
 
 import "./globals.css"
 
@@ -44,13 +47,19 @@ export const metadata: Metadata = {
     description: "Studentenes kulturhus i Bergen.",
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+    const { isEnabled: isDraftMode } = await draftMode()
+
     return (
         <html
-            lang="en"
+            lang="no"
             className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${dmMono.variable} ${instrumentSerif.variable} h-full antialiased`}
         >
-            <body className="min-h-full">{children}</body>
+            <body className="min-h-full">
+                {children}
+                <SanityLive />
+                {isDraftMode && <VisualEditing />}
+            </body>
         </html>
     )
 }

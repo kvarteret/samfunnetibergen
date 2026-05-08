@@ -7,83 +7,8 @@ import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchHomeBars } from "@/lib/sanity/queries"
 import type { HomeBarContent } from "@/lib/sanity/types"
-import {
-    getLaunchGroups,
-    type LaunchGroupContent,
-} from "@/lib/volunteer-launch-content"
+import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
 import ExpandableText from "../components/ExpandableText"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-    User,
-    CreditCard,
-    Settings,
-    Keyboard,
-    Users,
-    UserPlus,
-    Mail,
-    MessageSquare,
-    PlusCircle,
-    Plus,
-    LifeBuoy,
-    Cloud,
-    LogOut,
-} from "lucide-react"
-import Navbar from "../components/Navbar"
-
-export function HomeBars({
-    bars,
-    locale,
-}: {
-    bars: HomeBarContent[]
-    locale: AppLocale
-}) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between shadow-0">
-                <p>BARER</p>
-                <Link href={`/${locale}/home`}>SE MER</Link>
-            </Card>
-
-            <div className="flex flex-col pt-4 gap-12">
-                {bars.map((bar, i) => (
-                    <div className="flex flex-col gap-4" key={i}>
-                        <h3 className="text-center text-xl">{bar.name}</h3>
-                        <div className="h-0.5 bg-destructive" />
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div className="relative h-48 bg-gray-200">
-                                {bar.imageUrl && (
-                                    <Image
-                                        src={bar.imageUrl}
-                                        alt={bar.name}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                )}
-                            </div>
-                            <ExpandableText text={bar.description} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-// should be in own components folder but chose not to, to to minimize mental effort while prototyping
-// ALSO NO LANGUAGE TRANSLATION FOR THE SAME REASON STATED ABOVE
 
 const fallbackBars: HomeBarContent[] = [
     {
@@ -119,135 +44,169 @@ const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
         timeZone: "Europe/Oslo",
     }).format(new Date(event.starts_at))
 
-function HomeGroups({
-    groups,
-    locale,
-}: {
-    groups: LaunchGroupContent[]
-    locale: AppLocale
-}) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between shadow-0">
-                <p>GRUPPER</p>
-                <Link href={`/${locale}/blifrivillig`}>SE MER</Link>
-            </Card>
-
-            <div className="grid grid-cols-3 gap-4">
-                {groups.map((group) => {
-                    return (
-                        <Link
-                            className="flex flex-col gap-1"
-                            key={group.slug}
-                            href={`/${locale}/blifrivillig/${group.slug}`}
-                        >
-                            <Card className="h-24 bg-gray-200 overflow-hidden relative">
-                                {group.imageUrl && (
-                                    <Image
-                                        src={group.imageUrl}
-                                        alt={group.name ?? ""}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                )}
-                            </Card>
-                            <p className="font-bold">{group.name}</p>
-                            <p className="text-xs lg:text-base">{group.lead}</p>
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-function HomeEvents({
-    events,
-    locale,
-}: {
-    events: EventDetail[]
-    locale: AppLocale
-}) {
-    return (
-        <div className="mx-6 space-y-4">
-            <Card className="bg-destructive p-2 flex flex-row justify-between shadow-0">
-                <p>ARRANGEMENTER</p>
-                <Link href={`/${locale}/arrangementer`}>SE MER</Link>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {events.map((event) => {
-                    return (
-                        <Link
-                            key={event.id}
-                            className="flex-1 "
-                            href={`/${locale}/arrangementer`}
-                        >
-                            <Button
-                                className="h-64 w-full md:h-32 bg-gray-200 overflow-hidden relative"
-                                variant={"reverse"}
-                            >
-                                {event.image_url && (
-                                    <Image
-                                        src={event.image_url}
-                                        alt={event.title}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                )}
-                            </Button>
-                            <div className="flex justify-between pt-2 text-xs">
-                                <p>{event.event_type?.name ?? ""}</p>
-                                <p>{formatEventDate(event, locale)}</p>
-                            </div>
-                            <p className="text-lg">{event.title}</p>
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-export default async function HomePage({
-    params,
-}: PageProps<"/[locale]/home/forslag1">) {
+export default async function HomePage({ params }: PageProps<"/[locale]/home/forslag1">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
     const [bars, groups, eventsResult] = await Promise.all([
         fetchHomeBars(locale),
-        getLaunchGroups(locale),
+        getVolunteerGroups(locale),
         getPublicEvents(locale),
     ])
     const visibleBars = bars.length > 0 ? bars : fallbackBars
     const visibleEvents = eventsResult.ok ? eventsResult.events.slice(0, 4) : []
 
     return (
-        <div className="h-full bg-background border-1 border-destructive flex flex-col gap-8 pb-12">
-            <Navbar />
+        <div
+            className="min-h-screen p-8"
+            style={{
+                backgroundImage: `
+                    linear-gradient(#FF6669 1px, transparent 1px),
+                    linear-gradient(90deg, #FF6669 1px, transparent 1px)
+                `,
+                backgroundSize: "20px 20px",
+            }}
+        >
+            <div className="flex h-full flex-col gap-8 border-1 border-destructive bg-background pb-12">
+                <header className="p-4 text-center text-xl">
+                    <h1>STUDENTERSAMFUNNET I BERGEN</h1>
+                </header>
 
-            <div className="h-42 bg-gray-200 my-2 w-full"></div>
+                <div className="my-2 h-42 w-full bg-gray-200"></div>
 
-            <p className="text-center px-6">
-                Studentersamfunnet i Bergen er byens eldste allmenne
-                studentorgansisasjon og Vestlandets største politisk uavhengige
-                forum for samfunns- og kulturdebatt. Vi er byens
-                seudentkulturhus og holder til på Det akademiske Kvarter. Med
-                over 100 frivillige og en rik historie driver vi med ett mål for
-                øyet: &quot;Å samle studenter og byen forøvrig til tiltak som
-                kan fremme samhold, åndsdannelse og interesse for
-                allmennkulturelle spørsmål.&quot;
-            </p>
+                <p className="px-6 text-center">
+                    Studentersamfunnet i Bergen er byens eldste allmenne studentorgansisasjon og
+                    Vestlandets største politisk uavhengige forum for samfunns- og kulturdebatt. Vi
+                    er byens seudentkulturhus og holder til på Det akademiske Kvarter. Med over 100
+                    frivillige og en rik historie driver vi med ett mål for øyet: &quot;Å samle
+                    studenter og byen forøvrig til tiltak som kan fremme samhold, åndsdannelse og
+                    interesse for allmennkulturelle spørsmål.&quot;
+                </p>
 
-            <Button className="bg-destructive w-32 m-auto" size={"lg"}>
-                BLI FRIVILLIG
-            </Button>
+                <Button className="m-auto w-32 bg-destructive" size={"lg"}>
+                    BLI FRIVILLIG
+                </Button>
 
-            <HomeEvents events={visibleEvents} locale={locale} />
+                <HomeEvents events={visibleEvents} locale={locale} />
 
-            <HomeBars bars={visibleBars} locale={locale} />
+                <HomeBars bars={visibleBars} locale={locale} />
 
-            <HomeGroups groups={groups} locale={locale} />
+                <HomeGroups groups={groups} locale={locale} />
+            </div>
+        </div>
+    )
+}
+
+interface HomeEventsProps {
+    events: EventDetail[]
+    locale: AppLocale
+}
+
+function HomeEvents({ events, locale }: HomeEventsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>ARRANGEMENTER</p>
+                <Link href={`/${locale}/arrangementer`}>SE MER</Link>
+            </Card>
+
+            <div className="flex w-full gap-4">
+                {events.map(event => (
+                    <Link className="flex-1" href={`/${locale}/arrangementer`} key={event.id}>
+                        <Card className="relative h-24 overflow-hidden bg-gray-200">
+                            {event.image_url && (
+                                <Image
+                                    alt={event.title}
+                                    className="object-cover"
+                                    fill
+                                    src={event.image_url}
+                                />
+                            )}
+                        </Card>
+                        <div className="flex justify-between pt-2 text-xs">
+                            <p>{event.event_type?.name ?? ""}</p>
+                            <p>{formatEventDate(event, locale)}</p>
+                        </div>
+                        <p className="text-lg">{event.title}</p>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+interface HomeBarsProps {
+    bars: HomeBarContent[]
+    locale: AppLocale
+}
+
+function HomeBars({ bars, locale }: HomeBarsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>BARER</p>
+                <Link href={`/${locale}/home`}>SE MER</Link>
+            </Card>
+
+            <div className="flex flex-col gap-12 pt-4">
+                {bars.map(bar => (
+                    <div className="flex flex-col gap-4" key={bar.name}>
+                        <h3 className="text-center text-xl">{bar.name}</h3>
+                        <div className="h-0.5 bg-destructive" />
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="relative h-48 overflow-hidden bg-gray-200">
+                                {bar.imageUrl && (
+                                    <Image
+                                        alt={bar.name ?? ""}
+                                        className="object-cover"
+                                        fill
+                                        src={bar.imageUrl}
+                                    />
+                                )}
+                            </div>
+                            <ExpandableText text={bar.description} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+interface HomeGroupsProps {
+    groups: VolunteerGroupContent[]
+    locale: AppLocale
+}
+
+function HomeGroups({ groups, locale }: HomeGroupsProps) {
+    return (
+        <div className="mx-6 space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>GRUPPER</p>
+                <Link href={`/${locale}/grupper`}>SE MER</Link>
+            </Card>
+
+            <div className="grid grid-cols-3 gap-4">
+                {groups.map(group => (
+                    <Link
+                        className="flex flex-col gap-1"
+                        href={`/${locale}/grupper/${group.slug}`}
+                        key={group.slug}
+                    >
+                        <Card className="relative h-24 overflow-hidden bg-gray-200">
+                            {group.imageUrl && (
+                                <Image
+                                    alt={group.name ?? ""}
+                                    className="object-cover"
+                                    fill
+                                    src={group.imageUrl}
+                                />
+                            )}
+                        </Card>
+                        <p className="font-bold">{group.name}</p>
+                        <p className="text-xs lg:text-base">{group.lead}</p>
+                    </Link>
+                ))}
+            </div>
         </div>
     )
 }

@@ -3,10 +3,9 @@
 import { useForm, useStore } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { posthog } from "posthog-js"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { resolveInitialLaunchGroupSlug } from "@/lib/volunteer-groups"
-import type { LaunchGroupContent, LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 import {
     defaultVolunteerProspectValues,
     loadVolunteerProspectDraft,
@@ -21,8 +20,7 @@ import {
 import type { VolunteerFormMessage } from "./shared"
 
 type UseVolunteerProspectControllerProps = {
-    groups: LaunchGroupContent[]
-    initialGroupSlug?: string
+    groups: VolunteerGroupContent[]
     invalidFormMessage: string
     locale: string
     submitErrorFallback: string
@@ -32,7 +30,6 @@ type UseVolunteerProspectControllerProps = {
 
 export function useVolunteerProspectController({
     groups,
-    initialGroupSlug,
     invalidFormMessage,
     locale,
     submitErrorFallback,
@@ -40,18 +37,17 @@ export function useVolunteerProspectController({
     validationMessages,
 }: UseVolunteerProspectControllerProps) {
     const [formMessage, setFormMessage] = useState<VolunteerFormMessage | null>(null)
-    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<LaunchGroupSlug | null>(null)
+    const [choiceModalGroupSlug, setChoiceModalGroupSlug] = useState<VolunteerGroupSlug | null>(
+        null,
+    )
     const hasRestoredDraftRef = useRef(false)
     const hasStartedFormRef = useRef(false)
 
     const initialValues = useMemo<VolunteerProspectValues>(() => {
-        const resolvedInitialGroup = resolveInitialLaunchGroupSlug(groups, initialGroupSlug)
-
         return {
             ...defaultVolunteerProspectValues,
-            firstChoiceGroupSlug: resolvedInitialGroup ?? "",
         }
-    }, [groups, initialGroupSlug])
+    }, [])
 
     const form = useForm({
         defaultValues: initialValues,
@@ -165,28 +161,26 @@ export function useVolunteerProspectController({
         !!formValues.secondChoiceGroupSlug &&
         formValues.secondChoiceGroupSlug === formValues.firstChoiceGroupSlug
 
-    function restoreDraftIntoForm() {
+    const restoreDraftIntoForm = useCallback(() => {
         const draft = loadVolunteerProspectDraft()
-        const resolvedInitialGroup =
-            resolveInitialLaunchGroupSlug(groups, initialGroupSlug) ?? draft.firstChoiceGroupSlug
 
         form.reset({
             ...defaultVolunteerProspectValues,
             ...draft,
-            firstChoiceGroupSlug: resolvedInitialGroup || "",
+            firstChoiceGroupSlug: draft.firstChoiceGroupSlug || "",
         })
         hasRestoredDraftRef.current = true
-    }
+    }, [form])
 
-    function persistDraftToLocalStorage() {
+    const persistDraftToLocalStorage = useCallback(() => {
         if (!hasRestoredDraftRef.current) {
             return
         }
 
         window.localStorage.setItem(volunteerProspectDraftStorageKey, JSON.stringify(formValues))
-    }
+    }, [formValues])
 
-    function syncServerFieldErrorsToForm() {
+    const syncServerFieldErrorsToForm = useCallback(() => {
         if (!createProspectMutation.isError || !createProspectMutation.error.fieldErrors) {
             return
         }
@@ -205,9 +199,9 @@ export function useVolunteerProspectController({
                 isTouched: true,
             }))
         }
-    }
+    }, [createProspectMutation.error, createProspectMutation.isError, form])
 
-    function closeChoiceModalOnEscape() {
+    const closeChoiceModalOnEscape = useCallback(() => {
         if (!choiceModalGroupSlug) {
             return
         }
@@ -220,23 +214,23 @@ export function useVolunteerProspectController({
 
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }
+    }, [choiceModalGroupSlug])
 
     useEffect(() => {
         restoreDraftIntoForm()
-    }, [form, groups, initialGroupSlug])
+    }, [restoreDraftIntoForm, groups])
 
     useEffect(() => {
         persistDraftToLocalStorage()
-    }, [formValues])
+    }, [persistDraftToLocalStorage])
 
     useEffect(() => {
         syncServerFieldErrorsToForm()
-    }, [createProspectMutation.error, createProspectMutation.isError, form])
+    }, [syncServerFieldErrorsToForm])
 
     useEffect(() => {
         return closeChoiceModalOnEscape()
-    }, [choiceModalGroupSlug])
+    }, [closeChoiceModalOnEscape])
 
     function markChoiceFieldsTouched() {
         form.setFieldMeta("firstChoiceGroupSlug", previous => ({
@@ -253,7 +247,7 @@ export function useVolunteerProspectController({
         setFormMessage(null)
     }
 
-    function selectPrimaryGroup(slug: LaunchGroupSlug) {
+    function selectPrimaryGroup(slug: VolunteerGroupSlug) {
         posthog.capture("volunteer_group_selected", {
             group_slug: slug,
             choice: "first",
@@ -279,7 +273,7 @@ export function useVolunteerProspectController({
         }
     }
 
-    function applyChoice(slug: LaunchGroupSlug, target: "first" | "second") {
+    function applyChoice(slug: VolunteerGroupSlug, target: "first" | "second") {
         posthog.capture("volunteer_group_selected", {
             group_slug: slug,
             choice: target,

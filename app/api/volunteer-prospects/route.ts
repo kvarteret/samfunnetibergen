@@ -1,6 +1,6 @@
 import { getPostHogClient } from "@/lib/posthog-server"
 import { resolveRequestLocale } from "@/lib/request-locale"
-import { getLaunchGroups } from "@/lib/volunteer-launch-content"
+import { getVolunteerGroups } from "@/lib/volunteer-group-content"
 import {
     buildVolunteerProspectPayload,
     type VolunteerProspectValues,
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         return Response.json({ detail: messages.Api.invalidRequest }, { status: 400 })
     }
 
-    const groups = await getLaunchGroups(locale)
+    const groups = await getVolunteerGroups(locale)
     const fieldErrors = validateVolunteerProspectValues(
         payload,
         messages.Validation,

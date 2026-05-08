@@ -1,17 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import type { LaunchGroupContent, LaunchGroupSlug } from "@/lib/volunteer-launch-content"
+import type { VolunteerGroupContent, VolunteerGroupSlug } from "@/lib/volunteer-group-content"
 
 type VolunteerChoiceModalProps = {
     choiceModalDescriptionLabel: (groupName: string) => string
-    choiceModalGroup: LaunchGroupContent | null
+    choiceModalGroup: VolunteerGroupContent | null
     choiceModalTitle: string
     closeLabel: string
     firstChoiceLabel: string
-    modalFirstChoiceSlug: LaunchGroupSlug | ""
-    modalSecondChoiceSlug: LaunchGroupSlug | ""
-    onApplyChoice: (groupSlug: LaunchGroupSlug, target: "first" | "second") => void
+    modalFirstChoiceSlug: VolunteerGroupSlug | ""
+    modalSecondChoiceSlug: VolunteerGroupSlug | ""
+    onApplyChoice: (groupSlug: VolunteerGroupSlug, target: "first" | "second") => void
     onClose: () => void
     secondChoiceLabel: string
 }
@@ -31,6 +31,13 @@ export function VolunteerChoiceModal({
     if (!choiceModalGroup) {
         return null
     }
+
+    const firstChoiceActionLabel =
+        modalFirstChoiceSlug === choiceModalGroup.slug && modalSecondChoiceSlug
+            ? secondChoiceLabel
+            : modalSecondChoiceSlug === choiceModalGroup.slug
+              ? firstChoiceLabel
+              : secondChoiceLabel
 
     return (
         <div
@@ -61,12 +68,7 @@ export function VolunteerChoiceModal({
                                 type="button"
                                 variant="default"
                             >
-                                {modalFirstChoiceSlug === choiceModalGroup.slug &&
-                                modalSecondChoiceSlug
-                                    ? secondChoiceLabel
-                                    : modalSecondChoiceSlug === choiceModalGroup.slug
-                                      ? firstChoiceLabel
-                                      : secondChoiceLabel}
+                                {firstChoiceActionLabel}
                             </Button>
 
                             <Button
