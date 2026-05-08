@@ -39,49 +39,37 @@ const openingHoursProjection = `{
 // ─── Volunteer content ───────────────────────────────────────────────────────
 
 export const volunteerGroupsNbQuery =
-    defineQuery(`*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {
-    slug,
-    "name": nameNb,
-    "eyebrow": eyebrowNb,
-    "lead": leadNb,
-    "imageUrl": image.asset->url,
-    "accordionSections": accordionSections[] {
-        "title": titleNb,
-        "paragraphs": paragraphsNb
-    },
-    "detailSections": detailSections[] {
-        "title": titleNb,
-        "paragraphs": paragraphsNb
-    }
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
+    "slug": slug.current,
+    name,
+    "eyebrow": null,
+    "lead": summary,
+    "imageUrl": image.image.asset->url,
+    "accordionSections": [],
+    "detailSections": []
 }`)
 
 export const volunteerGroupsEnQuery =
-    defineQuery(`*[_type == "volunteerGroup"] | order(orderRank asc, order asc, _createdAt asc) {
-    slug,
-    "name": nameEn,
-    "eyebrow": eyebrowEn,
-    "lead": leadEn,
-    "imageUrl": image.asset->url,
-    "accordionSections": accordionSections[] {
-        "title": titleEn,
-        "paragraphs": paragraphsEn
-    },
-    "detailSections": detailSections[] {
-        "title": titleEn,
-        "paragraphs": paragraphsEn
-    }
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
+    "slug": slug.current,
+    name,
+    "eyebrow": null,
+    "lead": summary,
+    "imageUrl": image.image.asset->url,
+    "accordionSections": [],
+    "detailSections": []
 }`)
 
 export const volunteerGroupSummariesNbQuery =
-    defineQuery(`*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
     name,
-    "description": descriptionNb
+    "description": summary
 }`)
 
 export const volunteerGroupSummariesEnQuery =
-    defineQuery(`*[_type == "volunteerGroupSummary"] | order(orderRank asc, order asc, _createdAt asc) {
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
     name,
-    "description": descriptionEn
+    "description": summary
 }`)
 
 // ─── Home page ───────────────────────────────────────────────────────────────
@@ -325,6 +313,169 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
             "imageUrl": asset->url,
             alt,
             caption
+        }
+    }
+}`)
+
+// ─── Arrangements ────────────────────────────────────────────────────────────
+
+export const arrangementRoomsQuery = defineQuery(`
+    *[_type == "room"] | order(orderRank asc) {
+    _id,
+    title,
+    "slug": slug.current
+}`)
+
+export const arrangementEventTypesQuery = defineQuery(`
+    *[_type == "eventType" && isActive != false] | order(sortOrder asc, name asc) {
+    _id,
+    name,
+    "slug": slug.current,
+    "taxonomyGroup": taxonomyGroup-> {
+        _id,
+        name,
+        "slug": slug.current
+    }
+}`)
+
+export const arrangementGroupsQuery = defineQuery(`
+    *[_type == "studentGroup"] | order(orderRank asc, name asc) {
+    _id,
+    name,
+    category
+}`)
+
+export const publishedArrangementsQuery = defineQuery(`
+    *[_type == "arrangement" && approvalStatus == "approved"] | order(dates[0].startDate asc) {
+    _id,
+    title,
+    "slug": slug.current,
+    approvalStatus,
+    language,
+    isRecurring,
+    rrule,
+    "dates": dates[] {
+        _key,
+        startDate,
+        startTime,
+        endTime
+    },
+    isFree,
+    priceOrdinar,
+    priceStudent,
+    priceMedlem,
+    ticketUrl,
+    facebookUrl,
+    "imageUrl": image.asset->url,
+    imageCaption,
+    "room": room-> { _id, title, "slug": slug.current },
+    roomText,
+    "organizerGroup": organizerGroup-> { _id, name, "slug": slug.current },
+    organizerText,
+    "eventType": eventType-> {
+        _id,
+        name,
+        "slug": slug.current,
+        "taxonomyGroup": taxonomyGroup-> { _id, name, "slug": slug.current }
+    },
+    description[] {
+        _key,
+        _type,
+        ...,
+        markDefs[] {
+            ...,
+            _type == "link" => {
+                ...,
+                "target": coalesce(target, select(blank == true => "blank", "self"))
+            }
+        },
+        _type == "image" => {
+            "imageUrl": asset->url,
+            alt,
+            caption
+        }
+    }
+}`)
+
+export const arrangementBySlugQuery = defineQuery(`
+    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved"][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    approvalStatus,
+    language,
+    isRecurring,
+    rrule,
+    "dates": dates[] {
+        _key,
+        startDate,
+        startTime,
+        endTime
+    },
+    isFree,
+    priceOrdinar,
+    priceStudent,
+    priceMedlem,
+    ticketUrl,
+    facebookUrl,
+    "imageUrl": image.asset->url,
+    imageCaption,
+    "room": room-> { _id, title, "slug": slug.current },
+    roomText,
+    "organizerGroup": organizerGroup-> { _id, name, "slug": slug.current },
+    organizerText,
+    "eventType": eventType-> {
+        _id,
+        name,
+        "slug": slug.current,
+        "taxonomyGroup": taxonomyGroup-> { _id, name, "slug": slug.current }
+    },
+    description[] {
+        _key,
+        _type,
+        ...,
+        markDefs[] {
+            ...,
+            _type == "link" => {
+                ...,
+                "target": coalesce(target, select(blank == true => "blank", "self"))
+            }
+        },
+        _type == "image" => {
+            "imageUrl": asset->url,
+            alt,
+            caption
+        }
+    }
+}`)
+
+export const eventTaxonomyGroupsQuery = defineQuery(`
+    *[_type == "eventTaxonomyGroup" && isActive != false] | order(sortOrder asc, name asc) {
+    _id,
+    name,
+    nameEn,
+    "slug": slug.current
+}`)
+
+// ─── Kontakt page ─────────────────────────────────────────────────────────────
+
+export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == "kontaktPage"][0] {
+    visitAddress,
+    postAddress,
+    invoiceAddress,
+    invoiceEmail,
+    ehf,
+    generalContact,
+    pressContact,
+    "contactGroups": contactGroups[] {
+        _key,
+        title,
+        "persons": persons[] {
+            _key,
+            name,
+            email,
+            phone,
+            "imageUrl": image.asset->url
         }
     }
 }`)

@@ -1,0 +1,224 @@
+"use client"
+
+import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Link } from "@/i18n/navigation"
+import type { AppLocale } from "@/i18n/routing"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type ArrangementDateEntry = {
+    _key: string
+    startDate: string
+    startTime?: string | null
+    endTime?: string | null
+}
+
+export type ArrangementSummary = {
+    _id: string
+    title: string
+    slug: string
+    isRecurring?: boolean
+    dates: ArrangementDateEntry[]
+    isFree?: boolean
+    priceOrdinar?: number | null
+    priceStudent?: number | null
+    priceMedlem?: number | null
+    ticketUrl?: string | null
+    facebookUrl?: string | null
+    imageUrl?: string | null
+    imageCaption?: string | null
+    room?: { _id: string; title: string; slug: string } | null
+    roomText?: string | null
+    organizerGroup?: { _id: string; name: string; slug: string } | null
+    organizerText?: string | null
+    eventType?: {
+        _id: string
+        name: string
+        taxonomyGroup?: { _id: string; name: string } | null
+    } | null
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const DAY_NAMES: Record<AppLocale, string[]> = {
+    nb: ["søn", "man", "tir", "ons", "tor", "fre", "lør"],
+    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+}
+
+const MONTH_NAMES: Record<AppLocale, string[]> = {
+    nb: ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"],
+    en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+}
+
+function formatShortDate(dateStr: string, locale: AppLocale): string {
+    const d = new Date(`${dateStr}T00:00:00`)
+    const day = d.getDate()
+    const month = MONTH_NAMES[locale][d.getMonth()]
+    return `${day}. ${month}`
+}
+
+function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): string {
+    const dateFormatted = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+        dateStyle: "long",
+        timeZone: "Europe/Oslo",
+    }).format(new Date(`${date.startDate}T00:00:00`))
+
+    if (!date.startTime) return dateFormatted
+
+    const timeRange = date.endTime ? `${date.startTime}–${date.endTime}` : date.startTime
+
+    return `${dateFormatted}, kl. ${timeRange}`
+}
+
+function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): string | null {
+    if (arrangement.isFree) return locale === "en" ? "Free admission" : "Gratis"
+    const parts: string[] = []
+    if (arrangement.priceOrdinar != null) parts.push(`Ord. ${arrangement.priceOrdinar} kr`)
+    if (arrangement.priceStudent != null) parts.push(`Stud. ${arrangement.priceStudent} kr`)
+    if (arrangement.priceMedlem != null) parts.push(`Medl. ${arrangement.priceMedlem} kr`)
+    return parts.length > 0 ? parts.join(" / ") : null
+}
+
+// ─── DateBadges ───────────────────────────────────────────────────────────────
+
+const MAX_VISIBLE_BADGES = 3
+
+function DateBadges({
+    dates,
+    primaryIndex,
+    locale,
+}: {
+    dates: ArrangementDateEntry[]
+    primaryIndex: number
+    locale: AppLocale
+}) {
+    const otherDates = dates.filter((_, i) => i !== primaryIndex)
+    if (otherDates.length === 0) return null
+
+    const visible = otherDates.slice(0, MAX_VISIBLE_BADGES)
+    const overflow = otherDates.length - MAX_VISIBLE_BADGES
+
+    return (
+        <div className="flex flex-wrap gap-1.5" aria-label="Andre datoer">
+            {visible.map(d => (
+                <span
+                    key={d._key}
+                    className="border border-border px-2 py-0.5 text-xs font-heading text-foreground/60 bg-muted"
+                >
+                    {formatShortDate(d.startDate, locale)}
+                </span>
+            ))}
+            {overflow > 0 && (
+                <span className="border border-border px-2 py-0.5 text-xs font-heading text-foreground/60 bg-muted">
+                    +{overflow}
+                </span>
+            )}
+        </div>
+    )
+}
+
+// ─── ArrangementCard ──────────────────────────────────────────────────────────
+
+export interface ArrangementCardProps {
+    arrangement: ArrangementSummary
+    facebookLabel: string
+    locale: AppLocale
+    ticketsLabel: string
+}
+
+export function ArrangementCard({
+    arrangement,
+    facebookLabel,
+    locale,
+    ticketsLabel,
+}: ArrangementCardProps) {
+    const primaryDate = arrangement.dates[0]
+    const taxonomy = [
+        arrangement.eventType?.name,
+        arrangement.organizerGroup?.name ?? arrangement.organizerText,
+    ]
+        .filter(Boolean)
+        .join(" / ")
+    const room = arrangement.room?.title ?? arrangement.roomText
+    const price = formatPrices(arrangement, locale)
+    const href = `/arrangementer/${arrangement.slug}`
+    const timeLabel = primaryDate ? formatPrimaryDate(primaryDate, locale) : null
+
+    return (
+        <Card className="overflow-hidden bg-card py-0">
+            {arrangement.imageUrl && (
+                <Link href={href}>
+                    <div className="relative aspect-[16/9] w-full">
+                        <Image
+                            alt={arrangement.imageCaption ?? arrangement.title}
+                            className="object-cover"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            src={arrangement.imageUrl}
+                            unoptimized={arrangement.imageUrl.startsWith("blob:")}
+                        />
+                    </div>
+                </Link>
+            )}
+
+            <CardContent className="flex h-full flex-col gap-4 p-5">
+                {/* Header */}
+                <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-foreground/65">
+                        {taxonomy && <span>{taxonomy}</span>}
+                        {price && <span>{price}</span>}
+                    </div>
+                    <Link className="hover:underline hover:underline-offset-4" href={href}>
+                        <h2 className="font-heading text-2xl leading-tight">{arrangement.title}</h2>
+                    </Link>
+                </div>
+
+                {/* Primary date and room */}
+                <div className="space-y-2 text-sm leading-6 text-foreground/75">
+                    {timeLabel && (
+                        <p className="flex gap-2">
+                            <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
+                            <span>{timeLabel}</span>
+                        </p>
+                    )}
+                    {room && (
+                        <p className="flex gap-2">
+                            <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
+                            <span>{room}</span>
+                        </p>
+                    )}
+                </div>
+
+                {/* Other date badges */}
+                {arrangement.dates.length > 1 && (
+                    <DateBadges dates={arrangement.dates} primaryIndex={0} locale={locale} />
+                )}
+
+                {/* Actions */}
+                {(arrangement.ticketUrl ?? arrangement.facebookUrl) && (
+                    <div className="mt-auto flex flex-wrap gap-3 pt-2">
+                        {arrangement.ticketUrl && (
+                            <Button asChild size="sm">
+                                <a href={arrangement.ticketUrl} rel="noreferrer" target="_blank">
+                                    <Ticket aria-hidden />
+                                    {ticketsLabel}
+                                </a>
+                            </Button>
+                        )}
+                        {arrangement.facebookUrl && (
+                            <Button asChild size="sm" variant="neutral">
+                                <a href={arrangement.facebookUrl} rel="noreferrer" target="_blank">
+                                    <ExternalLink aria-hidden />
+                                    {facebookLabel}
+                                </a>
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}

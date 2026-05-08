@@ -1,4 +1,5 @@
 import {
+    CalendarIcon,
     CogIcon,
     ComponentIcon,
     DocumentIcon,
@@ -7,6 +8,7 @@ import {
     HomeIcon,
     MenuIcon,
     StarIcon,
+    TagIcon,
     UsersIcon,
 } from "@sanity/icons"
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
@@ -70,6 +72,40 @@ export const structure: StructureResolver = (S, context) =>
                             singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
                             S.divider(),
                             S.documentTypeListItem("page").title("Andre sider"),
+                        ]),
+                ),
+
+            S.divider(),
+
+            // — Arrangementer —
+            S.listItem()
+                .title("Arrangementer")
+                .icon(CalendarIcon)
+                .child(
+                    S.list()
+                        .title("Arrangementer")
+                        .items([
+                            S.documentTypeListItem("arrangement")
+                                .title("Alle arrangementer")
+                                .icon(CalendarIcon),
+                            S.listItem()
+                                .id("arrangement-pending")
+                                .title("Venter på godkjenning")
+                                .icon(CalendarIcon)
+                                .child(
+                                    S.documentList()
+                                        .title("Venter på godkjenning")
+                                        .filter(
+                                            '_type == "arrangement" && approvalStatus == "pending"',
+                                        ),
+                                ),
+                            S.divider(),
+                            S.documentTypeListItem("eventTaxonomyGroup")
+                                .title("Taksonomigrupper")
+                                .icon(TagIcon),
+                            S.documentTypeListItem("eventType")
+                                .title("Arrangementtyper")
+                                .icon(TagIcon),
                         ]),
                 ),
 

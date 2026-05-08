@@ -7,6 +7,10 @@ import type { VolunteerGroupContent, VolunteerGroupSummary } from "@/lib/volunte
 import { sanityClient } from "./client"
 import { sanityFetch } from "./live"
 import {
+    arrangementBySlugQuery,
+    arrangementEventTypesQuery,
+    arrangementGroupsQuery,
+    arrangementRoomsQuery,
     blifrivilligPageEnQuery,
     blifrivilligPageNbQuery,
     eventsPageContentEnQuery,
@@ -16,9 +20,11 @@ import {
     homeBarsNbQuery,
     homePageContentEnQuery,
     homePageContentNbQuery,
+    kontaktPageQuery,
     navbarQuery,
     pageBySlugQuery,
     pageSlugsQuery,
+    publishedArrangementsQuery,
     roomBySlugQuery,
     roomSlugsQuery,
     roomsPageQuery,
@@ -77,23 +83,18 @@ export async function fetchVolunteerGroups(locale: AppLocale): Promise<Volunteer
         { next: { revalidate: 300, tags: ["volunteerGroups"] } },
     )
 
-    return groups.flatMap(group => {
-        if (!group.slug) return []
-        return [
-            {
-                ...group,
-                slug: group.slug,
-                accordionSections: (group.accordionSections ?? []).map(section => ({
-                    ...section,
-                    paragraphs: section.paragraphs ?? [],
-                })),
-                detailSections: (group.detailSections ?? []).map(section => ({
-                    ...section,
-                    paragraphs: section.paragraphs ?? [],
-                })),
-            },
-        ]
-    })
+    type G = ClientReturn<typeof volunteerGroupsNbQuery>[number]
+    return groups
+        .filter((group: G) => Boolean(group.slug))
+        .map((group: G) => ({
+            slug: group.slug!,
+            name: group.name ?? null,
+            eyebrow: group.eyebrow ?? null,
+            lead: group.lead ?? null,
+            imageUrl: group.imageUrl ?? null,
+            accordionSections: [],
+            detailSections: [],
+        }))
 }
 
 export async function fetchVolunteerGroupSummaries(
@@ -282,4 +283,63 @@ export async function fetchPageBySlug(
 export async function fetchNavbar(): Promise<NavbarContent | null> {
     const { data } = await sanityFetch({ query: navbarQuery, tags: ["navbar"] })
     return data
+}
+
+// ─── Arrangements ────────────────────────────────────────────────────────────
+
+export type ArrangementRoom = { _id: string; title: string; slug: string }
+export type ArrangementEventType = {
+    _id: string
+    name: string
+    slug: string
+    taxonomyGroup: { _id: string; name: string; slug: string } | null
+}
+export type ArrangementGroup = { _id: string; name: string; category: string }
+
+export async function fetchArrangementRooms(): Promise<ArrangementRoom[]> {
+    return sanityClient.fetch(
+        arrangementRoomsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["rooms"] } },
+    )
+}
+
+export async function fetchArrangementEventTypes(): Promise<ArrangementEventType[]> {
+    return sanityClient.fetch(
+        arrangementEventTypesQuery,
+        {},
+        { next: { revalidate: 300, tags: ["eventTypes"] } },
+    )
+}
+
+export async function fetchArrangementGroups(): Promise<ArrangementGroup[]> {
+    return sanityClient.fetch(
+        arrangementGroupsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+}
+
+export async function fetchPublishedArrangements() {
+    return sanityClient.fetch(
+        publishedArrangementsQuery,
+        {},
+        { next: { revalidate: 60, tags: ["arrangements"] } },
+    )
+}
+
+export async function fetchKontaktPage() {
+    return sanityClient.fetch(
+        kontaktPageQuery,
+        {},
+        { next: { revalidate: 300, tags: ["kontaktPage"] } },
+    )
+}
+
+export async function fetchArrangementBySlug(slug: string) {
+    return sanityClient.fetch(
+        arrangementBySlugQuery,
+        { slug },
+        { next: { revalidate: 60, tags: ["arrangements"] } },
+    )
 }

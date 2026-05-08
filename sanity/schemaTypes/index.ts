@@ -1,3 +1,6 @@
+import { arrangement } from "./documents/arrangement"
+import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
+import { eventType } from "./documents/eventType"
 import { gruppe } from "./documents/gruppe"
 import { homeBar } from "./documents/homeBar"
 import { contactGroupSchema, contactPersonSchema, kontaktPage } from "./documents/kontaktPage"
@@ -18,6 +21,7 @@ import {
     volunteerGroup,
     volunteerGroupSummary,
 } from "./documents/volunteerContent"
+import { arrangementDate } from "./objects/arrangementDate"
 import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
 import { menuItem, menuSchema, menuSection } from "./objects/menu"
@@ -44,6 +48,7 @@ export const schemaTypes = [
     contactPersonSchema,
     contactGroupSchema,
     internbevisBenefit,
+    arrangementDate,
 
     // Documents
     room,
@@ -54,6 +59,9 @@ export const schemaTypes = [
     volunteerGroupSummary,
     page,
     navbar,
+    eventTaxonomyGroup,
+    eventType,
+    arrangement,
 
     // Singletons
     siteMetadata,

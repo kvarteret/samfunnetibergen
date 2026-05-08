@@ -2,6 +2,7 @@ import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
+import { recurringDates } from "sanity-plugin-recurring-dates"
 import { dataset, projectId } from "./sanity/env"
 import { resolve, resolvePresentationInitialUrl } from "./sanity/presentation/resolve"
 import { schemaTypes } from "./sanity/schemaTypes"
@@ -16,6 +17,7 @@ export default defineConfig({
     title: "Samfunnet i Bergen",
     plugins: [
         structureTool({ structure }),
+        recurringDates(),
         presentationTool({
             resolve,
             previewUrl: {
