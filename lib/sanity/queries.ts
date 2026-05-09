@@ -13,6 +13,7 @@ import {
     arrangementRoomsQuery,
     blifrivilligPageNbQuery,
     eventsPageContentNbQuery,
+    footerQuery,
     groupsPageQuery,
     homeBarsNbQuery,
     kontaktPageQuery,
@@ -87,8 +88,8 @@ export async function fetchVolunteerGroups(_locale: AppLocale): Promise<Voluntee
             imageUrl: group.imageUrl ?? null,
             accordionSections: (group.accordionSections ?? []).map(section => ({
                 title: section.title ?? null,
-                paragraphs: (section.paragraphs ?? []).filter(
-                    (paragraph): paragraph is string => Boolean(paragraph),
+                paragraphs: (section.paragraphs ?? []).filter((paragraph): paragraph is string =>
+                    Boolean(paragraph),
                 ),
             })),
             detailSections: [],
@@ -332,6 +333,10 @@ export async function fetchArrangementBySlug(slug: string) {
         { slug, today: getOsloDateString() },
         { next: { revalidate: 60, tags: ["arrangements"] } },
     )
+}
+
+export async function fetchFooter() {
+    return sanityClient.fetch(footerQuery, {}, { next: { revalidate: 3600, tags: ["footer"] } })
 }
 
 function getOsloDateString() {

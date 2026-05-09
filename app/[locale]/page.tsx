@@ -7,6 +7,8 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchSiteMetadata } from "@/lib/sanity/queries"
+import type { VolunteerStats } from "@/lib/volunteer-stats"
+import { fetchVolunteerStats } from "@/lib/volunteer-stats"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -23,19 +25,23 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     }
 }
 
-const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
-    (void locale,
+const formatEventDate = (event: EventDetail, locale: AppLocale): string => (
+    void locale,
     new Intl.DateTimeFormat("nb-NO", {
         day: "numeric",
         month: "long",
         timeZone: "Europe/Oslo",
-    }).format(new Date(event.starts_at)))
+    }).format(new Date(event.starts_at))
+)
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
 
-    const eventsResult = await getPublicEvents(locale)
+    const [eventsResult, volunteerStats] = await Promise.all([
+        getPublicEvents(locale),
+        fetchVolunteerStats(),
+    ])
     const visibleEvents = eventsResult.ok ? eventsResult.events.slice(0, 4) : []
 
     return (
@@ -56,6 +62,32 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             </Button>
 
             <HomeEvents events={visibleEvents} locale={locale} />
+
+            {volunteerStats && <VolunteerStatsSection stats={volunteerStats} />}
+        </div>
+    )
+}
+
+function VolunteerStatsSection({ stats }: { stats: VolunteerStats }) {
+    return (
+        <div className="space-y-4">
+            <Card className="flex flex-row justify-between bg-destructive p-2">
+                <p>FRIVILLIGE</p>
+            </Card>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="border-2 border-border bg-card p-6 text-center">
+                    <p className="font-heading text-4xl text-foreground">
+                        {Math.round(stats.totalVolunteers / 1000) + " tusen"}
+                    </p>
+                    <p className="mt-1 text-sm text-foreground/60">frivillige siden 1995</p>
+                </div>
+                <div className="border-2 border-border bg-card p-6 text-center">
+                    <p className="font-heading text-4xl text-foreground">
+                        {stats.currentSemesterVolunteers.toLocaleString("nb-NO")}
+                    </p>
+                    <p className="mt-1 text-sm text-foreground/60">frivillige dette semesteret</p>
+                </div>
+            </div>
         </div>
     )
 }

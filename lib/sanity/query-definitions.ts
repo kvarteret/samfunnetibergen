@@ -400,10 +400,32 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
         "persons": persons[] {
             _key,
             name,
+            rolle,
             email,
             phone,
             "imageUrl": image.asset->url
         }
+    }
+}`)
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+// Anonymous object — always returns data regardless of whether the footer doc exists.
+export const footerQuery = defineQuery(`{
+    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {
+        _key,
+        platform,
+        label,
+        url
+    },
+    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,
+    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,
+    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
+        "title": coalesce(title, ""),
+        "slug": slug.current,
+        "hours": openingHours ${openingHoursProjection}
     }
 }`)
 

@@ -1,4 +1,4 @@
-import { ExternalLink, Ticket } from "lucide-react"
+import { CalendarPlus, ExternalLink, Ticket } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
@@ -22,6 +22,27 @@ function formatDate(dateStr: string, locale: AppLocale): string {
         dateStyle: "long",
         timeZone: "Europe/Oslo",
     }).format(new Date(`${dateStr}T00:00:00`))
+}
+
+function googleCalendarUrl(a: Arrangement): string | null {
+    const firstDate = a.dates?.[0]
+    if (!firstDate?.startDate) return null
+
+    const d = firstDate.startDate.replace(/-/g, "")
+    const start = firstDate.startTime ? `${d}T${firstDate.startTime.replace(":", "")}00` : d
+    const end = firstDate.endTime
+        ? `${d}T${firstDate.endTime.replace(":", "")}00`
+        : firstDate.startTime
+          ? `${d}T${firstDate.startTime.replace(":", "")}00`
+          : d
+
+    const params = new URLSearchParams({
+        action: "TEMPLATE",
+        text: a.title ?? "",
+        dates: `${start}/${end}`,
+        location: a.room?.title ?? a.roomText ?? "Samfunnet i Bergen",
+    })
+    return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
 function formatPrices(a: Arrangement): string | null {
@@ -66,6 +87,7 @@ export default async function EventPage({ params }: EventPageProps) {
     const organizer = arrangement.organizerGroup?.name ?? arrangement.organizerText
     const taxonomy = arrangement.eventType?.name
     const price = formatPrices(arrangement)
+    const gcalUrl = googleCalendarUrl(arrangement)
 
     return (
         <article className="flex w-full flex-col gap-8">
@@ -171,6 +193,20 @@ export default async function EventPage({ params }: EventPageProps) {
                             </a>
                         </Button>
                     )}
+                    {gcalUrl && (
+                        <Button asChild variant="neutral">
+                            <a href={gcalUrl} rel="noreferrer" target="_blank">
+                                <CalendarPlus aria-hidden="true" />
+                                {t("addToGoogleCalendar")}
+                            </a>
+                        </Button>
+                    )}
+                    <Button asChild variant="neutral">
+                        <a href={`/api/ical/${arrangement.slug}`} download>
+                            <CalendarPlus aria-hidden="true" />
+                            {t("addToCalendar")}
+                        </a>
+                    </Button>
                 </div>
                 <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground/85 max-lg:border-l-0 max-lg:pl-0">
                     {arrangement.description?.length ? (

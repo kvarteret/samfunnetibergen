@@ -34,7 +34,9 @@
         "organizer": "Arrangeres av",
         "description": "Om arrangementet",
         "tickets": "Kjøp billetter",
-        "facebook": "Gå til Facebook-event"
+        "facebook": "Gå til Facebook-event",
+        "addToGoogleCalendar": "Legg til i Google Kalender",
+        "addToCalendar": "Last ned .ics-fil"
     },
     "VolunteerProspectForm": {
         "title": "Bli frivillig",

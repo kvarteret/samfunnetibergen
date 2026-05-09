@@ -1,6 +1,7 @@
 import { arrangement } from "./documents/arrangement"
 import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
 import { eventType } from "./documents/eventType"
+import { footer, footerSocialLinkSchema } from "./documents/footer"
 import { gruppe } from "./documents/gruppe"
 import { homeBar } from "./documents/homeBar"
 import { contactGroupSchema, contactPersonSchema, kontaktPage } from "./documents/kontaktPage"
@@ -41,6 +42,7 @@ export const schemaTypes = [
     contactPersonSchema,
     contactGroupSchema,
     internbevisBenefit,
+    footerSocialLinkSchema,
     arrangementDate,
 
     // Documents
@@ -55,6 +57,7 @@ export const schemaTypes = [
     arrangement,
 
     // Singletons
+    footer,
     siteMetadata,
     eventsPage,
     roomsPage,
