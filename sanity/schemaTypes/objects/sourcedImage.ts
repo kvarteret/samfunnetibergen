@@ -17,7 +17,12 @@ export const sourcedImage = defineType({
             name: "alt",
             title: "Alt Text",
             type: "string",
-            validation: rule => rule.required(),
+            validation: rule =>
+                rule.custom((alt, ctx) => {
+                    const parent = ctx.parent as { image?: unknown } | undefined
+                    if (parent?.image && !alt) return "Alt-tekst er påkrevd når bilde er lastet opp."
+                    return true
+                }),
         }),
         defineField({
             name: "caption",
@@ -25,13 +30,6 @@ export const sourcedImage = defineType({
             type: "string",
         }),
     ],
-    validation: rule =>
-        rule.custom(value => {
-            if (!value?.image) {
-                return "Legg til et bilde."
-            }
-            return true
-        }),
     preview: {
         select: { title: "alt", media: "image" },
     },
