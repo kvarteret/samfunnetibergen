@@ -1,7 +1,7 @@
 import { arrangement } from "./documents/arrangement"
 import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
 import { eventType } from "./documents/eventType"
-import { footer, footerContactItemSchema, footerSocialLinkSchema } from "./documents/footer"
+import { footer, footerSocialLinkSchema } from "./documents/footer"
 import { gruppe } from "./documents/gruppe"
 import { homeBar } from "./documents/homeBar"
 import { contactGroupSchema, contactPersonSchema, kontaktPage } from "./documents/kontaktPage"
@@ -13,7 +13,6 @@ import {
     eventsPage,
     groupsPage,
     internbevisBenefit,
-    privacyPolicy,
     roomsPage,
     siteMetadata,
 } from "./documents/singletons"
@@ -44,7 +43,6 @@ export const schemaTypes = [
     contactGroupSchema,
     internbevisBenefit,
     footerSocialLinkSchema,
-    footerContactItemSchema,
     arrangementDate,
 
     // Documents
@@ -65,5 +63,4 @@ export const schemaTypes = [
     roomsPage,
     groupsPage,
     blifrivilligPage,
-    privacyPolicy,
 ]

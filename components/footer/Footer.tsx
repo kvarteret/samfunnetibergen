@@ -4,8 +4,8 @@ import type { fetchFooter } from "@/lib/sanity/queries"
 
 type FooterData = NonNullable<Awaited<ReturnType<typeof fetchFooter>>>
 type SocialLink = NonNullable<FooterData["socialLinks"]>[number]
-type ContactItem = NonNullable<FooterData["contactItems"]>[number]
-type OpeningHoursRow = NonNullable<NonNullable<FooterData["openingHours"]>["rows"]>[number]
+type RoomHours = NonNullable<FooterData["roomHours"]>[number]
+type HoursRow = NonNullable<NonNullable<RoomHours["hours"]>["rows"]>[number]
 
 const PLATFORM_LABELS: Record<string, string> = {
     instagram: "Instagram",
@@ -34,7 +34,7 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
                 {links.map(link => (
                     <li key={link._key}>
                         <a
-                            className="inline-flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
+                            className="text-sm text-foreground/80 hover:text-foreground transition-colors"
                             href={link.url ?? "#"}
                             rel="noreferrer"
                             target="_blank"
@@ -50,36 +50,18 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
     )
 }
 
-function ContactColumn({ items }: { items: ContactItem[] }) {
-    if (!items.length) return null
+function ContactColumn({
+    generalContact,
+}: {
+    generalContact?: string | null
+}) {
+    if (!generalContact) return null
     return (
         <div>
             <ColumnHeading>Kontakt oss</ColumnHeading>
-            <div className="space-y-3">
-                {items.map(item => {
-                    const href = item.email ? `mailto:${item.email}` : (item.url ?? null)
-                    const display = item.email ?? item.url
-                    return (
-                        <div key={item._key}>
-                            <p className="text-xs font-medium text-foreground/60 mb-0.5">
-                                {item.label}
-                            </p>
-                            {href && display ? (
-                                <a
-                                    className="text-sm text-foreground/80 hover:text-foreground transition-colors"
-                                    href={href}
-                                    rel={item.url ? "noreferrer" : undefined}
-                                    target={item.url ? "_blank" : undefined}
-                                >
-                                    {display}
-                                </a>
-                            ) : (
-                                <p className="text-sm text-foreground/80">{display}</p>
-                            )}
-                        </div>
-                    )
-                })}
-            </div>
+            <p className="text-sm text-foreground/80 whitespace-pre-line leading-relaxed">
+                {generalContact}
+            </p>
         </div>
     )
 }
@@ -96,29 +78,41 @@ function AddressColumn({ address }: { address?: string | null }) {
     )
 }
 
-function OpeningHoursColumn({ rows }: { rows: OpeningHoursRow[] }) {
-    if (!rows.length) return null
+function HoursRow({ row }: { row: HoursRow }) {
+    const time =
+        row.status === "closed"
+            ? "Stengt"
+            : row.duration?.start && row.duration?.end
+              ? `${row.duration.start}–${row.duration.end}`
+              : null
+    return (
+        <div className="flex justify-between gap-4 text-sm">
+            <dt className="text-foreground/80">{row.label}</dt>
+            {time && <dd className="text-foreground/60 shrink-0 tabular-nums">{time}</dd>}
+        </div>
+    )
+}
+
+function OpeningHoursColumn({ rooms }: { rooms: RoomHours[] }) {
+    const roomsWithHours = rooms.filter(r => (r.hours?.rows?.length ?? 0) > 0)
+    if (!roomsWithHours.length) return null
     return (
         <div>
             <ColumnHeading>Åpningstider</ColumnHeading>
-            <dl className="space-y-1.5">
-                {rows.map(row => {
-                    const time =
-                        row.status === "closed"
-                            ? "Stengt"
-                            : row.duration?.start && row.duration?.end
-                              ? `${row.duration.start}–${row.duration.end}`
-                              : null
-                    return (
-                        <div className="flex justify-between gap-4 text-sm" key={row._key}>
-                            <dt className="text-foreground/80">{row.label}</dt>
-                            {time && (
-                                <dd className="text-foreground/60 shrink-0 tabular-nums">{time}</dd>
-                            )}
-                        </div>
-                    )
-                })}
-            </dl>
+            <div className="space-y-4">
+                {roomsWithHours.map(room => (
+                    <div key={room.slug}>
+                        <p className="text-xs font-medium text-foreground/50 mb-1.5 uppercase tracking-wide">
+                            {room.title}
+                        </p>
+                        <dl className="space-y-1">
+                            {(room.hours?.rows ?? []).map((row: HoursRow) => (
+                                <HoursRow key={row._key} row={row} />
+                            ))}
+                        </dl>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
@@ -129,21 +123,19 @@ interface FooterProps {
 }
 
 export function Footer({ data, locale }: FooterProps) {
-    const socialLinks = data?.socialLinks ?? []
-    const contactItems = data?.contactItems ?? []
-    const openingRows = data?.openingHours?.rows ?? []
-    const hasContent = socialLinks.length || contactItems.length || data?.visitAddress || openingRows.length
+    if (!data) return null
 
-    if (!hasContent) return null
+    const socialLinks = data.socialLinks ?? []
+    const roomHours = data.roomHours ?? []
 
     return (
         <footer className="border-t border-border bg-card">
             <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 lg:px-14">
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                     <SocialColumn links={socialLinks} />
-                    <ContactColumn items={contactItems} />
-                    <AddressColumn address={data?.visitAddress} />
-                    <OpeningHoursColumn rows={openingRows} />
+                    <ContactColumn generalContact={data.generalContact} />
+                    <AddressColumn address={data.visitAddress} />
+                    <OpeningHoursColumn rooms={roomHours} />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-5">

@@ -412,21 +412,21 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
-export const footerQuery = defineQuery(`*[_type == "footer" && _id == "footer"][0] {
-    "socialLinks": socialLinks[] {
+// Anonymous object — always returns data regardless of whether the footer doc exists.
+export const footerQuery = defineQuery(`{
+    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {
         _key,
         platform,
         label,
         url
     },
-    "contactItems": contactItems[] {
-        _key,
-        label,
-        email,
-        url
-    },
     "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,
-    "openingHours": openingHours ${openingHoursProjection}
+    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,
+    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
+        "title": coalesce(title, ""),
+        "slug": slug.current,
+        "hours": openingHours ${openingHoursProjection}
+    }
 }`)
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────

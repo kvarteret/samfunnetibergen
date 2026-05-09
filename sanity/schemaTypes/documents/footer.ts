@@ -42,35 +42,6 @@ const socialLinkSchema = defineType({
     },
 })
 
-const contactItemSchema = defineType({
-    name: "footerContactItem",
-    title: "Kontaktlenke",
-    type: "object",
-    fields: [
-        defineField({
-            name: "label",
-            title: "Etikett",
-            description: "F.eks. «Generelle henvendelser» eller «Billetter»",
-            type: "string",
-            validation: rule => rule.required(),
-        }),
-        defineField({
-            name: "email",
-            title: "E-post",
-            type: "string",
-        }),
-        defineField({
-            name: "url",
-            title: "URL (alternativ til e-post)",
-            type: "url",
-            hidden: ({ parent }) => Boolean(parent?.email),
-        }),
-    ],
-    preview: {
-        select: { title: "label", subtitle: "email" },
-    },
-})
-
 export const footer = defineType({
     name: "footer",
     title: "Bunntekst",
@@ -83,22 +54,9 @@ export const footer = defineType({
         defineField({
             name: "socialLinks",
             title: "Følg oss",
-            description: "Sosiale medier-lenker i bunnteksten",
+            description: "Sosiale medier-lenker. Besøksadresse og kontakt hentes fra Kontaktsiden; åpningstider fra rommene.",
             type: "array",
             of: [defineArrayMember({ type: "footerSocialLink" })],
-        }),
-        defineField({
-            name: "contactItems",
-            title: "Kontaktlenker",
-            description:
-                "Spesifikke kontaktkategorier (f.eks. Generelle henvendelser, Billetter). Besøksadresse hentes automatisk fra Kontaktsiden.",
-            type: "array",
-            of: [defineArrayMember({ type: "footerContactItem" })],
-        }),
-        defineField({
-            name: "openingHours",
-            title: "Åpningstider",
-            type: "openingHours",
         }),
     ],
     preview: {
@@ -109,4 +67,3 @@ export const footer = defineType({
 })
 
 export const footerSocialLinkSchema = socialLinkSchema
-export const footerContactItemSchema = contactItemSchema
