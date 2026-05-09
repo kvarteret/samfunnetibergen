@@ -434,6 +434,7 @@ export type ContactGroup = {
 export type ContactPerson = {
   _type: "contactPerson";
   name?: string;
+  rolle?: string;
   email?: string;
   phone?: string;
   image?: {
@@ -1272,7 +1273,7 @@ export type EventTaxonomyGroupsQueryResult = Array<{
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: kontaktPageQuery
-// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    "contactGroups": contactGroups[] {        _key,        title,        "persons": persons[] {            _key,            name,            email,            phone,            "imageUrl": image.asset->url        }    }}
+// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    "contactGroups": contactGroups[] {        _key,        title,        "persons": persons[] {            _key,            name,            rolle,            email,            phone,            "imageUrl": image.asset->url        }    }}
 export type KontaktPageQueryResult = {
   visitAddress: string | null;
   postAddress: string | null;
@@ -1287,6 +1288,7 @@ export type KontaktPageQueryResult = {
     persons: Array<{
       _key: string;
       name: string | null;
+      rolle: string | null;
       email: string | null;
       phone: string | null;
       imageUrl: string | null;
@@ -1343,7 +1345,7 @@ declare module "@sanity/client" {
     '\n    *[_type == "arrangement" && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0] | order(dates[startDate >= $today][0].startDate asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    isRecurring,\n    rrule,\n    "dates": dates[startDate >= $today] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': PublishedArrangementsQueryResult;
     '\n    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0][0] {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    isRecurring,\n    rrule,\n    "dates": dates[startDate >= $today] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, "") },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    }\n}': ArrangementBySlugQueryResult;
     '\n    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "slug": coalesce(slug.current, "")\n}': EventTaxonomyGroupsQueryResult;
-    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    "contactGroups": contactGroups[] {\n        _key,\n        title,\n        "persons": persons[] {\n            _key,\n            name,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }\n    }\n}': KontaktPageQueryResult;
+    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    "contactGroups": contactGroups[] {\n        _key,\n        title,\n        "persons": persons[] {\n            _key,\n            name,\n            rolle,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }\n    }\n}': KontaktPageQueryResult;
     '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult;
   }
 }

@@ -8,9 +8,14 @@ const contactPerson = defineType({
     fields: [
         defineField({
             name: "name",
-            title: "Navn / rolle",
+            title: "Navn",
             type: "string",
             validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "rolle",
+            title: "Rolle",
+            type: "string",
         }),
         defineField({ name: "email", title: "E-post", type: "string" }),
         defineField({ name: "phone", title: "Telefon", type: "string" }),

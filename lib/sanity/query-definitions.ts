@@ -400,6 +400,7 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
         "persons": persons[] {
             _key,
             name,
+            rolle,
             email,
             phone,
             "imageUrl": image.asset->url

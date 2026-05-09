@@ -105,43 +105,14 @@ export const structure: StructureResolver = (S, context) =>
                                 title: "Taksonomigrupper",
                                 icon: TagIcon,
                             }),
-                            S.listItem()
-                                .title("Arrangementtyper")
-                                .icon(TagIcon)
-                                .child(
-                                    S.list()
-                                        .title("Arrangementtyper")
-                                        .items([
-                                            S.documentTypeListItem("eventTaxonomyGroup")
-                                                .title("Etter taksonomigruppe")
-                                                .icon(TagIcon)
-                                                .child(taxonomyGroupId =>
-                                                    S.list()
-                                                        .title("Arrangementtyper")
-                                                        .items([
-                                                            orderableDocumentListDeskItem({
-                                                                S,
-                                                                context,
-                                                                type: "eventType",
-                                                                id: `orderable-event-type-${taxonomyGroupId}`,
-                                                                title: "Arrangementtyper",
-                                                                filter: '_type == "eventType" && taxonomyGroup._ref == $taxonomyGroupId',
-                                                                params: { taxonomyGroupId },
-                                                                createIntent: false,
-                                                            }),
-                                                        ]),
-                                                ),
-                                            S.divider(),
-                                            orderableDocumentListDeskItem({
-                                                S,
-                                                context,
-                                                type: "eventType",
-                                                id: "orderable-event-type-all",
-                                                title: "Alle arrangementtyper",
-                                                icon: TagIcon,
-                                            }),
-                                        ]),
-                                ),
+                            orderableDocumentListDeskItem({
+                                S,
+                                context,
+                                type: "eventType",
+                                id: "orderable-event-type-all",
+                                title: "Arrangementtyper",
+                                icon: TagIcon,
+                            }),
                         ]),
                 ),
 
