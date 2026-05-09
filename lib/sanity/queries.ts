@@ -8,12 +8,12 @@ import { sanityClient } from "./client"
 import { sanityFetch } from "./live"
 import {
     arrangementBySlugQuery,
-    footerQuery,
     arrangementEventTypesQuery,
     arrangementGroupsQuery,
     arrangementRoomsQuery,
     blifrivilligPageNbQuery,
     eventsPageContentNbQuery,
+    footerQuery,
     groupsPageQuery,
     homeBarsNbQuery,
     kontaktPageQuery,
@@ -88,8 +88,8 @@ export async function fetchVolunteerGroups(_locale: AppLocale): Promise<Voluntee
             imageUrl: group.imageUrl ?? null,
             accordionSections: (group.accordionSections ?? []).map(section => ({
                 title: section.title ?? null,
-                paragraphs: (section.paragraphs ?? []).filter(
-                    (paragraph): paragraph is string => Boolean(paragraph),
+                paragraphs: (section.paragraphs ?? []).filter((paragraph): paragraph is string =>
+                    Boolean(paragraph),
                 ),
             })),
             detailSections: [],

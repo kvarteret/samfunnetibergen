@@ -25,13 +25,14 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     }
 }
 
-const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
-    (void locale,
+const formatEventDate = (event: EventDetail, locale: AppLocale): string => (
+    void locale,
     new Intl.DateTimeFormat("nb-NO", {
         day: "numeric",
         month: "long",
         timeZone: "Europe/Oslo",
-    }).format(new Date(event.starts_at)))
+    }).format(new Date(event.starts_at))
+)
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
     const locale = (await resolvePageLocale(params)) as AppLocale

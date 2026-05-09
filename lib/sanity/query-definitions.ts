@@ -419,9 +419,13 @@ export const footerQuery = defineQuery(`*[_type == "footer" && _id == "footer"][
         label,
         url
     },
-    contactPhone,
-    contactEmail,
-    visitAddress,
+    "contactItems": contactItems[] {
+        _key,
+        label,
+        email,
+        url
+    },
+    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,
     "openingHours": openingHours ${openingHoursProjection}
 }`)
 
