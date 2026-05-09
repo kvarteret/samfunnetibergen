@@ -12,6 +12,7 @@ export async function fetchVolunteerStats(): Promise<VolunteerStats | null> {
     try {
         const res = await fetch(`${PERSONAL_API_BASE}/api/v1/stats`, {
             next: { revalidate: 3600 },
+            signal: AbortSignal.timeout(3000),
         })
         if (!res.ok) return null
         return res.json() as Promise<VolunteerStats>

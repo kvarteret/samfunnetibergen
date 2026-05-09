@@ -77,9 +77,9 @@ function VolunteerStatsSection({ stats }: { stats: VolunteerStats }) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="border-2 border-border bg-card p-6 text-center">
                     <p className="font-heading text-4xl text-foreground">
-                        {stats.totalVolunteers.toLocaleString("nb-NO")}
+                        {Math.round(stats.totalVolunteers / 1000) + " tusen"}
                     </p>
-                    <p className="mt-1 text-sm text-foreground/60">frivillige totalt</p>
+                    <p className="mt-1 text-sm text-foreground/60">frivillige siden 1995</p>
                 </div>
                 <div className="border-2 border-border bg-card p-6 text-center">
                     <p className="font-heading text-4xl text-foreground">

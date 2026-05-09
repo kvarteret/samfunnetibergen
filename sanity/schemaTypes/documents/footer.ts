@@ -54,7 +54,8 @@ export const footer = defineType({
         defineField({
             name: "socialLinks",
             title: "Følg oss",
-            description: "Sosiale medier-lenker. Besøksadresse og kontakt hentes fra Kontaktsiden; åpningstider fra rommene.",
+            description:
+                "Sosiale medier-lenker. Besøksadresse og kontakt hentes fra Kontaktsiden; åpningstider fra rommene.",
             type: "array",
             of: [defineArrayMember({ type: "footerSocialLink" })],
         }),
