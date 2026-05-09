@@ -410,6 +410,23 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+export const footerQuery = defineQuery(`*[_type == "footer" && _id == "footer"][0] {
+    "socialLinks": socialLinks[] {
+        _key,
+        platform,
+        label,
+        url
+    },
+    contactPhone,
+    contactEmail,
+    visitAddress,
+    "openingHours": openingHours ${openingHoursProjection}
+}`)
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
 export const navbarQuery = defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {
     items[] {
         _key,

@@ -8,6 +8,7 @@ import { sanityClient } from "./client"
 import { sanityFetch } from "./live"
 import {
     arrangementBySlugQuery,
+    footerQuery,
     arrangementEventTypesQuery,
     arrangementGroupsQuery,
     arrangementRoomsQuery,
@@ -332,6 +333,10 @@ export async function fetchArrangementBySlug(slug: string) {
         { slug, today: getOsloDateString() },
         { next: { revalidate: 60, tags: ["arrangements"] } },
     )
+}
+
+export async function fetchFooter() {
+    return sanityClient.fetch(footerQuery, {}, { next: { revalidate: 3600, tags: ["footer"] } })
 }
 
 function getOsloDateString() {
