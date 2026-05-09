@@ -1,6 +1,5 @@
 import type { AppLocale } from "@/i18n/routing"
 import { fetchVolunteerGroupSummaries, fetchVolunteerGroups } from "@/lib/sanity/queries"
-import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
 
 export type VolunteerGroupSlug = string
@@ -54,7 +53,6 @@ export async function getVolunteerGroupSummaries(
 
 const messagesByLocale = {
     nb: nbMessages,
-    en: enMessages,
 } as const
 
 // Compatibility export for stale dev graphs that may still reference the

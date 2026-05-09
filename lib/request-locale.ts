@@ -18,16 +18,12 @@ function normalizeLocaleToken(locale: string): AppLocale | null {
         return "nb"
     }
 
-    if (normalizedLocale === "en" || normalizedLocale.startsWith("en-")) {
-        return "en"
-    }
-
     return null
 }
 
 export function resolveRequestLocale(requestedLocale: string | null | undefined): AppLocale {
     if (!requestedLocale) {
-        return "en"
+        return "nb"
     }
 
     const requestedLocales = requestedLocale
@@ -51,9 +47,5 @@ export function resolveRequestLocale(requestedLocale: string | null | undefined)
         return "nb"
     }
 
-    if (fallback.includes("en")) {
-        return "en"
-    }
-
-    return "en"
+    return "nb"
 }

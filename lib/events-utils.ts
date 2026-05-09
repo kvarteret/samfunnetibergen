@@ -4,12 +4,12 @@ const FALLBACK_TAXONOMY_GROUP = "Annet"
 const PRIMARY_TAXONOMY_GROUPS = ["Musikk", "Scenekunst", "Faglig", "Sosialt", "Organisasjon"]
 
 const TAXONOMY_GROUP_LABELS: Record<string, Record<AppLocale, string>> = {
-    Musikk: { nb: "Musikk", en: "Music" },
-    Scenekunst: { nb: "Scenekunst", en: "Performing arts" },
-    Faglig: { nb: "Faglig", en: "Talks and debates" },
-    Sosialt: { nb: "Sosialt", en: "Social events" },
-    Organisasjon: { nb: "Organisasjon", en: "Organization" },
-    Annet: { nb: "Annet", en: "Other events" },
+    Musikk: { nb: "Musikk" },
+    Scenekunst: { nb: "Scenekunst" },
+    Faglig: { nb: "Faglig" },
+    Sosialt: { nb: "Sosialt" },
+    Organisasjon: { nb: "Organisasjon" },
+    Annet: { nb: "Annet" },
 }
 
 export type EventSection = {
@@ -295,14 +295,18 @@ export function getEventDescriptionParagraphs(description: string | null | undef
 }
 
 export function formatEventDate(event: EventDetail, locale: AppLocale): string {
-    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    void locale
+
+    return new Intl.DateTimeFormat("nb-NO", {
         dateStyle: "full",
         timeZone: "Europe/Oslo",
     }).format(new Date(event.starts_at))
 }
 
 export function formatEventTime(event: EventDetail, locale: AppLocale): string {
-    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    void locale
+
+    return new Intl.DateTimeFormat("nb-NO", {
         hour: "2-digit",
         minute: "2-digit",
         timeZone: "Europe/Oslo",
@@ -310,12 +314,14 @@ export function formatEventTime(event: EventDetail, locale: AppLocale): string {
 }
 
 export function formatEventTimeRange(event: EventDetail, locale: AppLocale): string {
-    const dateTimeFormatter = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    void locale
+
+    const dateTimeFormatter = new Intl.DateTimeFormat("nb-NO", {
         dateStyle: "medium",
         timeStyle: "short",
         timeZone: "Europe/Oslo",
     })
-    const timeFormatter = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    const timeFormatter = new Intl.DateTimeFormat("nb-NO", {
         hour: "2-digit",
         minute: "2-digit",
         timeZone: "Europe/Oslo",

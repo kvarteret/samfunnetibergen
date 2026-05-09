@@ -11,16 +11,10 @@ import {
     blifrivilligPage,
     eventsPage,
     groupsPage,
-    homePage,
     internbevisBenefit,
     roomsPage,
     siteMetadata,
 } from "./documents/singletons"
-import {
-    groupSectionSchema,
-    volunteerGroup,
-    volunteerGroupSummary,
-} from "./documents/volunteerContent"
 import { arrangementDate } from "./objects/arrangementDate"
 import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
@@ -41,7 +35,6 @@ export const schemaTypes = [
     openingHours,
     portableTextContent,
     navItemSchema,
-    groupSectionSchema,
     menuItem,
     menuSection,
     menuSchema,
@@ -55,8 +48,6 @@ export const schemaTypes = [
     gruppe,
     homeBar,
     kontaktPage,
-    volunteerGroup,
-    volunteerGroupSummary,
     page,
     navbar,
     eventTaxonomyGroup,
@@ -65,7 +56,6 @@ export const schemaTypes = [
 
     // Singletons
     siteMetadata,
-    homePage,
     eventsPage,
     roomsPage,
     groupsPage,

@@ -16,7 +16,6 @@ const editorialSectionProjection = `{
 const sourcedImageProjection = `{
     _key,
     "assetUrl": image.asset->url,
-    sourceUrl,
     alt,
     caption
 }`
@@ -39,113 +38,50 @@ const openingHoursProjection = `{
 // ─── Volunteer content ───────────────────────────────────────────────────────
 
 export const volunteerGroupsNbQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe" && isRecruiting == true] | order(orderRank asc, name asc) {
     "slug": slug.current,
     name,
-    "eyebrow": null,
-    "lead": summary,
+    "eyebrow": recruitmentLabel,
+    "lead": coalesce(recruitmentLead, summary),
     "imageUrl": image.image.asset->url,
-    "accordionSections": [],
-    "detailSections": []
-}`)
-
-export const volunteerGroupsEnQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
-    "slug": slug.current,
-    name,
-    "eyebrow": null,
-    "lead": summary,
-    "imageUrl": image.image.asset->url,
-    "accordionSections": [],
+    "accordionSections": recruitmentSections[] {
+        _key,
+        title,
+        paragraphs
+    },
     "detailSections": []
 }`)
 
 export const volunteerGroupSummariesNbQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
+    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe" && isRecruiting == true] | order(orderRank asc, name asc) {
     name,
-    "description": summary
-}`)
-
-export const volunteerGroupSummariesEnQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe"] | order(orderRank asc, name asc) {
-    name,
-    "description": summary
-}`)
-
-// ─── Home page ───────────────────────────────────────────────────────────────
-
-export const homePageContentNbQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
-    "badge": badgeNb,
-    "heroDescription": heroDescriptionNb,
-    "heroDescriptionFusion": heroDescriptionFusionNb,
-    "eventsLink": eventsLinkNb
-}`)
-
-export const homePageContentEnQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
-    "badge": badgeEn,
-    "heroDescription": heroDescriptionEn,
-    "heroDescriptionFusion": heroDescriptionFusionEn,
-    "eventsLink": eventsLinkEn
+    "description": coalesce(recruitmentLead, summary)
 }`)
 
 // ─── Events page ─────────────────────────────────────────────────────────────
 
 export const eventsPageContentNbQuery =
     defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
-    "eyebrow": eyebrowNb,
-    "title": titleNb,
-    "description": descriptionNb
-}`)
-
-export const eventsPageContentEnQuery =
-    defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
-    "eyebrow": eyebrowEn,
-    "title": titleEn,
-    "description": descriptionEn
+    "eyebrow": coalesce(eyebrow, eyebrowNb),
+    "title": coalesce(title, titleNb),
+    "description": coalesce(description, descriptionNb)
 }`)
 
 // ─── Site metadata ────────────────────────────────────────────────────────────
 
 export const siteMetadataNbQuery =
     defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
-    "siteTitle": siteTitleNb,
-    "siteDescription": siteDescriptionNb,
-    "homeTitle": homeTitleNb,
-    "homeDescription": homeDescriptionNb,
-    "eventsTitle": eventsTitleNb,
-    "eventsDescription": eventsDescriptionNb,
-    "volunteerSignupTitle": volunteerSignupTitleNb,
-    "volunteerSignupDescription": volunteerSignupDescriptionNb,
-    "groupPageTitle": groupPageTitleNb,
-    "groupPageDescription": groupPageDescriptionNb
-}`)
-
-export const siteMetadataEnQuery =
-    defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
-    "siteTitle": siteTitleEn,
-    "siteDescription": siteDescriptionEn,
-    "homeTitle": homeTitleEn,
-    "homeDescription": homeDescriptionEn,
-    "eventsTitle": eventsTitleEn,
-    "eventsDescription": eventsDescriptionEn,
-    "volunteerSignupTitle": volunteerSignupTitleEn,
-    "volunteerSignupDescription": volunteerSignupDescriptionEn,
-    "groupPageTitle": groupPageTitleEn,
-    "groupPageDescription": groupPageDescriptionEn
+    "homeTitle": coalesce(homeTitle, homeTitleNb),
+    "homeDescription": coalesce(homeDescription, homeDescriptionNb),
+    "eventsTitle": coalesce(eventsTitle, eventsTitleNb),
+    "eventsDescription": coalesce(eventsDescription, eventsDescriptionNb)
 }`)
 
 // ─── Blifrivillig page ────────────────────────────────────────────────────────
 
 export const blifrivilligPageNbQuery =
     defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {
-    "title": titleNb,
-    "seoDescription": seoDescription,
-    "description": description[]
-}`)
-
-export const blifrivilligPageEnQuery =
-    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {
-    "title": titleEn,
+    "title": coalesce(title, titleNb),
     "seoDescription": seoDescription,
     "description": description[]
 }`)
@@ -155,12 +91,6 @@ export const blifrivilligPageEnQuery =
 export const homeBarsNbQuery = defineQuery(`*[_type == "homeBar"] | order(orderRank asc) {
     "name": nameNb,
     "description": descriptionNb,
-    "imageUrl": image.asset->url
-}`)
-
-export const homeBarsEnQuery = defineQuery(`*[_type == "homeBar"] | order(orderRank asc) {
-    "name": nameEn,
-    "description": descriptionEn,
     "imageUrl": image.asset->url
 }`)
 
@@ -346,15 +276,14 @@ export const arrangementGroupsQuery = defineQuery(`
 }`)
 
 export const publishedArrangementsQuery = defineQuery(`
-    *[_type == "arrangement" && approvalStatus == "approved"] | order(dates[0].startDate asc) {
+    *[_type == "arrangement" && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0] | order(dates[startDate >= $today][0].startDate asc) {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, ""),
     approvalStatus,
-    language,
     isRecurring,
     rrule,
-    "dates": dates[] {
+    "dates": dates[startDate >= $today] | order(startDate asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
@@ -398,15 +327,14 @@ export const publishedArrangementsQuery = defineQuery(`
 }`)
 
 export const arrangementBySlugQuery = defineQuery(`
-    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved"][0] {
+    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0][0] {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, ""),
     approvalStatus,
-    language,
     isRecurring,
     rrule,
-    "dates": dates[] {
+    "dates": dates[startDate >= $today] | order(startDate asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
@@ -453,7 +381,6 @@ export const eventTaxonomyGroupsQuery = defineQuery(`
     *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
-    nameEn,
     "slug": coalesce(slug.current, "")
 }`)
 

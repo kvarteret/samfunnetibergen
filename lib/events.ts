@@ -18,7 +18,7 @@ const getApiClientBaseUrl = (): string => {
     return configuredBaseUrl.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
 }
 
-const toAcceptLanguage = (locale: AppLocale): "no" | "en" => (locale === "en" ? "en" : "no")
+const toAcceptLanguage = (): "no" => "no"
 
 type ApiQuery = Record<string, boolean | number | string | null | undefined>
 
@@ -55,11 +55,13 @@ const fetchPersonalApi = async <T>(
 }
 
 export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsResult> {
+    void locale
+
     try {
         const [eventList, taxonomy] = await Promise.all([
             fetchPersonalApi<EventList>("/api/v1/events", {
                 headers: {
-                    "accept-language": toAcceptLanguage(locale),
+                    "accept-language": toAcceptLanguage(),
                 },
                 query: {
                     include_internal: false,
@@ -71,7 +73,7 @@ export async function getPublicEvents(locale: AppLocale): Promise<PublicEventsRe
 
         return {
             ok: true,
-            events: eventList.events,
+            events: eventList.events.filter(isCurrentOrFutureEvent),
             taxonomy,
         }
     } catch {
@@ -98,3 +100,16 @@ export const getPublicEvent = cache(
         )
     },
 )
+
+function isCurrentOrFutureEvent(event: EventDetail): boolean {
+    return osloDateKey(event.starts_at) >= osloDateKey(new Date())
+}
+
+function osloDateKey(value: Date | string): string {
+    return new Intl.DateTimeFormat("en-CA", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Europe/Oslo",
+        year: "numeric",
+    }).format(new Date(value))
+}

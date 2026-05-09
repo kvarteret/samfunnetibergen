@@ -11,14 +11,7 @@ export const menuItem = defineType({
             type: "string",
             validation: rule => rule.required(),
         }),
-        defineField({ name: "titleEn", title: "Name (English)", type: "string" }),
         defineField({ name: "description", title: "Beskrivelse", type: "text", rows: 2 }),
-        defineField({
-            name: "descriptionEn",
-            title: "Description (English)",
-            type: "text",
-            rows: 2,
-        }),
         defineField({ name: "price", title: "Pris (kr)", type: "number" }),
     ],
     preview: {
@@ -43,7 +36,6 @@ export const menuSection = defineType({
             type: "string",
             validation: rule => rule.required(),
         }),
-        defineField({ name: "titleEn", title: "Title (English)", type: "string" }),
         defineField({
             name: "fixedPrice",
             title: "Fast pris for hele seksjonen (kr)",
@@ -52,12 +44,6 @@ export const menuSection = defineType({
         defineField({
             name: "info",
             title: "Tilleggsinformasjon",
-            type: "text",
-            rows: 3,
-        }),
-        defineField({
-            name: "infoEn",
-            title: "Additional info (English)",
             type: "text",
             rows: 3,
         }),
@@ -91,12 +77,6 @@ export const menuSchema = defineType({
         defineField({
             name: "allergenNote",
             title: "Allergennotat",
-            type: "text",
-            rows: 3,
-        }),
-        defineField({
-            name: "allergenNoteEn",
-            title: "Allergen note (English)",
             type: "text",
             rows: 3,
         }),

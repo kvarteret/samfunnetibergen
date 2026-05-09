@@ -10,14 +10,9 @@ export const eventTaxonomyGroup = defineType({
     fields: [
         defineField({
             name: "name",
-            title: "Navn (norsk)",
+            title: "Navn",
             type: "string",
             validation: rule => rule.required(),
-        }),
-        defineField({
-            name: "nameEn",
-            title: "Navn (engelsk)",
-            type: "string",
         }),
         defineField({
             name: "slug",
@@ -37,10 +32,9 @@ export const eventTaxonomyGroup = defineType({
     preview: {
         select: {
             title: "name",
-            subtitle: "nameEn",
         },
-        prepare({ title, subtitle }) {
-            return { title: title ?? "Gruppe", subtitle }
+        prepare({ title }) {
+            return { title: title ?? "Gruppe" }
         },
     },
     orderings: [orderRankOrdering],

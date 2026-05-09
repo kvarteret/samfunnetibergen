@@ -344,34 +344,12 @@ const pageSeoUpdates = {
 }
 
 const siteMetadataUpdate = {
-    siteTitleNb: "Samfunnet i Bergen",
-    siteTitleEn: "Samfunnet i Bergen",
-    siteDescriptionNb: "Studentenes kulturhus i Bergen.",
-    siteDescriptionEn: "The students' cultural house in Bergen.",
-    homeTitleNb: "Samfunnet i Bergen",
-    homeTitleEn: "Samfunnet i Bergen",
-    homeDescriptionNb:
+    homeTitle: "Samfunnet i Bergen",
+    homeDescription:
         "Studentenes kulturhus på Det Akademiske Kvarter, med arrangementer, barer, frivillighet og grupper for hele Bergens studentmiljø.",
-    homeDescriptionEn:
-        "The students' cultural house at Det Akademiske Kvarter, with events, bars, volunteering and groups for Bergen's student community.",
-    eventsTitleNb: "Arrangementer | Samfunnet i Bergen",
-    eventsTitleEn: "Events | Samfunnet i Bergen",
-    eventsDescriptionNb:
+    eventsTitle: "Arrangementer | Samfunnet i Bergen",
+    eventsDescription:
         "Se kommende arrangementer på Det Akademiske Kvarter, fra konserter og debatter til quiz, klubb og studentkultur.",
-    eventsDescriptionEn:
-        "See upcoming events at Det Akademiske Kvarter, from concerts and debates to quizzes, club nights and student culture.",
-    volunteerSignupTitleNb: "Bli frivillig | Samfunnet i Bergen",
-    volunteerSignupTitleEn: "Become a volunteer | Samfunnet i Bergen",
-    volunteerSignupDescriptionNb:
-        "Finn en frivilliggruppe på Kvarteret og meld interesse for å bli med i studentkulturhuset.",
-    volunteerSignupDescriptionEn:
-        "Find a volunteer group at Kvarteret and register interest in joining the student culture house.",
-    groupPageTitleNb: "Grupper | Samfunnet i Bergen",
-    groupPageTitleEn: "Groups | Samfunnet i Bergen",
-    groupPageDescriptionNb:
-        "Bli kjent med arbeidsgrupper, komiteer og samarbeidspartnere på Det Akademiske Kvarter.",
-    groupPageDescriptionEn:
-        "Get to know the working groups, committees and partner organizations at Det Akademiske Kvarter.",
 }
 
 async function patchMatchingDocuments(query, params, update) {

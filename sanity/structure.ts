@@ -5,7 +5,6 @@ import {
     DocumentIcon,
     EnvelopeIcon,
     HeartIcon,
-    HomeIcon,
     MenuIcon,
     StarIcon,
     TagIcon,
@@ -16,7 +15,6 @@ import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
 export const singletonTypeNames = [
     "siteMetadata",
-    "homePage",
     "eventsPage",
     "roomsPage",
     "groupsPage",
@@ -64,7 +62,6 @@ export const structure: StructureResolver = (S, context) =>
                     S.list()
                         .title("Sider")
                         .items([
-                            singletonListItem(S, "homePage", "Forside", HomeIcon),
                             singletonListItem(S, "eventsPage", "Arrangementer-side", DocumentIcon),
                             singletonListItem(S, "roomsPage", "Rom-side", ComponentIcon),
                             singletonListItem(S, "groupsPage", "Grupper-side", UsersIcon),

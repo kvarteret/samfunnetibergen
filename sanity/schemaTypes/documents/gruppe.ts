@@ -1,6 +1,6 @@
 import { UsersIcon } from "@sanity/icons"
 import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list"
-import { defineField, defineType } from "sanity"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const GRUPPE_CATEGORIES = [
     { title: "Arbeidsgruppe", value: "arbeidsgruppe" },
@@ -62,6 +62,57 @@ export const gruppe = defineType({
             name: "body",
             title: "Fullstendig beskrivelse",
             type: "portableTextContent",
+        }),
+        defineField({
+            name: "isRecruiting",
+            title: "Rekrutterer",
+            description: "Vis gruppen under /blifrivillig og på blifrivillig.no.",
+            type: "boolean",
+            initialValue: false,
+        }),
+        defineField({
+            name: "recruitmentLabel",
+            title: "Rekrutteringskategori",
+            description: "Kort merkelapp som vises over gruppen på bli frivillig-siden.",
+            type: "string",
+            hidden: ({ document }) => document?.isRecruiting !== true,
+        }),
+        defineField({
+            name: "recruitmentLead",
+            title: "Rekrutteringsingress",
+            description: "Kort tekst for valgkortet på bli frivillig-siden.",
+            type: "text",
+            rows: 4,
+            hidden: ({ document }) => document?.isRecruiting !== true,
+        }),
+        defineField({
+            name: "recruitmentSections",
+            title: "Les litt mer",
+            description: "Korte, lesbare seksjoner for bli frivillig-siden.",
+            type: "array",
+            hidden: ({ document }) => document?.isRecruiting !== true,
+            of: [
+                defineArrayMember({
+                    name: "recruitmentSection",
+                    type: "object",
+                    fields: [
+                        defineField({
+                            name: "title",
+                            title: "Tittel",
+                            type: "string",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "paragraphs",
+                            title: "Avsnitt",
+                            type: "array",
+                            of: [defineArrayMember({ type: "text", rows: 3 })],
+                            validation: rule => rule.required().min(1),
+                        }),
+                    ],
+                    preview: { select: { title: "title" } },
+                }),
+            ],
         }),
         defineField({
             name: "email",

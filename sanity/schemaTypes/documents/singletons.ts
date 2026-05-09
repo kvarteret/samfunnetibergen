@@ -1,4 +1,4 @@
-import { CogIcon, DocumentIcon, HeartIcon, HomeIcon, StarIcon, UsersIcon } from "@sanity/icons"
+import { CogIcon, DocumentIcon, HeartIcon, StarIcon, UsersIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -7,138 +7,23 @@ export const siteMetadata = defineType({
     type: "document",
     icon: CogIcon,
     fields: [
-        defineField({ name: "siteTitleNb", title: "Nettstedstittel (norsk)", type: "string" }),
-        defineField({ name: "siteTitleEn", title: "Nettstedstittel (engelsk)", type: "string" }),
+        defineField({ name: "homeTitle", title: "Forsidetittel", type: "string" }),
         defineField({
-            name: "siteDescriptionNb",
-            title: "Nettstedsbeskrivelse (norsk)",
+            name: "homeDescription",
+            title: "Forsidebeskrivelse",
             type: "text",
         }),
+        defineField({ name: "eventsTitle", title: "Arrangementtittel", type: "string" }),
         defineField({
-            name: "siteDescriptionEn",
-            title: "Nettstedsbeskrivelse (engelsk)",
-            type: "text",
-        }),
-        defineField({ name: "homeTitleNb", title: "Forsidetittel (norsk)", type: "string" }),
-        defineField({ name: "homeTitleEn", title: "Forsidetittel (engelsk)", type: "string" }),
-        defineField({
-            name: "homeDescriptionNb",
-            title: "Forsidebeskrivelse (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "homeDescriptionEn",
-            title: "Forsidebeskrivelse (engelsk)",
-            type: "text",
-        }),
-        defineField({ name: "eventsTitleNb", title: "Arrangementtittel (norsk)", type: "string" }),
-        defineField({
-            name: "eventsTitleEn",
-            title: "Arrangementtittel (engelsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "eventsDescriptionNb",
-            title: "Arrangementbeskrivelse (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "eventsDescriptionEn",
-            title: "Arrangementbeskrivelse (engelsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "volunteerSignupTitleNb",
-            title: "Frivilligside-tittel (norsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "volunteerSignupTitleEn",
-            title: "Volunteer page title (engelsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "volunteerSignupDescriptionNb",
-            title: "Frivilligside-beskrivelse (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "volunteerSignupDescriptionEn",
-            title: "Volunteer page description (engelsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "groupPageTitleNb",
-            title: "Grupperstittel (norsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "groupPageTitleEn",
-            title: "Grupperstittel (engelsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "groupPageDescriptionNb",
-            title: "Grupperbeskrivelse (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "groupPageDescriptionEn",
-            title: "Grupperbeskrivelse (engelsk)",
+            name: "eventsDescription",
+            title: "Arrangementbeskrivelse",
             type: "text",
         }),
     ],
     preview: {
-        select: { title: "siteTitleNb" },
+        select: { title: "homeTitle" },
         prepare({ title }) {
             return { title: title ?? "Nettstedsinfo" }
-        },
-    },
-})
-
-export const homePage = defineType({
-    name: "homePage",
-    title: "Forside",
-    type: "document",
-    icon: HomeIcon,
-    fields: [
-        defineField({ name: "badgeNb", title: "Badge (norsk)", type: "string" }),
-        defineField({ name: "badgeEn", title: "Badge (engelsk)", type: "string" }),
-        defineField({
-            name: "heroDescriptionNb",
-            title: "Hero-ingress (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "heroDescriptionEn",
-            title: "Hero-ingress (engelsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "heroDescriptionFusionNb",
-            title: "Fusion-ingress (norsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "heroDescriptionFusionEn",
-            title: "Fusion-ingress (engelsk)",
-            type: "text",
-        }),
-        defineField({
-            name: "eventsLinkNb",
-            title: "Arrangementer-lenketekst (norsk)",
-            type: "string",
-        }),
-        defineField({
-            name: "eventsLinkEn",
-            title: "Arrangementer-lenketekst (engelsk)",
-            type: "string",
-        }),
-    ],
-    preview: {
-        select: { title: "badgeNb" },
-        prepare({ title }) {
-            return { title: title ?? "Forside" }
         },
     },
 })
@@ -149,15 +34,12 @@ export const eventsPage = defineType({
     type: "document",
     icon: DocumentIcon,
     fields: [
-        defineField({ name: "eyebrowNb", title: "Eyebrow (norsk)", type: "string" }),
-        defineField({ name: "eyebrowEn", title: "Eyebrow (engelsk)", type: "string" }),
-        defineField({ name: "titleNb", title: "Tittel (norsk)", type: "string" }),
-        defineField({ name: "titleEn", title: "Tittel (engelsk)", type: "string" }),
-        defineField({ name: "descriptionNb", title: "Beskrivelse (norsk)", type: "text" }),
-        defineField({ name: "descriptionEn", title: "Beskrivelse (engelsk)", type: "text" }),
+        defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
+        defineField({ name: "title", title: "Tittel", type: "string" }),
+        defineField({ name: "description", title: "Beskrivelse", type: "text" }),
     ],
     preview: {
-        select: { title: "titleNb" },
+        select: { title: "title" },
         prepare({ title }) {
             return { title: title ?? "Arrangementer-side" }
         },
@@ -213,8 +95,7 @@ export const blifrivilligPage = defineType({
             description: "Tekst øverst på siden, over påmeldingsskjemaet",
             type: "portableTextContent",
         }),
-        defineField({ name: "titleNb", title: "Sidetittel (norsk)", type: "string" }),
-        defineField({ name: "titleEn", title: "Page title (English)", type: "string" }),
+        defineField({ name: "title", title: "Sidetittel", type: "string" }),
         defineField({
             name: "seoDescription",
             title: "SEO-beskrivelse",
@@ -241,6 +122,13 @@ export const internbevisBenefit = defineType({
             title: "Fordel",
             type: "string",
             validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "description",
+            title: "Kort beskrivelse",
+            type: "text",
+            rows: 3,
+            validation: rule => rule.required().max(220),
         }),
         defineField({
             name: "minimumTier",

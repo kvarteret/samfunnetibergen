@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: RoomsPageProps) {
     }
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl ?? image?.sourceUrl
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 function RoomImage({ image, title }: { image: RoomSummary["image"]; title: string }) {
     const src = imageUrl(image)

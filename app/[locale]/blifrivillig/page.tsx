@@ -32,7 +32,6 @@ export default async function BlifrivilligPage({ params }: PageProps<"/[locale]/
             <VolunteerProspectExperience
                 groups={groups}
                 hideHero
-                homeContent={null}
                 institutionOptions={getInstitutionOptions(locale)}
             />
         </div>

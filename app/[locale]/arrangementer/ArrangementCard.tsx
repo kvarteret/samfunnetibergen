@@ -45,7 +45,6 @@ export type ArrangementSummary = {
 
 const MONTH_NAMES: Record<AppLocale, string[]> = {
     nb: ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"],
-    en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 }
 
 function formatShortDate(dateStr: string, locale: AppLocale): string {
@@ -56,7 +55,9 @@ function formatShortDate(dateStr: string, locale: AppLocale): string {
 }
 
 function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): string {
-    const dateFormatted = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    void locale
+
+    const dateFormatted = new Intl.DateTimeFormat("nb-NO", {
         dateStyle: "long",
         timeZone: "Europe/Oslo",
     }).format(new Date(`${date.startDate}T00:00:00`))
@@ -69,7 +70,9 @@ function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): strin
 }
 
 function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): string | null {
-    if (arrangement.isFree) return locale === "en" ? "Free admission" : "Gratis"
+    void locale
+
+    if (arrangement.isFree) return "Gratis"
     const parts: string[] = []
     if (arrangement.priceOrdinar != null) parts.push(`Ord. ${arrangement.priceOrdinar} kr`)
     if (arrangement.priceStudent != null) parts.push(`Stud. ${arrangement.priceStudent} kr`)

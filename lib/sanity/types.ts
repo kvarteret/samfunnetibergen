@@ -5,7 +5,6 @@ import type {
     eventsPageContentNbQuery,
     groupsPageQuery,
     homeBarsNbQuery,
-    homePageContentNbQuery,
     navbarQuery,
     pageBySlugQuery,
     roomBySlugQuery,
@@ -15,8 +14,6 @@ import type {
     studentGroupBySlugQuery,
     studentGroupsQuery,
 } from "./query-definitions"
-
-export type HomePageContent = NonNullable<ClientReturn<typeof homePageContentNbQuery>>
 
 export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
 
