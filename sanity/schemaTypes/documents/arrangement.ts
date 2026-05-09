@@ -54,22 +54,6 @@ export const arrangement = defineType({
             type: "portableTextContent",
             group: "core",
         }),
-        defineField({
-            name: "language",
-            title: "Språk",
-            type: "string",
-            group: "core",
-            initialValue: "nb",
-            options: {
-                list: [
-                    { title: "Norsk", value: "nb" },
-                    { title: "Engelsk", value: "en" },
-                ],
-                layout: "radio",
-                direction: "horizontal",
-            },
-        }),
-
         // ─── Dates ─────────────────────────────────────────────────
         defineField({
             name: "dates",

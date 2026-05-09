@@ -21,7 +21,7 @@ export async function generateStaticParams() {
     return locales.flatMap(({ locale }) => slugs.map(slug => ({ locale, slug })))
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl ?? image?.sourceUrl
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 export async function generateMetadata({ params }: RoomPageProps) {
     const { slug, locale: localeParam } = await params

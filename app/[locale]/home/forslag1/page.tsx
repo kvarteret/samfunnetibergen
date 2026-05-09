@@ -38,11 +38,12 @@ Halvtimen ligger i 3. etasje av bygget, opp den breie betongtrappa. Det er ID-sj
 ]
 
 const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
-    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    (void locale,
+    new Intl.DateTimeFormat("nb-NO", {
         day: "numeric",
         month: "long",
         timeZone: "Europe/Oslo",
-    }).format(new Date(event.starts_at))
+    }).format(new Date(event.starts_at)))
 
 export default async function HomePage({ params }: PageProps<"/[locale]/home/forslag1">) {
     const locale = (await resolvePageLocale(params)) as AppLocale

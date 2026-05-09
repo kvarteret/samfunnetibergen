@@ -16,7 +16,9 @@ type EventPageProps = {
 }
 
 function formatDate(dateStr: string, locale: AppLocale): string {
-    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    void locale
+
+    return new Intl.DateTimeFormat("nb-NO", {
         dateStyle: "long",
         timeZone: "Europe/Oslo",
     }).format(new Date(`${dateStr}T00:00:00`))

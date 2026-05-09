@@ -11,15 +11,10 @@ import {
     arrangementEventTypesQuery,
     arrangementGroupsQuery,
     arrangementRoomsQuery,
-    blifrivilligPageEnQuery,
     blifrivilligPageNbQuery,
-    eventsPageContentEnQuery,
     eventsPageContentNbQuery,
     groupsPageQuery,
-    homeBarsEnQuery,
     homeBarsNbQuery,
-    homePageContentEnQuery,
-    homePageContentNbQuery,
     kontaktPageQuery,
     navbarQuery,
     pageBySlugQuery,
@@ -29,15 +24,12 @@ import {
     roomSlugsQuery,
     roomsPageQuery,
     roomsQuery,
-    siteMetadataEnQuery,
     siteMetadataNbQuery,
     studentGroupBySlugQuery,
     studentGroupSlugsQuery,
     studentGroupsByCategory,
     studentGroupsQuery,
-    volunteerGroupSummariesEnQuery,
     volunteerGroupSummariesNbQuery,
-    volunteerGroupsEnQuery,
     volunteerGroupsNbQuery,
 } from "./query-definitions"
 import type {
@@ -45,7 +37,6 @@ import type {
     EventsPageContent,
     GroupsPageContent,
     HomeBarContent,
-    HomePageContent,
     NavbarContent,
     PageContent,
     RoomDetail,
@@ -63,11 +54,11 @@ type FetchOptions = {
 // ─── Blifrivillig page ────────────────────────────────────────────────────────
 
 export async function fetchBlifrivilligPage(
-    locale: AppLocale,
+    _locale: AppLocale,
     options: FetchOptions = {},
 ): Promise<BlifrivilligPageContent | null> {
     const { data } = await sanityFetch({
-        query: locale === "en" ? blifrivilligPageEnQuery : blifrivilligPageNbQuery,
+        query: blifrivilligPageNbQuery,
         tags: ["blifrivilligPage"],
         stega: options.stega,
     })
@@ -76,9 +67,11 @@ export async function fetchBlifrivilligPage(
 
 // ─── Volunteer groups ────────────────────────────────────────────────────────
 
-export async function fetchVolunteerGroups(locale: AppLocale): Promise<VolunteerGroupContent[]> {
+export async function fetchVolunteerGroups(_locale: AppLocale): Promise<VolunteerGroupContent[]> {
+    void _locale
+
     const groups = await sanityClient.fetch(
-        locale === "en" ? volunteerGroupsEnQuery : volunteerGroupsNbQuery,
+        volunteerGroupsNbQuery,
         {},
         { next: { revalidate: 300, tags: ["volunteerGroups"] } },
     )
@@ -92,16 +85,23 @@ export async function fetchVolunteerGroups(locale: AppLocale): Promise<Volunteer
             eyebrow: group.eyebrow ?? null,
             lead: group.lead ?? null,
             imageUrl: group.imageUrl ?? null,
-            accordionSections: [],
+            accordionSections: (group.accordionSections ?? []).map(section => ({
+                title: section.title ?? null,
+                paragraphs: (section.paragraphs ?? []).filter(
+                    (paragraph): paragraph is string => Boolean(paragraph),
+                ),
+            })),
             detailSections: [],
         }))
 }
 
 export async function fetchVolunteerGroupSummaries(
-    locale: AppLocale,
+    _locale: AppLocale,
 ): Promise<VolunteerGroupSummary[]> {
+    void _locale
+
     const groups = await sanityClient.fetch(
-        locale === "en" ? volunteerGroupSummariesEnQuery : volunteerGroupSummariesNbQuery,
+        volunteerGroupSummariesNbQuery,
         {},
         { next: { revalidate: 300, tags: ["volunteerGroupSummaries"] } },
     )
@@ -111,26 +111,14 @@ export async function fetchVolunteerGroupSummaries(
     )
 }
 
-// ─── Home / events / site ────────────────────────────────────────────────────
-
-export async function fetchHomePageContent(
-    locale: AppLocale,
-    options: FetchOptions = {},
-): Promise<HomePageContent | null> {
-    const { data } = await sanityFetch({
-        query: locale === "en" ? homePageContentEnQuery : homePageContentNbQuery,
-        tags: ["homePage"],
-        stega: options.stega,
-    })
-    return data
-}
+// ─── Events / site ────────────────────────────────────────────────────────────
 
 export async function fetchEventsPageContent(
-    locale: AppLocale,
+    _locale: AppLocale,
     options: FetchOptions = {},
 ): Promise<EventsPageContent | null> {
     const { data } = await sanityFetch({
-        query: locale === "en" ? eventsPageContentEnQuery : eventsPageContentNbQuery,
+        query: eventsPageContentNbQuery,
         tags: ["eventsPage"],
         stega: options.stega,
     })
@@ -138,20 +126,22 @@ export async function fetchEventsPageContent(
 }
 
 export async function fetchSiteMetadata(
-    locale: AppLocale,
+    _locale: AppLocale,
     options: FetchOptions = {},
 ): Promise<SiteMetadataContent | null> {
     const { data } = await sanityFetch({
-        query: locale === "en" ? siteMetadataEnQuery : siteMetadataNbQuery,
+        query: siteMetadataNbQuery,
         tags: ["siteMetadata"],
         stega: options.stega,
     })
     return data
 }
 
-export async function fetchHomeBars(locale: AppLocale): Promise<HomeBarContent[]> {
+export async function fetchHomeBars(_locale: AppLocale): Promise<HomeBarContent[]> {
+    void _locale
+
     const { data } = await sanityFetch({
-        query: locale === "en" ? homeBarsEnQuery : homeBarsNbQuery,
+        query: homeBarsNbQuery,
         tags: ["homeBars"],
     })
     return data
@@ -323,7 +313,7 @@ export async function fetchArrangementGroups(): Promise<ArrangementGroup[]> {
 export async function fetchPublishedArrangements() {
     return sanityClient.fetch(
         publishedArrangementsQuery,
-        {},
+        { today: getOsloDateString() },
         { next: { revalidate: 60, tags: ["arrangements"] } },
     )
 }
@@ -339,7 +329,16 @@ export async function fetchKontaktPage() {
 export async function fetchArrangementBySlug(slug: string) {
     return sanityClient.fetch(
         arrangementBySlugQuery,
-        { slug },
+        { slug, today: getOsloDateString() },
         { next: { revalidate: 60, tags: ["arrangements"] } },
     )
+}
+
+function getOsloDateString() {
+    return new Intl.DateTimeFormat("en-CA", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Europe/Oslo",
+        year: "numeric",
+    }).format(new Date())
 }

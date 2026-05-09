@@ -47,7 +47,6 @@ export type SubmitArrangementInput = {
     submittedBy: string
     submittedByEmail: string
     submittedByOrganization?: string
-    language?: "nb" | "en"
 }
 
 export type UploadImageResult = { ok: true; assetId: string } | { ok: false; error: string }
@@ -108,7 +107,6 @@ export async function submitArrangement(
             title: input.title.trim(),
             slug: { _type: "slug", current: slug },
             approvalStatus: "pending",
-            language: input.language ?? "nb",
             dates: input.dates.map(d => ({
                 _key: nanoid(),
                 _type: "arrangementDate",

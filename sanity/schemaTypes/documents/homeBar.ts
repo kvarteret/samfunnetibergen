@@ -8,8 +8,7 @@ export const homeBar = defineType({
     type: "document",
     icon: ComponentIcon,
     groups: [
-        { name: "nb", title: "Norsk", default: true },
-        { name: "en", title: "Engelsk" },
+        { name: "content", title: "Innhold", default: true },
         { name: "media", title: "Bilde" },
     ],
     fields: [
@@ -17,7 +16,7 @@ export const homeBar = defineType({
             name: "nameNb",
             title: "Navn",
             type: "string",
-            group: "nb",
+            group: "content",
             validation: rule => rule.required(),
         }),
         defineField({
@@ -25,22 +24,7 @@ export const homeBar = defineType({
             title: "Beskrivelse",
             type: "text",
             rows: 8,
-            group: "nb",
-            validation: rule => rule.required(),
-        }),
-        defineField({
-            name: "nameEn",
-            title: "Name",
-            type: "string",
-            group: "en",
-            validation: rule => rule.required(),
-        }),
-        defineField({
-            name: "descriptionEn",
-            title: "Description",
-            type: "text",
-            rows: 8,
-            group: "en",
+            group: "content",
             validation: rule => rule.required(),
         }),
         defineField({
@@ -56,13 +40,11 @@ export const homeBar = defineType({
     preview: {
         select: {
             title: "nameNb",
-            subtitle: "nameEn",
             media: "image",
         },
-        prepare({ title, subtitle, media }) {
+        prepare({ title, media }) {
             return {
-                title: title ?? subtitle ?? "Forsidebar",
-                subtitle: subtitle && subtitle !== title ? subtitle : undefined,
+                title: title ?? "Forsidebar",
                 media,
             }
         },

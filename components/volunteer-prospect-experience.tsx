@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import type { HomePageContent } from "@/lib/sanity/types"
 import type { InstitutionOption, VolunteerGroupContent } from "@/lib/volunteer-group-content"
 import type { VolunteerProspectValidationMessages } from "@/lib/volunteer-prospect"
 import { normalizeVolunteerPhoneNumber } from "@/lib/volunteer-prospect"
@@ -25,12 +24,10 @@ import { useVolunteerProspectController } from "./volunteer-prospect/use-volunte
 
 export function VolunteerProspectExperience({
     groups,
-    homeContent,
     institutionOptions,
     hideHero = false,
 }: {
     groups: VolunteerGroupContent[]
-    homeContent: HomePageContent | null
     institutionOptions: InstitutionOption[]
     hideHero?: boolean
 }) {
@@ -88,10 +85,10 @@ export function VolunteerProspectExperience({
                 <section className="flex flex-col gap-8 lg:flex-[1.15]">
                     {!hideHero && (
                         <VolunteerProspectHero
-                            badge={homeContent?.badge ?? ""}
-                            description={homeContent?.heroDescription ?? ""}
-                            eventsLinkLabel={homeContent?.eventsLink ?? ""}
-                            fusionDescription={homeContent?.heroDescriptionFusion ?? ""}
+                            badge=""
+                            description=""
+                            eventsLinkLabel=""
+                            fusionDescription=""
                         />
                     )}
 

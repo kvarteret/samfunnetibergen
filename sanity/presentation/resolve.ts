@@ -10,14 +10,6 @@ const defaultPreviewPath = `/${defaultLocale}`
 export const resolve: PresentationPluginOptions["resolve"] = {
     mainDocuments: defineDocuments([
         {
-            route: "/:locale",
-            filter: `_id == "homePage"`,
-        },
-        {
-            route: "/:locale/home",
-            filter: `_id == "homePage"`,
-        },
-        {
             route: "/:locale/arrangementer",
             filter: `_id == "eventsPage"`,
         },
@@ -46,39 +38,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
         homeBar: defineLocations({
             select: { title: "nameNb" },
             resolve: doc => ({
-                locations: [
-                    { title: doc?.title ?? "Forside", href: `/${defaultLocale}` },
-                    { title: "Homepage", href: "/en" },
-                ],
-            }),
-        }),
-        volunteerGroup: defineLocations({
-            select: { title: "nameNb", slug: "slug" },
-            resolve: doc => ({
-                locations: [
-                    {
-                        title: doc?.title ?? "Frivilliggruppe",
-                        href: `/${defaultLocale}/grupper/${doc?.slug}`,
-                    },
-                    {
-                        title: "Volunteer group",
-                        href: `/en/grupper/${doc?.slug}`,
-                    },
-                    { title: "Bli frivillig", href: `/${defaultLocale}/blifrivillig` },
-                    { title: "Volunteer signup", href: "/en/blifrivillig" },
-                ],
-            }),
-        }),
-        volunteerGroupSummary: defineLocations({
-            select: { title: "name" },
-            resolve: doc => ({
-                locations: [
-                    {
-                        title: doc?.title ?? "Bli frivillig",
-                        href: `/${defaultLocale}/blifrivillig`,
-                    },
-                    { title: "Volunteer signup", href: "/en/blifrivillig" },
-                ],
+                locations: [{ title: doc?.title ?? "Forside", href: `/${defaultLocale}` }],
             }),
         }),
         room: defineLocations({
@@ -130,13 +90,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             select: {},
             resolve: () => ({
                 locations: [{ title: "Grupper", href: `/${defaultLocale}/grupper` }],
-            }),
-        }),
-
-        homePage: defineLocations({
-            select: {},
-            resolve: () => ({
-                locations: [{ title: "Forside", href: `/${defaultLocale}` }],
             }),
         }),
 

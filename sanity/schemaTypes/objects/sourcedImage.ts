@@ -14,12 +14,6 @@ export const sourcedImage = defineType({
             options: { hotspot: true },
         }),
         defineField({
-            name: "sourceUrl",
-            title: "Fallback Image URL",
-            description: "Used when no Sanity image is uploaded (e.g. migrated content)",
-            type: "url",
-        }),
-        defineField({
             name: "alt",
             title: "Alt Text",
             type: "string",
@@ -33,12 +27,12 @@ export const sourcedImage = defineType({
     ],
     validation: rule =>
         rule.custom(value => {
-            if (!value?.image && !value?.sourceUrl) {
-                return "Legg til et bilde eller en bilde-URL."
+            if (!value?.image) {
+                return "Legg til et bilde."
             }
             return true
         }),
     preview: {
-        select: { title: "alt", subtitle: "sourceUrl", media: "image" },
+        select: { title: "alt", media: "image" },
     },
 })

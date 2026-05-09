@@ -7,7 +7,6 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchSiteMetadata } from "@/lib/sanity/queries"
-import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -25,20 +24,18 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 }
 
 const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
-    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    (void locale,
+    new Intl.DateTimeFormat("nb-NO", {
         day: "numeric",
         month: "long",
         timeZone: "Europe/Oslo",
-    }).format(new Date(event.starts_at))
+    }).format(new Date(event.starts_at)))
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
 
-    const [groups, eventsResult] = await Promise.all([
-        getVolunteerGroups(locale),
-        getPublicEvents(locale),
-    ])
+    const eventsResult = await getPublicEvents(locale)
     const visibleEvents = eventsResult.ok ? eventsResult.events.slice(0, 4) : []
 
     return (
@@ -59,7 +56,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
             </Button>
 
             <HomeEvents events={visibleEvents} locale={locale} />
-            <HomeGroups groups={groups} locale={locale} />
         </div>
     )
 }
@@ -98,44 +94,6 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
                             <p>{formatEventDate(event, locale)}</p>
                         </div>
                         <p className="text-lg">{event.title}</p>
-                    </Link>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-interface HomeGroupsProps {
-    groups: VolunteerGroupContent[]
-    locale: AppLocale
-}
-
-function HomeGroups({ groups, locale }: HomeGroupsProps) {
-    return (
-        <div className="space-y-4">
-            <Card className="flex flex-row justify-between bg-destructive p-2">
-                <p>GRUPPER</p>
-                <Link href={`/${locale}/grupper`}>SE MER</Link>
-            </Card>
-            <div className="grid grid-cols-3 gap-4">
-                {groups.map(group => (
-                    <Link
-                        className="flex flex-col gap-1"
-                        href={`/${locale}/grupper/${group.slug}`}
-                        key={group.slug}
-                    >
-                        <Card className="relative h-24 overflow-hidden bg-gray-200">
-                            {group.imageUrl && (
-                                <Image
-                                    alt={group.name ?? ""}
-                                    className="object-cover"
-                                    fill
-                                    src={group.imageUrl}
-                                />
-                            )}
-                        </Card>
-                        <p className="font-bold">{group.name}</p>
-                        <p className="text-xs lg:text-base">{group.lead}</p>
                     </Link>
                 ))}
             </div>

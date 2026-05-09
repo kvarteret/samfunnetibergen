@@ -6,7 +6,6 @@ import {
     type VolunteerProspectValues,
     validateVolunteerProspectValues,
 } from "@/lib/volunteer-prospect"
-import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
 
 const PERSONAL_APP_BASE_URL =
@@ -14,7 +13,6 @@ const PERSONAL_APP_BASE_URL =
 
 const messagesByLocale = {
     nb: nbMessages,
-    en: enMessages,
 } as const
 
 function extractErrorDetail(responseBody: Record<string, unknown> | null) {
