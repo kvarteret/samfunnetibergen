@@ -49,9 +49,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
             )}
             <div className="min-w-0 space-y-1">
                 <p className="font-heading text-sm leading-snug text-foreground">{person.name}</p>
-                {person.rolle && (
-                    <p className="text-xs text-foreground/60">{person.rolle}</p>
-                )}
+                {person.rolle && <p className="text-xs text-foreground/60">{person.rolle}</p>}
                 {person.email && (
                     <a
                         className="flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground transition-colors"

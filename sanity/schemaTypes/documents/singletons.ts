@@ -1,4 +1,4 @@
-import { CogIcon, DocumentIcon, HeartIcon, StarIcon, UsersIcon } from "@sanity/icons"
+import { CogIcon, DocumentIcon, HeartIcon, LockIcon, StarIcon, UsersIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -215,6 +215,36 @@ export const groupsPage = defineType({
         select: { title: "title" },
         prepare({ title }) {
             return { title: title ?? "Grupper-side" }
+        },
+    },
+})
+
+export const privacyPolicy = defineType({
+    name: "privacyPolicy",
+    title: "Personvernerklæring",
+    type: "document",
+    icon: LockIcon,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore – experimental API not yet in typedefs
+    __experimental_actions: ["update", "publish"],
+    fields: [
+        defineField({
+            name: "contentNo",
+            title: "Innhold (norsk)",
+            type: "array",
+            of: [defineArrayMember({ type: "portableTextContent" })],
+            validation: rule => rule.required().min(1),
+        }),
+        defineField({
+            name: "contentEn",
+            title: "Content (English)",
+            type: "array",
+            of: [defineArrayMember({ type: "portableTextContent" })],
+        }),
+    ],
+    preview: {
+        prepare() {
+            return { title: "Personvernerklæring" }
         },
     },
 })

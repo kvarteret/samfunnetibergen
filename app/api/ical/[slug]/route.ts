@@ -1,7 +1,6 @@
 import { createClient } from "next-sanity"
-
-import { apiVersion, dataset, projectId } from "@/sanity/env"
 import { arrangementBySlugQuery } from "@/lib/sanity/query-definitions"
+import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: true })
 
@@ -15,7 +14,11 @@ function icalDate(date: string, time?: string | null): string {
 }
 
 function escapeIcal(value: string): string {
-    return value.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n")
+    return value
+        .replace(/\\/g, "\\\\")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,")
+        .replace(/\n/g, "\\n")
 }
 
 function foldLine(line: string): string {
