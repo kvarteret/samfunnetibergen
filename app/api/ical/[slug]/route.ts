@@ -44,8 +44,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     const location = arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
     const url = `${BASE_URL}/arrangementer/${slug}`
 
+    type DateEntry = NonNullable<typeof arrangement.dates>[number]
     const events = (arrangement.dates ?? [])
-        .map(d => {
+        .map((d: DateEntry) => {
             const dtstart = icalDate(d.startDate, d.startTime)
             const dtend = d.endTime ? icalDate(d.startDate, d.endTime) : dtstart
 
