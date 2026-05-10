@@ -277,14 +277,21 @@ export const arrangementGroupsQuery = defineQuery(`
 }`)
 
 export const publishedArrangementsQuery = defineQuery(`
-    *[_type == "arrangement" && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0] | order(dates[startDate >= $today][0].startDate asc) {
+    *[_type == "arrangement" && approvalStatus == "approved" && (
+        count(dates[startDate >= $today]) > 0
+        || (isRecurring == true && defined(rrule) && count(dates) > 0)
+    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, ""),
     approvalStatus,
     isRecurring,
     rrule,
-    "dates": dates[startDate >= $today] | order(startDate asc) {
+    "dates": select(
+        count(dates[startDate >= $today]) > 0,
+        dates[startDate >= $today] | order(startDate asc),
+        (dates | order(startDate asc))[0..0]
+    ) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
@@ -328,14 +335,21 @@ export const publishedArrangementsQuery = defineQuery(`
 }`)
 
 export const arrangementBySlugQuery = defineQuery(`
-    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && count(dates[startDate >= $today]) > 0][0] {
+    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (
+        count(dates[startDate >= $today]) > 0
+        || (isRecurring == true && defined(rrule) && count(dates) > 0)
+    )][0] {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, ""),
     approvalStatus,
     isRecurring,
     rrule,
-    "dates": dates[startDate >= $today] | order(startDate asc) {
+    "dates": select(
+        count(dates[startDate >= $today]) > 0,
+        dates[startDate >= $today] | order(startDate asc),
+        (dates | order(startDate asc))[0..0]
+    ) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,

@@ -102,23 +102,24 @@ function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): strin
 
 function expandRRuleDates(
     rruleStr: string,
-    primary: ArrangementDateEntry,
+    seed: ArrangementDateEntry,
     count: number,
 ): ArrangementDateEntry[] {
     try {
         const rule = new RRule({
             ...RRule.parseString(rruleStr),
-            dtstart: new Date(`${primary.startDate}T12:00:00Z`),
-            count: count + 1,
+            dtstart: new Date(`${seed.startDate}T12:00:00Z`),
         })
+        const now = new Date()
+        const ceiling = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate())
         return rule
-            .all()
-            .slice(1)
+            .between(now, ceiling, true)
+            .slice(0, count)
             .map((d, i) => ({
                 _key: `rrule-${i}`,
                 startDate: d.toISOString().split("T")[0],
-                startTime: primary.startTime ?? null,
-                endTime: primary.endTime ?? null,
+                startTime: seed.startTime ?? null,
+                endTime: seed.endTime ?? null,
             }))
     } catch {
         return []
@@ -178,13 +179,17 @@ export function ArrangementCard({
     locale,
     ticketsLabel,
 }: ArrangementCardProps) {
-    const primaryDate = arrangement.dates[0]
-    const allDates: ArrangementDateEntry[] =
+    const seedDate = arrangement.dates[0]
+    const expandedDates: ArrangementDateEntry[] =
         arrangement.dates.length > 1
             ? arrangement.dates
-            : arrangement.rrule && primaryDate
-              ? [primaryDate, ...expandRRuleDates(arrangement.rrule, primaryDate, 13)]
+            : arrangement.rrule && seedDate
+              ? expandRRuleDates(arrangement.rrule, seedDate, 14)
               : arrangement.dates
+    // For rrule events the expansion yields only future dates — use those as the
+    // full list. Fall back to the seed date if the rule produces nothing yet.
+    const allDates = expandedDates.length > 0 ? expandedDates : seedDate ? [seedDate] : []
+    const primaryDate = allDates[0]
     const taxonomy = [
         arrangement.eventType?.name,
         arrangement.organizerGroup?.name ?? arrangement.organizerText,
