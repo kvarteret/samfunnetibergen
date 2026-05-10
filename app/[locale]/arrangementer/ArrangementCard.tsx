@@ -3,6 +3,7 @@
 import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 import Image from "next/image"
+import { RRule } from "rrule"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
@@ -22,6 +23,7 @@ export type ArrangementSummary = {
     title: string
     slug: string
     isRecurring?: boolean
+    rrule?: string | null
     dates: ArrangementDateEntry[]
     isFree?: boolean
     priceOrdinar?: number | null
@@ -92,6 +94,31 @@ function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): strin
     return parts.length > 0 ? parts.join(" / ") : null
 }
 
+function expandRRuleDates(
+    rruleStr: string,
+    primary: ArrangementDateEntry,
+    count: number,
+): ArrangementDateEntry[] {
+    try {
+        const rule = new RRule({
+            ...RRule.parseString(rruleStr),
+            dtstart: new Date(`${primary.startDate}T12:00:00Z`),
+            count: count + 1,
+        })
+        return rule
+            .all()
+            .slice(1)
+            .map((d, i) => ({
+                _key: `rrule-${i}`,
+                startDate: d.toISOString().split("T")[0],
+                startTime: primary.startTime ?? null,
+                endTime: primary.endTime ?? null,
+            }))
+    } catch {
+        return []
+    }
+}
+
 // ─── DateBadges ───────────────────────────────────────────────────────────────
 
 const MAX_VISIBLE_BADGES = 3
@@ -146,6 +173,12 @@ export function ArrangementCard({
     ticketsLabel,
 }: ArrangementCardProps) {
     const primaryDate = arrangement.dates[0]
+    const allDates: ArrangementDateEntry[] =
+        arrangement.dates.length > 1
+            ? arrangement.dates
+            : arrangement.rrule && primaryDate
+              ? [primaryDate, ...expandRRuleDates(arrangement.rrule, primaryDate, 3)]
+              : arrangement.dates
     const taxonomy = [
         arrangement.eventType?.name,
         arrangement.organizerGroup?.name ?? arrangement.organizerText,
@@ -203,8 +236,8 @@ export function ArrangementCard({
                 </div>
 
                 {/* Other date badges */}
-                {arrangement.dates.length > 1 && (
-                    <DateBadges dates={arrangement.dates} primaryIndex={0} locale={locale} />
+                {allDates.length > 1 && (
+                    <DateBadges dates={allDates} primaryIndex={0} locale={locale} />
                 )}
 
                 {/* Actions */}

@@ -66,6 +66,7 @@ export default async function EventsPage({ params }: PageProps<"/[locale]/arrang
                                 title: arrangement.title,
                                 slug: arrangement.slug,
                                 isRecurring: arrangement.isRecurring ?? undefined,
+                                rrule: arrangement.rrule ?? null,
                                 dates: (arrangement.dates ?? []).map(
                                     (d: NonNullable<PublishedArrangement["dates"]>[number]) => ({
                                         _key: d._key,
