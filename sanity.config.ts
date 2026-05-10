@@ -1,3 +1,4 @@
+import "./sanity/i18n/patchRRuleNorwegian"
 import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
