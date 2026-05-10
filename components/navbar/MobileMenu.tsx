@@ -1,8 +1,9 @@
 "use client"
 
-import { Menu, X } from "lucide-react"
 import Link from "next/link"
+import { Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
 
@@ -13,14 +14,19 @@ type MobileMenuProps = {
 
 export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         if (!open) return
-        const handler = (e: KeyboardEvent) => {
+        const onKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") setOpen(false)
         }
-        document.addEventListener("keydown", handler)
-        return () => document.removeEventListener("keydown", handler)
+        document.addEventListener("keydown", onKey)
+        return () => document.removeEventListener("keydown", onKey)
     }, [open])
 
     useEffect(() => {
@@ -29,6 +35,9 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
             document.body.style.overflow = ""
         }
     }, [open])
+
+    const close = () => setOpen(false)
+    const displayItems = items.length > 0 ? items : null
 
     return (
         <>
@@ -44,71 +53,119 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
                         aria-hidden
                         className={cn(
                             "absolute inset-0 size-6 text-foreground transition-all duration-150",
-                            open ? "scale-50 rotate-45 opacity-0" : "scale-100 rotate-0 opacity-100",
+                            open ? "scale-50 opacity-0" : "scale-100 opacity-100",
                         )}
                     />
                     <X
                         aria-hidden
                         className={cn(
                             "absolute inset-0 size-6 text-foreground transition-all duration-150",
-                            open ? "scale-100 rotate-0 opacity-100" : "scale-50 -rotate-45 opacity-0",
+                            open ? "scale-100 opacity-100" : "scale-50 opacity-0",
                         )}
                     />
                 </span>
             </button>
 
-            <div
-                aria-hidden={!open}
-                className={cn(
-                    "fixed inset-x-0 bottom-0 top-[calc(var(--navbar-height,57px))] z-40 border-t-2 border-border bg-background lg:hidden",
-                    "transition-all duration-200 ease-out",
-                    open
-                        ? "pointer-events-auto translate-y-0 opacity-100"
-                        : "pointer-events-none -translate-y-2 opacity-0",
+            {mounted &&
+                createPortal(
+                    <div
+                        aria-hidden={!open}
+                        aria-modal={open}
+                        role={open ? "dialog" : undefined}
+                        className={cn(
+                            "fixed inset-0 z-[100] flex flex-col bg-background lg:hidden",
+                            "transition-[opacity,transform] duration-200 ease-out",
+                            open
+                                ? "pointer-events-auto translate-y-0 opacity-100"
+                                : "pointer-events-none -translate-y-3 opacity-0",
+                        )}
+                    >
+                        {/* Top bar mirrors the navbar */}
+                        <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-6 py-3.5 sm:px-10">
+                            <Link
+                                className="font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75"
+                                href="/"
+                                onClick={close}
+                            >
+                                Samfunnet i Bergen
+                            </Link>
+                            <button
+                                aria-label="Lukk meny"
+                                className="p-2 text-foreground"
+                                onClick={close}
+                                type="button"
+                            >
+                                <X aria-hidden className="size-6" />
+                            </button>
+                        </div>
+
+                        {/* Nav items */}
+                        <nav
+                            aria-label="Mobilnavigasjon"
+                            className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
+                        >
+                            {displayItems
+                                ? displayItems.map((item, i) => (
+                                      <MobileNavItem
+                                          index={i}
+                                          item={item}
+                                          key={item._key}
+                                          onClose={close}
+                                          open={open}
+                                      />
+                                  ))
+                                : fallbackItems.map((item, i) => (
+                                      <Link
+                                          className={cn(
+                                              "block px-6 py-5 font-heading text-2xl text-foreground",
+                                              "transition-[opacity,transform] duration-300 hover:bg-muted",
+                                              open
+                                                  ? "translate-y-0 opacity-100"
+                                                  : "translate-y-2 opacity-0",
+                                          )}
+                                          href={item.href}
+                                          key={item.href}
+                                          onClick={close}
+                                          style={{
+                                              transitionDelay: open ? `${i * 35 + 60}ms` : "0ms",
+                                          }}
+                                      >
+                                          {item.label}
+                                      </Link>
+                                  ))}
+                        </nav>
+                    </div>,
+                    document.body,
                 )}
-            >
-                <nav
-                    aria-label="Mobilnavigasjon"
-                    className="flex h-full flex-col divide-y-2 divide-border overflow-y-auto"
-                >
-                    {items.length > 0
-                        ? items.map(item => (
-                              <MobileNavItem
-                                  item={item}
-                                  key={item._key}
-                                  onClose={() => setOpen(false)}
-                              />
-                          ))
-                        : fallbackItems.map(item => (
-                              <Link
-                                  className="block px-6 py-4 font-heading text-xl text-foreground"
-                                  href={item.href}
-                                  key={item.href}
-                                  onClick={() => setOpen(false)}
-                              >
-                                  {item.label}
-                              </Link>
-                          ))}
-                </nav>
-            </div>
         </>
     )
 }
 
+// ─── MobileNavItem ────────────────────────────────────────────────────────────
+
 interface MobileNavItemProps {
     item: NavItem
     onClose: () => void
+    open: boolean
+    index: number
 }
 
-function MobileNavItem({ item, onClose }: MobileNavItemProps) {
+function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
     const hasLink = item.href || item.externalUrl
+    const delay = open ? `${index * 35 + 60}ms` : "0ms"
+
+    const linkCls = cn(
+        "block px-6 py-5 font-heading text-2xl text-foreground",
+        "transition-[opacity,transform] duration-300 hover:bg-muted",
+        open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+    )
 
     return (
-        <div>
+        <div style={{ transitionDelay: delay }}>
             {hasLink ? (
                 item.externalUrl && !item.href ? (
                     <a
-                        className="block px-6 py-4 font-heading text-xl text-foreground"
+                        className={linkCls}
                         href={item.externalUrl}
                         onClick={onClose}
                         rel="noreferrer"
@@ -117,23 +174,18 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
                         {item.label}
                     </a>
                 ) : (
-                    <Link
-                        className="block px-6 py-4 font-heading text-xl text-foreground"
-                        href={item.href ?? "#"}
-                        onClick={onClose}
-                    >
+                    <Link className={linkCls} href={item.href ?? "#"} onClick={onClose}>
                         {item.label}
                     </Link>
                 )
             ) : (
-                <p className="block px-6 py-4 font-heading text-xl text-foreground">
-                    {item.label}
-                </p>
+                <p className={linkCls}>{item.label}</p>
             )}
+
             {item.children?.map((group: NavGroup) =>
                 group.items?.map((leaf: NavLeaf) => (
                     <Link
-                        className="block border-t border-border px-10 py-3 text-sm text-foreground/70"
+                        className="block border-t border-border/50 px-10 py-3 text-sm text-foreground/60 transition-colors hover:bg-muted"
                         href={leaf.href ?? leaf.externalUrl ?? "#"}
                         key={leaf._key}
                         onClick={onClose}
