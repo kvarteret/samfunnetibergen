@@ -150,7 +150,7 @@ function DateBadges({
             ))}
             {overflow > 0 && (
                 <span className="border border-border px-2 py-0.5 text-xs font-heading text-foreground/60 bg-muted">
-                    +{overflow}
+                    {overflow >= 9 ? "9+" : `+${overflow}`}
                 </span>
             )}
         </div>
@@ -177,7 +177,7 @@ export function ArrangementCard({
         arrangement.dates.length > 1
             ? arrangement.dates
             : arrangement.rrule && primaryDate
-              ? [primaryDate, ...expandRRuleDates(arrangement.rrule, primaryDate, 3)]
+              ? [primaryDate, ...expandRRuleDates(arrangement.rrule, primaryDate, 13)]
               : arrangement.dates
     const taxonomy = [
         arrangement.eventType?.name,
