@@ -2,7 +2,7 @@ import { Check, Clock, FileText, Users, X } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { ImageCarousel } from "@/components/room/ImageCarousel"
+import { type CarouselSlide, ImageCarousel } from "@/components/room/ImageCarousel"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/queries"
@@ -53,18 +53,38 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
     const title = room.title ?? slug
 
-    const carouselImages = (room.images ?? []).flatMap((image: SourcedImage) => {
+    const imageSlides: CarouselSlide[] = (room.images ?? []).flatMap((image: SourcedImage) => {
         const src = imageUrl(image)
         return src
-            ? [{ _key: image._key, src, alt: image.alt || title, caption: image.caption }]
+            ? [
+                  {
+                      _key: image._key,
+                      type: "image" as const,
+                      src,
+                      alt: image.alt || title,
+                      caption: image.caption,
+                  },
+              ]
             : []
     })
 
+    const carouselSlides: CarouselSlide[] = room.panoramaUrl
+        ? [
+              {
+                  _key: "panorama",
+                  type: "panorama",
+                  iframeSrc: room.panoramaUrl,
+                  caption: "360° visning",
+              },
+              ...imageSlides,
+          ]
+        : imageSlides
+
     return (
         <article>
-            {carouselImages.length > 0 && (
+            {carouselSlides.length > 0 && (
                 <div className="-mx-6 sm:-mx-10 lg:-mx-14">
-                    <ImageCarousel images={carouselImages} />
+                    <ImageCarousel slides={carouselSlides} />
                 </div>
             )}
 

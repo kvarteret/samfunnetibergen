@@ -33,7 +33,13 @@ export type ArrangementSummary = {
     facebookUrl?: string | null
     imageUrl?: string | null
     imageCaption?: string | null
-    room?: { _id: string; title: string; slug: string } | null
+    room?: {
+        _id: string
+        title: string
+        slug: string
+        floor?: number | null
+        imageUrl?: string | null
+    } | null
     roomText?: string | null
     organizerGroup?: { _id: string; name: string; slug: string } | null
     organizerText?: string | null
@@ -185,7 +191,10 @@ export function ArrangementCard({
     ]
         .filter(Boolean)
         .join(" / ")
-    const room = arrangement.room?.title ?? arrangement.roomText
+    const roomTitle = arrangement.room?.title ?? arrangement.roomText
+    const roomSlug = arrangement.room?.slug
+    const roomFloor = arrangement.room?.floor
+    const roomImageUrl = arrangement.room?.imageUrl
     const price = formatPrices(arrangement, locale)
     const href = `/arrangementer/${arrangement.slug}`
     const timeLabel = primaryDate ? formatPrimaryDate(primaryDate, locale) : null
@@ -227,10 +236,44 @@ export function ArrangementCard({
                             <span>{timeLabel}</span>
                         </p>
                     )}
-                    {room && (
+                    {roomTitle && (
                         <p className="flex gap-2">
                             <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
-                            <span>{room}</span>
+                            {roomSlug ? (
+                                <span className="group relative inline-block">
+                                    <Link
+                                        href={`/rom/${roomSlug}`}
+                                        className="hover:underline hover:underline-offset-4"
+                                    >
+                                        {roomTitle}
+                                    </Link>
+                                    {(roomImageUrl != null || roomFloor != null) && (
+                                        <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
+                                            {roomImageUrl && (
+                                                <span className="relative block aspect-[4/3] w-full">
+                                                    <Image
+                                                        src={roomImageUrl}
+                                                        alt={roomTitle}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="176px"
+                                                        unoptimized={roomImageUrl.startsWith(
+                                                            "blob:",
+                                                        )}
+                                                    />
+                                                </span>
+                                            )}
+                                            {roomFloor != null && (
+                                                <span className="px-2 py-1 text-xs text-muted-foreground">
+                                                    {roomFloor}. etasje
+                                                </span>
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
+                            ) : (
+                                <span>{roomTitle}</span>
+                            )}
                         </p>
                     )}
                 </div>

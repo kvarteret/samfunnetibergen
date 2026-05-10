@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
@@ -83,7 +84,10 @@ export default async function EventPage({ params }: EventPageProps) {
 
     if (!arrangement) notFound()
 
-    const room = arrangement.room?.title ?? arrangement.roomText
+    const roomTitle = arrangement.room?.title ?? arrangement.roomText
+    const roomSlug = arrangement.room?.slug
+    const roomFloor = arrangement.room?.floor
+    const roomImageUrl = arrangement.room?.imageUrl
     const organizer = arrangement.organizerGroup?.name ?? arrangement.organizerText
     const taxonomy = arrangement.eventType?.name
     const price = formatPrices(arrangement)
@@ -175,7 +179,40 @@ export default async function EventPage({ params }: EventPageProps) {
                                             : d.startTime
                                         : "-"}
                                 </p>
-                                <p>{room ?? "-"}</p>
+                                <p>
+                                    {roomSlug ? (
+                                        <span className="group relative inline-block">
+                                            <Link
+                                                href={`/rom/${roomSlug}`}
+                                                className="hover:underline hover:underline-offset-4"
+                                            >
+                                                {roomTitle}
+                                            </Link>
+                                            {(roomImageUrl != null || roomFloor != null) && (
+                                                <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
+                                                    {roomImageUrl && (
+                                                        <span className="relative block aspect-[4/3] w-full">
+                                                            <Image
+                                                                src={roomImageUrl}
+                                                                alt={roomTitle ?? ""}
+                                                                fill
+                                                                className="object-cover"
+                                                                sizes="176px"
+                                                            />
+                                                        </span>
+                                                    )}
+                                                    {roomFloor != null && (
+                                                        <span className="px-2 py-1 text-xs text-muted-foreground">
+                                                            {roomFloor}. etasje
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            )}
+                                        </span>
+                                    ) : (
+                                        (roomTitle ?? "-")
+                                    )}
+                                </p>
                             </div>
                         ),
                     )}

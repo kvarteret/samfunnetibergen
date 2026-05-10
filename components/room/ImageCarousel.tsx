@@ -6,14 +6,37 @@ import { useCallback, useEffect, useState } from "react"
 
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 
-type CarouselImage = {
+type ImageSlide = {
     _key: string
+    type: "image"
     src: string
     alt: string
     caption?: string | null
 }
 
-export function ImageCarousel({ images }: { images: CarouselImage[] }) {
+type PanoramaSlide = {
+    _key: string
+    type: "panorama"
+    iframeSrc: string
+    caption?: string | null
+}
+
+export type CarouselSlide = ImageSlide | PanoramaSlide
+
+// Back-compat alias used by the old API
+type CarouselImage = { _key: string; src: string; alt: string; caption?: string | null }
+
+function normalise(images: CarouselImage[]): ImageSlide[] {
+    return images.map(img => ({ ...img, type: "image" as const }))
+}
+
+interface ImageCarouselProps {
+    images?: CarouselImage[]
+    slides?: CarouselSlide[]
+}
+
+export function ImageCarousel({ images, slides }: ImageCarouselProps) {
+    const allSlides: CarouselSlide[] = slides ?? normalise(images ?? [])
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const [canScrollPrev, setCanScrollPrev] = useState(false)
@@ -38,35 +61,47 @@ export function ImageCarousel({ images }: { images: CarouselImage[] }) {
         }
     }, [api, onSelect])
 
-    if (!images.length) return null
+    if (!allSlides.length) return null
 
-    const single = images.length === 1
+    const single = allSlides.length === 1
+    const currentSlide = allSlides[current]
 
     return (
         <div className="relative bg-muted">
             <Carousel setApi={setApi} opts={{ loop: false, dragFree: false }}>
                 {/* Remove the default -ml-4/pl-4 gap so slides are edge-to-edge */}
                 <CarouselContent className="ml-0">
-                    {images.map((img, i) => (
-                        <CarouselItem key={img._key} className="pl-0">
+                    {allSlides.map((slide, i) => (
+                        <CarouselItem key={slide._key} className="pl-0">
                             <div className="relative aspect-[16/9] w-full">
-                                <Image
-                                    alt={img.alt}
-                                    className="object-cover"
-                                    fill
-                                    priority={i === 0}
-                                    sizes="100vw"
-                                    src={img.src}
-                                />
+                                {slide.type === "panorama" ? (
+                                    <iframe
+                                        allowFullScreen
+                                        className="h-full w-full border-0"
+                                        loading={i === 0 ? "eager" : "lazy"}
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        src={slide.iframeSrc}
+                                        title="360° visning"
+                                    />
+                                ) : (
+                                    <Image
+                                        alt={slide.alt}
+                                        className="object-cover"
+                                        fill
+                                        priority={i === 0}
+                                        sizes="100vw"
+                                        src={slide.src}
+                                    />
+                                )}
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
 
                 {/* Caption */}
-                {images[current]?.caption && (
+                {currentSlide?.caption && (
                     <p className="absolute bottom-0 left-0 right-0 bg-background/70 px-4 py-2 text-xs text-foreground backdrop-blur-sm">
-                        {images[current].caption}
+                        {currentSlide.caption}
                     </p>
                 )}
 
@@ -97,7 +132,7 @@ export function ImageCarousel({ images }: { images: CarouselImage[] }) {
                 {/* Dot indicators */}
                 {!single && (
                     <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-                        {images.map((_, i) => (
+                        {allSlides.map((_, i) => (
                             <button
                                 aria-label={`Bilde ${i + 1}`}
                                 className={`h-1.5 rounded-full bg-background transition-all ${

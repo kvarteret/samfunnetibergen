@@ -133,6 +133,15 @@ export const room = defineType({
 
         // — Media —
         defineField({
+            name: "panoramaUrl",
+            title: "360° visning (Google Maps embed-URL)",
+            description:
+                "Lim inn iframe src-URL fra Google Maps for å vise 360°-visning som første bilde",
+            type: "url",
+            group: "media",
+            validation: rule => rule.uri({ scheme: ["https"] }),
+        }),
+        defineField({
             name: "images",
             title: "Bilder",
             type: "array",
