@@ -136,9 +136,9 @@ export const internbevisBenefit = defineType({
             type: "string",
             options: {
                 list: [
-                    { title: "Trinn 1 – Arbeidsgruppe (Arg)", value: "trinn1" },
+                    { title: "Trinn 1 – Brukerorganisasjon (Borg)", value: "trinn1" },
                     { title: "Trinn 2 – Driftsorganisasjon (Dorg)", value: "trinn2" },
-                    { title: "Trinn 3 – Brukerorganisasjon (Borg)", value: "trinn3" },
+                    { title: "Trinn 3 – Arbeidsgruppe (Arg)", value: "trinn3" },
                 ],
                 layout: "radio",
             },

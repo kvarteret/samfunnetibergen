@@ -9,9 +9,9 @@ export const portableTextContent = defineType({
             type: "block",
             styles: [
                 { title: "Normal", value: "normal" },
-                { title: "Stor overskrift", value: "h2" },
-                { title: "Mellom overskrift", value: "h3" },
-                { title: "Liten overskrift", value: "h4" },
+                { title: "Overskrift 1 (h2)", value: "h2" },
+                { title: "Overskrift 2 (h3)", value: "h3" },
+                { title: "Overskrift 3 (h4)", value: "h4" },
                 { title: "Sitat", value: "blockquote" },
             ],
             marks: {
