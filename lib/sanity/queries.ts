@@ -17,6 +17,7 @@ import {
     groupsPageQuery,
     homeBarsNbQuery,
     kontaktPageQuery,
+    linkInBioQuery,
     navbarQuery,
     pageBySlugQuery,
     pageSlugsQuery,
@@ -337,6 +338,14 @@ export async function fetchArrangementBySlug(slug: string) {
 
 export async function fetchFooter() {
     return sanityClient.fetch(footerQuery, {}, { next: { revalidate: 3600, tags: ["footer"] } })
+}
+
+export async function fetchLinkInBio() {
+    return sanityClient.fetch(
+        linkInBioQuery,
+        {},
+        { next: { revalidate: 300, tags: ["linkInBio"] } },
+    )
 }
 
 function getOsloDateString() {

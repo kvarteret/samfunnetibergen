@@ -436,6 +436,20 @@ export const footerQuery = defineQuery(`{
     }
 }`)
 
+// ─── Link-i-bio ───────────────────────────────────────────────────────────────
+
+export const linkInBioQuery = defineQuery(`*[_type == "linkInBio"][0] {
+    heading,
+    bio,
+    links[] {
+        _key,
+        label,
+        url,
+        emoji,
+        highlight
+    }
+}`)
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export const navbarQuery = defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {

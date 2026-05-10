@@ -13,6 +13,7 @@ import {
     eventsPage,
     groupsPage,
     internbevisBenefit,
+    linkInBio,
     roomsPage,
     siteMetadata,
 } from "./documents/singletons"
@@ -63,4 +64,5 @@ export const schemaTypes = [
     roomsPage,
     groupsPage,
     blifrivilligPage,
+    linkInBio,
 ]

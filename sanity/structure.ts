@@ -5,6 +5,7 @@ import {
     DocumentIcon,
     EnvelopeIcon,
     HeartIcon,
+    LinkIcon,
     MenuIcon,
     StarIcon,
     TagIcon,
@@ -23,6 +24,7 @@ export const singletonTypeNames = [
     "blifrivilligPage",
     "kontaktPage",
     "navbar",
+    "linkInBio",
 ] as const
 
 function singletonListItem(
@@ -70,6 +72,7 @@ export const structure: StructureResolver = (S, context) =>
                             singletonListItem(S, "groupsPage", "Grupper-side", UsersIcon),
                             singletonListItem(S, "blifrivilligPage", "Bli frivillig", HeartIcon),
                             singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
+                            singletonListItem(S, "linkInBio", "Link-i-bio", LinkIcon),
                             S.divider(),
                             S.documentTypeListItem("page").title("Andre sider"),
                         ]),

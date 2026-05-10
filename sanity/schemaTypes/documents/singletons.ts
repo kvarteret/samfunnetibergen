@@ -1,4 +1,4 @@
-import { CogIcon, DocumentIcon, HeartIcon, StarIcon, UsersIcon } from "@sanity/icons"
+import { CogIcon, DocumentIcon, HeartIcon, LinkIcon, StarIcon, UsersIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -215,6 +215,82 @@ export const groupsPage = defineType({
         select: { title: "title" },
         prepare({ title }) {
             return { title: title ?? "Grupper-side" }
+        },
+    },
+})
+
+export const linkInBio = defineType({
+    name: "linkInBio",
+    title: "Link-i-bio",
+    type: "document",
+    icon: LinkIcon,
+    fields: [
+        defineField({
+            name: "heading",
+            title: "Overskrift",
+            type: "string",
+            description: "Vises øverst på siden, f.eks. «Kvarteret»",
+            validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "bio",
+            title: "Bio-tekst",
+            type: "text",
+            rows: 2,
+            description: "Kort tekst under overskriften (valgfri)",
+        }),
+        defineField({
+            name: "links",
+            title: "Lenker",
+            type: "array",
+            of: [
+                defineArrayMember({
+                    type: "object",
+                    fields: [
+                        defineField({
+                            name: "label",
+                            title: "Tekst",
+                            type: "string",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "url",
+                            title: "URL",
+                            type: "string",
+                            description: "Ekstern URL (https://…) eller intern sti (/blifrivillig)",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "emoji",
+                            title: "Emoji (valgfri)",
+                            type: "string",
+                            description: "Vises foran lenketeksten",
+                        }),
+                        defineField({
+                            name: "highlight",
+                            title: "Fremhev",
+                            type: "boolean",
+                            description: "Gjør knappen mer fremtredende",
+                            initialValue: false,
+                        }),
+                    ],
+                    preview: {
+                        select: { title: "label", subtitle: "url", emoji: "emoji" },
+                        prepare({ title, subtitle, emoji }) {
+                            return {
+                                title: emoji ? `${emoji}  ${title}` : title,
+                                subtitle,
+                            }
+                        },
+                    },
+                }),
+            ],
+        }),
+    ],
+    preview: {
+        select: { title: "heading" },
+        prepare({ title }) {
+            return { title: title ?? "Link-i-bio" }
         },
     },
 })
