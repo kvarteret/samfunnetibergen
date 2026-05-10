@@ -23,7 +23,7 @@ export const eventType = defineType({
         }),
         defineField({
             name: "taxonomyGroup",
-            title: "Taksonomigruppe",
+            title: "Kategori",
             type: "reference",
             to: [{ type: "eventTaxonomyGroup" }],
             validation: rule => rule.required(),

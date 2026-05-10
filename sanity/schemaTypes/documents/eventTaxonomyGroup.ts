@@ -4,7 +4,7 @@ import { defineField, defineType } from "sanity"
 
 export const eventTaxonomyGroup = defineType({
     name: "eventTaxonomyGroup",
-    title: "Taksonomigruppe",
+    title: "Kategori",
     type: "document",
     icon: TagIcon,
     fields: [

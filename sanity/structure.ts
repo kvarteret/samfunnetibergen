@@ -105,7 +105,7 @@ export const structure: StructureResolver = (S, context) =>
                                 context,
                                 type: "eventTaxonomyGroup",
                                 id: "orderable-event-taxonomy-group",
-                                title: "Taksonomigrupper",
+                                title: "Kategorier",
                                 icon: TagIcon,
                             }),
                             orderableDocumentListDeskItem({
