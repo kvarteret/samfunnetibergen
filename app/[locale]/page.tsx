@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     const locale = await resolvePageLocale(params)
     const siteMetadata = await fetchSiteMetadata(locale, { stega: false })
     return {
-        title: siteMetadata?.homeTitle ?? "Studentersamfunnet i Bergen",
+        title: siteMetadata?.homeTitle ?? "Samfunnet i Bergen",
         description:
             siteMetadata?.homeDescription ??
             "Studenthuset i Bergen — over 1500 arrangementer i året, driftet av frivillige studenter.",
@@ -62,10 +62,8 @@ function HomeHero({ locale }: { locale: AppLocale }) {
             <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
                 Studentenes hus i Bergen
             </p>
-            <h1 className="mb-8 font-heading text-5xl leading-[0.92] sm:text-6xl lg:text-7xl">
-                Studentersamfunnet
-                <br />
-                i Bergen
+            <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
+                Samfunnet i Bergen
             </h1>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-10">
                 <p className="max-w-2xl text-base leading-relaxed text-foreground/75">
