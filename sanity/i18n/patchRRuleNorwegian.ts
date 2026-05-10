@@ -55,8 +55,7 @@ const NB_STRINGS: Record<string, string> = {
 const nbGettext = (id: string | number | { toString(): string }) =>
     NB_STRINGS[id.toString()] ?? id.toString()
 
-const nbDateFormatter = (year: number, month: string, day: number) =>
-    `${day}. ${month} ${year}`
+const nbDateFormatter = (year: number, month: string, day: number) => `${day}. ${month} ${year}`
 
 const originalToText = RRule.prototype.toText
 

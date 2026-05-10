@@ -20,7 +20,8 @@ export const sourcedImage = defineType({
             validation: rule =>
                 rule.custom((alt, ctx) => {
                     const parent = ctx.parent as { image?: unknown } | undefined
-                    if (parent?.image && !alt) return "Alt-tekst er påkrevd når bilde er lastet opp."
+                    if (parent?.image && !alt)
+                        return "Alt-tekst er påkrevd når bilde er lastet opp."
                     return true
                 }),
         }),

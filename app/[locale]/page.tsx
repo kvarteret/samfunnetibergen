@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { type EventDetail, collapseRecurringEvents, getPublicEvents } from "@/lib/events"
+import { collapseRecurringEvents, type EventDetail, getPublicEvents } from "@/lib/events"
 import { fetchSiteMetadata } from "@/lib/sanity/queries"
 import type { VolunteerStats } from "@/lib/volunteer-stats"
 import { fetchVolunteerStats } from "@/lib/volunteer-stats"
@@ -99,7 +99,13 @@ interface HomeEventsProps {
     locale: AppLocale
 }
 
-function RecurrenceChips({ occurrences, locale }: { occurrences: EventDetail[]; locale: AppLocale }) {
+function RecurrenceChips({
+    occurrences,
+    locale,
+}: {
+    occurrences: EventDetail[]
+    locale: AppLocale
+}) {
     if (!occurrences.length) return null
     const visible = occurrences.slice(0, 2)
     const overflow = occurrences.length - 2
@@ -107,7 +113,10 @@ function RecurrenceChips({ occurrences, locale }: { occurrences: EventDetail[]; 
     return (
         <div className="flex flex-wrap gap-1 mt-1">
             {visible.map(o => (
-                <span key={o.id} className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
+                <span
+                    key={o.id}
+                    className="border border-border px-1.5 py-0 text-[10px] text-foreground/50"
+                >
                     {formatEventDate(o, locale)}
                 </span>
             ))}
