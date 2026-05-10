@@ -252,22 +252,26 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
                 Åpningstider
             </h2>
             <dl className="max-w-md divide-y divide-border">
-                {room.openingHours.rows.map((row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number]) => (
-                    <div
-                        className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
-                        key={row._key}
-                    >
-                        <dt className="font-heading text-foreground">{row.label}</dt>
-                        <dd className="text-foreground/70">
-                            {row.status === "closed"
-                                ? "Stengt"
-                                : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
-                            {row.note && (
-                                <span className="mt-1 block text-foreground/60">{row.note}</span>
-                            )}
-                        </dd>
-                    </div>
-                ))}
+                {room.openingHours.rows.map(
+                    (row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number]) => (
+                        <div
+                            className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                            key={row._key}
+                        >
+                            <dt className="font-heading text-foreground">{row.label}</dt>
+                            <dd className="text-foreground/70">
+                                {row.status === "closed"
+                                    ? "Stengt"
+                                    : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
+                                {row.note && (
+                                    <span className="mt-1 block text-foreground/60">
+                                        {row.note}
+                                    </span>
+                                )}
+                            </dd>
+                        </div>
+                    ),
+                )}
             </dl>
         </section>
     )
