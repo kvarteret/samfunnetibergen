@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { type EventDetail, getPublicEvents } from "@/lib/events"
+import { type EventDetail, collapseRecurringEvents, getPublicEvents } from "@/lib/events"
 import { fetchSiteMetadata } from "@/lib/sanity/queries"
 import type { VolunteerStats } from "@/lib/volunteer-stats"
 import { fetchVolunteerStats } from "@/lib/volunteer-stats"
@@ -42,7 +42,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         getPublicEvents(locale),
         fetchVolunteerStats(),
     ])
-    const visibleEvents = eventsResult.ok ? eventsResult.events.slice(0, 4) : []
+    const visibleEvents = eventsResult.ok
+        ? collapseRecurringEvents(eventsResult.events).slice(0, 4)
+        : []
 
     return (
         <div className="flex flex-col gap-8 pb-12">
@@ -97,6 +99,27 @@ interface HomeEventsProps {
     locale: AppLocale
 }
 
+function RecurrenceChips({ occurrences, locale }: { occurrences: EventDetail[]; locale: AppLocale }) {
+    if (!occurrences.length) return null
+    const visible = occurrences.slice(0, 2)
+    const overflow = occurrences.length - 2
+    const overflowLabel = overflow >= 9 ? "9+" : `+${overflow}`
+    return (
+        <div className="flex flex-wrap gap-1 mt-1">
+            {visible.map(o => (
+                <span key={o.id} className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
+                    {formatEventDate(o, locale)}
+                </span>
+            ))}
+            {overflow > 0 && (
+                <span className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
+                    {overflowLabel}
+                </span>
+            )}
+        </div>
+    )
+}
+
 function HomeEvents({ events, locale }: HomeEventsProps) {
     return (
         <div className="space-y-4">
@@ -126,6 +149,9 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
                             <p>{formatEventDate(event, locale)}</p>
                         </div>
                         <p className="text-lg">{event.title}</p>
+                        {event.occurrences && event.occurrences.length > 0 && (
+                            <RecurrenceChips occurrences={event.occurrences} locale={locale} />
+                        )}
                     </Link>
                 ))}
             </div>

@@ -88,6 +88,7 @@ export type EventDetail = {
     title: string
     translations: EventTranslations
     updated_at: string
+    occurrences?: EventDetail[]
 }
 
 export type EventList = {
@@ -228,6 +229,37 @@ export function filterEvents(events: EventDetail[], filters: EventFilters): Even
 
         return true
     })
+}
+
+// Collapses recurring event series per ADR-0002:
+// groups by (normalised title + event_type_id), picks nearest upcoming as representative,
+// attaches later occurrences as `occurrences` for date chip rendering.
+export function collapseRecurringEvents(events: EventDetail[]): EventDetail[] {
+    const now = new Date()
+    const series = new Map<string, EventDetail[]>()
+    const singles: EventDetail[] = []
+
+    for (const event of events) {
+        if (!event.recurring_interval_days) {
+            singles.push(event)
+            continue
+        }
+        const key = `${event.title.trim().toLowerCase()}__${event.event_type_id}`
+        series.set(key, [...(series.get(key) ?? []), event])
+    }
+
+    const collapsed: EventDetail[] = []
+    for (const occurrences of series.values()) {
+        const upcoming = occurrences
+            .filter(e => new Date(e.starts_at) >= now)
+            .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
+        if (upcoming.length === 0) continue
+        collapsed.push({ ...upcoming[0], occurrences: upcoming.slice(1) })
+    }
+
+    return [...singles, ...collapsed].sort(
+        (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime(),
+    )
 }
 
 export function groupEventsByTaxonomy(
