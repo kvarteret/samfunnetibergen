@@ -26,22 +26,22 @@ function AppColumn() {
             <ColumnHeading>Skaff deg appen</ColumnHeading>
             <ul className="space-y-2">
                 <li>
-                    <a
+                    <Link
                         className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
                         href="/appen"
                     >
                         <IconApple />
                         App Store
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a
+                    <Link
                         className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
                         href="/appen"
                     >
                         <IconAndroid />
                         Google Play
-                    </a>
+                    </Link>
                 </li>
             </ul>
         </div>
