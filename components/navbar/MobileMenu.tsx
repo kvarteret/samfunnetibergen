@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
@@ -12,13 +12,11 @@ type MobileMenuProps = {
     fallbackItems: { label: string; href: string }[]
 }
 
+const subscribe = () => () => {}
+
 export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
+    const mounted = useSyncExternalStore(subscribe, () => true, () => false)
 
     useEffect(() => {
         if (!open) return
