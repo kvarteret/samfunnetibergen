@@ -3,11 +3,11 @@ import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { recurringDates } from "sanity-plugin-recurring-dates"
+import { ApproveAction, RejectAction } from "./sanity/actions/approvalActions"
 import { dataset, projectId } from "./sanity/env"
 import { resolve, resolvePresentationInitialUrl } from "./sanity/presentation/resolve"
 import { schemaTypes } from "./sanity/schemaTypes"
 import { singletonTypeNames, structure } from "./sanity/structure"
-import { ApproveAction, RejectAction } from "./sanity/actions/approvalActions"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -39,7 +39,10 @@ export default defineConfig({
         },
         actions: (prev, { schemaType }) => {
             if (schemaType === "arrangement") {
-                return [ApproveAction, RejectAction, ...prev]
+                const core = prev.filter(
+                    action => !["duplicate", "unpublish"].includes(action.action ?? ""),
+                )
+                return [ApproveAction, RejectAction, ...core]
             }
             if (!singletonTypes.has(schemaType)) {
                 return prev
