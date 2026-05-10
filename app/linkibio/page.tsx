@@ -56,10 +56,10 @@ export default async function LinkInBioPage() {
                         </span>
                     )
                     const className = [
-                        "flex w-full items-center justify-center px-5 py-3.5 text-sm font-medium transition-colors border",
+                        "flex w-full items-center justify-center px-5 py-4 text-sm font-medium border-2 border-border transition-colors",
                         link.highlight
-                            ? "bg-foreground text-background border-foreground hover:bg-foreground/90"
-                            : "bg-card text-foreground border-border hover:bg-muted",
+                            ? "bg-foreground text-background hover:bg-foreground/90"
+                            : "bg-card text-foreground hover:bg-muted",
                     ].join(" ")
 
                     return (

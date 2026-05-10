@@ -241,7 +241,7 @@ export function Footer({ data, locale }: FooterProps) {
                     <OpeningHoursColumn rooms={roomHours} />
                 </div>
 
-                <div className="mt-8 border-t border-gray-200 pt-5">
+                <div className="mt-8 border-t border-border pt-5">
                     <Link
                         className="text-xs text-foreground hover:text-foreground/70 transition-colors"
                         href={`/${locale}/grupper/e-tjenesten`}
