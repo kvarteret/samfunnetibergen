@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
-import { redirect } from "next/navigation"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 const APP_STORE_URL = "https://apps.apple.com/app/kvarteret/id6578415973"
 const GOOGLE_PLAY_URL =
@@ -34,9 +34,7 @@ export default async function AppenPage() {
         <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 bg-background">
             <div className="text-center space-y-2">
                 <h1 className="font-heading text-3xl">Last ned appen</h1>
-                <p className="text-foreground/60 text-sm">
-                    Tilgjengelig for iOS og Android
-                </p>
+                <p className="text-foreground/60 text-sm">Tilgjengelig for iOS og Android</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">

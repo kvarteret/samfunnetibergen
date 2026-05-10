@@ -48,8 +48,7 @@ export default async function LinkInBioPage() {
             {/* Link list */}
             <ul className="w-full max-w-sm space-y-3">
                 {links.map(link => {
-                    const isExternal =
-                        typeof link.url === "string" && link.url.startsWith("http")
+                    const isExternal = typeof link.url === "string" && link.url.startsWith("http")
                     const label = (
                         <span className="flex items-center gap-2 justify-center">
                             {link.emoji && <span aria-hidden>{link.emoji}</span>}
