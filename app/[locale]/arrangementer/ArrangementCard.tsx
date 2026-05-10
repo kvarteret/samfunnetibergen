@@ -180,9 +180,11 @@ export function ArrangementCard({
     ticketsLabel,
 }: ArrangementCardProps) {
     const seedDate = arrangement.dates[0]
+    const todayStr = new Date().toISOString().split("T")[0]!
+    const futureDates = arrangement.dates.filter(d => d.startDate >= todayStr)
     const expandedDates: ArrangementDateEntry[] =
-        arrangement.dates.length > 1
-            ? arrangement.dates
+        futureDates.length > 0
+            ? futureDates
             : arrangement.rrule && seedDate
               ? expandRRuleDates(arrangement.rrule, seedDate, 14)
               : arrangement.dates

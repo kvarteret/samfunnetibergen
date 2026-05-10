@@ -287,11 +287,7 @@ export const publishedArrangementsQuery = defineQuery(`
     approvalStatus,
     isRecurring,
     rrule,
-    "dates": select(
-        count(dates[startDate >= $today]) > 0,
-        dates[startDate >= $today] | order(startDate asc),
-        (dates | order(startDate asc))[0..0]
-    ) {
+    "dates": dates | order(startDate asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
@@ -345,11 +341,7 @@ export const arrangementBySlugQuery = defineQuery(`
     approvalStatus,
     isRecurring,
     rrule,
-    "dates": select(
-        count(dates[startDate >= $today]) > 0,
-        dates[startDate >= $today] | order(startDate asc),
-        (dates | order(startDate asc))[0..0]
-    ) {
+    "dates": dates | order(startDate asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
