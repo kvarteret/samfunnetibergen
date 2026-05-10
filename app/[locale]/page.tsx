@@ -188,6 +188,9 @@ function VolunteerStatsSection({ stats }: { stats: VolunteerStats }) {
             </p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="border-2 border-border bg-card p-6 text-center">
+                    <p className="font-heading text-xs uppercase tracking-widest text-foreground/50">
+                        over
+                    </p>
                     <p className="font-heading text-4xl text-foreground">
                         {Math.round(stats.totalVolunteers / 1000) + " tusen"}
                     </p>

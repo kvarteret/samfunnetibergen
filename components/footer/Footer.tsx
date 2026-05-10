@@ -233,11 +233,13 @@ export function Footer({ data, locale }: FooterProps) {
     return (
         <footer className="border-t border-border bg-card">
             <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 lg:px-14">
-                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
-                    <SocialColumn links={socialLinks} />
-                    <AppColumn />
-                    <ContactColumn generalContact={data.generalContact} />
-                    <AddressColumn address={data.visitAddress} />
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_auto]">
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+                        <SocialColumn links={socialLinks} />
+                        <AppColumn />
+                        <ContactColumn generalContact={data.generalContact} />
+                        <AddressColumn address={data.visitAddress} />
+                    </div>
                     <OpeningHoursColumn rooms={roomHours} />
                 </div>
 
