@@ -7,6 +7,7 @@ import { dataset, projectId } from "./sanity/env"
 import { resolve, resolvePresentationInitialUrl } from "./sanity/presentation/resolve"
 import { schemaTypes } from "./sanity/schemaTypes"
 import { singletonTypeNames, structure } from "./sanity/structure"
+import { ApproveAction, RejectAction } from "./sanity/actions/approvalActions"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -37,6 +38,9 @@ export default defineConfig({
             return prev.filter(templateItem => !singletonTypes.has(templateItem.templateId))
         },
         actions: (prev, { schemaType }) => {
+            if (schemaType === "arrangement") {
+                return [ApproveAction, RejectAction, ...prev]
+            }
             if (!singletonTypes.has(schemaType)) {
                 return prev
             }

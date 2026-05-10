@@ -1,5 +1,6 @@
 "use client"
 
+import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -57,16 +58,27 @@ function formatShortDate(dateStr: string, locale: AppLocale): string {
 function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): string {
     void locale
 
-    const dateFormatted = new Intl.DateTimeFormat("nb-NO", {
-        dateStyle: "long",
-        timeZone: "Europe/Oslo",
-    }).format(new Date(`${date.startDate}T00:00:00`))
+    const eventDate = new Date(`${date.startDate}T00:00:00`)
+    const daysUntil = differenceInCalendarDays(eventDate, new Date())
+    const timeRange = date.startTime
+        ? `kl. ${date.endTime ? `${date.startTime}–${date.endTime}` : date.startTime}`
+        : null
 
-    if (!date.startTime) return dateFormatted
+    let dayLabel: string
+    if (isToday(eventDate)) {
+        dayLabel = "I dag"
+    } else if (isTomorrow(eventDate)) {
+        dayLabel = "I morgen"
+    } else if (daysUntil > 0 && daysUntil <= 7) {
+        dayLabel = `Om ${daysUntil} dager`
+    } else {
+        dayLabel = new Intl.DateTimeFormat("nb-NO", {
+            dateStyle: "long",
+            timeZone: "Europe/Oslo",
+        }).format(eventDate)
+    }
 
-    const timeRange = date.endTime ? `${date.startTime}–${date.endTime}` : date.startTime
-
-    return `${dateFormatted}, kl. ${timeRange}`
+    return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }
 
 function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): string | null {
