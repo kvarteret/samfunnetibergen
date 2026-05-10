@@ -252,7 +252,7 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
                 Åpningstider
             </h2>
             <dl className="max-w-md divide-y divide-border">
-                {room.openingHours.rows.map(row => (
+                {room.openingHours.rows.map((row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number]) => (
                     <div
                         className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
                         key={row._key}
