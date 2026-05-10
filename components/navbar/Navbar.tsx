@@ -1,6 +1,13 @@
-import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import {
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
 
 type NavbarProps = {
@@ -23,7 +30,9 @@ function isExternal(item: { href?: string | null; externalUrl?: string | null })
     return !item.href && Boolean(item.externalUrl)
 }
 
-function NavLink({
+// ─── SimpleNavLink ────────────────────────────────────────────────────────────
+
+function SimpleNavLink({
     href,
     external,
     children,
@@ -46,37 +55,28 @@ function NavLink({
     )
 }
 
-function TopLevelItem({ item }: { item: NavItem }) {
+// ─── DesktopNav ───────────────────────────────────────────────────────────────
+
+function DesktopNavItem({ item }: { item: NavItem }) {
     const hasDropdown = (item.children?.length ?? 0) > 0
     const href = resolveHref(item)
     const external = isExternal(item)
 
     if (!hasDropdown) {
         return (
-            <li>
-                <NavLink external={external} href={href}>
+            <NavigationMenuItem>
+                <SimpleNavLink external={external} href={href}>
                     {item.label}
-                </NavLink>
-            </li>
+                </SimpleNavLink>
+            </NavigationMenuItem>
         )
     }
 
     return (
-        <li className="group relative">
-            <button
-                className="relative flex items-center gap-1 px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
-                type="button"
-            >
-                {item.label}
-                <ChevronDown
-                    aria-hidden
-                    className="size-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-180"
-                />
-            </button>
-
-            {/* Dropdown */}
-            <div className="invisible absolute left-0 top-[calc(100%+12px)] z-50 min-w-[14rem] border-2 border-border bg-background opacity-0 shadow-shadow transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="p-3">
+        <NavigationMenuItem>
+            <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
+            <NavigationMenuContent>
+                <div className="min-w-[14rem] p-3">
                     {item.children?.map((group: NavGroup) => (
                         <div className="space-y-0.5" key={group._key}>
                             {group.groupLabel && (
@@ -87,33 +87,43 @@ function TopLevelItem({ item }: { item: NavItem }) {
                             {group.items?.map((leaf: NavLeaf) => {
                                 const leafHref = resolveHref(leaf)
                                 const leafExternal = isExternal(leaf)
-                                return leafExternal ? (
-                                    <a
-                                        className="block px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
-                                        href={leafHref}
-                                        key={leaf._key}
-                                        rel="noreferrer"
-                                        target="_blank"
-                                    >
-                                        {leaf.label}
-                                    </a>
-                                ) : (
-                                    <Link
-                                        className="block px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
-                                        href={leafHref}
-                                        key={leaf._key}
-                                    >
-                                        {leaf.label}
-                                    </Link>
+                                return (
+                                    <NavigationMenuLink asChild key={leaf._key}>
+                                        {leafExternal ? (
+                                            <a href={leafHref} rel="noreferrer" target="_blank">
+                                                {leaf.label}
+                                            </a>
+                                        ) : (
+                                            <Link href={leafHref}>{leaf.label}</Link>
+                                        )}
+                                    </NavigationMenuLink>
                                 )
                             })}
                         </div>
                     ))}
                 </div>
-            </div>
-        </li>
+            </NavigationMenuContent>
+        </NavigationMenuItem>
     )
 }
+
+function DesktopNav({ items }: { items: NavItem[] }) {
+    return (
+        <NavigationMenu className="hidden lg:flex">
+            <NavigationMenuList className="gap-7">
+                {items.length > 0
+                    ? items.map(item => <DesktopNavItem item={item} key={item._key} />)
+                    : FALLBACK_ITEMS.map(item => (
+                          <NavigationMenuItem key={item.href}>
+                              <SimpleNavLink href={item.href}>{item.label}</SimpleNavLink>
+                          </NavigationMenuItem>
+                      ))}
+            </NavigationMenuList>
+        </NavigationMenu>
+    )
+}
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export function Navbar({ navbar }: NavbarProps) {
     const items = navbar?.items ?? []
@@ -124,7 +134,6 @@ export function Navbar({ navbar }: NavbarProps) {
                 aria-label="Hovednavigasjon"
                 className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
             >
-                {/* Wordmark */}
                 <Link
                     className="py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
                     href="/"
@@ -132,18 +141,8 @@ export function Navbar({ navbar }: NavbarProps) {
                     Samfunnet i Bergen
                 </Link>
 
-                {/* Desktop nav */}
-                <ul className="hidden items-center gap-7 lg:flex">
-                    {items.length > 0
-                        ? items.map((item: NavItem) => <TopLevelItem item={item} key={item._key} />)
-                        : FALLBACK_ITEMS.map(item => (
-                              <li key={item.href}>
-                                  <NavLink href={item.href}>{item.label}</NavLink>
-                              </li>
-                          ))}
-                </ul>
+                <DesktopNav items={items} />
 
-                {/* Mobile toggle */}
                 <MobileMenu fallbackItems={FALLBACK_ITEMS} items={items} />
             </nav>
         </header>

@@ -1,9 +1,18 @@
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
+import { networkInterfaces } from "os"
 
 const withNextIntl = createNextIntlPlugin()
 
+function localNetworkOrigins(): string[] {
+    return Object.values(networkInterfaces())
+        .flat()
+        .filter(iface => iface && iface.family === "IPv4" && !iface.internal)
+        .map(iface => iface!.address)
+}
+
 const nextConfig: NextConfig = {
+    allowedDevOrigins: localNetworkOrigins(),
     images: {
         remotePatterns: [
             { protocol: "https", hostname: "cdn.sanity.io" },
