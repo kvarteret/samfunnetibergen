@@ -71,11 +71,10 @@ export async function fetchBlifrivilligPage(
 export async function fetchVolunteerGroups(_locale: AppLocale): Promise<VolunteerGroupContent[]> {
     void _locale
 
-    const groups = await sanityClient.fetch(
-        volunteerGroupsNbQuery,
-        {},
-        { next: { revalidate: 300, tags: ["volunteerGroups"] } },
-    )
+    const { data: groups } = await sanityFetch({
+        query: volunteerGroupsNbQuery,
+        tags: ["volunteerGroups"],
+    })
 
     type G = ClientReturn<typeof volunteerGroupsNbQuery>[number]
     return groups
@@ -101,11 +100,10 @@ export async function fetchVolunteerGroupSummaries(
 ): Promise<VolunteerGroupSummary[]> {
     void _locale
 
-    const groups = await sanityClient.fetch(
-        volunteerGroupSummariesNbQuery,
-        {},
-        { next: { revalidate: 300, tags: ["volunteerGroupSummaries"] } },
-    )
+    const { data: groups } = await sanityFetch({
+        query: volunteerGroupSummariesNbQuery,
+        tags: ["volunteerGroupSummaries"],
+    })
 
     return groups.flatMap((group: { name: string | null; description: string | null }) =>
         group.name ? [{ ...group, name: group.name }] : [],
@@ -306,19 +304,20 @@ export async function fetchArrangementGroups(): Promise<ArrangementGroup[]> {
 }
 
 export async function fetchPublishedArrangements() {
-    return sanityClient.fetch(
-        publishedArrangementsQuery,
-        { today: getOsloDateString() },
-        { next: { revalidate: 60, tags: ["arrangements"] } },
-    )
+    const { data } = await sanityFetch({
+        query: publishedArrangementsQuery,
+        params: { today: getOsloDateString() },
+        tags: ["arrangements"],
+    })
+    return data
 }
 
 export async function fetchKontaktPage() {
-    return sanityClient.fetch(
-        kontaktPageQuery,
-        {},
-        { next: { revalidate: 300, tags: ["kontaktPage"] } },
-    )
+    const { data } = await sanityFetch({
+        query: kontaktPageQuery,
+        tags: ["kontaktPage"],
+    })
+    return data
 }
 
 export async function fetchArrangementBySlug(slug: string) {
@@ -331,15 +330,13 @@ export async function fetchArrangementBySlug(slug: string) {
 }
 
 export async function fetchFooter() {
-    return sanityClient.fetch(footerQuery, {}, { next: { revalidate: 3600, tags: ["footer"] } })
+    const { data } = await sanityFetch({ query: footerQuery, tags: ["footer"] })
+    return data
 }
 
 export async function fetchLinkInBio() {
-    return sanityClient.fetch(
-        linkInBioQuery,
-        {},
-        { next: { revalidate: 300, tags: ["linkInBio"] } },
-    )
+    const { data } = await sanityFetch({ query: linkInBioQuery, tags: ["linkInBio"] })
+    return data
 }
 
 function getOsloDateString() {
