@@ -17,7 +17,7 @@ const FALLBACK = {
         {
             _key: "blifrivillig",
             label: "Bli frivillig",
-            url: "/nb/blifrivillig",
+            url: "/blifrivillig",
             emoji: "🙌",
             highlight: false,
         },

@@ -33,8 +33,7 @@ export async function generateMetadata({ params }: GroupsPageProps) {
 
     return {
         title: `${content?.seoTitle ?? content?.title ?? "Grupper"} | Samfunnet i Bergen`,
-        description:
-            content?.seoDescription ?? content?.description ?? "Se gruppene i Samfunnet.",
+        description: content?.seoDescription ?? content?.description ?? "Se gruppene i Samfunnet.",
     }
 }
 

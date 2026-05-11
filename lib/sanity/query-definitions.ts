@@ -447,7 +447,7 @@ export const footerQuery = defineQuery(`{
 
 // ─── Link-i-bio ───────────────────────────────────────────────────────────────
 
-export const linkInBioQuery = defineQuery(`*[_type == "linkInBio"][0] {
+export const linkInBioQuery = defineQuery(`*[_type == "linkInBio" && _id == "linkInBio"][0] {
     heading,
     bio,
     links[] {

@@ -24,7 +24,9 @@ export async function generateMetadata({ params }: RoomsPageProps) {
     return {
         title: `${content?.seoTitle ?? content?.title ?? "Rom"} | Samfunnet i Bergen`,
         description:
-            content?.seoDescription ?? content?.description ?? "Se rommene på Det Akademiske Kvarter.",
+            content?.seoDescription ??
+            content?.description ??
+            "Se rommene på Det Akademiske Kvarter.",
     }
 }
 
@@ -107,33 +109,35 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                             </div>
                             {section.links?.length ? (
                                 <div className="flex flex-wrap gap-3">
-                                    {section.links.map((link: NonNullable<EditorialSection["links"]>[number]) => {
-                                        if (!link.url) return null
-                                        const isLocal = link.url.startsWith("/")
-                                        return isLocal ? (
-                                            <Link
-                                                className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
-                                                href={link.url}
-                                                key={link._key}
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        ) : (
-                                            <a
-                                                className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
-                                                href={link.url}
-                                                key={link._key}
-                                                rel="noreferrer"
-                                                target="_blank"
-                                            >
-                                                {link.label}
-                                                <ExternalLink
-                                                    aria-hidden="true"
-                                                    className="size-4"
-                                                />
-                                            </a>
-                                        )
-                                    })}
+                                    {section.links.map(
+                                        (link: NonNullable<EditorialSection["links"]>[number]) => {
+                                            if (!link.url) return null
+                                            const isLocal = link.url.startsWith("/")
+                                            return isLocal ? (
+                                                <Link
+                                                    className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+                                                    href={link.url}
+                                                    key={link._key}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            ) : (
+                                                <a
+                                                    className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+                                                    href={link.url}
+                                                    key={link._key}
+                                                    rel="noreferrer"
+                                                    target="_blank"
+                                                >
+                                                    {link.label}
+                                                    <ExternalLink
+                                                        aria-hidden="true"
+                                                        className="size-4"
+                                                    />
+                                                </a>
+                                            )
+                                        },
+                                    )}
                                 </div>
                             ) : null}
                         </article>
