@@ -2,15 +2,25 @@ import { defineQuery } from "next-sanity"
 
 // ─── Shared projections ─────────────────────────────────────────────────────
 
+const sourceLinkProjection = `{
+    _key,
+    label,
+    linkType,
+    "href": coalesce(
+        select(
+            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,
+            linkType == "internalPath" => internalPath,
+            linkType == "external" => externalUrl
+        ),
+        url
+    )
+}`
+
 const editorialSectionProjection = `{
     _key,
     title,
     paragraphs,
-    links[] {
-        _key,
-        label,
-        url
-    }
+    links[] ${sourceLinkProjection}
 }`
 
 const sourcedImageProjection = `{
@@ -96,10 +106,7 @@ export const roomsPageQuery = defineQuery(`*[_type == "roomsPage" && _id == "roo
     seoTitle,
     seoDescription,
     "sections": sections[] ${editorialSectionProjection},
-    bookingLink {
-        label,
-        url
-    }
+    bookingLink ${sourceLinkProjection}
 }`)
 
 export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc) {

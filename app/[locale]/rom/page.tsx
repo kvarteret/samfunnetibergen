@@ -31,6 +31,53 @@ export async function generateMetadata({ params }: RoomsPageProps) {
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
+type ContentLink = {
+    _key?: string | null
+    label?: string | null
+    href?: string | null
+}
+
+function isExternalHref(href: string) {
+    return !href.startsWith("/")
+}
+
+function InlineContentLink({ link }: { link: ContentLink }) {
+    if (!link.href) return null
+
+    const className =
+        "inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+
+    return isExternalHref(link.href) ? (
+        <a className={className} href={link.href} rel="noreferrer" target="_blank">
+            {link.label}
+            <ExternalLink aria-hidden="true" className="size-4" />
+        </a>
+    ) : (
+        <Link className={className} href={link.href}>
+            {link.label}
+        </Link>
+    )
+}
+
+function BookingButton({ link }: { link: ContentLink }) {
+    if (!link.href) return null
+
+    return (
+        <Button asChild className="w-fit lg:justify-self-end" size="lg">
+            {isExternalHref(link.href) ? (
+                <a href={link.href} rel="noreferrer" target="_blank">
+                    <ExternalLink aria-hidden="true" />
+                    {link.label}
+                </a>
+            ) : (
+                <Link href={link.href}>
+                    <ArrowRight aria-hidden="true" />
+                    {link.label}
+                </Link>
+            )}
+        </Button>
+    )
+}
 
 function RoomImage({ image, title }: { image: RoomSummary["image"]; title: string }) {
     const src = imageUrl(image)
@@ -80,14 +127,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                         </p>
                     ) : null}
                 </div>
-                {content?.bookingLink?.url ? (
-                    <Button asChild className="w-fit lg:justify-self-end" size="lg">
-                        <a href={content.bookingLink.url} rel="noreferrer" target="_blank">
-                            <ExternalLink aria-hidden="true" />
-                            {content.bookingLink.label}
-                        </a>
-                    </Button>
-                ) : null}
+                {content?.bookingLink ? <BookingButton link={content.bookingLink} /> : null}
             </header>
 
             {content?.sections?.length ? (
@@ -110,33 +150,9 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                             {section.links?.length ? (
                                 <div className="flex flex-wrap gap-3">
                                     {section.links.map(
-                                        (link: NonNullable<EditorialSection["links"]>[number]) => {
-                                            if (!link.url) return null
-                                            const isLocal = link.url.startsWith("/")
-                                            return isLocal ? (
-                                                <Link
-                                                    className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
-                                                    href={link.url}
-                                                    key={link._key}
-                                                >
-                                                    {link.label}
-                                                </Link>
-                                            ) : (
-                                                <a
-                                                    className="inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
-                                                    href={link.url}
-                                                    key={link._key}
-                                                    rel="noreferrer"
-                                                    target="_blank"
-                                                >
-                                                    {link.label}
-                                                    <ExternalLink
-                                                        aria-hidden="true"
-                                                        className="size-4"
-                                                    />
-                                                </a>
-                                            )
-                                        },
+                                        (link: NonNullable<EditorialSection["links"]>[number]) => (
+                                            <InlineContentLink key={link._key} link={link} />
+                                        ),
                                     )}
                                 </div>
                             ) : null}

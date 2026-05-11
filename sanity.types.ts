@@ -126,9 +126,20 @@ export type RoomsPage = {
   seoDescription?: string;
 };
 
+export type PageReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "page";
+};
+
 export type SourceLink = {
   _type: "sourceLink";
   label?: string;
+  linkType?: "internalPage" | "internalPath" | "external";
+  internalPage?: PageReference;
+  internalPath?: string;
+  externalUrl?: string;
   url?: string;
 };
 
@@ -297,19 +308,6 @@ export type Navbar = {
       _key: string;
     } & NavItem
   >;
-};
-
-export type Page = {
-  _id: string;
-  _type: "page";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: string;
-  slug?: Slug;
-  content?: PortableTextContent;
-  seoTitle?: string;
-  seoDescription?: string;
 };
 
 export type KontaktPage = {
@@ -593,6 +591,19 @@ export type EditorialSection = {
   >;
 };
 
+export type Page = {
+  _id: string;
+  _type: "page";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  content?: PortableTextContent;
+  seoTitle?: string;
+  seoDescription?: string;
+};
+
 export type RecurringDates = {
   _type: "recurringDates";
   startDate?: string;
@@ -705,6 +716,7 @@ export type AllSanitySchemaTypes =
   | PortableTextContent
   | GroupsPage
   | RoomsPage
+  | PageReference
   | SourceLink
   | EventsPage
   | SiteMetadata
@@ -720,7 +732,6 @@ export type AllSanitySchemaTypes =
   | EventType
   | EventTaxonomyGroup
   | Navbar
-  | Page
   | KontaktPage
   | StudentGroup
   | SourcedImage
@@ -739,6 +750,7 @@ export type AllSanitySchemaTypes =
   | Duration
   | TimeValue
   | EditorialSection
+  | Page
   | RecurringDates
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -835,7 +847,7 @@ export type BlifrivilligPageNbQueryResult = {
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: roomsPageQuery
-// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {        _key,        label,        url    }},    bookingLink {        label,        url    }}
+// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {    _key,    label,    linkType,    "href": coalesce(        select(            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,            linkType == "internalPath" => internalPath,            linkType == "external" => externalUrl        ),        url    )}},    bookingLink {    _key,    label,    linkType,    "href": coalesce(        select(            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,            linkType == "internalPath" => internalPath,            linkType == "external" => externalUrl        ),        url    )}}
 export type RoomsPageQueryResult = {
   eyebrow: string | null;
   title: string | null;
@@ -849,12 +861,15 @@ export type RoomsPageQueryResult = {
     links: Array<{
       _key: string;
       label: string | null;
-      url: string | null;
+      linkType: "external" | "internalPage" | "internalPath" | null;
+      href: string | null;
     }> | null;
   }> | null;
   bookingLink: {
+    _key: null;
     label: string | null;
-    url: string | null;
+    linkType: "external" | "internalPage" | "internalPath" | null;
+    href: string | null;
   } | null;
 } | null;
 
@@ -960,7 +975,7 @@ export type RoomBySlugQueryResult = {
 
 // Source: lib/sanity/query-definitions.ts
 // Variable: groupsPageQuery
-// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {        _key,        label,        url    }},    faq[] {        _key,        question,        answer    }}
+// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {    _key,    label,    linkType,    "href": coalesce(        select(            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,            linkType == "internalPath" => internalPath,            linkType == "external" => externalUrl        ),        url    )}},    faq[] {        _key,        question,        answer    }}
 export type GroupsPageQueryResult = {
   eyebrow: string | null;
   title: string | null;
@@ -974,7 +989,8 @@ export type GroupsPageQueryResult = {
     links: Array<{
       _key: string;
       label: string | null;
-      url: string | null;
+      linkType: "external" | "internalPage" | "internalPath" | null;
+      href: string | null;
     }> | null;
   }> | null;
   faq: Array<{
@@ -1419,11 +1435,11 @@ declare module "@sanity/client" {
     '*[_type == "eventsPage" && _id == "eventsPage"][0] {\n    "eyebrow": coalesce(eyebrow, eyebrowNb),\n    "title": coalesce(title, titleNb),\n    "description": coalesce(description, descriptionNb),\n    seoTitle,\n    seoDescription\n}': EventsPageContentNbQueryResult;
     '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "homeTitle": coalesce(homeTitle, homeTitleNb),\n    "homeDescription": coalesce(homeDescription, homeDescriptionNb)\n}': SiteMetadataNbQueryResult;
     '*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {\n    "title": coalesce(title, titleNb),\n    seoTitle,\n    seoDescription,\n    "description": description[]\n}': BlifrivilligPageNbQueryResult;
-    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    bookingLink {\n        label,\n        url\n    }\n}': RoomsPageQueryResult;
+    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n    _key,\n    label,\n    linkType,\n    "href": coalesce(\n        select(\n            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n            linkType == "internalPath" => internalPath,\n            linkType == "external" => externalUrl\n        ),\n        url\n    )\n}\n},\n    bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": coalesce(\n        select(\n            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n            linkType == "internalPath" => internalPath,\n            linkType == "external" => externalUrl\n        ),\n        url\n    )\n}\n}': RoomsPageQueryResult;
     '*[_type == "room"] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    hasLighting,\n    hasAV,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult;
     '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult;
     '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    panoramaUrl,\n    hasSound,\n    hasLighting,\n    hasAV,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        label,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n        _key,\n        _type,\n        ...,\n        markDefs[] {\n            ...,\n            _type == "link" => {\n                ...,\n                "target": coalesce(target, select(blank == true => "blank", "self"))\n            }\n        },\n        _type == "image" => {\n            "imageUrl": asset->url,\n            alt,\n            caption\n        }\n    },\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomBySlugQueryResult;
-    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n        _key,\n        label,\n        url\n    }\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult;
+    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n    _key,\n    label,\n    linkType,\n    "href": coalesce(\n        select(\n            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n            linkType == "internalPath" => internalPath,\n            linkType == "external" => externalUrl\n        ),\n        url\n    )\n}\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult;
     '*[_type == "studentGroup"] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupsQueryResult;
     '\n    *[_type == "studentGroup" && category == $category] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupsByCategoryResult;
     '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult;
