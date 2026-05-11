@@ -82,19 +82,19 @@ export const structure: StructureResolver = (S, context) =>
                                             singletonListItem(
                                                 S,
                                                 "eventsPage",
-                                                "Arrangementer-side",
+                                                "Arrangementer",
                                                 DocumentIcon,
                                             ),
                                             singletonListItem(
                                                 S,
                                                 "roomsPage",
-                                                "Rom-side",
+                                                "Rom",
                                                 ComponentIcon,
                                             ),
                                             singletonListItem(
                                                 S,
                                                 "groupsPage",
-                                                "Grupper-side",
+                                                "Grupper",
                                                 UsersIcon,
                                             ),
                                             singletonListItem(
@@ -178,7 +178,7 @@ export const structure: StructureResolver = (S, context) =>
 
             // — Frivilligfordeler —
             S.listItem()
-                .title("Frivilligfordeler (internbevis)")
+                .title("Frivilligfordeler")
                 .icon(StarIcon)
                 .child(S.documentTypeList("internbevisBenefit").title("Frivilligfordeler")),
 
@@ -240,7 +240,7 @@ export const structure: StructureResolver = (S, context) =>
                                 context,
                                 type: "studentGroup",
                                 id: "orderable-student-group-arbeidsgruppe",
-                                title: "Arbeidsgrupper",
+                                title: "Arbeidsgrupper (Arg)",
                                 filter: '_type == "studentGroup" && category == "arbeidsgruppe"',
                             }),
                             orderableDocumentListDeskItem({
@@ -248,7 +248,7 @@ export const structure: StructureResolver = (S, context) =>
                                 context,
                                 type: "studentGroup",
                                 id: "orderable-student-group-komitee",
-                                title: "Komiteer",
+                                title: "Komiteer (Arg)",
                                 filter: '_type == "studentGroup" && category == "komitee"',
                             }),
                             orderableDocumentListDeskItem({
