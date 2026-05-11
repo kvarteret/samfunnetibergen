@@ -54,14 +54,17 @@ const contactGroup = defineType({
 
 export const kontaktPage = defineType({
     name: "kontaktPage",
-    title: "Kontaktside",
+    // This document is both the /kontakt page and the canonical source of
+    // organisation-wide contact data (consumed by footer, etc.).
+    title: "Kontakt og organisasjon",
     type: "document",
     icon: EnvelopeIcon,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore – experimental API not yet in typedefs
     __experimental_actions: ["update", "publish"],
     groups: [
-        { name: "content", title: "Innhold", default: true },
+        { name: "org", title: "Organisasjon", default: true },
+        { name: "page", title: "Kontaktside" },
         { name: "seo", title: "SEO" },
     ],
     fields: [
@@ -70,47 +73,55 @@ export const kontaktPage = defineType({
             title: "Besøksadresse",
             type: "text",
             rows: 3,
+            group: "org",
         }),
         defineField({
             name: "postAddress",
             title: "Postadresse",
             type: "text",
             rows: 3,
+            group: "org",
         }),
         defineField({
             name: "invoiceAddress",
             title: "Fakturaadresse",
             type: "text",
             rows: 4,
+            group: "org",
         }),
         defineField({
             name: "invoiceEmail",
             title: "Faktura e-post",
             type: "string",
+            group: "org",
         }),
         defineField({
             name: "ehf",
             title: "EHF / org.nr.",
             type: "string",
+            group: "org",
         }),
         defineField({
             name: "generalContact",
             title: "Generell kontakt (e-post / tlf)",
             type: "text",
             rows: 2,
+            group: "org",
         }),
         defineField({
             name: "pressContact",
             title: "Pressekontakt (e-post / tlf)",
             type: "text",
             rows: 2,
+            group: "org",
         }),
         defineField({
             name: "contactGroups",
             title: "Kontaktgrupper",
-            description: "F.eks. Hovedstyret, Administrasjon",
+            description: "F.eks. Hovedstyret, Administrasjon — vises på kontaktsiden",
             type: "array",
             of: [defineArrayMember({ type: "contactGroup" })],
+            group: "page",
         }),
         defineField({
             name: "seoTitle",
@@ -130,7 +141,7 @@ export const kontaktPage = defineType({
     ],
     preview: {
         prepare() {
-            return { title: "Kontaktside" }
+            return { title: "Kontakt og organisasjon" }
         },
     },
 })

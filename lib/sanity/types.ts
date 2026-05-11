@@ -4,7 +4,6 @@ import type {
     blifrivilligPageNbQuery,
     eventsPageContentNbQuery,
     groupsPageQuery,
-    homeBarsNbQuery,
     navbarQuery,
     pageBySlugQuery,
     roomBySlugQuery,
@@ -16,8 +15,6 @@ import type {
 } from "./query-definitions"
 
 export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
-
-export type HomeBarContent = ClientReturn<typeof homeBarsNbQuery>[number]
 
 export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
 

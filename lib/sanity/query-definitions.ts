@@ -74,9 +74,7 @@ export const eventsPageContentNbQuery =
 export const siteMetadataNbQuery =
     defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
     "homeTitle": coalesce(homeTitle, homeTitleNb),
-    "homeDescription": coalesce(homeDescription, homeDescriptionNb),
-    "eventsTitle": coalesce(eventsTitle, eventsTitleNb),
-    "eventsDescription": coalesce(eventsDescription, eventsDescriptionNb)
+    "homeDescription": coalesce(homeDescription, homeDescriptionNb)
 }`)
 
 // ─── Blifrivillig page ────────────────────────────────────────────────────────
@@ -87,14 +85,6 @@ export const blifrivilligPageNbQuery =
     seoTitle,
     seoDescription,
     "description": description[]
-}`)
-
-// ─── Home bars ────────────────────────────────────────────────────────────────
-
-export const homeBarsNbQuery = defineQuery(`*[_type == "homeBar"] | order(orderRank asc) {
-    "name": nameNb,
-    "description": descriptionNb,
-    "imageUrl": image.asset->url
 }`)
 
 // ─── Rooms ────────────────────────────────────────────────────────────────────

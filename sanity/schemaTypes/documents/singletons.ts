@@ -13,20 +13,6 @@ export const siteMetadata = defineType({
             title: "Forsidebeskrivelse",
             type: "text",
         }),
-        defineField({
-            name: "eventsTitle",
-            title: "Arrangementtittel (utgått)",
-            description:
-                "Utgått — bruk heller SEO-tittelen på Arrangementer-siden under Faste sider.",
-            type: "string",
-        }),
-        defineField({
-            name: "eventsDescription",
-            title: "Arrangementbeskrivelse (utgått)",
-            description:
-                "Utgått — bruk heller SEO-beskrivelsen på Arrangementer-siden under Faste sider.",
-            type: "text",
-        }),
     ],
     preview: {
         select: { title: "homeTitle" },

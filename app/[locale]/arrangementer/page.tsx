@@ -3,11 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import {
-    fetchEventsPageContent,
-    fetchPublishedArrangements,
-    fetchSiteMetadata,
-} from "@/lib/sanity/queries"
+import { fetchEventsPageContent, fetchPublishedArrangements } from "@/lib/sanity/queries"
 import { ArrangementCard } from "./ArrangementCard"
 
 type PublishedArrangement = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
@@ -20,16 +16,14 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/arrangementer">) {
     const locale = await resolvePageLocale(params)
-    const [t, siteMetadata, eventsPage] = await Promise.all([
+    const [t, eventsPage] = await Promise.all([
         getTranslations({ locale, namespace: "Metadata" }),
-        fetchSiteMetadata(locale, { stega: false }),
         fetchEventsPageContent(locale, { stega: false }),
     ])
 
     return {
-        title: eventsPage?.seoTitle ?? siteMetadata?.eventsTitle ?? t("eventsTitle"),
-        description:
-            eventsPage?.seoDescription ?? siteMetadata?.eventsDescription ?? t("eventsDescription"),
+        title: eventsPage?.seoTitle ?? t("eventsTitle"),
+        description: eventsPage?.seoDescription ?? t("eventsDescription"),
     }
 }
 

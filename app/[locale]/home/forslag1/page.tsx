@@ -5,12 +5,12 @@ import { Card } from "@/components/ui/card"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { type EventDetail, getPublicEvents } from "@/lib/events"
-import { fetchHomeBars } from "@/lib/sanity/queries"
-import type { HomeBarContent } from "@/lib/sanity/types"
 import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
 import ExpandableText from "../components/ExpandableText"
 
-const fallbackBars: HomeBarContent[] = [
+type BarContent = { name: string; imageUrl: string | null; description: string }
+
+const fallbackBars: BarContent[] = [
     {
         name: "Stjernesalen",
         imageUrl: null,
@@ -48,12 +48,11 @@ const formatEventDate = (event: EventDetail, locale: AppLocale): string =>
 export default async function HomePage({ params }: PageProps<"/[locale]/home/forslag1">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
-    const [bars, groups, eventsResult] = await Promise.all([
-        fetchHomeBars(locale),
+    const [groups, eventsResult] = await Promise.all([
         getVolunteerGroups(locale),
         getPublicEvents(locale),
     ])
-    const visibleBars = bars.length > 0 ? bars : fallbackBars
+    const visibleBars = fallbackBars
     const visibleEvents = eventsResult.ok ? eventsResult.events.slice(0, 4) : []
 
     return (
@@ -136,7 +135,7 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
 }
 
 interface HomeBarsProps {
-    bars: HomeBarContent[]
+    bars: BarContent[]
     locale: AppLocale
 }
 

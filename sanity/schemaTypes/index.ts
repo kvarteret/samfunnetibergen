@@ -3,7 +3,6 @@ import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
 import { eventType } from "./documents/eventType"
 import { footer, footerSocialLinkSchema } from "./documents/footer"
 import { gruppe } from "./documents/gruppe"
-import { homeBar } from "./documents/homeBar"
 import { contactGroupSchema, contactPersonSchema, kontaktPage } from "./documents/kontaktPage"
 import { navbar, navItemSchema } from "./documents/navbar"
 import { page } from "./documents/page"
@@ -49,7 +48,6 @@ export const schemaTypes = [
     // Documents
     room,
     gruppe,
-    homeBar,
     kontaktPage,
     page,
     navbar,

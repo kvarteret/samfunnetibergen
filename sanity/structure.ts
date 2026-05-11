@@ -6,7 +6,6 @@ import {
     DocumentIcon,
     EnvelopeIcon,
     HeartIcon,
-    HomeIcon,
     LinkIcon,
     LockIcon,
     MenuIcon,
@@ -59,19 +58,6 @@ export const structure: StructureResolver = (S, context) =>
                             singletonListItem(S, "footer", "Bunntekst", TextIcon),
                         ]),
                 ),
-
-            S.divider(),
-
-            // — Forsiden —
-            // homeBar documents are the rotating bar entries shown on the home page.
-            orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "homeBar",
-                id: "orderable-home-bar",
-                title: "Forsiden",
-                icon: HomeIcon,
-            }),
 
             S.divider(),
 
