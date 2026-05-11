@@ -89,6 +89,15 @@ function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): strin
     return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }
 
+function getRecurringLabel(rrule: string | null | undefined): string | null {
+    if (!rrule) return "Gjentagende"
+    const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase()
+    if (freq === "DAILY") return "Hver dag"
+    if (freq === "WEEKLY") return "Hver uke"
+    if (freq === "MONTHLY") return "Hver måned"
+    return "Gjentagende"
+}
+
 function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): string | null {
     void locale
 
@@ -229,6 +238,11 @@ export function ArrangementCard({
                     <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-foreground/65">
                         {taxonomy && <span>{taxonomy}</span>}
                         {price && <span>{price}</span>}
+                        {arrangement.isRecurring && (
+                            <span className="text-foreground/40">
+                                {getRecurringLabel(arrangement.rrule)}
+                            </span>
+                        )}
                     </div>
                     <Link className="hover:underline hover:underline-offset-4" href={href}>
                         <h2 className="font-heading text-2xl leading-tight">{arrangement.title}</h2>
