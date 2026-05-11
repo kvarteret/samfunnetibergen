@@ -3,6 +3,7 @@ import { ArrowRight, Mail } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/queries"
+import type { EditorialSection, GroupsPageContent } from "@/lib/sanity/types"
 
 export const revalidate = 300
 
@@ -63,7 +64,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
 
             {content?.sections?.length ? (
                 <section className="grid gap-6 md:grid-cols-2">
-                    {content.sections.map(section => (
+                    {content.sections.map((section: EditorialSection) => (
                         <article
                             className="space-y-3 border-2 border-border bg-card p-5"
                             key={section._key}
@@ -74,7 +75,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
                                 </h2>
                             ) : null}
                             <div className="space-y-3 text-base leading-7 text-foreground">
-                                {section.paragraphs?.map(paragraph => (
+                                {section.paragraphs?.map((paragraph: string) => (
                                     <p key={paragraph}>{paragraph}</p>
                                 ))}
                             </div>
@@ -121,13 +122,13 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
                 <section className="space-y-5">
                     <h2 className="font-heading text-4xl leading-none text-foreground">FAQ</h2>
                     <div className="grid gap-4">
-                        {content.faq.map(item => (
+                        {content.faq.map((item: NonNullable<GroupsPageContent["faq"]>[number]) => (
                             <details className="border-2 border-border bg-card p-5" key={item._key}>
                                 <summary className="cursor-pointer font-heading text-xl text-foreground">
                                     {item.question}
                                 </summary>
                                 <div className="mt-3 space-y-3 text-base leading-7 text-foreground">
-                                    {item.answer?.map(paragraph => (
+                                    {item.answer?.map((paragraph: string) => (
                                         <p key={paragraph}>{paragraph}</p>
                                     ))}
                                 </div>
