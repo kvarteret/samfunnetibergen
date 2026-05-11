@@ -135,7 +135,7 @@ function HomeHero({ locale }: { locale: AppLocale }) {
       <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
         Samfunnet i Bergen
       </h1>
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-10">
+      <div className="flex flex-col gap-6">
         <p className="max-w-2xl text-base leading-relaxed text-foreground/75">
           Samfunnen er en fusjon av Kvarteret og Samfunnet i Bergen. Vi holder
           til på samme plass som alltid, i det samme bygget kalt Det Akademiske
