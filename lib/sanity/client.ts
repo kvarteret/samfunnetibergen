@@ -15,6 +15,7 @@ const URL_FIELD_NAMES = new Set([
     "email",
     "imageUrl",
     "assetUrl",
+    "slug",
 ])
 
 export const sanityClient = createClient({
