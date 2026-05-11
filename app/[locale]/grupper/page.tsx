@@ -31,8 +31,9 @@ export async function generateMetadata({ params }: GroupsPageProps) {
     const content = await fetchGroupsPageContent({ stega: false })
 
     return {
-        title: `${content?.title ?? "Grupper"} | Samfunnet i Bergen`,
-        description: content?.description ?? "Se gruppene i Samfunnet.",
+        title: `${content?.seoTitle ?? content?.title ?? "Grupper"} | Samfunnet i Bergen`,
+        description:
+            content?.seoDescription ?? content?.description ?? "Se gruppene i Samfunnet.",
     }
 }
 

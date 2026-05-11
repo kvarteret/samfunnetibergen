@@ -22,8 +22,9 @@ export async function generateMetadata({ params }: RoomsPageProps) {
     const content = await fetchRoomsPageContent({ stega: false })
 
     return {
-        title: `${content?.title ?? "Rom"} | Samfunnet i Bergen`,
-        description: content?.description ?? "Se rommene på Det Akademiske Kvarter.",
+        title: `${content?.seoTitle ?? content?.title ?? "Rom"} | Samfunnet i Bergen`,
+        description:
+            content?.seoDescription ?? content?.description ?? "Se rommene på Det Akademiske Kvarter.",
     }
 }
 

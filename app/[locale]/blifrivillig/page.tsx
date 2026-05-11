@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/blifrivi
     const locale = await resolvePageLocale(params)
     const page = await fetchBlifrivilligPage(locale, { stega: false })
     return {
-        title: page?.title ?? "Bli frivillig | Samfunnet i Bergen",
+        title: page?.seoTitle ?? page?.title ?? "Bli frivillig | Samfunnet i Bergen",
         description: page?.seoDescription ?? undefined,
     }
 }

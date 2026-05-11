@@ -11,9 +11,10 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata() {
+    const page = await fetchKontaktPage()
     return {
-        title: "Kontakt | Samfunnet i Bergen",
-        description: "Kontaktinformasjon for Samfunnet i Bergen.",
+        title: page?.seoTitle ?? "Kontakt | Samfunnet i Bergen",
+        description: page?.seoDescription ?? "Kontaktinformasjon for Samfunnet i Bergen.",
     }
 }
 

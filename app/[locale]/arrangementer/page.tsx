@@ -20,14 +20,16 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/arrangementer">) {
     const locale = await resolvePageLocale(params)
-    const [t, siteMetadata] = await Promise.all([
+    const [t, siteMetadata, eventsPage] = await Promise.all([
         getTranslations({ locale, namespace: "Metadata" }),
         fetchSiteMetadata(locale, { stega: false }),
+        fetchEventsPageContent(locale, { stega: false }),
     ])
 
     return {
-        title: siteMetadata?.eventsTitle ?? t("eventsTitle"),
-        description: siteMetadata?.eventsDescription ?? t("eventsDescription"),
+        title: eventsPage?.seoTitle ?? siteMetadata?.eventsTitle ?? t("eventsTitle"),
+        description:
+            eventsPage?.seoDescription ?? siteMetadata?.eventsDescription ?? t("eventsDescription"),
     }
 }
 

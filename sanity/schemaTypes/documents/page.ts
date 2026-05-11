@@ -3,7 +3,9 @@ import { defineField, defineType } from "sanity"
 
 export const page = defineType({
     name: "page",
-    title: "Side",
+    title: "Egendefinert side",
+    description:
+        "Generisk side med valgfri URL og fritekstinnhold. Bruk dette for innhold som ikke tilhører noen fast side (Arrangementer, Rom, Grupper osv.). Faste sider redigeres i «Faste sider» og kan ikke opprettes eller slettes herfra.",
     type: "document",
     icon: DocumentIcon,
     groups: [
