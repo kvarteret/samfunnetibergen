@@ -1,6 +1,9 @@
 import { LinkIcon } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
+const externalUrlPattern = /^(https?:\/\/|mailto:)/i
+const internalPathPattern = /^\/(?!\/)/
+
 export const sourceLink = defineType({
     name: "sourceLink",
     title: "Link",
@@ -16,8 +19,16 @@ export const sourceLink = defineType({
         defineField({
             name: "url",
             title: "URL",
-            type: "url",
-            validation: rule => rule.required().uri({ scheme: ["http", "https", "mailto"] }),
+            type: "string",
+            description: "Intern sti (/karaoke) eller ekstern URL (https://…)",
+            validation: rule =>
+                rule.required().custom(value => {
+                    if (!value) return true
+                    if (internalPathPattern.test(value) || externalUrlPattern.test(value)) {
+                        return true
+                    }
+                    return "Bruk en intern sti som /karaoke eller en ekstern URL som starter med https://, http:// eller mailto:"
+                }),
         }),
     ],
     preview: {
