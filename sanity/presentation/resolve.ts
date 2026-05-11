@@ -14,6 +14,18 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             filter: `_id == "eventsPage"`,
         },
         {
+            route: "/:locale/arrangementer/:slug",
+            filter: `_type == "arrangement" && slug.current == $slug`,
+        },
+        {
+            route: "/:locale/blifrivillig",
+            filter: `_id == "blifrivilligPage"`,
+        },
+        {
+            route: "/:locale/kontakt",
+            filter: `_id == "kontaktPage"`,
+        },
+        {
             route: "/:locale/rom",
             filter: `_id == "roomsPage"`,
         },
