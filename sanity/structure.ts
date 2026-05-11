@@ -2,10 +2,13 @@ import {
     CalendarIcon,
     CogIcon,
     ComponentIcon,
+    ComposeIcon,
     DocumentIcon,
     EnvelopeIcon,
     HeartIcon,
+    HomeIcon,
     LinkIcon,
+    LockIcon,
     MenuIcon,
     StarIcon,
     TagIcon,
@@ -59,6 +62,19 @@ export const structure: StructureResolver = (S, context) =>
 
             S.divider(),
 
+            // — Forsiden —
+            // homeBar documents are the rotating bar entries shown on the home page.
+            orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "homeBar",
+                id: "orderable-home-bar",
+                title: "Forsiden",
+                icon: HomeIcon,
+            }),
+
+            S.divider(),
+
             // — Sider —
             S.listItem()
                 .title("Sider")
@@ -67,14 +83,64 @@ export const structure: StructureResolver = (S, context) =>
                     S.list()
                         .title("Sider")
                         .items([
-                            singletonListItem(S, "eventsPage", "Arrangementer-side", DocumentIcon),
-                            singletonListItem(S, "roomsPage", "Rom-side", ComponentIcon),
-                            singletonListItem(S, "groupsPage", "Grupper-side", UsersIcon),
-                            singletonListItem(S, "blifrivilligPage", "Bli frivillig", HeartIcon),
-                            singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
-                            singletonListItem(S, "linkInBio", "Link-i-bio", LinkIcon),
+                            // Faste sider: singletons that map 1-to-1 to fixed URLs.
+                            // Each has its own schema tailored to its content.
+                            // These cannot be created or deleted — only edited.
+                            S.listItem()
+                                .title("Faste sider")
+                                .icon(LockIcon)
+                                .child(
+                                    S.list()
+                                        .title("Faste sider")
+                                        .items([
+                                            singletonListItem(
+                                                S,
+                                                "eventsPage",
+                                                "Arrangementer-side",
+                                                DocumentIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "roomsPage",
+                                                "Rom-side",
+                                                ComponentIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "groupsPage",
+                                                "Grupper-side",
+                                                UsersIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "blifrivilligPage",
+                                                "Bli frivillig",
+                                                HeartIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "kontaktPage",
+                                                "Kontakt",
+                                                EnvelopeIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "linkInBio",
+                                                "Link-i-bio",
+                                                LinkIcon,
+                                            ),
+                                        ]),
+                                ),
+
                             S.divider(),
-                            S.documentTypeListItem("page").title("Andre sider"),
+
+                            // Egendefinerte sider: generiske sider med valgfri URL og
+                            // fritekstinnhold. Opprett nye sider her for innhold som ikke
+                            // passer i noen av de faste sidene ovenfor.
+                            S.listItem()
+                                .title("Egendefinerte sider")
+                                .icon(ComposeIcon)
+                                .child(S.documentTypeList("page").title("Egendefinerte sider")),
                         ]),
                 ),
 

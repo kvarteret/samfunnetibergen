@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/queries"
-import type { RoomSummary, SourcedImage } from "@/lib/sanity/types"
+import type { EditorialSection, RoomSummary, SourcedImage } from "@/lib/sanity/types"
 
 export const revalidate = 300
 
@@ -22,8 +22,9 @@ export async function generateMetadata({ params }: RoomsPageProps) {
     const content = await fetchRoomsPageContent({ stega: false })
 
     return {
-        title: `${content?.title ?? "Rom"} | Samfunnet i Bergen`,
-        description: content?.description ?? "Se rommene på Det Akademiske Kvarter.",
+        title: `${content?.seoTitle ?? content?.title ?? "Rom"} | Samfunnet i Bergen`,
+        description:
+            content?.seoDescription ?? content?.description ?? "Se rommene på Det Akademiske Kvarter.",
     }
 }
 
@@ -89,7 +90,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
             {content?.sections?.length ? (
                 <section className="grid gap-6 md:grid-cols-2">
-                    {content.sections.map(section => (
+                    {content.sections.map((section: EditorialSection) => (
                         <article
                             className="space-y-3 border-2 border-border bg-card p-5"
                             key={section._key}
@@ -100,13 +101,13 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                                 </h2>
                             ) : null}
                             <div className="space-y-3 text-base leading-7 text-foreground">
-                                {section.paragraphs?.map(paragraph => (
+                                {section.paragraphs?.map((paragraph: string) => (
                                     <p key={paragraph}>{paragraph}</p>
                                 ))}
                             </div>
                             {section.links?.length ? (
                                 <div className="flex flex-wrap gap-3">
-                                    {section.links.map(link => {
+                                    {section.links.map((link: NonNullable<EditorialSection["links"]>[number]) => {
                                         if (!link.url) return null
                                         const isLocal = link.url.startsWith("/")
                                         return isLocal ? (

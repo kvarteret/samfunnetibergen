@@ -64,7 +64,9 @@ export const eventsPageContentNbQuery =
     defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
     "eyebrow": coalesce(eyebrow, eyebrowNb),
     "title": coalesce(title, titleNb),
-    "description": coalesce(description, descriptionNb)
+    "description": coalesce(description, descriptionNb),
+    seoTitle,
+    seoDescription
 }`)
 
 // ─── Site metadata ────────────────────────────────────────────────────────────
@@ -82,7 +84,8 @@ export const siteMetadataNbQuery =
 export const blifrivilligPageNbQuery =
     defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {
     "title": coalesce(title, titleNb),
-    "seoDescription": seoDescription,
+    seoTitle,
+    seoDescription,
     "description": description[]
 }`)
 
@@ -100,6 +103,8 @@ export const roomsPageQuery = defineQuery(`*[_type == "roomsPage" && _id == "roo
     eyebrow,
     title,
     description,
+    seoTitle,
+    seoDescription,
     "sections": sections[] ${editorialSectionProjection},
     bookingLink {
         label,
@@ -167,6 +172,8 @@ export const groupsPageQuery = defineQuery(`*[_type == "groupsPage" && _id == "g
     eyebrow,
     title,
     description,
+    seoTitle,
+    seoDescription,
     "sections": sections[] ${editorialSectionProjection},
     faq[] {
         _key,
@@ -401,6 +408,8 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
     ehf,
     generalContact,
     pressContact,
+    seoTitle,
+    seoDescription,
     "contactGroups": contactGroups[] {
         _key,
         title,

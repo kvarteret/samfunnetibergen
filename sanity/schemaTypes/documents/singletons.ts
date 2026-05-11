@@ -13,10 +13,18 @@ export const siteMetadata = defineType({
             title: "Forsidebeskrivelse",
             type: "text",
         }),
-        defineField({ name: "eventsTitle", title: "Arrangementtittel", type: "string" }),
+        defineField({
+            name: "eventsTitle",
+            title: "Arrangementtittel (utgått)",
+            description:
+                "Utgått — bruk heller SEO-tittelen på Arrangementer-siden under Faste sider.",
+            type: "string",
+        }),
         defineField({
             name: "eventsDescription",
-            title: "Arrangementbeskrivelse",
+            title: "Arrangementbeskrivelse (utgått)",
+            description:
+                "Utgått — bruk heller SEO-beskrivelsen på Arrangementer-siden under Faste sider.",
             type: "text",
         }),
     ],
@@ -33,10 +41,29 @@ export const eventsPage = defineType({
     title: "Arrangementer-side",
     type: "document",
     icon: DocumentIcon,
+    groups: [
+        { name: "content", title: "Innhold", default: true },
+        { name: "seo", title: "SEO" },
+    ],
     fields: [
         defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
         defineField({ name: "title", title: "Tittel", type: "string" }),
         defineField({ name: "description", title: "Beskrivelse", type: "text" }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
     ],
     preview: {
         select: { title: "title" },
@@ -51,6 +78,10 @@ export const roomsPage = defineType({
     title: "Rom-side",
     type: "document",
     icon: DocumentIcon,
+    groups: [
+        { name: "content", title: "Innhold", default: true },
+        { name: "seo", title: "SEO" },
+    ],
     fields: [
         defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
         defineField({
@@ -71,6 +102,21 @@ export const roomsPage = defineType({
             title: "Bestillingslenke",
             type: "sourceLink",
         }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
     ],
     preview: {
         select: { title: "title" },
@@ -88,6 +134,10 @@ export const blifrivilligPage = defineType({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore – experimental API not yet in typedefs
     __experimental_actions: ["update", "publish"],
+    groups: [
+        { name: "content", title: "Innhold", default: true },
+        { name: "seo", title: "SEO" },
+    ],
     fields: [
         defineField({
             name: "description",
@@ -97,10 +147,18 @@ export const blifrivilligPage = defineType({
         }),
         defineField({ name: "title", title: "Sidetittel", type: "string" }),
         defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
             name: "seoDescription",
             title: "SEO-beskrivelse",
             type: "text",
             rows: 3,
+            group: "seo",
             validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
         }),
     ],
@@ -168,6 +226,10 @@ export const groupsPage = defineType({
     title: "Grupper-side",
     type: "document",
     icon: UsersIcon,
+    groups: [
+        { name: "content", title: "Innhold", default: true },
+        { name: "seo", title: "SEO" },
+    ],
     fields: [
         defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
         defineField({
@@ -182,6 +244,21 @@ export const groupsPage = defineType({
             title: "Introduksjon",
             type: "array",
             of: [defineArrayMember({ type: "editorialSection" })],
+        }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
         }),
         defineField({
             name: "faq",

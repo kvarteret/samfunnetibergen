@@ -60,6 +60,10 @@ export const kontaktPage = defineType({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore – experimental API not yet in typedefs
     __experimental_actions: ["update", "publish"],
+    groups: [
+        { name: "content", title: "Innhold", default: true },
+        { name: "seo", title: "SEO" },
+    ],
     fields: [
         defineField({
             name: "visitAddress",
@@ -107,6 +111,21 @@ export const kontaktPage = defineType({
             description: "F.eks. Hovedstyret, Administrasjon",
             type: "array",
             of: [defineArrayMember({ type: "contactGroup" })],
+        }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
         }),
     ],
     preview: {
