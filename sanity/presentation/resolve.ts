@@ -99,6 +99,48 @@ export const resolve: PresentationPluginOptions["resolve"] = {
                 locations: [{ title: "Arrangementer", href: `/${defaultLocale}/arrangementer` }],
             }),
         }),
+
+        navbar: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Alle sider (navigasjon)", href: `/${defaultLocale}` }],
+            }),
+        }),
+
+        footer: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Alle sider (footer)", href: `/${defaultLocale}` }],
+            }),
+        }),
+
+        kontaktPage: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Kontakt", href: `/${defaultLocale}/kontakt` }],
+            }),
+        }),
+
+        blifrivilligPage: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Bli frivillig", href: `/${defaultLocale}/blifrivillig` }],
+            }),
+        }),
+
+        siteMetadata: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Forside", href: `/${defaultLocale}` }],
+            }),
+        }),
+
+        linkInBio: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Link i bio", href: `/linkibio` }],
+            }),
+        }),
     },
 }
 

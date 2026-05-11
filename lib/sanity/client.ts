@@ -2,6 +2,21 @@ import { createClient } from "next-sanity"
 
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
+const URL_FIELD_NAMES = new Set([
+    "href",
+    "url",
+    "externalUrl",
+    "src",
+    "specsUrl",
+    "panoramaUrl",
+    "ticketUrl",
+    "facebookUrl",
+    "website",
+    "email",
+    "imageUrl",
+    "assetUrl",
+])
+
 export const sanityClient = createClient({
     projectId,
     dataset,
@@ -9,5 +24,12 @@ export const sanityClient = createClient({
     useCdn: true,
     stega: {
         studioUrl: "/studio",
+        filter: props => {
+            const lastKey = props.sourcePath?.at(-1)
+            if (typeof lastKey === "string" && URL_FIELD_NAMES.has(lastKey)) {
+                return false
+            }
+            return true
+        },
     },
 })
