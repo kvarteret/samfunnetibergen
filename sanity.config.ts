@@ -19,7 +19,7 @@ export default defineConfig({
     basePath: "/studio",
     title: "Samfunnet i Bergen",
     plugins: [
-        dashboardTool(),
+        dashboardTool({}),
         structureTool({ structure }),
         recurringDates(),
         presentationTool({
