@@ -142,17 +142,30 @@ function EventPreviewCard({ event, locale }: EventPreviewCardProps) {
                 {event.title}
             </p>
             {event.occurrences && event.occurrences.length > 0 && (
-                <RecurrenceChips locale={locale} occurrences={event.occurrences} />
+                <RecurrenceChips
+                    intervalDays={event.recurring_interval_days}
+                    locale={locale}
+                    occurrences={event.occurrences}
+                />
             )}
         </Link>
     )
 }
 
+function getRecurringLabel(intervalDays: number | null | undefined): string {
+    if (intervalDays === 1) return "Hver dag"
+    if (intervalDays === 7) return "Hver uke"
+    if (intervalDays != null && intervalDays >= 28 && intervalDays <= 31) return "Hver måned"
+    return "Gjentagende"
+}
+
 function RecurrenceChips({
     occurrences,
+    intervalDays,
     locale,
 }: {
     occurrences: EventDetail[]
+    intervalDays?: number | null
     locale: AppLocale
 }) {
     if (!occurrences.length) return null
@@ -160,20 +173,25 @@ function RecurrenceChips({
     const overflow = occurrences.length - 2
     const overflowLabel = overflow >= 9 ? "9+" : `+${overflow}`
     return (
-        <div className="mt-1 flex flex-wrap gap-1">
-            {visible.map(o => (
-                <span
-                    className="border border-border px-1.5 py-0 text-[10px] text-foreground/50"
-                    key={o.id}
-                >
-                    {formatEventDate(o, locale)}
-                </span>
-            ))}
-            {overflow > 0 && (
-                <span className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
-                    {overflowLabel}
-                </span>
-            )}
+        <div className="mt-1 space-y-1">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-foreground/40">
+                {getRecurringLabel(intervalDays)}
+            </span>
+            <div className="flex flex-wrap gap-1">
+                {visible.map(o => (
+                    <span
+                        className="border border-border px-1.5 py-0 text-[10px] text-foreground/50"
+                        key={o.id}
+                    >
+                        {formatEventDate(o, locale)}
+                    </span>
+                ))}
+                {overflow > 0 && (
+                    <span className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
+                        {overflowLabel}
+                    </span>
+                )}
+            </div>
         </div>
     )
 }
