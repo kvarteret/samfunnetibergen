@@ -1,4 +1,5 @@
 import "./sanity/i18n/patchRRuleNorwegian"
+import { dashboardTool } from "@sanity/dashboard"
 import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
@@ -18,6 +19,7 @@ export default defineConfig({
     basePath: "/studio",
     title: "Samfunnet i Bergen",
     plugins: [
+        dashboardTool(),
         structureTool({ structure }),
         recurringDates(),
         presentationTool({
