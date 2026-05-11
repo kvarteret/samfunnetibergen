@@ -1,5 +1,6 @@
 import "server-only"
 
+import { stegaClean } from "@sanity/client/stega"
 import type { ClientReturn } from "next-sanity"
 import type { AppLocale } from "@/i18n/routing"
 import type { VolunteerGroupContent, VolunteerGroupSummary } from "@/lib/volunteer-group-content"
@@ -153,7 +154,7 @@ export async function fetchRoomsPageContent(
 export async function fetchRooms(): Promise<RoomSummary[]> {
     const { data: rooms } = await sanityFetch({ query: roomsQuery, tags: ["rooms"] })
     type R = ClientReturn<typeof roomsQuery>[number]
-    return rooms.flatMap((room: R) => (room.slug ? [{ ...room, slug: room.slug }] : []))
+    return rooms.flatMap((room: R) => (room.slug ? [{ ...room, slug: stegaClean(room.slug) }] : []))
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {
@@ -197,7 +198,9 @@ export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
         tags: ["studentGroups"],
     })
     type G = ClientReturn<typeof studentGroupsQuery>[number]
-    return groups.flatMap((group: G) => (group.slug ? [{ ...group, slug: group.slug }] : []))
+    return groups.flatMap((group: G) =>
+        group.slug ? [{ ...group, slug: stegaClean(group.slug) }] : [],
+    )
 }
 
 export async function fetchStudentGroupsByCategory(
@@ -209,7 +212,9 @@ export async function fetchStudentGroupsByCategory(
         tags: ["studentGroups"],
     })
     type G = ClientReturn<typeof studentGroupsQuery>[number]
-    return groups.flatMap((group: G) => (group.slug ? [{ ...group, slug: group.slug }] : []))
+    return groups.flatMap((group: G) =>
+        group.slug ? [{ ...group, slug: stegaClean(group.slug) }] : [],
+    )
 }
 
 export async function fetchStudentGroupSlugs(): Promise<string[]> {

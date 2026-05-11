@@ -85,12 +85,7 @@ export const structure: StructureResolver = (S, context) =>
                                                 "Arrangementer",
                                                 DocumentIcon,
                                             ),
-                                            singletonListItem(
-                                                S,
-                                                "roomsPage",
-                                                "Rom",
-                                                ComponentIcon,
-                                            ),
+                                            singletonListItem(S, "roomsPage", "Rom", ComponentIcon),
                                             singletonListItem(
                                                 S,
                                                 "groupsPage",
