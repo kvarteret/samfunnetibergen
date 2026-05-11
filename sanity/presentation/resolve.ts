@@ -100,6 +100,19 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             }),
         }),
 
+        arrangement: defineLocations({
+            select: { title: "title", slug: "slug.current" },
+            resolve: doc => ({
+                locations: [
+                    {
+                        title: doc?.title ?? "Ukjent arrangement",
+                        href: `/${defaultLocale}/arrangementer/${doc?.slug}`,
+                    },
+                    { title: "Alle arrangementer", href: `/${defaultLocale}/arrangementer` },
+                ],
+            }),
+        }),
+
         navbar: defineLocations({
             select: {},
             resolve: () => ({

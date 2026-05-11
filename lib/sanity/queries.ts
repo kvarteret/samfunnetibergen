@@ -322,11 +322,12 @@ export async function fetchKontaktPage() {
 }
 
 export async function fetchArrangementBySlug(slug: string) {
-    return sanityClient.fetch(
-        arrangementBySlugQuery,
-        { slug, today: getOsloDateString() },
-        { next: { revalidate: 60, tags: ["arrangements"] } },
-    )
+    const { data } = await sanityFetch({
+        query: arrangementBySlugQuery,
+        params: { slug, today: getOsloDateString() },
+        tags: ["arrangements"],
+    })
+    return data
 }
 
 export async function fetchFooter() {
