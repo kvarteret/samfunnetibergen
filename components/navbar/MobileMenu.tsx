@@ -13,6 +13,10 @@ type MobileMenuProps = {
 }
 
 const subscribe = () => () => {}
+const navShellClass =
+    "mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
+const brandLinkClass =
+    "py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
 
 export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
@@ -82,23 +86,20 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
                                 : "pointer-events-none -translate-y-3 opacity-0",
                         )}
                     >
-                        {/* Top bar mirrors the navbar */}
-                        <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-6 py-3.5 sm:px-10">
-                            <Link
-                                className="font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75"
-                                href="/"
-                                onClick={close}
-                            >
-                                Samfunnet i Bergen
-                            </Link>
-                            <button
-                                aria-label="Lukk meny"
-                                className="p-2 text-foreground"
-                                onClick={close}
-                                type="button"
-                            >
-                                <X aria-hidden className="size-6" />
-                            </button>
+                        <div className="shrink-0 border-b-2 border-border">
+                            <div className={navShellClass}>
+                                <Link className={brandLinkClass} href="/" onClick={close}>
+                                    Samfunnet i Bergen
+                                </Link>
+                                <button
+                                    aria-label="Lukk meny"
+                                    className="p-2 text-foreground"
+                                    onClick={close}
+                                    type="button"
+                                >
+                                    <X aria-hidden className="size-6" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Nav items */}
