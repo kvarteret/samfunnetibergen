@@ -26,6 +26,19 @@ const nextConfig: NextConfig = {
     turbopack: {
         root: process.cwd(),
     },
+    async headers() {
+        return [
+            {
+                source: "/studio/:path*",
+                headers: [
+                    {
+                        key: "Content-Security-Policy",
+                        value: "frame-ancestors https://*.sanity.io",
+                    },
+                ],
+            },
+        ]
+    },
     async rewrites() {
         return [
             {
