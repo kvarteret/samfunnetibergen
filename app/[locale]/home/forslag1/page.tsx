@@ -2,10 +2,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { getVolunteerGroups, type VolunteerGroupContent } from "@/features/blifrivillig/content"
+import { type EventDetail, getPublicEvents } from "@/features/events/data/events"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
-import { type EventDetail, getPublicEvents } from "@/lib/events"
-import { getVolunteerGroups, type VolunteerGroupContent } from "@/lib/volunteer-group-content"
 import ExpandableText from "../components/ExpandableText"
 
 type BarContent = { name: string; imageUrl: string | null; description: string }

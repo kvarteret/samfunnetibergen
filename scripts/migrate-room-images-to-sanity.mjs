@@ -16,11 +16,13 @@ import { join } from "path"
 const PROJECT_ID = "mkjoahvv"
 const DATASET = "production"
 const API_VERSION = "2024-01-01"
-const DIRECTUS_TOKEN = "R6AcujsNQaTcvGyB1Mxk3fFUuupy8YdUFxhavTrDzh6YvV5SwE8dvBnxQ9qW"
+const DIRECTUS_TOKEN = process.env.DIRECTUS_TOKEN
 
-const sanityConfig = JSON.parse(
-    readFileSync(join(homedir(), ".config/sanity/config.json"), "utf8"),
-)
+if (!DIRECTUS_TOKEN) {
+    throw new Error("DIRECTUS_TOKEN is required")
+}
+
+const sanityConfig = JSON.parse(readFileSync(join(homedir(), ".config/sanity/config.json"), "utf8"))
 const SANITY_TOKEN = sanityConfig.authToken
 
 const client = createClient({
@@ -48,11 +50,10 @@ async function downloadImage(url) {
 
 async function uploadToSanity(buffer, contentType, filename) {
     const ext = contentType.split("/")[1]?.split(";")[0] ?? "jpg"
-    const asset = await client.assets.upload(
-        "image",
-        buffer,
-        { filename: `${filename}.${ext}`, contentType },
-    )
+    const asset = await client.assets.upload("image", buffer, {
+        filename: `${filename}.${ext}`,
+        contentType,
+    })
     return asset._id
 }
 
@@ -117,8 +118,8 @@ for (const room of rooms) {
                 },
             })
             .unset([`images[_key=="${key}"].sourceUrl`])
-        if (alt !== undefined)  tx = tx.set({ [`images[_key=="${key}"].alt`]: alt })
-        if (caption != null)    tx = tx.set({ [`images[_key=="${key}"].caption`]: caption })
+        if (alt !== undefined) tx = tx.set({ [`images[_key=="${key}"].alt`]: alt })
+        if (caption != null) tx = tx.set({ [`images[_key=="${key}"].caption`]: caption })
     }
 
     await tx.commit({ autoGenerateArrayKeys: true })

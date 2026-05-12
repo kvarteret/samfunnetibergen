@@ -1,16 +1,16 @@
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import type { VolunteerStats } from "@/features/blifrivillig/stats"
+import { fetchVolunteerStats } from "@/features/blifrivillig/stats"
+import { type ArrangementSummary, EventCard } from "@/features/events/components/ArrangementCard"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import {
     fetchHomePageContent,
     fetchPublishedArrangements,
     fetchSiteMetadata,
-} from "@/lib/sanity/queries"
-import type { VolunteerStats } from "@/lib/volunteer-stats"
-import { fetchVolunteerStats } from "@/lib/volunteer-stats"
-import { type ArrangementSummary, EventCard } from "./arrangementer/ArrangementCard"
+} from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -50,6 +50,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 }
 
 type SanityArrangement = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
+type SanityArrangementDate = NonNullable<SanityArrangement["dates"]>[number]
 
 const FALLBACK_HOME_DESCRIPTION =
     "Samfunnen er en fusjon av Kvarteret og Samfunnet i Bergen. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Som student i Bergen er det å bli frivillig på Samfunnet en fantastisk måte å sette ditt preg på studentlivet.\n\nSamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!"
@@ -67,7 +68,7 @@ function toArrangementSummary(arrangement: SanityArrangement): ArrangementSummar
         slug: arrangement.slug,
         isRecurring: arrangement.isRecurring ?? undefined,
         rrule: arrangement.rrule ?? null,
-        dates: (arrangement.dates ?? []).map(d => ({
+        dates: (arrangement.dates ?? []).map((d: SanityArrangementDate) => ({
             _key: d._key,
             startDate: d.startDate,
             startTime: d.startTime ?? null,

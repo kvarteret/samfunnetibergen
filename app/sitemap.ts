@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next"
-
+import { getVolunteerGroups } from "@/features/blifrivillig/content"
 import { type AppLocale, routing } from "@/i18n/routing"
 import { resolveSiteUrl } from "@/lib/site-url"
-import { getVolunteerGroups } from "@/lib/volunteer-group-content"
 
 function localizedPath(locale: AppLocale, path = "") {
     return path === "/" ? `/${locale}` : `/${locale}${path}`

@@ -1,11 +1,11 @@
-import { getPostHogClient } from "@/lib/posthog-server"
-import { resolveRequestLocale } from "@/lib/request-locale"
-import { getVolunteerGroups } from "@/lib/volunteer-group-content"
+import { getVolunteerGroups } from "@/features/blifrivillig/content"
 import {
     buildVolunteerProspectPayload,
     type VolunteerProspectValues,
     validateVolunteerProspectValues,
-} from "@/lib/volunteer-prospect"
+} from "@/features/blifrivillig/prospect"
+import { getPostHogClient } from "@/lib/posthog-server"
+import { resolveRequestLocale } from "@/lib/request-locale"
 import nbMessages from "@/messages/nb.json"
 
 const PERSONAL_APP_BASE_URL =

@@ -1,8 +1,7 @@
-import { VolunteerProspectExperience } from "@/components/volunteer-prospect-experience"
+import { BliFrivilligPage as BliFrivilligPageContent } from "@/features/blifrivillig"
+import { getInstitutionOptions, getVolunteerGroups } from "@/features/blifrivillig/content"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchBlifrivilligPage } from "@/lib/sanity/queries"
-import { getInstitutionOptions, getVolunteerGroups } from "@/lib/volunteer-group-content"
+import { fetchBlifrivilligPage } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -27,13 +26,10 @@ export default async function BlifrivilligPage({ params }: PageProps<"/[locale]/
     ])
 
     return (
-        <div className="flex flex-col gap-8">
-            <PortableTextContent value={page?.description ?? []} />
-            <VolunteerProspectExperience
-                groups={groups}
-                hideHero
-                institutionOptions={getInstitutionOptions(locale)}
-            />
-        </div>
+        <BliFrivilligPageContent
+            groups={groups}
+            institutionOptions={getInstitutionOptions(locale)}
+            page={page}
+        />
     )
 }
