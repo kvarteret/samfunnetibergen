@@ -2,7 +2,7 @@ import { ArrowRight, Mail } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/queries"
+import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
 import type { EditorialSection, GroupsPageContent } from "@/lib/sanity/types"
 
 export const revalidate = 300

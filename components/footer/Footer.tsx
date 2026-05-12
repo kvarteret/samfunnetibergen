@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import type { fetchFooter } from "@/lib/sanity/queries"
+import type { fetchFooter } from "@/lib/sanity/fetch"
 
 // ─── App store links ──────────────────────────────────────────────────────────
 

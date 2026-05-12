@@ -4,7 +4,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/queries"
+import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
 import type { EditorialSection, RoomSummary, SourcedImage } from "@/lib/sanity/types"
 
 export const revalidate = 300

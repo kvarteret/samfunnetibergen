@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { fetchLinkInBio } from "@/lib/sanity/queries"
+import { fetchLinkInBio } from "@/lib/sanity/fetch"
 
 // ─── Fallback data shown before the Sanity doc is created ─────────────────────
 

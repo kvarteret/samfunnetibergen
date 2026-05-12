@@ -4,7 +4,7 @@ import {
     fetchEventsPageContent,
     fetchHomePageContent,
     fetchSiteMetadata,
-} from "@/lib/sanity/queries"
+} from "@/lib/sanity/fetch"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 type OembedPayload = {

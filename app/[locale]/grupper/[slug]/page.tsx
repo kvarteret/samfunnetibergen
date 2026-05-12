@@ -2,7 +2,7 @@ import { ExternalLink, Globe, Mail } from "lucide-react"
 import { notFound } from "next/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchStudentGroupBySlug, fetchStudentGroupSlugs } from "@/lib/sanity/queries"
+import { fetchStudentGroupBySlug, fetchStudentGroupSlugs } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 

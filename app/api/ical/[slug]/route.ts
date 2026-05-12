@@ -1,5 +1,5 @@
 import { createClient } from "next-sanity"
-import { arrangementBySlugQuery } from "@/lib/sanity/query-definitions"
+import { arrangementBySlugQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: true })

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchPageBySlug, fetchPageSlugs } from "@/lib/sanity/queries"
+import { fetchPageBySlug, fetchPageSlugs } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 

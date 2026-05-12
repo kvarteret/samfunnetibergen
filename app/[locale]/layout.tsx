@@ -4,7 +4,7 @@ import { Providers } from "@/app/providers"
 import { Footer } from "@/components/footer/Footer"
 import { Navbar } from "@/components/navbar/Navbar"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchFooter, fetchNavbar } from "@/lib/sanity/queries"
+import { fetchFooter, fetchNavbar } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()

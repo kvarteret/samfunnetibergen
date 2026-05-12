@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchArrangementBySlug, fetchSiteMetadata } from "@/lib/sanity/queries"
+import { fetchArrangementBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
 
 type Arrangement = NonNullable<Awaited<ReturnType<typeof fetchArrangementBySlug>>>
 

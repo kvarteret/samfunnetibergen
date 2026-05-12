@@ -1,12 +1,12 @@
 import { CalendarPlus } from "lucide-react"
+import { SubmitArrangementForm } from "@/features/events/components/SubmitArrangementForm"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import {
     fetchArrangementEventTypes,
     fetchArrangementGroups,
     fetchArrangementRooms,
-} from "@/lib/sanity/queries"
-import { SubmitArrangementForm } from "./SubmitArrangementForm"
+} from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 

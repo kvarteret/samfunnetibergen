@@ -13,7 +13,7 @@ import type {
     siteMetadataNbQuery,
     studentGroupBySlugQuery,
     studentGroupsQuery,
-} from "./query-definitions"
+} from "./queries"
 
 export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
 
