@@ -99,9 +99,41 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 {group.parentGroup && (
                     <section className="space-y-2 border-2 border-border bg-card p-5">
                         <h2 className="font-heading text-xl text-foreground">Del av</h2>
-                        <p className="text-base text-foreground">{group.parentGroup.name}</p>
+                        {group.parentGroup.slug ? (
+                            <a
+                                className="text-base text-foreground underline underline-offset-4"
+                                href={`/${locale}/grupper/${group.parentGroup.slug}`}
+                            >
+                                {group.parentGroup.name}
+                            </a>
+                        ) : (
+                            <p className="text-base text-foreground">{group.parentGroup.name}</p>
+                        )}
                     </section>
                 )}
+
+                {group.subGroups?.length ? (
+                    <section className="space-y-3 border-2 border-border bg-card p-5">
+                        <h2 className="font-heading text-xl text-foreground">Undergrupper</h2>
+                        <ul className="space-y-3">
+                            {group.subGroups.map(subGroup => (
+                                <li key={subGroup.slug}>
+                                    <a
+                                        className="block underline underline-offset-4"
+                                        href={`/${locale}/grupper/${subGroup.slug}`}
+                                    >
+                                        {subGroup.name}
+                                    </a>
+                                    {subGroup.summary ? (
+                                        <p className="mt-1 text-sm leading-6 text-foreground/70">
+                                            {subGroup.summary}
+                                        </p>
+                                    ) : null}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ) : null}
             </aside>
         </article>
     )

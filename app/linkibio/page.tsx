@@ -9,15 +9,13 @@ const FALLBACK = {
     links: [
         {
             _key: "app",
-            label: "Last ned appen",
-            url: "/appen",
+            link: { label: "Last ned appen", href: "/appen" },
             emoji: "📱",
             highlight: true,
         },
         {
             _key: "blifrivillig",
-            label: "Bli frivillig",
-            url: "/blifrivillig",
+            link: { label: "Bli frivillig", href: "/blifrivillig" },
             emoji: "🙌",
             highlight: false,
         },
@@ -31,8 +29,10 @@ export default async function LinkInBioPage() {
     const bio = data.bio ?? FALLBACK.bio
     const links = (data.links ?? FALLBACK.links) as Array<{
         _key: string
-        label: string
-        url: string
+        link?: {
+            label?: string | null
+            href?: string | null
+        } | null
         emoji?: string | null
         highlight?: boolean | null
     }>
@@ -48,11 +48,15 @@ export default async function LinkInBioPage() {
             {/* Link list */}
             <ul className="w-full max-w-sm space-y-3">
                 {links.map(link => {
-                    const isExternal = typeof link.url === "string" && link.url.startsWith("http")
+                    const href = link.link?.href
+                    const linkLabel = link.link?.label
+                    if (!href || !linkLabel) return null
+
+                    const isExternal = !href.startsWith("/")
                     const label = (
                         <span className="flex items-center gap-2 justify-center">
                             {link.emoji && <span aria-hidden>{link.emoji}</span>}
-                            {link.label}
+                            {linkLabel}
                         </span>
                     )
                     const className = [
@@ -66,7 +70,7 @@ export default async function LinkInBioPage() {
                         <li key={link._key}>
                             {isExternal ? (
                                 <a
-                                    href={link.url}
+                                    href={href}
                                     rel="noreferrer"
                                     target="_blank"
                                     className={className}
@@ -74,7 +78,7 @@ export default async function LinkInBioPage() {
                                     {label}
                                 </a>
                             ) : (
-                                <Link href={link.url} className={className}>
+                                <Link href={href} className={className}>
                                     {label}
                                 </Link>
                             )}

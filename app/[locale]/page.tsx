@@ -1,6 +1,4 @@
-import Image from "next/image"
 import Link from "next/link"
-import { RRule } from "rrule"
 
 import { Button } from "@/components/ui/button"
 import type { AppLocale } from "@/i18n/routing"
@@ -12,6 +10,7 @@ import {
 } from "@/lib/sanity/queries"
 import type { VolunteerStats } from "@/lib/volunteer-stats"
 import { fetchVolunteerStats } from "@/lib/volunteer-stats"
+import { type ArrangementSummary, EventCard } from "./arrangementer/ArrangementCard"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -52,83 +51,67 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 
 type SanityArrangement = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
 
-type DateEntry = {
-    _key: string
-    startDate: string
-    startTime?: string | null
-    endTime?: string | null
-}
-
-const MONTH_NAMES_NB = [
-    "jan",
-    "feb",
-    "mar",
-    "apr",
-    "mai",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "okt",
-    "nov",
-    "des",
-]
-
 const FALLBACK_HOME_DESCRIPTION =
     "Samfunnen er en fusjon av Kvarteret og Samfunnet i Bergen. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Som student i Bergen er det å bli frivillig på Samfunnet en fantastisk måte å sette ditt preg på studentlivet.\n\nSamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!"
-
-function formatShortDate(dateStr: string): string {
-    const d = new Date(`${dateStr}T00:00:00`)
-    return `${d.getDate()}. ${MONTH_NAMES_NB[d.getMonth()]}`
-}
-
-function getRecurringLabel(rrule: string | null | undefined): string {
-    if (!rrule) return "Gjentagende"
-    const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase()
-    if (freq === "DAILY") return "Hver dag"
-    if (freq === "WEEKLY") return "Hver uke"
-    if (freq === "MONTHLY") return "Hver måned"
-    return "Gjentagende"
-}
-
-function getUpcomingDates(arrangement: SanityArrangement): DateEntry[] {
-    const todayStr = new Date().toISOString().split("T")[0]!
-    const seed = arrangement.dates?.[0]
-
-    if (arrangement.isRecurring && arrangement.rrule && seed) {
-        try {
-            const rule = new RRule({
-                ...RRule.parseString(arrangement.rrule),
-                dtstart: new Date(`${seed.startDate}T12:00:00Z`),
-            })
-            const ceiling = new Date(
-                new Date().getFullYear() + 1,
-                new Date().getMonth(),
-                new Date().getDate(),
-            )
-            return rule
-                .between(new Date(), ceiling, true)
-                .slice(0, 5)
-                .map((d, i) => ({
-                    _key: `rrule-${i}`,
-                    startDate: d.toISOString().split("T")[0]!,
-                    startTime: seed.startTime ?? null,
-                    endTime: seed.endTime ?? null,
-                }))
-        } catch {
-            // fall through
-        }
-    }
-
-    const dates = (arrangement.dates ?? []) as DateEntry[]
-    const future = dates.filter(d => d.startDate >= todayStr)
-    return future.length > 0 ? future : dates
-}
 
 function localizeHref(href: string | null | undefined, locale: AppLocale) {
     if (!href) return `/${locale}`
     if (!href.startsWith("/")) return href
     return href === "/" ? `/${locale}` : `/${locale}${href}`
+}
+
+function toArrangementSummary(arrangement: SanityArrangement): ArrangementSummary {
+    return {
+        _id: arrangement._id,
+        title: arrangement.title,
+        slug: arrangement.slug,
+        isRecurring: arrangement.isRecurring ?? undefined,
+        rrule: arrangement.rrule ?? null,
+        dates: (arrangement.dates ?? []).map(d => ({
+            _key: d._key,
+            startDate: d.startDate,
+            startTime: d.startTime ?? null,
+            endTime: d.endTime ?? null,
+        })),
+        isFree: arrangement.isFree ?? undefined,
+        priceOrdinar: arrangement.priceOrdinar ?? null,
+        priceStudent: arrangement.priceStudent ?? null,
+        priceMedlem: arrangement.priceMedlem ?? null,
+        ticketUrl: arrangement.ticketUrl ?? null,
+        facebookUrl: arrangement.facebookUrl ?? null,
+        imageUrl: arrangement.imageUrl ?? null,
+        imageCaption: arrangement.imageCaption ?? null,
+        room: arrangement.room
+            ? {
+                  _id: arrangement.room._id,
+                  title: arrangement.room.title,
+                  slug: arrangement.room.slug,
+                  floor: arrangement.room.floor ?? null,
+                  imageUrl: arrangement.room.imageUrl ?? null,
+              }
+            : null,
+        roomText: arrangement.roomText ?? null,
+        organizerGroup: arrangement.organizerGroup
+            ? {
+                  _id: arrangement.organizerGroup._id,
+                  name: arrangement.organizerGroup.name,
+                  slug: arrangement.organizerGroup.slug,
+              }
+            : null,
+        organizerText: arrangement.organizerText ?? null,
+        eventType: arrangement.eventType
+            ? {
+                  _id: arrangement.eventType._id,
+                  name: arrangement.eventType.name,
+                  taxonomyGroup: arrangement.eventType.taxonomyGroup
+                      ? {
+                            _id: arrangement.eventType.taxonomyGroup._id,
+                            name: arrangement.eventType.taxonomyGroup.name,
+                        }
+                      : null,
+              }
+            : null,
+    }
 }
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
@@ -211,86 +194,20 @@ function HomeEvents({ arrangements, locale }: HomeEventsProps) {
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {arrangements.map(arrangement => (
-                    <EventPreviewCard
-                        arrangement={arrangement}
+                    <EventCard
+                        arrangement={toArrangementSummary(arrangement)}
+                        facebookLabel="Facebook"
                         key={arrangement._id}
                         locale={locale}
+                        showActions={false}
+                        showRoom={false}
+                        size="small"
+                        ticketsLabel="Billetter"
+                        variant="transparent"
                     />
                 ))}
             </div>
         </section>
-    )
-}
-
-interface EventPreviewCardProps {
-    arrangement: SanityArrangement
-    locale: AppLocale
-}
-
-function EventPreviewCard({ arrangement, locale }: EventPreviewCardProps) {
-    const href = `/${locale}/arrangementer/${arrangement.slug}`
-    const upcomingDates = getUpcomingDates(arrangement)
-    const primaryDate = upcomingDates[0]
-    const otherDates = upcomingDates.slice(1)
-    const typeLabel = arrangement.eventType?.name ?? ""
-    const dateLabel = primaryDate ? formatShortDate(primaryDate.startDate) : ""
-
-    return (
-        <Link className="group flex flex-col gap-2" href={href}>
-            <div className="relative aspect-[4/3] w-full overflow-hidden border-2 border-border bg-muted">
-                {arrangement.imageUrl && (
-                    <Image
-                        alt={arrangement.imageCaption ?? arrangement.title}
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        src={arrangement.imageUrl}
-                        unoptimized={arrangement.imageUrl.startsWith("blob:")}
-                    />
-                )}
-            </div>
-            <div className="flex justify-between text-[11px] uppercase tracking-[0.12em] text-foreground/50">
-                <span>{typeLabel}</span>
-                <span className="shrink-0">{dateLabel}</span>
-            </div>
-            <p className="font-heading text-lg leading-snug group-hover:underline group-hover:underline-offset-4">
-                {arrangement.title}
-            </p>
-            {arrangement.isRecurring && (
-                <RecurrenceChips dates={otherDates} rrule={arrangement.rrule} />
-            )}
-        </Link>
-    )
-}
-
-function RecurrenceChips({ dates, rrule }: { dates: DateEntry[]; rrule?: string | null }) {
-    const visible = dates.slice(0, 2)
-    const overflow = dates.length - 2
-    const overflowLabel = overflow >= 9 ? "9+" : `+${overflow}`
-
-    return (
-        <div className="mt-1 space-y-1">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-foreground/40">
-                {getRecurringLabel(rrule)}
-            </span>
-            {visible.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map(d => (
-                        <span
-                            className="border border-border px-1.5 py-0 text-[10px] text-foreground/50"
-                            key={d._key}
-                        >
-                            {formatShortDate(d.startDate)}
-                        </span>
-                    ))}
-                    {overflow > 0 && (
-                        <span className="border border-border px-1.5 py-0 text-[10px] text-foreground/50">
-                            {overflowLabel}
-                        </span>
-                    )}
-                </div>
-            )}
-        </div>
     )
 }
 

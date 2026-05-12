@@ -8,7 +8,7 @@ import {
     fetchPublishedArrangements,
     fetchSiteMetadata,
 } from "@/lib/sanity/queries"
-import { ArrangementCard } from "./ArrangementCard"
+import { type ArrangementSummary, EventCard } from "./ArrangementCard"
 
 type PublishedArrangement = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
 
@@ -16,6 +16,60 @@ export const revalidate = 60
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
+}
+
+function toArrangementSummary(arrangement: PublishedArrangement): ArrangementSummary {
+    return {
+        _id: arrangement._id,
+        title: arrangement.title,
+        slug: arrangement.slug,
+        isRecurring: arrangement.isRecurring ?? undefined,
+        rrule: arrangement.rrule ?? null,
+        dates: (arrangement.dates ?? []).map(d => ({
+            _key: d._key,
+            startDate: d.startDate,
+            startTime: d.startTime ?? null,
+            endTime: d.endTime ?? null,
+        })),
+        isFree: arrangement.isFree ?? undefined,
+        priceOrdinar: arrangement.priceOrdinar ?? null,
+        priceStudent: arrangement.priceStudent ?? null,
+        priceMedlem: arrangement.priceMedlem ?? null,
+        ticketUrl: arrangement.ticketUrl ?? null,
+        facebookUrl: arrangement.facebookUrl ?? null,
+        imageUrl: arrangement.imageUrl ?? null,
+        imageCaption: arrangement.imageCaption ?? null,
+        room: arrangement.room
+            ? {
+                  _id: arrangement.room._id,
+                  title: arrangement.room.title,
+                  slug: arrangement.room.slug,
+                  floor: arrangement.room.floor ?? null,
+                  imageUrl: arrangement.room.imageUrl ?? null,
+              }
+            : null,
+        roomText: arrangement.roomText ?? null,
+        organizerGroup: arrangement.organizerGroup
+            ? {
+                  _id: arrangement.organizerGroup._id,
+                  name: arrangement.organizerGroup.name,
+                  slug: arrangement.organizerGroup.slug,
+              }
+            : null,
+        organizerText: arrangement.organizerText ?? null,
+        eventType: arrangement.eventType
+            ? {
+                  _id: arrangement.eventType._id,
+                  name: arrangement.eventType.name,
+                  taxonomyGroup: arrangement.eventType.taxonomyGroup
+                      ? {
+                            _id: arrangement.eventType.taxonomyGroup._id,
+                            name: arrangement.eventType.taxonomyGroup.name,
+                        }
+                      : null,
+              }
+            : null,
+    }
 }
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/arrangementer">) {
@@ -72,58 +126,8 @@ export default async function EventsPage({ params }: PageProps<"/[locale]/arrang
             ) : (
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     {arrangements.map((arrangement: PublishedArrangement) => (
-                        <ArrangementCard
-                            arrangement={{
-                                _id: arrangement._id,
-                                title: arrangement.title,
-                                slug: arrangement.slug,
-                                isRecurring: arrangement.isRecurring ?? undefined,
-                                rrule: arrangement.rrule ?? null,
-                                dates: (arrangement.dates ?? []).map(
-                                    (d: NonNullable<PublishedArrangement["dates"]>[number]) => ({
-                                        _key: d._key,
-                                        startDate: d.startDate,
-                                        startTime: d.startTime ?? null,
-                                        endTime: d.endTime ?? null,
-                                    }),
-                                ),
-                                isFree: arrangement.isFree ?? undefined,
-                                priceOrdinar: arrangement.priceOrdinar ?? null,
-                                priceStudent: arrangement.priceStudent ?? null,
-                                priceMedlem: arrangement.priceMedlem ?? null,
-                                ticketUrl: arrangement.ticketUrl ?? null,
-                                facebookUrl: arrangement.facebookUrl ?? null,
-                                imageUrl: arrangement.imageUrl ?? null,
-                                imageCaption: arrangement.imageCaption ?? null,
-                                room: arrangement.room
-                                    ? {
-                                          _id: arrangement.room._id,
-                                          title: arrangement.room.title,
-                                          slug: arrangement.room.slug,
-                                      }
-                                    : null,
-                                roomText: arrangement.roomText ?? null,
-                                organizerGroup: arrangement.organizerGroup
-                                    ? {
-                                          _id: arrangement.organizerGroup._id,
-                                          name: arrangement.organizerGroup.name,
-                                          slug: arrangement.organizerGroup.slug,
-                                      }
-                                    : null,
-                                organizerText: arrangement.organizerText ?? null,
-                                eventType: arrangement.eventType
-                                    ? {
-                                          _id: arrangement.eventType._id,
-                                          name: arrangement.eventType.name,
-                                          taxonomyGroup: arrangement.eventType.taxonomyGroup
-                                              ? {
-                                                    _id: arrangement.eventType.taxonomyGroup._id,
-                                                    name: arrangement.eventType.taxonomyGroup.name,
-                                                }
-                                              : null,
-                                      }
-                                    : null,
-                            }}
+                        <EventCard
+                            arrangement={toArrangementSummary(arrangement)}
                             facebookLabel={t("facebook")}
                             key={arrangement._id}
                             locale={locale}

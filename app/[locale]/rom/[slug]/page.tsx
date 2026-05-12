@@ -1,8 +1,9 @@
-import { Check, Clock, FileText, Users, X } from "lucide-react"
+import { ArrowRight, Check, Clock, ExternalLink, FileText, Users, X } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { type CarouselSlide, ImageCarousel } from "@/components/room/ImageCarousel"
+import { Button } from "@/components/ui/button"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/queries"
@@ -22,6 +23,20 @@ export async function generateStaticParams() {
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
+
+type ContentLink = {
+    label?: string | null
+    href?: string | null
+}
+
+function isExternalHref(href: string) {
+    return !href.startsWith("/")
+}
+
+function localizeHref(href: string, locale: string) {
+    if (!href.startsWith("/")) return href
+    return href === "/" ? `/${locale}` : `/${locale}${href}`
+}
 
 export async function generateMetadata({ params }: RoomPageProps) {
     const { slug, locale: localeParam } = await params
@@ -114,8 +129,35 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
                 <RoomSpecs room={room} />
                 <RoomOpeningHours room={room} />
+                {room.bookingLink ? (
+                    <RoomBookingButton link={room.bookingLink} locale={locale} />
+                ) : null}
             </div>
         </article>
+    )
+}
+
+function RoomBookingButton({ link, locale }: { link: ContentLink; locale: string }) {
+    if (!link.href || !link.label) return null
+
+    if (isExternalHref(link.href)) {
+        return (
+            <Button asChild className="w-fit" size="lg">
+                <a href={link.href} rel="noreferrer" target="_blank">
+                    <ExternalLink aria-hidden />
+                    {link.label}
+                </a>
+            </Button>
+        )
+    }
+
+    return (
+        <Button asChild className="w-fit" size="lg">
+            <Link href={localizeHref(link.href, locale)}>
+                <ArrowRight aria-hidden />
+                {link.label}
+            </Link>
+        </Button>
     )
 }
 

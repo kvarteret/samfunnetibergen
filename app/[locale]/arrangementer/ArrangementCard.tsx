@@ -1,5 +1,6 @@
 "use client"
 
+import { cva, type VariantProps } from "class-variance-authority"
 import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 import Image from "next/image"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
+import { cn } from "@/lib/utils"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,6 +57,35 @@ export type ArrangementSummary = {
 const MONTH_NAMES: Record<AppLocale, string[]> = {
     nb: ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"],
 }
+
+const eventCardVariants = cva("overflow-hidden py-0", {
+    variants: {
+        variant: {
+            default: "bg-card",
+            transparent: "border-0 bg-transparent shadow-none",
+        },
+        size: {
+            default: "",
+            small: "",
+        },
+    },
+    defaultVariants: {
+        variant: "default",
+        size: "default",
+    },
+})
+
+const eventCardContentVariants = cva("flex h-full flex-col", {
+    variants: {
+        size: {
+            default: "gap-4 p-5",
+            small: "gap-2 px-0 pt-3 pb-0",
+        },
+    },
+    defaultVariants: {
+        size: "default",
+    },
+})
 
 function formatShortDate(dateStr: string, locale: AppLocale): string {
     const d = new Date(`${dateStr}T00:00:00`)
@@ -143,10 +174,12 @@ function DateBadges({
     dates,
     primaryIndex,
     locale,
+    size = "default",
 }: {
     dates: ArrangementDateEntry[]
     primaryIndex: number
     locale: AppLocale
+    size?: "default" | "small"
 }) {
     const otherDates = dates.filter((_, i) => i !== primaryIndex)
     if (otherDates.length === 0) return null
@@ -155,17 +188,28 @@ function DateBadges({
     const overflow = otherDates.length - MAX_VISIBLE_BADGES
 
     return (
-        <div className="flex flex-wrap gap-1.5" aria-label="Andre datoer">
+        <div
+            className={cn("flex flex-wrap", size === "small" ? "gap-2" : "gap-1.5")}
+            aria-label="Andre datoer"
+        >
             {visible.map(d => (
                 <span
                     key={d._key}
-                    className="border border-border px-2 py-0.5 text-xs font-heading text-foreground/60 bg-muted"
+                    className={cn(
+                        "border border-border font-heading text-foreground/60 bg-muted",
+                        size === "small" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs",
+                    )}
                 >
                     {formatShortDate(d.startDate, locale)}
                 </span>
             ))}
             {overflow > 0 && (
-                <span className="border border-border px-2 py-0.5 text-xs font-heading text-foreground/60 bg-muted">
+                <span
+                    className={cn(
+                        "border border-border font-heading text-foreground/60 bg-muted",
+                        size === "small" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs",
+                    )}
+                >
                     {overflow >= 9 ? "9+" : `+${overflow}`}
                 </span>
             )}
@@ -175,19 +219,26 @@ function DateBadges({
 
 // ─── ArrangementCard ──────────────────────────────────────────────────────────
 
-export interface ArrangementCardProps {
+export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
     arrangement: ArrangementSummary
     facebookLabel: string
     locale: AppLocale
+    showActions?: boolean
+    showRoom?: boolean
     ticketsLabel: string
 }
 
-export function ArrangementCard({
+export function EventCard({
     arrangement,
     facebookLabel,
     locale,
+    showActions = true,
+    showRoom = true,
+    size,
     ticketsLabel,
-}: ArrangementCardProps) {
+    variant,
+}: EventCardProps) {
+    const cardSize = size ?? "default"
     const seedDate = arrangement.dates[0]
     const todayStr = new Date().toISOString().split("T")[0]!
     const futureDates = arrangement.dates.filter(d => d.startDate >= todayStr)
@@ -216,15 +267,30 @@ export function ArrangementCard({
     const timeLabel = primaryDate ? formatPrimaryDate(primaryDate, locale) : null
 
     return (
-        <Card className="overflow-hidden bg-card py-0">
+        <Card className={eventCardVariants({ variant, size })}>
             {arrangement.imageUrl && (
                 <Link href={href}>
-                    <div className="relative aspect-[16/9] w-full">
+                    <div
+                        className={cn(
+                            "relative w-full overflow-hidden",
+                            cardSize === "small"
+                                ? "aspect-[4/3] border-2 border-border bg-muted"
+                                : "aspect-[16/9]",
+                        )}
+                    >
                         <Image
                             alt={arrangement.imageCaption ?? arrangement.title}
-                            className="object-cover"
+                            className={cn(
+                                "object-cover",
+                                cardSize === "small" &&
+                                    "transition-transform duration-300 hover:scale-105",
+                            )}
                             fill
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            sizes={
+                                cardSize === "small"
+                                    ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                    : "(max-width: 768px) 100vw, 50vw"
+                            }
                             src={arrangement.imageUrl}
                             unoptimized={arrangement.imageUrl.startsWith("blob:")}
                         />
@@ -232,10 +298,17 @@ export function ArrangementCard({
                 </Link>
             )}
 
-            <CardContent className="flex h-full flex-col gap-4 p-5">
+            <CardContent className={eventCardContentVariants({ size: cardSize })}>
                 {/* Header */}
                 <div className="space-y-2">
-                    <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-foreground/65">
+                    <div
+                        className={cn(
+                            "flex flex-wrap gap-2 uppercase text-foreground/65",
+                            cardSize === "small"
+                                ? "justify-between text-[11px] tracking-[0.12em]"
+                                : "text-xs tracking-[0.18em]",
+                        )}
+                    >
                         {taxonomy && <span>{taxonomy}</span>}
                         {price && <span>{price}</span>}
                         {arrangement.isRecurring && (
@@ -245,19 +318,31 @@ export function ArrangementCard({
                         )}
                     </div>
                     <Link className="hover:underline hover:underline-offset-4" href={href}>
-                        <h2 className="font-heading text-2xl leading-tight">{arrangement.title}</h2>
+                        <h2
+                            className={cn(
+                                "font-heading leading-tight",
+                                cardSize === "small" ? "text-lg" : "text-2xl",
+                            )}
+                        >
+                            {arrangement.title}
+                        </h2>
                     </Link>
                 </div>
 
                 {/* Primary date and room */}
-                <div className="space-y-2 text-sm leading-6 text-foreground/75">
+                <div
+                    className={cn(
+                        "space-y-2 leading-6 text-foreground/75",
+                        cardSize === "small" ? "text-xs" : "text-sm",
+                    )}
+                >
                     {timeLabel && (
                         <p className="flex gap-2">
                             <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
                             <span>{timeLabel}</span>
                         </p>
                     )}
-                    {roomTitle && (
+                    {showRoom && roomTitle && (
                         <p className="flex gap-2">
                             <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
                             {roomSlug ? (
@@ -301,11 +386,11 @@ export function ArrangementCard({
 
                 {/* Other date badges */}
                 {allDates.length > 1 && (
-                    <DateBadges dates={allDates} primaryIndex={0} locale={locale} />
+                    <DateBadges dates={allDates} primaryIndex={0} locale={locale} size={cardSize} />
                 )}
 
                 {/* Actions */}
-                {(arrangement.ticketUrl ?? arrangement.facebookUrl) && (
+                {showActions && (arrangement.ticketUrl ?? arrangement.facebookUrl) && (
                     <div className="mt-auto flex flex-wrap gap-3 pt-2">
                         {arrangement.ticketUrl && (
                             <Button asChild size="sm">
@@ -328,4 +413,10 @@ export function ArrangementCard({
             </CardContent>
         </Card>
     )
+}
+
+export type ArrangementCardProps = EventCardProps
+
+export function ArrangementCard(props: ArrangementCardProps) {
+    return <EventCard {...props} />
 }

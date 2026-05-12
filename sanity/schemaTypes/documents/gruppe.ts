@@ -16,17 +16,25 @@ export const gruppe = defineType({
     title: "Gruppe",
     type: "document",
     icon: UsersIcon,
+    groups: [
+        { name: "identity", title: "Gruppe", default: true },
+        { name: "hierarchy", title: "Hierarki" },
+        { name: "recruitment", title: "Rekruttering" },
+        { name: "contact", title: "Kontakt" },
+    ],
     fields: [
         defineField({
             name: "name",
             title: "Navn",
             type: "string",
+            group: "identity",
             validation: rule => rule.required(),
         }),
         defineField({
             name: "slug",
             title: "Slug",
             type: "slug",
+            group: "identity",
             options: { source: "name" },
             validation: rule => rule.required(),
         }),
@@ -34,6 +42,7 @@ export const gruppe = defineType({
             name: "category",
             title: "Kategori",
             type: "string",
+            group: "identity",
             options: {
                 list: GRUPPE_CATEGORIES,
                 layout: "radio",
@@ -45,6 +54,7 @@ export const gruppe = defineType({
             title: "Overordnet gruppe",
             description: "Dersom denne gruppen er en undergruppe, velg foreldregruppen her",
             type: "reference",
+            group: "hierarchy",
             to: [{ type: "studentGroup" }],
             options: {
                 filter: "category in ['arbeidsgruppe', 'komitee'] && _id != $id",
@@ -55,6 +65,7 @@ export const gruppe = defineType({
             name: "summary",
             title: "Kort beskrivelse",
             type: "text",
+            group: "identity",
             rows: 3,
             validation: rule => rule.required(),
         }),
@@ -62,35 +73,32 @@ export const gruppe = defineType({
             name: "body",
             title: "Fullstendig beskrivelse",
             type: "portableTextContent",
-        }),
-        defineField({
-            name: "isRecruiting",
-            title: "Rekrutterer",
-            description: "Vis gruppen under /blifrivillig og på blifrivillig.no.",
-            type: "boolean",
-            initialValue: false,
+            group: "identity",
         }),
         defineField({
             name: "recruitmentLabel",
             title: "Rekrutteringskategori",
-            description: "Kort merkelapp som vises over gruppen på bli frivillig-siden.",
+            description:
+                "Kort merkelapp som kan brukes av bli frivillig-siden og andre rekrutteringsflater.",
             type: "string",
-            hidden: ({ document }) => document?.isRecruiting !== true,
+            group: "recruitment",
         }),
         defineField({
             name: "recruitmentLead",
             title: "Rekrutteringsingress",
-            description: "Kort tekst for valgkortet på bli frivillig-siden.",
+            description:
+                "Kort tekst for valgkort eller andre rekrutteringsflater. La stå tom for å bruke kort beskrivelse.",
             type: "text",
             rows: 4,
-            hidden: ({ document }) => document?.isRecruiting !== true,
+            group: "recruitment",
         }),
         defineField({
             name: "recruitmentSections",
             title: "Les litt mer",
-            description: "Korte, lesbare seksjoner for bli frivillig-siden.",
+            description:
+                "Korte, lesbare seksjoner for rekruttering. Undergrupper skal opprettes som egne grupper med overordnet gruppe.",
             type: "array",
-            hidden: ({ document }) => document?.isRecruiting !== true,
+            group: "recruitment",
             of: [
                 defineArrayMember({
                     name: "recruitmentSection",
@@ -118,12 +126,14 @@ export const gruppe = defineType({
             name: "email",
             title: "E-post",
             type: "string",
+            group: "contact",
             validation: rule => rule.email(),
         }),
         defineField({
             name: "website",
             title: "Nettside",
             type: "url",
+            group: "contact",
             validation: rule =>
                 rule.uri({ scheme: ["http", "https"] }).error("Må være en gyldig URL"),
         }),
@@ -131,6 +141,7 @@ export const gruppe = defineType({
             name: "image",
             title: "Bilde",
             type: "sourcedImage",
+            group: "identity",
         }),
         orderRankField({ type: "studentGroup" }),
     ],

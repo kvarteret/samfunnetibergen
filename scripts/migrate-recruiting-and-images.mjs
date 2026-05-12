@@ -91,6 +91,33 @@ const recruitingGroups = [
     },
 ]
 
+const recruitingGroupSlugs = recruitingGroups.map(group => group.slug)
+
+const skjenkeSubGroups = [
+    {
+        name: "Stjernesalen",
+        slug: "stjernesalen",
+        summary:
+            "Stjernesalen passer for deg som vil jobbe med kafeservice, kaffe, mocktails og vin.",
+    },
+    {
+        name: "Kokkegruppen",
+        slug: "kokkegruppen",
+        summary:
+            "Kokkegruppen er for deg som vil lage mat til huset og bidra med catering til arrangementer og konserter.",
+    },
+    {
+        name: "Halvtimen",
+        slug: "halvtimen",
+        summary: "Halvtimen er cocktailbaren for deg over 20 år som vil dykke dypere i cocktails.",
+    },
+    {
+        name: "Grøndahls",
+        slug: "grondahls",
+        summary: "Grøndahls er puben med tempo, sortiment og mye frivilligliv etter skift.",
+    },
+]
+
 function log(message) {
     console.log(`${write ? "WRITE" : "DRY"} ${message}`)
 }
@@ -118,7 +145,10 @@ async function migrateSourcedImages() {
 
     for (const doc of docs) {
         if (doc.hasAsset) {
-            await commitPatch(client.patch(doc._id).unset(["image.sourceUrl"]), `unset sourceUrl on ${doc._id}`)
+            await commitPatch(
+                client.patch(doc._id).unset(["image.sourceUrl"]),
+                `unset sourceUrl on ${doc._id}`,
+            )
             continue
         }
 
@@ -135,15 +165,24 @@ async function migrateSourcedImages() {
         const contentType = response.headers.get("content-type") ?? undefined
         const extension = contentType?.split("/")[1]?.split(";")[0] ?? "image"
         const filename = `${doc._id}.${extension}`
-        const asset = await client.assets.upload("image", Buffer.from(await response.arrayBuffer()), {
-            contentType,
-            filename,
-        })
+        const asset = await client.assets.upload(
+            "image",
+            Buffer.from(await response.arrayBuffer()),
+            {
+                contentType,
+                filename,
+            },
+        )
 
         await commitPatch(
             client
                 .patch(doc._id)
-                .set({ "image.image": { _type: "image", asset: { _type: "reference", _ref: asset._id } } })
+                .set({
+                    "image.image": {
+                        _type: "image",
+                        asset: { _type: "reference", _ref: asset._id },
+                    },
+                })
                 .unset(["image.sourceUrl"]),
             `uploaded image and unset sourceUrl on ${doc._id}`,
         )
@@ -167,12 +206,15 @@ async function migrateSingletons() {
 
     for (const doc of siteDocs) {
         await commitPatch(
-            client.patch(doc._id).set({
-                homeTitle: doc.homeTitle ?? doc.homeTitleNb ?? "Samfunnet i Bergen",
-                homeDescription: doc.homeDescription ?? doc.homeDescriptionNb,
-                eventsTitle: doc.eventsTitle ?? doc.eventsTitleNb,
-                eventsDescription: doc.eventsDescription ?? doc.eventsDescriptionNb,
-            }).unset(obsoleteSiteMetadataFields),
+            client
+                .patch(doc._id)
+                .set({
+                    homeTitle: doc.homeTitle ?? doc.homeTitleNb ?? "Samfunnet i Bergen",
+                    homeDescription: doc.homeDescription ?? doc.homeDescriptionNb,
+                    eventsTitle: doc.eventsTitle ?? doc.eventsTitleNb,
+                    eventsDescription: doc.eventsDescription ?? doc.eventsDescriptionNb,
+                })
+                .unset(obsoleteSiteMetadataFields),
             `migrated siteMetadata ${doc._id}`,
         )
     }
@@ -191,11 +233,14 @@ async function migrateSingletons() {
 
     for (const doc of eventsDocs) {
         await commitPatch(
-            client.patch(doc._id).set({
-                eyebrow: doc.eyebrow ?? doc.eyebrowNb,
-                title: doc.title ?? doc.titleNb,
-                description: doc.description ?? doc.descriptionNb,
-            }).unset(obsoleteEventsPageFields),
+            client
+                .patch(doc._id)
+                .set({
+                    eyebrow: doc.eyebrow ?? doc.eyebrowNb,
+                    title: doc.title ?? doc.titleNb,
+                    description: doc.description ?? doc.descriptionNb,
+                })
+                .unset(obsoleteEventsPageFields),
             `migrated eventsPage ${doc._id}`,
         )
     }
@@ -210,37 +255,95 @@ async function migrateSingletons() {
 
     for (const doc of volunteerDocs) {
         await commitPatch(
-            client.patch(doc._id).set({ title: doc.title ?? doc.titleNb }).unset(obsoleteBlifrivilligPageFields),
+            client
+                .patch(doc._id)
+                .set({ title: doc.title ?? doc.titleNb })
+                .unset(obsoleteBlifrivilligPageFields),
             `migrated blifrivilligPage ${doc._id}`,
         )
     }
 }
 
 async function migrateRecruitingGroups() {
-    const workingGroups = await client.fetch(
-        `*[_type == "studentGroup" && category == "arbeidsgruppe"]{_id}`,
-    )
-
-    for (const doc of workingGroups) {
-        await commitPatch(
-            client.patch(doc._id).set({ isRecruiting: false }),
-            `marked ${doc._id} as not recruiting`,
-        )
-    }
-
     for (const group of recruitingGroups) {
         const { slug, ...fields } = group
         const docs = await client.fetch(
-            `*[_type == "studentGroup" && slug.current == $slug]{_id}`,
+            `*[_type == "studentGroup" && slug.current == $slug]{_id,recruitmentSections}`,
             { slug },
         )
 
         for (const doc of docs) {
+            const recruitmentSections = (fields.recruitmentSections ?? []).filter(
+                section => section.title?.toLowerCase() !== "undergrupper",
+            )
             await commitPatch(
-                client.patch(doc._id).set({ ...fields, isRecruiting: true }),
-                `marked ${doc._id} as recruiting`,
+                client
+                    .patch(doc._id)
+                    .set({ ...fields, recruitmentSections })
+                    .unset(["isRecruiting"]),
+                `migrated recruitment content on ${doc._id}`,
             )
         }
+    }
+
+    const allGroupDocs = await client.fetch(
+        `*[_type == "studentGroup" && defined(isRecruiting)]{_id}`,
+    )
+    for (const doc of allGroupDocs) {
+        await commitPatch(
+            client.patch(doc._id).unset(["isRecruiting"]),
+            `unset isRecruiting on ${doc._id}`,
+        )
+    }
+
+    const skjenkegruppen = await client.fetch(
+        `*[_type == "studentGroup" && _id == "studentGroup-skjenkegruppen"][0]{_id}`,
+    )
+
+    if (skjenkegruppen) {
+        for (const subGroup of skjenkeSubGroups) {
+            const id = `studentGroup-${subGroup.slug}`
+            if (!write) {
+                log(`would create or update ${id}`)
+            } else {
+                await client.createIfNotExists({
+                    _id: id,
+                    _type: "studentGroup",
+                    name: subGroup.name,
+                    slug: { _type: "slug", current: subGroup.slug },
+                    category: "arbeidsgruppe",
+                    summary: subGroup.summary,
+                    parentGroup: { _type: "reference", _ref: skjenkegruppen._id },
+                })
+                await client
+                    .patch(id)
+                    .set({
+                        name: subGroup.name,
+                        slug: { _type: "slug", current: subGroup.slug },
+                        category: "arbeidsgruppe",
+                        summary: subGroup.summary,
+                        parentGroup: { _type: "reference", _ref: skjenkegruppen._id },
+                    })
+                    .commit()
+                log(`created or updated ${id}`)
+            }
+        }
+    }
+
+    const recruitingRefs = recruitingGroupSlugs.map(slug => ({
+        _key: slug,
+        _type: "reference",
+        _ref: `studentGroup-${slug}`,
+    }))
+
+    const volunteerDocs = await client.fetch(
+        `*[_type == "blifrivilligPage" && _id in ["blifrivilligPage", "drafts.blifrivilligPage"]]{_id}`,
+    )
+    for (const doc of volunteerDocs) {
+        await commitPatch(
+            client.patch(doc._id).set({ recruitingGroups: recruitingRefs }),
+            `set recruitingGroups on ${doc._id}`,
+        )
     }
 }
 

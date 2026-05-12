@@ -54,7 +54,7 @@ const openingHoursProjection = `{
 // ─── Volunteer content ───────────────────────────────────────────────────────
 
 export const volunteerGroupsNbQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe" && isRecruiting == true] | order(orderRank asc, name asc) {
+    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {
     "slug": slug.current,
     name,
     "eyebrow": recruitmentLabel,
@@ -69,7 +69,7 @@ export const volunteerGroupsNbQuery =
 }`)
 
 export const volunteerGroupSummariesNbQuery =
-    defineQuery(`*[_type == "studentGroup" && category == "arbeidsgruppe" && isRecruiting == true] | order(orderRank asc, name asc) {
+    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {
     name,
     "description": coalesce(recruitmentLead, summary)
 }`)
@@ -130,7 +130,12 @@ export const blifrivilligPageNbQuery =
     "title": coalesce(title, titleNb),
     seoTitle,
     seoDescription,
-    "description": description[]
+    "description": description[],
+    "recruitingGroups": recruitingGroups[]-> {
+        _id,
+        name,
+        "slug": slug.current
+    }
 }`)
 
 // ─── Rooms ────────────────────────────────────────────────────────────────────
@@ -196,7 +201,8 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
             caption
         }
     },
-    "images": images[] ${sourcedImageProjection}
+    "images": images[] ${sourcedImageProjection},
+    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink ${sourceLinkProjection}
 }`)
 
 // ─── Groups ───────────────────────────────────────────────────────────────────
@@ -222,7 +228,11 @@ export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | orde
     email,
     website,
     category,
-    "image": image ${sourcedImageProjection}
+    "image": image ${sourcedImageProjection},
+    "parentGroup": parentGroup-> {
+        name,
+        "slug": slug.current
+    }
 }`)
 
 export const studentGroupsByCategory = defineQuery(`
@@ -233,7 +243,11 @@ export const studentGroupsByCategory = defineQuery(`
     email,
     website,
     category,
-    "image": image ${sourcedImageProjection}
+    "image": image ${sourcedImageProjection},
+    "parentGroup": parentGroup-> {
+        name,
+        "slug": slug.current
+    }
 }`)
 
 export const studentGroupSlugsQuery =
@@ -253,6 +267,13 @@ export const studentGroupBySlugQuery =
     "parentGroup": parentGroup-> {
         name,
         "slug": slug.current
+    },
+    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
+        name,
+        "slug": slug.current,
+        summary,
+        category,
+        "image": image ${sourcedImageProjection}
     },
     "image": image ${sourcedImageProjection}
 }`)
@@ -501,8 +522,7 @@ export const linkInBioQuery = defineQuery(`*[_type == "linkInBio" && _id == "lin
     bio,
     links[] {
         _key,
-        label,
-        url,
+        link ${sourceLinkProjection},
         emoji,
         highlight
     }

@@ -337,6 +337,7 @@ export const blifrivilligPage = defineType({
     __experimental_actions: ["update", "publish"],
     groups: [
         { name: "content", title: "Innhold", default: true },
+        { name: "recruitment", title: "Rekruttering" },
         { name: "seo", title: "SEO" },
     ],
     fields: [
@@ -347,6 +348,23 @@ export const blifrivilligPage = defineType({
             type: "portableTextContent",
         }),
         defineField({ name: "title", title: "Sidetittel", type: "string" }),
+        defineField({
+            name: "recruitingGroups",
+            title: "Grupper som rekrutterer",
+            description:
+                "Velg og sorter gruppene som skal vises på bli frivillig-siden. Rekrutteringsteksten redigeres på selve gruppen.",
+            type: "array",
+            group: "recruitment",
+            of: [
+                defineArrayMember({
+                    type: "reference",
+                    to: [{ type: "studentGroup" }],
+                    options: {
+                        filter: "category == 'arbeidsgruppe'",
+                    },
+                }),
+            ],
+        }),
         defineField({
             name: "seoTitle",
             title: "SEO-tittel",
@@ -538,16 +556,9 @@ export const linkInBio = defineType({
                     type: "object",
                     fields: [
                         defineField({
-                            name: "label",
-                            title: "Tekst",
-                            type: "string",
-                            validation: rule => rule.required(),
-                        }),
-                        defineField({
-                            name: "url",
-                            title: "URL",
-                            type: "string",
-                            description: "Ekstern URL (https://…) eller intern sti (/blifrivillig)",
+                            name: "link",
+                            title: "Lenke",
+                            type: "sourceLink",
                             validation: rule => rule.required(),
                         }),
                         defineField({
@@ -565,11 +576,17 @@ export const linkInBio = defineType({
                         }),
                     ],
                     preview: {
-                        select: { title: "label", subtitle: "url", emoji: "emoji" },
-                        prepare({ title, subtitle, emoji }) {
+                        select: {
+                            title: "link.label",
+                            subtitle: "link.internalPage.title",
+                            href: "link.internalPath",
+                            externalUrl: "link.externalUrl",
+                            emoji: "emoji",
+                        },
+                        prepare({ title, subtitle, href, externalUrl, emoji }) {
                             return {
                                 title: emoji ? `${emoji}  ${title}` : title,
-                                subtitle,
+                                subtitle: subtitle ?? href ?? externalUrl,
                             }
                         },
                     },
