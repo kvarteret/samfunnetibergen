@@ -32,15 +32,26 @@ export const sourceLink = defineType({
         }),
         defineField({
             name: "internalPage",
-            title: "Side",
+            title: "Internt dokument",
             type: "reference",
-            to: [{ type: "page" }],
+            to: [
+                { type: "homePage" },
+                { type: "eventsPage" },
+                { type: "roomsPage" },
+                { type: "groupsPage" },
+                { type: "blifrivilligPage" },
+                { type: "kontaktPage" },
+                { type: "page" },
+                { type: "arrangement" },
+                { type: "room" },
+                { type: "studentGroup" },
+            ],
             hidden: ({ parent }) => parent?.linkType !== "internalPage",
             validation: rule =>
                 rule.custom((value, context) => {
                     const parent = context.parent as { linkType?: string } | undefined
                     if (parent?.linkType === "internalPage" && !value?._ref) {
-                        return "Velg en side"
+                        return "Velg et internt dokument"
                     }
                     return true
                 }),
@@ -49,7 +60,7 @@ export const sourceLink = defineType({
             name: "internalPath",
             title: "Intern app-sti",
             type: "string",
-            description: "Brukes bare for faste ruter som ikke er en Sanity-side, f.eks. /rom",
+            description: "Brukes bare for interne ruter som ikke har et Sanity-dokument.",
             hidden: ({ parent }) => parent?.linkType !== "internalPath",
             validation: rule =>
                 rule.custom((value, context) => {
@@ -67,13 +78,6 @@ export const sourceLink = defineType({
             hidden: ({ parent }) => parent?.linkType !== "external",
             validation: rule => rule.uri({ scheme: ["http", "https", "mailto"] }),
         }),
-        defineField({
-            name: "url",
-            title: "Gammel URL",
-            type: "string",
-            hidden: true,
-            readOnly: true,
-        }),
     ],
     validation: rule =>
         rule.custom(value => {
@@ -88,15 +92,27 @@ export const sourceLink = defineType({
             title: "label",
             linkType: "linkType",
             pageTitle: "internalPage.title",
+            pageName: "internalPage.name",
             pageSlug: "internalPage.slug.current",
+            pageType: "internalPage._type",
             internalPath: "internalPath",
             externalUrl: "externalUrl",
-            legacyUrl: "url",
         },
-        prepare({ title, linkType, pageTitle, pageSlug, internalPath, externalUrl, legacyUrl }) {
-            let subtitle = legacyUrl ?? "Mangler lenke"
+        prepare({
+            title,
+            linkType,
+            pageTitle,
+            pageName,
+            pageSlug,
+            pageType,
+            internalPath,
+            externalUrl,
+        }) {
+            let subtitle = "Mangler lenke"
             if (linkType === "internalPage") {
-                subtitle = pageSlug ? `/${pageSlug}` : (pageTitle ?? "Velg side")
+                subtitle = pageSlug
+                    ? `/${pageSlug}`
+                    : (pageTitle ?? pageName ?? pageType ?? "Velg dokument")
             } else if (linkType === "internalPath") {
                 subtitle = internalPath ?? "Mangler intern sti"
             } else if (linkType === "external") {

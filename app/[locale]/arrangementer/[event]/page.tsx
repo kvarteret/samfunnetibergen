@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchArrangementBySlug } from "@/lib/sanity/queries"
+import { fetchArrangementBySlug, fetchSiteMetadata } from "@/lib/sanity/queries"
 
 type Arrangement = NonNullable<Awaited<ReturnType<typeof fetchArrangementBySlug>>>
 
@@ -57,15 +57,33 @@ function formatPrices(a: Arrangement): string | null {
 
 export async function generateMetadata({ params }: EventPageProps) {
     const resolvedParams = await params
-    const arrangement = await fetchArrangementBySlug(resolvedParams.event)
+    const [arrangement, siteMetadata] = await Promise.all([
+        fetchArrangementBySlug(resolvedParams.event),
+        fetchSiteMetadata(resolvedParams.locale as AppLocale, { stega: false }),
+    ])
 
     if (!arrangement) return {}
+    const title = `${arrangement.seoTitle ?? arrangement.title} | Samfunnet i Bergen`
+    const description =
+        arrangement.seoDescription ??
+        arrangement.openGraphDescription ??
+        siteMetadata?.defaultSeoDescription ??
+        undefined
+    const openGraphTitle = arrangement.openGraphTitle ?? arrangement.title
+    const openGraphImage =
+        arrangement.openGraphImageUrl ??
+        arrangement.imageUrl ??
+        siteMetadata?.defaultOpenGraphImageUrl
 
     return {
-        title: `${arrangement.title} | Samfunnet i Bergen`,
+        title,
+        description,
         openGraph: {
-            title: arrangement.title,
-            images: arrangement.imageUrl ? [{ url: arrangement.imageUrl }] : undefined,
+            title: openGraphTitle,
+            description,
+            images: openGraphImage ? [{ url: openGraphImage }] : undefined,
+            siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+            type: "article",
         },
     }
 }

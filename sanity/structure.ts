@@ -20,6 +20,7 @@ import type { StructureBuilder, StructureResolver } from "sanity/structure"
 export const singletonTypeNames = [
     "siteMetadata",
     "footer",
+    "homePage",
     "eventsPage",
     "roomsPage",
     "groupsPage",
@@ -79,6 +80,12 @@ export const structure: StructureResolver = (S, context) =>
                                     S.list()
                                         .title("Faste sider")
                                         .items([
+                                            singletonListItem(
+                                                S,
+                                                "homePage",
+                                                "Hovedside",
+                                                DocumentIcon,
+                                            ),
                                             singletonListItem(
                                                 S,
                                                 "eventsPage",

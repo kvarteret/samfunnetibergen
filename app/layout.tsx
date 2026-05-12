@@ -4,6 +4,8 @@ import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import { VisualEditing } from "next-sanity/visual-editing"
 import { SanityLive } from "@/lib/sanity/live"
+import { fetchSiteMetadata } from "@/lib/sanity/queries"
+import { resolveSiteUrl } from "@/lib/site-url"
 
 import "./globals.css"
 
@@ -42,9 +44,27 @@ const instrumentSerif = Instrument_Serif({
     style: ["normal", "italic"],
 })
 
-export const metadata: Metadata = {
-    title: "Samfunnet i Bergen",
-    description: "Studentenes kulturhus i Bergen.",
+export async function generateMetadata(): Promise<Metadata> {
+    const siteMetadata = await fetchSiteMetadata("nb", { stega: false })
+    const title = siteMetadata?.defaultSeoTitle ?? siteMetadata?.siteName ?? "Samfunnet i Bergen"
+    const description = siteMetadata?.defaultSeoDescription ?? "Studentenes kulturhus i Bergen."
+    const openGraphTitle = siteMetadata?.defaultOpenGraphTitle ?? title
+    const openGraphDescription = siteMetadata?.defaultOpenGraphDescription ?? description
+
+    return {
+        metadataBase: new URL(resolveSiteUrl()),
+        title,
+        description,
+        openGraph: {
+            title: openGraphTitle,
+            description: openGraphDescription,
+            images: siteMetadata?.defaultOpenGraphImageUrl
+                ? [{ url: siteMetadata.defaultOpenGraphImageUrl }]
+                : undefined,
+            siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+            type: "website",
+        },
+    }
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

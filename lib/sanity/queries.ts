@@ -16,6 +16,7 @@ import {
     eventsPageContentNbQuery,
     footerQuery,
     groupsPageQuery,
+    homePageNbQuery,
     kontaktPageQuery,
     linkInBioQuery,
     navbarQuery,
@@ -38,6 +39,7 @@ import type {
     BlifrivilligPageContent,
     EventsPageContent,
     GroupsPageContent,
+    HomePageContent,
     NavbarContent,
     PageContent,
     RoomDetail,
@@ -131,6 +133,18 @@ export async function fetchSiteMetadata(
     const { data } = await sanityFetch({
         query: siteMetadataNbQuery,
         tags: ["siteMetadata"],
+        stega: options.stega,
+    })
+    return data
+}
+
+export async function fetchHomePageContent(
+    _locale: AppLocale,
+    options: FetchOptions = {},
+): Promise<HomePageContent | null> {
+    const { data } = await sanityFetch({
+        query: homePageNbQuery,
+        tags: ["homePage"],
         stega: options.stega,
     })
     return data

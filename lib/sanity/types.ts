@@ -4,6 +4,7 @@ import type {
     blifrivilligPageNbQuery,
     eventsPageContentNbQuery,
     groupsPageQuery,
+    homePageNbQuery,
     navbarQuery,
     pageBySlugQuery,
     roomBySlugQuery,
@@ -17,6 +18,8 @@ import type {
 export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
 
 export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
+
+export type HomePageContent = NonNullable<ClientReturn<typeof homePageNbQuery>>
 
 export type EditorialSection = NonNullable<
     NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]

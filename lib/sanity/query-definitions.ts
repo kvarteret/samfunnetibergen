@@ -6,13 +6,19 @@ const sourceLinkProjection = `{
     _key,
     label,
     linkType,
-    "href": coalesce(
-        select(
-            linkType == "internalPage" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,
-            linkType == "internalPath" => internalPath,
-            linkType == "external" => externalUrl
-        ),
-        url
+    "href": select(
+        linkType == "internalPage" && internalPage->_type == "homePage" => "/",
+        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",
+        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",
+        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",
+        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",
+        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",
+        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,
+        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,
+        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,
+        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,
+        linkType == "internalPath" => internalPath,
+        linkType == "external" => externalUrl
     )
 }`
 
@@ -76,15 +82,45 @@ export const eventsPageContentNbQuery =
     "title": coalesce(title, titleNb),
     "description": coalesce(description, descriptionNb),
     seoTitle,
-    seoDescription
+    seoDescription,
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    oembedTitle,
+    oembedDescription,
+    "oembedImageUrl": oembedImage.asset->url
 }`)
 
 // ─── Site metadata ────────────────────────────────────────────────────────────
 
 export const siteMetadataNbQuery =
     defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
-    "homeTitle": coalesce(homeTitle, homeTitleNb),
-    "homeDescription": coalesce(homeDescription, homeDescriptionNb)
+    "siteName": coalesce(siteName, "Samfunnet i Bergen"),
+    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),
+    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),
+    defaultOpenGraphTitle,
+    defaultOpenGraphDescription,
+    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url,
+    oembedTitle,
+    oembedDescription,
+    "oembedImageUrl": oembedImage.asset->url
+}`)
+
+// ─── Home page ────────────────────────────────────────────────────────────────
+
+export const homePageNbQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
+    eyebrow,
+    title,
+    description,
+    primaryCta ${sourceLinkProjection},
+    seoTitle,
+    seoDescription,
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    oembedTitle,
+    oembedDescription,
+    "oembedImageUrl": oembedImage.asset->url
 }`)
 
 // ─── Blifrivillig page ────────────────────────────────────────────────────────
@@ -301,6 +337,14 @@ export const publishedArrangementsQuery = defineQuery(`
     priceOrdinar,
     priceStudent,
     priceMedlem,
+    seoTitle,
+    seoDescription,
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    oembedTitle,
+    oembedDescription,
+    "oembedImageUrl": oembedImage.asset->url,
     ticketUrl,
     facebookUrl,
     "imageUrl": image.asset->url,
@@ -355,6 +399,14 @@ export const arrangementBySlugQuery = defineQuery(`
     priceOrdinar,
     priceStudent,
     priceMedlem,
+    seoTitle,
+    seoDescription,
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    oembedTitle,
+    oembedDescription,
+    "oembedImageUrl": oembedImage.asset->url,
     ticketUrl,
     facebookUrl,
     "imageUrl": image.asset->url,

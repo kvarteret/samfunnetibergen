@@ -11,6 +11,7 @@ import {
     blifrivilligPage,
     eventsPage,
     groupsPage,
+    homePage,
     internbevisBenefit,
     linkInBio,
     roomsPage,
@@ -58,6 +59,7 @@ export const schemaTypes = [
     // Singletons
     footer,
     siteMetadata,
+    homePage,
     eventsPage,
     roomsPage,
     groupsPage,

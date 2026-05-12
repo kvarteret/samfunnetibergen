@@ -10,6 +10,10 @@ const defaultPreviewPath = `/${defaultLocale}`
 export const resolve: PresentationPluginOptions["resolve"] = {
     mainDocuments: defineDocuments([
         {
+            route: "/:locale",
+            filter: `_id == "homePage"`,
+        },
+        {
             route: "/:locale/arrangementer",
             filter: `_id == "eventsPage"`,
         },
@@ -51,6 +55,12 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             select: { title: "nameNb" },
             resolve: doc => ({
                 locations: [{ title: doc?.title ?? "Forside", href: `/${defaultLocale}` }],
+            }),
+        }),
+        homePage: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Hovedside", href: `/${defaultLocale}` }],
             }),
         }),
         room: defineLocations({

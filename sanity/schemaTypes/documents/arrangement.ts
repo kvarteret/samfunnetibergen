@@ -21,6 +21,7 @@ export const arrangement = defineType({
         { name: "organizer", title: "Arrangør" },
         { name: "links", title: "Lenker" },
         { name: "media", title: "Bilde" },
+        { name: "sharing", title: "Deling og oEmbed" },
         { name: "admin", title: "Administrasjon" },
     ],
     fields: [
@@ -178,6 +179,65 @@ export const arrangement = defineType({
             type: "url",
             group: "links",
             validation: rule => rule.uri({ scheme: ["http", "https"] }),
+        }),
+
+        // ─── Sharing / embeds ─────────────────────────────────────
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer arrangementtittelen i søkemotorer.",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
+        defineField({
+            name: "openGraphImage",
+            title: "Open Graph-bilde",
+            description: "La stå tom for å bruke hovedbildet.",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
+        defineField({
+            name: "openGraphTitle",
+            title: "Open Graph-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "openGraphDescription",
+            title: "Open Graph-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+            validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
+        }),
+        defineField({
+            name: "oembedTitle",
+            title: "oEmbed-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedDescription",
+            title: "oEmbed-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedImage",
+            title: "oEmbed-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
         }),
 
         // ─── Admin / approval ──────────────────────────────────────

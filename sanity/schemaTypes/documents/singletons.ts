@@ -6,18 +6,180 @@ export const siteMetadata = defineType({
     title: "Nettstedsinfo",
     type: "document",
     icon: CogIcon,
+    groups: [
+        { name: "identity", title: "Identitet", default: true },
+        { name: "sharing", title: "Deling og oEmbed" },
+    ],
     fields: [
-        defineField({ name: "homeTitle", title: "Forsidetittel", type: "string" }),
         defineField({
-            name: "homeDescription",
-            title: "Forsidebeskrivelse",
+            name: "siteName",
+            title: "Nettstedsnavn",
+            type: "string",
+            group: "identity",
+            initialValue: "Samfunnet i Bergen",
+        }),
+        defineField({
+            name: "defaultSeoTitle",
+            title: "Standard SEO-tittel",
+            type: "string",
+            group: "identity",
+        }),
+        defineField({
+            name: "defaultSeoDescription",
+            title: "Standard SEO-beskrivelse",
             type: "text",
+            rows: 3,
+            group: "identity",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
+        defineField({
+            name: "defaultOpenGraphImage",
+            title: "Standard Open Graph-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
+        defineField({
+            name: "defaultOpenGraphTitle",
+            title: "Standard Open Graph-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "defaultOpenGraphDescription",
+            title: "Standard Open Graph-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+            validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
+        }),
+        defineField({
+            name: "oembedTitle",
+            title: "oEmbed-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedDescription",
+            title: "oEmbed-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedImage",
+            title: "oEmbed-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
         }),
     ],
     preview: {
-        select: { title: "homeTitle" },
+        select: { title: "siteName" },
         prepare({ title }) {
             return { title: title ?? "Nettstedsinfo" }
+        },
+    },
+})
+
+export const homePage = defineType({
+    name: "homePage",
+    title: "Hovedside",
+    type: "document",
+    icon: DocumentIcon,
+    groups: [
+        { name: "hero", title: "Hero", default: true },
+        { name: "seo", title: "SEO" },
+        { name: "sharing", title: "Deling og oEmbed" },
+    ],
+    fields: [
+        defineField({
+            name: "eyebrow",
+            title: "Eyebrow",
+            type: "string",
+            group: "hero",
+        }),
+        defineField({
+            name: "title",
+            title: "Tittel",
+            type: "string",
+            group: "hero",
+            validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "description",
+            title: "Beskrivelse",
+            type: "text",
+            rows: 4,
+            group: "hero",
+        }),
+        defineField({
+            name: "primaryCta",
+            title: "Primærknapp",
+            type: "sourceLink",
+            group: "hero",
+        }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer sidetittelen i søkemotorer.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
+        defineField({
+            name: "openGraphImage",
+            title: "Open Graph-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
+        defineField({
+            name: "openGraphTitle",
+            title: "Open Graph-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "openGraphDescription",
+            title: "Open Graph-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+            validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
+        }),
+        defineField({
+            name: "oembedTitle",
+            title: "oEmbed-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedDescription",
+            title: "oEmbed-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedImage",
+            title: "oEmbed-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
+    ],
+    preview: {
+        select: { title: "title" },
+        prepare({ title }) {
+            return { title: title ?? "Hovedside" }
         },
     },
 })
@@ -30,6 +192,7 @@ export const eventsPage = defineType({
     groups: [
         { name: "content", title: "Innhold", default: true },
         { name: "seo", title: "SEO" },
+        { name: "sharing", title: "Deling og oEmbed" },
     ],
     fields: [
         defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
@@ -50,6 +213,47 @@ export const eventsPage = defineType({
             group: "seo",
             validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
         }),
+        defineField({
+            name: "openGraphImage",
+            title: "Open Graph-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
+        defineField({
+            name: "openGraphTitle",
+            title: "Open Graph-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "openGraphDescription",
+            title: "Open Graph-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+            validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
+        }),
+        defineField({
+            name: "oembedTitle",
+            title: "oEmbed-tittel",
+            type: "string",
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedDescription",
+            title: "oEmbed-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "sharing",
+        }),
+        defineField({
+            name: "oembedImage",
+            title: "oEmbed-bilde",
+            type: "image",
+            group: "sharing",
+            options: { hotspot: true },
+        }),
     ],
     preview: {
         select: { title: "title" },
@@ -65,28 +269,39 @@ export const roomsPage = defineType({
     type: "document",
     icon: DocumentIcon,
     groups: [
-        { name: "content", title: "Innhold", default: true },
+        { name: "hero", title: "Hero", default: true },
+        { name: "booking", title: "Bestilling" },
         { name: "seo", title: "SEO" },
     ],
     fields: [
-        defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
+        defineField({ name: "eyebrow", title: "Eyebrow", type: "string", group: "hero" }),
         defineField({
             name: "title",
             title: "Tittel",
             type: "string",
+            group: "hero",
             validation: rule => rule.required(),
         }),
-        defineField({ name: "description", title: "Beskrivelse", type: "text" }),
+        defineField({
+            name: "description",
+            title: "Beskrivelse",
+            type: "text",
+            rows: 4,
+            group: "hero",
+        }),
         defineField({
             name: "sections",
             title: "Bestillingsinformasjon",
+            description: "Kort, praktisk informasjon som vises som kort under rom-heroen.",
             type: "array",
+            group: "booking",
             of: [defineArrayMember({ type: "editorialSection" })],
         }),
         defineField({
             name: "bookingLink",
             title: "Bestillingslenke",
             type: "sourceLink",
+            group: "booking",
         }),
         defineField({
             name: "seoTitle",
@@ -213,22 +428,33 @@ export const groupsPage = defineType({
     type: "document",
     icon: UsersIcon,
     groups: [
-        { name: "content", title: "Innhold", default: true },
+        { name: "hero", title: "Hero", default: true },
+        { name: "intro", title: "Introduksjon" },
+        { name: "faq", title: "FAQ" },
         { name: "seo", title: "SEO" },
     ],
     fields: [
-        defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
+        defineField({ name: "eyebrow", title: "Eyebrow", type: "string", group: "hero" }),
         defineField({
             name: "title",
             title: "Tittel",
             type: "string",
+            group: "hero",
             validation: rule => rule.required(),
         }),
-        defineField({ name: "description", title: "Beskrivelse", type: "text" }),
+        defineField({
+            name: "description",
+            title: "Beskrivelse",
+            type: "text",
+            rows: 4,
+            group: "hero",
+        }),
         defineField({
             name: "sections",
             title: "Introduksjon",
+            description: "Valgfrie tekstseksjoner som vises over gruppelisten.",
             type: "array",
+            group: "intro",
             of: [defineArrayMember({ type: "editorialSection" })],
         }),
         defineField({
@@ -250,6 +476,7 @@ export const groupsPage = defineType({
             name: "faq",
             title: "FAQ",
             type: "array",
+            group: "faq",
             of: [
                 defineArrayMember({
                     name: "faqItem",
