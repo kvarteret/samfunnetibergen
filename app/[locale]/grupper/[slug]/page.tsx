@@ -9,7 +9,7 @@ export const revalidate = 300
 const CATEGORY_LABELS: Record<string, string> = {
     arbeidsgruppe: "Arbeidsgruppe",
     komitee: "Komité",
-    dorg: "Fast samarbeidspartner",
+    dorg: "Driftsorganisasjon",
     borg: "Brukerorganisasjon",
 }
 
@@ -115,20 +115,13 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 {group.subGroups?.length ? (
                     <section className="space-y-3 border-2 border-border bg-card p-5">
                         <h2 className="font-heading text-xl text-foreground">Undergrupper</h2>
-                        <ul className="space-y-3">
+                        <ul className="flex flex-wrap gap-2">
                             {group.subGroups.map(subGroup => (
-                                <li key={subGroup.slug}>
-                                    <a
-                                        className="block underline underline-offset-4"
-                                        href={`/${locale}/grupper/${subGroup.slug}`}
-                                    >
-                                        {subGroup.name}
-                                    </a>
-                                    {subGroup.summary ? (
-                                        <p className="mt-1 text-sm leading-6 text-foreground/70">
-                                            {subGroup.summary}
-                                        </p>
-                                    ) : null}
+                                <li
+                                    className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
+                                    key={subGroup.slug ?? subGroup.name}
+                                >
+                                    {subGroup.name}
                                 </li>
                             ))}
                         </ul>

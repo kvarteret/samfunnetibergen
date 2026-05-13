@@ -1179,7 +1179,7 @@ export type VolunteerGroupSummariesNbQueryResult = Array<{
 
 // Source: lib/sanity/queries/groups.ts
 // Variable: studentGroupsQuery
-// Query: *[_type == "studentGroup"] | order(orderRank asc) {    name,    "slug": slug.current,    summary,    email,    website,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "parentGroup": parentGroup-> {        name,        "slug": slug.current    }}
+// Query: *[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {    name,    "slug": slug.current,    summary,    email,    website,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current    }}
 export type StudentGroupsQueryResult = Array<{
     name: string | null
     slug: string | null
@@ -1193,15 +1193,15 @@ export type StudentGroupsQueryResult = Array<{
         alt: string | null
         caption: string | null
     } | null
-    parentGroup: {
+    subGroups: Array<{
         name: string | null
         slug: string | null
-    } | null
+    }>
 }>
 
 // Source: lib/sanity/queries/groups.ts
 // Variable: studentGroupsByCategory
-// Query: *[_type == "studentGroup" && category == $category] | order(orderRank asc) {    name,    "slug": slug.current,    summary,    email,    website,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "parentGroup": parentGroup-> {        name,        "slug": slug.current    }}
+// Query: *[_type == "studentGroup" && category == $category && !defined(parentGroup)] | order(orderRank asc) {    name,    "slug": slug.current,    summary,    email,    website,    category,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current    }}
 export type StudentGroupsByCategoryResult = Array<{
     name: string | null
     slug: string | null
@@ -1215,22 +1215,22 @@ export type StudentGroupsByCategoryResult = Array<{
         alt: string | null
         caption: string | null
     } | null
-    parentGroup: {
+    subGroups: Array<{
         name: string | null
         slug: string | null
-    } | null
+    }>
 }>
 
 // Source: lib/sanity/queries/groups.ts
 // Variable: studentGroupSlugsQuery
-// Query: *[_type == "studentGroup" && defined(slug.current)] {    "slug": slug.current}
+// Query: *[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {    "slug": slug.current}
 export type StudentGroupSlugsQueryResult = Array<{
     slug: string | null
 }>
 
 // Source: lib/sanity/queries/groups.ts
 // Variable: studentGroupBySlugQuery
-// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    name,    "slug": slug.current,    summary,    body,    email,    website,    category,    "parentGroup": parentGroup-> {        name,        "slug": slug.current    },    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current,        summary,        category,        "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}    },    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {    name,    "slug": slug.current,    summary,    body,    email,    website,    category,    "parentGroup": parentGroup-> {        name,        "slug": slug.current    },    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current,        summary,        category,        "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}    },    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
 export type StudentGroupBySlugQueryResult = {
     name: string | null
     slug: string | null
@@ -1725,10 +1725,10 @@ declare module "@sanity/client" {
         '\n    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "slug": coalesce(slug.current, "")\n}': EventTaxonomyGroupsQueryResult
         '*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {\n    "slug": slug.current,\n    name,\n    "eyebrow": recruitmentLabel,\n    "lead": coalesce(recruitmentLead, summary),\n    "imageUrl": image.image.asset->url,\n    "accordionSections": recruitmentSections[] {\n        _key,\n        title,\n        paragraphs\n    },\n    "detailSections": []\n}': VolunteerGroupsNbQueryResult
         '*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {\n    name,\n    "description": coalesce(recruitmentLead, summary)\n}': VolunteerGroupSummariesNbQueryResult
-        '*[_type == "studentGroup"] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    }\n}': StudentGroupsQueryResult
-        '\n    *[_type == "studentGroup" && category == $category] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    }\n}': StudentGroupsByCategoryResult
-        '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
-        '*[_type == "studentGroup" && slug.current == $slug][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current,\n        summary,\n        category,\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
+        '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current\n    }\n}': StudentGroupsQueryResult
+        '\n    *[_type == "studentGroup" && category == $category && !defined(parentGroup)] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current\n    }\n}': StudentGroupsByCategoryResult
+        '*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
+        '*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current,\n        summary,\n        category,\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
         '{\n    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        platform,\n        label,\n        url\n    },\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        "hours": openingHours {\n    rows[] {\n        _key,\n        label,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }\n}': FooterQueryResult
         '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult
         '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "siteName": coalesce(siteName, "Samfunnet i Bergen"),\n    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),\n    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),\n    defaultOpenGraphTitle,\n    defaultOpenGraphDescription,\n    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': SiteMetadataNbQueryResult
