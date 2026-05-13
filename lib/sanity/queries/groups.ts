@@ -23,7 +23,7 @@ export const volunteerGroupSummariesNbQuery =
     "description": coalesce(recruitmentLead, summary)
 }`)
 
-export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | order(orderRank asc) {
+export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
@@ -31,14 +31,14 @@ export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup"] | orde
     website,
     category,
     "image": image ${sourcedImageProjection},
-    "parentGroup": parentGroup-> {
+    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
         name,
         "slug": slug.current
     }
 }`)
 
 export const studentGroupsByCategory = defineQuery(`
-    *[_type == "studentGroup" && category == $category] | order(orderRank asc) {
+    *[_type == "studentGroup" && category == $category && !defined(parentGroup)] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
@@ -46,19 +46,19 @@ export const studentGroupsByCategory = defineQuery(`
     website,
     category,
     "image": image ${sourcedImageProjection},
-    "parentGroup": parentGroup-> {
+    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
         name,
         "slug": slug.current
     }
 }`)
 
 export const studentGroupSlugsQuery =
-    defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
+    defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
     "slug": slug.current
 }`)
 
 export const studentGroupBySlugQuery =
-    defineQuery(`*[_type == "studentGroup" && slug.current == $slug][0] {
+    defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
     name,
     "slug": slug.current,
     summary,

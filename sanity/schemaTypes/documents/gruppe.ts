@@ -5,7 +5,7 @@ import { defineArrayMember, defineField, defineType } from "sanity"
 export const GRUPPE_CATEGORIES = [
     { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
     { title: "Komité (Arg)", value: "komitee" },
-    { title: "Fast samarbeidspartner (Dorg)", value: "dorg" },
+    { title: "Driftsorganisasjon (Dorg)", value: "dorg" },
     { title: "Brukerorganisasjon (Borg)", value: "borg" },
 ]
 
@@ -156,7 +156,7 @@ export const gruppe = defineType({
             const categoryLabel: Record<string, string> = {
                 arbeidsgruppe: "Arbeidsgruppe (Arg)",
                 komitee: "Komité (Arg)",
-                dorg: "Fast samarbeidspartner",
+                dorg: "Driftsorganisasjon (Dorg)",
                 borg: "Brukerorganisasjon",
             }
             return {
