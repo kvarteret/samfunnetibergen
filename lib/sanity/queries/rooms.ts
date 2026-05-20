@@ -15,8 +15,11 @@ export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc)
     floor,
     bar,
     hasSound,
+    soundDetails,
     hasLighting,
+    lightingDetails,
     hasAV,
+    avDetails,
     "image": images[0] ${sourcedImageProjection}
 }`)
 
@@ -35,11 +38,22 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
     bar,
     panoramaUrl,
     hasSound,
+    soundDetails,
     hasLighting,
+    lightingDetails,
     hasAV,
+    avDetails,
     specsUrl,
     "openingHours": openingHours ${openingHoursProjection},
     body[] ${portableTextProjection},
     "images": images[] ${sourcedImageProjection},
+    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {
+        _key,
+        floor,
+        title,
+        "assetUrl": file.asset->url,
+        "mimeType": file.asset->mimeType,
+        "originalFilename": file.asset->originalFilename
+    },
     "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink ${sourceLinkProjection}
 }`)

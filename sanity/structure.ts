@@ -25,6 +25,7 @@ export const singletonTypeNames = [
     "roomsPage",
     "groupsPage",
     "blifrivilligPage",
+    "sponsorsPage",
     "kontaktPage",
     "navbar",
     "linkInBio",
@@ -104,6 +105,12 @@ export const structure: StructureResolver = (S, context) =>
                                                 "blifrivilligPage",
                                                 "Bli frivillig",
                                                 HeartIcon,
+                                            ),
+                                            singletonListItem(
+                                                S,
+                                                "sponsorsPage",
+                                                "Sponsorer",
+                                                StarIcon,
                                             ),
                                             singletonListItem(
                                                 S,

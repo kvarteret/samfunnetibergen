@@ -101,6 +101,14 @@ export const room = defineType({
             group: "specs",
         }),
         defineField({
+            name: "soundDetails",
+            title: "Detaljer om lyd",
+            description: "Valgfri tekst som vises sammen med «Lyd: Ja».",
+            type: "string",
+            group: "specs",
+            hidden: ({ document }) => document?.hasSound !== true,
+        }),
+        defineField({
             name: "hasLighting",
             title: "Lys",
             type: "boolean",
@@ -108,11 +116,27 @@ export const room = defineType({
             group: "specs",
         }),
         defineField({
+            name: "lightingDetails",
+            title: "Detaljer om lys",
+            description: "Valgfri tekst som vises sammen med «Lys: Ja».",
+            type: "string",
+            group: "specs",
+            hidden: ({ document }) => document?.hasLighting !== true,
+        }),
+        defineField({
             name: "hasAV",
             title: "A/V",
             type: "boolean",
             initialValue: false,
             group: "specs",
+        }),
+        defineField({
+            name: "avDetails",
+            title: "Detaljer om A/V",
+            description: "Valgfri tekst som vises sammen med «A/V: Ja».",
+            type: "string",
+            group: "specs",
+            hidden: ({ document }) => document?.hasAV !== true,
         }),
         defineField({
             name: "specsUrl",

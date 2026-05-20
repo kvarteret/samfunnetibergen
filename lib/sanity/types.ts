@@ -11,6 +11,7 @@ import type {
     roomsPageQuery,
     roomsQuery,
     siteMetadataNbQuery,
+    sponsorsPageQuery,
     studentGroupBySlugQuery,
     studentGroupsQuery,
 } from "./queries"
@@ -34,6 +35,8 @@ export type RoomsPageContent = NonNullable<ClientReturn<typeof roomsPageQuery>>
 export type RoomSummary = ClientReturn<typeof roomsQuery>[number]
 
 export type RoomDetail = NonNullable<ClientReturn<typeof roomBySlugQuery>>
+
+export type SponsorsPageContent = NonNullable<ClientReturn<typeof sponsorsPageQuery>>
 
 export type GroupsPageContent = NonNullable<ClientReturn<typeof groupsPageQuery>>
 

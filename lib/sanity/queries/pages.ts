@@ -54,6 +54,23 @@ export const roomsPageQuery = defineQuery(`*[_type == "roomsPage" && _id == "roo
     bookingLink ${sourceLinkProjection}
 }`)
 
+export const sponsorsPageQuery =
+    defineQuery(`*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {
+    eyebrow,
+    title,
+    description,
+    seoTitle,
+    seoDescription,
+    sponsors[] {
+        _key,
+        title,
+        website,
+        "logoUrl": logo.asset->url,
+        "logoAlt": coalesce(logo.alt, title),
+        description[] ${portableTextProjection}
+    }
+}`)
+
 export const groupsPageQuery = defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
     eyebrow,
     title,

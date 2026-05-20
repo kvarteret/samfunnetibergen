@@ -1,10 +1,7 @@
 import type { Metadata } from "next"
 import { DM_Mono, Instrument_Serif } from "next/font/google"
 import localFont from "next/font/local"
-import { draftMode } from "next/headers"
-import { VisualEditing } from "next-sanity/visual-editing"
 import { fetchSiteMetadata } from "@/lib/sanity/fetch"
-import { SanityLive } from "@/lib/sanity/live"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 import "./globals.css"
@@ -68,18 +65,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-    const { isEnabled: isDraftMode } = await draftMode()
-
     return (
         <html
             lang="no"
             className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${dmMono.variable} ${instrumentSerif.variable} h-full antialiased`}
         >
-            <body className="min-h-full">
-                {children}
-                <SanityLive />
-                {isDraftMode && <VisualEditing />}
-            </body>
+            <body className="min-h-full">{children}</body>
         </html>
     )
 }

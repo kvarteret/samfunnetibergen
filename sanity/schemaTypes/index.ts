@@ -16,6 +16,7 @@ import {
     linkInBio,
     roomsPage,
     siteMetadata,
+    sponsorsPage,
 } from "./documents/singletons"
 import { arrangementDate } from "./objects/arrangementDate"
 import { duration, timeValue } from "./objects/duration"
@@ -64,5 +65,6 @@ export const schemaTypes = [
     roomsPage,
     groupsPage,
     blifrivilligPage,
+    sponsorsPage,
     linkInBio,
 ]

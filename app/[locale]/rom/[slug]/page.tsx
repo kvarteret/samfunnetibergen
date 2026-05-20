@@ -128,6 +128,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 )}
 
                 <RoomSpecs room={room} />
+                <RoomFloorPlan room={room} />
                 <RoomOpeningHours room={room} />
                 {room.bookingLink ? (
                     <RoomBookingButton link={room.bookingLink} locale={locale} />
@@ -217,9 +218,15 @@ function RoomSpecs({ room }: RoomSpecsProps) {
                         <dd className="text-sm text-foreground">{room.bar ? room.bar : "Nei"}</dd>
                     </SpecRow>
                 )}
-                {room.hasSound != null && <BoolSpec label="Lyd" value={room.hasSound} />}
-                {room.hasLighting != null && <BoolSpec label="Lys" value={room.hasLighting} />}
-                {room.hasAV != null && <BoolSpec label="A/V" value={room.hasAV} />}
+                {room.hasSound != null && (
+                    <BoolSpec details={room.soundDetails} label="Lyd" value={room.hasSound} />
+                )}
+                {room.hasLighting != null && (
+                    <BoolSpec details={room.lightingDetails} label="Lys" value={room.hasLighting} />
+                )}
+                {room.hasAV != null && (
+                    <BoolSpec details={room.avDetails} label="A/V" value={room.hasAV} />
+                )}
             </dl>
 
             {room.specsUrl && (
@@ -254,18 +261,27 @@ function SpecRow({ children, label }: SpecRowProps) {
 }
 
 interface BoolSpecProps {
+    details?: string | null
     label: string
     value: boolean
 }
 
-function BoolSpec({ label, value }: BoolSpecProps) {
+function BoolSpec({ details, label, value }: BoolSpecProps) {
     return (
         <SpecRow label={label}>
             <dd className="text-sm text-foreground">
                 {value ? (
-                    <span className="inline-flex items-center gap-1.5 text-foreground">
-                        <Check aria-hidden className="size-4 text-green-700 dark:text-green-400" />
-                        Ja
+                    <span className="space-y-1">
+                        <span className="inline-flex items-center gap-1.5 text-foreground">
+                            <Check
+                                aria-hidden
+                                className="size-4 text-green-700 dark:text-green-400"
+                            />
+                            Ja
+                        </span>
+                        {details ? (
+                            <span className="block max-w-xs text-foreground/70">{details}</span>
+                        ) : null}
                     </span>
                 ) : (
                     <span className="inline-flex items-center gap-1.5 text-foreground/40">
@@ -275,6 +291,29 @@ function BoolSpec({ label, value }: BoolSpecProps) {
                 )}
             </dd>
         </SpecRow>
+    )
+}
+
+function RoomFloorPlan({ room }: RoomSpecsProps) {
+    const floorPlan = room.floorPlans?.find(plan => plan.floor === room.floor && plan.assetUrl)
+
+    if (!floorPlan?.assetUrl) {
+        return null
+    }
+
+    return (
+        <section className="space-y-4">
+            <h2 className="font-heading text-lg text-foreground">
+                {floorPlan.title ?? `${room.floor}. etasje`}
+            </h2>
+            <div className="max-w-sm">
+                <img
+                    alt={floorPlan.title ?? `Plantegning for ${room.floor}. etasje`}
+                    className="h-auto w-full"
+                    src={floorPlan.assetUrl}
+                />
+            </div>
+        </section>
     )
 }
 

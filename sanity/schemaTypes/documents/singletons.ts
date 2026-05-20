@@ -1,4 +1,12 @@
-import { CogIcon, DocumentIcon, HeartIcon, LinkIcon, StarIcon, UsersIcon } from "@sanity/icons"
+import {
+    CogIcon,
+    DocumentIcon,
+    HeartIcon,
+    ImageIcon,
+    LinkIcon,
+    StarIcon,
+    UsersIcon,
+} from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
@@ -271,6 +279,7 @@ export const roomsPage = defineType({
     groups: [
         { name: "hero", title: "Hero", default: true },
         { name: "booking", title: "Bestilling" },
+        { name: "floorPlans", title: "Plantegninger" },
         { name: "seo", title: "SEO" },
     ],
     fields: [
@@ -304,6 +313,51 @@ export const roomsPage = defineType({
             group: "booking",
         }),
         defineField({
+            name: "floorPlans",
+            title: "Plantegninger",
+            description: "SVG-plantegninger som vises på romsider basert på rommets etasje.",
+            type: "array",
+            group: "floorPlans",
+            of: [
+                defineArrayMember({
+                    name: "floorPlan",
+                    title: "Plantegning",
+                    type: "object",
+                    icon: ImageIcon,
+                    fields: [
+                        defineField({
+                            name: "floor",
+                            title: "Etasje",
+                            type: "number",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "title",
+                            title: "Tittel",
+                            type: "string",
+                        }),
+                        defineField({
+                            name: "file",
+                            title: "SVG-fil",
+                            type: "file",
+                            options: {
+                                accept: "image/svg+xml",
+                            },
+                            validation: rule => rule.required(),
+                        }),
+                    ],
+                    preview: {
+                        select: { floor: "floor", title: "title" },
+                        prepare({ floor, title }) {
+                            return {
+                                title: title ?? (floor ? `${floor}. etasje` : "Plantegning"),
+                            }
+                        },
+                    },
+                }),
+            ],
+        }),
+        defineField({
             name: "seoTitle",
             title: "SEO-tittel",
             description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
@@ -323,6 +377,97 @@ export const roomsPage = defineType({
         select: { title: "title" },
         prepare({ title }) {
             return { title: title ?? "Rom-side" }
+        },
+    },
+})
+
+export const sponsorsPage = defineType({
+    name: "sponsorsPage",
+    title: "Sponsorer-side",
+    type: "document",
+    icon: StarIcon,
+    groups: [
+        { name: "hero", title: "Hero", default: true },
+        { name: "sponsors", title: "Sponsorer" },
+        { name: "seo", title: "SEO" },
+    ],
+    fields: [
+        defineField({ name: "eyebrow", title: "Eyebrow", type: "string", group: "hero" }),
+        defineField({
+            name: "title",
+            title: "Tittel",
+            type: "string",
+            group: "hero",
+            validation: rule => rule.required(),
+        }),
+        defineField({
+            name: "description",
+            title: "Beskrivelse",
+            type: "text",
+            rows: 4,
+            group: "hero",
+        }),
+        defineField({
+            name: "sponsors",
+            title: "Sponsorer",
+            type: "array",
+            group: "sponsors",
+            of: [
+                defineArrayMember({
+                    name: "sponsor",
+                    title: "Sponsor",
+                    type: "object",
+                    fields: [
+                        defineField({
+                            name: "logo",
+                            title: "Logo",
+                            type: "image",
+                            options: { hotspot: true },
+                        }),
+                        defineField({
+                            name: "title",
+                            title: "Tittel",
+                            type: "string",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "description",
+                            title: "Beskrivelse",
+                            type: "portableTextContent",
+                        }),
+                        defineField({
+                            name: "website",
+                            title: "Nettsted",
+                            type: "url",
+                            validation: rule => rule.uri({ scheme: ["http", "https"] }),
+                        }),
+                    ],
+                    preview: {
+                        select: { title: "title", media: "logo" },
+                    },
+                }),
+            ],
+        }),
+        defineField({
+            name: "seoTitle",
+            title: "SEO-tittel",
+            description: "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
+            type: "string",
+            group: "seo",
+        }),
+        defineField({
+            name: "seoDescription",
+            title: "SEO-beskrivelse",
+            type: "text",
+            rows: 3,
+            group: "seo",
+            validation: rule => rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
+        }),
+    ],
+    preview: {
+        select: { title: "title" },
+        prepare({ title }) {
+            return { title: title ?? "Sponsorer-side" }
         },
     },
 })

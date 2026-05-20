@@ -28,6 +28,7 @@ import {
     roomsPageQuery,
     roomsQuery,
     siteMetadataNbQuery,
+    sponsorsPageQuery,
     studentGroupBySlugQuery,
     studentGroupSlugsQuery,
     studentGroupsByCategory,
@@ -46,6 +47,7 @@ import type {
     RoomSummary,
     RoomsPageContent,
     SiteMetadataContent,
+    SponsorsPageContent,
     StudentGroupDetail,
     StudentGroupSummary,
 } from "./types"
@@ -184,6 +186,19 @@ export async function fetchRoomBySlug(
         query: roomBySlugQuery,
         params: { slug },
         tags: ["rooms"],
+        stega: options.stega,
+    })
+    return data
+}
+
+// ─── Sponsors ────────────────────────────────────────────────────────────────
+
+export async function fetchSponsorsPageContent(
+    options: FetchOptions = {},
+): Promise<SponsorsPageContent | null> {
+    const { data } = await sanityFetch({
+        query: sponsorsPageQuery,
+        tags: ["sponsorsPage"],
         stega: options.stega,
     })
     return data

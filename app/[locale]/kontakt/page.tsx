@@ -1,6 +1,5 @@
 import { Mail, Phone } from "lucide-react"
 import Image from "next/image"
-
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchKontaktPage } from "@/lib/sanity/fetch"
 

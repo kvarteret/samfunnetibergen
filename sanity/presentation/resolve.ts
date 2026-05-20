@@ -30,6 +30,10 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             filter: `_id == "kontaktPage"`,
         },
         {
+            route: "/:locale/sponsorer",
+            filter: `_id == "sponsorsPage"`,
+        },
+        {
             route: "/:locale/rom",
             filter: `_id == "roomsPage"`,
         },
@@ -112,6 +116,13 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             select: {},
             resolve: () => ({
                 locations: [{ title: "Grupper", href: `/${defaultLocale}/grupper` }],
+            }),
+        }),
+
+        sponsorsPage: defineLocations({
+            select: {},
+            resolve: () => ({
+                locations: [{ title: "Sponsorer", href: `/${defaultLocale}/sponsorer` }],
             }),
         }),
 

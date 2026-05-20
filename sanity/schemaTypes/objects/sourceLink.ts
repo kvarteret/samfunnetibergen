@@ -40,6 +40,7 @@ export const sourceLink = defineType({
                 { type: "roomsPage" },
                 { type: "groupsPage" },
                 { type: "blifrivilligPage" },
+                { type: "sponsorsPage" },
                 { type: "kontaktPage" },
                 { type: "page" },
                 { type: "arrangement" },
