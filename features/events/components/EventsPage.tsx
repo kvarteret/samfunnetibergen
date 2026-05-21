@@ -1,12 +1,17 @@
 import { CalendarDays, CalendarPlus } from "lucide-react"
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ArrangementsProvider } from "@/features/events/context/ArrangementsContext"
 import type { PublishedArrangement } from "@/features/events/domain/arrangementUtils"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { ArrangementsFilters } from "./ArrangementsFilters"
 import { ArrangementsSections } from "./ArrangementsSections"
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no"
+const ICAL_URL = `${BASE_URL}/api/ical`
+const WEBCAL_URL = ICAL_URL.replace(/^https?:/, "webcal:")
+const GOOGLE_URL = `https://calendar.google.com/calendar/r/settings/addbyurl?cid=${encodeURIComponent(WEBCAL_URL)}`
 
 export function EventsPage({
     arrangements,
@@ -47,27 +52,41 @@ export function EventsPage({
                     </Link>
                     <div className="flex items-center gap-4">
                         <h1 className="font-heading text-4xl">{title}</h1>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                                    <a
-                                        aria-label="Abonner på kalender"
-                                        className="text-foreground/40 transition-colors hover:text-foreground"
-                                        href="/api/ical"
-                                    >
-                                        <CalendarDays className="size-5" aria-hidden />
-                                    </a>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Abonner på arrangementer i din kalender</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Kopier lenken og legg til via «Legg til fra URL» i Google
-                                        Kalender, Apple Kalender, eller Outlook
+                        <Popover>
+                            <PopoverTrigger
+                                aria-label="Abonner på kalender"
+                                className="text-foreground/40 transition-colors hover:text-foreground"
+                            >
+                                <CalendarDays className="size-5" aria-hidden />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-72 space-y-3 p-4" align="start">
+                                <div>
+                                    <p className="text-sm font-semibold">Abonner på kalender</p>
+                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                        Hold deg oppdatert — nye arrangementer dukker opp automatisk
+                                        i din kalender.
                                     </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <a
+                                        className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                                        href={GOOGLE_URL}
+                                        rel="noreferrer"
+                                        target="_blank"
+                                    >
+                                        <CalendarDays className="size-4 shrink-0" aria-hidden />
+                                        Google Kalender
+                                    </a>
+                                    <a
+                                        className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                                        href={WEBCAL_URL}
+                                    >
+                                        <CalendarDays className="size-4 shrink-0" aria-hidden />
+                                        Apple Kalender / Outlook
+                                    </a>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </header>
 
