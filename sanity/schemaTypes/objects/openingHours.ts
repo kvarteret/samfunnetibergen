@@ -14,6 +14,24 @@ export const openingHoursRow = defineType({
             validation: rule => rule.required(),
         }),
         defineField({
+            name: "weekdays",
+            title: "Ukedager",
+            description: "ISO: 1=man, 2=tir, 3=ons, 4=tor, 5=fre, 6=lør, 7=søn",
+            type: "array",
+            of: [defineArrayMember({ type: "number" })],
+            options: {
+                list: [
+                    { title: "Mandag", value: 1 },
+                    { title: "Tirsdag", value: 2 },
+                    { title: "Onsdag", value: 3 },
+                    { title: "Torsdag", value: 4 },
+                    { title: "Fredag", value: 5 },
+                    { title: "Lørdag", value: 6 },
+                    { title: "Søndag", value: 7 },
+                ],
+            },
+        }),
+        defineField({
             name: "status",
             title: "Status",
             type: "string",

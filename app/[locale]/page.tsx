@@ -1,8 +1,7 @@
+import { Mic } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import type { VolunteerStats } from "@/features/blifrivillig/stats"
-import { fetchVolunteerStats } from "@/features/blifrivillig/stats"
 import { type ArrangementSummary, EventCard } from "@/features/events/components/ArrangementCard"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
@@ -119,10 +118,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
 
-    const [homePage, arrangements, volunteerStats] = await Promise.all([
+    const [homePage, arrangements] = await Promise.all([
         fetchHomePageContent(locale),
         fetchPublishedArrangements(),
-        fetchVolunteerStats(),
     ])
     const visibleArrangements = (arrangements ?? []).slice(0, 4)
 
@@ -130,7 +128,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         <div className="flex flex-col gap-12 pb-12">
             <HomeHero homePage={homePage} locale={locale} />
             <HomeEvents arrangements={visibleArrangements} locale={locale} />
-            {volunteerStats && <VolunteerStatsSection stats={volunteerStats} />}
+            <HomeKaraoke locale={locale} />
         </div>
     )
 }
@@ -204,7 +202,7 @@ function HomeEvents({ arrangements, locale }: HomeEventsProps) {
                         showRoom={false}
                         size="small"
                         ticketsLabel="Billetter"
-                        variant="transparent"
+                        variant="default"
                     />
                 ))}
             </div>
@@ -212,29 +210,36 @@ function HomeEvents({ arrangements, locale }: HomeEventsProps) {
     )
 }
 
-// ─── VolunteerStatsSection ────────────────────────────────────────────────────
+// ─── HomeKaraoke ──────────────────────────────────────────────────────────────
 
-function VolunteerStatsSection({ stats }: { stats: VolunteerStats }) {
+function HomeKaraoke({ locale }: { locale: AppLocale }) {
     return (
         <section className="space-y-4">
-            <p className="border-b-2 border-border pb-2 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                Frivillige
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="border-2 border-border bg-card p-6 text-center">
-                    <p className="font-heading text-xs uppercase tracking-widest text-foreground/50">
-                        over
-                    </p>
-                    <p className="font-heading text-4xl text-foreground">
-                        {Math.round(stats.totalVolunteers / 1000) + " tusen"}
-                    </p>
-                    <p className="mt-1 text-sm text-foreground/60">frivillige siden 1995</p>
+            <div className="flex items-center justify-between border-b-2 border-border pb-2">
+                <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
+                    Karaoke
+                </p>
+                <Link
+                    className="text-xs uppercase tracking-[0.18em] underline underline-offset-4"
+                    href={`/${locale}/karaoke`}
+                >
+                    Book nå
+                </Link>
+            </div>
+            <div className="border-2 border-border bg-card p-6 flex flex-col sm:flex-row gap-6 items-start">
+                <div className="size-12 bg-primary flex items-center justify-center shrink-0">
+                    <Mic className="size-6 text-primary-foreground" aria-hidden />
                 </div>
-                <div className="border-2 border-border bg-card p-6 text-center">
-                    <p className="font-heading text-4xl text-foreground">
-                        {stats.currentSemesterVolunteers.toLocaleString("nb-NO")}
+                <div className="space-y-3 min-w-0">
+                    <h2 className="font-heading text-xl text-foreground">Maos Lille Røde</h2>
+                    <p className="text-sm leading-6 text-foreground/70 max-w-lg">
+                        Book karaoke hos oss! Vi har et intimt og godt utstyrt karaokerom i bygget.
+                        Perfekt for bursdag, vennekveld eller bare fordi du har lyst. Aldersgrense
+                        18 år.
                     </p>
-                    <p className="mt-1 text-sm text-foreground/60">frivillige dette semesteret</p>
+                    <Button asChild size="sm">
+                        <Link href={`/${locale}/karaoke`}>Book karaokerom</Link>
+                    </Button>
                 </div>
             </div>
         </section>

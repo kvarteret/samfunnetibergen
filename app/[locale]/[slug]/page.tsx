@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
 
+import ReactMarkdown from "react-markdown"
+
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchPageBySlug, fetchPageSlugs } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
@@ -36,8 +37,8 @@ export default async function DynamicPage({ params }: PageProps) {
     if (!page) notFound()
 
     return (
-        <div className="max-w-4xl space-y-8">
-            <PortableTextContent value={page.content ?? []} />
+        <div className="prose prose-neutral max-w-4xl dark:prose-invert">
+            <ReactMarkdown>{page.content ?? ""}</ReactMarkdown>
         </div>
     )
 }

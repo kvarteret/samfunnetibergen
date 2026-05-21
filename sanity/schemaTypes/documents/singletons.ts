@@ -16,6 +16,7 @@ export const siteMetadata = defineType({
     icon: CogIcon,
     groups: [
         { name: "identity", title: "Identitet", default: true },
+        { name: "venue", title: "Huset" },
         { name: "sharing", title: "Deling og oEmbed" },
     ],
     fields: [
@@ -25,6 +26,13 @@ export const siteMetadata = defineType({
             type: "string",
             group: "identity",
             initialValue: "Samfunnet i Bergen",
+        }),
+        defineField({
+            name: "openingHours",
+            title: "Åpningstider",
+            description: "Husets åpningstider — åpent når Sanity eller Grøndahls holder åpent.",
+            type: "openingHours",
+            group: "venue",
         }),
         defineField({
             name: "defaultSeoTitle",

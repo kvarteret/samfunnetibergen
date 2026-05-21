@@ -3,6 +3,7 @@ import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
+import { markdownSchema } from "sanity-plugin-markdown"
 import { recurringDates } from "sanity-plugin-recurring-dates"
 import { ApproveAction, RejectAction } from "./sanity/actions/approvalActions"
 import { dataset, projectId } from "./sanity/env"
@@ -30,6 +31,7 @@ export default defineConfig({
             },
         }),
         visionTool(),
+        markdownSchema(),
     ],
     document: {
         newDocumentOptions: (prev, { creationContext }) => {

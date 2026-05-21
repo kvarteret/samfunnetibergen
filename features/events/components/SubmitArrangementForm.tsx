@@ -53,6 +53,14 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
     const uid = useId()
 
     useEffect(() => {
+        const today = new Date().toISOString().split("T")[0]
+        const firstId = state.dates[0].id
+        dispatch({ type: "UPDATE_DATE", id: firstId, key: "startDate", value: today })
+        dispatch({ type: "UPDATE_DATE", id: firstId, key: "startTime", value: "21:00" })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
         return () => {
             if (imagePreviewUrl) {
                 URL.revokeObjectURL(imagePreviewUrl)

@@ -95,7 +95,7 @@ export const pageBySlugQuery = defineQuery(`*[_type == "page" && slug.current ==
     "slug": slug.current,
     seoTitle,
     seoDescription,
-    content[] ${portableTextProjection}
+    content
 }`)
 
 export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == "kontaktPage"][0] {

@@ -31,7 +31,7 @@ export const page = defineType({
         defineField({
             name: "content",
             title: "Innhold",
-            type: "portableTextContent",
+            type: "markdown",
             group: "content",
         }),
         defineField({
