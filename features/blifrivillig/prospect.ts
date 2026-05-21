@@ -30,8 +30,12 @@ export type VolunteerProspectResponse = {
 
 export type VolunteerProspectErrorResponse = {
     detail: string
-    fieldErrors?: Partial<Record<VolunteerProspectField, string | Record<string, string>>>
+    fieldErrors?: VolunteerProspectFieldErrors
 }
+
+export type VolunteerProspectFieldErrors = Partial<
+    Record<VolunteerProspectField, string | Record<string, string>>
+>
 
 export type VolunteerProspectValidationMessages = {
     firstNameRequired: string
@@ -68,7 +72,7 @@ export function validateVolunteerProspectValues(
     messages: VolunteerProspectValidationMessages,
     validGroupSlugs: ReadonlyArray<string>,
 ) {
-    const fieldErrors: Partial<Record<VolunteerProspectField, string>> = {}
+    const fieldErrors: VolunteerProspectFieldErrors = {}
 
     if (!values.firstName.trim()) fieldErrors.firstName = messages.firstNameRequired
     if (!values.lastName.trim()) fieldErrors.lastName = messages.lastNameRequired

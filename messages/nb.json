@@ -54,6 +54,12 @@
         "studyInstitutionPlaceholder": "Velg studiested",
         "backgroundDetailsLabel": "Annen skole? Privatist? I arbeid? Ung og engasjert? Spesifiser gjerne!",
         "backgroundDetailsPlaceholder": "Fortell kort om bakgrunnen din eller om noe vi bør vite.",
+        "friendSignupLabel": "Vil du melde deg på med venner?",
+        "friendSignupHelp": "Legg til vennenes e-postadresser. De får en invitasjon for å fylle inn sin egen søknad, og vi prøver å sette dere på skift sammen.",
+        "friendEmailLabel": "Venn {number}",
+        "friendEmailPlaceholder": "venn@example.no",
+        "addFriend": "+ Legg til venn",
+        "removeFriend": "Fjern venn",
         "secondChoiceLabel": "Andrevalg",
         "secondChoicePlaceholder": "Valgfritt andrevalg velges fra kortene.",
         "secondChoiceSelectedHelp": "Ditt valgfrie reservevalg vises her. Trykk på fanen for å fjerne det.",
@@ -122,7 +128,10 @@
         "studyInstitutionRequired": "Velg studiested.",
         "firstChoiceRequired": "Velg en gruppe som førstevalg.",
         "unsupportedGroup": "Denne gruppen støttes ikke i denne lanseringen.",
-        "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg."
+        "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg.",
+        "friendEmailInvalid": "Skriv inn en gyldig e-postadresse.",
+        "friendEmailDuplicate": "E-postadressene må være ulike.",
+        "friendEmailMax": "Du kan legge til maks to venner."
     },
     "Api": {
         "invalidRequest": "Ugyldig forespørsel.",

@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl"
 import { useMemo } from "react"
 
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +47,9 @@ export function VolunteerProspectExperience({
             firstChoiceRequired: tValidation("firstChoiceRequired"),
             unsupportedGroup: tValidation("unsupportedGroup"),
             secondChoiceConflict: tValidation("secondChoiceConflict"),
+            friendEmailInvalid: tValidation("friendEmailInvalid"),
+            friendEmailDuplicate: tValidation("friendEmailDuplicate"),
+            friendEmailMax: tValidation("friendEmailMax"),
         }),
         [tValidation],
     )
@@ -323,6 +327,114 @@ export function VolunteerProspectExperience({
                                             />
                                         </div>
                                     )}
+                                </form.Field>
+
+                                <form.Field name="friendEmails">
+                                    {field => {
+                                        const friendErrors =
+                                            createProspectMutation.error?.fieldErrors?.friendEmails
+                                        const indexedFriendErrors =
+                                            friendErrors && typeof friendErrors === "object"
+                                                ? friendErrors
+                                                : {}
+                                        const friendEmails = field.state.value
+
+                                        return (
+                                            <section className="space-y-3 border-t-2 border-border pt-5">
+                                                <div className="space-y-1">
+                                                    <Label>{tForm("friendSignupLabel")}</Label>
+                                                    <p className="text-sm leading-6 text-foreground/75">
+                                                        {tForm("friendSignupHelp")}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {friendEmails.map((email, index) => (
+                                                        <div
+                                                            className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+                                                            key={index}
+                                                        >
+                                                            <div className="space-y-2">
+                                                                <Input
+                                                                    aria-label={tForm(
+                                                                        "friendEmailLabel",
+                                                                        { number: index + 1 },
+                                                                    )}
+                                                                    onBlur={field.handleBlur}
+                                                                    onChange={event => {
+                                                                        captureFormStarted(
+                                                                            "change",
+                                                                            field.name,
+                                                                        )
+                                                                        const nextEmails = [
+                                                                            ...friendEmails,
+                                                                        ]
+                                                                        nextEmails[index] =
+                                                                            event.target.value
+                                                                        field.handleChange(nextEmails)
+                                                                    }}
+                                                                    placeholder={tForm(
+                                                                        "friendEmailPlaceholder",
+                                                                    )}
+                                                                    type="email"
+                                                                    value={email}
+                                                                />
+                                                                <FieldError
+                                                                    message={
+                                                                        indexedFriendErrors[
+                                                                            String(index)
+                                                                        ] ??
+                                                                        (typeof friendErrors ===
+                                                                        "string"
+                                                                            ? friendErrors
+                                                                            : undefined)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <Button
+                                                                aria-label={tForm("removeFriend")}
+                                                                onClick={() => {
+                                                                    field.handleChange(
+                                                                        friendEmails.filter(
+                                                                            (_, emailIndex) =>
+                                                                                emailIndex !==
+                                                                                index,
+                                                                        ),
+                                                                    )
+                                                                }}
+                                                                size="icon"
+                                                                type="button"
+                                                                variant="neutral"
+                                                            >
+                                                                ×
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {friendEmails.length < 2 && (
+                                                    <Button
+                                                        onClick={() => {
+                                                            captureFormStarted(
+                                                                "change",
+                                                                field.name,
+                                                            )
+                                                            field.handleChange([...friendEmails, ""])
+                                                        }}
+                                                        type="button"
+                                                        variant="neutral"
+                                                    >
+                                                        {tForm("addFriend")}
+                                                    </Button>
+                                                )}
+                                                <FieldError
+                                                    message={
+                                                        typeof friendErrors === "string"
+                                                            ? friendErrors
+                                                            : getVisibleFieldError(field.state.meta)
+                                                    }
+                                                />
+                                            </section>
+                                        )
+                                    }}
                                 </form.Field>
 
                                 <VolunteerChoiceSummary

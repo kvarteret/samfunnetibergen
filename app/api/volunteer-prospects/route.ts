@@ -32,7 +32,35 @@ function extractErrorDetail(responseBody: Record<string, unknown> | null) {
         }
     }
 
+    if (
+        responseBody?.detail &&
+        typeof responseBody.detail === "object" &&
+        !Array.isArray(responseBody.detail) &&
+        "message" in responseBody.detail &&
+        typeof responseBody.detail.message === "string"
+    ) {
+        return responseBody.detail.message
+    }
+
     return null
+}
+
+function extractFieldErrors(responseBody: Record<string, unknown> | null) {
+    const detail = responseBody?.detail
+    if (
+        detail &&
+        typeof detail === "object" &&
+        !Array.isArray(detail) &&
+        "fieldErrors" in detail
+    ) {
+        return (detail as { fieldErrors?: unknown }).fieldErrors
+    }
+
+    if (responseBody && "fieldErrors" in responseBody) {
+        return responseBody.fieldErrors
+    }
+
+    return undefined
 }
 
 export async function POST(request: Request) {
@@ -98,6 +126,7 @@ export async function POST(request: Request) {
             return Response.json(
                 {
                     detail: extractErrorDetail(responseBody) ?? messages.Api.submitFailure,
+                    fieldErrors: extractFieldErrors(responseBody),
                 },
                 { status: response.status },
             )
