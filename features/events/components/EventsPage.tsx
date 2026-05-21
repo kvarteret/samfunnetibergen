@@ -8,7 +8,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { ArrangementsFilters } from "./ArrangementsFilters"
 import { ArrangementsSections } from "./ArrangementsSections"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no"
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no").trim()
 const ICAL_URL = `${BASE_URL}/api/ical`
 const WEBCAL_URL = ICAL_URL.replace(/^https?:/, "webcal:")
 const GOOGLE_URL = `https://calendar.google.com/calendar/r/settings/addbyurl?cid=${encodeURIComponent(WEBCAL_URL)}`

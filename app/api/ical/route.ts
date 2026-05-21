@@ -7,7 +7,7 @@ import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no"
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no").trim()
 const TZ = "Europe/Oslo"
 
 function toDateTime(date: string, time?: string | null): Date {
