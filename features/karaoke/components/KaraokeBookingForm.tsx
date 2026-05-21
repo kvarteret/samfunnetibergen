@@ -3,6 +3,8 @@
 import { ChevronDown, ExternalLink, Loader2, Mic, X } from "lucide-react"
 import { useEffect, useId, useMemo, useState, useTransition } from "react"
 
+import { Link } from "@/i18n/navigation"
+
 import { type CresatBooking, fetchKaraokeAvailability } from "@/app/actions/karaoke-availability"
 import { type PriceType, submitKaraokeBooking } from "@/app/actions/submit-karaoke-booking"
 import { Button } from "@/components/ui/button"
@@ -689,12 +691,12 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                             <span className="text-sm leading-6 text-foreground/80">
                                 Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
                                 forstått og godkjenner{" "}
-                                <a
+                                <Link
                                     className="underline underline-offset-2 hover:text-foreground transition-colors"
                                     href="/vilkar-for-leie-av-karaoke"
                                 >
                                     bruksvilkårene
-                                </a>
+                                </Link>
                                 .
                             </span>
                         </label>
