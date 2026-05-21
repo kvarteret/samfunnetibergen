@@ -32,9 +32,11 @@ export async function GET() {
     const arrangements = await client.fetch(publishedArrangementsQuery, { today })
 
     const calendar = ical({
-        name: "Samfunnet i Bergen — Arrangementer",
+        name: "Samfunnet i Bergen",
+        description: "Arrangementer på Samfunnet i Bergen",
         prodId: "//Samfunnet i Bergen//Arrangementer//NO",
         method: ICalCalendarMethod.PUBLISH,
+        timezone: TZ,
         ttl: 3600,
     })
 
