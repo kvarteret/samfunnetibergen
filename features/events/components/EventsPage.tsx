@@ -10,6 +10,7 @@ import { ArrangementsSections } from "./ArrangementsSections"
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no").trim()
 const ICAL_URL = `${BASE_URL}/api/ical`
 const WEBCAL_URL = ICAL_URL.replace(/^https?:/, "webcal:")
+const GOOGLE_URL = `https://calendar.google.com/calendar/r/settings/addbyurl?cid=${encodeURIComponent(ICAL_URL)}`
 
 export function EventsPage({
     arrangements,
@@ -65,13 +66,22 @@ export function EventsPage({
                     ticketsLabel={ticketsLabel}
                 />
 
-                <a
-                    className="inline-flex items-center gap-2 text-sm text-foreground/60 transition-colors hover:text-foreground"
-                    href={WEBCAL_URL}
-                >
-                    <CalendarDays className="size-4" aria-hidden />
-                    Lagre arrangementskalender
-                </a>
+                <p className="inline-flex items-center gap-2 text-sm text-foreground/60">
+                    <CalendarDays className="size-4 shrink-0" aria-hidden />
+                    Lagre arrangementskalender:{" "}
+                    <a
+                        className="transition-colors hover:text-foreground"
+                        href={GOOGLE_URL}
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        Google
+                    </a>
+                    <span aria-hidden>·</span>
+                    <a className="transition-colors hover:text-foreground" href={WEBCAL_URL}>
+                        Apple / Outlook
+                    </a>
+                </p>
 
                 <div className="flex flex-col gap-4 border-2 border-border bg-card p-5 sm:flex-row sm:items-center sm:gap-6">
                     <div className="flex size-10 shrink-0 items-center justify-center bg-primary">
