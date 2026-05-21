@@ -39,14 +39,18 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/arrangem
     }
 }
 
-export default async function EventsPage({ params }: PageProps<"/[locale]/arrangementer">) {
+export default async function EventsPage({
+    params,
+    searchParams,
+}: PageProps<"/[locale]/arrangementer">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
 
-    const [t, eventsContent, arrangements] = await Promise.all([
+    const [t, eventsContent, arrangements, resolvedSearchParams] = await Promise.all([
         getTranslations({ locale, namespace: "EventsPage" }),
         fetchEventsPageContent(locale),
         fetchPublishedArrangements(),
+        searchParams,
     ])
 
     const title = eventsContent?.title ?? t("title")
@@ -57,7 +61,12 @@ export default async function EventsPage({ params }: PageProps<"/[locale]/arrang
             backLabel={t("back")}
             emptyLabel={t("empty")}
             facebookLabel={t("facebook")}
+            filterAllLabel={t("filterAll")}
+            filterMoreLabel={t("filterMore")}
+            filterOrganizerLabel={t("filterOrganizer")}
+            filterTypeLabel={t("filterType")}
             locale={locale}
+            searchParams={resolvedSearchParams}
             ticketsLabel={t("tickets")}
             title={title}
         />
