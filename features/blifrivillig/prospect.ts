@@ -10,6 +10,7 @@ export type VolunteerProspectField =
     | "backgroundDetails"
     | "firstChoiceGroupSlug"
     | "secondChoiceGroupSlug"
+    | "friendEmails"
 
 export type VolunteerProspectValues = {
     firstName: string
@@ -20,6 +21,7 @@ export type VolunteerProspectValues = {
     backgroundDetails: string
     firstChoiceGroupSlug: VolunteerGroupSlug | ""
     secondChoiceGroupSlug: VolunteerGroupSlug | ""
+    friendEmails: string[]
 }
 
 export type VolunteerProspectResponse = {
@@ -28,7 +30,7 @@ export type VolunteerProspectResponse = {
 
 export type VolunteerProspectErrorResponse = {
     detail: string
-    fieldErrors?: Partial<Record<VolunteerProspectField, string>>
+    fieldErrors?: Partial<Record<VolunteerProspectField, string | Record<string, string>>>
 }
 
 export type VolunteerProspectValidationMessages = {
@@ -40,6 +42,9 @@ export type VolunteerProspectValidationMessages = {
     firstChoiceRequired: string
     unsupportedGroup: string
     secondChoiceConflict: string
+    friendEmailInvalid: string
+    friendEmailDuplicate: string
+    friendEmailMax: string
 }
 
 export const volunteerProspectDraftStorageKey = "volunteer-prospect-draft"
@@ -53,6 +58,7 @@ export const defaultVolunteerProspectValues: VolunteerProspectValues = {
     backgroundDetails: "",
     firstChoiceGroupSlug: "",
     secondChoiceGroupSlug: "",
+    friendEmails: [],
 }
 
 const NON_DIGIT_PATTERN = /\D/g
@@ -72,7 +78,7 @@ export function validateVolunteerProspectValues(
         fieldErrors.email = messages.emailInvalid
     }
 
-    if (!values.phone.trim()) fieldErrors.phone = messages.phoneRequired
+    if (!values.phone.trim() || !/\d/.test(values.phone)) fieldErrors.phone = messages.phoneRequired
     if (!values.studyInstitution.trim()) {
         fieldErrors.studyInstitution = messages.studyInstitutionRequired
     }
@@ -92,6 +98,27 @@ export function validateVolunteerProspectValues(
         values.secondChoiceGroupSlug === values.firstChoiceGroupSlug
     ) {
         fieldErrors.secondChoiceGroupSlug = messages.secondChoiceConflict
+    }
+
+    const normalizedFriendEmails = values.friendEmails
+        .map(email => email.trim().toLowerCase())
+        .filter(Boolean)
+    if (normalizedFriendEmails.length > 2) {
+        fieldErrors.friendEmails = messages.friendEmailMax
+    } else {
+        const seenEmails = new Set<string>([normalizedEmail].filter(Boolean))
+        const friendErrors: Record<string, string> = {}
+        normalizedFriendEmails.forEach((email, index) => {
+            if (!isValidEmailAddress(email)) {
+                friendErrors[String(index)] = messages.friendEmailInvalid
+            } else if (seenEmails.has(email)) {
+                friendErrors[String(index)] = messages.friendEmailDuplicate
+            }
+            seenEmails.add(email)
+        })
+        if (Object.keys(friendErrors).length > 0) {
+            fieldErrors.friendEmails = friendErrors
+        }
     }
 
     return fieldErrors
@@ -132,6 +159,7 @@ export function buildVolunteerProspectPayload(values: VolunteerProspectValues) {
         background_details: values.backgroundDetails.trim() || null,
         first_choice_group_slug: values.firstChoiceGroupSlug || null,
         second_choice_group_slug: values.secondChoiceGroupSlug || "",
+        friend_emails: values.friendEmails.map(email => email.trim().toLowerCase()).filter(Boolean),
     }
 }
 
@@ -147,6 +175,7 @@ export function loadVolunteerProspectDraft() {
         return {
             ...defaultVolunteerProspectValues,
             ...parsed,
+            friendEmails: Array.isArray(parsed.friendEmails) ? parsed.friendEmails : [],
         }
     } catch {
         return defaultVolunteerProspectValues

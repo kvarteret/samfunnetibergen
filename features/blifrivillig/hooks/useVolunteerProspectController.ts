@@ -186,15 +186,17 @@ export function useVolunteerProspectController({
         }
 
         const errorEntries = Object.entries(createProspectMutation.error.fieldErrors) as Array<
-            [keyof VolunteerProspectValues, string]
+            [keyof VolunteerProspectValues, string | Record<string, string>]
         >
 
         for (const [fieldName, message] of errorEntries) {
+            const renderedMessage =
+                typeof message === "string" ? message : Object.values(message)[0]
             form.setFieldMeta(fieldName, previous => ({
                 ...previous,
                 errorMap: {
                     ...previous.errorMap,
-                    onSubmit: message,
+                    onSubmit: renderedMessage,
                 },
                 isTouched: true,
             }))

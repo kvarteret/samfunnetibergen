@@ -48,8 +48,9 @@ export async function POST(request: Request) {
     }
 
     const groups = await getVolunteerGroups(locale)
+    const builtPayload = buildVolunteerProspectPayload(payload)
     const fieldErrors = validateVolunteerProspectValues(
-        payload,
+        { ...payload, phone: builtPayload.phone },
         messages.Validation,
         groups.map(g => g.slug),
     )
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
                 "Content-Type": "application/json",
             },
             cache: "no-store",
-            body: JSON.stringify(buildVolunteerProspectPayload(payload)),
+            body: JSON.stringify(builtPayload),
         })
 
         const responseBody = (await response.json().catch(() => null)) as Record<
