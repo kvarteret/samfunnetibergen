@@ -50,6 +50,7 @@ export function EventsPage({
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
+                                    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                                     <a
                                         aria-label="Abonner på kalender"
                                         className="text-foreground/40 transition-colors hover:text-foreground"
