@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarPlus } from "lucide-react"
+import { CalendarDays, CalendarPlus, Download, ExternalLink } from "lucide-react"
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ArrangementsProvider } from "@/features/events/context/ArrangementsContext"
@@ -59,30 +59,35 @@ export function EventsPage({
                             >
                                 <CalendarDays className="size-5" aria-hidden />
                             </PopoverTrigger>
-                            <PopoverContent className="w-72 space-y-3 p-4" align="start">
-                                <div>
+                            <PopoverContent className="w-72 p-0" align="start">
+                                <div className="border-b border-border px-4 py-3">
                                     <p className="text-sm font-semibold">Abonner på kalender</p>
                                     <p className="mt-0.5 text-xs text-muted-foreground">
-                                        Hold deg oppdatert — nye arrangementer dukker opp automatisk
-                                        i din kalender.
+                                        Nye arrangementer dukker opp automatisk i din kalender.
                                     </p>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col">
                                     <a
-                                        className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                                        className="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent"
                                         href={GOOGLE_URL}
                                         rel="noreferrer"
                                         target="_blank"
                                     >
-                                        <CalendarDays className="size-4 shrink-0" aria-hidden />
-                                        Google Kalender
+                                        <ExternalLink
+                                            className="size-4 shrink-0 text-muted-foreground"
+                                            aria-hidden
+                                        />
+                                        <span>Google Kalender</span>
                                     </a>
                                     <a
-                                        className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-accent"
+                                        className="flex items-center gap-3 border-t border-border px-4 py-3 text-sm transition-colors hover:bg-accent"
                                         href={WEBCAL_URL}
                                     >
-                                        <CalendarDays className="size-4 shrink-0" aria-hidden />
-                                        Apple Kalender / Outlook
+                                        <Download
+                                            className="size-4 shrink-0 text-muted-foreground"
+                                            aria-hidden
+                                        />
+                                        <span>Apple Kalender / Outlook</span>
                                     </a>
                                 </div>
                             </PopoverContent>

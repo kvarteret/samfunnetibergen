@@ -1,39 +1,32 @@
+import { TZDate } from "@date-fns/tz"
+import ical, { ICalCalendarMethod } from "ical-generator"
 import { createClient } from "next-sanity"
+
 import { arrangementBySlugQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: true })
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no"
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no").trim()
+const TZ = "Europe/Oslo"
 
-function icalDate(date: string, time?: string | null): string {
-    const d = date.replace(/-/g, "")
-    if (!time) return `${d}`
-    const t = time.replace(":", "") + "00"
-    return `${d}T${t}`
+function toDate(date: string): Date {
+    const [year, month, day] = date.split("-").map(Number)
+    return new Date(year, month - 1, day)
 }
 
-function escapeIcal(value: string): string {
-    return value
-        .replace(/\\/g, "\\\\")
-        .replace(/;/g, "\\;")
-        .replace(/,/g, "\\,")
-        .replace(/\n/g, "\\n")
+function toDateTime(date: string, time: string): Date {
+    return new TZDate(`${date}T${time}:00`, TZ)
 }
 
-function foldLine(line: string): string {
-    const chunks: string[] = []
-    while (line.length > 75) {
-        chunks.push(line.slice(0, 75))
-        line = " " + line.slice(75)
-    }
-    chunks.push(line)
-    return chunks.join("\r\n")
+function nextDay(date: Date): Date {
+    const d = new Date(date)
+    d.setDate(d.getDate() + 1)
+    return d
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
-
     const today = new Date().toISOString().slice(0, 10)
     const arrangement = await client.fetch(arrangementBySlugQuery, { slug, today })
 
@@ -41,44 +34,65 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
         return new Response("Not found", { status: 404 })
     }
 
-    const location = arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
+    const calendar = ical({
+        name: arrangement.title ?? "Samfunnet i Bergen",
+        prodId: "//Samfunnet i Bergen//Arrangementer//NO",
+        method: ICalCalendarMethod.PUBLISH,
+        ttl: 3600,
+    })
+
     const url = `${BASE_URL}/arrangementer/${slug}`
+    const location = arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
 
-    type DateEntry = NonNullable<typeof arrangement.dates>[number]
-    const events = (arrangement.dates ?? [])
-        .map((d: DateEntry) => {
-            const dtstart = icalDate(d.startDate, d.startTime)
-            const dtend = d.endTime ? icalDate(d.startDate, d.endTime) : dtstart
+    if (arrangement.isRecurring && arrangement.rrule && arrangement.dates?.length) {
+        const base = arrangement.dates[0]
+        const allDay = !base.startTime
+        const start = allDay ? toDate(base.startDate) : toDateTime(base.startDate, base.startTime!)
+        const end = allDay
+            ? nextDay(toDate(base.startDate))
+            : base.endTime
+              ? toDateTime(base.startDate, base.endTime)
+              : toDateTime(base.startDate, base.startTime!)
 
-            const hasTime = Boolean(d.startTime)
-            const datePrefix = hasTime ? "TZID=Europe/Oslo:" : "VALUE=DATE:"
-
-            const lines = [
-                "BEGIN:VEVENT",
-                foldLine(`DTSTART;${datePrefix}${dtstart}`),
-                foldLine(`DTEND;${datePrefix}${dtend}`),
-                foldLine(`SUMMARY:${escapeIcal(arrangement.title ?? "")}`),
-                foldLine(`LOCATION:${escapeIcal(location)}`),
-                foldLine(`URL:${url}`),
-                `UID:${d._key}@samfunnetibergen.no`,
-                "END:VEVENT",
-            ]
-
-            return lines.join("\r\n")
+        calendar.createEvent({
+            id: `${arrangement._id}@samfunnetibergen.no`,
+            summary: arrangement.title,
+            start,
+            end,
+            allDay,
+            repeating: arrangement.rrule,
+            location,
+            url,
+            organizer: arrangement.organizerGroup?.name
+                ? { name: arrangement.organizerGroup.name, email: "post@samfunnetibergen.no" }
+                : undefined,
         })
-        .join("\r\n")
+    } else {
+        for (const d of arrangement.dates ?? []) {
+            const allDay = !d.startTime
+            const start = allDay ? toDate(d.startDate) : toDateTime(d.startDate, d.startTime!)
+            const end = allDay
+                ? nextDay(toDate(d.startDate))
+                : d.endTime
+                  ? toDateTime(d.startDate, d.endTime)
+                  : toDateTime(d.startDate, d.startTime!)
 
-    const calendar = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//Samfunnet i Bergen//Arrangementer//NO",
-        "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH",
-        events,
-        "END:VCALENDAR",
-    ].join("\r\n")
+            calendar.createEvent({
+                id: `${d._key}@samfunnetibergen.no`,
+                summary: arrangement.title,
+                start,
+                end,
+                allDay,
+                location,
+                url,
+                organizer: arrangement.organizerGroup?.name
+                    ? { name: arrangement.organizerGroup.name, email: "post@samfunnetibergen.no" }
+                    : undefined,
+            })
+        }
+    }
 
-    return new Response(calendar, {
+    return new Response(calendar.toString(), {
         headers: {
             "Content-Type": "text/calendar; charset=utf-8",
             "Content-Disposition": `attachment; filename="${slug}.ics"`,

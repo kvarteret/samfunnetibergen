@@ -110,7 +110,6 @@ export default async function EventPage({ params }: EventPageProps) {
     const taxonomy = arrangement.eventType?.name
     const price = formatPrices(arrangement)
     const gcalUrl = googleCalendarUrl(arrangement)
-
     return (
         <article className="flex w-full flex-col gap-8">
             {/* Hero */}
