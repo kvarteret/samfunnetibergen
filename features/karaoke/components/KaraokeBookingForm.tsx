@@ -21,20 +21,22 @@ import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 const PRICING: Record<PriceType, { perPerson: number; minPerHour: number }> = {
     ordinær: { perPerson: 79, minPerHour: 395 },
     student: { perPerson: 59, minPerHour: 295 },
+    frivillig: { perPerson: 0, minPerHour: 0 },
 }
 
 const DURATION_OPTIONS = [1, 2, 3, 4] as const
 const DATE_COUNT = 60
 
-// ISO weekday: 1=Mon … 7=Sun. end < start means the range crosses midnight.
-const WEEKDAY_HOURS: Record<number, { start: number; end: number }> = {
-    1: { start: 13, end: 1 },
-    2: { start: 13, end: 1 },
-    3: { start: 13, end: 1 },
-    4: { start: 13, end: 1 },
-    5: { start: 13, end: 3 },
-    6: { start: 19, end: 3 },
-    7: { start: 16, end: 22 },
+// ISO weekday: 1=Mon…7=Sun. startMin/endMin are minutes from midnight;
+// endMin > 1440 means the session runs past midnight into the next day.
+const WEEKDAY_HOURS: Record<number, { startMin: number; endMin: number }> = {
+    1: { startMin: 12 * 60, endMin: 25 * 60 }, // 12:00 – 01:00
+    2: { startMin: 12 * 60, endMin: 25 * 60 },
+    3: { startMin: 12 * 60, endMin: 25 * 60 },
+    4: { startMin: 12 * 60, endMin: 25 * 60 },
+    5: { startMin: 12 * 60, endMin: 26 * 60 }, // 12:00 – 02:00
+    6: { startMin: 13 * 60 + 30, endMin: 26 * 60 }, // 13:30 – 02:00
+    7: { startMin: 16 * 60, endMin: 22 * 60 }, // 16:00 – 22:00
 }
 
 function isoWeekday(dateStr: string): number {
@@ -42,16 +44,21 @@ function isoWeekday(dateStr: string): number {
     return d.getDay() === 0 ? 7 : d.getDay()
 }
 
+// Returns slot start times as minutes-from-midnight, in 60-min increments.
 function getSlotsForDate(dateStr: string, durationHours: number): number[] {
     const range = WEEKDAY_HOURS[isoWeekday(dateStr)]
     if (!range) return []
-    const { start, end } = range
-    const totalOpen = end <= start ? 24 - start + end : end - start
-    return Array.from({ length: totalOpen - durationHours + 1 }, (_, i) => (start + i) % 24)
+    const { startMin, endMin } = range
+    const durationMin = durationHours * 60
+    const count = Math.floor((endMin - startMin - durationMin) / 60) + 1
+    if (count <= 0) return []
+    return Array.from({ length: count }, (_, i) => startMin + i * 60)
 }
 
-function formatHour(h: number): string {
-    return `${String(h).padStart(2, "0")}:00`
+function formatSlot(minutes: number): string {
+    const h = Math.floor((minutes % (24 * 60)) / 60)
+    const m = minutes % 60
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
 }
 
 function addHours(time: string, hours: number): string {
@@ -62,7 +69,7 @@ function addHours(time: string, hours: number): string {
 }
 
 function calcPrice(priceType: PriceType, people: number, durationHours: number): number {
-    if (people <= 0) return 0
+    if (people <= 0 || priceType === "frivillig") return 0
     const p = PRICING[priceType]
     return Math.max(p.perPerson * people, p.minPerHour) * durationHours
 }
@@ -78,16 +85,20 @@ function formatDate(dateStr: string): string {
 
 function slotOverlapsBookings(
     date: string,
-    hour: number,
+    slotStartMin: number,
     durationHours: number,
     bookings: CresatBooking[],
 ): boolean {
-    const slotStart = new Date(`${date}T${formatHour(hour)}:00`)
-    const slotEnd = new Date(slotStart.getTime() + durationHours * 60 * 60 * 1000)
+    // Use the date as midnight base + slotStartMin offset so that
+    // post-midnight slots (slotStartMin >= 1440) resolve to the correct
+    // calendar day rather than the start of the selected date.
+    const baseDateMs = new Date(date + "T00:00:00").getTime()
+    const slotStartMs = baseDateMs + slotStartMin * 60 * 1000
+    const slotEndMs = slotStartMs + durationHours * 3600 * 1000
     return bookings.some(b => {
-        const bookStart = new Date(b.start)
-        const bookEnd = new Date(b.end)
-        return slotStart < bookEnd && slotEnd > bookStart
+        const bookStart = new Date(b.start).getTime()
+        const bookEnd = new Date(b.end).getTime()
+        return slotStartMs < bookEnd && slotEndMs > bookStart
     })
 }
 
@@ -97,7 +108,7 @@ function dateHasAvailableSlot(
     bookings: CresatBooking[],
 ): boolean {
     return getSlotsForDate(date, durationHours).some(
-        h => !slotOverlapsBookings(date, h, durationHours, bookings),
+        slotMin => !slotOverlapsBookings(date, slotMin, durationHours, bookings),
     )
 }
 
@@ -122,6 +133,7 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
     const [priceType, setPriceType] = useState<PriceType>("student")
     const [numberOfPeople, setNumberOfPeople] = useState("4")
     const [acceptTerms, setAcceptTerms] = useState(false)
+    const [studentProofAccepted, setStudentProofAccepted] = useState(false)
     const [bookings, setBookings] = useState<CresatBooking[]>([])
     const [today, setToday] = useState("")
 
@@ -135,8 +147,9 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
 
     useEffect(() => {
         if (startDate && startTime) {
-            const hour = parseInt(startTime.split(":")[0])
-            if (slotOverlapsBookings(startDate, hour, duration, bookings)) {
+            const [h, m] = startTime.split(":").map(Number)
+            const slotStartMin = h * 60 + (m || 0)
+            if (slotOverlapsBookings(startDate, slotStartMin, duration, bookings)) {
                 setStartTime("")
             }
         }
@@ -155,7 +168,8 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
             !startTime ||
             !contactName.trim() ||
             !contactEmail.trim() ||
-            !acceptTerms
+            !acceptTerms ||
+            (priceType === "student" && !studentProofAccepted)
         )
             return
 
@@ -262,12 +276,8 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                     <section className="space-y-6">
                         <SectionHeader number="02" title="Karaokepakke" />
 
-                        <FieldHint>
-                            Vi tilbyr to prispakker. Drikke kan bestilles som tillegg.
-                        </FieldHint>
-
                         <div className="flex border-2 border-border" role="tablist">
-                            {(["ordinær", "student"] as const).map(type => (
+                            {(["ordinær", "student", "frivillig"] as const).map(type => (
                                 <button
                                     aria-pressed={priceType === type}
                                     className={cn(
@@ -285,46 +295,63 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                             ))}
                         </div>
 
-                        <div className="border-2 border-border bg-card p-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-foreground/60">Timepris per person</span>
-                                <span className="font-heading">
-                                    {PRICING[priceType].perPerson} kr
-                                </span>
+                        {priceType === "frivillig" ? (
+                            <div className="border-2 border-border bg-card p-4 space-y-2">
+                                <p className="text-sm font-heading text-foreground">
+                                    Gratis for interne frivillige
+                                </p>
+                                <p className="text-sm text-foreground/70 leading-6">
+                                    Som intern frivillig kan du bruke karaokerommet gratis, men
+                                    eksterne bookinger har alltid prioritet. En ekstern booking kan
+                                    overta rommet ved å booke senest{" "}
+                                    <strong className="font-heading text-foreground">
+                                        12 timer før
+                                    </strong>{" "}
+                                    — i så fall vil du bli varslet og bookingen din kanselleres.
+                                </p>
                             </div>
-                        </div>
-
-                        <FieldGroup>
-                            <Label htmlFor={`${uid}-people`}>Antall personer *</Label>
-                            <div className="relative max-w-[180px]">
-                                <select
-                                    className="w-full appearance-none border-2 border-border bg-background px-3 py-2 pr-9 text-sm font-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                    id={`${uid}-people`}
-                                    onChange={e => setNumberOfPeople(e.target.value)}
-                                    value={numberOfPeople}
-                                >
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(n => (
-                                        <option key={n} value={n}>
-                                            {n} {n === 1 ? "person" : "personer"}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown
-                                    aria-hidden
-                                    className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-foreground/50"
-                                />
+                        ) : (
+                            <div className="border-2 border-border bg-card p-4">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-foreground/60">Timepris per person</span>
+                                    <span className="font-heading">
+                                        {PRICING[priceType].perPerson} kr
+                                    </span>
+                                </div>
                             </div>
-                            <FieldHint>
-                                Minimumspris er {PRICING[priceType].minPerHour} kr per time.
-                            </FieldHint>
-                        </FieldGroup>
+                        )}
 
-                        {people > 0 && (
+                        {priceType !== "frivillig" && (
+                            <FieldGroup>
+                                <Label htmlFor={`${uid}-people`}>Antall personer *</Label>
+                                <div className="relative max-w-[180px]">
+                                    <select
+                                        className="w-full appearance-none border-2 border-border bg-background px-3 py-2 pr-9 text-sm font-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        id={`${uid}-people`}
+                                        onChange={e => setNumberOfPeople(e.target.value)}
+                                        value={numberOfPeople}
+                                    >
+                                        {Array.from({ length: 25 }, (_, i) => i + 1).map(n => (
+                                            <option key={n} value={n}>
+                                                {n} {n === 1 ? "person" : "personer"}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown
+                                        aria-hidden
+                                        className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-foreground/50"
+                                    />
+                                </div>
+                                <FieldHint>
+                                    Minimumspris er {PRICING[priceType].minPerHour} kr per time.
+                                </FieldHint>
+                            </FieldGroup>
+                        )}
+
+                        {people > 0 && priceType !== "frivillig" && (
                             <div className="border-2 border-primary bg-primary/5 p-4">
                                 <div className="flex items-baseline justify-between">
-                                    <span className="text-sm text-foreground/70">
-                                        Estimert totalpris
-                                    </span>
+                                    <span className="text-sm text-foreground/70">Totalpris</span>
                                     <div className="text-right">
                                         <span className="font-heading text-2xl text-primary">
                                             {totalPrice.toLocaleString("nb-NO")} kr
@@ -400,6 +427,17 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                                 .
                             </span>
                         </label>
+                        {priceType === "student" && (
+                            <label className="group flex cursor-pointer items-start gap-3">
+                                <CheckboxSquare
+                                    checked={studentProofAccepted}
+                                    onChange={setStudentProofAccepted}
+                                />
+                                <span className="text-sm leading-6 text-foreground/80">
+                                    Jeg lover å ta med studentbevis 🤞
+                                </span>
+                            </label>
+                        )}
                     </section>
 
                     <section className="space-y-4 border-t-2 border-border pt-8">
@@ -421,7 +459,11 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                         )}
                         <Button
                             className="w-full sm:w-auto"
-                            disabled={isPending || !acceptTerms}
+                            disabled={
+                                isPending ||
+                                !acceptTerms ||
+                                (priceType === "student" && !studentProofAccepted)
+                            }
                             size="lg"
                             type="submit"
                         >
@@ -552,16 +594,22 @@ function SlotPicker({
                         Velg starttidspunkt
                     </p>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                        {getSlotsForDate(selectedDate, duration).map(h => {
-                            const taken = slotOverlapsBookings(selectedDate, h, duration, bookings)
-                            const isSelected = selectedTime === formatHour(h)
+                        {getSlotsForDate(selectedDate, duration).map(slotMin => {
+                            const taken = slotOverlapsBookings(
+                                selectedDate,
+                                slotMin,
+                                duration,
+                                bookings,
+                            )
+                            const slotLabel = formatSlot(slotMin)
+                            const isSelected = selectedTime === slotLabel
 
                             return (
                                 <button
-                                    key={h}
+                                    key={slotMin}
                                     type="button"
                                     disabled={taken}
-                                    onClick={() => onTimeChange(formatHour(h))}
+                                    onClick={() => onTimeChange(slotLabel)}
                                     className={cn(
                                         "py-2.5 text-sm font-heading border-2 text-center transition-colors",
                                         isSelected
@@ -571,7 +619,7 @@ function SlotPicker({
                                               : "border-border hover:bg-muted",
                                     )}
                                 >
-                                    {formatHour(h)}
+                                    {slotLabel}
                                 </button>
                             )
                         })}
@@ -661,13 +709,20 @@ function OrderPreview({
                             </span>
                         </div>
                     )}
-                    {people > 0 && (
+                    {priceType === "frivillig" ? (
                         <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
                             <span className="text-foreground/60 shrink-0">Pris</span>
-                            <span className="font-heading text-primary text-lg">
-                                {totalPrice.toLocaleString("nb-NO")} kr
-                            </span>
+                            <span className="font-heading text-primary text-lg">Gratis</span>
                         </div>
+                    ) : (
+                        people > 0 && (
+                            <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
+                                <span className="text-foreground/60 shrink-0">Pris</span>
+                                <span className="font-heading text-primary text-lg">
+                                    {totalPrice.toLocaleString("nb-NO")} kr
+                                </span>
+                            </div>
+                        )
                     )}
                 </div>
             )}

@@ -79,7 +79,7 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
     variants: {
         size: {
             default: "gap-4 p-5",
-            small: "gap-2 px-0 pt-3 pb-0",
+            small: "gap-2 p-3",
         },
     },
     defaultVariants: {

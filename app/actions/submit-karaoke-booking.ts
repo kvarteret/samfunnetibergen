@@ -3,7 +3,7 @@
 import { postEventRequest } from "@/lib/crescat/client"
 import { buildKaraokeRequest, KARAOKE_SLUG } from "@/lib/crescat/karaoke"
 
-export type PriceType = "ordinær" | "student"
+export type PriceType = "ordinær" | "student" | "frivillig"
 
 export type KaraokeBookingPayload = {
     eventName: string

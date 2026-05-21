@@ -23,13 +23,16 @@ export const volunteerGroupSummariesNbQuery =
     "description": coalesce(recruitmentLead, summary)
 }`)
 
-export const studentGroupsQuery = defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
+export const studentGroupsQuery =
+    defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
     email,
     website,
     category,
+    labels,
+    "logoUrl": logo.asset->url,
     "image": image ${sourcedImageProjection},
     "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
         name,

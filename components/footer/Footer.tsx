@@ -156,13 +156,70 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
     )
 }
 
+type ContactSegment = { type: "text" | "phone" | "email"; value: string }
+
+const CONTACT_PATTERN =
+    /(\+?47[\s-]?)?(\d{3}[\s-]?\d{2}[\s-]?\d{3}|\d{2}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
+
+function parseContactSegments(text: string): ContactSegment[] {
+    const segments: ContactSegment[] = []
+    let lastIndex = 0
+    CONTACT_PATTERN.lastIndex = 0
+    let match: RegExpExecArray | null
+    while ((match = CONTACT_PATTERN.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            segments.push({ type: "text", value: text.slice(lastIndex, match.index) })
+        }
+        const val = match[0]
+        segments.push({ type: val.includes("@") ? "email" : "phone", value: val })
+        lastIndex = match.index + val.length
+    }
+    if (lastIndex < text.length) {
+        segments.push({ type: "text", value: text.slice(lastIndex) })
+    }
+    return segments
+}
+
+function LinkedContactText({ text }: { text: string }) {
+    return (
+        <>
+            {parseContactSegments(text).map((seg, i) => {
+                if (seg.type === "phone") {
+                    const digits = seg.value.replace(/[\s-]/g, "")
+                    return (
+                        <a
+                            key={i}
+                            href={`tel:${digits}`}
+                            className="underline underline-offset-2 hover:text-foreground transition-colors"
+                        >
+                            {seg.value}
+                        </a>
+                    )
+                }
+                if (seg.type === "email") {
+                    return (
+                        <a
+                            key={i}
+                            href={`mailto:${seg.value}`}
+                            className="underline underline-offset-2 hover:text-foreground transition-colors"
+                        >
+                            {seg.value}
+                        </a>
+                    )
+                }
+                return <span key={i}>{seg.value}</span>
+            })}
+        </>
+    )
+}
+
 function ContactColumn({ generalContact }: { generalContact?: string | null }) {
     if (!generalContact) return null
     return (
         <div>
             <ColumnHeading>Kontakt oss</ColumnHeading>
             <p className="text-sm text-foreground/80 whitespace-pre-line leading-relaxed">
-                {generalContact}
+                <LinkedContactText text={generalContact} />
             </p>
         </div>
     )

@@ -38,7 +38,7 @@ export interface KaraokeBookingInput {
     contactEmail: string
     contactPhone: string
     numberOfPeople: number
-    priceType: "ordinær" | "student"
+    priceType: "ordinær" | "student" | "frivillig"
 }
 
 export function buildKaraokeRequest(input: KaraokeBookingInput): EventRequestBody {

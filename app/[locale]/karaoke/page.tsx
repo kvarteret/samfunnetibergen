@@ -102,18 +102,13 @@ export default async function KaraokePage({ params }: { params: Promise<{ locale
                             , må du bestille på telefon:
                         </li>
                     </ul>
-                    <div className="flex items-center gap-6">
-                        <a
-                            className="flex items-center gap-2 text-sm font-heading text-primary hover:underline underline-offset-4 transition-colors"
-                            href="tel:40626601"
-                        >
-                            <Phone className="size-4 shrink-0" aria-hidden />
-                            406 26 601
-                        </a>
-                        <p className="text-xs font-heading uppercase tracking-[0.12em] text-destructive">
-                            Aldersgrense 18 år!
-                        </p>
-                    </div>
+                    <a
+                        className="flex items-center gap-2 text-sm font-heading text-primary hover:underline underline-offset-4 transition-colors"
+                        href="tel:40626601"
+                    >
+                        <Phone className="size-4 shrink-0" aria-hidden />
+                        406 26 601
+                    </a>
                 </div>
             </header>
 

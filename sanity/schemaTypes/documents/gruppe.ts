@@ -138,6 +138,23 @@ export const gruppe = defineType({
                 rule.uri({ scheme: ["http", "https"] }).error("Må være en gyldig URL"),
         }),
         defineField({
+            name: "logo",
+            title: "Logo",
+            description: "Logobilde som vises på kortene i gruppelistene",
+            type: "image",
+            group: "identity",
+            options: { hotspot: false },
+        }),
+        defineField({
+            name: "labels",
+            title: "Etiketter",
+            description: "Opptil 3 etiketter for filtrering (f.eks. «Bar», «Kultur», «Teknikk»)",
+            type: "array",
+            group: "identity",
+            of: [defineArrayMember({ type: "string" })],
+            validation: rule => rule.max(3),
+        }),
+        defineField({
             name: "image",
             title: "Bilde",
             type: "sourcedImage",

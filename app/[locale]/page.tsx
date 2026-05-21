@@ -1,4 +1,3 @@
-import { Mic } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -128,7 +127,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         <div className="flex flex-col gap-12 pb-12">
             <HomeHero homePage={homePage} locale={locale} />
             <HomeEvents arrangements={visibleArrangements} locale={locale} />
-            <HomeKaraoke locale={locale} />
         </div>
     )
 }
@@ -142,7 +140,7 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
     const ctaLabel = homePage?.primaryCta?.label ?? "Bli frivillig"
 
     return (
-        <section className="border-b-2 border-border pb-10 pt-2">
+        <section className="pb-10 pt-2">
             <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
                 {homePage?.eyebrow ?? "Studentenes hus i Bergen"}
             </p>
@@ -205,42 +203,6 @@ function HomeEvents({ arrangements, locale }: HomeEventsProps) {
                         variant="default"
                     />
                 ))}
-            </div>
-        </section>
-    )
-}
-
-// ─── HomeKaraoke ──────────────────────────────────────────────────────────────
-
-function HomeKaraoke({ locale }: { locale: AppLocale }) {
-    return (
-        <section className="space-y-4">
-            <div className="flex items-center justify-between border-b-2 border-border pb-2">
-                <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                    Karaoke
-                </p>
-                <Link
-                    className="text-xs uppercase tracking-[0.18em] underline underline-offset-4"
-                    href={`/${locale}/karaoke`}
-                >
-                    Book nå
-                </Link>
-            </div>
-            <div className="border-2 border-border bg-card p-6 flex flex-col sm:flex-row gap-6 items-start">
-                <div className="size-12 bg-primary flex items-center justify-center shrink-0">
-                    <Mic className="size-6 text-primary-foreground" aria-hidden />
-                </div>
-                <div className="space-y-3 min-w-0">
-                    <h2 className="font-heading text-xl text-foreground">Maos Lille Røde</h2>
-                    <p className="text-sm leading-6 text-foreground/70 max-w-lg">
-                        Book karaoke hos oss! Vi har et intimt og godt utstyrt karaokerom i bygget.
-                        Perfekt for bursdag, vennekveld eller bare fordi du har lyst. Aldersgrense
-                        18 år.
-                    </p>
-                    <Button asChild size="sm">
-                        <Link href={`/${locale}/karaoke`}>Book karaokerom</Link>
-                    </Button>
-                </div>
             </div>
         </section>
     )
