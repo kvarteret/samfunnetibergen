@@ -103,3 +103,38 @@ export const eventTaxonomyGroupsQuery = defineQuery(`
     "name": coalesce(name, ""),
     "slug": coalesce(slug.current, "")
 }`)
+
+export const feedArrangementsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && isInternalEvent != true
+        && (
+            count(dates[startDate >= $today]) > 0
+            || (isRecurring == true && defined(rrule) && count(dates) > 0)
+        )
+    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {
+        _id,
+        _updatedAt,
+        "title": coalesce(title, ""),
+        "slug": coalesce(slug.current, ""),
+        isRecurring,
+        rrule,
+        "dates": dates | order(startDate asc) {
+            _key,
+            "startDate": coalesce(startDate, ""),
+            startTime,
+            endTime
+        },
+        isFree,
+        priceOrdinar,
+        priceStudent,
+        ticketUrl,
+        "imageUrl": image.asset->url,
+        "room": room-> { "title": coalesce(title, "") },
+        roomText,
+        "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },
+        organizerText,
+        "eventType": eventType-> { "name": coalesce(name, "") },
+        description[] ${portableTextProjection}
+    }`)
