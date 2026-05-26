@@ -49,6 +49,14 @@ export const arrangement = defineType({
             group: "core",
         }),
         defineField({
+            name: "isInternalEvent",
+            title: "Internarrangement",
+            description: "Arrangementet er kun tilgjengelig for frivillige.",
+            type: "boolean",
+            group: "core",
+            initialValue: false,
+        }),
+        defineField({
             name: "description",
             title: "Beskrivelse",
             description: "Rik tekst — formatering, bilder og lenker støttes",

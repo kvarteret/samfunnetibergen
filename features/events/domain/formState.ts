@@ -20,6 +20,7 @@ export type FormState = {
     organizerText: string
     submittedByOrganization: string
     eventTypeId: string
+    isInternalEvent: boolean
     isFree: boolean
     priceOrdinar: string
     priceStudent: string
@@ -72,6 +73,7 @@ export const initialState: FormState = {
     organizerText: "",
     submittedByOrganization: "",
     eventTypeId: "",
+    isInternalEvent: false,
     isFree: false,
     priceOrdinar: "",
     priceStudent: "",

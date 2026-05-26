@@ -36,6 +36,7 @@ export type SubmitArrangementInput = {
     organizerText?: string
     eventTypeId?: string
     imageAssetId?: string
+    isInternalEvent?: boolean
     isFree?: boolean
     priceOrdinar?: number
     priceStudent?: number
@@ -143,6 +144,10 @@ export async function submitArrangement(
 
         if (input.submittedByOrganization?.trim()) {
             doc.submittedByOrganization = input.submittedByOrganization.trim()
+        }
+
+        if (input.isInternalEvent) {
+            doc.isInternalEvent = true
         }
 
         if (input.isFree) {

@@ -31,6 +31,7 @@ interface ArrangementDetailsFieldsProps {
     description: string
     eventTypeId: string
     eventTypeOptions: SelectOption[]
+    isInternalEvent: boolean
     setField: SetFormField
 }
 
@@ -40,6 +41,7 @@ export function ArrangementDetailsFields({
     description,
     eventTypeId,
     eventTypeOptions,
+    isInternalEvent,
     setField,
 }: ArrangementDetailsFieldsProps) {
     return (
@@ -81,6 +83,21 @@ export function ArrangementDetailsFields({
                 placeholder="Velg type (valgfritt)"
                 value={eventTypeId}
             />
+
+            <label className="group flex cursor-pointer items-start gap-3">
+                <CheckboxSquare
+                    checked={isInternalEvent}
+                    onChange={setField("isInternalEvent")}
+                />
+                <span>
+                    <span className="block font-heading text-sm text-foreground">
+                        Internarrangement
+                    </span>
+                    <span className="mt-0.5 block text-xs text-foreground/55">
+                        Arrangementet er kun tilgjengelig for frivillige.
+                    </span>
+                </span>
+            </label>
         </section>
     )
 }

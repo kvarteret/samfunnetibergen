@@ -186,6 +186,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                 submittedByOrganization: state.submittedByOrganization || undefined,
                 eventTypeId: state.eventTypeId || undefined,
                 imageAssetId: imageAssetId || undefined,
+                isInternalEvent: state.isInternalEvent || undefined,
                 isFree: state.isFree,
                 priceOrdinar: state.priceOrdinar ? Number(state.priceOrdinar) : undefined,
                 priceStudent: state.priceStudent ? Number(state.priceStudent) : undefined,
@@ -216,6 +217,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     description={state.description}
                     eventTypeId={state.eventTypeId}
                     eventTypeOptions={eventTypeOptions}
+                    isInternalEvent={state.isInternalEvent}
                     setField={setField}
                     title={state.title}
                     uid={uid}
