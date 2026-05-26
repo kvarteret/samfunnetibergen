@@ -1,5 +1,5 @@
-import { toPlainText } from "@portabletext/toolkit"
 import { TZDate } from "@date-fns/tz"
+import { toPlainText } from "@portabletext/toolkit"
 import { createClient } from "next-sanity"
 
 import { feedArrangementsQuery } from "@/lib/sanity/queries/events"
@@ -61,8 +61,17 @@ function buildEventEntry(
             name: organizer,
         },
         isAccessibleForFree: arrangement.isFree ?? false,
+        eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
         inLanguage: "no",
         lastReviewed: arrangement._updatedAt,
+    }
+
+    // All events in this feed are approved — always true
+    entry.published = true
+
+    if (arrangement.isRecurring && arrangement.rrule) {
+        // Non-standard extension: iCal RRULE for consumers that support recurrence expansion
+        entry.rrule = arrangement.rrule
     }
 
     if (arrangement.imageUrl) {
