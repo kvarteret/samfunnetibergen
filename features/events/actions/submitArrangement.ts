@@ -93,9 +93,38 @@ function sanitizeUrl(url: string | undefined): string | undefined {
     return trimmed
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isValidDateString(dateStr: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false
+    const d = new Date(`${dateStr}T00:00:00Z`)
+    return !isNaN(d.getTime())
+}
+
+function validateArrangementInput(input: SubmitArrangementInput): string | null {
+    if (!input.title?.trim()) return "Tittel er påkrevd"
+    if (!input.submittedBy?.trim()) return "Navn er påkrevd"
+    if (!input.submittedByEmail?.trim()) return "E-post er påkrevd"
+    if (!EMAIL_RE.test(input.submittedByEmail.trim())) return "Ugyldig e-post"
+
+    const validDates = (input.dates ?? []).filter(
+        d => d.startDate && isValidDateString(d.startDate),
+    )
+    if (validDates.length === 0) return "Minst én gyldig dato er påkrevd"
+
+    if (input.isRecurring && !input.rrule?.trim()) {
+        return "RRule er påkrevd for gjentagende arrangementer"
+    }
+
+    return null
+}
+
 export async function submitArrangement(
     input: SubmitArrangementInput,
 ): Promise<SubmitArrangementResult> {
+    const validationError = validateArrangementInput(input)
+    if (validationError) return { ok: false, error: validationError }
+
     try {
         const client = getWriteClient()
 
