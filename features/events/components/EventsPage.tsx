@@ -1,7 +1,7 @@
 import { CalendarDays, CalendarPlus } from "lucide-react"
 
 import { ArrangementsProvider } from "@/features/events/context/ArrangementsContext"
-import type { PublishedArrangement } from "@/features/events/domain/arrangementUtils"
+import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { ArrangementsFilters } from "./ArrangementsFilters"
@@ -26,7 +26,7 @@ export function EventsPage({
     ticketsLabel,
     title,
 }: {
-    arrangements: PublishedArrangement[]
+    arrangements: PublishedEvent[]
     backLabel: string
     emptyLabel: string
     facebookLabel: string

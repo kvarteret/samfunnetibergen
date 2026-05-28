@@ -4,21 +4,21 @@ import { usePathname, useRouter } from "next/navigation"
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 
 import {
-    type ArrangementFilters,
-    type ArrangementTaxonomy,
-    buildTaxonomyFromArrangements,
-    filterArrangements,
-    type PublishedArrangement,
-    parseArrangementFilters,
-    serializeArrangementFilters,
-} from "@/features/events/domain/arrangementUtils"
+    buildTaxonomyFromEvents,
+    type EventFilters,
+    type EventTaxonomy,
+    filterEvents,
+    parseEventFilters,
+    type PublishedEvent,
+    serializeEventFilters,
+} from "@/features/events/domain/eventUtils"
 
 type ArrangementsContextValue = {
-    arrangements: PublishedArrangement[]
-    taxonomy: ArrangementTaxonomy
-    filters: ArrangementFilters
-    setFilters: (filters: ArrangementFilters) => void
-    filteredArrangements: PublishedArrangement[]
+    arrangements: PublishedEvent[]
+    taxonomy: EventTaxonomy
+    filters: EventFilters
+    setFilters: (filters: EventFilters) => void
+    filteredArrangements: PublishedEvent[]
 }
 
 const ArrangementsContext = createContext<ArrangementsContextValue | null>(null)
@@ -29,25 +29,25 @@ export function ArrangementsProvider({
     initialSearchParams,
 }: {
     children: React.ReactNode
-    initialArrangements: PublishedArrangement[]
+    initialArrangements: PublishedEvent[]
     initialSearchParams: Record<string, string | string[] | undefined>
 }) {
     const pathname = usePathname()
     const router = useRouter()
 
     const taxonomy = useMemo(
-        () => buildTaxonomyFromArrangements(initialArrangements),
+        () => buildTaxonomyFromEvents(initialArrangements),
         [initialArrangements],
     )
 
-    const [filters, setFiltersState] = useState<ArrangementFilters>(() =>
-        parseArrangementFilters(initialSearchParams),
+    const [filters, setFiltersState] = useState<EventFilters>(() =>
+        parseEventFilters(initialSearchParams),
     )
 
     const setFilters = useCallback(
-        (nextFilters: ArrangementFilters) => {
+        (nextFilters: EventFilters) => {
             setFiltersState(nextFilters)
-            const serialized = serializeArrangementFilters(nextFilters)
+            const serialized = serializeEventFilters(nextFilters)
             router.replace(serialized ? `${pathname}?${serialized}` : pathname, {
                 scroll: false,
             })
@@ -56,7 +56,7 @@ export function ArrangementsProvider({
     )
 
     const filteredArrangements = useMemo(
-        () => filterArrangements(initialArrangements, filters),
+        () => filterEvents(initialArrangements, filters),
         [initialArrangements, filters],
     )
 

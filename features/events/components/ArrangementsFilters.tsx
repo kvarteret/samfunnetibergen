@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { useArrangements } from "@/features/events/context/ArrangementsContext"
-import { countArrangementFilters } from "@/features/events/domain/arrangementUtils"
+import { countEventFilters } from "@/features/events/domain/eventUtils"
 import { FilterButton } from "./FilterButton"
 
 interface ArrangementsFiltersProps {
@@ -21,7 +21,7 @@ export function ArrangementsFilters({
 }: ArrangementsFiltersProps) {
     const t = useTranslations("EventsPage")
     const { filters, filteredArrangements, setFilters, taxonomy } = useArrangements()
-    const activeFilterCount = countArrangementFilters(filters)
+    const activeFilterCount = countEventFilters(filters)
 
     const clearAll = () =>
         setFilters({ taxonomyGroupName: null, eventTypeIds: [], organizerGroupIds: [] })

@@ -1,10 +1,10 @@
-export type { ArrangementSummary } from "./components/ArrangementCard"
+export type { EventSummary } from "./components/ArrangementCard"
 export { EventCard as ArrangementEventCard } from "./components/ArrangementCard"
 export { EventsPage } from "./components/EventsPage"
-export { SubmitArrangementForm } from "./components/SubmitArrangementForm"
+export { SubmitEventForm } from "./components/SubmitEventForm"
 export { ArrangementsProvider, useArrangements } from "./context/ArrangementsContext"
 export type {
-    ArrangementFilters,
-    ArrangementTaxonomy,
-    PublishedArrangement,
-} from "./domain/arrangementUtils"
+    EventFilters,
+    EventTaxonomy,
+    PublishedEvent,
+} from "./domain/eventUtils"

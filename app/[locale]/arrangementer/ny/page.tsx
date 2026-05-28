@@ -1,5 +1,5 @@
 import { CalendarPlus } from "lucide-react"
-import { SubmitArrangementForm } from "@/features/events/components/SubmitArrangementForm"
+import { SubmitEventForm } from "@/features/events/components/SubmitEventForm"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import {
@@ -100,7 +100,7 @@ export default async function NyttArrangementPage({
             </header>
 
             {/* ── Form ───────────────────────────────────────────────────── */}
-            <SubmitArrangementForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
+            <SubmitEventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
         </article>
     )
 }

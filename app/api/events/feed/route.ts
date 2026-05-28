@@ -12,7 +12,7 @@ const TZ = "Europe/Oslo"
 
 export const dynamic = "force-dynamic"
 
-type ArrangementDate = {
+type EventDate = {
     _key: string
     startDate: string
     startTime?: string | null
@@ -28,7 +28,7 @@ function toIsoUtc(date: string, time?: string | null): string {
 
 function buildEventEntry(
     arrangement: NonNullable<Awaited<ReturnType<typeof fetchArrangements>>>[number],
-    date: ArrangementDate,
+    date: EventDate,
     index: number,
 ) {
     const slug = arrangement.slug

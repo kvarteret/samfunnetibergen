@@ -13,20 +13,20 @@ import { cn } from "@/lib/utils"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ArrangementDateEntry = {
+export type EventDateEntry = {
     _key: string
     startDate: string
     startTime?: string | null
     endTime?: string | null
 }
 
-export type ArrangementSummary = {
+export type EventSummary = {
     _id: string
     title: string
     slug: string
     isRecurring?: boolean
     rrule?: string | null
-    dates: ArrangementDateEntry[]
+    dates: EventDateEntry[]
     isFree?: boolean
     priceOrdinar?: number | null
     priceStudent?: number | null
@@ -94,7 +94,7 @@ function formatShortDate(dateStr: string, _locale: AppLocale): string {
     return `${day}. ${month}`
 }
 
-function formatPrimaryDate(date: ArrangementDateEntry, _locale: AppLocale): string {
+function formatPrimaryDate(date: EventDateEntry, _locale: AppLocale): string {
     const eventDate = new Date(`${date.startDate}T00:00:00`)
     const daysUntil = differenceInCalendarDays(eventDate, new Date())
     const timeRange = date.startTime
@@ -127,20 +127,20 @@ function getRecurringLabel(rrule: string | null | undefined): string | null {
     return "Gjentagende"
 }
 
-function formatPrices(arrangement: ArrangementSummary, _locale: AppLocale): string | null {
-    if (arrangement.isFree) return "Gratis"
+function formatPrices(event: EventSummary, _locale: AppLocale): string | null {
+    if (event.isFree) return "Gratis"
     const parts: string[] = []
-    if (arrangement.priceOrdinar != null) parts.push(`Ord. ${arrangement.priceOrdinar} kr`)
-    if (arrangement.priceStudent != null) parts.push(`Stud. ${arrangement.priceStudent} kr`)
-    if (arrangement.priceMedlem != null) parts.push(`Medl. ${arrangement.priceMedlem} kr`)
+    if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`)
+    if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`)
+    if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`)
     return parts.length > 0 ? parts.join(" / ") : null
 }
 
 function expandRRuleDates(
     rruleStr: string,
-    seed: ArrangementDateEntry,
+    seed: EventDateEntry,
     count: number,
-): ArrangementDateEntry[] {
+): EventDateEntry[] {
     try {
         const rule = new RRule({
             ...RRule.parseString(rruleStr),
@@ -172,7 +172,7 @@ function DateBadges({
     locale,
     size = "default",
 }: {
-    dates: ArrangementDateEntry[]
+    dates: EventDateEntry[]
     primaryIndex: number
     locale: AppLocale
     size?: "default" | "small"
@@ -216,7 +216,7 @@ function DateBadges({
 // ─── ArrangementCard ──────────────────────────────────────────────────────────
 
 export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
-    arrangement: ArrangementSummary
+    event: EventSummary
     facebookLabel: string
     locale: AppLocale
     showActions?: boolean
@@ -225,7 +225,7 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
 }
 
 export function EventCard({
-    arrangement,
+    event,
     facebookLabel,
     locale,
     showActions = true,
@@ -235,36 +235,36 @@ export function EventCard({
     variant,
 }: EventCardProps) {
     const cardSize = size ?? "default"
-    const seedDate = arrangement.dates[0]
+    const seedDate = event.dates[0]
     const todayStr = new Date().toISOString().split("T")[0]!
-    const futureDates = arrangement.dates.filter(d => d.startDate >= todayStr)
-    const expandedDates: ArrangementDateEntry[] =
+    const futureDates = event.dates.filter(d => d.startDate >= todayStr)
+    const expandedDates: EventDateEntry[] =
         futureDates.length > 0
             ? futureDates
-            : arrangement.rrule && seedDate
-              ? expandRRuleDates(arrangement.rrule, seedDate, 14)
-              : arrangement.dates
+            : event.rrule && seedDate
+              ? expandRRuleDates(event.rrule, seedDate, 14)
+              : event.dates
     // For rrule events the expansion yields only future dates — use those as the
     // full list. Fall back to the seed date if the rule produces nothing yet.
     const allDates = expandedDates.length > 0 ? expandedDates : seedDate ? [seedDate] : []
     const primaryDate = allDates[0]
     const taxonomy = [
-        arrangement.eventType?.name,
-        arrangement.organizerGroup?.name ?? arrangement.organizerText,
+        event.eventType?.name,
+        event.organizerGroup?.name ?? event.organizerText,
     ]
         .filter(Boolean)
         .join(" / ")
-    const roomTitle = arrangement.room?.title ?? arrangement.roomText
-    const roomSlug = arrangement.room?.slug
-    const roomFloor = arrangement.room?.floor
-    const roomImageUrl = arrangement.room?.imageUrl
-    const price = formatPrices(arrangement, locale)
-    const href = `/arrangementer/${arrangement.slug}`
+    const roomTitle = event.room?.title ?? event.roomText
+    const roomSlug = event.room?.slug
+    const roomFloor = event.room?.floor
+    const roomImageUrl = event.room?.imageUrl
+    const price = formatPrices(event, locale)
+    const href = `/arrangementer/${event.slug}`
     const timeLabel = primaryDate ? formatPrimaryDate(primaryDate, locale) : null
 
     return (
         <Card className={eventCardVariants({ variant, size })}>
-            {arrangement.imageUrl && (
+            {event.imageUrl && (
                 <Link href={href}>
                     <div
                         className={cn(
@@ -275,7 +275,7 @@ export function EventCard({
                         )}
                     >
                         <Image
-                            alt={arrangement.imageCaption ?? arrangement.title}
+                            alt={event.imageCaption ?? event.title}
                             className={cn(
                                 "object-cover",
                                 cardSize === "small" &&
@@ -287,8 +287,8 @@ export function EventCard({
                                     ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                     : "(max-width: 768px) 100vw, 50vw"
                             }
-                            src={arrangement.imageUrl}
-                            unoptimized={arrangement.imageUrl.startsWith("blob:")}
+                            src={event.imageUrl}
+                            unoptimized={event.imageUrl.startsWith("blob:")}
                         />
                     </div>
                 </Link>
@@ -307,9 +307,9 @@ export function EventCard({
                     >
                         {taxonomy && <span>{taxonomy}</span>}
                         {price && <span>{price}</span>}
-                        {arrangement.isRecurring && (
+                        {event.isRecurring && (
                             <span className="text-foreground/40">
-                                {getRecurringLabel(arrangement.rrule)}
+                                {getRecurringLabel(event.rrule)}
                             </span>
                         )}
                     </div>
@@ -320,7 +320,7 @@ export function EventCard({
                                 cardSize === "small" ? "text-lg" : "text-2xl",
                             )}
                         >
-                            {arrangement.title}
+                            {event.title}
                         </h2>
                     </Link>
                 </div>
@@ -386,19 +386,19 @@ export function EventCard({
                 )}
 
                 {/* Actions */}
-                {showActions && (arrangement.ticketUrl ?? arrangement.facebookUrl) && (
+                {showActions && (event.ticketUrl ?? event.facebookUrl) && (
                     <div className="mt-auto flex flex-wrap gap-3 pt-2">
-                        {arrangement.ticketUrl && (
+                        {event.ticketUrl && (
                             <Button asChild size="sm">
-                                <a href={arrangement.ticketUrl} rel="noreferrer" target="_blank">
+                                <a href={event.ticketUrl} rel="noreferrer" target="_blank">
                                     <Ticket aria-hidden />
                                     {ticketsLabel}
                                 </a>
                             </Button>
                         )}
-                        {arrangement.facebookUrl && (
+                        {event.facebookUrl && (
                             <Button asChild size="sm" variant="neutral">
-                                <a href={arrangement.facebookUrl} rel="noreferrer" target="_blank">
+                                <a href={event.facebookUrl} rel="noreferrer" target="_blank">
                                     <ExternalLink aria-hidden />
                                     {facebookLabel}
                                 </a>
@@ -411,8 +411,3 @@ export function EventCard({
     )
 }
 
-export type ArrangementCardProps = EventCardProps
-
-export function ArrangementCard(props: ArrangementCardProps) {
-    return <EventCard {...props} />
-}

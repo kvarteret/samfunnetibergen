@@ -1,60 +1,58 @@
 import type { fetchPublishedArrangements } from "@/lib/sanity/fetch"
 
-export type PublishedArrangement = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
+export type PublishedEvent = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
 
-export type ArrangementTaxonomyGroup = {
+export type TaxonomyGroup = {
     _id: string
     name: string
 }
 
-export type ArrangementEventType = {
+export type TaxonomyEventType = {
     _id: string
     name: string
     taxonomyGroupName: string
 }
 
-export type ArrangementOrganizerGroup = {
+export type OrganizerGroup = {
     _id: string
     name: string
 }
 
-export type ArrangementTaxonomy = {
-    taxonomyGroups: ArrangementTaxonomyGroup[]
-    eventTypes: ArrangementEventType[]
-    organizerGroups: ArrangementOrganizerGroup[]
+export type EventTaxonomy = {
+    taxonomyGroups: TaxonomyGroup[]
+    eventTypes: TaxonomyEventType[]
+    organizerGroups: OrganizerGroup[]
 }
 
-export type ArrangementFilters = {
+export type EventFilters = {
     taxonomyGroupName: string | null
     eventTypeIds: string[]
     organizerGroupIds: string[]
 }
 
-export function buildTaxonomyFromArrangements(
-    arrangements: PublishedArrangement[],
-): ArrangementTaxonomy {
-    const taxonomyGroupsMap = new Map<string, ArrangementTaxonomyGroup>()
-    const eventTypesMap = new Map<string, ArrangementEventType>()
-    const organizerGroupsMap = new Map<string, ArrangementOrganizerGroup>()
+export function buildTaxonomyFromEvents(events: PublishedEvent[]): EventTaxonomy {
+    const taxonomyGroupsMap = new Map<string, TaxonomyGroup>()
+    const eventTypesMap = new Map<string, TaxonomyEventType>()
+    const organizerGroupsMap = new Map<string, OrganizerGroup>()
 
-    for (const a of arrangements) {
-        if (a.eventType) {
-            if (a.eventType.taxonomyGroup) {
-                taxonomyGroupsMap.set(a.eventType.taxonomyGroup._id, {
-                    _id: a.eventType.taxonomyGroup._id,
-                    name: a.eventType.taxonomyGroup.name,
+    for (const e of events) {
+        if (e.eventType) {
+            if (e.eventType.taxonomyGroup) {
+                taxonomyGroupsMap.set(e.eventType.taxonomyGroup._id, {
+                    _id: e.eventType.taxonomyGroup._id,
+                    name: e.eventType.taxonomyGroup.name,
                 })
             }
-            eventTypesMap.set(a.eventType._id, {
-                _id: a.eventType._id,
-                name: a.eventType.name,
-                taxonomyGroupName: a.eventType.taxonomyGroup?.name ?? "Annet",
+            eventTypesMap.set(e.eventType._id, {
+                _id: e.eventType._id,
+                name: e.eventType.name,
+                taxonomyGroupName: e.eventType.taxonomyGroup?.name ?? "Annet",
             })
         }
-        if (a.organizerGroup) {
-            organizerGroupsMap.set(a.organizerGroup._id, {
-                _id: a.organizerGroup._id,
-                name: a.organizerGroup.name,
+        if (e.organizerGroup) {
+            organizerGroupsMap.set(e.organizerGroup._id, {
+                _id: e.organizerGroup._id,
+                name: e.organizerGroup.name,
             })
         }
     }
@@ -66,31 +64,28 @@ export function buildTaxonomyFromArrangements(
     }
 }
 
-export function filterArrangements(
-    arrangements: PublishedArrangement[],
-    filters: ArrangementFilters,
-): PublishedArrangement[] {
+export function filterEvents(events: PublishedEvent[], filters: EventFilters): PublishedEvent[] {
     const eventTypeIds = new Set(filters.eventTypeIds)
     const organizerGroupIds = new Set(filters.organizerGroupIds)
 
-    return arrangements.filter(a => {
+    return events.filter(e => {
         if (
             filters.taxonomyGroupName !== null &&
-            a.eventType?.taxonomyGroup?.name !== filters.taxonomyGroupName
+            e.eventType?.taxonomyGroup?.name !== filters.taxonomyGroupName
         ) {
             return false
         }
-        if (eventTypeIds.size > 0 && !eventTypeIds.has(a.eventType?._id ?? "")) {
+        if (eventTypeIds.size > 0 && !eventTypeIds.has(e.eventType?._id ?? "")) {
             return false
         }
-        if (organizerGroupIds.size > 0 && !organizerGroupIds.has(a.organizerGroup?._id ?? "")) {
+        if (organizerGroupIds.size > 0 && !organizerGroupIds.has(e.organizerGroup?._id ?? "")) {
             return false
         }
         return true
     })
 }
 
-export function countArrangementFilters(filters: ArrangementFilters): number {
+export function countEventFilters(filters: EventFilters): number {
     return (
         (filters.taxonomyGroupName !== null ? 1 : 0) +
         filters.eventTypeIds.length +
@@ -98,9 +93,9 @@ export function countArrangementFilters(filters: ArrangementFilters): number {
     )
 }
 
-export function parseArrangementFilters(
+export function parseEventFilters(
     searchParams: Record<string, string | string[] | undefined>,
-): ArrangementFilters {
+): EventFilters {
     const taxonomy = searchParams.taxonomy
     const type = searchParams.type
     const organizer = searchParams.organizer
@@ -119,7 +114,7 @@ export function parseArrangementFilters(
     }
 }
 
-export function serializeArrangementFilters(filters: ArrangementFilters): string {
+export function serializeEventFilters(filters: EventFilters): string {
     const params = new URLSearchParams()
 
     if (filters.taxonomyGroupName) {

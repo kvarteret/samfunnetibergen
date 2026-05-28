@@ -1,59 +1,59 @@
 "use client"
 
 import { useArrangements } from "@/features/events/context/ArrangementsContext"
-import type { PublishedArrangement } from "@/features/events/domain/arrangementUtils"
+import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import type { AppLocale } from "@/i18n/routing"
-import { type ArrangementSummary, EventCard } from "./ArrangementCard"
+import { type EventSummary, EventCard } from "./ArrangementCard"
 
-type PublishedArrangementDate = NonNullable<PublishedArrangement["dates"]>[number]
+type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number]
 
-function toArrangementSummary(arrangement: PublishedArrangement): ArrangementSummary {
+function toEventSummary(event: PublishedEvent): EventSummary {
     return {
-        _id: arrangement._id,
-        title: arrangement.title,
-        slug: arrangement.slug,
-        isRecurring: arrangement.isRecurring ?? undefined,
-        rrule: arrangement.rrule ?? null,
-        dates: (arrangement.dates ?? []).map((d: PublishedArrangementDate) => ({
+        _id: event._id,
+        title: event.title,
+        slug: event.slug,
+        isRecurring: event.isRecurring ?? undefined,
+        rrule: event.rrule ?? null,
+        dates: (event.dates ?? []).map((d: PublishedEventDate) => ({
             _key: d._key,
             startDate: d.startDate,
             startTime: d.startTime ?? null,
             endTime: d.endTime ?? null,
         })),
-        isFree: arrangement.isFree ?? undefined,
-        priceOrdinar: arrangement.priceOrdinar ?? null,
-        priceStudent: arrangement.priceStudent ?? null,
-        priceMedlem: arrangement.priceMedlem ?? null,
-        ticketUrl: arrangement.ticketUrl ?? null,
-        facebookUrl: arrangement.facebookUrl ?? null,
-        imageUrl: arrangement.imageUrl ?? null,
-        imageCaption: arrangement.imageCaption ?? null,
-        room: arrangement.room
+        isFree: event.isFree ?? undefined,
+        priceOrdinar: event.priceOrdinar ?? null,
+        priceStudent: event.priceStudent ?? null,
+        priceMedlem: event.priceMedlem ?? null,
+        ticketUrl: event.ticketUrl ?? null,
+        facebookUrl: event.facebookUrl ?? null,
+        imageUrl: event.imageUrl ?? null,
+        imageCaption: event.imageCaption ?? null,
+        room: event.room
             ? {
-                  _id: arrangement.room._id,
-                  title: arrangement.room.title,
-                  slug: arrangement.room.slug,
-                  floor: arrangement.room.floor ?? null,
-                  imageUrl: arrangement.room.imageUrl ?? null,
+                  _id: event.room._id,
+                  title: event.room.title,
+                  slug: event.room.slug,
+                  floor: event.room.floor ?? null,
+                  imageUrl: event.room.imageUrl ?? null,
               }
             : null,
-        roomText: arrangement.roomText ?? null,
-        organizerGroup: arrangement.organizerGroup
+        roomText: event.roomText ?? null,
+        organizerGroup: event.organizerGroup
             ? {
-                  _id: arrangement.organizerGroup._id,
-                  name: arrangement.organizerGroup.name,
-                  slug: arrangement.organizerGroup.slug,
+                  _id: event.organizerGroup._id,
+                  name: event.organizerGroup.name,
+                  slug: event.organizerGroup.slug,
               }
             : null,
-        organizerText: arrangement.organizerText ?? null,
-        eventType: arrangement.eventType
+        organizerText: event.organizerText ?? null,
+        eventType: event.eventType
             ? {
-                  _id: arrangement.eventType._id,
-                  name: arrangement.eventType.name,
-                  taxonomyGroup: arrangement.eventType.taxonomyGroup
+                  _id: event.eventType._id,
+                  name: event.eventType.name,
+                  taxonomyGroup: event.eventType.taxonomyGroup
                       ? {
-                            _id: arrangement.eventType.taxonomyGroup._id,
-                            name: arrangement.eventType.taxonomyGroup.name,
+                            _id: event.eventType.taxonomyGroup._id,
+                            name: event.eventType.taxonomyGroup.name,
                         }
                       : null,
               }
@@ -82,11 +82,11 @@ export function ArrangementsSections({
 
     return (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredArrangements.map(arrangement => (
+            {filteredArrangements.map(event => (
                 <EventCard
-                    arrangement={toArrangementSummary(arrangement)}
+                    event={toEventSummary(event)}
                     facebookLabel={facebookLabel}
-                    key={arrangement._id}
+                    key={event._id}
                     locale={locale}
                     ticketsLabel={ticketsLabel}
                 />
