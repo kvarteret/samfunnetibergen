@@ -7,7 +7,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SelectNative } from "@/components/ui/select-native"
+import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { normalizeVolunteerPhoneNumber } from "@/features/blifrivillig/prospect"
 import { isValidEmailAddress } from "@/lib/contact"
@@ -298,7 +298,7 @@ export function GroupVolunteerForm({
                         <RequiredLabel htmlFor="gvf-institution">
                             {t("studyInstitutionLabel")}
                         </RequiredLabel>
-                        <SelectNative
+                        <Select
                             id="gvf-institution"
                             value={form.studyInstitution}
                             onChange={e => updateField("studyInstitution", e.target.value)}
@@ -309,7 +309,7 @@ export function GroupVolunteerForm({
                                     {opt.label}
                                 </option>
                             ))}
-                        </SelectNative>
+                        </Select>
                         <FieldError message={fieldErrors.studyInstitution} />
                     </div>
 

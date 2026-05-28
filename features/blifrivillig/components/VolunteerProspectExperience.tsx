@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SelectNative } from "@/components/ui/select-native"
+import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import type { InstitutionOption, VolunteerGroupContent } from "@/features/blifrivillig/content"
 import type { VolunteerProspectValidationMessages } from "@/features/blifrivillig/prospect"
@@ -281,7 +281,7 @@ export function VolunteerProspectExperience({
                                             <RequiredLabel htmlFor={field.name}>
                                                 {tForm("studyInstitutionLabel")}
                                             </RequiredLabel>
-                                            <SelectNative
+                                            <Select
                                                 id={field.name}
                                                 name={field.name}
                                                 onBlur={field.handleBlur}
@@ -299,7 +299,7 @@ export function VolunteerProspectExperience({
                                                         {option.label}
                                                     </option>
                                                 ))}
-                                            </SelectNative>
+                                            </Select>
                                             <FieldError
                                                 message={getVisibleFieldError(field.state.meta)}
                                             />
