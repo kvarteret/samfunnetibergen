@@ -85,10 +85,7 @@ export function ArrangementDetailsFields({
             />
 
             <label className="group flex cursor-pointer items-start gap-3">
-                <CheckboxSquare
-                    checked={isInternalEvent}
-                    onChange={setField("isInternalEvent")}
-                />
+                <CheckboxSquare checked={isInternalEvent} onChange={setField("isInternalEvent")} />
                 <span>
                     <span className="block font-heading text-sm text-foreground">
                         Internarrangement

@@ -87,16 +87,14 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
     },
 })
 
-function formatShortDate(dateStr: string, locale: AppLocale): string {
+function formatShortDate(dateStr: string, _locale: AppLocale): string {
     const d = new Date(`${dateStr}T00:00:00`)
     const day = d.getDate()
-    const month = MONTH_NAMES[locale][d.getMonth()]
+    const month = MONTH_NAMES["nb"][d.getMonth()]
     return `${day}. ${month}`
 }
 
-function formatPrimaryDate(date: ArrangementDateEntry, locale: AppLocale): string {
-    void locale
-
+function formatPrimaryDate(date: ArrangementDateEntry, _locale: AppLocale): string {
     const eventDate = new Date(`${date.startDate}T00:00:00`)
     const daysUntil = differenceInCalendarDays(eventDate, new Date())
     const timeRange = date.startTime
@@ -129,9 +127,7 @@ function getRecurringLabel(rrule: string | null | undefined): string | null {
     return "Gjentagende"
 }
 
-function formatPrices(arrangement: ArrangementSummary, locale: AppLocale): string | null {
-    void locale
-
+function formatPrices(arrangement: ArrangementSummary, _locale: AppLocale): string | null {
     if (arrangement.isFree) return "Gratis"
     const parts: string[] = []
     if (arrangement.priceOrdinar != null) parts.push(`Ord. ${arrangement.priceOrdinar} kr`)
