@@ -5,6 +5,7 @@ import type { ClientReturn } from "next-sanity"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../live"
 import {
+    allStudentGroupSlugsQuery,
     groupsPageQuery,
     studentGroupBySlugQuery,
     studentGroupSlugsQuery,
@@ -58,6 +59,15 @@ export async function fetchStudentGroupsByCategory(
 export async function fetchStudentGroupSlugs(): Promise<string[]> {
     const groups = await sanityClient.fetch(
         studentGroupSlugsQuery,
+        {},
+        { next: { revalidate: 300, tags: ["studentGroups"] } },
+    )
+    return groups.flatMap((group: { slug?: string | null }) => (group.slug ? [group.slug] : []))
+}
+
+export async function fetchAllStudentGroupSlugs(): Promise<string[]> {
+    const groups = await sanityClient.fetch(
+        allStudentGroupSlugsQuery,
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )

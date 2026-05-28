@@ -1,5 +1,7 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import { notFound } from "next/navigation"
+import { GroupVolunteerForm } from "@/features/blifrivillig/components/GroupVolunteerForm"
+import { getInstitutionOptions } from "@/features/blifrivillig/content"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchStudentGroupBySlug, fetchStudentGroupSlugs } from "@/lib/sanity/fetch"
@@ -42,6 +44,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
     const group = await fetchStudentGroupBySlug(slug)
     if (!group) notFound()
 
+    const institutionOptions = getInstitutionOptions(locale)
     const categoryLabel = group.category ? (CATEGORY_LABELS[group.category] ?? null) : null
 
     return (
@@ -127,6 +130,21 @@ export default async function GroupPage({ params }: GroupPageProps) {
                         </ul>
                     </section>
                 ) : null}
+
+                {group.slug && (
+                    <section className="border-2 border-border bg-card p-5">
+                        <GroupVolunteerForm
+                            groupSlug={group.slug}
+                            groupName={group.name ?? group.slug}
+                            institutionOptions={institutionOptions}
+                            subGroups={
+                                group.subGroups?.flatMap(sg =>
+                                    sg.slug && sg.name ? [{ slug: sg.slug, name: sg.name }] : [],
+                                ) ?? []
+                            }
+                        />
+                    </section>
+                )}
             </aside>
         </article>
     )
