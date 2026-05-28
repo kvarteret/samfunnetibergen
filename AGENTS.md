@@ -1,3 +1,10 @@
+## Shared Agent Guidance
+
+Read `.agents/README.md` before making repository claims, changing cross-repo
+boundaries, or documenting implementation behavior. Generic guidance for
+Claude, Codex, and Pi lives under `.agents/`; tool-specific folders should only
+contain adapters or runtime wiring.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
