@@ -1,4 +1,5 @@
 import { ArrowRight, Check, Clock, ExternalLink, FileText, Users, X } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -307,10 +308,12 @@ function RoomFloorPlan({ room }: RoomSpecsProps) {
                 {floorPlan.title ?? `${room.floor}. etasje`}
             </h2>
             <div className="max-w-sm">
-                <img
+                <Image
                     alt={floorPlan.title ?? `Plantegning for ${room.floor}. etasje`}
                     className="h-auto w-full"
+                    height={600}
                     src={floorPlan.assetUrl}
+                    width={540}
                 />
             </div>
         </section>
