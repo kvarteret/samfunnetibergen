@@ -60,6 +60,11 @@ export const studentGroupSlugsQuery =
     "slug": slug.current
 }`)
 
+export const allStudentGroupSlugsQuery =
+    defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
+    "slug": slug.current
+}`)
+
 export const studentGroupBySlugQuery =
     defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
     name,

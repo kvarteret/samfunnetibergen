@@ -6,6 +6,7 @@ import {
 } from "@/features/blifrivillig/prospect"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { resolveRequestLocale } from "@/lib/request-locale"
+import { fetchAllStudentGroupSlugs } from "@/lib/sanity/fetch"
 import nbMessages from "@/messages/nb.json"
 
 const PERSONAL_APP_BASE_URL =
@@ -70,12 +71,16 @@ export async function POST(request: Request) {
         return Response.json({ detail: messages.Api.invalidRequest }, { status: 400 })
     }
 
-    const groups = await getVolunteerGroups(locale)
+    const [groups, allStudentGroupSlugs] = await Promise.all([
+        getVolunteerGroups(locale),
+        fetchAllStudentGroupSlugs(),
+    ])
+    const validGroupSlugs = [...new Set([...groups.map(g => g.slug), ...allStudentGroupSlugs])]
     const builtPayload = buildVolunteerProspectPayload(payload)
     const fieldErrors = validateVolunteerProspectValues(
         { ...payload, phone: builtPayload.phone },
         messages.Validation,
-        groups.map(g => g.slug),
+        validGroupSlugs,
     )
     if (Object.keys(fieldErrors).length > 0) {
         return Response.json(
