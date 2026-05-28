@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { SelectNative } from "@/components/ui/select-native"
 import { Textarea } from "@/components/ui/textarea"
 import type { InstitutionOption, VolunteerGroupContent } from "@/features/blifrivillig/content"
 import type { VolunteerProspectValidationMessages } from "@/features/blifrivillig/prospect"
@@ -280,8 +281,7 @@ export function VolunteerProspectExperience({
                                             <RequiredLabel htmlFor={field.name}>
                                                 {tForm("studyInstitutionLabel")}
                                             </RequiredLabel>
-                                            <select
-                                                className="flex h-10 w-full border-2 border-border bg-secondary-background px-3 py-2 text-sm text-foreground shadow-shadow focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                                            <SelectNative
                                                 id={field.name}
                                                 name={field.name}
                                                 onBlur={field.handleBlur}
@@ -299,7 +299,7 @@ export function VolunteerProspectExperience({
                                                         {option.label}
                                                     </option>
                                                 ))}
-                                            </select>
+                                            </SelectNative>
                                             <FieldError
                                                 message={getVisibleFieldError(field.state.meta)}
                                             />
@@ -461,25 +461,21 @@ export function VolunteerProspectExperience({
                                     selector={state => [state.canSubmit, state.isSubmitting]}
                                 >
                                     {([canSubmit, isSubmitting]) => (
-                                        <button
-                                            aria-disabled={
-                                                !canSubmit ||
-                                                secondChoiceConflict ||
-                                                createProspectMutation.isPending
-                                            }
-                                            className="inline-flex h-12 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-base bg-primary text-sm font-base text-primary-foreground ring-offset-white btn-brutal disabled:cursor-not-allowed disabled:opacity-50"
+                                        <Button
+                                            className="w-full"
                                             disabled={
                                                 !canSubmit ||
                                                 secondChoiceConflict ||
                                                 createProspectMutation.isPending ||
                                                 isSubmitting
                                             }
+                                            size="lg"
                                             type="submit"
                                         >
                                             {createProspectMutation.isPending || isSubmitting
                                                 ? tForm("submitPending")
                                                 : tForm("submitIdle")}
-                                        </button>
+                                        </Button>
                                     )}
                                 </form.Subscribe>
                             </form>

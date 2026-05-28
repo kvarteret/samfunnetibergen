@@ -93,6 +93,11 @@
     --ring: var(--amber-500);
     --radius: 0rem;
 
+    /* ── Extended semantic tokens ── */
+    --main: var(--primary);
+    --main-foreground: var(--primary-foreground);
+    --secondary-background: var(--cream-200);
+
     /* ── Shadow ── */
     --shadow: 4px 4px 0 0 var(--border);
 
@@ -130,6 +135,9 @@
   --color-border:               var(--border);
   --color-input:                var(--input);
   --color-ring:                 var(--ring);
+  --color-main:                 var(--main);
+  --color-main-foreground:      var(--main-foreground);
+  --color-secondary-background: var(--secondary-background);
 
   --shadow-shadow: var(--shadow);
 
