@@ -209,7 +209,7 @@ function DateBadges({
     )
 }
 
-// ─── ArrangementCard ──────────────────────────────────────────────────────────
+// ─── EventCard ──────────────────────────────────────────────────────────
 
 export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
     event: EventSummary

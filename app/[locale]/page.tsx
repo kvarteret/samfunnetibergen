@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { EventCard, type EventSummary } from "@/features/events/components/ArrangementCard"
+import { EventCard, type EventSummary } from "@/features/events/components/EventCard"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchHomePageContent, fetchPublishedEvents, fetchSiteMetadata } from "@/lib/sanity/fetch"
@@ -146,16 +146,14 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
                 </h1>
             )}
             <div className="flex flex-col gap-6">
-                {homePage?.description
-                    ?.split(/\n{2,}/)
-                    .map(paragraph => (
-                        <p
-                            className="max-w-2xl text-base leading-relaxed text-foreground/75"
-                            key={paragraph}
-                        >
-                            {paragraph}
-                        </p>
-                    ))}
+                {homePage?.description?.split(/\n{2,}/).map(paragraph => (
+                    <p
+                        className="max-w-2xl text-base leading-relaxed text-foreground/75"
+                        key={paragraph}
+                    >
+                        {paragraph}
+                    </p>
+                ))}
                 {ctaHref && homePage?.primaryCta?.label && (
                     <Button asChild size="lg" className="self-start shrink-0">
                         <Link href={ctaHref}>{homePage.primaryCta.label}</Link>

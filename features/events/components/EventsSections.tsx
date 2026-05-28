@@ -1,9 +1,9 @@
 "use client"
 
-import { useArrangements } from "@/features/events/context/ArrangementsContext"
+import { useEvents } from "@/features/events/context/EventsContext"
 import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import type { AppLocale } from "@/i18n/routing"
-import { EventCard, type EventSummary } from "./ArrangementCard"
+import { EventCard, type EventSummary } from "./EventCard"
 
 type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number]
 
@@ -61,28 +61,28 @@ function toEventSummary(event: PublishedEvent): EventSummary {
     }
 }
 
-interface ArrangementsSectionsProps {
+interface EventsSectionsProps {
     emptyLabel: string
     facebookLabel: string
     locale: AppLocale
     ticketsLabel: string
 }
 
-export function ArrangementsSections({
+export function EventsSections({
     emptyLabel,
     facebookLabel,
     locale,
     ticketsLabel,
-}: ArrangementsSectionsProps) {
-    const { filteredArrangements } = useArrangements()
+}: EventsSectionsProps) {
+    const { filteredEvents } = useEvents()
 
-    if (filteredArrangements.length === 0) {
+    if (filteredEvents.length === 0) {
         return <p className="text-sm leading-6 text-foreground/75">{emptyLabel}</p>
     }
 
     return (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredArrangements.map(event => (
+            {filteredEvents.map(event => (
                 <EventCard
                     event={toEventSummary(event)}
                     facebookLabel={facebookLabel}

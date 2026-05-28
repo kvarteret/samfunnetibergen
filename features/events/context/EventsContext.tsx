@@ -13,31 +13,31 @@ import {
     serializeEventFilters,
 } from "@/features/events/domain/eventUtils"
 
-type ArrangementsContextValue = {
-    arrangements: PublishedEvent[]
+type EventsContextValue = {
+    events: PublishedEvent[]
     taxonomy: EventTaxonomy
     filters: EventFilters
     setFilters: (filters: EventFilters) => void
-    filteredArrangements: PublishedEvent[]
+    filteredEvents: PublishedEvent[]
 }
 
-const ArrangementsContext = createContext<ArrangementsContextValue | null>(null)
+const EventsContext = createContext<EventsContextValue | null>(null)
 
-export function ArrangementsProvider({
+export function EventsProvider({
     children,
-    initialArrangements,
+    initialEvents,
     initialSearchParams,
 }: {
     children: React.ReactNode
-    initialArrangements: PublishedEvent[]
+    initialEvents: PublishedEvent[]
     initialSearchParams: Record<string, string | string[] | undefined>
 }) {
     const pathname = usePathname()
     const router = useRouter()
 
     const taxonomy = useMemo(
-        () => buildTaxonomyFromEvents(initialArrangements),
-        [initialArrangements],
+        () => buildTaxonomyFromEvents(initialEvents),
+        [initialEvents],
     )
 
     const [filters, setFiltersState] = useState<EventFilters>(() =>
@@ -55,28 +55,28 @@ export function ArrangementsProvider({
         [pathname, router],
     )
 
-    const filteredArrangements = useMemo(
-        () => filterEvents(initialArrangements, filters),
-        [initialArrangements, filters],
+    const filteredEvents = useMemo(
+        () => filterEvents(initialEvents, filters),
+        [initialEvents, filters],
     )
 
     return (
-        <ArrangementsContext
+        <EventsContext
             value={{
-                arrangements: initialArrangements,
+                events: initialEvents,
                 taxonomy,
                 filters,
                 setFilters,
-                filteredArrangements,
+                filteredEvents,
             }}
         >
             {children}
-        </ArrangementsContext>
+        </EventsContext>
     )
 }
 
-export function useArrangements(): ArrangementsContextValue {
-    const ctx = useContext(ArrangementsContext)
-    if (!ctx) throw new Error("useArrangements must be used inside ArrangementsProvider")
+export function useEvents(): EventsContextValue {
+    const ctx = useContext(EventsContext)
+    if (!ctx) throw new Error("useEvents must be used inside EventsProvider")
     return ctx
 }

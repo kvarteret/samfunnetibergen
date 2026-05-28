@@ -1,11 +1,11 @@
 import { CalendarDays, CalendarPlus } from "lucide-react"
 
-import { ArrangementsProvider } from "@/features/events/context/ArrangementsContext"
+import { EventsProvider } from "@/features/events/context/EventsContext"
 import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
-import { ArrangementsFilters } from "./ArrangementsFilters"
-import { ArrangementsSections } from "./ArrangementsSections"
+import { EventsFilters } from "./EventsFilters"
+import { EventsSections } from "./EventsSections"
 
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://samfunnetibergen.no").trim()
 const ICAL_URL = `${BASE_URL}/api/ical`
@@ -40,7 +40,7 @@ export function EventsPage({
     title: string
 }) {
     return (
-        <ArrangementsProvider initialArrangements={arrangements} initialSearchParams={searchParams}>
+        <EventsProvider initialEvents={arrangements} initialSearchParams={searchParams}>
             <div className="flex flex-col gap-10">
                 <header className="space-y-5">
                     <Link
@@ -52,14 +52,14 @@ export function EventsPage({
                     <h1 className="font-heading text-4xl">{title}</h1>
                 </header>
 
-                <ArrangementsFilters
+                <EventsFilters
                     filterAllLabel={filterAllLabel}
                     filterMoreLabel={filterMoreLabel}
                     filterOrganizerLabel={filterOrganizerLabel}
                     filterTypeLabel={filterTypeLabel}
                 />
 
-                <ArrangementsSections
+                <EventsSections
                     emptyLabel={emptyLabel}
                     facebookLabel={facebookLabel}
                     locale={locale}
@@ -104,6 +104,6 @@ export function EventsPage({
                     </Link>
                 </div>
             </div>
-        </ArrangementsProvider>
+        </EventsProvider>
     )
 }

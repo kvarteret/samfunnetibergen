@@ -106,14 +106,14 @@ export function MobileMenu({ items }: MobileMenuProps) {
                             className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
                         >
                             {items.map((item, i) => (
-                                      <MobileNavItem
-                                          index={i}
-                                          item={item}
-                                          key={item._key}
-                                          onClose={close}
-                                          open={open}
-                                      />
-                                  ))}
+                                <MobileNavItem
+                                    index={i}
+                                    item={item}
+                                    key={item._key}
+                                    onClose={close}
+                                    open={open}
+                                />
+                            ))}
                         </nav>
                     </div>,
                     document.body,

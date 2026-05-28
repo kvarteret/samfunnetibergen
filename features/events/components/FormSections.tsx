@@ -13,7 +13,7 @@ import type {
     SubmitStatus,
     UpdateDateField,
 } from "../domain/formState"
-import { EventCard, type EventSummary } from "./ArrangementCard"
+import { EventCard, type EventSummary } from "./EventCard"
 import {
     CheckboxSquare,
     FieldGroup,

@@ -1,8 +1,8 @@
-export type { EventSummary } from "./components/ArrangementCard"
-export { EventCard as ArrangementEventCard } from "./components/ArrangementCard"
+export type { EventSummary } from "./components/EventCard"
+export { EventCard } from "./components/EventCard"
 export { EventsPage } from "./components/EventsPage"
 export { SubmitEventForm } from "./components/SubmitEventForm"
-export { ArrangementsProvider, useArrangements } from "./context/ArrangementsContext"
+export { EventsProvider, useEvents } from "./context/EventsContext"
 export type {
     EventFilters,
     EventTaxonomy,

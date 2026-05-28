@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz"
 import ical, { ICalCalendarMethod } from "ical-generator"
 import { createClient } from "next-sanity"
 
-import { arrangementBySlugQuery } from "@/lib/sanity/queries/events"
+import { eventBySlugQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: true })
@@ -28,7 +28,7 @@ function nextDay(date: Date): Date {
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
     const today = new Date().toISOString().slice(0, 10)
-    const event = await client.fetch(arrangementBySlugQuery, { slug, today })
+    const event = await client.fetch(eventBySlugQuery, { slug, today })
 
     if (!event) {
         return new Response("Not found", { status: 404 })

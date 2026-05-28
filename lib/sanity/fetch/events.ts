@@ -4,12 +4,12 @@ import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../live"
 import {
-    arrangementBySlugQuery,
-    arrangementEventTypesQuery,
-    arrangementGroupsQuery,
-    arrangementRoomsQuery,
+    eventBySlugQuery,
+    eventTypesQuery,
+    eventGroupsQuery,
+    eventRoomsQuery,
     eventsPageContentNbQuery,
-    publishedArrangementsQuery,
+    publishedEventsQuery,
 } from "../queries"
 import { type FetchOptions, getOsloDateString } from "./shared"
 
@@ -33,25 +33,25 @@ export async function fetchEventsPageContent(_locale: AppLocale, options: FetchO
 
 export async function fetchPublishedEvents() {
     const { data } = await sanityFetch({
-        query: publishedArrangementsQuery,
+        query: publishedEventsQuery,
         params: { today: getOsloDateString() },
-        tags: ["arrangements"],
+        tags: ["events"],
     })
     return data
 }
 
 export async function fetchEventBySlug(slug: string) {
     const { data } = await sanityFetch({
-        query: arrangementBySlugQuery,
+        query: eventBySlugQuery,
         params: { slug, today: getOsloDateString() },
-        tags: ["arrangements"],
+        tags: ["events"],
     })
     return data
 }
 
 export async function fetchEventRooms(): Promise<EventRoom[]> {
     return sanityClient.fetch(
-        arrangementRoomsQuery,
+        eventRoomsQuery,
         {},
         { next: { revalidate: 300, tags: ["rooms"] } },
     )
@@ -59,7 +59,7 @@ export async function fetchEventRooms(): Promise<EventRoom[]> {
 
 export async function fetchEventTypes(): Promise<EventType[]> {
     return sanityClient.fetch(
-        arrangementEventTypesQuery,
+        eventTypesQuery,
         {},
         { next: { revalidate: 300, tags: ["eventTypes"] } },
     )
@@ -67,7 +67,7 @@ export async function fetchEventTypes(): Promise<EventType[]> {
 
 export async function fetchEventGroups(): Promise<EventGroup[]> {
     return sanityClient.fetch(
-        arrangementGroupsQuery,
+        eventGroupsQuery,
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )

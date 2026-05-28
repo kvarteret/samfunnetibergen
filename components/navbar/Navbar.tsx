@@ -14,7 +14,6 @@ type NavbarProps = {
     navbar: NavbarContent | null
 }
 
-
 function resolveHref(item: { href?: string | null; externalUrl?: string | null }) {
     return item.href ?? item.externalUrl ?? "#"
 }

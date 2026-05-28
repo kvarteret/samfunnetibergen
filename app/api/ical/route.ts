@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz"
 import ical, { ICalCalendarMethod } from "ical-generator"
 import { createClient } from "next-sanity"
 
-import { publishedArrangementsQuery } from "@/lib/sanity/queries/events"
+import { publishedEventsQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
     const today = new Date().toISOString().slice(0, 10)
-    const arrangements = await client.fetch(publishedArrangementsQuery, { today })
+    const events = await client.fetch(publishedEventsQuery, { today })
 
     const calendar = ical({
         name: "Samfunnet i Bergen",
@@ -40,7 +40,7 @@ export async function GET() {
         ttl: 3600,
     })
 
-    for (const event of arrangements) {
+    for (const event of events) {
         const url = `${BASE_URL}/arrangementer/${event.slug}`
         const location = event.room?.title ?? event.roomText ?? "Samfunnet i Bergen"
 

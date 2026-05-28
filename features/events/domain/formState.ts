@@ -1,5 +1,5 @@
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
-import type { EventSummary } from "../components/ArrangementCard"
+import type { EventSummary } from "../components/EventCard"
 
 export type DateEntry = {
     id: string

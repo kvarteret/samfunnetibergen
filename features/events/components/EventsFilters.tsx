@@ -2,25 +2,25 @@
 
 import { useTranslations } from "next-intl"
 
-import { useArrangements } from "@/features/events/context/ArrangementsContext"
+import { useEvents } from "@/features/events/context/EventsContext"
 import { countEventFilters } from "@/features/events/domain/eventUtils"
 import { FilterButton } from "./FilterButton"
 
-interface ArrangementsFiltersProps {
+interface EventsFiltersProps {
     filterAllLabel: string
     filterMoreLabel: string
     filterOrganizerLabel: string
     filterTypeLabel: string
 }
 
-export function ArrangementsFilters({
+export function EventsFilters({
     filterAllLabel,
     filterMoreLabel,
     filterOrganizerLabel,
     filterTypeLabel,
-}: ArrangementsFiltersProps) {
+}: EventsFiltersProps) {
     const t = useTranslations("EventsPage")
-    const { filters, filteredArrangements, setFilters, taxonomy } = useArrangements()
+    const { filters, filteredEvents, setFilters, taxonomy } = useEvents()
     const activeFilterCount = countEventFilters(filters)
 
     const clearAll = () =>
@@ -71,7 +71,7 @@ export function ArrangementsFilters({
                     ))}
                 </div>
                 <p className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                    {t("filterResultCount", { count: filteredArrangements.length })}
+                    {t("filterResultCount", { count: filteredEvents.length })}
                 </p>
             </div>
 
