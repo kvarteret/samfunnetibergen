@@ -8,8 +8,8 @@ import {
     type EventFilters,
     type EventTaxonomy,
     filterEvents,
-    parseEventFilters,
     type PublishedEvent,
+    parseEventFilters,
     serializeEventFilters,
 } from "@/features/events/domain/eventUtils"
 

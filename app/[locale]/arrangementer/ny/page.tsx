@@ -2,11 +2,7 @@ import { CalendarPlus } from "lucide-react"
 import { SubmitEventForm } from "@/features/events/components/SubmitEventForm"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
-import {
-    fetchEventGroups,
-    fetchEventRooms,
-    fetchEventTypes,
-} from "@/lib/sanity/fetch"
+import { fetchEventGroups, fetchEventRooms, fetchEventTypes } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 

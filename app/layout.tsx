@@ -44,7 +44,7 @@ const instrumentSerif = Instrument_Serif({
 export async function generateMetadata(): Promise<Metadata> {
     const siteMetadata = await fetchSiteMetadata("nb", { stega: false })
     const title = siteMetadata?.defaultSeoTitle ?? siteMetadata?.siteName ?? "Samfunnet i Bergen"
-    const description = siteMetadata?.defaultSeoDescription ?? "Studentenes kulturhus i Bergen."
+    const description = siteMetadata?.defaultSeoDescription ?? undefined
     const openGraphTitle = siteMetadata?.defaultOpenGraphTitle ?? title
     const openGraphDescription = siteMetadata?.defaultOpenGraphDescription ?? description
 

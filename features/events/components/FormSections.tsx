@@ -13,7 +13,7 @@ import type {
     SubmitStatus,
     UpdateDateField,
 } from "../domain/formState"
-import { type EventSummary, EventCard } from "./ArrangementCard"
+import { EventCard, type EventSummary } from "./ArrangementCard"
 import {
     CheckboxSquare,
     FieldGroup,
@@ -533,12 +533,7 @@ interface EventLinksFieldsProps {
     setField: SetFormField
 }
 
-export function EventLinksFields({
-    uid,
-    ticketUrl,
-    facebookUrl,
-    setField,
-}: EventLinksFieldsProps) {
+export function EventLinksFields({ uid, ticketUrl, facebookUrl, setField }: EventLinksFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="07" title="Lenker" />

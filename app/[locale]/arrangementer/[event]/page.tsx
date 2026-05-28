@@ -71,9 +71,7 @@ export async function generateMetadata({ params }: EventPageProps) {
         undefined
     const openGraphTitle = eventData.openGraphTitle ?? eventData.title
     const openGraphImage =
-        eventData.openGraphImageUrl ??
-        eventData.imageUrl ??
-        siteMetadata?.defaultOpenGraphImageUrl
+        eventData.openGraphImageUrl ?? eventData.imageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
 
     return {
         title,

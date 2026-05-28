@@ -122,7 +122,7 @@ export const kontaktPageQuery = defineQuery(`*[_type == "kontaktPage" && _id == 
     }
 }`)
 
-export const linkInBioQuery = defineQuery(`*[_type == "linkInBio" && _id == "linkInBio"][0] {
+export const linkInBioQuery = defineQuery(`*[_type == "linkInBio"][0] {
     heading,
     bio,
     links[] {

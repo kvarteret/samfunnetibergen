@@ -11,7 +11,7 @@ import {
     eventsPageContentNbQuery,
     publishedArrangementsQuery,
 } from "../queries"
-import { getOsloDateString, type FetchOptions } from "./shared"
+import { type FetchOptions, getOsloDateString } from "./shared"
 
 export type EventRoom = { _id: string; title: string; slug: string }
 export type EventType = {
@@ -22,10 +22,7 @@ export type EventType = {
 }
 export type EventGroup = { _id: string; name: string; category: string }
 
-export async function fetchEventsPageContent(
-    _locale: AppLocale,
-    options: FetchOptions = {},
-) {
+export async function fetchEventsPageContent(_locale: AppLocale, options: FetchOptions = {}) {
     const { data } = await sanityFetch({
         query: eventsPageContentNbQuery,
         tags: ["eventsPage"],

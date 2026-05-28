@@ -3,7 +3,7 @@
 import { useArrangements } from "@/features/events/context/ArrangementsContext"
 import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import type { AppLocale } from "@/i18n/routing"
-import { type EventSummary, EventCard } from "./ArrangementCard"
+import { EventCard, type EventSummary } from "./ArrangementCard"
 
 type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number]
 

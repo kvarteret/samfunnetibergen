@@ -136,11 +136,7 @@ function formatPrices(event: EventSummary, _locale: AppLocale): string | null {
     return parts.length > 0 ? parts.join(" / ") : null
 }
 
-function expandRRuleDates(
-    rruleStr: string,
-    seed: EventDateEntry,
-    count: number,
-): EventDateEntry[] {
+function expandRRuleDates(rruleStr: string, seed: EventDateEntry, count: number): EventDateEntry[] {
     try {
         const rule = new RRule({
             ...RRule.parseString(rruleStr),
@@ -248,10 +244,7 @@ export function EventCard({
     // full list. Fall back to the seed date if the rule produces nothing yet.
     const allDates = expandedDates.length > 0 ? expandedDates : seedDate ? [seedDate] : []
     const primaryDate = allDates[0]
-    const taxonomy = [
-        event.eventType?.name,
-        event.organizerGroup?.name ?? event.organizerText,
-    ]
+    const taxonomy = [event.eventType?.name, event.organizerGroup?.name ?? event.organizerText]
         .filter(Boolean)
         .join(" / ")
     const roomTitle = event.room?.title ?? event.roomText
@@ -410,4 +403,3 @@ export function EventCard({
         </Card>
     )
 }
-

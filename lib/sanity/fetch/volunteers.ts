@@ -44,8 +44,8 @@ export async function fetchVolunteerGroups(_locale: AppLocale) {
             imageUrl: group.imageUrl ?? null,
             accordionSections: (group.accordionSections ?? []).map(section => ({
                 title: section.title ?? null,
-                paragraphs: (section.paragraphs ?? []).filter(
-                    (paragraph): paragraph is string => Boolean(paragraph),
+                paragraphs: (section.paragraphs ?? []).filter((paragraph): paragraph is string =>
+                    Boolean(paragraph),
                 ),
             })),
             detailSections: [],
@@ -60,8 +60,7 @@ export async function fetchVolunteerGroupSummaries(_locale: AppLocale) {
         tags: ["volunteerGroupSummaries"],
     })
 
-    return (groups ?? []).flatMap(
-        (group: { name: string | null; description: string | null }) =>
-            group.name ? [{ ...group, name: group.name }] : [],
+    return (groups ?? []).flatMap((group: { name: string | null; description: string | null }) =>
+        group.name ? [{ ...group, name: group.name }] : [],
     )
 }

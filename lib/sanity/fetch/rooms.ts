@@ -35,9 +35,7 @@ export async function fetchRoomsPageContent(
 export async function fetchRooms(): Promise<RoomSummary[]> {
     const { data: rooms } = await sanityFetch({ query: roomsQuery, tags: ["rooms"] })
     type R = ClientReturn<typeof roomsQuery>[number]
-    return rooms.flatMap((room: R) =>
-        room.slug ? [{ ...room, slug: stegaClean(room.slug) }] : [],
-    )
+    return rooms.flatMap((room: R) => (room.slug ? [{ ...room, slug: stegaClean(room.slug) }] : []))
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {

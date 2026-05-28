@@ -82,11 +82,7 @@ export async function GET(request: Request) {
             type: "link",
             provider_name: providerName,
             provider_url: providerUrl,
-            title:
-                event.oembedTitle ??
-                event.openGraphTitle ??
-                event.title ??
-                providerName,
+            title: event.oembedTitle ?? event.openGraphTitle ?? event.title ?? providerName,
             thumbnail_url:
                 event.oembedImageUrl ??
                 event.openGraphImageUrl ??

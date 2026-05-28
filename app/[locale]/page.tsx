@@ -1,14 +1,10 @@
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { type EventSummary, EventCard } from "@/features/events/components/ArrangementCard"
+import { EventCard, type EventSummary } from "@/features/events/components/ArrangementCard"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import {
-    fetchHomePageContent,
-    fetchPublishedEvents,
-    fetchSiteMetadata,
-} from "@/lib/sanity/fetch"
+import { fetchHomePageContent, fetchPublishedEvents, fetchSiteMetadata } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -25,12 +21,12 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
         siteMetadata?.defaultSeoTitle ??
         homePage?.title ??
         siteMetadata?.siteName ??
-        "Samfunnet i Bergen"
+        undefined
     const description =
         homePage?.seoDescription ??
         siteMetadata?.defaultSeoDescription ??
         homePage?.description ??
-        "Studenthuset i Bergen — over 1500 arrangementer i året, driftet av frivillige studenter."
+        undefined
     const openGraphTitle = homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title
     const openGraphDescription =
         homePage?.openGraphDescription ?? siteMetadata?.defaultOpenGraphDescription ?? description
@@ -49,9 +45,6 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 
 type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
 type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
-
-const FALLBACK_HOME_DESCRIPTION =
-    "Samfunnen er en fusjon av Kvarteret og Samfunnet i Bergen. Vi holder til på samme plass som alltid, i det samme bygget kalt Det Akademiske Kvarter. Som student i Bergen er det å bli frivillig på Samfunnet en fantastisk måte å sette ditt preg på studentlivet.\n\nSamfunnet i Bergen er studenthuset i Bergen og er et av Norges mest aktive kulturhus. Hvert år arrangeres det over 1500 arrangementer og alt blir driftet av frivillige studenter. Vi har tre barer som alle er frivilligdrevet samt utallige grupper for å dekke alle studenters behov. Samfunnet er et samlingssted for alle Bergens studenter om det er for morgenkaffen eller kveldsfesting!"
 
 function localizeHref(href: string | null | undefined, locale: AppLocale) {
     if (!href) return `/${locale}`
@@ -136,20 +129,25 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
 
 function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale }) {
-    const ctaHref = localizeHref(homePage?.primaryCta?.href ?? "/blifrivillig", locale)
-    const ctaLabel = homePage?.primaryCta?.label ?? "Bli frivillig"
+    const ctaHref = homePage?.primaryCta?.href
+        ? localizeHref(homePage.primaryCta.href, locale)
+        : null
 
     return (
         <section className="pb-10 pt-2">
-            <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                {homePage?.eyebrow ?? "Studentenes hus i Bergen"}
-            </p>
-            <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
-                {homePage?.title ?? "Samfunnet i Bergen"}
-            </h1>
+            {homePage?.eyebrow && (
+                <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
+                    {homePage.eyebrow}
+                </p>
+            )}
+            {homePage?.title && (
+                <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
+                    {homePage.title}
+                </h1>
+            )}
             <div className="flex flex-col gap-6">
-                {(homePage?.description ?? FALLBACK_HOME_DESCRIPTION)
-                    .split(/\n{2,}/)
+                {homePage?.description
+                    ?.split(/\n{2,}/)
                     .map(paragraph => (
                         <p
                             className="max-w-2xl text-base leading-relaxed text-foreground/75"
@@ -158,9 +156,11 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
                             {paragraph}
                         </p>
                     ))}
-                <Button asChild size="lg" className="self-start shrink-0">
-                    <Link href={ctaHref}>{ctaLabel}</Link>
-                </Button>
+                {ctaHref && homePage?.primaryCta?.label && (
+                    <Button asChild size="lg" className="self-start shrink-0">
+                        <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
+                    </Button>
+                )}
             </div>
         </section>
     )
