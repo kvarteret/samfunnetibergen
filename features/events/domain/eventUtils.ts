@@ -1,6 +1,6 @@
-import type { fetchPublishedArrangements } from "@/lib/sanity/fetch"
+import type { fetchPublishedEvents } from "@/lib/sanity/fetch"
 
-export type PublishedEvent = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
+export type PublishedEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
 
 export type TaxonomyGroup = {
     _id: string

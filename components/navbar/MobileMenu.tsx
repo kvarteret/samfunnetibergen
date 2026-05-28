@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
-import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 
 type MobileMenuProps = {

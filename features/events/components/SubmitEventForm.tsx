@@ -13,7 +13,7 @@ import {
 } from "react"
 
 import { submitEvent, uploadEventImage } from "@/app/actions/submit-event"
-import type { ArrangementEventType, ArrangementGroup, ArrangementRoom } from "@/lib/sanity/fetch"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
     buildPreviewEvent,
     initialState,
@@ -36,9 +36,9 @@ import {
 } from "./FormSections"
 
 interface SubmitEventFormProps {
-    rooms: ArrangementRoom[]
-    eventTypes: ArrangementEventType[]
-    groups: ArrangementGroup[]
+    rooms: EventRoom[]
+    eventTypes: EventType[]
+    groups: EventGroup[]
 }
 
 export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormProps) {

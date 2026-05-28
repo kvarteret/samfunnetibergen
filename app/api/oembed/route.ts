@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import {
-    fetchArrangementBySlug,
+    fetchEventBySlug,
     fetchEventsPageContent,
     fetchHomePageContent,
     fetchSiteMetadata,
@@ -72,9 +72,9 @@ export async function GET(request: Request) {
     }
 
     if (firstSegment === "arrangementer" && secondSegment) {
-        const arrangement = await fetchArrangementBySlug(secondSegment)
-        if (!arrangement) {
-            return NextResponse.json({ error: "Arrangement not found" }, { status: 404 })
+        const event = await fetchEventBySlug(secondSegment)
+        if (!event) {
+            return NextResponse.json({ error: "Event not found" }, { status: 404 })
         }
 
         return oembedJson({
@@ -83,14 +83,14 @@ export async function GET(request: Request) {
             provider_name: providerName,
             provider_url: providerUrl,
             title:
-                arrangement.oembedTitle ??
-                arrangement.openGraphTitle ??
-                arrangement.title ??
+                event.oembedTitle ??
+                event.openGraphTitle ??
+                event.title ??
                 providerName,
             thumbnail_url:
-                arrangement.oembedImageUrl ??
-                arrangement.openGraphImageUrl ??
-                arrangement.imageUrl ??
+                event.oembedImageUrl ??
+                event.openGraphImageUrl ??
+                event.imageUrl ??
                 siteMetadata?.oembedImageUrl ??
                 siteMetadata?.defaultOpenGraphImageUrl ??
                 undefined,

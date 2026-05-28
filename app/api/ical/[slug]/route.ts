@@ -28,24 +28,24 @@ function nextDay(date: Date): Date {
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
     const today = new Date().toISOString().slice(0, 10)
-    const arrangement = await client.fetch(arrangementBySlugQuery, { slug, today })
+    const event = await client.fetch(arrangementBySlugQuery, { slug, today })
 
-    if (!arrangement) {
+    if (!event) {
         return new Response("Not found", { status: 404 })
     }
 
     const calendar = ical({
-        name: arrangement.title ?? "Samfunnet i Bergen",
+        name: event.title ?? "Samfunnet i Bergen",
         prodId: "//Samfunnet i Bergen//Arrangementer//NO",
         method: ICalCalendarMethod.PUBLISH,
         ttl: 3600,
     })
 
     const url = `${BASE_URL}/arrangementer/${slug}`
-    const location = arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
+    const location = event.room?.title ?? event.roomText ?? "Samfunnet i Bergen"
 
-    if (arrangement.isRecurring && arrangement.rrule && arrangement.dates?.length) {
-        const base = arrangement.dates[0]
+    if (event.isRecurring && event.rrule && event.dates?.length) {
+        const base = event.dates[0]
         const allDay = !base.startTime
         const start = allDay ? toDate(base.startDate) : toDateTime(base.startDate, base.startTime!)
         const end = allDay
@@ -55,20 +55,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
               : toDateTime(base.startDate, base.startTime!)
 
         calendar.createEvent({
-            id: `${arrangement._id}@samfunnetibergen.no`,
-            summary: arrangement.title,
+            id: `${event._id}@samfunnetibergen.no`,
+            summary: event.title,
             start,
             end,
             allDay,
-            repeating: arrangement.rrule,
+            repeating: event.rrule,
             location,
             url,
-            organizer: arrangement.organizerGroup?.name
-                ? { name: arrangement.organizerGroup.name, email: "post@samfunnetibergen.no" }
+            organizer: event.organizerGroup?.name
+                ? { name: event.organizerGroup.name, email: "post@samfunnetibergen.no" }
                 : undefined,
         })
     } else {
-        for (const d of arrangement.dates ?? []) {
+        for (const d of event.dates ?? []) {
             const allDay = !d.startTime
             const start = allDay ? toDate(d.startDate) : toDateTime(d.startDate, d.startTime!)
             const end = allDay
@@ -79,14 +79,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
             calendar.createEvent({
                 id: `${d._key}@samfunnetibergen.no`,
-                summary: arrangement.title,
+                summary: event.title,
                 start,
                 end,
                 allDay,
                 location,
                 url,
-                organizer: arrangement.organizerGroup?.name
-                    ? { name: arrangement.organizerGroup.name, email: "post@samfunnetibergen.no" }
+                organizer: event.organizerGroup?.name
+                    ? { name: event.organizerGroup.name, email: "post@samfunnetibergen.no" }
                     : undefined,
             })
         }

@@ -8,9 +8,9 @@ import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchArrangementBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
+import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
 
-type Arrangement = NonNullable<Awaited<ReturnType<typeof fetchArrangementBySlug>>>
+type EventDetail = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>
 
 type EventPageProps = {
     params: Promise<{ event: string; locale: string }>
@@ -25,7 +25,7 @@ function formatDate(dateStr: string, locale: AppLocale): string {
     }).format(new Date(`${dateStr}T00:00:00`))
 }
 
-function googleCalendarUrl(a: Arrangement): string | null {
+function googleCalendarUrl(a: EventDetail): string | null {
     const firstDate = a.dates?.[0]
     if (!firstDate?.startDate) return null
 
@@ -46,7 +46,7 @@ function googleCalendarUrl(a: Arrangement): string | null {
     return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
-function formatPrices(a: Arrangement): string | null {
+function formatPrices(a: EventDetail): string | null {
     if (a.isFree) return "Gratis"
     const parts: string[] = []
     if (a.priceOrdinar != null) parts.push(`Ord. ${a.priceOrdinar} kr`)
@@ -57,22 +57,22 @@ function formatPrices(a: Arrangement): string | null {
 
 export async function generateMetadata({ params }: EventPageProps) {
     const resolvedParams = await params
-    const [arrangement, siteMetadata] = await Promise.all([
-        fetchArrangementBySlug(resolvedParams.event),
+    const [eventData, siteMetadata] = await Promise.all([
+        fetchEventBySlug(resolvedParams.event),
         fetchSiteMetadata(resolvedParams.locale as AppLocale, { stega: false }),
     ])
 
-    if (!arrangement) return {}
-    const title = `${arrangement.seoTitle ?? arrangement.title} | Samfunnet i Bergen`
+    if (!eventData) return {}
+    const title = `${eventData.seoTitle ?? eventData.title} | Samfunnet i Bergen`
     const description =
-        arrangement.seoDescription ??
-        arrangement.openGraphDescription ??
+        eventData.seoDescription ??
+        eventData.openGraphDescription ??
         siteMetadata?.defaultSeoDescription ??
         undefined
-    const openGraphTitle = arrangement.openGraphTitle ?? arrangement.title
+    const openGraphTitle = eventData.openGraphTitle ?? eventData.title
     const openGraphImage =
-        arrangement.openGraphImageUrl ??
-        arrangement.imageUrl ??
+        eventData.openGraphImageUrl ??
+        eventData.imageUrl ??
         siteMetadata?.defaultOpenGraphImageUrl
 
     return {
@@ -95,21 +95,21 @@ export default async function EventPage({ params }: EventPageProps) {
     )) as AppLocale
     activateRequestLocale(locale)
 
-    const [arrangement, t] = await Promise.all([
-        fetchArrangementBySlug(resolvedParams.event),
+    const [eventData, t] = await Promise.all([
+        fetchEventBySlug(resolvedParams.event),
         getTranslations({ locale, namespace: "EventPage" }),
     ])
 
-    if (!arrangement) notFound()
+    if (!eventData) notFound()
 
-    const roomTitle = arrangement.room?.title ?? arrangement.roomText
-    const roomSlug = arrangement.room?.slug
-    const roomFloor = arrangement.room?.floor
-    const roomImageUrl = arrangement.room?.imageUrl
-    const organizer = arrangement.organizerGroup?.name ?? arrangement.organizerText
-    const taxonomy = arrangement.eventType?.name
-    const price = formatPrices(arrangement)
-    const gcalUrl = googleCalendarUrl(arrangement)
+    const roomTitle = eventData.room?.title ?? eventData.roomText
+    const roomSlug = eventData.room?.slug
+    const roomFloor = eventData.room?.floor
+    const roomImageUrl = eventData.room?.imageUrl
+    const organizer = eventData.organizerGroup?.name ?? eventData.organizerText
+    const taxonomy = eventData.eventType?.name
+    const price = formatPrices(eventData)
+    const gcalUrl = googleCalendarUrl(eventData)
     return (
         <article className="flex w-full flex-col gap-8">
             {/* Hero */}
@@ -121,11 +121,11 @@ export default async function EventPage({ params }: EventPageProps) {
                         </p>
                     )}
                     <h1 className="wrap-break-word font-heading text-4xl leading-none text-foreground">
-                        {arrangement.title}
+                        {eventData.title}
                     </h1>
-                    {arrangement.ticketUrl && (
+                    {eventData.ticketUrl && (
                         <Button asChild className="w-fit" size="default">
-                            <a href={arrangement.ticketUrl} rel="noreferrer" target="_blank">
+                            <a href={eventData.ticketUrl} rel="noreferrer" target="_blank">
                                 <Ticket aria-hidden="true" />
                                 {t("tickets")}
                             </a>
@@ -134,21 +134,21 @@ export default async function EventPage({ params }: EventPageProps) {
                 </div>
 
                 <div className="border-2 border-border bg-muted shadow-shadow">
-                    {arrangement.imageUrl ? (
+                    {eventData.imageUrl ? (
                         <div className="relative aspect-[16/10] max-h-[28rem] lg:aspect-[16/9]">
                             <Image
-                                alt={arrangement.imageCaption ?? arrangement.title}
+                                alt={eventData.imageCaption ?? eventData.title}
                                 className="object-cover"
                                 fill
                                 priority
                                 sizes="(max-width: 1024px) 100vw, 80vw"
-                                src={arrangement.imageUrl}
+                                src={eventData.imageUrl}
                             />
                         </div>
                     ) : (
                         <div className="flex aspect-[16/10] max-h-[28rem] items-center justify-center p-8 text-center lg:aspect-[16/9]">
                             <p className="max-w-md font-heading text-4xl leading-tight text-foreground/50">
-                                {arrangement.title}
+                                {eventData.title}
                             </p>
                         </div>
                     )}
@@ -182,66 +182,64 @@ export default async function EventPage({ params }: EventPageProps) {
                         <p>{t("time")}</p>
                         <p>{t("place")}</p>
                     </div>
-                    {(arrangement.dates ?? []).map(
-                        (d: NonNullable<Arrangement["dates"]>[number]) => (
-                            <div
-                                className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl"
-                                key={d._key}
-                            >
-                                <p>{formatDate(d.startDate, locale)}</p>
-                                <p>
-                                    {d.startTime
-                                        ? d.endTime
-                                            ? `${d.startTime}–${d.endTime}`
-                                            : d.startTime
-                                        : "-"}
-                                </p>
-                                <p>
-                                    {roomSlug ? (
-                                        <span className="group relative inline-block">
-                                            <Link
-                                                href={`/rom/${roomSlug}`}
-                                                className="hover:underline hover:underline-offset-4"
-                                            >
-                                                {roomTitle}
-                                            </Link>
-                                            {(roomImageUrl != null || roomFloor != null) && (
-                                                <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
-                                                    {roomImageUrl && (
-                                                        <span className="relative block aspect-[4/3] w-full">
-                                                            <Image
-                                                                src={roomImageUrl}
-                                                                alt={roomTitle ?? ""}
-                                                                fill
-                                                                className="object-cover"
-                                                                sizes="176px"
-                                                            />
-                                                        </span>
-                                                    )}
-                                                    {roomFloor != null && (
-                                                        <span className="px-2 py-1 text-xs text-muted-foreground">
-                                                            {roomFloor}. etasje
-                                                        </span>
-                                                    )}
-                                                </span>
-                                            )}
-                                        </span>
-                                    ) : (
-                                        (roomTitle ?? "-")
-                                    )}
-                                </p>
-                            </div>
-                        ),
-                    )}
+                    {(eventData.dates ?? []).map((d: NonNullable<EventDetail["dates"]>[number]) => (
+                        <div
+                            className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl"
+                            key={d._key}
+                        >
+                            <p>{formatDate(d.startDate, locale)}</p>
+                            <p>
+                                {d.startTime
+                                    ? d.endTime
+                                        ? `${d.startTime}–${d.endTime}`
+                                        : d.startTime
+                                    : "-"}
+                            </p>
+                            <p>
+                                {roomSlug ? (
+                                    <span className="group relative inline-block">
+                                        <Link
+                                            href={`/rom/${roomSlug}`}
+                                            className="hover:underline hover:underline-offset-4"
+                                        >
+                                            {roomTitle}
+                                        </Link>
+                                        {(roomImageUrl != null || roomFloor != null) && (
+                                            <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
+                                                {roomImageUrl && (
+                                                    <span className="relative block aspect-[4/3] w-full">
+                                                        <Image
+                                                            src={roomImageUrl}
+                                                            alt={roomTitle ?? ""}
+                                                            fill
+                                                            className="object-cover"
+                                                            sizes="176px"
+                                                        />
+                                                    </span>
+                                                )}
+                                                {roomFloor != null && (
+                                                    <span className="px-2 py-1 text-xs text-muted-foreground">
+                                                        {roomFloor}. etasje
+                                                    </span>
+                                                )}
+                                            </span>
+                                        )}
+                                    </span>
+                                ) : (
+                                    (roomTitle ?? "-")
+                                )}
+                            </p>
+                        </div>
+                    ))}
                 </section>
             </div>
 
             {/* Description */}
             <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
                 <div className="space-y-4">
-                    {arrangement.facebookUrl && (
+                    {eventData.facebookUrl && (
                         <Button asChild variant="neutral">
-                            <a href={arrangement.facebookUrl} rel="noreferrer" target="_blank">
+                            <a href={eventData.facebookUrl} rel="noreferrer" target="_blank">
                                 <ExternalLink aria-hidden="true" />
                                 {t("facebook")}
                             </a>
@@ -256,15 +254,15 @@ export default async function EventPage({ params }: EventPageProps) {
                         </Button>
                     )}
                     <Button asChild variant="neutral">
-                        <a href={`/api/ical/${arrangement.slug}`} download>
+                        <a href={`/api/ical/${eventData.slug}`} download>
                             <CalendarPlus aria-hidden="true" />
                             {t("addToCalendar")}
                         </a>
                     </Button>
                 </div>
                 <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground/85 max-lg:border-l-0 max-lg:pl-0">
-                    {arrangement.description?.length ? (
-                        <PortableTextContent value={arrangement.description} />
+                    {eventData.description?.length ? (
+                        <PortableTextContent value={eventData.description} />
                     ) : (
                         <p>-</p>
                     )}

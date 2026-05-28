@@ -4,7 +4,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import {
     fetchEventsPageContent,
-    fetchPublishedArrangements,
+    fetchPublishedEvents,
     fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
 
@@ -49,7 +49,7 @@ export default async function EventsPage({
     const [t, eventsContent, arrangements, resolvedSearchParams] = await Promise.all([
         getTranslations({ locale, namespace: "EventsPage" }),
         fetchEventsPageContent(locale),
-        fetchPublishedArrangements(),
+        fetchPublishedEvents(),
         searchParams,
     ])
 

@@ -6,7 +6,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import {
     fetchHomePageContent,
-    fetchPublishedArrangements,
+    fetchPublishedEvents,
     fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
 
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     }
 }
 
-type SanityEvent = Awaited<ReturnType<typeof fetchPublishedArrangements>>[number]
+type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
 type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
 
 const FALLBACK_HOME_DESCRIPTION =
@@ -119,7 +119,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
     const [homePage, events] = await Promise.all([
         fetchHomePageContent(locale),
-        fetchPublishedArrangements(),
+        fetchPublishedEvents(),
     ])
     const visibleEvents = (events ?? []).slice(0, 4)
 

@@ -1,4 +1,4 @@
-import type { ArrangementEventType, ArrangementGroup, ArrangementRoom } from "@/lib/sanity/fetch"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import type { EventSummary } from "../components/ArrangementCard"
 
 export type DateEntry = {
@@ -105,9 +105,9 @@ export function reducer(state: FormState, action: Action): FormState {
 export function buildPreviewEvent(
     state: FormState,
     imagePreviewUrl: string | null,
-    rooms: ArrangementRoom[],
-    groups: ArrangementGroup[],
-    eventTypes: ArrangementEventType[],
+    rooms: EventRoom[],
+    groups: EventGroup[],
+    eventTypes: EventType[],
 ): EventSummary {
     const selectedRoom = rooms.find(room => room._id === state.room)
     const selectedGroup = groups.find(group => group._id === state.organizerGroup)

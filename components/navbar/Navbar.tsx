@@ -7,7 +7,7 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { MobileMenu } from "./MobileMenu"
 
 type NavbarProps = {

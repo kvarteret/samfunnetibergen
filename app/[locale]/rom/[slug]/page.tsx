@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch"
-import type { SourcedImage } from "@/lib/sanity/types"
+import type { SourcedImage } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
