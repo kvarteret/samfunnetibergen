@@ -2,26 +2,23 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
+
 import {
-    type EventDetail,
+    buildTaxonomyFromEvents,
     type EventFilters,
-    type EventSection,
     type EventTaxonomy,
     filterEvents,
-    groupEventsByTaxonomy,
+    type PublishedEvent,
     parseEventFilters,
-    resolveEventFilterIds,
     serializeEventFilters,
-} from "@/features/events/domain/eventsUtils"
-import type { AppLocale } from "@/i18n/routing"
+} from "@/features/events/domain/eventUtils"
 
 type EventsContextValue = {
-    events: EventDetail[]
+    events: PublishedEvent[]
     taxonomy: EventTaxonomy
     filters: EventFilters
     setFilters: (filters: EventFilters) => void
-    filteredEvents: EventDetail[]
-    sections: EventSection[]
+    filteredEvents: PublishedEvent[]
 }
 
 const EventsContext = createContext<EventsContextValue | null>(null)
@@ -29,31 +26,33 @@ const EventsContext = createContext<EventsContextValue | null>(null)
 export function EventsProvider({
     children,
     initialEvents,
-    initialTaxonomy,
     initialSearchParams,
-    locale,
 }: {
     children: React.ReactNode
-    initialEvents: EventDetail[]
-    initialTaxonomy: EventTaxonomy
+    initialEvents: PublishedEvent[]
     initialSearchParams: Record<string, string | string[] | undefined>
-    locale: AppLocale
 }) {
     const pathname = usePathname()
     const router = useRouter()
-    const [filters, setFilters] = useState<EventFilters>(() =>
-        resolveEventFilterIds(parseEventFilters(initialSearchParams), initialTaxonomy),
-    )
-    const updateFilters = useCallback(
-        (nextFilters: EventFilters) => {
-            setFilters(nextFilters)
 
-            const serializedFilters = serializeEventFilters(nextFilters, initialTaxonomy)
-            router.replace(serializedFilters ? `${pathname}?${serializedFilters}` : pathname, {
+    const taxonomy = useMemo(
+        () => buildTaxonomyFromEvents(initialEvents),
+        [initialEvents],
+    )
+
+    const [filters, setFiltersState] = useState<EventFilters>(() =>
+        parseEventFilters(initialSearchParams),
+    )
+
+    const setFilters = useCallback(
+        (nextFilters: EventFilters) => {
+            setFiltersState(nextFilters)
+            const serialized = serializeEventFilters(nextFilters)
+            router.replace(serialized ? `${pathname}?${serialized}` : pathname, {
                 scroll: false,
             })
         },
-        [pathname, router, initialTaxonomy],
+        [pathname, router],
     )
 
     const filteredEvents = useMemo(
@@ -61,20 +60,14 @@ export function EventsProvider({
         [initialEvents, filters],
     )
 
-    const sections = useMemo(
-        () => groupEventsByTaxonomy(filteredEvents, initialTaxonomy, locale),
-        [filteredEvents, initialTaxonomy, locale],
-    )
-
     return (
         <EventsContext
             value={{
                 events: initialEvents,
-                taxonomy: initialTaxonomy,
+                taxonomy,
                 filters,
-                setFilters: updateFilters,
+                setFilters,
                 filteredEvents,
-                sections,
             }}
         >
             {children}

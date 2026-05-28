@@ -17,14 +17,14 @@ export const eventsPageContentNbQuery =
     "oembedImageUrl": oembedImage.asset->url
 }`)
 
-export const arrangementRoomsQuery = defineQuery(`
+export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, "")
 }`)
 
-export const arrangementEventTypesQuery = defineQuery(`
+export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
@@ -36,14 +36,14 @@ export const arrangementEventTypesQuery = defineQuery(`
     }
 }`)
 
-export const arrangementGroupsQuery = defineQuery(`
+export const eventGroupsQuery = defineQuery(`
     *[_type == "studentGroup"] | order(orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
     "category": coalesce(category, "")
 }`)
 
-const arrangementProjection = `{
+const eventProjection = `{
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, ""),
@@ -85,17 +85,17 @@ const arrangementProjection = `{
     description[] ${portableTextProjection}
 }`
 
-export const publishedArrangementsQuery = defineQuery(`
+export const publishedEventsQuery = defineQuery(`
     *[_type == "arrangement" && approvalStatus == "approved" && (
         count(dates[startDate >= $today]) > 0
         || (isRecurring == true && defined(rrule) && count(dates) > 0)
-    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${arrangementProjection}`)
+    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
-export const arrangementBySlugQuery = defineQuery(`
+export const eventBySlugQuery = defineQuery(`
     *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (
         count(dates[startDate >= $today]) > 0
         || (isRecurring == true && defined(rrule) && count(dates) > 0)
-    )][0] ${arrangementProjection}`)
+    )][0] ${eventProjection}`)
 
 export const eventTaxonomyGroupsQuery = defineQuery(`
     *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {
@@ -104,7 +104,7 @@ export const eventTaxonomyGroupsQuery = defineQuery(`
     "slug": coalesce(slug.current, "")
 }`)
 
-export const feedArrangementsQuery = defineQuery(`
+export const feedEventsQuery = defineQuery(`
     *[
         _type == "arrangement"
         && approvalStatus == "approved"

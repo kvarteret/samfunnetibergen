@@ -12,10 +12,10 @@ import {
     useTransition,
 } from "react"
 
-import { submitArrangement, uploadEventImage } from "@/app/actions/submit-arrangement"
-import type { ArrangementEventType, ArrangementGroup, ArrangementRoom } from "@/lib/sanity/fetch"
+import { submitEvent, uploadEventImage } from "@/app/actions/submit-event"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
-    buildPreviewArrangement,
+    buildPreviewEvent,
     initialState,
     reducer,
     type SetFormField,
@@ -23,25 +23,25 @@ import {
     type UpdateDateField,
 } from "../domain/formState"
 import {
-    ArrangementDetailsFields,
-    ArrangementImageField,
-    ArrangementLinksFields,
-    ArrangementListPreview,
-    ArrangementOrganizerFields,
-    ArrangementPlaceFields,
-    ArrangementPriceFields,
-    ArrangementScheduleFields,
-    SubmitArrangementActions,
+    EventDetailsFields,
+    EventImageField,
+    EventLinksFields,
+    EventListPreview,
+    EventOrganizerFields,
+    EventPlaceFields,
+    EventPriceFields,
+    EventScheduleFields,
+    SubmitEventActions,
     SubmitterFields,
 } from "./FormSections"
 
-interface SubmitArrangementFormProps {
-    rooms: ArrangementRoom[]
-    eventTypes: ArrangementEventType[]
-    groups: ArrangementGroup[]
+interface SubmitEventFormProps {
+    rooms: EventRoom[]
+    eventTypes: EventType[]
+    groups: EventGroup[]
 }
 
-export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArrangementFormProps) {
+export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormProps) {
     const [state, dispatch] = useReducer(reducer, initialState)
     const [isPending, startTransition] = useTransition()
     const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle")
@@ -108,8 +108,8 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
         [groups],
     )
 
-    const previewArrangement = useMemo(
-        () => buildPreviewArrangement(state, imagePreviewUrl, rooms, groups, eventTypes),
+    const previewEvent = useMemo(
+        () => buildPreviewEvent(state, imagePreviewUrl, rooms, groups, eventTypes),
         [state, imagePreviewUrl, rooms, groups, eventTypes],
     )
 
@@ -167,7 +167,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
         }
 
         startTransition(async () => {
-            const result = await submitArrangement({
+            const result = await submitEvent({
                 title: state.title,
                 description: state.description || undefined,
                 dates: state.dates
@@ -213,7 +213,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
     return (
         <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
             <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
-                <ArrangementDetailsFields
+                <EventDetailsFields
                     description={state.description}
                     eventTypeId={state.eventTypeId}
                     eventTypeOptions={eventTypeOptions}
@@ -222,7 +222,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     title={state.title}
                     uid={uid}
                 />
-                <ArrangementImageField
+                <EventImageField
                     imageAssetId={imageAssetId}
                     imagePreviewUrl={imagePreviewUrl}
                     imageUploadError={imageUploadError}
@@ -230,7 +230,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     onImageChange={handleImageChange}
                     onRemoveImage={handleRemoveImage}
                 />
-                <ArrangementScheduleFields
+                <EventScheduleFields
                     addDate={addDate}
                     dates={state.dates}
                     isRecurring={state.isRecurring}
@@ -240,21 +240,21 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     uid={uid}
                     updateDate={updateDate}
                 />
-                <ArrangementPlaceFields
+                <EventPlaceFields
                     room={state.room}
                     roomOptions={roomOptions}
                     roomText={state.roomText}
                     setField={setField}
                     uid={uid}
                 />
-                <ArrangementOrganizerFields
+                <EventOrganizerFields
                     groupOptions={groupOptions}
                     organizerGroup={state.organizerGroup}
                     organizerText={state.organizerText}
                     setField={setField}
                     uid={uid}
                 />
-                <ArrangementPriceFields
+                <EventPriceFields
                     isFree={state.isFree}
                     priceMedlem={state.priceMedlem}
                     priceOrdinar={state.priceOrdinar}
@@ -262,7 +262,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     setField={setField}
                     uid={uid}
                 />
-                <ArrangementLinksFields
+                <EventLinksFields
                     facebookUrl={state.facebookUrl}
                     setField={setField}
                     ticketUrl={state.ticketUrl}
@@ -275,7 +275,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                     submittedByOrganization={state.submittedByOrganization}
                     uid={uid}
                 />
-                <SubmitArrangementActions
+                <SubmitEventActions
                     errorMessage={errorMessage}
                     imageUploading={imageUploading}
                     isPending={isPending}
@@ -283,7 +283,7 @@ export function SubmitArrangementForm({ rooms, eventTypes, groups }: SubmitArran
                 />
             </form>
 
-            <ArrangementListPreview arrangement={previewArrangement} />
+            <EventListPreview event={previewEvent} />
         </div>
     )
 }

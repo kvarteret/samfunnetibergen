@@ -13,8 +13,7 @@ import type {
     SubmitStatus,
     UpdateDateField,
 } from "../domain/formState"
-import type { ArrangementSummary } from "./ArrangementCard"
-import { ArrangementCard } from "./ArrangementCard"
+import { EventCard, type EventSummary } from "./EventCard"
 import {
     CheckboxSquare,
     FieldGroup,
@@ -25,7 +24,7 @@ import {
 } from "./FormFields"
 import { RecurrenceBuilder } from "./RecurrenceBuilder"
 
-interface ArrangementDetailsFieldsProps {
+interface EventDetailsFieldsProps {
     uid: string
     title: string
     description: string
@@ -35,7 +34,7 @@ interface ArrangementDetailsFieldsProps {
     setField: SetFormField
 }
 
-export function ArrangementDetailsFields({
+export function EventDetailsFields({
     uid,
     title,
     description,
@@ -43,7 +42,7 @@ export function ArrangementDetailsFields({
     eventTypeOptions,
     isInternalEvent,
     setField,
-}: ArrangementDetailsFieldsProps) {
+}: EventDetailsFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="01" title="Om arrangementet" />
@@ -85,10 +84,7 @@ export function ArrangementDetailsFields({
             />
 
             <label className="group flex cursor-pointer items-start gap-3">
-                <CheckboxSquare
-                    checked={isInternalEvent}
-                    onChange={setField("isInternalEvent")}
-                />
+                <CheckboxSquare checked={isInternalEvent} onChange={setField("isInternalEvent")} />
                 <span>
                     <span className="block font-heading text-sm text-foreground">
                         Internarrangement
@@ -102,7 +98,7 @@ export function ArrangementDetailsFields({
     )
 }
 
-interface ArrangementImageFieldProps {
+interface EventImageFieldProps {
     imageAssetId: string | null
     imagePreviewUrl: string | null
     imageUploading: boolean
@@ -111,14 +107,14 @@ interface ArrangementImageFieldProps {
     onRemoveImage: () => void
 }
 
-export function ArrangementImageField({
+export function EventImageField({
     imageAssetId,
     imagePreviewUrl,
     imageUploading,
     imageUploadError,
     onImageChange,
     onRemoveImage,
-}: ArrangementImageFieldProps) {
+}: EventImageFieldProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="02" title="Bilde" />
@@ -212,7 +208,7 @@ function ImageUploadDropzone({ onImageChange }: ImageUploadDropzoneProps) {
     )
 }
 
-interface ArrangementScheduleFieldsProps {
+interface EventScheduleFieldsProps {
     uid: string
     dates: DateEntry[]
     isRecurring: boolean
@@ -223,7 +219,7 @@ interface ArrangementScheduleFieldsProps {
     updateDate: UpdateDateField
 }
 
-export function ArrangementScheduleFields({
+export function EventScheduleFields({
     uid,
     dates,
     isRecurring,
@@ -232,14 +228,14 @@ export function ArrangementScheduleFields({
     setField,
     setRrule,
     updateDate,
-}: ArrangementScheduleFieldsProps) {
+}: EventScheduleFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="03" title="Dato og tid" />
 
             <div className="space-y-4">
                 {dates.map((date, index) => (
-                    <ArrangementDateCard
+                    <EventDateCard
                         date={date}
                         index={index}
                         key={date.id}
@@ -260,7 +256,7 @@ export function ArrangementScheduleFields({
                 </button>
             </div>
 
-            <ArrangementRecurrenceFields
+            <EventRecurrenceFields
                 isRecurring={isRecurring}
                 onRecurrenceChange={setRrule}
                 onRecurringToggle={setField("isRecurring")}
@@ -269,7 +265,7 @@ export function ArrangementScheduleFields({
     )
 }
 
-interface ArrangementDateCardProps {
+interface EventDateCardProps {
     uid: string
     date: DateEntry
     index: number
@@ -278,14 +274,14 @@ interface ArrangementDateCardProps {
     updateDate: UpdateDateField
 }
 
-function ArrangementDateCard({
+function EventDateCard({
     uid,
     date,
     index,
     totalDates,
     removeDate,
     updateDate,
-}: ArrangementDateCardProps) {
+}: EventDateCardProps) {
     return (
         <div className="space-y-4 border-2 border-border bg-card p-4">
             <div className="flex items-center justify-between">
@@ -350,17 +346,17 @@ function ArrangementDateCard({
     )
 }
 
-interface ArrangementRecurrenceFieldsProps {
+interface EventRecurrenceFieldsProps {
     isRecurring: boolean
     onRecurrenceChange: (rrule: string) => void
     onRecurringToggle: (isRecurring: boolean) => void
 }
 
-function ArrangementRecurrenceFields({
+function EventRecurrenceFields({
     isRecurring,
     onRecurrenceChange,
     onRecurringToggle,
-}: ArrangementRecurrenceFieldsProps) {
+}: EventRecurrenceFieldsProps) {
     return (
         <div className="space-y-4">
             <label className="group flex cursor-pointer items-start gap-3">
@@ -381,7 +377,7 @@ function ArrangementRecurrenceFields({
     )
 }
 
-interface ArrangementPlaceFieldsProps {
+interface EventPlaceFieldsProps {
     uid: string
     room: string
     roomText: string
@@ -389,13 +385,13 @@ interface ArrangementPlaceFieldsProps {
     setField: SetFormField
 }
 
-export function ArrangementPlaceFields({
+export function EventPlaceFields({
     uid,
     room,
     roomText,
     roomOptions,
     setField,
-}: ArrangementPlaceFieldsProps) {
+}: EventPlaceFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="04" title="Sted" />
@@ -427,7 +423,7 @@ export function ArrangementPlaceFields({
     )
 }
 
-interface ArrangementOrganizerFieldsProps {
+interface EventOrganizerFieldsProps {
     uid: string
     organizerGroup: string
     organizerText: string
@@ -435,13 +431,13 @@ interface ArrangementOrganizerFieldsProps {
     setField: SetFormField
 }
 
-export function ArrangementOrganizerFields({
+export function EventOrganizerFields({
     uid,
     organizerGroup,
     organizerText,
     groupOptions,
     setField,
-}: ArrangementOrganizerFieldsProps) {
+}: EventOrganizerFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="05" title="Arrangør" />
@@ -473,7 +469,7 @@ export function ArrangementOrganizerFields({
     )
 }
 
-interface ArrangementPriceFieldsProps {
+interface EventPriceFieldsProps {
     uid: string
     isFree: boolean
     priceOrdinar: string
@@ -482,14 +478,14 @@ interface ArrangementPriceFieldsProps {
     setField: SetFormField
 }
 
-export function ArrangementPriceFields({
+export function EventPriceFields({
     uid,
     isFree,
     priceOrdinar,
     priceStudent,
     priceMedlem,
     setField,
-}: ArrangementPriceFieldsProps) {
+}: EventPriceFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="06" title="Pris" />
@@ -530,19 +526,14 @@ export function ArrangementPriceFields({
     )
 }
 
-interface ArrangementLinksFieldsProps {
+interface EventLinksFieldsProps {
     uid: string
     ticketUrl: string
     facebookUrl: string
     setField: SetFormField
 }
 
-export function ArrangementLinksFields({
-    uid,
-    ticketUrl,
-    facebookUrl,
-    setField,
-}: ArrangementLinksFieldsProps) {
+export function EventLinksFields({ uid, ticketUrl, facebookUrl, setField }: EventLinksFieldsProps) {
     return (
         <section className="space-y-6">
             <SectionHeader number="07" title="Lenker" />
@@ -636,19 +627,19 @@ export function SubmitterFields({
     )
 }
 
-interface SubmitArrangementActionsProps {
+interface SubmitEventActionsProps {
     errorMessage: string
     imageUploading: boolean
     isPending: boolean
     submitStatus: SubmitStatus
 }
 
-export function SubmitArrangementActions({
+export function SubmitEventActions({
     errorMessage,
     imageUploading,
     isPending,
     submitStatus,
-}: SubmitArrangementActionsProps) {
+}: SubmitEventActionsProps) {
     return (
         <section className="space-y-4 border-t-2 border-border pt-8">
             {submitStatus === "error" && (
@@ -693,19 +684,19 @@ export function SubmitArrangementActions({
     )
 }
 
-interface ArrangementListPreviewProps {
-    arrangement: ArrangementSummary
+interface EventListPreviewProps {
+    event: EventSummary
 }
 
-export function ArrangementListPreview({ arrangement }: ArrangementListPreviewProps) {
+export function EventListPreview({ event }: EventListPreviewProps) {
     return (
         <div aria-hidden className="sticky top-8 hidden space-y-3 xl:block">
             <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
                 Forhåndsvisning
             </p>
             <div className="pointer-events-none select-none">
-                <ArrangementCard
-                    arrangement={arrangement}
+                <EventCard
+                    event={event}
                     facebookLabel="Facebook"
                     locale="nb"
                     ticketsLabel="Billetter"

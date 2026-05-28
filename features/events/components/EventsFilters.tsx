@@ -1,21 +1,16 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+
 import { useEvents } from "@/features/events/context/EventsContext"
-import {
-    countEventFilters,
-    getPrimaryTaxonomyGroups,
-    getTaxonomyGroupLabel,
-} from "@/features/events/domain/eventsUtils"
-import type { AppLocale } from "@/i18n/routing"
+import { countEventFilters } from "@/features/events/domain/eventUtils"
 import { FilterButton } from "./FilterButton"
 
-export interface EventsFiltersProps {
+interface EventsFiltersProps {
     filterAllLabel: string
     filterMoreLabel: string
     filterOrganizerLabel: string
     filterTypeLabel: string
-    locale: AppLocale
 }
 
 export function EventsFilters({
@@ -23,17 +18,19 @@ export function EventsFilters({
     filterMoreLabel,
     filterOrganizerLabel,
     filterTypeLabel,
-    locale,
 }: EventsFiltersProps) {
     const t = useTranslations("EventsPage")
     const { filters, filteredEvents, setFilters, taxonomy } = useEvents()
     const activeFilterCount = countEventFilters(filters)
 
-    const toggleTaxonomyGroup = (groupName: string) =>
+    const clearAll = () =>
+        setFilters({ taxonomyGroupName: null, eventTypeIds: [], organizerGroupIds: [] })
+
+    const toggleTaxonomyGroup = (name: string) =>
         setFilters({
+            taxonomyGroupName: filters.taxonomyGroupName === name ? null : name,
             eventTypeIds: [],
             organizerGroupIds: filters.organizerGroupIds,
-            taxonomyGroup: filters.taxonomyGroup === groupName ? null : groupName,
         })
 
     const toggleEventType = (id: string) =>
@@ -53,29 +50,23 @@ export function EventsFilters({
         })
 
     return (
-        <div className="space-y-6 py-6">
+        <div className="space-y-6 border-y-2 border-border py-6">
             <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
                     <FilterButton
                         isActive={activeFilterCount === 0}
                         label={filterAllLabel}
-                        onClick={() =>
-                            setFilters({
-                                eventTypeIds: [],
-                                organizerGroupIds: [],
-                                taxonomyGroup: null,
-                            })
-                        }
+                        onClick={clearAll}
                     />
-                    {getPrimaryTaxonomyGroups(taxonomy).map(groupName => (
+                    {taxonomy.taxonomyGroups.map(group => (
                         <FilterButton
                             isActive={
-                                filters.taxonomyGroup === groupName &&
+                                filters.taxonomyGroupName === group.name &&
                                 filters.eventTypeIds.length === 0
                             }
-                            key={groupName}
-                            label={getTaxonomyGroupLabel(groupName, locale)}
-                            onClick={() => toggleTaxonomyGroup(groupName)}
+                            key={group._id}
+                            label={group.name}
+                            onClick={() => toggleTaxonomyGroup(group.name)}
                         />
                     ))}
                 </div>
@@ -84,55 +75,58 @@ export function EventsFilters({
                 </p>
             </div>
 
-            <details className="group">
-                <summary className="cursor-pointer list-none text-sm font-bold uppercase tracking-[0.18em] text-foreground underline underline-offset-4">
-                    {filterMoreLabel}
-                    {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-                </summary>
-                <div className="mt-6 space-y-8">
-                    <div className="space-y-3">
-                        <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                            {filterTypeLabel}
-                        </h2>
-                        <div className="space-y-5">
-                            {taxonomy.event_type_groups.map(group => (
-                                <div className="space-y-2" key={group.name}>
-                                    <h3 className="font-heading text-2xl">
-                                        {getTaxonomyGroupLabel(group.name, locale)}
-                                    </h3>
+            {(taxonomy.eventTypes.length > 0 || taxonomy.organizerGroups.length > 0) && (
+                <details>
+                    <summary className="cursor-pointer list-none text-sm font-bold uppercase tracking-[0.18em] text-foreground underline underline-offset-4">
+                        {filterMoreLabel}
+                        {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                    </summary>
+                    <div className="mt-6 space-y-8">
+                        {taxonomy.taxonomyGroups.map(group => {
+                            const groupEventTypes = taxonomy.eventTypes.filter(
+                                et => et.taxonomyGroupName === group.name,
+                            )
+                            if (groupEventTypes.length === 0) return null
+                            return (
+                                <div className="space-y-3" key={group._id}>
+                                    <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
+                                        {filterTypeLabel} — {group.name}
+                                    </h2>
                                     <div className="flex flex-wrap gap-3">
-                                        {group.event_types.map(eventType => (
+                                        {groupEventTypes.map(eventType => (
                                             <FilterButton
                                                 isActive={filters.eventTypeIds.includes(
-                                                    eventType.id,
+                                                    eventType._id,
                                                 )}
-                                                key={eventType.id}
+                                                key={eventType._id}
                                                 label={eventType.name}
-                                                onClick={() => toggleEventType(eventType.id)}
+                                                onClick={() => toggleEventType(eventType._id)}
                                             />
                                         ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            )
+                        })}
+                        {taxonomy.organizerGroups.length > 0 && (
+                            <div className="space-y-3">
+                                <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
+                                    {filterOrganizerLabel}
+                                </h2>
+                                <div className="flex flex-wrap gap-3">
+                                    {taxonomy.organizerGroups.map(group => (
+                                        <FilterButton
+                                            isActive={filters.organizerGroupIds.includes(group._id)}
+                                            key={group._id}
+                                            label={group.name}
+                                            onClick={() => toggleOrganizer(group._id)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <div className="space-y-3">
-                        <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                            {filterOrganizerLabel}
-                        </h2>
-                        <div className="flex flex-wrap gap-3">
-                            {taxonomy.organizer_groups.map(group => (
-                                <FilterButton
-                                    isActive={filters.organizerGroupIds.includes(group.id)}
-                                    key={group.id}
-                                    label={group.name}
-                                    onClick={() => toggleOrganizer(group.id)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </details>
+                </details>
+            )}
         </div>
     )
 }

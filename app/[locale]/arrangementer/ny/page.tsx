@@ -1,12 +1,8 @@
 import { CalendarPlus } from "lucide-react"
-import { SubmitArrangementForm } from "@/features/events/components/SubmitArrangementForm"
+import { SubmitEventForm } from "@/features/events/components/SubmitEventForm"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
-import {
-    fetchArrangementEventTypes,
-    fetchArrangementGroups,
-    fetchArrangementRooms,
-} from "@/lib/sanity/fetch"
+import { fetchEventGroups, fetchEventRooms, fetchEventTypes } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -27,9 +23,9 @@ export default async function NyttArrangementPage({
     activateRequestLocale(locale)
 
     const [rooms, eventTypes, groups] = await Promise.all([
-        fetchArrangementRooms(),
-        fetchArrangementEventTypes(),
-        fetchArrangementGroups(),
+        fetchEventRooms(),
+        fetchEventTypes(),
+        fetchEventGroups(),
     ])
 
     return (
@@ -100,7 +96,7 @@ export default async function NyttArrangementPage({
             </header>
 
             {/* ── Form ───────────────────────────────────────────────────── */}
-            <SubmitArrangementForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
+            <SubmitEventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
         </article>
     )
 }

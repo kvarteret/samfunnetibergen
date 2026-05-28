@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz"
 import { toPlainText } from "@portabletext/toolkit"
 import { createClient } from "next-sanity"
 
-import { feedArrangementsQuery } from "@/lib/sanity/queries/events"
+import { feedEventsQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
@@ -12,7 +12,7 @@ const TZ = "Europe/Oslo"
 
 export const dynamic = "force-dynamic"
 
-type ArrangementDate = {
+type EventDate = {
     _key: string
     startDate: string
     startTime?: string | null
@@ -27,8 +27,8 @@ function toIsoUtc(date: string, time?: string | null): string {
 }
 
 function buildEventEntry(
-    arrangement: NonNullable<Awaited<ReturnType<typeof fetchArrangements>>>[number],
-    date: ArrangementDate,
+    arrangement: NonNullable<Awaited<ReturnType<typeof fetchEvents>>>[number],
+    date: EventDate,
     index: number,
 ) {
     const slug = arrangement.slug
@@ -102,25 +102,25 @@ function buildEventEntry(
     return entry
 }
 
-async function fetchArrangements() {
+async function fetchEvents() {
     const today = new Date().toISOString().slice(0, 10)
-    return client.fetch(feedArrangementsQuery, { today })
+    return client.fetch(feedEventsQuery, { today })
 }
 
 export async function GET() {
-    const arrangements = await fetchArrangements()
+    const rawEvents = await fetchEvents()
 
     const events: Record<string, unknown>[] = []
 
-    for (const arrangement of arrangements) {
-        const dates = arrangement.dates ?? []
+    for (const event of rawEvents) {
+        const dates = event.dates ?? []
 
-        if (arrangement.isRecurring && arrangement.rrule && dates.length > 0) {
+        if (event.isRecurring && event.rrule && dates.length > 0) {
             // Recurring events: emit base occurrence — consumers expand via rrule
-            events.push(buildEventEntry(arrangement, dates[0], 0))
+            events.push(buildEventEntry(event, dates[0], 0))
         } else {
             for (let i = 0; i < dates.length; i++) {
-                events.push(buildEventEntry(arrangement, dates[i], i))
+                events.push(buildEventEntry(event, dates[i], i))
             }
         }
     }

@@ -5,7 +5,7 @@ import Image from "next/image"
 import { useState } from "react"
 
 import { Link } from "@/i18n/navigation"
-import type { StudentGroupSummary } from "@/lib/sanity/types"
+import type { StudentGroupSummary } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 
 type GroupSection = {

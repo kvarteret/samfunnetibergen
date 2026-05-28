@@ -4,12 +4,11 @@ import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
-import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 
 type MobileMenuProps = {
     items: NavItem[]
-    fallbackItems: { label: string; href: string }[]
 }
 
 const subscribe = () => () => {}
@@ -18,7 +17,7 @@ const navShellClass =
 const brandLinkClass =
     "py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
 
-export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
+export function MobileMenu({ items }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
     const mounted = useSyncExternalStore(
         subscribe,
@@ -43,7 +42,6 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
     }, [open])
 
     const close = () => setOpen(false)
-    const displayItems = items.length > 0 ? items : null
 
     return (
         <>
@@ -107,35 +105,15 @@ export function MobileMenu({ items, fallbackItems }: MobileMenuProps) {
                             aria-label="Mobilnavigasjon"
                             className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
                         >
-                            {displayItems
-                                ? displayItems.map((item, i) => (
-                                      <MobileNavItem
-                                          index={i}
-                                          item={item}
-                                          key={item._key}
-                                          onClose={close}
-                                          open={open}
-                                      />
-                                  ))
-                                : fallbackItems.map((item, i) => (
-                                      <Link
-                                          className={cn(
-                                              "block px-6 py-5 font-heading text-2xl text-foreground",
-                                              "transition-[opacity,transform] duration-300 hover:bg-muted",
-                                              open
-                                                  ? "translate-y-0 opacity-100"
-                                                  : "translate-y-2 opacity-0",
-                                          )}
-                                          href={item.href}
-                                          key={item.href}
-                                          onClick={close}
-                                          style={{
-                                              transitionDelay: open ? `${i * 35 + 60}ms` : "0ms",
-                                          }}
-                                      >
-                                          {item.label}
-                                      </Link>
-                                  ))}
+                            {items.map((item, i) => (
+                                <MobileNavItem
+                                    index={i}
+                                    item={item}
+                                    key={item._key}
+                                    onClose={close}
+                                    open={open}
+                                />
+                            ))}
                         </nav>
                     </div>,
                     document.body,

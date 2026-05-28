@@ -1,7 +1,7 @@
 import { GroupsFilter } from "@/features/grupper/components/GroupsFilter"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
-import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/types"
+import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 

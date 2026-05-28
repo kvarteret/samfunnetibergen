@@ -1,13 +1,10 @@
-export type { ArrangementSummary } from "./components/ArrangementCard"
-export { EventCard as ArrangementEventCard } from "./components/ArrangementCard"
+export type { EventSummary } from "./components/EventCard"
+export { EventCard } from "./components/EventCard"
 export { EventsPage } from "./components/EventsPage"
-export { EventsPageClient } from "./components/EventsPageClient"
-export { SubmitArrangementForm } from "./components/SubmitArrangementForm"
-export { ArrangementsProvider, useArrangements } from "./context/ArrangementsContext"
-export { getPublicEvent, getPublicEvents } from "./data/events"
+export { SubmitEventForm } from "./components/SubmitEventForm"
+export { EventsProvider, useEvents } from "./context/EventsContext"
 export type {
-    ArrangementFilters,
-    ArrangementTaxonomy,
-    PublishedArrangement,
-} from "./domain/arrangementUtils"
-export type { EventDetail, EventTaxonomy, PublicEventsResult } from "./domain/eventsUtils"
+    EventFilters,
+    EventTaxonomy,
+    PublishedEvent,
+} from "./domain/eventUtils"

@@ -1,33 +1,12 @@
 import Link from "next/link"
 import { fetchLinkInBio } from "@/lib/sanity/fetch"
 
-// ─── Fallback data shown before the Sanity doc is created ─────────────────────
-
-const FALLBACK = {
-    heading: "Kvarteret",
-    bio: "Studentenes hus i Bergen",
-    links: [
-        {
-            _key: "app",
-            link: { label: "Last ned appen", href: "/appen" },
-            emoji: "📱",
-            highlight: true,
-        },
-        {
-            _key: "blifrivillig",
-            link: { label: "Bli frivillig", href: "/blifrivillig" },
-            emoji: "🙌",
-            highlight: false,
-        },
-    ],
-}
-
 export default async function LinkInBioPage() {
-    const data = (await fetchLinkInBio()) ?? FALLBACK
+    const data = await fetchLinkInBio()
 
-    const heading = data.heading ?? FALLBACK.heading
-    const bio = data.bio ?? FALLBACK.bio
-    const links = (data.links ?? FALLBACK.links) as Array<{
+    if (!data) return null
+
+    const links = (data.links ?? []) as Array<{
         _key: string
         link?: {
             label?: string | null
@@ -41,8 +20,8 @@ export default async function LinkInBioPage() {
         <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
             {/* Profile block */}
             <div className="mb-8 text-center space-y-2">
-                <h1 className="font-heading text-2xl">{heading}</h1>
-                {bio && <p className="text-sm text-foreground/60 max-w-xs">{bio}</p>}
+                <h1 className="font-heading text-2xl">{data.heading}</h1>
+                {data.bio && <p className="text-sm text-foreground/60 max-w-xs">{data.bio}</p>}
             </div>
 
             {/* Link list */}

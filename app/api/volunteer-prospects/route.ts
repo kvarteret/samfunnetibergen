@@ -47,12 +47,7 @@ function extractErrorDetail(responseBody: Record<string, unknown> | null) {
 
 function extractFieldErrors(responseBody: Record<string, unknown> | null) {
     const detail = responseBody?.detail
-    if (
-        detail &&
-        typeof detail === "object" &&
-        !Array.isArray(detail) &&
-        "fieldErrors" in detail
-    ) {
+    if (detail && typeof detail === "object" && !Array.isArray(detail) && "fieldErrors" in detail) {
         return (detail as { fieldErrors?: unknown }).fieldErrors
     }
 

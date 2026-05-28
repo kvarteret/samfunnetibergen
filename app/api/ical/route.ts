@@ -2,7 +2,7 @@ import { TZDate } from "@date-fns/tz"
 import ical, { ICalCalendarMethod } from "ical-generator"
 import { createClient } from "next-sanity"
 
-import { publishedArrangementsQuery } from "@/lib/sanity/queries/events"
+import { publishedEventsQuery } from "@/lib/sanity/queries/events"
 import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
     const today = new Date().toISOString().slice(0, 10)
-    const arrangements = await client.fetch(publishedArrangementsQuery, { today })
+    const events = await client.fetch(publishedEventsQuery, { today })
 
     const calendar = ical({
         name: "Samfunnet i Bergen",
@@ -40,12 +40,12 @@ export async function GET() {
         ttl: 3600,
     })
 
-    for (const arrangement of arrangements) {
-        const url = `${BASE_URL}/arrangementer/${arrangement.slug}`
-        const location = arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
+    for (const event of events) {
+        const url = `${BASE_URL}/arrangementer/${event.slug}`
+        const location = event.room?.title ?? event.roomText ?? "Samfunnet i Bergen"
 
-        if (arrangement.isRecurring && arrangement.rrule && arrangement.dates?.length) {
-            const base = arrangement.dates[0]
+        if (event.isRecurring && event.rrule && event.dates?.length) {
+            const base = event.dates[0]
             const allDay = !base.startTime
             const start = allDay
                 ? toDate(base.startDate)
@@ -57,20 +57,20 @@ export async function GET() {
                   : toDateTime(base.startDate, base.startTime!)
 
             calendar.createEvent({
-                id: `${arrangement._id}@samfunnetibergen.no`,
-                summary: arrangement.title,
+                id: `${event._id}@samfunnetibergen.no`,
+                summary: event.title,
                 start,
                 end,
                 allDay,
-                repeating: arrangement.rrule,
+                repeating: event.rrule,
                 location,
                 url,
-                organizer: arrangement.organizerGroup?.name
-                    ? { name: arrangement.organizerGroup.name, email: "post@samfunnetibergen.no" }
+                organizer: event.organizerGroup?.name
+                    ? { name: event.organizerGroup.name, email: "post@samfunnetibergen.no" }
                     : undefined,
             })
         } else {
-            for (const d of arrangement.dates ?? []) {
+            for (const d of event.dates ?? []) {
                 const allDay = !d.startTime
                 const start = allDay ? toDate(d.startDate) : toDateTime(d.startDate, d.startTime!)
                 const end = allDay
@@ -81,15 +81,15 @@ export async function GET() {
 
                 calendar.createEvent({
                     id: `${d._key}@samfunnetibergen.no`,
-                    summary: arrangement.title,
+                    summary: event.title,
                     start,
                     end,
                     allDay,
                     location,
                     url,
-                    organizer: arrangement.organizerGroup?.name
+                    organizer: event.organizerGroup?.name
                         ? {
-                              name: arrangement.organizerGroup.name,
+                              name: event.organizerGroup.name,
                               email: "post@samfunnetibergen.no",
                           }
                         : undefined,

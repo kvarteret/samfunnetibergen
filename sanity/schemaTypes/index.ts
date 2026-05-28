@@ -1,4 +1,4 @@
-import { arrangement } from "./documents/arrangement"
+import { arrangement } from "./documents/event"
 import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
 import { eventType } from "./documents/eventType"
 import { footer, footerSocialLinkSchema } from "./documents/footer"
@@ -18,7 +18,7 @@ import {
     siteMetadata,
     sponsorsPage,
 } from "./documents/singletons"
-import { arrangementDate } from "./objects/arrangementDate"
+import { arrangementDate } from "./objects/eventDate"
 import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
 import { menuItem, menuSchema, menuSection } from "./objects/menu"

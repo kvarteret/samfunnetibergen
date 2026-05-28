@@ -1,5 +1,5 @@
 import { PortableTextContent } from "@/lib/portable-text-components"
-import type { BlifrivilligPageContent } from "@/lib/sanity/types"
+import type { BlifrivilligPageContent } from "@/lib/sanity/fetch"
 import type { InstitutionOption, VolunteerGroupContent } from "../content"
 import { VolunteerProspectExperience } from "./VolunteerProspectExperience"
 

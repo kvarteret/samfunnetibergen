@@ -18,16 +18,16 @@ function getWriteClient() {
     })
 }
 
-export type ArrangementDate = {
+export type EventDate = {
     startDate: string
     startTime?: string
     endTime?: string
 }
 
-export type SubmitArrangementInput = {
+export type SubmitEventInput = {
     title: string
     description?: string
-    dates: ArrangementDate[]
+    dates: EventDate[]
     isRecurring?: boolean
     rrule?: string
     room?: string
@@ -72,7 +72,7 @@ export async function uploadEventImage(formData: FormData): Promise<UploadImageR
     }
 }
 
-export type SubmitArrangementResult = { ok: true; id: string } | { ok: false; error: string }
+export type SubmitEventResult = { ok: true; id: string } | { ok: false; error: string }
 
 function toSlug(title: string): string {
     return title
@@ -93,9 +93,36 @@ function sanitizeUrl(url: string | undefined): string | undefined {
     return trimmed
 }
 
-export async function submitArrangement(
-    input: SubmitArrangementInput,
-): Promise<SubmitArrangementResult> {
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isValidDateString(dateStr: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false
+    const d = new Date(`${dateStr}T00:00:00Z`)
+    return !isNaN(d.getTime())
+}
+
+function validateEventInput(input: SubmitEventInput): string | null {
+    if (!input.title?.trim()) return "Tittel er påkrevd"
+    if (!input.submittedBy?.trim()) return "Navn er påkrevd"
+    if (!input.submittedByEmail?.trim()) return "E-post er påkrevd"
+    if (!EMAIL_RE.test(input.submittedByEmail.trim())) return "Ugyldig e-post"
+
+    const validDates = (input.dates ?? []).filter(
+        d => d.startDate && isValidDateString(d.startDate),
+    )
+    if (validDates.length === 0) return "Minst én gyldig dato er påkrevd"
+
+    if (input.isRecurring && !input.rrule?.trim()) {
+        return "RRule er påkrevd for gjentagende arrangementer"
+    }
+
+    return null
+}
+
+export async function submitEvent(input: SubmitEventInput): Promise<SubmitEventResult> {
+    const validationError = validateEventInput(input)
+    if (validationError) return { ok: false, error: validationError }
+
     try {
         const client = getWriteClient()
 

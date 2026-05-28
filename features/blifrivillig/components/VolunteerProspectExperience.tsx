@@ -370,7 +370,9 @@ export function VolunteerProspectExperience({
                                                                         ]
                                                                         nextEmails[index] =
                                                                             event.target.value
-                                                                        field.handleChange(nextEmails)
+                                                                        field.handleChange(
+                                                                            nextEmails,
+                                                                        )
                                                                     }}
                                                                     placeholder={tForm(
                                                                         "friendEmailPlaceholder",
@@ -413,11 +415,11 @@ export function VolunteerProspectExperience({
                                                 {friendEmails.length < 2 && (
                                                     <Button
                                                         onClick={() => {
-                                                            captureFormStarted(
-                                                                "change",
-                                                                field.name,
-                                                            )
-                                                            field.handleChange([...friendEmails, ""])
+                                                            captureFormStarted("change", field.name)
+                                                            field.handleChange([
+                                                                ...friendEmails,
+                                                                "",
+                                                            ])
                                                         }}
                                                         type="button"
                                                         variant="neutral"

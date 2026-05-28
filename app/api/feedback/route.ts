@@ -25,22 +25,25 @@ export async function POST(request: Request) {
     const feedbackType = ALLOWED_TYPES.has(String(raw.type)) ? String(raw.type) : "improvement"
     const contactEmail = typeof raw.contactEmail === "string" ? raw.contactEmail.trim() : null
 
-    // Fire-and-forget — always respond 200 so the form feels instant.
-    fetch(`${PERSONAL_APP_BASE_URL}/api/v1/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            source: "nettside",
-            feedback_type: feedbackType,
-            message: String(raw.message).trim(),
-            page: typeof raw.page === "string" ? raw.page : "ukjent",
-            platform: "web",
-            contact_allowed: Boolean(contactEmail),
-            contact_email: contactEmail || null,
-        }),
-    }).catch(error => {
+    try {
+        await fetch(`${PERSONAL_APP_BASE_URL}/api/v1/feedback`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                source: "nettside",
+                feedback_type: feedbackType,
+                message: String(raw.message).trim(),
+                page: typeof raw.page === "string" ? raw.page : "ukjent",
+                platform: "web",
+                contact_allowed: Boolean(contactEmail),
+                contact_email: contactEmail || null,
+            }),
+            signal: AbortSignal.timeout(5_000),
+        })
+    } catch (error) {
         console.error("[feedback] Failed to forward to personal backend:", error)
-    })
+        return Response.json({ detail: "Failed to submit feedback" }, { status: 502 })
+    }
 
     return Response.json({ ok: true }, { status: 200 })
 }

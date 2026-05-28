@@ -7,20 +7,12 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/types"
+import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { MobileMenu } from "./MobileMenu"
 
 type NavbarProps = {
     navbar: NavbarContent | null
 }
-
-const FALLBACK_ITEMS = [
-    { label: "Arrangementer", href: "/arrangementer" },
-    { label: "Rom", href: "/rom" },
-    { label: "Grupper", href: "/grupper" },
-    { label: "Bli frivillig", href: "/blifrivillig" },
-    { label: "Kontakt", href: "/kontakt" },
-]
 
 function resolveHref(item: { href?: string | null; externalUrl?: string | null }) {
     return item.href ?? item.externalUrl ?? "#"
@@ -50,7 +42,7 @@ export function Navbar({ navbar }: NavbarProps) {
 
                 <DesktopNav items={items} />
 
-                <MobileMenu fallbackItems={FALLBACK_ITEMS} items={items} />
+                <MobileMenu items={items} />
             </nav>
         </header>
     )
@@ -62,15 +54,9 @@ function DesktopNav({ items }: { items: NavItem[] }) {
     return (
         <NavigationMenu className="hidden lg:flex">
             <NavigationMenuList className="gap-7">
-                {items.length > 0
-                    ? items.map(item => <DesktopNavItem item={item} key={item._key} />)
-                    : FALLBACK_ITEMS.map(item => (
-                          <NavigationMenuItem key={item.href} value={item.href}>
-                              <NavigationMenuLink asChild>
-                                  <NavLink href={item.href}>{item.label}</NavLink>
-                              </NavigationMenuLink>
-                          </NavigationMenuItem>
-                      ))}
+                {items.map(item => (
+                    <DesktopNavItem item={item} key={item._key} />
+                ))}
             </NavigationMenuList>
         </NavigationMenu>
     )
