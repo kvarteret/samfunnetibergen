@@ -7,6 +7,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { normalizeVolunteerPhoneNumber } from "@/features/blifrivillig/prospect"
 import { isValidEmailAddress } from "@/lib/contact"
@@ -297,11 +298,10 @@ export function GroupVolunteerForm({
                         <RequiredLabel htmlFor="gvf-institution">
                             {t("studyInstitutionLabel")}
                         </RequiredLabel>
-                        <select
+                        <Select
                             id="gvf-institution"
                             value={form.studyInstitution}
                             onChange={e => updateField("studyInstitution", e.target.value)}
-                            className="flex h-10 w-full border-2 border-border bg-secondary-background px-3 py-2 text-sm text-foreground shadow-shadow focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                         >
                             <option value="">{t("studyInstitutionPlaceholder")}</option>
                             {institutionOptions.map(opt => (
@@ -309,7 +309,7 @@ export function GroupVolunteerForm({
                                     {opt.label}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                         <FieldError message={fieldErrors.studyInstitution} />
                     </div>
 
