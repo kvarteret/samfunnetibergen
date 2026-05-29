@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
         "storybook-static/**",
         "lib/kvarteret-personal-api/**",
         "next-env.d.ts",
+        "apm_modules/**",
     ]),
 ])
 
