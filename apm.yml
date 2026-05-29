@@ -1,0 +1,10 @@
+name: samfunnetibergen
+version: 1.0.0
+description: APM project for samfunnetibergen
+author: Martin Kleiven
+dependencies:
+  apm:
+  - microsoft/azure-skills
+  mcp: []
+includes: auto
+scripts: {}

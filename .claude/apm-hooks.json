@@ -1,0 +1,13 @@
+{
+  "PostToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/azure-skills/hooks/scripts/track-telemetry.sh"
+        }
+      ],
+      "_apm_source": "azure-skills"
+    }
+  ]
+}
