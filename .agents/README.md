@@ -31,6 +31,8 @@ Current verified boundaries:
   checks for this Next.js/Sanity app.
 - `working-with-sanity-arrangements`: work on arrangement pages, feeds, and
   submission flow without confusing Sanity and `kvarteret-personal` ownership.
+- `sanity-typegen-types`: regenerate and consume Sanity types correctly,
+  keeping required fields nullable and parsing at the fetch boundary.
 - `react-doctor`: optional React health scan copied from the generic PostHog
   skill.
 - `writing-skills`: add or update focused agent skills in this directory.

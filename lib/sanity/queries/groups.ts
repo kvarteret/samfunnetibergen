@@ -40,21 +40,6 @@ export const studentGroupsQuery =
     }
 }`)
 
-export const studentGroupsByCategory = defineQuery(`
-    *[_type == "studentGroup" && category == $category && !defined(parentGroup)] | order(orderRank asc) {
-    name,
-    "slug": slug.current,
-    summary,
-    email,
-    website,
-    category,
-    "image": image ${sourcedImageProjection},
-    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
-        name,
-        "slug": slug.current
-    }
-}`)
-
 export const studentGroupSlugsQuery =
     defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
     "slug": slug.current

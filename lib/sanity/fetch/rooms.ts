@@ -5,7 +5,7 @@ import type { ClientReturn } from "next-sanity"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../live"
 import { roomBySlugQuery, roomSlugsQuery, roomsPageQuery, roomsQuery } from "../queries"
-import type { FetchOptions } from "./shared"
+import { compact, type FetchOptions, withRequiredKeys } from "./shared"
 
 export type EditorialSection = NonNullable<
     NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]
@@ -34,8 +34,7 @@ export async function fetchRoomsPageContent(
 
 export async function fetchRooms(): Promise<RoomSummary[]> {
     const { data: rooms } = await sanityFetch({ query: roomsQuery, tags: ["rooms"] })
-    type R = ClientReturn<typeof roomsQuery>[number]
-    return rooms.flatMap((room: R) => (room.slug ? [{ ...room, slug: stegaClean(room.slug) }] : []))
+    return withRequiredKeys(rooms, "slug").map(room => ({ ...room, slug: stegaClean(room.slug) }))
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {
@@ -44,7 +43,7 @@ export async function fetchRoomSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["rooms"] } },
     )
-    return rooms.flatMap((room: { slug?: string | null }) => (room.slug ? [room.slug] : []))
+    return compact(rooms.map(room => room.slug))
 }
 
 export async function fetchRoomBySlug(

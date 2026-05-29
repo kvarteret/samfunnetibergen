@@ -117,14 +117,16 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
                 ) : null}
                 {group.subGroups?.length ? (
                     <div className="flex flex-wrap gap-2">
-                        {group.subGroups.map((subGroup: { name: string; slug: string | null }) => (
-                            <span
-                                className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
-                                key={subGroup.slug ?? subGroup.name}
-                            >
-                                {subGroup.name}
-                            </span>
-                        ))}
+                        {group.subGroups.map(
+                            (subGroup: { name: string | null; slug: string | null }) => (
+                                <span
+                                    className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
+                                    key={subGroup.slug ?? subGroup.name}
+                                >
+                                    {subGroup.name}
+                                </span>
+                            ),
+                        )}
                     </div>
                 ) : null}
                 {group.email ? (

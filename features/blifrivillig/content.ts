@@ -25,7 +25,7 @@ export type InstitutionOption = {
 }
 
 export type VolunteerGroupSummary = {
-    name: string
+    name: string | null
     description: string | null
 }
 

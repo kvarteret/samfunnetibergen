@@ -15,7 +15,7 @@ import {
     siteMetadataNbQuery,
     sponsorsPageQuery,
 } from "../queries"
-import type { FetchOptions } from "./shared"
+import { compact, type FetchOptions } from "./shared"
 
 export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
 
@@ -79,7 +79,7 @@ export async function fetchPageSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["pages"] } },
     )
-    return pages.flatMap((p: { slug?: string | null }) => (p.slug ? [p.slug] : []))
+    return compact(pages.map(p => p.slug))
 }
 
 export async function fetchPageBySlug(

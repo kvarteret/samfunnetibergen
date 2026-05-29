@@ -9,10 +9,9 @@ import {
     groupsPageQuery,
     studentGroupBySlugQuery,
     studentGroupSlugsQuery,
-    studentGroupsByCategory,
     studentGroupsQuery,
 } from "../queries"
-import type { FetchOptions } from "./shared"
+import { compact, type FetchOptions, withRequiredKeys } from "./shared"
 
 export type GroupsPageContent = NonNullable<ClientReturn<typeof groupsPageQuery>>
 
@@ -36,24 +35,10 @@ export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
         query: studentGroupsQuery,
         tags: ["studentGroups"],
     })
-    type G = ClientReturn<typeof studentGroupsQuery>[number]
-    return groups.flatMap((group: G) =>
-        group.slug ? [{ ...group, slug: stegaClean(group.slug) }] : [],
-    )
-}
-
-export async function fetchStudentGroupsByCategory(
-    category: string,
-): Promise<StudentGroupSummary[]> {
-    const { data: groups } = await sanityFetch({
-        query: studentGroupsByCategory,
-        params: { category },
-        tags: ["studentGroups"],
-    })
-    type G = ClientReturn<typeof studentGroupsQuery>[number]
-    return groups.flatMap((group: G) =>
-        group.slug ? [{ ...group, slug: stegaClean(group.slug) }] : [],
-    )
+    return withRequiredKeys(groups, "slug").map(group => ({
+        ...group,
+        slug: stegaClean(group.slug),
+    }))
 }
 
 export async function fetchStudentGroupSlugs(): Promise<string[]> {
@@ -62,7 +47,7 @@ export async function fetchStudentGroupSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )
-    return groups.flatMap((group: { slug?: string | null }) => (group.slug ? [group.slug] : []))
+    return compact(groups.map(group => group.slug))
 }
 
 export async function fetchAllStudentGroupSlugs(): Promise<string[]> {
@@ -71,7 +56,7 @@ export async function fetchAllStudentGroupSlugs(): Promise<string[]> {
         {},
         { next: { revalidate: 300, tags: ["studentGroups"] } },
     )
-    return groups.flatMap((group: { slug?: string | null }) => (group.slug ? [group.slug] : []))
+    return compact(groups.map(group => group.slug))
 }
 
 export async function fetchStudentGroupBySlug(
