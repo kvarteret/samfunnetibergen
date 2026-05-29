@@ -2,6 +2,7 @@
 
 import { postEventRequest } from "@/lib/crescat/client"
 import { buildKaraokeRequest, KARAOKE_SLUG } from "@/lib/crescat/karaoke"
+import type { Result } from "@/lib/result"
 
 export type PriceType = "ordinær" | "student" | "frivillig"
 
@@ -20,9 +21,9 @@ export type KaraokeBookingPayload = {
     totalPrice: number
 }
 
-type Result = { ok: true } | { ok: false; error: string }
-
-export async function submitKaraokeBooking(payload: KaraokeBookingPayload): Promise<Result> {
+export async function submitKaraokeBooking(
+    payload: KaraokeBookingPayload,
+): Promise<Result<number>> {
     const body = buildKaraokeRequest({
         eventName: payload.eventName,
         startDate: payload.startDate,

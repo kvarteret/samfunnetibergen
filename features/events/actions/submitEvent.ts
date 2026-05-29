@@ -1,5 +1,6 @@
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
+import { err, ok, type Result } from "@/lib/result"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
@@ -48,16 +49,16 @@ export type SubmitEventInput = {
     submittedByOrganization?: string
 }
 
-export type UploadImageResult = { ok: true; assetId: string } | { ok: false; error: string }
+export type UploadImageResult = Result<string>
 
 export async function uploadEventImage(formData: FormData): Promise<UploadImageResult> {
     try {
         const file = formData.get("image")
         if (!(file instanceof File) || !file.size) {
-            return { ok: false, error: "Ingen fil mottatt" }
+            return err("Ingen fil mottatt")
         }
         if (file.size > 8 * 1024 * 1024) {
-            return { ok: false, error: "Bildet er for stort (maks 8 MB)" }
+            return err("Bildet er for stort (maks 8 MB)")
         }
         const client = getWriteClient()
         const buffer = Buffer.from(await file.arrayBuffer())
@@ -65,14 +66,14 @@ export async function uploadEventImage(formData: FormData): Promise<UploadImageR
             contentType: file.type,
             filename: file.name,
         })
-        return { ok: true, assetId: asset._id }
+        return ok(asset._id)
     } catch (error) {
         const message = error instanceof Error ? error.message : "Ukjent feil"
-        return { ok: false, error: message }
+        return err(message)
     }
 }
 
-export type SubmitEventResult = { ok: true; id: string } | { ok: false; error: string }
+export type SubmitEventResult = Result<string>
 
 function toSlug(title: string): string {
     return title
@@ -121,7 +122,7 @@ function validateEventInput(input: SubmitEventInput): string | null {
 
 export async function submitEvent(input: SubmitEventInput): Promise<SubmitEventResult> {
     const validationError = validateEventInput(input)
-    if (validationError) return { ok: false, error: validationError }
+    if (validationError) return err(validationError)
 
     try {
         const client = getWriteClient()
@@ -226,9 +227,9 @@ export async function submitEvent(input: SubmitEventInput): Promise<SubmitEventR
         }
 
         const created = await client.create(doc)
-        return { ok: true, id: created._id }
+        return ok(created._id)
     } catch (error) {
         const message = error instanceof Error ? error.message : "Ukjent feil"
-        return { ok: false, error: message }
+        return err(message)
     }
 }

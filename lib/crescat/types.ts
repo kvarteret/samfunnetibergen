@@ -1,3 +1,5 @@
+import type { Result } from "@/lib/result"
+
 export interface RoomBookingSection {
     title: string
     description: string
@@ -55,4 +57,4 @@ export interface EventRequestBody {
     sections: EventRequestSection[]
 }
 
-export type CresatResult = { ok: true; status: number } | { ok: false; error: string }
+export type CresatResult = Result<number>

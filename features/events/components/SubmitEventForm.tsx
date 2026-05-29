@@ -138,7 +138,7 @@ export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormPr
         setImageUploading(false)
 
         if (result.ok) {
-            setImageAssetId(result.assetId)
+            setImageAssetId(result.value)
         } else {
             setImageUploadError(result.error)
         }

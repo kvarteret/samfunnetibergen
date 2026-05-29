@@ -1,5 +1,6 @@
 "use server"
 
+import { err, ok } from "@/lib/result"
 import type { CresatResult, EventRequestBody } from "./types"
 
 const BASE_URL = "https://app.crescat.io"
@@ -49,7 +50,7 @@ export async function postEventRequest(
 ): Promise<CresatResult> {
     const session = await fetchXsrfSession(slug)
     if (!session) {
-        return { ok: false, error: "Klarte ikke å opprette sesjon mot bookingsystemet." }
+        return err("Klarte ikke å opprette sesjon mot bookingsystemet.")
     }
 
     const res = await fetch(`${BASE_URL}/event-requests/${slug}`, {
@@ -67,7 +68,7 @@ export async function postEventRequest(
     })
 
     if (res.status === 201 || res.status === 200) {
-        return { ok: true, status: res.status }
+        return ok(res.status)
     }
 
     let detail = ""
@@ -78,8 +79,5 @@ export async function postEventRequest(
         detail = await res.text().catch(() => "")
     }
 
-    return {
-        ok: false,
-        error: `Bookingsystemet svarte med status ${res.status}${detail ? `: ${detail}` : ""}.`,
-    }
+    return err(`Bookingsystemet svarte med status ${res.status}${detail ? `: ${detail}` : ""}.`)
 }
