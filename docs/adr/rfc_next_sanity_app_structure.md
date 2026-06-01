@@ -20,7 +20,7 @@ The app would benefit from clearer boundaries between routing, reusable UI primi
 ## Goals
 
 - Keep `app/` focused on routing, layouts, route handlers, server actions, and composition.
-- Keep `sanity/` focused on Studio/editor configuration.
+- Keep `studio/` focused on Studio/editor configuration.
 - Keep `lib/sanity/` focused on frontend Sanity data access.
 - Introduce `features/` for larger product/domain areas.
 - Use React component casing for component files.
@@ -102,7 +102,7 @@ lib/
 ├── site-url.ts
 └── utils.ts
 
-sanity/
+studio/
 ├── actions/
 ├── i18n/
 ├── presentation/
@@ -370,17 +370,17 @@ If a GROQ string is interpolated into another GROQ string, it belongs in `fragme
 Keep Studio-specific code in:
 
 ```txt
-sanity/
+studio/
 ```
 
 This includes:
 
 ```txt
-sanity/actions/
-sanity/i18n/
-sanity/presentation/
-sanity/schemaTypes/
-sanity/structure.ts
+studio/actions/
+studio/i18n/
+studio/presentation/
+studio/schemaTypes/
+studio/structure.ts
 ```
 
 Do not move schema definitions, Studio structure, or Studio custom actions into `lib/sanity/`.
@@ -388,7 +388,7 @@ Do not move schema definitions, Studio structure, or Studio custom actions into 
 The distinction is:
 
 ```txt
-sanity/       # CMS/editor experience
+studio/       # CMS/editor experience
 lib/sanity/   # frontend/app data access
 ```
 

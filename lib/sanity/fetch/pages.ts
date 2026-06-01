@@ -1,9 +1,9 @@
 import "server-only"
 
-import type { ClientReturn } from "next-sanity"
+import type { ClientReturn } from "@sanity/client"
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
-import { sanityFetch } from "../live"
+import { sanityFetch } from "../fetcher"
 import {
     footerQuery,
     homePageNbQuery,

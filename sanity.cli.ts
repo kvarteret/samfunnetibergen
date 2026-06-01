@@ -1,6 +1,6 @@
 import { defineCliConfig } from "sanity/cli"
 
-import { dataset, projectId } from "./sanity/env"
+import { dataset, projectId } from "./lib/sanity/env"
 
 export default defineCliConfig({
     api: {
@@ -16,18 +16,5 @@ export default defineCliConfig({
     schemaExtraction: {
         enabled: true,
         path: ".sanity/schema.json",
-    },
-    typegen: {
-        enabled: true,
-        path: [
-            "./app/**/*.{ts,tsx,js,jsx}",
-            "./components/**/*.{ts,tsx,js,jsx}",
-            "./lib/**/*.{ts,tsx,js,jsx}",
-            "./sanity/**/*.{ts,tsx,js,jsx}",
-            "./*.{ts,tsx,js,jsx}",
-        ],
-        schema: ".sanity/schema.json",
-        generates: "./sanity.types.ts",
-        overloadClientMethods: true,
     },
 })

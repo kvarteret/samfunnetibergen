@@ -10,9 +10,9 @@ The project currently has a lib/sanity area for frontend/app integration with Sa
 
 The current structure works, but the boundary between queries and query_definitions is not immediately clear. As these files grow, it becomes harder to find, reuse, and safely modify GROQ queries and projections.
 
-The project also has a separate sanity/ directory for Studio configuration, including schemas, structure, actions, presentation, and i18n. This separation should remain:
+The project also has a separate studio/ directory for Studio configuration, including schemas, structure, actions, presentation, and i18n. This separation should remain:
 
-* sanity/ defines the CMS/editor experience.
+* studio/ defines the CMS/editor experience.
 * lib/sanity/ defines how the website/app reads from Sanity.
 
 Within lib/sanity, query organization should make it clear which GROQ strings are executable queries and which are reusable projections/fragments.

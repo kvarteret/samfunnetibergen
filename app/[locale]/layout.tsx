@@ -1,13 +1,10 @@
-import { draftMode } from "next/headers"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
-import { VisualEditing } from "next-sanity/visual-editing"
 import { Providers } from "@/app/providers"
 import { Footer } from "@/components/footer/Footer"
 import { Navbar } from "@/components/navbar/Navbar"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
 import { fetchFooter, fetchNavbar } from "@/lib/sanity/fetch"
-import { SanityLive } from "@/lib/sanity/live"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -15,7 +12,6 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
     const locale = await resolvePageLocale(params)
-    const { isEnabled: isDraftMode } = await draftMode()
     activateRequestLocale(locale)
     const [messages, navbar, footer] = await Promise.all([
         getMessages(),
@@ -44,8 +40,6 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
                         <Footer data={footer} locale={locale} />
                     </div>
                 </div>
-                <SanityLive />
-                {isDraftMode && <VisualEditing />}
             </Providers>
         </NextIntlClientProvider>
     )

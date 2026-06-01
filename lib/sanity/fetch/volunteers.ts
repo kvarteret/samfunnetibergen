@@ -1,8 +1,8 @@
 import "server-only"
 
-import type { ClientReturn } from "next-sanity"
+import type { ClientReturn } from "@sanity/client"
 import type { AppLocale } from "@/i18n/routing"
-import { sanityFetch } from "../live"
+import { sanityFetch } from "../fetcher"
 import {
     blifrivilligPageNbQuery,
     volunteerGroupSummariesNbQuery,

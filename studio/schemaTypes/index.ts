@@ -18,9 +18,9 @@ import {
     siteMetadata,
     sponsorsPage,
 } from "./documents/singletons"
-import { arrangementDate } from "./objects/eventDate"
 import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
+import { arrangementDate } from "./objects/eventDate"
 import { menuItem, menuSchema, menuSection } from "./objects/menu"
 import { openingHours, openingHoursRow } from "./objects/openingHours"
 import { portableTextContent } from "./objects/portableText"

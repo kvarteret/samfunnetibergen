@@ -2,10 +2,9 @@ export type FetchOptions = {
     stega?: boolean
 }
 
-// Sanity returns required fields as `T | null` because drafts (rendered via
-// Visual Editing) are allowed to be in an invalid state. These helpers parse
-// that wide shape into a narrow one once, at the fetch boundary, so view
-// components never re-check schema-required fields.
+// Fetch helpers are the Sanity boundary. Keep route params, cache tags, stega
+// behavior, and frontend-friendly return shapes here so view components do not
+// re-parse raw Content Lake responses.
 
 /** Drop nullish entries, narrowing `(T | null | undefined)[]` to `T[]`. */
 export function compact<T>(items: readonly (T | null | undefined)[]): T[] {

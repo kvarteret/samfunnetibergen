@@ -9,7 +9,7 @@ Update it when a source-backed boundary changes.
 
 Verified source:
 
-- `sanity/schemaTypes/documents/event.ts`
+- `studio/schemaTypes/documents/event.ts`
 - `lib/sanity/queries/events.ts`
 - `lib/sanity/fetch/events.ts`
 - `app/[locale]/arrangementer/page.tsx`

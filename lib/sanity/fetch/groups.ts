@@ -1,9 +1,9 @@
 import "server-only"
 
+import type { ClientReturn } from "@sanity/client"
 import { stegaClean } from "@sanity/client/stega"
-import type { ClientReturn } from "next-sanity"
 import { sanityClient } from "../client"
-import { sanityFetch } from "../live"
+import { sanityFetch } from "../fetcher"
 import {
     allStudentGroupSlugsQuery,
     groupsPageQuery,

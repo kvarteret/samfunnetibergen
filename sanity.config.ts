@@ -1,15 +1,15 @@
-import "./sanity/i18n/patchRRuleNorwegian"
+import "./studio/i18n/patchRRuleNorwegian"
 import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
 import { recurringDates } from "sanity-plugin-recurring-dates"
-import { ApproveAction, RejectAction } from "./sanity/actions/approvalActions"
-import { dataset, projectId } from "./sanity/env"
-import { resolve, resolvePresentationInitialUrl } from "./sanity/presentation/resolve"
-import { schemaTypes } from "./sanity/schemaTypes"
-import { singletonTypeNames, structure } from "./sanity/structure"
+import { dataset, projectId } from "./lib/sanity/env"
+import { ApproveAction, RejectAction } from "./studio/actions/approvalActions"
+import { resolve, resolvePresentationInitialUrl } from "./studio/presentation/resolve"
+import { schemaTypes } from "./studio/schemaTypes"
+import { singletonTypeNames, structure } from "./studio/structure"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -25,9 +25,6 @@ export default defineConfig({
             resolve,
             previewUrl: {
                 initial: resolvePresentationInitialUrl(),
-                previewMode: {
-                    enable: "/api/draft-mode/enable",
-                },
             },
         }),
         visionTool(),

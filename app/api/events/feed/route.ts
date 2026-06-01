@@ -1,9 +1,8 @@
 import { TZDate } from "@date-fns/tz"
 import { toPlainText } from "@portabletext/toolkit"
 import { createClient } from "next-sanity"
-
+import { apiVersion, dataset, projectId } from "@/lib/sanity/env"
 import { feedEventsQuery } from "@/lib/sanity/queries/events"
-import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
 

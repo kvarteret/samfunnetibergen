@@ -1,9 +1,8 @@
 import { TZDate } from "@date-fns/tz"
 import ical, { ICalCalendarMethod } from "ical-generator"
 import { createClient } from "next-sanity"
-
+import { apiVersion, dataset, projectId } from "@/lib/sanity/env"
 import { publishedEventsQuery } from "@/lib/sanity/queries/events"
-import { apiVersion, dataset, projectId } from "@/sanity/env"
 
 const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
 

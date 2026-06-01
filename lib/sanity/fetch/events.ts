@@ -1,28 +1,35 @@
 import "server-only"
 
+import type { ClientReturn } from "@sanity/client"
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
-import { sanityFetch } from "../live"
+import { sanityFetch } from "../fetcher"
 import {
     eventBySlugQuery,
-    eventTypesQuery,
     eventGroupsQuery,
     eventRoomsQuery,
     eventsPageContentNbQuery,
+    eventTypesQuery,
     publishedEventsQuery,
 } from "../queries"
 import { type FetchOptions, getOsloDateString } from "./shared"
 
-export type EventRoom = { _id: string; title: string; slug: string }
-export type EventType = {
-    _id: string
-    name: string
-    slug: string
-    taxonomyGroup: { _id: string; name: string; slug: string } | null
-}
-export type EventGroup = { _id: string; name: string; category: string }
+export type EventsPageContent = NonNullable<ClientReturn<typeof eventsPageContentNbQuery>>
 
-export async function fetchEventsPageContent(_locale: AppLocale, options: FetchOptions = {}) {
+export type PublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
+
+export type EventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
+
+export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
+
+export type EventType = ClientReturn<typeof eventTypesQuery>[number]
+
+export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
+
+export async function fetchEventsPageContent(
+    _locale: AppLocale,
+    options: FetchOptions = {},
+): Promise<EventsPageContent | null> {
     const { data } = await sanityFetch({
         query: eventsPageContentNbQuery,
         tags: ["eventsPage"],
@@ -31,7 +38,7 @@ export async function fetchEventsPageContent(_locale: AppLocale, options: FetchO
     return data
 }
 
-export async function fetchPublishedEvents() {
+export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
     const { data } = await sanityFetch({
         query: publishedEventsQuery,
         params: { today: getOsloDateString() },
@@ -40,7 +47,7 @@ export async function fetchPublishedEvents() {
     return data
 }
 
-export async function fetchEventBySlug(slug: string) {
+export async function fetchEventBySlug(slug: string): Promise<EventDetail | null> {
     const { data } = await sanityFetch({
         query: eventBySlugQuery,
         params: { slug, today: getOsloDateString() },
@@ -50,11 +57,7 @@ export async function fetchEventBySlug(slug: string) {
 }
 
 export async function fetchEventRooms(): Promise<EventRoom[]> {
-    return sanityClient.fetch(
-        eventRoomsQuery,
-        {},
-        { next: { revalidate: 300, tags: ["rooms"] } },
-    )
+    return sanityClient.fetch(eventRoomsQuery, {}, { next: { revalidate: 300, tags: ["rooms"] } })
 }
 
 export async function fetchEventTypes(): Promise<EventType[]> {
