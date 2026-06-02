@@ -34,10 +34,17 @@ export function Navbar({ navbar }: NavbarProps) {
                 className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
             >
                 <Link
-                    className="py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
+                    aria-label="Samfunnet i Bergen"
+                    className="block py-2.5 transition-opacity hover:opacity-75"
                     href="/"
                 >
-                    Samfunnet i Bergen
+                    <img
+                        alt=""
+                        className="h-8 w-auto sm:h-10"
+                        height={62}
+                        src="/kvarteret-logo.svg"
+                        width={100}
+                    />
                 </Link>
 
                 <DesktopNav items={items} />

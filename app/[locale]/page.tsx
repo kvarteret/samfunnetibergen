@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -134,32 +135,43 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
         : null
 
     return (
-        <section className="pb-10 pt-2">
-            {homePage?.eyebrow && (
-                <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                    {homePage.eyebrow}
-                </p>
-            )}
-            {homePage?.title && (
-                <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
-                    {homePage.title}
-                </h1>
-            )}
-            <div className="flex flex-col gap-6">
-                {homePage?.description?.split(/\n{2,}/).map(paragraph => (
-                    <p
-                        className="max-w-2xl text-base leading-relaxed text-foreground/75"
-                        key={paragraph}
-                    >
-                        {paragraph}
+        <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] lg:gap-12">
+            <div>
+                {homePage?.eyebrow && (
+                    <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
+                        {homePage.eyebrow}
                     </p>
-                ))}
-                {ctaHref && homePage?.primaryCta?.label && (
-                    <Button asChild size="lg" className="self-start shrink-0">
-                        <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
-                    </Button>
                 )}
+                {homePage?.title && (
+                    <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
+                        {homePage.title}
+                    </h1>
+                )}
+                <div className="flex flex-col gap-6">
+                    {homePage?.description?.split(/\n{2,}/).map(paragraph => (
+                        <p
+                            className="max-w-2xl text-base leading-relaxed text-foreground/75"
+                            key={paragraph}
+                        >
+                            {paragraph}
+                        </p>
+                    ))}
+                    {ctaHref && homePage?.primaryCta?.label && (
+                        <Button asChild size="lg" className="self-start shrink-0">
+                            <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
+                        </Button>
+                    )}
+                </div>
             </div>
+            <Image
+                alt="Illustrasjon av Det Akademiske Kvarter"
+                className="order-first mx-auto h-auto w-full max-w-[26rem] lg:order-none lg:mr-0 lg:max-w-[30rem]"
+                height={986}
+                priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                src="/kvarteret-logo.svg"
+                width={1595}
+            />
         </section>
     )
 }

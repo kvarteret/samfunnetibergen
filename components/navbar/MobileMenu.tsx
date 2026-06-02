@@ -14,8 +14,7 @@ type MobileMenuProps = {
 const subscribe = () => () => {}
 const navShellClass =
     "mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
-const brandLinkClass =
-    "py-3.5 font-heading text-base font-medium tracking-tight text-foreground transition-opacity hover:opacity-75 lg:text-lg"
+const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 
 export function MobileMenu({ items }: MobileMenuProps) {
     const [open, setOpen] = useState(false)
@@ -86,8 +85,19 @@ export function MobileMenu({ items }: MobileMenuProps) {
                     >
                         <div className="shrink-0 border-b-2 border-border">
                             <div className={navShellClass}>
-                                <Link className={brandLinkClass} href="/" onClick={close}>
-                                    Samfunnet i Bergen
+                                <Link
+                                    aria-label="Samfunnet i Bergen"
+                                    className={brandLinkClass}
+                                    href="/"
+                                    onClick={close}
+                                >
+                                    <img
+                                        alt=""
+                                        className="h-8 w-auto sm:h-10"
+                                        height={62}
+                                        src="/kvarteret-logo.svg"
+                                        width={100}
+                                    />
                                 </Link>
                                 <button
                                     aria-label="Lukk meny"
