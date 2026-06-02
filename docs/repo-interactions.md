@@ -9,13 +9,13 @@ Update it when a source-backed boundary changes.
 
 Verified source:
 
-- `studio/schemaTypes/documents/event.ts`
-- `lib/sanity/queries/events.ts`
-- `lib/sanity/fetch/events.ts`
-- `app/[locale]/arrangementer/page.tsx`
-- `app/[locale]/arrangementer/[event]/page.tsx`
-- `app/api/ical/route.ts`
-- `app/api/events/feed/route.ts`
+- `src/studio/schemaTypes/documents/event.ts`
+- `src/lib/sanity/queries/events.ts`
+- `src/lib/sanity/fetch/events.ts`
+- `src/app/[locale]/arrangementer/page.tsx`
+- `src/app/[locale]/arrangementer/[event]/page.tsx`
+- `src/app/api/ical/route.ts`
+- `src/app/api/events/feed/route.ts`
 
 Do not document `kvarteret-personal` as the public arrangement source for this
 site unless these call paths change.
@@ -27,13 +27,14 @@ payload and proxies accepted submissions to `kvarteret-personal`.
 
 Verified source:
 
-- `features/blifrivillig/prospect.ts`
-- `features/blifrivillig/components/GroupVolunteerForm.tsx`
-- `app/api/volunteer-prospects/route.ts`
+- `src/features/blifrivillig/prospect.ts`
+- `src/features/blifrivillig/components/GroupVolunteerForm.tsx`
+- `src/app/api/volunteer-prospects/route.ts`
 
 ## Generated Personal Client
 
 `package.json` contains `api:generate` and `api:sync` scripts for the
 `kvarteret-personal` OpenAPI client, but `.gitignore` ignores
-`lib/kvarteret-personal-api/`. Do not add deploy-critical imports from that
-generated directory unless the generated-file boundary is deliberately changed.
+`src/lib/integrations/kvarteret-personal-api/`. Do not add deploy-critical
+imports from that generated directory unless the generated-file boundary is
+deliberately changed.

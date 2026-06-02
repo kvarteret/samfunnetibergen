@@ -11,7 +11,7 @@ Crescat does not provide a public REST API with API keys. It exposes an event-re
 
 ## Decision
 
-We reverse-engineered the request format by capturing a HAR trace of a real Crescat form submission. The integration lives in `lib/crescat/` and works as follows:
+We reverse-engineered the request format by capturing a HAR trace of a real Crescat form submission. The integration lives in `src/lib/integrations/crescat/` and works as follows:
 
 ### Request flow
 
@@ -19,7 +19,7 @@ We reverse-engineered the request format by capturing a HAR trace of a real Cres
 User submits form
   → submitKaraokeBooking (server action)
       → buildKaraokeRequest (constructs EventRequestBody)
-      → postEventRequest (lib/crescat/client.ts)
+      → postEventRequest (src/lib/integrations/crescat/client.ts)
           1. GET /event-requests/{slug}          ← fetches XSRF-TOKEN + crescat_session cookies
           2. POST /event-requests/{slug}         ← submits the booking with cookies + token header
           → returns ok | error
@@ -41,7 +41,7 @@ The POST body is a JSON `EventRequestBody` with three sections:
 | `metaData` | Records the number of people against field ID 1439211, inside metadata parent 192383 |
 | `termsOfUse` | Marks the terms as accepted |
 
-Room ID, field ID, and parent ID were extracted from the HAR trace and are hardcoded constants in `lib/crescat/karaoke.ts`. If Crescat ever rebuilds their form configuration these values would need to be updated.
+Room ID, field ID, and parent ID were extracted from the HAR trace and are hardcoded constants in `src/lib/integrations/crescat/karaoke.ts`. If Crescat ever rebuilds their form configuration these values would need to be updated.
 
 The booking description includes pricing information as plain text because Crescat does not have a dedicated price/package field in the event-request API.
 
@@ -87,7 +87,7 @@ Submissions for post-midnight slots pass `startTime: "00:30"` (for example) alon
 
 ### Hardcoded IDs
 
-`KARAOKE_ROOM_ID`, `KARAOKE_FIELD_PEOPLE_ID`, and `KARAOKE_META_PARENT_ID` in `lib/crescat/karaoke.ts` were obtained by inspecting a real form submission HAR. They are stable as long as the Crescat venue configuration is not recreated. If the karaoke room or its metadata form is ever rebuilt in Crescat's admin panel, a new HAR capture and update to these constants will be required.
+`KARAOKE_ROOM_ID`, `KARAOKE_FIELD_PEOPLE_ID`, and `KARAOKE_META_PARENT_ID` in `src/lib/integrations/crescat/karaoke.ts` were obtained by inspecting a real form submission HAR. They are stable as long as the Crescat venue configuration is not recreated. If the karaoke room or its metadata form is ever rebuilt in Crescat's admin panel, a new HAR capture and update to these constants will be required.
 
 ## Consequences
 

@@ -16,21 +16,22 @@ types can enforce schema-required fields for published content.
 ## Current repo baseline
 
 This repo embeds Studio in the Next.js app at `/studio`, but keeps Studio-owned
-source in the top-level `studio/` directory.
+source in the top-level `src/studio/` directory.
 
 - `sanity.config.ts` enables `presentationTool`, `structureTool`, Vision, and
   project-specific plugins.
-- `studio/presentation/resolve.ts` already uses `defineDocuments` and
+- `src/studio/presentation/resolve.ts` already uses `defineDocuments` and
   `defineLocations` for localized routes, singletons, detail pages, and shared
   documents such as navigation and footer.
-- `lib/sanity/fetcher.ts` exports a published-content `sanityFetch` wrapper; it no
+- `src/lib/sanity/fetcher.ts` exports a published-content `sanityFetch` wrapper; it no
   longer uses `defineLive`.
-- `app/[locale]/layout.tsx` no longer renders `<SanityLive />` or
+- `src/app/[locale]/layout.tsx` no longer renders `<SanityLive />` or
   `<VisualEditing />`.
 - `npm run sanity:typegen` extracts the schema with
   `--enforce-required-fields`.
-- Generated types are split between `lib/sanity/sanity.types.ts` for frontend
-  query/data access and `studio/sanity.types.ts` for Studio schema work.
+- Generated types are split between `src/lib/sanity/sanity.types.ts` for
+  frontend query/data access and `src/studio/sanity.types.ts` for Studio schema
+  work.
 
 The frontend no longer renders drafts, so required-field typegen is now an
 honest representation of published content.
@@ -55,7 +56,7 @@ longer renders draft content.
 
 ### 2. The template separates Studio and frontend typegen concerns
 
-The template has a `studio/` package and a `frontend/` package. Both consume the
+The template has a `src/studio/` package and a `frontend/` package. Both consume the
 same extracted `sanity.schema.json`, but each workspace generates the types it
 needs from its own GROQ query surface.
 
@@ -67,7 +68,7 @@ the ownership model easier to understand:
 - Generated schema JSON is the contract between them.
 
 We keep the single-package app and use that clearer ownership model:
-`studio/` owns editor configuration and schema, while `lib/sanity/` owns
+`src/studio/` owns editor configuration and schema, while `src/lib/sanity/` owns
 frontend queries, fetch wrappers, generated frontend types, and result
 normalization.
 
@@ -75,7 +76,7 @@ normalization.
 
 The template puts `mainDocuments` and `locations` directly in the Presentation
 Tool config. This repo already has the same core pattern in
-`studio/presentation/resolve.ts`, and our resolver is more domain-specific
+`src/studio/presentation/resolve.ts`, and our resolver is more domain-specific
 because it covers localized routes, singletons, event detail pages, rooms,
 groups, navigation, footer, and link-in-bio.
 
@@ -103,7 +104,7 @@ preview routes.
 The template keeps its frontend GROQ in one `frontend/sanity/lib/queries.ts`
 file with `defineQuery`, small string fragments, and unique exported query
 names. This repo already uses `defineQuery` and has a more scalable split across
-`lib/sanity/queries/`, `lib/sanity/fragments/`, and `lib/sanity/fetch/`.
+`src/lib/sanity/queries/`, `src/lib/sanity/fragments/`, and `src/lib/sanity/fetch/`.
 
 The template reinforces two practices we should preserve:
 
@@ -132,8 +133,8 @@ For this repo, the implemented path was:
 4. Change `npm run sanity:typegen` to extract with
    `--enforce-required-fields`.
 5. Split generated types into frontend and Studio outputs.
-6. Re-export concise domain aliases from `lib/sanity/fetch` and
-   `lib/sanity/types`.
+6. Re-export concise domain aliases from `src/lib/sanity/fetch` and
+   `src/lib/sanity/types`.
 7. Simplify fetch-boundary null guards only where the regenerated types prove
    they are no longer needed.
 
@@ -145,5 +146,5 @@ complexity in the public app.
 ## Follow-up
 
 Keep generated `*QueryResult` types as implementation detail. New components
-should prefer domain aliases exported from `lib/sanity/fetch` or
-`lib/sanity/types`.
+should prefer domain aliases exported from `src/lib/sanity/fetch` or
+`src/lib/sanity/types`.

@@ -12,7 +12,7 @@
         "studio:register": "sanity deploy --external",
         "studio:seed": "sanity exec scripts/seed-sanity-content.mjs --with-user-token",
         "sanity:schema": "sanity schema extract --enforce-required-fields --path .sanity/schema.json",
-        "sanity:typegen": "npm run sanity:schema && sanity typegen generate --config-path sanity-typegen.frontend.json && sanity typegen generate --config-path studio/sanity-typegen.json && biome format --write lib/sanity/sanity.types.ts studio/sanity.types.ts",
+        "sanity:typegen": "npm run sanity:schema && sanity typegen generate --config-path sanity-typegen.frontend.json && sanity typegen generate --config-path src/studio/sanity-typegen.json && biome format --write src/lib/sanity/sanity.types.ts src/studio/sanity.types.ts",
         "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
         "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",
         "lint": "eslint",

@@ -29,23 +29,23 @@ Use `sanity schema extract --enforce-required-fields` in
 
 Generated types are split by ownership:
 
-- `lib/sanity/sanity.types.ts` contains frontend schema and query result types.
-- `studio/sanity.types.ts` contains Studio schema types.
+- `src/lib/sanity/sanity.types.ts` contains frontend schema and query result types.
+- `src/studio/sanity.types.ts` contains Studio schema types.
 
 The root `sanity.types.ts` file is no longer used.
 
 ## Fetch Boundary
 
-The fetch helpers in `lib/sanity/fetch/` remain the boundary between Sanity and
-the rest of the app. Keep these concerns there:
+The fetch helpers in `src/lib/sanity/fetch/` remain the boundary between Sanity
+and the rest of the app. Keep these concerns there:
 
 - route params;
 - cache tags and revalidation;
 - stega behavior;
 - frontend-friendly return shapes and concise exported aliases.
 
-Components should import domain aliases from `lib/sanity/fetch` or
-`lib/sanity/types`, not generated `*QueryResult` names directly.
+Components should import domain aliases from `src/lib/sanity/fetch` or
+`src/lib/sanity/types`, not generated `*QueryResult` names directly.
 
 Some nulls still remain in generated query result types. Those are real query
 or schema shapes, for example unmatched `[0]` queries, optional references,
@@ -57,6 +57,6 @@ draft-only nullability, not every possible nullable value.
 - Required published fields are typed more narrowly.
 - Draft live editing is intentionally unavailable in the frontend.
 - Studio route/document mapping remains explicit through
-  `studio/presentation/resolve.ts`.
+  `src/studio/presentation/resolve.ts`.
 - Regenerate types with `npm run sanity:typegen` after schema or GROQ changes.
   Do not hand-edit generated type files.
