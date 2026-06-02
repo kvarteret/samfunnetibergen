@@ -15,16 +15,20 @@
         "sanity:typegen": "npm run sanity:schema && sanity typegen generate --config-path sanity-typegen.frontend.json && sanity typegen generate --config-path studio/sanity-typegen.json && biome format --write lib/sanity/sanity.types.ts studio/sanity.types.ts",
         "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
         "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",
+        "model:generate": "node scripts/generate-kvarteret-model.mjs",
         "lint": "eslint",
         "format": "biome format --write .",
         "check": "biome check --write ."
     },
     "dependencies": {
+        "@gltf-transform/core": "^4.3.0",
         "@radix-ui/react-accordion": "^1.2.12",
         "@radix-ui/react-checkbox": "^1.3.3",
         "@radix-ui/react-label": "^2.1.8",
         "@radix-ui/react-navigation-menu": "^1.2.14",
         "@radix-ui/react-slot": "^1.2.4",
+        "@react-three/drei": "^10.7.7",
+        "@react-three/fiber": "^9.6.1",
         "@sanity/orderable-document-list": "^1.5.1",
         "@sanity/rich-date-input": "^4.0.3",
         "@sanity/vision": "^5.23.0",
@@ -55,6 +59,7 @@
         "shadcn": "^4.1.0",
         "styled-components": "^6.1.15",
         "tailwind-merge": "^3.5.0",
+        "three": "^0.184.0",
         "tw-animate-css": "^1.4.0"
     },
     "devDependencies": {

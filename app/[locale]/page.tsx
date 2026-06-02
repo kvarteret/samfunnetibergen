@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import { KvarteretHeroScene } from "@/components/hero/KvarteretHeroScene"
 import { Button } from "@/components/ui/button"
 import { EventCard, type EventSummary } from "@/features/events/components/EventCard"
 import type { AppLocale } from "@/i18n/routing"
@@ -163,15 +163,7 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
                     )}
                 </div>
             </div>
-            <Image
-                alt="Illustrasjon av Det Akademiske Kvarter"
-                className="order-first mx-auto h-auto w-full max-w-[26rem] lg:order-none lg:mr-0 lg:max-w-[30rem]"
-                height={986}
-                priority
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                src="/kvarteret-logo.svg"
-                width={1595}
-            />
+            <KvarteretHeroScene className="order-first mx-auto w-full max-w-[26rem] lg:order-none lg:mr-0 lg:max-w-[30rem]" />
         </section>
     )
 }
