@@ -12,15 +12,17 @@ and docs disagree.
 Current verified boundaries:
 
 - Public arrangement pages and feeds read from Sanity through
-  `lib/sanity/fetch/events.ts`, `lib/sanity/queries/events.ts`,
-  `app/[locale]/arrangementer/page.tsx`, `app/[locale]/arrangementer/[event]/page.tsx`,
-  `app/api/ical/route.ts`, and `app/api/events/feed/route.ts`.
+  `src/lib/sanity/fetch/events.ts`, `src/lib/sanity/queries/events.ts`,
+  `src/app/[locale]/arrangementer/page.tsx`,
+  `src/app/[locale]/arrangementer/[event]/page.tsx`,
+  `src/app/api/ical/route.ts`, and `src/app/api/events/feed/route.ts`.
 - Public volunteer prospect submissions are validated locally, then proxied to
-  `kvarteret-personal` from `app/api/volunteer-prospects/route.ts`.
+  `kvarteret-personal` from `src/app/api/volunteer-prospects/route.ts`.
 - Generated `kvarteret-personal` client files live under
-  `lib/kvarteret-personal-api/`, but that path is ignored by `.gitignore`; do
-  not introduce deploy-critical imports from it unless the generated files are
-  intentionally committed or the deployment path is otherwise verified.
+  `src/lib/integrations/kvarteret-personal-api/`, but that path is ignored by
+  `.gitignore`; do not introduce deploy-critical imports from it unless the
+  generated files are intentionally committed or the deployment path is
+  otherwise verified.
 
 ## Skills
 

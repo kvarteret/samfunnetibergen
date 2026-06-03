@@ -12,7 +12,7 @@ const eslintConfig = defineConfig([
         "out/**",
         "build/**",
         "storybook-static/**",
-        "lib/kvarteret-personal-api/**",
+        "src/lib/integrations/kvarteret-personal-api/**",
         "next-env.d.ts",
     ]),
 ])

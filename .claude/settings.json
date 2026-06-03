@@ -1,17 +1,5 @@
 {
-  "env": {
-    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force"
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/azure-skills/hooks/scripts/track-telemetry.sh"
-          }
-        ]
-      }
-    ]
-  }
+    "env": {
+        "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force"
+    }
 }

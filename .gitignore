@@ -46,8 +46,4 @@ next-env.d.ts
 .env.local
 
 # hey-api generated files
-lib/kvarteret-personal-api/
-
-
-# APM dependencies
-apm_modules/
+src/lib/integrations/kvarteret-personal-api/

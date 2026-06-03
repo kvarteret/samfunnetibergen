@@ -2,27 +2,27 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
-The project is a Next.js App Router application with Sanity Studio embedded under `app/studio`. It also includes Storybook, generated API clients, i18n, route handlers, server actions, PostHog, Supabase, and a Sanity-powered frontend data layer.
+The project is a Next.js App Router application with Sanity Studio embedded under `src/app/studio`. It also includes Storybook, generated API clients, i18n, route handlers, server actions, PostHog, Supabase, and a Sanity-powered frontend data layer.
 
 The current structure is generally healthy, but some areas are beginning to grow across multiple directories:
 
-- Event/arrangement code is split between route folders, `lib/events*`, Sanity schemas, and Sanity queries.
+- Event/arrangement code is split between route folders, `src/lib/events*`, Sanity schemas, and Sanity queries.
 - Volunteer-related code is split between `components/volunteer-prospect*`, `lib/volunteer*`, and API routes.
-- `lib/sanity/queries.ts` and `lib/sanity/query-definitions.ts` are both large.
+- `src/lib/sanity/queries.ts` and `src/lib/sanity/query-definitions.ts` are both large.
 - Some route-local interactive components use names such as `events-page-client.tsx`.
 
 The app would benefit from clearer boundaries between routing, reusable UI primitives, domain features, frontend data access, and Sanity Studio configuration.
 
 ## Goals
 
-- Keep `app/` focused on routing, layouts, route handlers, server actions, and composition.
-- Keep `studio/` focused on Studio/editor configuration.
-- Keep `lib/sanity/` focused on frontend Sanity data access.
-- Introduce `features/` for larger product/domain areas.
+- Keep `src/app/` focused on routing, layouts, route handlers, server actions, and composition.
+- Keep `src/studio/` focused on Studio/editor configuration.
+- Keep `src/lib/sanity/` focused on frontend Sanity data access.
+- Introduce `src/features/` for larger product/domain areas.
 - Use React component casing for component files.
 - Use domain names that match the product language of the app.
 - Avoid overengineering small or stable areas.
@@ -30,19 +30,19 @@ The app would benefit from clearer boundaries between routing, reusable UI primi
 ## Non-goals
 
 - Rewrite the whole app structure at once.
-- Move every component into `features/`.
+- Move every component into `src/features/`.
 - Remove route-local components where they are genuinely only used by one route.
 - Change the Sanity content model as part of this RFC.
 - Change the public route structure.
 
 ## Decision
 
-We will introduce a `features/` directory for larger domain areas and gradually move related code there.
+We will introduce a `src/features/` directory for larger domain areas and gradually move related code there.
 
 The initial feature directories should be:
 
 ```txt
-features/
+src/features/
 ├── events/
 └── blifrivillig/
 ```
@@ -50,8 +50,8 @@ features/
 We will use these names instead of more generic/internal names:
 
 ```txt
-features/events/          # not features/arrangements/
-features/blifrivillig/    # not features/volunteerProspect/
+src/features/events/          # not src/features/arrangements/
+src/features/blifrivillig/    # not src/features/volunteerProspect/
 ```
 
 This keeps the codebase aligned with the app’s route and product language:
@@ -62,11 +62,51 @@ This keeps the codebase aligned with the app’s route and product language:
 ## Proposed target structure
 
 ```txt
+src/
+├── app/
+│   ├── [locale]/
+│   ├── actions/
+│   ├── api/
+│   ├── src/studio/
+│   ├── layout.tsx
+│   ├── providers.tsx
+│   ├── robots.ts
+│   └── sitemap.ts
+├── components/
+│   ├── ui/
+│   ├── navbar/
+│   └── footer/
+├── src/features/
+│   ├── events/
+│   ├── blifrivillig/
+│   ├── grupper/
+│   ├── karaoke/
+│   └── rooms/
+├── lib/
+│   ├── sanity/
+│   ├── integrations/
+│   ├── app-locale.ts
+│   ├── site-url.ts
+│   └── utils.ts
+├── i18n/
+├── messages/
+├── proxy.ts
+└── src/studio/
+    ├── actions/
+    ├── i18n/
+    ├── presentation/
+    ├── schemaTypes/
+    └── structure.ts
+```
+
+The previous root-level target was:
+
+```txt
 app/
 ├── [locale]/
 ├── actions/
 ├── api/
-├── studio/
+├── src/studio/
 ├── layout.tsx
 ├── providers.tsx
 ├── robots.ts
@@ -77,7 +117,7 @@ components/
 ├── navbar/
 └── footer/
 
-features/
+src/features/
 ├── events/
 │   ├── components/
 │   ├── server/
@@ -102,7 +142,7 @@ lib/
 ├── site-url.ts
 └── utils.ts
 
-studio/
+src/studio/
 ├── actions/
 ├── i18n/
 ├── presentation/
@@ -110,17 +150,19 @@ studio/
 └── structure.ts
 ```
 
-This is a target direction, not a required one-shot migration.
+The `src/` structure is now adopted. Root config files such as `package.json`,
+`next.config.ts`, `sanity.config.ts`, `sanity.cli.ts`, `tsconfig.json`, and
+environment files stay at the repository root.
 
 ## App Router conventions
 
 Route files stay in `app/`:
 
 ```txt
-app/[locale]/arrangementer/page.tsx
-app/[locale]/arrangementer/[event]/page.tsx
-app/[locale]/arrangementer/ny/page.tsx
-app/[locale]/blifrivillig/page.tsx
+src/app/[locale]/arrangementer/page.tsx
+src/app/[locale]/arrangementer/[event]/page.tsx
+src/app/[locale]/arrangementer/ny/page.tsx
+src/app/[locale]/blifrivillig/page.tsx
 ```
 
 These files should mostly compose feature modules:
@@ -214,7 +256,7 @@ export default async function Page() {
 Move event/arrangement-specific UI and domain logic toward:
 
 ```txt
-features/events/
+src/features/events/
 ├── components/
 │   ├── ArrangementCard.tsx
 │   ├── EventCard.tsx
@@ -239,17 +281,17 @@ features/events/
 Likely migration candidates:
 
 ```txt
-app/[locale]/arrangementer/ArrangementCard.tsx
-app/[locale]/arrangementer/EventCard.tsx
-app/[locale]/arrangementer/events-page-client.tsx
-app/[locale]/arrangementer/EventsFilters.tsx
-app/[locale]/arrangementer/EventsSections.tsx
-app/[locale]/arrangementer/FilterButton.tsx
-app/[locale]/arrangementer/ny/form-fields.tsx
-app/[locale]/arrangementer/ny/form-sections.tsx
-app/[locale]/arrangementer/ny/form-state.ts
-app/[locale]/arrangementer/ny/RecurrenceBuilder.tsx
-app/[locale]/arrangementer/ny/SubmitArrangementForm.tsx
+src/app/[locale]/arrangementer/ArrangementCard.tsx
+src/app/[locale]/arrangementer/EventCard.tsx
+src/app/[locale]/arrangementer/events-page-client.tsx
+src/app/[locale]/arrangementer/EventsFilters.tsx
+src/app/[locale]/arrangementer/EventsSections.tsx
+src/app/[locale]/arrangementer/FilterButton.tsx
+src/app/[locale]/arrangementer/ny/form-fields.tsx
+src/app/[locale]/arrangementer/ny/form-sections.tsx
+src/app/[locale]/arrangementer/ny/form-state.ts
+src/app/[locale]/arrangementer/ny/RecurrenceBuilder.tsx
+src/app/[locale]/arrangementer/ny/SubmitArrangementForm.tsx
 lib/events.ts
 lib/events-utils.ts
 lib/events-context.tsx
@@ -263,7 +305,7 @@ Route files should remain in `app/`.
 Move volunteer/prospect-specific UI and domain logic toward:
 
 ```txt
-features/blifrivillig/
+src/features/blifrivillig/
 ├── components/
 │   ├── BliFrivilligPage.tsx
 │   ├── ChoiceModal.tsx
@@ -294,10 +336,10 @@ lib/volunteer-group-content.ts
 lib/volunteer-groups.ts
 lib/volunteer-prospect.ts
 lib/volunteer-stats.ts
-app/api/volunteer-prospects/route.ts
+src/app/api/volunteer-prospects/route.ts
 ```
 
-The API route should remain in `app/api`, but implementation details may move to `features/blifrivillig/server/`.
+The API route should remain in `app/api`, but implementation details may move to `src/features/blifrivillig/server/`.
 
 ## Shared components
 
@@ -335,7 +377,7 @@ Split large Sanity query files into executable queries and reusable fragments.
 Target:
 
 ```txt
-lib/sanity/
+src/lib/sanity/
 ├── client.ts
 ├── live.ts
 ├── fetch.ts
@@ -370,26 +412,26 @@ If a GROQ string is interpolated into another GROQ string, it belongs in `fragme
 Keep Studio-specific code in:
 
 ```txt
-studio/
+src/studio/
 ```
 
 This includes:
 
 ```txt
-studio/actions/
-studio/i18n/
-studio/presentation/
-studio/schemaTypes/
-studio/structure.ts
+src/studio/actions/
+src/studio/i18n/
+src/studio/presentation/
+src/studio/schemaTypes/
+src/studio/structure.ts
 ```
 
-Do not move schema definitions, Studio structure, or Studio custom actions into `lib/sanity/`.
+Do not move schema definitions, Studio structure, or Studio custom actions into `src/lib/sanity/`.
 
 The distinction is:
 
 ```txt
-studio/       # CMS/editor experience
-lib/sanity/   # frontend/app data access
+src/studio/       # CMS/editor experience
+src/lib/sanity/   # frontend/app data access
 ```
 
 ## Supabase integration
@@ -397,33 +439,33 @@ lib/sanity/   # frontend/app data access
 Move Supabase integration from:
 
 ```txt
-utils/supabase/
+src/lib/integrations/supabase/
 ```
 
 to:
 
 ```txt
-lib/supabase/
+src/lib/integrations/supabase/
 ```
 
 This makes external integrations consistent:
 
 ```txt
-lib/sanity/
-lib/supabase/
+src/lib/sanity/
+src/lib/integrations/supabase/
 lib/posthog/
-lib/kvarteret-personal-api/
+src/lib/integrations/kvarteret-personal-api/
 ```
 
 ## Migration plan
 
-1. Add `features/events/` and `features/blifrivillig/`.
+1. Add `src/features/events/` and `src/features/blifrivillig/`.
 2. Rename component files to component casing when they are moved.
-3. Move event-specific components and helpers from `app/[locale]/arrangementer/` and `lib/events*` into `features/events/`.
-4. Move volunteer-specific components and helpers from `components/volunteer-prospect*` and `lib/volunteer*` into `features/blifrivillig/`.
+3. Move event-specific components and helpers from `src/app/[locale]/arrangementer/` and `src/lib/events*` into `src/features/events/`.
+4. Move volunteer-specific components and helpers from `components/volunteer-prospect*` and `lib/volunteer*` into `src/features/blifrivillig/`.
 5. Keep public route files in `app/` and update them to import from feature modules.
-6. Split `lib/sanity/queries.ts` and `lib/sanity/query-definitions.ts` into `queries/` and `fragments/`.
-7. Move `utils/supabase/` to `lib/supabase/`.
+6. Split `src/lib/sanity/queries.ts` and `src/lib/sanity/query-definitions.ts` into `queries/` and `fragments/`.
+7. Move `src/lib/integrations/supabase/` to `src/lib/integrations/supabase/`.
 8. Update imports incrementally.
 9. Avoid broad barrel exports if they create circular dependencies or unclear import paths.
 
@@ -433,10 +475,10 @@ lib/kvarteret-personal-api/
 
 - Clearer ownership of event and volunteer-related code.
 - Smaller route folders.
-- `app/` becomes easier to scan.
+- `src/app/` becomes easier to scan.
 - Component filenames become more consistent with React conventions.
 - Sanity frontend queries become easier to maintain.
-- Integrations under `lib/` become more consistent.
+- Integrations under `src/lib/integrations/` become more consistent.
 - Product language is reflected in code structure.
 
 ### Negative
@@ -448,15 +490,15 @@ lib/kvarteret-personal-api/
 
 ## Open questions and recommendations
 
-### Should `features/events` own all event-related Sanity query exports, or should queries remain exclusively under `lib/sanity/queries`?
+### Should `src/features/events` own all event-related Sanity query exports, or should queries remain exclusively under `src/lib/sanity/queries`?
 
-Recommendation: keep Sanity query definitions under `lib/sanity/queries` and `lib/sanity/fragments`.
+Recommendation: keep Sanity query definitions under `src/lib/sanity/queries` and `src/lib/sanity/fragments`.
 
 Both this web app and a separate React Native app/repo may need to use event-related Sanity queries, especially early on. Query definitions should still be owned by a Sanity data-access layer, not by a route layer or a feature UI layer.
 
 Rationale:
 
-- `lib/sanity` is the frontend Sanity data access layer.
+- `src/lib/sanity` is the frontend Sanity data access layer.
 - Keeping all GROQ in one place makes it easier to maintain fragments, type generation, preview behavior, and fetch conventions.
 - The React Native app may need access to the same event query definitions or equivalent query contracts.
 - Feature modules should own product behavior and UI composition, not the underlying Sanity integration.
@@ -465,7 +507,7 @@ Rationale:
 Preferred structure:
 
 ```txt
-lib/sanity/
+src/lib/sanity/
 ├── queries/
 │   ├── events.ts
 │   ├── pages.ts
@@ -477,7 +519,7 @@ lib/sanity/
     ├── links.ts
     └── portableText.ts
 
-features/events/
+src/features/events/
 ├── components/
 ├── server/
 ├── utils/
@@ -487,7 +529,7 @@ features/events/
 The web app may import queries directly at first:
 
 ```ts
-// features/events/server/getEventsPageData.ts
+// src/features/events/server/getEventsPageData.ts
 import {eventsPageQuery} from '@/lib/sanity/queries/events'
 import {sanityFetch} from '@/lib/sanity/fetch'
 
@@ -525,7 +567,7 @@ The React Native repo can consume the same query package if it talks directly to
 Feature-level server functions in the web app may wrap Sanity queries when that improves the domain API:
 
 ```ts
-// features/events/server/getEventsPageData.ts
+// src/features/events/server/getEventsPageData.ts
 import {eventsPageQuery} from '@/lib/sanity/queries/events'
 import {sanityFetch} from '@/lib/sanity/fetch'
 
@@ -554,7 +596,7 @@ Rationale:
 Preferred default:
 
 ```txt
-features/events/components/
+src/features/events/components/
 ├── EventsPageClient.tsx   # owns page-level interactive state
 ├── EventsFilters.tsx      # receives state and callbacks as props
 ├── EventsSections.tsx     # receives filtered events as props
@@ -566,16 +608,16 @@ Keep or introduce context only if the component tree becomes difficult to work w
 If context is still needed, move it into the feature:
 
 ```txt
-features/events/context/EventsContext.tsx
+src/features/events/context/EventsContext.tsx
 ```
 
 Avoid keeping it as a generic `lib/events-context.tsx` module.
 
-### Should `app/actions/submit-arrangement.ts` remain as the public server action entrypoint while delegating to `features/events/server/submitArrangement.ts`?
+### Should `app/actions/submit-arrangement.ts` remain as the public server action entrypoint while delegating to `src/features/events/server/submitArrangement.ts`?
 
 Recommendation: yes.
 
-Keep the server action entrypoint in `app/actions` if it is imported directly by client components or tied to App Router conventions. Move the implementation into `features/events/server`.
+Keep the server action entrypoint in `app/actions` if it is imported directly by client components or tied to App Router conventions. Move the implementation into `src/features/events/server`.
 
 Rationale:
 
@@ -590,7 +632,7 @@ Preferred structure:
 app/actions/
 └── submit-arrangement.ts
 
-features/events/server/
+src/features/events/server/
 └── submitArrangement.ts
 ```
 
@@ -604,7 +646,7 @@ export {submitArrangement} from '@/features/events/server/submitArrangement'
 ```
 
 ```ts
-// features/events/server/submitArrangement.ts
+// src/features/events/server/submitArrangement.ts
 export async function submitArrangement(formData: FormData) {
   // validation, transformation, persistence, notifications
 }
@@ -612,7 +654,7 @@ export async function submitArrangement(formData: FormData) {
 
 If the action is only used by one route and does not need a global public entrypoint, colocating the server action closer to that route is also acceptable. The recommended default is to keep `app/actions` as a thin boundary.
 
-### Should Storybook stories live next to components, under `features/*`, or in a central stories directory?
+### Should Storybook stories live next to components, under `src/features/*`, or in a central stories directory?
 
 Recommendation: colocate stories next to the components they document.
 
@@ -629,11 +671,11 @@ Preferred examples:
 components/ui/Button.tsx
 components/ui/Button.stories.tsx
 
-features/events/components/EventCard.tsx
-features/events/components/EventCard.stories.tsx
+src/features/events/components/EventCard.tsx
+src/features/events/components/EventCard.stories.tsx
 
-features/blifrivillig/components/ChoiceModal.tsx
-features/blifrivillig/components/ChoiceModal.stories.tsx
+src/features/blifrivillig/components/ChoiceModal.tsx
+src/features/blifrivillig/components/ChoiceModal.stories.tsx
 ```
 
 Use a central Storybook configuration only for global setup:
@@ -688,8 +730,8 @@ Use DDD-inspired feature folders, but avoid heavy DDD terminology unless the dom
 Recommended:
 
 ```txt
-features/events/
-features/blifrivillig/
+src/features/events/
+src/features/blifrivillig/
 ```
 
 Avoid introducing heavy terminology by default:
@@ -709,14 +751,14 @@ Those concepts may become useful later, but they are more structure than the pro
 The practical version for this repo is:
 
 ```txt
-features/events/
+src/features/events/
 ├── components/
 ├── data/
 ├── actions/
 ├── domain/
 └── types.ts
 
-features/blifrivillig/
+src/features/blifrivillig/
 ├── components/
 ├── data/
 ├── actions/
@@ -746,7 +788,7 @@ commands/  write operations
 That idea maps reasonably well to this app, because the code has clear reads and writes. For example:
 
 ```txt
-features/events/
+src/features/events/
 ├── queries/
 │   ├── getEventsPageData.ts
 │   └── getEventBySlug.ts
@@ -757,15 +799,15 @@ features/events/
 However, this project already uses the word `queries` for raw Sanity GROQ query definitions:
 
 ```txt
-lib/sanity/queries/
+src/lib/sanity/queries/
 ```
 
-Using `features/events/queries/` as well would create two different meanings for `queries`:
+Using `src/features/events/queries/` as well would create two different meanings for `queries`:
 
 | Path | Meaning |
 |---|---|
-| `lib/sanity/queries/events.ts` | Raw GROQ query definitions |
-| `features/events/queries/getEventsPageData.ts` | Application read operation that executes queries |
+| `src/lib/sanity/queries/events.ts` | Raw GROQ query definitions |
+| `src/features/events/queries/getEventsPageData.ts` | Application read operation that executes queries |
 
 Both meanings are valid, but the distinction is subtle and can be confusing.
 
@@ -786,22 +828,22 @@ This keeps the read/write separation without conflicting with Sanity GROQ termin
 Use the following distinction:
 
 ```txt
-lib/sanity/queries/       Raw GROQ strings
-features/*/data/          Functions that load data for the app
-features/*/actions/       Functions that change or submit data
-features/*/domain/        Pure feature/domain logic
-features/*/components/    React components
+src/lib/sanity/queries/       Raw GROQ strings
+src/features/*/data/          Functions that load data for the app
+src/features/*/actions/       Functions that change or submit data
+src/features/*/domain/        Pure feature/domain logic
+src/features/*/components/    React components
 ```
 
 Example:
 
 ```ts
-// lib/sanity/queries/events.ts
+// src/lib/sanity/queries/events.ts
 export const eventsPageQuery = groq`...`
 ```
 
 ```ts
-// features/events/data/getEventsPageData.ts
+// src/features/events/data/getEventsPageData.ts
 import {eventsPageQuery} from '@/lib/sanity/queries/events'
 import {sanityFetch} from '@/lib/sanity/fetch'
 
@@ -811,14 +853,14 @@ export async function getEventsPageData() {
 ```
 
 ```ts
-// features/events/actions/submitArrangement.ts
+// src/features/events/actions/submitArrangement.ts
 export async function submitArrangement(input: SubmitArrangementInput) {
   // validate, transform, write, notify
 }
 ```
 
 ```ts
-// features/events/domain/eventFilters.ts
+// src/features/events/domain/eventFilters.ts
 export function isUpcomingEvent(event: Event) {
   return new Date(event.startDate) > new Date()
 }
@@ -842,8 +884,8 @@ Adopt the structure incrementally.
 
 Start with the lowest-risk changes:
 
-1. Rename/move route-local event components into `features/events/components/` using component casing.
-2. Move volunteer-specific components into `features/blifrivillig/components/` using component casing.
+1. Rename/move route-local event components into `src/features/events/components/` using component casing.
+2. Move volunteer-specific components into `src/features/blifrivillig/components/` using component casing.
 3. Split Sanity queries into `queries/` and `fragments/`.
 
 Avoid moving stable global layout components, UI primitives, or Sanity Studio schema files unless there is a clear reason.
