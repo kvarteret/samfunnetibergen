@@ -22,7 +22,7 @@ import {
     TICKET_TYPES,
     TICKETING_PARENT_ID,
 } from "./fields"
-import type { EventRequestBody } from "./types"
+import type { Assignment, EventRequestBody } from "./types"
 
 // The two venue forms behind this integration. Both slugs were verified at
 // HTTP 201 from captured HAR traces. See docs/adr/001-crescat-integration.md.
@@ -31,7 +31,23 @@ export const ROOM_BOOKING_SLUGS = {
     intern: "studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne",
 } as const
 
-export type BookerType = keyof typeof ROOM_BOOKING_SLUGS
+// The website offers three booker types. Studentorg books through the same
+// standard form as ekstern, but flags the "på vegne av studentorganisasjon"
+// metadata; intern uses the internal form.
+export type BookerType = "ekstern" | "studentorg" | "intern"
+
+const SLUG_BY_BOOKER_TYPE: Record<
+    BookerType,
+    (typeof ROOM_BOOKING_SLUGS)[keyof typeof ROOM_BOOKING_SLUGS]
+> = {
+    ekstern: ROOM_BOOKING_SLUGS.ekstern,
+    studentorg: ROOM_BOOKING_SLUGS.ekstern,
+    intern: ROOM_BOOKING_SLUGS.intern,
+}
+
+export function slugForBookerType(bookerType: BookerType): string {
+    return SLUG_BY_BOOKER_TYPE[bookerType]
+}
 
 export interface RoomBookingInput {
     eventName: string
@@ -50,11 +66,15 @@ export interface RoomBookingInput {
     contactName: string
     contactEmail: string
     contactPhone: string
+    // Optional: when doors open (HH:mm). Adds a 0-minute "Doors" timeline entry.
+    doorsTime?: string
     // Ekstern only
     onBehalfOfStudentOrg?: boolean
     studentOrgName?: string
     invoiceAddress?: string
     orgNumber?: number | null
+    // Ekstern only: flexible on date/room. No Crescat field — appended to description.
+    flexibleDates?: boolean
 }
 
 function commonHead(input: RoomBookingInput): { start: string; end: string } {
@@ -90,11 +110,27 @@ const ticketTypesOrNA = (input: RoomBookingInput) =>
 const cateringOrNo = (input: RoomBookingInput) =>
     input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei"
 
+// A 0-minute "Doors" entry on the day's timeline, when a doors time is given.
+function doorsAssignments(input: RoomBookingInput): Assignment[] {
+    if (!input.doorsTime) return []
+    const doors = toDateTime(input.startDate, input.doorsTime)
+    return [{ title: "Doors", description: null, start: doors, end: doors }]
+}
+
+// Ekstern/studentorg may flag flexibility on date/room (no Crescat field).
+function descriptionWithFlexible(input: RoomBookingInput): string {
+    if (!input.flexibleDates) return input.description
+    const note = "Fleksibel på dato og rom: ja"
+    return input.description.trim() ? `${input.description.trim()}\n\n${note}` : note
+}
+
 export function buildExternalBooking(input: RoomBookingInput): EventRequestBody {
     const { start, end } = commonHead(input)
+    const description = descriptionWithFlexible(input)
 
     return {
         ...baseBody(input, start, end),
+        description,
         sections: [
             {
                 title: "Ønsket rom",
@@ -164,7 +200,7 @@ export function buildExternalBooking(input: RoomBookingInput): EventRequestBody 
                 description:
                     "Har du oversikt over tentative tider for arrangementet? Venligst noter ned punkter som rigg, prøver, arrangement, nedrigg osv i feltet under.",
                 type: "assignments",
-                content: [],
+                content: doorsAssignments(input),
             },
             {
                 title: "Promotering",
@@ -251,7 +287,7 @@ export function buildInternalBooking(input: RoomBookingInput): EventRequestBody 
                 description:
                     "Her fyller du ut når ting skjer (get-in, arrangementets start og når det er ferdig)",
                 type: "assignments",
-                content: [],
+                content: doorsAssignments(input),
             },
             {
                 title: "Bestilling",
@@ -304,5 +340,15 @@ export function buildRoomBooking(
     bookerType: BookerType,
     input: RoomBookingInput,
 ): EventRequestBody {
-    return bookerType === "intern" ? buildInternalBooking(input) : buildExternalBooking(input)
+    if (bookerType === "intern") {
+        return buildInternalBooking(input)
+    }
+    // ekstern + studentorg both submit the standard form; studentorg flags the
+    // "på vegne av studentorganisasjon" metadata.
+    const isStudentOrg = bookerType === "studentorg"
+    return buildExternalBooking({
+        ...input,
+        onBehalfOfStudentOrg: isStudentOrg,
+        studentOrgName: isStudentOrg ? (input.studentOrgName ?? "") : "",
+    })
 }

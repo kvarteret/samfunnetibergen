@@ -3,22 +3,19 @@
 import { z } from "zod"
 
 import { postEventRequest } from "@/lib/integrations/crescat/client"
-import {
-    type BookerType,
-    buildRoomBooking,
-    ROOM_BOOKING_SLUGS,
-} from "@/lib/integrations/crescat/room-booking"
+import { buildRoomBooking, slugForBookerType } from "@/lib/integrations/crescat/room-booking"
 import { err, type Result } from "@/lib/result"
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const payloadSchema = z.object({
-    bookerType: z.enum(["intern", "ekstern"]),
+    bookerType: z.enum(["intern", "ekstern", "studentorg"]),
     eventName: z.string().trim().min(1),
     roomId: z.number().int().positive(),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     startTime: z.string().regex(timeRegex),
     endTime: z.string().regex(timeRegex),
+    doorsTime: z.string().regex(timeRegex).optional(),
     description: z.string().trim().default(""),
     audienceCount: z.number().int().min(0),
     openOrClosed: z.enum(["Åpent", "Lukket"]),
@@ -31,7 +28,8 @@ const payloadSchema = z.object({
     contactEmail: z.string().trim().email(),
     contactPhone: z.string().trim().default(""),
     acceptTerms: z.literal(true),
-    // Ekstern only
+    flexibleDates: z.boolean().optional(),
+    // Ekstern / studentorg only
     onBehalfOfStudentOrg: z.boolean().optional(),
     studentOrgName: z.string().trim().optional(),
     invoiceAddress: z.string().trim().optional(),
@@ -46,8 +44,7 @@ export async function submitRoomBooking(payload: RoomBookingPayload): Promise<Re
         return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
     }
 
-    const bookerType: BookerType = parsed.data.bookerType
-    const body = buildRoomBooking(bookerType, parsed.data)
+    const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
 
-    return postEventRequest(ROOM_BOOKING_SLUGS[bookerType], body)
+    return postEventRequest(slugForBookerType(parsed.data.bookerType), body)
 }

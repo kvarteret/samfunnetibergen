@@ -70,12 +70,15 @@ captured once in `fields.ts` and reused by every builder. `room_id`s are per-roo
 ### Room booking: intern vs. ekstern
 
 The website's "Book rom her" CTA points to an internal page (`/rom/book`) instead of an external
-Crescat link. A booker-type toggle decides which Crescat form receives the submission:
+Crescat link. A booker-type picker decides which Crescat form receives the submission. There are
+**three** booker types but only two forms — `studentorg` and `ekstern` both submit the standard form
+(`slugForBookerType` in `room-booking.ts`):
 
-| Booker | Slug |
-|---|---|
-| Ekstern / privat | `studentersamfunnet-i-bergen-bookingskjema-standard` |
-| Intern (driftsorg) | `studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne` |
+| Booker | Slug | Notes |
+|---|---|---|
+| Ekstern / privat | `studentersamfunnet-i-bergen-bookingskjema-standard` | studentorg metadata off |
+| Studentorganisasjon | `studentersamfunnet-i-bergen-bookingskjema-standard` | sets `3186172=true` + org name `3186171` |
+| Intern (driftsorg) | `studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne` | |
 
 Both slugs were verified at HTTP 201 from captured HAR traces. (An alternative internal form,
 `...bookingskjema-driftsorganisasjoner-faste-arrangement`, exists but was **not** the one captured;
@@ -89,8 +92,23 @@ Crescat-required fields are populated. Examples:
 - Top-level `request_by_*` and intern `keyContacts[0]` ← the single contact block.
 - Ekstern invoice section ← contact name/email/phone + an explicit "Fakturaadresse" field.
 - Empty ticket/catering inputs → `"N/A"` / `"Nei"`.
-- `assignments`, `alternativeDates`, promotering fields → `[]`; `recurringDates` → `null`;
+- `alternativeDates`, promotering fields → `[]`; `recurringDates` → `null`;
   ekstern `moreInformation` → a static avbestillingsvilkår block.
+
+#### Composed free-text fields (E-51)
+
+Crescat has no dedicated field for several E-51 inputs, so they are composed into existing free-text
+fields by the builders:
+
+- **Tech needs** → `Nødvendig teknisk utstyr` (57057): the selected chips joined, e.g.
+  `"Mikrofon 4x, Projektor + lerret, Musikkavspilling, Dedikert lydtekniker"`. (`Ønsket møblement`
+  57056 remains its own input.)
+- **Catering + bar** → catering field (80447): the skreddersydd-meny text plus, when bar is requested,
+  a line `"Bar: ønsker at Kvarteret stiller i bar (2000 kr eks. mva)"` (Crescat has no bar field).
+- **Doors** → the `assignments` section: a 0-minute `Doors` entry (`start == end`) at the doors time;
+  event `start`/`end` stay as the show times on the top level + `roomBooking`.
+- **Flexible dates** (ekstern/studentorg) → appended to the top-level `description`
+  (`"Fleksibel på dato og rom: ja"`); `alternativeDates` stays `[]`.
 
 ### Room → Crescat room ID
 
@@ -166,6 +184,21 @@ All Crescat IDs (room IDs, field IDs, `parent_id`s, form slugs) were obtained by
 form-submission HARs. They are stable as long as the Crescat venue configuration is not recreated.
 If a form or its metadata fields are rebuilt in Crescat's admin panel, a new HAR capture and an
 update to `fields.ts` / `room-booking.ts` / `karaoke.ts` will be required.
+
+## Deferred / future concerns (E-51)
+
+- **Intern recurring (`recurringDates`).** The internal form has a "Gjentagende arrangement" section,
+  sent as `content: null` today. We have not captured a HAR of a submission that actually uses it, so
+  the populated content shape is unknown and recurring is **not** implemented. Capture a real recurring
+  intern submission, then model the `recurringDates` content and wire it (the create-event form already
+  has an RRULE model to map from).
+- **Promotion.** E-51 wants a promotion step (upload an image now, or "upload later" → an email with an
+  upload link sent when the room coordinator confirms the booking). This needs infra we don't have: a
+  persisted booking record, a Crescat booking-confirmation signal (likely manual/polled — there is no
+  webhook), an email service, and a hosted upload portal. Deferred to its own phase/issue.
+- **Per-form calendar/resources for intern.** As noted above, the standard venue calendar does not
+  cover intern-only rooms; the intern form's own calendar/resources endpoints are still needed for full
+  availability + live room-list there.
 
 ## Consequences
 
