@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronDown, ExternalLink, Loader2, Mic, X } from "lucide-react"
+import { addDays, parseISO } from "date-fns"
 import { useEffect, useId, useMemo, useState, useTransition } from "react"
 
 import { type CresatBooking, fetchKaraokeAvailability } from "@/app/actions/karaoke-availability"
@@ -15,6 +16,13 @@ import {
     SectionHeader,
 } from "@/features/events/components/FormFields"
 import { Link } from "@/i18n/navigation"
+import {
+    isoDate,
+    minutesToTime,
+    slotRangesForDate,
+    type ClosedDate,
+    type OpeningHours,
+} from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
 import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
@@ -27,45 +35,15 @@ const PRICING: Record<PriceType, { perPerson: number; minPerHour: number }> = {
 const DURATION_OPTIONS = [1, 2, 3, 4] as const
 const DATE_COUNT = 60
 
-// ISO weekday: 1=Mon…7=Sun. startMin/endMin are minutes from midnight;
-// endMin > 1440 means the session runs past midnight into the next day.
-const WEEKDAY_HOURS: Record<number, { startMin: number; endMin: number }> = {
-    1: { startMin: 12 * 60, endMin: 25 * 60 }, // 12:00 – 01:00
-    2: { startMin: 12 * 60, endMin: 25 * 60 },
-    3: { startMin: 12 * 60, endMin: 25 * 60 },
-    4: { startMin: 12 * 60, endMin: 25 * 60 },
-    5: { startMin: 12 * 60, endMin: 26 * 60 }, // 12:00 – 02:00
-    6: { startMin: 13 * 60 + 30, endMin: 26 * 60 }, // 13:30 – 02:00
-    7: { startMin: 16 * 60, endMin: 22 * 60 }, // 16:00 – 22:00
-}
-
-function isoWeekday(dateStr: string): number {
-    const d = new Date(dateStr)
-    return d.getDay() === 0 ? 7 : d.getDay()
-}
-
-// Returns slot start times as minutes-from-midnight, in 60-min increments.
-function getSlotsForDate(dateStr: string, durationHours: number): number[] {
-    const range = WEEKDAY_HOURS[isoWeekday(dateStr)]
-    if (!range) return []
-    const { startMin, endMin } = range
-    const durationMin = durationHours * 60
-    const count = Math.floor((endMin - startMin - durationMin) / 60) + 1
-    if (count <= 0) return []
-    return Array.from({ length: count }, (_, i) => startMin + i * 60)
-}
-
-function formatSlot(minutes: number): string {
-    const h = Math.floor((minutes % (24 * 60)) / 60)
-    const m = minutes % 60
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
-}
-
 function addHours(time: string, hours: number): string {
     if (!time) return ""
     const [h, m] = time.split(":").map(Number)
     const total = h * 60 + m + hours * 60
     return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
+}
+
+function resolveSlotDate(dateStr: string, slotStartMin: number): string {
+    return isoDate(addDays(parseISO(dateStr), Math.floor(slotStartMin / (24 * 60))))
 }
 
 function calcPrice(priceType: PriceType, people: number, durationHours: number): number {
@@ -106,17 +84,25 @@ function dateHasAvailableSlot(
     date: string,
     durationHours: number,
     bookings: CresatBooking[],
+    operationsManagerHours?: OpeningHours | null,
+    houseClosedDates?: ClosedDate[] | null,
 ): boolean {
-    return getSlotsForDate(date, durationHours).some(
+    return slotRangesForDate(date, durationHours, operationsManagerHours, houseClosedDates).some(
         slotMin => !slotOverlapsBookings(date, slotMin, durationHours, bookings),
     )
 }
 
 interface KaraokeBookingFormProps {
     room: KaraokeRoom
+    operationsManagerHours?: OpeningHours | null
+    houseClosedDates?: ClosedDate[] | null
 }
 
-export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
+export function KaraokeBookingForm({
+    room,
+    operationsManagerHours,
+    houseClosedDates,
+}: KaraokeBookingFormProps) {
     const uid = useId()
     const [isPending, startTransition] = useTransition()
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
@@ -124,7 +110,7 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
 
     const [eventName, setEventName] = useState("")
     const [startDate, setStartDate] = useState("")
-    const [startTime, setStartTime] = useState("")
+    const [startSlotMin, setStartSlotMin] = useState<number | null>(null)
     const [duration, setDuration] = useState(2)
     const [description, setDescription] = useState("")
     const [contactName, setContactName] = useState("")
@@ -146,16 +132,23 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
     }, [])
 
     useEffect(() => {
-        if (startDate && startTime) {
-            const [h, m] = startTime.split(":").map(Number)
-            const slotStartMin = h * 60 + (m || 0)
-            if (slotOverlapsBookings(startDate, slotStartMin, duration, bookings)) {
-                setStartTime("")
+        if (startDate && startSlotMin !== null) {
+            const validSlot = slotRangesForDate(
+                startDate,
+                duration,
+                operationsManagerHours,
+                houseClosedDates,
+            ).includes(startSlotMin)
+            if (!validSlot || slotOverlapsBookings(startDate, startSlotMin, duration, bookings)) {
+                setStartSlotMin(null)
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [duration, bookings])
+    }, [duration, bookings, operationsManagerHours, houseClosedDates])
 
+    const startTime = startSlotMin === null ? "" : minutesToTime(startSlotMin)
+    const bookingStartDate =
+        startDate && startSlotMin !== null ? resolveSlotDate(startDate, startSlotMin) : ""
     const endTime = addHours(startTime, duration)
     const people = parseInt(numberOfPeople) || 0
     const totalPrice = calcPrice(priceType, people, duration)
@@ -165,7 +158,7 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
         if (
             !eventName.trim() ||
             !startDate ||
-            !startTime ||
+            startSlotMin === null ||
             !contactName.trim() ||
             !contactEmail.trim() ||
             !acceptTerms ||
@@ -176,7 +169,7 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
         startTransition(async () => {
             const result = await submitKaraokeBooking({
                 eventName,
-                startDate,
+                startDate: bookingStartDate,
                 startTime,
                 duration,
                 endTime,
@@ -247,10 +240,12 @@ export function KaraokeBookingForm({ room }: KaraokeBookingFormProps) {
                                     bookings={bookings}
                                     duration={duration}
                                     selectedDate={startDate}
-                                    selectedTime={startTime}
+                                    selectedSlotMin={startSlotMin}
                                     today={today}
+                                    operationsManagerHours={operationsManagerHours}
+                                    houseClosedDates={houseClosedDates}
                                     onDateChange={setStartDate}
-                                    onTimeChange={setStartTime}
+                                    onSlotChange={setStartSlotMin}
                                 />
                                 {startTime && (
                                     <p className="text-sm text-foreground/60 font-heading mt-1">
@@ -516,27 +511,31 @@ interface SlotPickerProps {
     bookings: CresatBooking[]
     duration: number
     selectedDate: string
-    selectedTime: string
+    selectedSlotMin: number | null
     today: string
+    operationsManagerHours?: OpeningHours | null
+    houseClosedDates?: ClosedDate[] | null
     onDateChange: (date: string) => void
-    onTimeChange: (time: string) => void
+    onSlotChange: (slotMin: number | null) => void
 }
 
 function SlotPicker({
     bookings,
     duration,
     selectedDate,
-    selectedTime,
+    selectedSlotMin,
     today,
+    operationsManagerHours,
+    houseClosedDates,
     onDateChange,
-    onTimeChange,
+    onSlotChange,
 }: SlotPickerProps) {
     const dates = useMemo(
         () =>
             Array.from({ length: DATE_COUNT }, (_, i) => {
                 const d = new Date(today)
                 d.setDate(d.getDate() + i)
-                return d.toISOString().split("T")[0]
+                return isoDate(d)
             }),
         [today],
     )
@@ -546,7 +545,13 @@ function SlotPicker({
             <div className="overflow-x-auto">
                 <div className="flex gap-1.5 pb-1 min-w-max">
                     {dates.map(date => {
-                        const available = dateHasAvailableSlot(date, duration, bookings)
+                        const available = dateHasAvailableSlot(
+                            date,
+                            duration,
+                            bookings,
+                            operationsManagerHours,
+                            houseClosedDates,
+                        )
                         const isSelected = date === selectedDate
                         const isToday = date === today
                         const d = new Date(date)
@@ -563,7 +568,7 @@ function SlotPicker({
                                 disabled={!available}
                                 onClick={() => {
                                     onDateChange(date)
-                                    onTimeChange("")
+                                    onSlotChange(null)
                                 }}
                                 className={cn(
                                     "flex flex-col items-center gap-0.5 px-2.5 py-2 border-2 min-w-[52px] transition-colors shrink-0",
@@ -594,22 +599,27 @@ function SlotPicker({
                         Velg starttidspunkt
                     </p>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                        {getSlotsForDate(selectedDate, duration).map(slotMin => {
+                        {slotRangesForDate(
+                            selectedDate,
+                            duration,
+                            operationsManagerHours,
+                            houseClosedDates,
+                        ).map(slotMin => {
                             const taken = slotOverlapsBookings(
                                 selectedDate,
                                 slotMin,
                                 duration,
                                 bookings,
                             )
-                            const slotLabel = formatSlot(slotMin)
-                            const isSelected = selectedTime === slotLabel
+                            const slotLabel = minutesToTime(slotMin)
+                            const isSelected = selectedSlotMin === slotMin
 
                             return (
                                 <button
                                     key={slotMin}
                                     type="button"
                                     disabled={taken}
-                                    onClick={() => onTimeChange(slotLabel)}
+                                    onClick={() => onSlotChange(slotMin)}
                                     className={cn(
                                         "py-2.5 text-sm font-heading border-2 text-center transition-colors",
                                         isSelected

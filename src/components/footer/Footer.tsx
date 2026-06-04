@@ -1,6 +1,8 @@
 import Link from "next/link"
 
+import { formatWeekdays } from "@/lib/opening-hours"
 import type { fetchFooter } from "@/lib/sanity/fetch"
+import { BarOpenStatus } from "./BarOpenStatus"
 
 // ─── App store links ──────────────────────────────────────────────────────────
 
@@ -238,6 +240,9 @@ function AddressColumn({ address }: { address?: string | null }) {
 }
 
 function HoursRow({ row }: { row: HoursRow }) {
+    const dayLabel = formatWeekdays(row.weekdays)
+    if (!dayLabel) return null
+
     const time =
         row.status === "closed"
             ? "Stengt"
@@ -246,13 +251,19 @@ function HoursRow({ row }: { row: HoursRow }) {
               : null
     return (
         <div className="flex justify-between gap-4 text-sm">
-            <dt className="text-foreground/80">{row.label}</dt>
+            <dt className="text-foreground/80">{dayLabel}</dt>
             {time && <dd className="text-foreground/60 shrink-0 tabular-nums">{time}</dd>}
         </div>
     )
 }
 
-function OpeningHoursColumn({ rooms }: { rooms: RoomHours[] }) {
+function OpeningHoursColumn({
+    rooms,
+    houseClosedDates,
+}: {
+    rooms: RoomHours[]
+    houseClosedDates: FooterData["houseClosedDates"]
+}) {
     const roomsWithHours = rooms.filter(r => (r.hours?.rows?.length ?? 0) > 0)
     if (!roomsWithHours.length) return null
     return (
@@ -261,9 +272,12 @@ function OpeningHoursColumn({ rooms }: { rooms: RoomHours[] }) {
             <div className="space-y-4">
                 {roomsWithHours.map(room => (
                     <div key={room.slug}>
-                        <p className="text-xs font-medium text-foreground/50 mb-1.5 uppercase tracking-wide">
-                            {room.title}
-                        </p>
+                        <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                            <p className="text-xs font-medium text-foreground/50 uppercase tracking-wide">
+                                {room.title}
+                            </p>
+                            <BarOpenStatus hours={room.hours} houseClosedDates={houseClosedDates} />
+                        </div>
                         <dl className="space-y-1">
                             {(room.hours?.rows ?? []).map((row: HoursRow) => (
                                 <HoursRow key={row._key} row={row} />
@@ -297,7 +311,10 @@ export function Footer({ data, locale }: FooterProps) {
                         <ContactColumn generalContact={data.generalContact} />
                         <AddressColumn address={data.visitAddress} />
                     </div>
-                    <OpeningHoursColumn rooms={roomHours} />
+                    <OpeningHoursColumn
+                        rooms={roomHours}
+                        houseClosedDates={data.houseClosedDates}
+                    />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-5">

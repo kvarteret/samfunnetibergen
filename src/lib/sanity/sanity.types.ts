@@ -143,6 +143,12 @@ export type SiteMetadata = {
     _rev: string
     siteName?: string
     openingHours?: OpeningHours
+    houseClosedDates?: Array<{
+        date: string
+        note?: string
+        _type: "houseClosedDate"
+        _key: string
+    }>
     defaultSeoTitle?: string
     defaultSeoDescription?: string
     defaultOpenGraphImage?: {
@@ -348,7 +354,6 @@ export type PortableTextContent = Array<
 
 export type OpeningHoursRow = {
     _type: "openingHoursRow"
-    label: string
     weekdays?: Array<number>
     status?: "open" | "closed"
     duration?: Duration
@@ -555,6 +560,7 @@ export type Room = {
     slug: Slug
     summary: string
     body?: PortableTextContent
+    crescatRoomId?: number
     menu?: Menu
     orderRank?: string
     floor?: number
@@ -1392,7 +1398,7 @@ export type StudentGroupBySlugQueryResult = {
 
 // Source: src/lib/sanity/queries/navigation.ts
 // Variable: footerQuery
-// Query: {    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        platform,        label,        url    },    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(title, ""),        "slug": slug.current,        "hours": openingHours {    rows[] {        _key,        label,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }}
+// Query: {    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        platform,        label,        url    },    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        date,        note    },    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(title, ""),        "slug": slug.current,        "hours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }}
 export type FooterQueryResult = {
     socialLinks: Array<{
         _key: string
@@ -1402,13 +1408,18 @@ export type FooterQueryResult = {
     }> | null
     visitAddress: string | null
     generalContact: string | null
+    houseClosedDates: Array<{
+        _key: string
+        date: string
+        note: string | null
+    }> | null
     roomHours: Array<{
         title: string
         slug: string
         hours: {
             rows: Array<{
                 _key: string
-                label: string
+                weekdays: Array<number> | null
                 status: "closed" | "open"
                 note: string | null
                 duration: {
@@ -1455,6 +1466,29 @@ export type SiteMetadataNbQueryResult = {
     oembedTitle: string | null
     oembedDescription: string | null
     oembedImageUrl: string | null
+} | null
+
+// Source: src/lib/sanity/queries/pages.ts
+// Variable: houseHoursQuery
+// Query: *[_type == "siteMetadata" && _id == "siteMetadata"][0] {    "operationsManagerHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "houseClosedDates": houseClosedDates[] {        _key,        date,        note    }}
+export type HouseHoursQueryResult = {
+    operationsManagerHours: {
+        rows: Array<{
+            _key: string
+            weekdays: Array<number> | null
+            status: "closed" | "open"
+            note: string | null
+            duration: {
+                start: TimeValue
+                end: TimeValue
+            } | null
+        }> | null
+    } | null
+    houseClosedDates: Array<{
+        _key: string
+        date: string
+        note: string | null
+    }> | null
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
@@ -1768,6 +1802,41 @@ export type RoomsQueryResult = Array<{
 }>
 
 // Source: src/lib/sanity/queries/rooms.ts
+// Variable: barPreviewsQuery
+// Query: {    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        date,        note    },    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {        "title": coalesce(title, ""),        "slug": slug.current,        summary,        bar,        "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},        "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }}
+export type BarPreviewsQueryResult = {
+    houseClosedDates: Array<{
+        _key: string
+        date: string
+        note: string | null
+    }> | null
+    rooms: Array<{
+        title: string
+        slug: string
+        summary: string
+        bar: string | null
+        openingHours: {
+            rows: Array<{
+                _key: string
+                weekdays: Array<number> | null
+                status: "closed" | "open"
+                note: string | null
+                duration: {
+                    start: TimeValue
+                    end: TimeValue
+                } | null
+            }> | null
+        } | null
+        image: {
+            _key: string
+            assetUrl: string | null
+            alt: string | null
+            caption: string | null
+        } | null
+    }>
+}
+
+// Source: src/lib/sanity/queries/rooms.ts
 // Variable: roomSlugsQuery
 // Query: *[_type == "room" && defined(slug.current)] {    "slug": slug.current}
 export type RoomSlugsQueryResult = Array<{
@@ -1775,8 +1844,20 @@ export type RoomSlugsQueryResult = Array<{
 }>
 
 // Source: src/lib/sanity/queries/rooms.ts
+// Variable: bookableRoomsQuery
+// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    crescatRoomId}
+export type BookableRoomsQueryResult = Array<{
+    title: string
+    slug: string
+    summary: string
+    capacityStanding: number | null
+    capacitySeated: number | null
+    crescatRoomId: number
+}>
+
+// Source: src/lib/sanity/queries/rooms.ts
 // Variable: roomBySlugQuery
-// Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    panoramaUrl,    hasSound,    soundDetails,    hasLighting,    lightingDetails,    hasAV,    avDetails,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        label,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "images": images[] {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        floor,        title,        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    },    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+// Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    panoramaUrl,    hasSound,    soundDetails,    hasLighting,    lightingDetails,    hasAV,    avDetails,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "images": images[] {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        floor,        title,        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    },    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
 export type RoomBySlugQueryResult = {
     title: string
     slug: string
@@ -1797,7 +1878,7 @@ export type RoomBySlugQueryResult = {
     openingHours: {
         rows: Array<{
             _key: string
-            label: string
+            weekdays: Array<number> | null
             status: "closed" | "open"
             note: string | null
             duration: {
@@ -1888,9 +1969,10 @@ declare module "@sanity/client" {
         '*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
         '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': AllStudentGroupSlugsQueryResult
         '*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current,\n        summary,\n        category,\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
-        '{\n    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        platform,\n        label,\n        url\n    },\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        "hours": openingHours {\n    rows[] {\n        _key,\n        label,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }\n}': FooterQueryResult
+        '{\n    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        platform,\n        label,\n        url\n    },\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        date,\n        note\n    },\n    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        "hours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }\n}': FooterQueryResult
         '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult
         '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "siteName": coalesce(siteName, "Samfunnet i Bergen"),\n    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),\n    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),\n    defaultOpenGraphTitle,\n    defaultOpenGraphDescription,\n    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': SiteMetadataNbQueryResult
+        '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "operationsManagerHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "houseClosedDates": houseClosedDates[] {\n        _key,\n        date,\n        note\n    }\n}': HouseHoursQueryResult
         '*[_type == "homePage" && _id == "homePage"][0] {\n    eyebrow,\n    title,\n    description,\n    primaryCta {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n    seoTitle,\n    seoDescription,\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': HomePageNbQueryResult
         '*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0] {\n    "title": coalesce(title, titleNb),\n    seoTitle,\n    seoDescription,\n    "description": description[],\n    "recruitingGroups": recruitingGroups[]-> {\n        _id,\n        name,\n        "slug": slug.current\n    }\n}': BlifrivilligPageNbQueryResult
         '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n},\n    bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomsPageQueryResult
@@ -1901,7 +1983,9 @@ declare module "@sanity/client" {
         '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    seoTitle,\n    seoDescription,\n    "contactGroups": contactGroups[] {\n        _key,\n        title,\n        "persons": persons[] {\n            _key,\n            name,\n            rolle,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }\n    }\n}': KontaktPageQueryResult
         '*[_type == "linkInBio"][0] {\n    heading,\n    bio,\n    links[] {\n        _key,\n        link {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n        emoji,\n        highlight\n    }\n}': LinkInBioQueryResult
         '*[_type == "room"] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult
+        '{\n    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        date,\n        note\n    },\n    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        summary,\n        bar,\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }\n}': BarPreviewsQueryResult
         '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
-        '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    panoramaUrl,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        label,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        floor,\n        title,\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    },\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
+        '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId\n}': BookableRoomsQueryResult
+        '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    panoramaUrl,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        floor,\n        title,\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    },\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
     }
 }

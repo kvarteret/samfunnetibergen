@@ -29,10 +29,48 @@ export const siteMetadata = defineType({
         }),
         defineField({
             name: "openingHours",
-            title: "Åpningstider",
-            description: "Husets åpningstider — åpent når Sanity eller Grøndahls holder åpent.",
+            title: "Driftsleder tilgjengelig",
+            description:
+                "Når driftsleder er tilgjengelig på huset. Brukes også som tidsrom for karaokeforespørsler.",
             type: "openingHours",
             group: "venue",
+        }),
+        defineField({
+            name: "houseClosedDates",
+            title: "Huset er stengt",
+            description:
+                "Hele datoer der huset er stengt. Barer regnes som stengt, og karaoke kan ikke bookes disse datoene.",
+            type: "array",
+            group: "venue",
+            of: [
+                defineArrayMember({
+                    name: "houseClosedDate",
+                    title: "Stengt dato",
+                    type: "object",
+                    fields: [
+                        defineField({
+                            name: "date",
+                            title: "Dato",
+                            type: "date",
+                            validation: rule => rule.required(),
+                        }),
+                        defineField({
+                            name: "note",
+                            title: "Merknad",
+                            type: "string",
+                        }),
+                    ],
+                    preview: {
+                        select: { date: "date", note: "note" },
+                        prepare({ date, note }) {
+                            return {
+                                title: date ?? "Dato mangler",
+                                subtitle: note ?? "Huset er stengt",
+                            }
+                        },
+                    },
+                }),
+            ],
         }),
         defineField({
             name: "defaultSeoTitle",
