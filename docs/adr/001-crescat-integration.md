@@ -98,17 +98,38 @@ Rooms carry an optional `crescatRoomId` (number) field in Sanity. Only rooms wit
 offered in the booking-page room picker (`bookableRoomsQuery` / `fetchBookableRooms`). The selected
 room's `crescatRoomId` is sent as `roomBookings[].room_id`.
 
-### Karaoke availability calendar
+### Availability calendars and resources (read-only)
 
-Existing karaoke bookings are fetched from Crescat's public iCal-style JSON calendar endpoint:
+Crescat exposes public, unauthenticated read endpoints per booking calendar:
 
 ```
-GET /venue-access/studentersamfunnet-i-bergen-bookinkalender-karaoke/calendar?start=…&end=…
+GET /venue-access/{calendarSlug}/calendar?start=…&end=…   → CresatBooking[]
+GET /venue-access/{calendarSlug}/resources                → CresatResource[]
 ```
 
-This returns `CresatBooking` objects with `start`/`end` ISO timestamps; the karaoke slot picker uses
-them to grey out unavailable slots. Cached for 5 minutes (`next: { revalidate: 300 }`). General room
-bookings have no per-room calendar endpoint, so the generic room form uses plain date/time inputs.
+Both are plain GETs (no CSRF/session needed). `calendar.ts` wraps them as `fetchVenueCalendar` and
+`fetchVenueResources`. `CresatBooking` carries `resourceId` (= Crescat `room_id`), `start`/`end` ISO
+timestamps, and a `title`; `CresatResource` is `{ id, room_title, title }`. Calendar is cached 5 min,
+resources 1 h.
+
+Two calendars are in use:
+
+| Calendar slug | Covers |
+|---|---|
+| `studentersamfunnet-i-bergen-bookinkalender-karaoke` | Karaoke room (Maos) — karaoke slot picker. |
+| `studentersamfunnet-i-bergen-bookingkalender` | Standard venue rooms — room-booking availability. |
+
+On the room-booking page, the standard venue calendar is fetched for the selected date and bookings
+are matched to the chosen room by `resourceId == crescatRoomId`; overlapping intervals are shown and
+block submission.
+
+**Gap — intern form coverage.** The standard venue calendar only covers the rooms exposed by that
+calendar. The intern (dørger/borger/interne) form books rooms (e.g. Bakgården, room 287) that are
+**not** on this calendar, and we do not yet have the calendar/resources endpoints for the intern
+form. Until those are obtained, availability and any live room-list auto-fetch are incomplete for
+intern bookings — the room picker still relies on the `crescatRoomId` values stored in Sanity, and
+intern-only rooms show no availability. Capturing the intern form's calendar/resources slugs is
+required for a full view.
 
 ## Known risks and edge cases
 

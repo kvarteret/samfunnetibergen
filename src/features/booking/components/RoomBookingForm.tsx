@@ -1,8 +1,9 @@
 "use client"
 
-import { ArrowRight, Building2, Loader2, User, X } from "lucide-react"
-import { useId, useMemo, useState, useTransition } from "react"
+import { ArrowRight, Building2, CalendarClock, Loader2, User, X } from "lucide-react"
+import { useEffect, useId, useMemo, useState, useTransition } from "react"
 
+import { type CresatBooking, fetchRoomAvailability } from "@/app/actions/room-availability"
 import { type RoomBookingPayload, submitRoomBooking } from "@/app/actions/submit-room-booking"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +35,31 @@ const FREE_PAID_OPTIONS = [
     { value: "Gratis", label: "Gratis" },
     { value: "Betalt", label: "Betalt" },
 ]
+
+const minutesOf = (time: string) => {
+    const [h, m] = time.split(":").map(Number)
+    return h * 60 + m
+}
+
+// Absolute millisecond range for a slot, advancing the end past midnight when
+// the end time is at or before the start time.
+function slotRangeMs(date: string, startTime: string, endTime: string): [number, number] {
+    const baseMs = new Date(`${date}T00:00:00`).getTime()
+    const startMs = baseMs + minutesOf(startTime) * 60_000
+    const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime)
+    const endMs = baseMs + (minutesOf(endTime) + (crossesMidnight ? 1440 : 0)) * 60_000
+    return [startMs, endMs]
+}
+
+function overlaps(startMs: number, endMs: number, booking: CresatBooking): boolean {
+    const bStart = new Date(booking.start).getTime()
+    const bEnd = new Date(booking.end).getTime()
+    return startMs < bEnd && endMs > bStart
+}
+
+function formatBookingTime(iso: string): string {
+    return new Date(iso).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" })
+}
 
 interface RoomBookingFormProps {
     rooms: BookingRoom[]
@@ -67,6 +93,7 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
     const [invoiceAddress, setInvoiceAddress] = useState("")
     const [orgNumber, setOrgNumber] = useState("")
     const [acceptTerms, setAcceptTerms] = useState(false)
+    const [bookings, setBookings] = useState<CresatBooking[]>([])
 
     const isExternal = bookerType === "ekstern"
     const selectedRoom = useMemo(
@@ -74,10 +101,38 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
         [rooms, roomSlug],
     )
 
+    // Pull the venue calendar for the selected date so we can flag clashes for
+    // the chosen room. Covers only rooms on the standard venue calendar.
+    useEffect(() => {
+        if (!startDate) return
+        let active = true
+        const end = new Date(`${startDate}T00:00:00`)
+        end.setDate(end.getDate() + 1)
+        fetchRoomAvailability(startDate, end.toISOString().split("T")[0]).then(result => {
+            if (active) setBookings(result)
+        })
+        return () => {
+            active = false
+        }
+    }, [startDate])
+
+    const roomBookings = useMemo(
+        () =>
+            selectedRoom ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId) : [],
+        [bookings, selectedRoom],
+    )
+
+    const hasConflict = useMemo(() => {
+        if (!startDate || roomBookings.length === 0) return false
+        const [startMs, endMs] = slotRangeMs(startDate, startTime, endTime)
+        return roomBookings.some(b => overlaps(startMs, endMs, b))
+    }, [startDate, startTime, endTime, roomBookings])
+
     const canSubmit =
         Boolean(selectedRoom) &&
         eventName.trim() !== "" &&
         startDate !== "" &&
+        !hasConflict &&
         audienceCount.trim() !== "" &&
         furniture.trim() !== "" &&
         techEquipment.trim() !== "" &&
@@ -199,6 +254,14 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
                         value={endTime}
                     />
                 </div>
+
+                {selectedRoom && startDate && (
+                    <RoomAvailability
+                        bookings={roomBookings}
+                        hasConflict={hasConflict}
+                        roomTitle={selectedRoom.title ?? selectedRoom.slug}
+                    />
+                )}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FieldGroup>
@@ -431,6 +494,49 @@ function BookerTypeToggle({ value, onChange }: BookerTypeToggleProps) {
                     </button>
                 )
             })}
+        </div>
+    )
+}
+
+interface RoomAvailabilityProps {
+    bookings: CresatBooking[]
+    hasConflict: boolean
+    roomTitle: string
+}
+
+function RoomAvailability({ bookings, hasConflict, roomTitle }: RoomAvailabilityProps) {
+    return (
+        <div
+            className={cn(
+                "border-2 p-4 space-y-2",
+                hasConflict ? "border-destructive bg-destructive/10" : "border-border bg-card",
+            )}
+        >
+            <p className="flex items-center gap-2 font-heading text-sm text-foreground">
+                <CalendarClock aria-hidden className="size-4 text-primary" />
+                {roomTitle} — opptatt denne dagen
+            </p>
+            {bookings.length === 0 ? (
+                <p className="text-sm text-foreground/60">
+                    Ingen registrerte bookinger denne dagen.
+                </p>
+            ) : (
+                <ul className="space-y-1 text-sm text-foreground/75">
+                    {bookings.map(booking => (
+                        <li key={booking.id} className="flex justify-between gap-4">
+                            <span className="font-heading">
+                                {formatBookingTime(booking.start)}–{formatBookingTime(booking.end)}
+                            </span>
+                            <span className="truncate text-foreground/55">{booking.title}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {hasConflict && (
+                <p className="text-sm font-heading text-destructive">
+                    Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.
+                </p>
+            )}
         </div>
     )
 }
