@@ -1,24 +1,47 @@
 import { ClockIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
+const weekdayLabels: Record<number, string> = {
+    1: "Man",
+    2: "Tir",
+    3: "Ons",
+    4: "Tor",
+    5: "Fre",
+    6: "Lør",
+    7: "Søn",
+}
+
+function formatWeekdays(weekdays?: number[]) {
+    const days = [...new Set(weekdays ?? [])].sort((a, b) => a - b)
+    if (!days.length) return "Ukedager mangler"
+
+    const isContiguous = days.every((day, index) => index === 0 || day === days[index - 1] + 1)
+    if (isContiguous && days.length > 1) {
+        return `${weekdayLabels[days[0]]}-${weekdayLabels[days[days.length - 1]]}`
+    }
+
+    return days.map(day => weekdayLabels[day]).join(", ")
+}
+
 export const openingHoursRow = defineType({
     name: "openingHoursRow",
     title: "Åpningstidsrad",
     type: "object",
     fields: [
         defineField({
-            name: "label",
-            title: "Dag(er)",
-            description: "F.eks. «Mandag-torsdag», «Fredag» eller «Lørdag-søndag»",
-            type: "string",
-            validation: rule => rule.required(),
-        }),
-        defineField({
             name: "weekdays",
             title: "Ukedager",
             description: "ISO: 1=man, 2=tir, 3=ons, 4=tor, 5=fre, 6=lør, 7=søn",
             type: "array",
             of: [defineArrayMember({ type: "number" })],
+            validation: rule =>
+                rule.custom((weekdays, context) => {
+                    const parent = context.parent as
+                        | { closed?: boolean; status?: string }
+                        | undefined
+                    if (parent?.status === "closed" || parent?.closed === true) return true
+                    return weekdays?.length ? true : "Velg minst én ukedag"
+                }),
             options: {
                 list: [
                     { title: "Mandag", value: 1 },
@@ -74,18 +97,19 @@ export const openingHoursRow = defineType({
     ],
     preview: {
         select: {
-            label: "label",
+            weekdays: "weekdays",
             status: "status",
             closed: "closed",
             start: "duration.start",
             end: "duration.end",
             note: "note",
         },
-        prepare({ label, status, closed, start, end, note }) {
+        prepare({ weekdays, status, closed, start, end, note }) {
+            const label = formatWeekdays(weekdays)
             const time =
                 status === "closed" || closed === true ? "Stengt" : `${start ?? "?"}-${end ?? "?"}`
             return {
-                title: label ? `${label}: ${time}` : time,
+                title: `${label}: ${time}`,
                 subtitle: note,
             }
         },

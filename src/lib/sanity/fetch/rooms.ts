@@ -4,7 +4,13 @@ import type { ClientReturn } from "@sanity/client"
 import { stegaClean } from "@sanity/client/stega"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
-import { roomBySlugQuery, roomSlugsQuery, roomsPageQuery, roomsQuery } from "../queries"
+import {
+    barPreviewsQuery,
+    roomBySlugQuery,
+    roomSlugsQuery,
+    roomsPageQuery,
+    roomsQuery,
+} from "../queries"
 import { compact, type FetchOptions, withRequiredKeys } from "./shared"
 
 export type EditorialSection = NonNullable<
@@ -21,6 +27,10 @@ export type RoomSummary = ClientReturn<typeof roomsQuery>[number]
 
 export type RoomDetail = NonNullable<ClientReturn<typeof roomBySlugQuery>>
 
+export type BarPreviewsContent = NonNullable<ClientReturn<typeof barPreviewsQuery>>
+
+export type BarPreviewRoom = NonNullable<BarPreviewsContent["rooms"]>[number]
+
 export async function fetchRoomsPageContent(
     options: FetchOptions = {},
 ): Promise<RoomsPageContent | null> {
@@ -35,6 +45,11 @@ export async function fetchRoomsPageContent(
 export async function fetchRooms(): Promise<RoomSummary[]> {
     const { data: rooms } = await sanityFetch({ query: roomsQuery, tags: ["rooms"] })
     return withRequiredKeys(rooms, "slug").map(room => ({ ...room, slug: stegaClean(room.slug) }))
+}
+
+export async function fetchBarPreviews(): Promise<BarPreviewsContent | null> {
+    const { data } = await sanityFetch({ query: barPreviewsQuery, tags: ["rooms", "siteMetadata"] })
+    return data
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {

@@ -6,7 +6,7 @@ const durationProjection = `{
 export const openingHoursProjection = `{
     rows[] {
         _key,
-        label,
+        weekdays,
         "status": coalesce(status, select(closed == true => "closed", "open")),
         note,
         "duration": duration ${durationProjection}

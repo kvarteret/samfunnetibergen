@@ -6,6 +6,7 @@ import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
     footerQuery,
+    houseHoursQuery,
     homePageNbQuery,
     kontaktPageQuery,
     linkInBioQuery,
@@ -18,6 +19,8 @@ import {
 import { compact, type FetchOptions } from "./shared"
 
 export type SiteMetadataContent = NonNullable<ClientReturn<typeof siteMetadataNbQuery>>
+
+export type HouseHoursContent = NonNullable<ClientReturn<typeof houseHoursQuery>>
 
 export type HomePageContent = NonNullable<ClientReturn<typeof homePageNbQuery>>
 
@@ -105,6 +108,11 @@ export async function fetchKontaktPage() {
 
 export async function fetchFooter() {
     const { data } = await sanityFetch({ query: footerQuery, tags: ["footer"] })
+    return data
+}
+
+export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
+    const { data } = await sanityFetch({ query: houseHoursQuery, tags: ["siteMetadata"] })
     return data
 }
 

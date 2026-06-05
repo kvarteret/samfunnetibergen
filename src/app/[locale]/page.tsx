@@ -2,10 +2,17 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { HomeBarPreviews } from "@/features/bars/components/HomeBarPreviews"
+import { HomeOpenStatus } from "@/features/bars/components/HomeOpenStatus"
 import { EventCard, type EventSummary } from "@/features/events/components/EventCard"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchHomePageContent, fetchPublishedEvents, fetchSiteMetadata } from "@/lib/sanity/fetch"
+import {
+    fetchBarPreviews,
+    fetchHomePageContent,
+    fetchPublishedEvents,
+    fetchSiteMetadata,
+} from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -111,16 +118,22 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     const locale = (await resolvePageLocale(params)) as AppLocale
     activateRequestLocale(locale)
 
-    const [homePage, events] = await Promise.all([
+    const [homePage, events, barPreviews] = await Promise.all([
         fetchHomePageContent(locale),
         fetchPublishedEvents(),
+        fetchBarPreviews(),
     ])
     const visibleEvents = (events ?? []).slice(0, 4)
 
     return (
         <div className="flex flex-col gap-12 pb-12">
-            <HomeHero homePage={homePage} locale={locale} />
+            <HomeHero barPreviews={barPreviews} homePage={homePage} locale={locale} />
             <HomeEvents events={visibleEvents} locale={locale} />
+            <HomeBarPreviews
+                houseClosedDates={barPreviews?.houseClosedDates}
+                locale={locale}
+                rooms={barPreviews?.rooms ?? []}
+            />
         </div>
     )
 }
@@ -128,8 +141,17 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 // ─── HomeHero ─────────────────────────────────────────────────────────────────
 
 type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
+type BarPreviews = Awaited<ReturnType<typeof fetchBarPreviews>>
 
-function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale }) {
+function HomeHero({
+    homePage,
+    locale,
+    barPreviews,
+}: {
+    homePage: HomePage
+    locale: AppLocale
+    barPreviews: BarPreviews
+}) {
     const ctaHref = homePage?.primaryCta?.href
         ? localizeHref(homePage.primaryCta.href, locale)
         : null
@@ -137,15 +159,16 @@ function HomeHero({ homePage, locale }: { homePage: HomePage; locale: AppLocale 
     return (
         <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] lg:gap-12">
             <div>
-                {homePage?.eyebrow && (
-                    <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                        {homePage.eyebrow}
-                    </p>
-                )}
                 {homePage?.title && (
-                    <h1 className="mb-8 font-heading text-3xl leading-tight sm:text-4xl">
-                        {homePage.title}
-                    </h1>
+                    <div className="mb-8">
+                        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">
+                            {homePage.title}
+                        </h1>
+                        <HomeOpenStatus
+                            houseClosedDates={barPreviews?.houseClosedDates}
+                            rooms={barPreviews?.rooms ?? []}
+                        />
+                    </div>
                 )}
                 <div className="flex flex-col gap-6">
                     {homePage?.description?.split(/\n{2,}/).map(paragraph => (
@@ -190,7 +213,7 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
         <section className="space-y-4">
             <div className="flex items-center justify-between border-b-2 border-border pb-2">
                 <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-                    Kommende arrangementer
+                    Arrangementer
                 </p>
                 <Link
                     className="text-xs uppercase tracking-[0.18em] underline underline-offset-4"
