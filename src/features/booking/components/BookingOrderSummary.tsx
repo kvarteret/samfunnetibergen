@@ -29,7 +29,7 @@ export function BookingOrderSummary({ state, selectedRoom }: BookingOrderSummary
         : "Ikke valgt"
 
     return (
-        <aside className="lg:sticky lg:top-24">
+        <aside>
             <div className="border-2 border-border bg-card">
                 <SelectedRoomCard room={selectedRoom} />
 
