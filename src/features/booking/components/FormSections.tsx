@@ -29,6 +29,7 @@ import {
     SectionHeader,
     SelectField,
 } from "@/features/events/components/FormFields"
+import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
 import { formatBookingTime } from "../domain/availability"
 import {
@@ -40,12 +41,7 @@ import {
     type SetBookingField,
 } from "../domain/formState"
 import type { BookingRoom } from "../types"
-
-export const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-    const h = String(Math.floor(i / 2)).padStart(2, "0")
-    const m = i % 2 === 0 ? "00" : "30"
-    return { value: `${h}:${m}`, label: `${h}:${m}` }
-})
+import { TimeSlotPicker } from "./TimeSlotPicker"
 
 const OPEN_CLOSED_OPTIONS = [
     { value: "Åpent", label: "Åpent arrangement" },
@@ -129,6 +125,8 @@ interface ScheduleSectionProps extends SectionProps {
     roomBookings: CresatBooking[]
     hasConflict: boolean
     selectedRoomTitle?: string
+    openingHours: OpeningHours | null
+    closedDates: ClosedDate[]
 }
 
 export function ScheduleSection({
@@ -140,6 +138,8 @@ export function ScheduleSection({
     roomBookings,
     hasConflict,
     selectedRoomTitle,
+    openingHours,
+    closedDates,
 }: ScheduleSectionProps) {
     return (
         <section className="space-y-6">
@@ -155,7 +155,7 @@ export function ScheduleSection({
                 <FieldHint>Ingen rom er tilgjengelige for booking akkurat nå.</FieldHint>
             )}
 
-            <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="max-w-3xl space-y-4">
                 <FieldGroup>
                     <Label htmlFor={`${uid}-date`}>Dato *</Label>
                     <Input
@@ -165,27 +165,17 @@ export function ScheduleSection({
                         value={state.startDate}
                     />
                 </FieldGroup>
-                <SelectField
-                    id={`${uid}-doorsTime`}
-                    label="Dørene åpner"
-                    onChange={setField("doorsTime")}
-                    options={TIME_OPTIONS}
-                    placeholder="Ikke relevant"
-                    value={state.doorsTime}
-                />
-                <SelectField
-                    id={`${uid}-startTime`}
-                    label="Arrangementet starter *"
-                    onChange={setField("startTime")}
-                    options={TIME_OPTIONS}
-                    value={state.startTime}
-                />
-                <SelectField
-                    id={`${uid}-endTime`}
-                    label="Arrangementet slutter *"
-                    onChange={setField("endTime")}
-                    options={TIME_OPTIONS}
-                    value={state.endTime}
+                <TimeSlotPicker
+                    closedDates={closedDates}
+                    date={state.startDate}
+                    doorsTime={state.doorsTime}
+                    endTime={state.endTime}
+                    onDoorsChange={setField("doorsTime")}
+                    onEndChange={setField("endTime")}
+                    onStartChange={setField("startTime")}
+                    openingHours={openingHours}
+                    startTime={state.startTime}
+                    uid={uid}
                 />
             </div>
 

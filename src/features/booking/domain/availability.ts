@@ -27,6 +27,12 @@ export function formatBookingTime(iso: string): string {
     return new Date(iso).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" })
 }
 
+// Hours between two HH:mm times, wrapping past midnight when end <= start.
+export function durationHoursBetween(startTime: string, endTime: string): number {
+    const diff = minutesOf(endTime) - minutesOf(startTime)
+    return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
+}
+
 // Bookings for one Crescat room (resourceId) out of the day's calendar.
 export function bookingsForRoom(bookings: CresatBooking[], crescatRoomId: number): CresatBooking[] {
     return bookings.filter(booking => booking.resourceId === crescatRoomId)

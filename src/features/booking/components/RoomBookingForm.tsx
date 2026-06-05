@@ -16,8 +16,8 @@ import { submitRoomBooking } from "@/app/actions/submit-room-booking"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
-import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
-import { isRoomOccupied, overlaps, slotRangeMs } from "../domain/availability"
+import { type ClosedDate, isSlotAllowed, type OpeningHours } from "@/lib/opening-hours"
+import { durationHoursBetween, isRoomOccupied, overlaps, slotRangeMs } from "../domain/availability"
 import {
     type BookingFormState,
     buildBookingPayload,
@@ -107,7 +107,22 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
         )
     }, [rooms, bookings, state.startDate, state.startTime, state.endTime])
 
-    const canSubmit = canSubmitBooking(state, Boolean(selectedRoom), hasConflict)
+    // When house hours are known, the chosen slot must fit inside an open
+    // range; with no hours configured we don't constrain.
+    const slotWithinHours = useMemo(() => {
+        if (!openingHours || !state.startDate || !state.startTime || !state.endTime) {
+            return !openingHours
+        }
+        return isSlotAllowed(
+            state.startDate,
+            state.startTime,
+            durationHoursBetween(state.startTime, state.endTime),
+            openingHours,
+            closedDates,
+        )
+    }, [openingHours, closedDates, state.startDate, state.startTime, state.endTime])
+
+    const canSubmit = canSubmitBooking(state, Boolean(selectedRoom), hasConflict) && slotWithinHours
 
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault()
@@ -133,8 +148,10 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
             <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
                 <BookerTypeSection setField={setField} state={state} uid={uid} />
                 <ScheduleSection
+                    closedDates={closedDates}
                     hasConflict={hasConflict}
                     occupiedSlugs={occupiedSlugs}
+                    openingHours={openingHours}
                     roomBookings={roomBookings}
                     rooms={rooms}
                     selectedRoomTitle={selectedRoom?.title ?? selectedRoom?.slug}
@@ -150,6 +167,12 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
                 <TermsSection setField={setField} state={state} uid={uid} />
 
                 <section className="space-y-4 border-t-2 border-border pt-8">
+                    {!slotWithinHours && state.startDate && (
+                        <p className="max-w-3xl text-sm text-destructive">
+                            Valgt start- eller sluttid er utenfor husets åpningstider for denne
+                            dagen.
+                        </p>
+                    )}
                     {submitStatus === "error" && (
                         <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
                             <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
