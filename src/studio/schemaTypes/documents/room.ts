@@ -47,6 +47,15 @@ export const room = defineType({
             group: "info",
         }),
         defineField({
+            name: "crescatRoomId",
+            title: "Crescat rom-ID",
+            description:
+                "Romnummeret i Crescat. Brukes for å sende bookingforespørsler til riktig rom. Hentes fra Crescat-bookingskjemaet. Rom uten ID kan ikke bookes via nettsiden.",
+            type: "number",
+            group: "info",
+            validation: rule => rule.integer().positive(),
+        }),
+        defineField({
             name: "menu",
             title: "Meny",
             description: "Menyen som serveres i dette rommet / baren",

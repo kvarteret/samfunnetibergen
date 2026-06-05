@@ -1,3 +1,4 @@
+import { addHoursToDateTime, toDateTime } from "./datetime"
 import type { EventRequestBody } from "./types"
 
 // IDs from the live Crescat form (reverse-engineered from HAR)
@@ -7,26 +8,6 @@ const KARAOKE_FIELD_PEOPLE_ID = 1439211
 const KARAOKE_META_PARENT_ID = 192383
 
 export { KARAOKE_SLUG }
-
-function toDateTime(date: string, time: string): string {
-    // "2026-05-22" + "21:00" → "2026-05-22 21:00:00"
-    return `${date} ${time}:00`
-}
-
-function addHoursToDateTime(date: string, time: string, hours: number): string {
-    const [h, m] = time.split(":").map(Number)
-    const totalMinutes = h * 60 + m + hours * 60
-    const endH = Math.floor(totalMinutes / 60) % 24
-    const endM = totalMinutes % 60
-    // If end hour < start hour, the slot crosses midnight — advance the date
-    let endDate = date
-    if (endH < h || (endH === h && endM < m)) {
-        const d = new Date(`${date}T00:00:00`)
-        d.setDate(d.getDate() + 1)
-        endDate = d.toISOString().split("T")[0]
-    }
-    return `${endDate} ${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`
-}
 
 export interface KaraokeBookingInput {
     eventName: string
