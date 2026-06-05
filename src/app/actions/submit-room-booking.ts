@@ -10,7 +10,9 @@ import {
     toDateTime,
 } from "@/lib/integrations/crescat/datetime"
 import { buildRoomBooking, slugForBookerType } from "@/lib/integrations/crescat/room-booking"
+import { hasOpeningHoursRows, isSlotAllowedForCombinedHours } from "@/lib/opening-hours"
 import { err, type Result } from "@/lib/result"
+import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
@@ -74,10 +76,43 @@ async function hasVenueCalendarConflict(payload: z.output<typeof payloadSchema>)
     })
 }
 
+function durationHoursBetween(startTime: string, endTime: string): number {
+    const [startHour, startMinute] = startTime.split(":").map(Number)
+    const [endHour, endMinute] = endTime.split(":").map(Number)
+    const startMin = startHour * 60 + startMinute
+    const endMin = endHour * 60 + endMinute
+    const diff = endMin - startMin
+    return (diff <= 0 ? diff + 24 * 60 : diff) / 60
+}
+
+async function isAllowedByOpeningHours(payload: z.output<typeof payloadSchema>): Promise<boolean> {
+    const [houseHours, rooms] = await Promise.all([fetchHouseHours(), fetchBookableRooms()])
+    const room = rooms.find(candidate => candidate.crescatRoomId === payload.roomId)
+    if (!room) return false
+
+    const baseHours = houseHours?.operationsManagerHours ?? null
+    const roomHours = room.openingHours ?? null
+    const hasConfiguredHours = hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)
+    if (!hasConfiguredHours) return true
+
+    return isSlotAllowedForCombinedHours(
+        payload.startDate,
+        payload.startTime,
+        durationHoursBetween(payload.startTime, payload.endTime),
+        baseHours,
+        roomHours,
+        houseHours?.houseClosedDates ?? [],
+    )
+}
+
 export async function submitRoomBooking(payload: RoomBookingPayload): Promise<Result<number>> {
     const parsed = payloadSchema.safeParse(payload)
     if (!parsed.success) {
         return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
+    }
+
+    if (!(await isAllowedByOpeningHours(parsed.data))) {
+        return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
     }
 
     if (await hasVenueCalendarConflict(parsed.data)) {

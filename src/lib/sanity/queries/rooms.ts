@@ -51,6 +51,7 @@ export const bookableRoomsQuery =
     capacityStanding,
     capacitySeated,
     crescatRoomId,
+    "openingHours": openingHours ${openingHoursProjection},
     "image": images[0] ${sourcedImageProjection}
 }`)
 

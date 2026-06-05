@@ -32,6 +32,7 @@ export default async function BookRoomPage({ params }: { params: Promise<{ local
         capacityStanding: room.capacityStanding,
         capacitySeated: room.capacitySeated,
         crescatRoomId: room.crescatRoomId,
+        openingHours: room.openingHours ?? null,
         image: room.image
             ? {
                   assetUrl: room.image.assetUrl,

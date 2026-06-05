@@ -15,9 +15,8 @@ import {
     Wand2,
 } from "lucide-react"
 import Image from "next/image"
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useMemo, useState } from "react"
 
-import type { CresatBooking } from "@/app/actions/room-availability"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,9 +28,16 @@ import {
     SectionHeader,
     SelectField,
 } from "@/features/events/components/FormFields"
-import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
+import {
+    combinedSlotRangesForDate,
+    hasOpeningHoursRows,
+    type ClosedDate,
+    isoDate,
+    type OpeningHours,
+} from "@/lib/opening-hours"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { cn } from "@/lib/utils"
-import { formatBookingTime } from "../domain/availability"
+import { durationHoursBetween, formatBookingTime, overlaps } from "../domain/availability"
 import {
     type BookerType,
     type BookingFormState,
@@ -47,6 +53,9 @@ const OPEN_CLOSED_OPTIONS = [
     { value: "Åpent", label: "Åpent arrangement" },
     { value: "Lukket", label: "Lukket arrangement" },
 ]
+
+const DATE_COUNT = 7
+const MINUTES_IN_DAY = 24 * 60
 
 const FREE_PAID_OPTIONS = [
     { value: "Gratis", label: "Gratis" },
@@ -123,8 +132,10 @@ interface ScheduleSectionProps extends SectionProps {
     rooms: BookingRoom[]
     occupiedSlugs: Set<string>
     roomBookings: CresatBooking[]
+    selectedDateRoomBookings: CresatBooking[]
     hasConflict: boolean
     selectedRoomTitle?: string
+    selectedRoom?: BookingRoom
     openingHours: OpeningHours | null
     closedDates: ClosedDate[]
 }
@@ -136,11 +147,16 @@ export function ScheduleSection({
     rooms,
     occupiedSlugs,
     roomBookings,
+    selectedDateRoomBookings,
     hasConflict,
     selectedRoomTitle,
+    selectedRoom,
     openingHours,
     closedDates,
 }: ScheduleSectionProps) {
+    const durationHours =
+        state.startTime && state.endTime ? durationHoursBetween(state.startTime, state.endTime) : 1
+
     return (
         <section className="space-y-6">
             <SectionHeader number="02" title="Rom og tidspunkt" />
@@ -157,12 +173,15 @@ export function ScheduleSection({
 
             <div className="max-w-3xl space-y-4">
                 <FieldGroup>
-                    <Label htmlFor={`${uid}-date`}>Dato *</Label>
-                    <Input
-                        id={`${uid}-date`}
-                        onChange={e => setField("startDate")(e.target.value)}
-                        type="date"
-                        value={state.startDate}
+                    <Label>Dato *</Label>
+                    <AvailableDatePicker
+                        bookings={roomBookings}
+                        closedDates={closedDates}
+                        durationHours={durationHours}
+                        onChange={setField("startDate")}
+                        openingHours={openingHours}
+                        room={selectedRoom}
+                        selectedDate={state.startDate}
                     />
                 </FieldGroup>
                 <TimeSlotPicker
@@ -174,6 +193,7 @@ export function ScheduleSection({
                     onEndChange={setField("endTime")}
                     onStartChange={setField("startTime")}
                     openingHours={openingHours}
+                    roomOpeningHours={selectedRoom?.openingHours ?? null}
                     startTime={state.startTime}
                     uid={uid}
                 />
@@ -194,13 +214,121 @@ export function ScheduleSection({
 
             {selectedRoomTitle && state.startDate && (
                 <RoomAvailability
-                    bookings={roomBookings}
+                    bookings={selectedDateRoomBookings}
                     hasConflict={hasConflict}
                     roomTitle={selectedRoomTitle}
                 />
             )}
         </section>
     )
+}
+
+interface AvailableDatePickerProps {
+    bookings: CresatBooking[]
+    closedDates: ClosedDate[]
+    durationHours: number
+    openingHours: OpeningHours | null
+    room?: BookingRoom
+    selectedDate: string
+    onChange: (date: string) => void
+}
+
+function AvailableDatePicker({
+    bookings,
+    closedDates,
+    durationHours,
+    openingHours,
+    room,
+    selectedDate,
+    onChange,
+}: AvailableDatePickerProps) {
+    const today = useMemo(() => isoDate(new Date()), [])
+    const dates = useMemo(
+        () =>
+            Array.from({ length: DATE_COUNT }, (_, index) => {
+                const date = new Date(today)
+                date.setDate(date.getDate() + index)
+                return isoDate(date)
+            }),
+        [today],
+    )
+
+    if (!room) {
+        return <FieldHint>Velg et rom for å se ledige dager.</FieldHint>
+    }
+
+    return (
+        <div className="overflow-x-auto">
+            <div className="flex min-w-max gap-1.5 pb-1">
+                {dates.map(date => {
+                    const available = dateHasAvailableRoomSlot(
+                        date,
+                        durationHours,
+                        bookings,
+                        openingHours,
+                        room.openingHours,
+                        closedDates,
+                    )
+                    const isSelected = date === selectedDate
+                    const d = new Date(date)
+                    const weekday = d.toLocaleDateString("nb-NO", { weekday: "short" })
+                    const day = d.getDate()
+                    const month = d.toLocaleDateString("nb-NO", { month: "short" }).replace(".", "")
+
+                    return (
+                        <button
+                            key={date}
+                            className={cn(
+                                "flex min-w-[52px] shrink-0 flex-col items-center gap-0.5 border-2 px-2.5 py-2 transition-colors",
+                                isSelected
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : available
+                                      ? "cursor-pointer border-border hover:bg-muted"
+                                      : "cursor-not-allowed border-border/30 text-foreground/25",
+                            )}
+                            disabled={!available}
+                            onClick={() => onChange(date)}
+                            type="button"
+                        >
+                            <span className="text-[10px] uppercase tracking-widest">{weekday}</span>
+                            <span className="font-heading text-base leading-none">{day}</span>
+                            <span className="text-[10px]">{month}</span>
+                        </button>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+function dateHasAvailableRoomSlot(
+    date: string,
+    durationHours: number,
+    bookings: CresatBooking[],
+    openingHours: OpeningHours | null,
+    roomOpeningHours: OpeningHours | null,
+    closedDates: ClosedDate[],
+): boolean {
+    const slotStarts = combinedSlotRangesForDate(
+        date,
+        durationHours,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+        30,
+    )
+    const hasHours = hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+    const sameDaySlotStarts = slotStarts.filter(slotStartMin => slotStartMin < MINUTES_IN_DAY)
+    const candidateStarts =
+        slotStarts.length > 0 || hasHours
+            ? sameDaySlotStarts
+            : Array.from({ length: 48 }, (_, index) => index * 30)
+
+    return candidateStarts.some(slotStartMin => {
+        const startMs = new Date(`${date}T00:00:00`).getTime() + slotStartMin * 60_000
+        const endMs = startMs + durationHours * 60 * 60_000
+        return !bookings.some(booking => overlaps(startMs, endMs, booking))
+    })
 }
 
 // — 03 —

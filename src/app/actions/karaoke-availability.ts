@@ -2,8 +2,6 @@
 
 import { type CresatBooking, fetchVenueCalendar } from "@/lib/integrations/crescat/calendar"
 
-export type { CresatBooking }
-
 const KARAOKE_CALENDAR_SLUG = "studentersamfunnet-i-bergen-bookinkalender-karaoke"
 
 export async function fetchKaraokeAvailability(

@@ -1,4 +1,4 @@
-import type { CresatBooking } from "@/app/actions/room-availability"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 
 const MINUTES_IN_DAY = 1440
 

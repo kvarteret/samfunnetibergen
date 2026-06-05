@@ -11,12 +11,19 @@ import {
     useTransition,
 } from "react"
 
-import { type CresatBooking, fetchRoomAvailability } from "@/app/actions/room-availability"
+import { fetchRoomAvailability } from "@/app/actions/room-availability"
 import { submitRoomBooking } from "@/app/actions/submit-room-booking"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
-import { type ClosedDate, isSlotAllowed, type OpeningHours } from "@/lib/opening-hours"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import {
+    type ClosedDate,
+    hasOpeningHoursRows,
+    isoDate,
+    isSlotAllowedForCombinedHours,
+    type OpeningHours,
+} from "@/lib/opening-hours"
 import { durationHoursBetween, isRoomOccupied, overlaps, slotRangeMs } from "../domain/availability"
 import {
     type BookingFormState,
@@ -37,7 +44,8 @@ import {
     TermsSection,
     TicketSection,
 } from "./FormSections"
-import { OpeningHoursPanel } from "./OpeningHoursPanel"
+
+const DATE_COUNT = 7
 
 interface RoomBookingFormProps {
     rooms: BookingRoom[]
@@ -51,6 +59,7 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
     const [errorMessage, setErrorMessage] = useState("")
     const [bookings, setBookings] = useState<CresatBooking[]>([])
+    const today = useMemo(() => isoDate(new Date()), [])
     const [state, dispatch] = useReducer(reducer, rooms, currentRooms => ({
         ...initialBookingState,
         roomSlug: currentRooms[0]?.slug ?? "",
@@ -68,15 +77,15 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
     )
 
     useEffect(() => {
-        if (!state.startDate) return
+        if (!today) return
         let active = true
-        fetchRoomAvailability(state.startDate, addDaysDateOnly(state.startDate, 1)).then(result => {
+        fetchRoomAvailability(today, addDaysDateOnly(today, DATE_COUNT)).then(result => {
             if (active) setBookings(result)
         })
         return () => {
             active = false
         }
-    }, [state.startDate])
+    }, [today])
 
     const roomBookings = useMemo(
         () =>
@@ -84,11 +93,17 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
         [bookings, selectedRoom],
     )
 
+    const selectedDateRoomBookings = useMemo(() => {
+        if (!state.startDate) return []
+        const [dayStartMs, dayEndMs] = slotRangeMs(state.startDate, "00:00", "00:00")
+        return roomBookings.filter(booking => overlaps(dayStartMs, dayEndMs, booking))
+    }, [roomBookings, state.startDate])
+
     const hasConflict = useMemo(() => {
-        if (!state.startDate || roomBookings.length === 0) return false
+        if (!state.startDate || selectedDateRoomBookings.length === 0) return false
         const [startMs, endMs] = slotRangeMs(state.startDate, state.startTime, state.endTime)
-        return roomBookings.some(b => overlaps(startMs, endMs, b))
-    }, [state.startDate, state.startTime, state.endTime, roomBookings])
+        return selectedDateRoomBookings.some(b => overlaps(startMs, endMs, b))
+    }, [state.startDate, state.startTime, state.endTime, selectedDateRoomBookings])
 
     const occupiedSlugs = useMemo(() => {
         if (!state.startDate) return new Set<string>()
@@ -110,17 +125,21 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
     // When house hours are known, the chosen slot must fit inside an open
     // range; with no hours configured we don't constrain.
     const slotWithinHours = useMemo(() => {
-        if (!openingHours || !state.startDate || !state.startTime || !state.endTime) {
-            return !openingHours
+        const hasConfiguredHours =
+            hasOpeningHoursRows(openingHours) ||
+            hasOpeningHoursRows(selectedRoom?.openingHours ?? null)
+        if (!hasConfiguredHours || !state.startDate || !state.startTime || !state.endTime) {
+            return !hasConfiguredHours
         }
-        return isSlotAllowed(
+        return isSlotAllowedForCombinedHours(
             state.startDate,
             state.startTime,
             durationHoursBetween(state.startTime, state.endTime),
             openingHours,
+            selectedRoom?.openingHours ?? null,
             closedDates,
         )
-    }, [openingHours, closedDates, state.startDate, state.startTime, state.endTime])
+    }, [openingHours, selectedRoom, closedDates, state.startDate, state.startTime, state.endTime])
 
     const canSubmit = canSubmitBooking(state, Boolean(selectedRoom), hasConflict) && slotWithinHours
 
@@ -154,6 +173,8 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
                     openingHours={openingHours}
                     roomBookings={roomBookings}
                     rooms={rooms}
+                    selectedDateRoomBookings={selectedDateRoomBookings}
+                    selectedRoom={selectedRoom}
                     selectedRoomTitle={selectedRoom?.title ?? selectedRoom?.slug}
                     setField={setField}
                     state={state}
@@ -206,11 +227,6 @@ export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookin
             </form>
 
             <div className="order-first space-y-6 lg:order-none lg:sticky lg:top-24">
-                <OpeningHoursPanel
-                    closedDates={closedDates}
-                    openingHours={openingHours}
-                    selectedDate={state.startDate}
-                />
                 <BookingOrderSummary selectedRoom={selectedRoom} state={state} />
             </div>
         </div>

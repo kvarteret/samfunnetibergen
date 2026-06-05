@@ -8,8 +8,6 @@ import {
     VENUE_CALENDAR_SLUG,
 } from "@/lib/integrations/crescat/calendar"
 
-export type { CresatBooking, CresatResource }
-
 // Bookings across the standard venue calendar for a date range. Used to grey
 // out / warn about already-booked intervals for the selected room.
 export async function fetchRoomAvailability(start: string, end: string): Promise<CresatBooking[]> {

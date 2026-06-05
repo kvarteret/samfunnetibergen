@@ -1845,7 +1845,7 @@ export type RoomSlugsQueryResult = Array<{
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: bookableRoomsQuery
-// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    crescatRoomId,    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    crescatRoomId,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
 export type BookableRoomsQueryResult = Array<{
     title: string
     slug: string
@@ -1853,6 +1853,18 @@ export type BookableRoomsQueryResult = Array<{
     capacityStanding: number | null
     capacitySeated: number | null
     crescatRoomId: number
+    openingHours: {
+        rows: Array<{
+            _key: string
+            weekdays: Array<number> | null
+            status: "closed" | "open"
+            note: string | null
+            duration: {
+                start: TimeValue
+                end: TimeValue
+            } | null
+        }> | null
+    } | null
     image: {
         _key: string
         assetUrl: string | null
@@ -1991,7 +2003,7 @@ declare module "@sanity/client" {
         '*[_type == "room"] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult
         '{\n    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        date,\n        note\n    },\n    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        summary,\n        bar,\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }\n}': BarPreviewsQueryResult
         '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
-        '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': BookableRoomsQueryResult
+        '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': BookableRoomsQueryResult
         '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    panoramaUrl,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        floor,\n        title,\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    },\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "blifrivilligPage" => "/blifrivillig",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
     }
 }

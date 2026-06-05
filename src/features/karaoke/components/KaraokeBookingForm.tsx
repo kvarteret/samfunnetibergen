@@ -4,7 +4,7 @@ import { ChevronDown, ExternalLink, Loader2, Mic, X } from "lucide-react"
 import { addDays, parseISO } from "date-fns"
 import { useEffect, useId, useMemo, useState, useTransition } from "react"
 
-import { type CresatBooking, fetchKaraokeAvailability } from "@/app/actions/karaoke-availability"
+import { fetchKaraokeAvailability } from "@/app/actions/karaoke-availability"
 import { type PriceType, submitKaraokeBooking } from "@/app/actions/submit-karaoke-booking"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,7 @@ import {
     SectionHeader,
 } from "@/features/events/components/FormFields"
 import { Link } from "@/i18n/navigation"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
     isoDate,
     minutesToTime,

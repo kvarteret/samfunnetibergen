@@ -106,6 +106,35 @@ export function openingRangesForDate(
     })
 }
 
+export function hasOpeningHoursRows(hours?: OpeningHours | null): boolean {
+    return (hours?.rows ?? []).some(row => row != null)
+}
+
+export function combineOpeningRangesForDate(
+    dateStr: string,
+    baseHours?: OpeningHours | null,
+    roomHours?: OpeningHours | null,
+    closedDates?: ClosedDate[] | null,
+): SlotRange[] {
+    const hasBaseHours = hasOpeningHoursRows(baseHours)
+    const hasRoomHours = hasOpeningHoursRows(roomHours)
+
+    if (!hasBaseHours && !hasRoomHours) return []
+    if (!hasBaseHours) return openingRangesForDate(dateStr, roomHours, closedDates)
+    if (!hasRoomHours) return openingRangesForDate(dateStr, baseHours, closedDates)
+
+    const baseRanges = openingRangesForDate(dateStr, baseHours, closedDates)
+    const roomRanges = openingRangesForDate(dateStr, roomHours, closedDates)
+
+    return baseRanges.flatMap(baseRange =>
+        roomRanges.flatMap(roomRange => {
+            const startMin = Math.max(baseRange.startMin, roomRange.startMin)
+            const endMin = Math.min(baseRange.endMin, roomRange.endMin)
+            return startMin < endMin ? [{ startMin, endMin }] : []
+        }),
+    )
+}
+
 export function isOpenAt(
     date: Date,
     hours?: OpeningHours | null,
@@ -131,13 +160,32 @@ export function slotRangesForDate(
     durationHours: number,
     hours?: OpeningHours | null,
     closedDates?: ClosedDate[] | null,
+    stepMin = 60,
 ): number[] {
     const durationMin = durationHours * 60
     return openingRangesForDate(dateStr, hours, closedDates).flatMap(range => {
-        const count = Math.floor((range.endMin - range.startMin - durationMin) / 60) + 1
+        const count = Math.floor((range.endMin - range.startMin - durationMin) / stepMin) + 1
         if (count <= 0) return []
-        return Array.from({ length: count }, (_, index) => range.startMin + index * 60)
+        return Array.from({ length: count }, (_, index) => range.startMin + index * stepMin)
     })
+}
+
+export function combinedSlotRangesForDate(
+    dateStr: string,
+    durationHours: number,
+    baseHours?: OpeningHours | null,
+    roomHours?: OpeningHours | null,
+    closedDates?: ClosedDate[] | null,
+    stepMin = 60,
+): number[] {
+    const durationMin = durationHours * 60
+    return combineOpeningRangesForDate(dateStr, baseHours, roomHours, closedDates).flatMap(
+        range => {
+            const count = Math.floor((range.endMin - range.startMin - durationMin) / stepMin) + 1
+            if (count <= 0) return []
+            return Array.from({ length: count }, (_, index) => range.startMin + index * stepMin)
+        },
+    )
 }
 
 export function isSlotAllowed(
@@ -162,6 +210,36 @@ export function isSlotAllowed(
 
     return candidates.some(candidate =>
         openingRangesForDate(candidate.date, hours, closedDates).some(
+            range =>
+                candidate.startMin >= range.startMin &&
+                candidate.startMin + durationMin <= range.endMin,
+        ),
+    )
+}
+
+export function isSlotAllowedForCombinedHours(
+    actualDateStr: string,
+    startTime: string,
+    durationHours: number,
+    baseHours?: OpeningHours | null,
+    roomHours?: OpeningHours | null,
+    closedDates?: ClosedDate[] | null,
+): boolean {
+    if (isHouseClosed(actualDateStr, closedDates)) return false
+
+    const startMin = timeToMinutes(startTime)
+    if (startMin === null) return false
+
+    const durationMin = durationHours * 60
+    const actualDate = parseISO(actualDateStr)
+
+    const candidates = [
+        { date: actualDateStr, startMin },
+        { date: isoDate(subDays(actualDate, 1)), startMin: startMin + MINUTES_IN_DAY },
+    ]
+
+    return candidates.some(candidate =>
+        combineOpeningRangesForDate(candidate.date, baseHours, roomHours, closedDates).some(
             range =>
                 candidate.startMin >= range.startMin &&
                 candidate.startMin + durationMin <= range.endMin,

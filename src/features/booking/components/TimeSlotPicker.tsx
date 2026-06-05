@@ -1,13 +1,15 @@
 import { FieldHint, SelectField } from "@/features/events/components/FormFields"
 import {
+    combineOpeningRangesForDate,
+    hasOpeningHoursRows,
     type ClosedDate,
     isHouseClosed,
     minutesToTime,
     type OpeningHours,
-    openingRangesForDate,
 } from "@/lib/opening-hours"
 
 const SLOT_STEP_MIN = 30
+const MINUTES_IN_DAY = 24 * 60
 
 interface TimeOption {
     value: string
@@ -17,9 +19,14 @@ interface TimeOption {
 
 // 30-minute marks within the day's open range(s), as absolute minutes from
 // midnight (values ≥ 1440 mark post-midnight slots).
-function slotMarks(date: string, hours: OpeningHours | null, closed: ClosedDate[]): number[] {
+function slotMarks(
+    date: string,
+    hours: OpeningHours | null,
+    roomHours: OpeningHours | null,
+    closed: ClosedDate[],
+): number[] {
     const marks = new Set<number>()
-    for (const range of openingRangesForDate(date, hours, closed)) {
+    for (const range of combineOpeningRangesForDate(date, hours, roomHours, closed)) {
         for (let m = range.startMin; m <= range.endMin; m += SLOT_STEP_MIN) marks.add(m)
     }
     return [...marks].sort((a, b) => a - b)
@@ -35,6 +42,7 @@ interface TimeSlotPickerProps {
     uid: string
     date: string
     openingHours: OpeningHours | null
+    roomOpeningHours: OpeningHours | null
     closedDates: ClosedDate[]
     startTime: string
     endTime: string
@@ -48,6 +56,7 @@ export function TimeSlotPicker({
     uid,
     date,
     openingHours,
+    roomOpeningHours,
     closedDates,
     startTime,
     endTime,
@@ -63,7 +72,13 @@ export function TimeSlotPicker({
         return <FieldHint>Huset er stengt denne dagen. Velg en annen dato.</FieldHint>
     }
 
-    const marks = slotMarks(date, openingHours, closedDates)
+    const marks = slotMarks(date, openingHours, roomOpeningHours, closedDates)
+    const hasConfiguredHours =
+        hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+
+    if (marks.length === 0 && hasConfiguredHours) {
+        return <FieldHint>Ingen tilgjengelige tidspunkt for valgt rom denne dagen.</FieldHint>
+    }
 
     // No registered opening hours → fall back to an unconstrained day so the
     // form still works when siteMetadata has no hours.
@@ -83,7 +98,7 @@ export function TimeSlotPicker({
 
     const options = marks.map(toOption)
     const startMin = options.find(option => option.value === startTime)?.min ?? marks[0]
-    const startOptions = options.slice(0, -1)
+    const startOptions = options.filter(option => option.min < MINUTES_IN_DAY).slice(0, -1)
     const endOptions = options.filter(option => option.min > startMin)
     const doorsOptions = options.filter(option => option.min <= startMin)
 
