@@ -7,13 +7,13 @@ import {
     Check,
     Clock,
     Loader2,
+    type LucideIcon,
     Music,
     Projector,
     User,
     Users,
     UtensilsCrossed,
     X,
-    type LucideIcon,
 } from "lucide-react"
 import Image from "next/image"
 import {
@@ -41,8 +41,12 @@ import {
 } from "@/features/events/components/FormFields"
 import { Link } from "@/i18n/navigation"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
+import { formatBookingTime, isRoomOccupied, overlaps, slotRangeMs } from "../domain/availability"
 import {
+    type BookerType,
+    type BookingFormState,
     buildBookingPayload,
     canSubmitBooking,
     composeCatering,
@@ -50,10 +54,10 @@ import {
     initialBookingState,
     isExternalBooker,
     reducer,
-    type BookerType,
-    type BookingFormState,
 } from "../domain/formState"
 import type { BookingRoom } from "../types"
+import { BookingOrderSummary } from "./BookingOrderSummary"
+import { OpeningHoursPanel } from "./OpeningHoursPanel"
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
     const h = String(Math.floor(i / 2)).padStart(2, "0")
@@ -97,34 +101,13 @@ const BOOKER_OPTIONS: Array<{
     },
 ]
 
-const minutesOf = (time: string) => {
-    const [h, m] = time.split(":").map(Number)
-    return h * 60 + m
-}
-
-function slotRangeMs(date: string, startTime: string, endTime: string): [number, number] {
-    const baseMs = new Date(`${date}T00:00:00`).getTime()
-    const startMs = baseMs + minutesOf(startTime) * 60_000
-    const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime)
-    const endMs = baseMs + (minutesOf(endTime) + (crossesMidnight ? 1440 : 0)) * 60_000
-    return [startMs, endMs]
-}
-
-function overlaps(startMs: number, endMs: number, booking: CresatBooking): boolean {
-    const bStart = new Date(booking.start).getTime()
-    const bEnd = new Date(booking.end).getTime()
-    return startMs < bEnd && endMs > bStart
-}
-
-function formatBookingTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" })
-}
-
 interface RoomBookingFormProps {
     rooms: BookingRoom[]
+    openingHours: OpeningHours | null
+    closedDates: ClosedDate[]
 }
 
-export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
+export function RoomBookingForm({ rooms, openingHours, closedDates }: RoomBookingFormProps) {
     const uid = useId()
     const [isPending, startTransition] = useTransition()
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
@@ -169,6 +152,23 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
         return roomBookings.some(b => overlaps(startMs, endMs, b))
     }, [state.startDate, state.startTime, state.endTime, roomBookings])
 
+    const occupiedSlugs = useMemo(() => {
+        if (!state.startDate) return new Set<string>()
+        return new Set(
+            rooms
+                .filter(room =>
+                    isRoomOccupied(
+                        bookings,
+                        room.crescatRoomId,
+                        state.startDate,
+                        state.startTime,
+                        state.endTime,
+                    ),
+                )
+                .map(room => room.slug),
+        )
+    }, [rooms, bookings, state.startDate, state.startTime, state.endTime])
+
     const isExternal = isExternalBooker(state.bookerType)
     const canSubmit = canSubmitBooking(state, Boolean(selectedRoom), hasConflict)
     const techSummary = composeTechEquipment(state)
@@ -194,368 +194,385 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
     }
 
     return (
-        <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
-            <section className="space-y-6">
-                <SectionHeader number="01" title="Hvem booker" />
-                <BookerTypeToggle value={state.bookerType} onChange={setField("bookerType")} />
-                {state.bookerType === "studentorg" && (
-                    <FieldGroup className="max-w-xl">
-                        <Label htmlFor={`${uid}-studentOrg`}>Navn på studentorganisasjon *</Label>
-                        <Input
-                            id={`${uid}-studentOrg`}
-                            onChange={e => setField("studentOrgName")(e.target.value)}
-                            placeholder="Registrert under Studentbergen.no"
-                            value={state.studentOrgName}
-                        />
-                    </FieldGroup>
-                )}
-            </section>
-
-            <section className="space-y-6">
-                <SectionHeader number="02" title="Rom og tidspunkt" />
-                {rooms.length > 0 ? (
-                    <RoomPicker
-                        rooms={rooms}
-                        selectedSlug={state.roomSlug}
-                        onChange={setField("roomSlug")}
-                    />
-                ) : (
-                    <FieldHint>Ingen rom er tilgjengelige for booking akkurat nå.</FieldHint>
-                )}
-
-                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FieldGroup>
-                        <Label htmlFor={`${uid}-date`}>Dato *</Label>
-                        <Input
-                            id={`${uid}-date`}
-                            onChange={e => setField("startDate")(e.target.value)}
-                            type="date"
-                            value={state.startDate}
-                        />
-                    </FieldGroup>
-                    <SelectField
-                        id={`${uid}-doorsTime`}
-                        label="Dørene åpner"
-                        onChange={setField("doorsTime")}
-                        options={TIME_OPTIONS}
-                        placeholder="Ikke relevant"
-                        value={state.doorsTime}
-                    />
-                    <SelectField
-                        id={`${uid}-startTime`}
-                        label="Arrangementet starter *"
-                        onChange={setField("startTime")}
-                        options={TIME_OPTIONS}
-                        value={state.startTime}
-                    />
-                    <SelectField
-                        id={`${uid}-endTime`}
-                        label="Arrangementet slutter *"
-                        onChange={setField("endTime")}
-                        options={TIME_OPTIONS}
-                        value={state.endTime}
-                    />
-                </div>
-
-                {isExternal && (
-                    <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
-                        <CheckboxSquare
-                            checked={state.flexibleDates}
-                            onChange={setField("flexibleDates")}
-                        />
-                        <span className="text-sm leading-6 text-foreground/80">
-                            Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt
-                            eller rom hvis dette passer bedre.
-                        </span>
-                    </label>
-                )}
-
-                {selectedRoom && state.startDate && (
-                    <RoomAvailability
-                        bookings={roomBookings}
-                        hasConflict={hasConflict}
-                        roomTitle={selectedRoom.title ?? selectedRoom.slug}
-                    />
-                )}
-            </section>
-
-            <section className="space-y-6">
-                <SectionHeader number="03" title="Arrangement" />
-                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FieldGroup className="sm:col-span-2">
-                        <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
-                        <Input
-                            autoComplete="off"
-                            id={`${uid}-eventName`}
-                            onChange={e => setField("eventName")(e.target.value)}
-                            placeholder="F.eks. konsert, møte, foredrag"
-                            value={state.eventName}
-                        />
-                    </FieldGroup>
-                    <FieldGroup>
-                        <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
-                        <Input
-                            id={`${uid}-audience`}
-                            min={0}
-                            onChange={e => setField("audienceCount")(e.target.value)}
-                            placeholder="F.eks. 50"
-                            type="number"
-                            value={state.audienceCount}
-                        />
-                    </FieldGroup>
-                    <SelectField
-                        id={`${uid}-openClosed`}
-                        label="Åpent / lukket *"
-                        onChange={value =>
-                            setField("openOrClosed")(value as BookingFormState["openOrClosed"])
-                        }
-                        options={OPEN_CLOSED_OPTIONS}
-                        value={state.openOrClosed}
-                    />
-                    <FieldGroup className="sm:col-span-2">
-                        <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
-                        <Textarea
-                            id={`${uid}-description`}
-                            onChange={setField("description")}
-                            placeholder="Fortell oss kort om arrangementet ditt..."
-                            value={state.description}
-                        />
-                    </FieldGroup>
-                </div>
-            </section>
-
-            <section className="space-y-6">
-                <SectionHeader number="04" title="Behov" />
-                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FieldGroup className="sm:col-span-2">
-                        <Label htmlFor={`${uid}-furniture`}>Ønsket møblement *</Label>
-                        <Input
-                            id={`${uid}-furniture`}
-                            onChange={e => setField("furniture")(e.target.value)}
-                            placeholder="F.eks. bord og stoler til 30 personer"
-                            value={state.furniture}
-                        />
-                    </FieldGroup>
-                    <ToggleOption
-                        checked={state.micEnabled}
-                        icon={Users}
-                        label="Mikrofoner"
-                        onChange={setField("micEnabled")}
-                    >
-                        {state.micEnabled && (
-                            <div className="mt-3 flex items-center gap-3">
-                                <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
-                                <Input
-                                    className="w-24"
-                                    id={`${uid}-micQuantity`}
-                                    min={1}
-                                    onChange={e =>
-                                        setField("micQuantity")(Number(e.target.value) || 1)
-                                    }
-                                    type="number"
-                                    value={state.micQuantity}
-                                />
-                            </div>
-                        )}
-                    </ToggleOption>
-                    <ToggleOption
-                        checked={state.projector}
-                        icon={Projector}
-                        label="Projektor + lerret"
-                        onChange={setField("projector")}
-                    />
-                    <ToggleOption
-                        checked={state.music}
-                        icon={Music}
-                        label="Musikkavspilling"
-                        onChange={setField("music")}
-                    />
-                    <ToggleOption
-                        checked={state.soundTech}
-                        icon={Clock}
-                        label="Dedikert lydtekniker"
-                        onChange={setField("soundTech")}
-                    />
-                    <ToggleOption
-                        checked={state.lightTech}
-                        icon={Clock}
-                        label="Dedikert lystekniker"
-                        onChange={setField("lightTech")}
-                    />
-                </div>
-                <FieldHint>
-                    Nødvendig teknisk utstyr sendes til Crescat som: {techSummary}
-                </FieldHint>
-            </section>
-
-            <section className="space-y-6">
-                <SectionHeader number="05" title="Mat og bar" />
-                <div className="max-w-3xl space-y-4">
-                    <ToggleOption
-                        checked={state.cateringCustom}
-                        icon={UtensilsCrossed}
-                        label="Skreddersydd meny"
-                        onChange={setField("cateringCustom")}
-                    >
-                        {state.cateringCustom && (
-                            <div className="mt-3">
-                                <Textarea
-                                    id={`${uid}-catering`}
-                                    onChange={setField("cateringText")}
-                                    placeholder="Beskriv ønsker om mat, snacks eller drikke."
-                                    value={state.cateringText}
-                                />
-                            </div>
-                        )}
-                    </ToggleOption>
-                    <ToggleOption
-                        checked={state.bar}
-                        icon={UtensilsCrossed}
-                        label="Kvarteret stiller i bar"
-                        onChange={setField("bar")}
-                    >
-                        <FieldHint>Pris: 2000 kr eks. mva.</FieldHint>
-                    </ToggleOption>
-                    {cateringSummary && (
-                        <p className="whitespace-pre-line border-l-2 border-border pl-4 text-sm leading-6 text-foreground/70">
-                            {cateringSummary}
-                        </p>
-                    )}
-                </div>
-            </section>
-
-            <section className="space-y-6">
-                <SectionHeader number="06" title="Billett" />
-                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    <SelectField
-                        id={`${uid}-freePaid`}
-                        label="Gratis / betalt *"
-                        onChange={value =>
-                            setField("freeOrPaid")(value as BookingFormState["freeOrPaid"])
-                        }
-                        options={FREE_PAID_OPTIONS}
-                        value={state.freeOrPaid}
-                    />
-                    {state.freeOrPaid === "Betalt" && (
-                        <FieldGroup>
-                            <Label htmlFor={`${uid}-tickets`}>Billettyper og priser</Label>
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
+                <section className="space-y-6">
+                    <SectionHeader number="01" title="Hvem booker" />
+                    <BookerTypeToggle value={state.bookerType} onChange={setField("bookerType")} />
+                    {state.bookerType === "studentorg" && (
+                        <FieldGroup className="max-w-xl">
+                            <Label htmlFor={`${uid}-studentOrg`}>
+                                Navn på studentorganisasjon *
+                            </Label>
                             <Input
-                                id={`${uid}-tickets`}
-                                onChange={e => setField("ticketTypes")(e.target.value)}
-                                placeholder="F.eks. Ordinær 150 kr, student 100 kr"
-                                value={state.ticketTypes}
+                                id={`${uid}-studentOrg`}
+                                onChange={e => setField("studentOrgName")(e.target.value)}
+                                placeholder="Registrert under Studentbergen.no"
+                                value={state.studentOrgName}
                             />
                         </FieldGroup>
                     )}
-                </div>
-            </section>
+                </section>
 
-            <section className="space-y-6">
-                <SectionHeader number="07" title="Kontaktinformasjon" />
-                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FieldGroup>
-                        <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
-                        <Input
-                            autoComplete="name"
-                            id={`${uid}-contactName`}
-                            onChange={e => setField("contactName")(e.target.value)}
-                            placeholder="Fullt navn"
-                            value={state.contactName}
+                <section className="space-y-6">
+                    <SectionHeader number="02" title="Rom og tidspunkt" />
+                    {rooms.length > 0 ? (
+                        <RoomPicker
+                            occupiedSlugs={occupiedSlugs}
+                            onChange={setField("roomSlug")}
+                            rooms={rooms}
+                            selectedSlug={state.roomSlug}
                         />
-                    </FieldGroup>
-                    <FieldGroup>
-                        <Label htmlFor={`${uid}-contactEmail`}>E-post *</Label>
-                        <Input
-                            autoComplete="email"
-                            id={`${uid}-contactEmail`}
-                            onChange={e => setField("contactEmail")(e.target.value)}
-                            placeholder="din@epost.no"
-                            type="email"
-                            value={state.contactEmail}
-                        />
-                    </FieldGroup>
-                    <FieldGroup>
-                        <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
-                        <Input
-                            autoComplete="tel"
-                            id={`${uid}-contactPhone`}
-                            onChange={e => setField("contactPhone")(e.target.value)}
-                            placeholder="+47 55 55 55 55"
-                            type="tel"
-                            value={state.contactPhone}
-                        />
-                    </FieldGroup>
-                    {isExternal && (
-                        <>
-                            <FieldGroup>
-                                <Label htmlFor={`${uid}-invoiceAddress`}>Fakturaadresse *</Label>
-                                <Input
-                                    id={`${uid}-invoiceAddress`}
-                                    onChange={e => setField("invoiceAddress")(e.target.value)}
-                                    placeholder="Adresse for faktura"
-                                    value={state.invoiceAddress}
-                                />
-                            </FieldGroup>
-                            <FieldGroup>
-                                <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
-                                <Input
-                                    id={`${uid}-orgNumber`}
-                                    onChange={e => setField("orgNumber")(e.target.value)}
-                                    placeholder="Valgfritt"
-                                    type="number"
-                                    value={state.orgNumber}
-                                />
-                            </FieldGroup>
-                        </>
-                    )}
-                </div>
-            </section>
-
-            <section className="space-y-4">
-                <SectionHeader number="08" title="Vilkår" />
-                <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
-                    <CheckboxSquare
-                        checked={state.acceptTerms}
-                        onChange={setField("acceptTerms")}
-                    />
-                    <span className="text-sm leading-6 text-foreground/80">
-                        Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår.
-                    </span>
-                </label>
-            </section>
-
-            <section className="space-y-4 border-t-2 border-border pt-8">
-                {submitStatus === "error" && (
-                    <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-                        <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
-                        <div>
-                            <p className="text-sm font-heading text-destructive">
-                                Det oppstod en feil
-                            </p>
-                            <p className="mt-0.5 text-sm text-foreground/70">{errorMessage}</p>
-                        </div>
-                    </div>
-                )}
-                <Button
-                    className="w-full sm:w-auto"
-                    disabled={isPending || !canSubmit}
-                    size="lg"
-                    type="submit"
-                >
-                    {isPending ? (
-                        <>
-                            <Loader2 aria-hidden className="animate-spin" />
-                            Sender inn...
-                        </>
                     ) : (
-                        <>
-                            <ArrowRight aria-hidden />
-                            Send bookingforespørsel
-                        </>
+                        <FieldHint>Ingen rom er tilgjengelige for booking akkurat nå.</FieldHint>
                     )}
-                </Button>
-            </section>
-        </form>
+
+                    <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FieldGroup>
+                            <Label htmlFor={`${uid}-date`}>Dato *</Label>
+                            <Input
+                                id={`${uid}-date`}
+                                onChange={e => setField("startDate")(e.target.value)}
+                                type="date"
+                                value={state.startDate}
+                            />
+                        </FieldGroup>
+                        <SelectField
+                            id={`${uid}-doorsTime`}
+                            label="Dørene åpner"
+                            onChange={setField("doorsTime")}
+                            options={TIME_OPTIONS}
+                            placeholder="Ikke relevant"
+                            value={state.doorsTime}
+                        />
+                        <SelectField
+                            id={`${uid}-startTime`}
+                            label="Arrangementet starter *"
+                            onChange={setField("startTime")}
+                            options={TIME_OPTIONS}
+                            value={state.startTime}
+                        />
+                        <SelectField
+                            id={`${uid}-endTime`}
+                            label="Arrangementet slutter *"
+                            onChange={setField("endTime")}
+                            options={TIME_OPTIONS}
+                            value={state.endTime}
+                        />
+                    </div>
+
+                    {isExternal && (
+                        <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
+                            <CheckboxSquare
+                                checked={state.flexibleDates}
+                                onChange={setField("flexibleDates")}
+                            />
+                            <span className="text-sm leading-6 text-foreground/80">
+                                Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt
+                                eller rom hvis dette passer bedre.
+                            </span>
+                        </label>
+                    )}
+
+                    {selectedRoom && state.startDate && (
+                        <RoomAvailability
+                            bookings={roomBookings}
+                            hasConflict={hasConflict}
+                            roomTitle={selectedRoom.title ?? selectedRoom.slug}
+                        />
+                    )}
+                </section>
+
+                <section className="space-y-6">
+                    <SectionHeader number="03" title="Arrangement" />
+                    <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FieldGroup className="sm:col-span-2">
+                            <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
+                            <Input
+                                autoComplete="off"
+                                id={`${uid}-eventName`}
+                                onChange={e => setField("eventName")(e.target.value)}
+                                placeholder="F.eks. konsert, møte, foredrag"
+                                value={state.eventName}
+                            />
+                        </FieldGroup>
+                        <FieldGroup>
+                            <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
+                            <Input
+                                id={`${uid}-audience`}
+                                min={0}
+                                onChange={e => setField("audienceCount")(e.target.value)}
+                                placeholder="F.eks. 50"
+                                type="number"
+                                value={state.audienceCount}
+                            />
+                        </FieldGroup>
+                        <SelectField
+                            id={`${uid}-openClosed`}
+                            label="Åpent / lukket *"
+                            onChange={value =>
+                                setField("openOrClosed")(value as BookingFormState["openOrClosed"])
+                            }
+                            options={OPEN_CLOSED_OPTIONS}
+                            value={state.openOrClosed}
+                        />
+                        <FieldGroup className="sm:col-span-2">
+                            <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
+                            <Textarea
+                                id={`${uid}-description`}
+                                onChange={setField("description")}
+                                placeholder="Fortell oss kort om arrangementet ditt..."
+                                value={state.description}
+                            />
+                        </FieldGroup>
+                    </div>
+                </section>
+
+                <section className="space-y-6">
+                    <SectionHeader number="04" title="Behov" />
+                    <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FieldGroup className="sm:col-span-2">
+                            <Label htmlFor={`${uid}-furniture`}>Ønsket møblement *</Label>
+                            <Input
+                                id={`${uid}-furniture`}
+                                onChange={e => setField("furniture")(e.target.value)}
+                                placeholder="F.eks. bord og stoler til 30 personer"
+                                value={state.furniture}
+                            />
+                        </FieldGroup>
+                        <ToggleOption
+                            checked={state.micEnabled}
+                            icon={Users}
+                            label="Mikrofoner"
+                            onChange={setField("micEnabled")}
+                        >
+                            {state.micEnabled && (
+                                <div className="mt-3 flex items-center gap-3">
+                                    <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
+                                    <Input
+                                        className="w-24"
+                                        id={`${uid}-micQuantity`}
+                                        min={1}
+                                        onChange={e =>
+                                            setField("micQuantity")(Number(e.target.value) || 1)
+                                        }
+                                        type="number"
+                                        value={state.micQuantity}
+                                    />
+                                </div>
+                            )}
+                        </ToggleOption>
+                        <ToggleOption
+                            checked={state.projector}
+                            icon={Projector}
+                            label="Projektor + lerret"
+                            onChange={setField("projector")}
+                        />
+                        <ToggleOption
+                            checked={state.music}
+                            icon={Music}
+                            label="Musikkavspilling"
+                            onChange={setField("music")}
+                        />
+                        <ToggleOption
+                            checked={state.soundTech}
+                            icon={Clock}
+                            label="Dedikert lydtekniker"
+                            onChange={setField("soundTech")}
+                        />
+                        <ToggleOption
+                            checked={state.lightTech}
+                            icon={Clock}
+                            label="Dedikert lystekniker"
+                            onChange={setField("lightTech")}
+                        />
+                    </div>
+                    <FieldHint>
+                        Nødvendig teknisk utstyr sendes til Crescat som: {techSummary}
+                    </FieldHint>
+                </section>
+
+                <section className="space-y-6">
+                    <SectionHeader number="05" title="Mat og bar" />
+                    <div className="max-w-3xl space-y-4">
+                        <ToggleOption
+                            checked={state.cateringCustom}
+                            icon={UtensilsCrossed}
+                            label="Skreddersydd meny"
+                            onChange={setField("cateringCustom")}
+                        >
+                            {state.cateringCustom && (
+                                <div className="mt-3">
+                                    <Textarea
+                                        id={`${uid}-catering`}
+                                        onChange={setField("cateringText")}
+                                        placeholder="Beskriv ønsker om mat, snacks eller drikke."
+                                        value={state.cateringText}
+                                    />
+                                </div>
+                            )}
+                        </ToggleOption>
+                        <ToggleOption
+                            checked={state.bar}
+                            icon={UtensilsCrossed}
+                            label="Kvarteret stiller i bar"
+                            onChange={setField("bar")}
+                        >
+                            <FieldHint>Pris: 2000 kr eks. mva.</FieldHint>
+                        </ToggleOption>
+                        {cateringSummary && (
+                            <p className="whitespace-pre-line border-l-2 border-border pl-4 text-sm leading-6 text-foreground/70">
+                                {cateringSummary}
+                            </p>
+                        )}
+                    </div>
+                </section>
+
+                <section className="space-y-6">
+                    <SectionHeader number="06" title="Billett" />
+                    <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                        <SelectField
+                            id={`${uid}-freePaid`}
+                            label="Gratis / betalt *"
+                            onChange={value =>
+                                setField("freeOrPaid")(value as BookingFormState["freeOrPaid"])
+                            }
+                            options={FREE_PAID_OPTIONS}
+                            value={state.freeOrPaid}
+                        />
+                        {state.freeOrPaid === "Betalt" && (
+                            <FieldGroup>
+                                <Label htmlFor={`${uid}-tickets`}>Billettyper og priser</Label>
+                                <Input
+                                    id={`${uid}-tickets`}
+                                    onChange={e => setField("ticketTypes")(e.target.value)}
+                                    placeholder="F.eks. Ordinær 150 kr, student 100 kr"
+                                    value={state.ticketTypes}
+                                />
+                            </FieldGroup>
+                        )}
+                    </div>
+                </section>
+
+                <section className="space-y-6">
+                    <SectionHeader number="07" title="Kontaktinformasjon" />
+                    <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FieldGroup>
+                            <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
+                            <Input
+                                autoComplete="name"
+                                id={`${uid}-contactName`}
+                                onChange={e => setField("contactName")(e.target.value)}
+                                placeholder="Fullt navn"
+                                value={state.contactName}
+                            />
+                        </FieldGroup>
+                        <FieldGroup>
+                            <Label htmlFor={`${uid}-contactEmail`}>E-post *</Label>
+                            <Input
+                                autoComplete="email"
+                                id={`${uid}-contactEmail`}
+                                onChange={e => setField("contactEmail")(e.target.value)}
+                                placeholder="din@epost.no"
+                                type="email"
+                                value={state.contactEmail}
+                            />
+                        </FieldGroup>
+                        <FieldGroup>
+                            <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
+                            <Input
+                                autoComplete="tel"
+                                id={`${uid}-contactPhone`}
+                                onChange={e => setField("contactPhone")(e.target.value)}
+                                placeholder="+47 55 55 55 55"
+                                type="tel"
+                                value={state.contactPhone}
+                            />
+                        </FieldGroup>
+                        {isExternal && (
+                            <>
+                                <FieldGroup>
+                                    <Label htmlFor={`${uid}-invoiceAddress`}>
+                                        Fakturaadresse *
+                                    </Label>
+                                    <Input
+                                        id={`${uid}-invoiceAddress`}
+                                        onChange={e => setField("invoiceAddress")(e.target.value)}
+                                        placeholder="Adresse for faktura"
+                                        value={state.invoiceAddress}
+                                    />
+                                </FieldGroup>
+                                <FieldGroup>
+                                    <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
+                                    <Input
+                                        id={`${uid}-orgNumber`}
+                                        onChange={e => setField("orgNumber")(e.target.value)}
+                                        placeholder="Valgfritt"
+                                        type="number"
+                                        value={state.orgNumber}
+                                    />
+                                </FieldGroup>
+                            </>
+                        )}
+                    </div>
+                </section>
+
+                <section className="space-y-4">
+                    <SectionHeader number="08" title="Vilkår" />
+                    <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
+                        <CheckboxSquare
+                            checked={state.acceptTerms}
+                            onChange={setField("acceptTerms")}
+                        />
+                        <span className="text-sm leading-6 text-foreground/80">
+                            Jeg har lest, forstått og godkjenner Det Akademiske Kvarters
+                            bookingvilkår.
+                        </span>
+                    </label>
+                </section>
+
+                <section className="space-y-4 border-t-2 border-border pt-8">
+                    {submitStatus === "error" && (
+                        <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
+                            <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
+                            <div>
+                                <p className="text-sm font-heading text-destructive">
+                                    Det oppstod en feil
+                                </p>
+                                <p className="mt-0.5 text-sm text-foreground/70">{errorMessage}</p>
+                            </div>
+                        </div>
+                    )}
+                    <Button
+                        className="w-full sm:w-auto"
+                        disabled={isPending || !canSubmit}
+                        size="lg"
+                        type="submit"
+                    >
+                        {isPending ? (
+                            <>
+                                <Loader2 aria-hidden className="animate-spin" />
+                                Sender inn...
+                            </>
+                        ) : (
+                            <>
+                                <ArrowRight aria-hidden />
+                                Send bookingforespørsel
+                            </>
+                        )}
+                    </Button>
+                </section>
+            </form>
+
+            <div className="order-first space-y-6 lg:order-none">
+                <OpeningHoursPanel
+                    closedDates={closedDates}
+                    openingHours={openingHours}
+                    selectedDate={state.startDate}
+                />
+                <BookingOrderSummary selectedRoom={selectedRoom} state={state} />
+            </div>
+        </div>
     )
 }
 
@@ -598,14 +615,16 @@ function BookerTypeToggle({ value, onChange }: BookerTypeToggleProps) {
 interface RoomPickerProps {
     rooms: BookingRoom[]
     selectedSlug: string
+    occupiedSlugs: Set<string>
     onChange: (slug: string) => void
 }
 
-function RoomPicker({ rooms, selectedSlug, onChange }: RoomPickerProps) {
+function RoomPicker({ rooms, selectedSlug, occupiedSlugs, onChange }: RoomPickerProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {rooms.map(room => {
                 const selected = selectedSlug === room.slug
+                const occupied = occupiedSlugs.has(room.slug)
                 const imageUrl = room.image?.assetUrl
                 return (
                     <button
@@ -613,7 +632,9 @@ function RoomPicker({ rooms, selectedSlug, onChange }: RoomPickerProps) {
                         className={cn(
                             "group overflow-hidden border-2 bg-card text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             selected ? "border-primary" : "border-border hover:border-primary",
+                            occupied && "cursor-not-allowed opacity-45 hover:border-border",
                         )}
+                        disabled={occupied}
                         key={room.slug}
                         onClick={() => onChange(room.slug)}
                         type="button"
@@ -632,9 +653,14 @@ function RoomPicker({ rooms, selectedSlug, onChange }: RoomPickerProps) {
                                     <Building2 aria-hidden className="size-8" />
                                 </div>
                             )}
-                            {selected && (
+                            {selected && !occupied && (
                                 <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
                                     <Check aria-hidden className="size-4" />
+                                </span>
+                            )}
+                            {occupied && (
+                                <span className="absolute left-3 top-3 bg-foreground px-2 py-1 font-heading text-xs uppercase tracking-wide text-background">
+                                    Opptatt
                                 </span>
                             )}
                         </div>

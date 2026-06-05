@@ -4,7 +4,7 @@ import { RoomBookingForm } from "@/features/booking/components/RoomBookingForm"
 import type { BookingRoom } from "@/features/booking/types"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchBookableRooms } from "@/lib/sanity/fetch"
+import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -24,7 +24,7 @@ export default async function BookRoomPage({ params }: { params: Promise<{ local
     const locale = await resolvePageLocale(params)
     activateRequestLocale(locale)
 
-    const bookableRooms = await fetchBookableRooms()
+    const [bookableRooms, houseHours] = await Promise.all([fetchBookableRooms(), fetchHouseHours()])
     const rooms: BookingRoom[] = bookableRooms.map(room => ({
         title: room.title,
         slug: room.slug,
@@ -67,7 +67,11 @@ export default async function BookRoomPage({ params }: { params: Promise<{ local
                 </p>
             </header>
 
-            <RoomBookingForm rooms={rooms} />
+            <RoomBookingForm
+                closedDates={houseHours?.houseClosedDates ?? []}
+                openingHours={houseHours?.operationsManagerHours ?? null}
+                rooms={rooms}
+            />
         </article>
     )
 }
