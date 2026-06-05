@@ -143,6 +143,12 @@ export type SiteMetadata = {
     _rev: string
     siteName?: string
     openingHours?: OpeningHours
+    houseClosedDates?: Array<{
+        date: string
+        note?: string
+        _type: "houseClosedDate"
+        _key: string
+    }>
     defaultSeoTitle?: string
     defaultSeoDescription?: string
     defaultOpenGraphImage?: {
@@ -348,7 +354,6 @@ export type PortableTextContent = Array<
 
 export type OpeningHoursRow = {
     _type: "openingHoursRow"
-    label: string
     weekdays?: Array<number>
     status?: "open" | "closed"
     duration?: Duration

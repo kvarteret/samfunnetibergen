@@ -12,6 +12,11 @@ export const footerQuery = defineQuery(`{
     },
     "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,
     "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,
+    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {
+        _key,
+        date,
+        note
+    },
     "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
         "title": coalesce(title, ""),
         "slug": slug.current,

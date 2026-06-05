@@ -23,6 +23,22 @@ export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc)
     "image": images[0] ${sourcedImageProjection}
 }`)
 
+export const barPreviewsQuery = defineQuery(`{
+    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {
+        _key,
+        date,
+        note
+    },
+    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {
+        "title": coalesce(title, ""),
+        "slug": slug.current,
+        summary,
+        bar,
+        "openingHours": openingHours ${openingHoursProjection},
+        "image": images[0] ${sourcedImageProjection}
+    }
+}`)
+
 export const roomSlugsQuery = defineQuery(`*[_type == "room" && defined(slug.current)] {
     "slug": slug.current
 }`)

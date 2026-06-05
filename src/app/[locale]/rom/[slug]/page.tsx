@@ -1,10 +1,11 @@
-import { ArrowRight, Check, Clock, ExternalLink, FileText, Users, X } from "lucide-react"
+import { ArrowRight, Check, Clock, FileText, Users, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { type CarouselSlide, ImageCarousel } from "@/features/rooms/components/ImageCarousel"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
+import { formatWeekdays } from "@/lib/opening-hours"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { SourcedImage } from "@/lib/sanity/fetch"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch"
@@ -23,15 +24,6 @@ export async function generateStaticParams() {
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
-
-type ContentLink = {
-    label?: string | null
-    href?: string | null
-}
-
-function isExternalHref(href: string) {
-    return !href.startsWith("/")
-}
 
 function localizeHref(href: string, locale: string) {
     if (!href.startsWith("/")) return href
@@ -130,33 +122,18 @@ export default async function RoomPage({ params }: RoomPageProps) {
                 <RoomSpecs room={room} />
                 <RoomFloorPlan room={room} />
                 <RoomOpeningHours room={room} />
-                {room.bookingLink ? (
-                    <RoomBookingButton link={room.bookingLink} locale={locale} />
-                ) : null}
+                <RoomBookingButton label={room.bookingLink?.label} locale={locale} />
             </div>
         </article>
     )
 }
 
-function RoomBookingButton({ link, locale }: { link: ContentLink; locale: string }) {
-    if (!link.href || !link.label) return null
-
-    if (isExternalHref(link.href)) {
-        return (
-            <Button asChild className="w-fit" size="lg">
-                <a href={link.href} rel="noreferrer" target="_blank">
-                    <ExternalLink aria-hidden />
-                    {link.label}
-                </a>
-            </Button>
-        )
-    }
-
+function RoomBookingButton({ label, locale }: { label?: string | null; locale: string }) {
     return (
         <Button asChild className="w-fit" size="lg">
-            <Link href={localizeHref(link.href, locale)}>
+            <Link href={localizeHref("/rom/book", locale)}>
                 <ArrowRight aria-hidden />
-                {link.label}
+                {label ?? "Book rom her"}
             </Link>
         </Button>
     )
@@ -336,24 +313,29 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
             </h2>
             <dl className="max-w-md divide-y divide-border">
                 {room.openingHours.rows.map(
-                    (row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number]) => (
-                        <div
-                            className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
-                            key={row._key}
-                        >
-                            <dt className="font-heading text-foreground">{row.label}</dt>
-                            <dd className="text-foreground/70">
-                                {row.status === "closed"
-                                    ? "Stengt"
-                                    : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
-                                {row.note && (
-                                    <span className="mt-1 block text-foreground/60">
-                                        {row.note}
-                                    </span>
-                                )}
-                            </dd>
-                        </div>
-                    ),
+                    (row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number]) => {
+                        const dayLabel = formatWeekdays(row.weekdays)
+                        if (!dayLabel) return null
+
+                        return (
+                            <div
+                                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                                key={row._key}
+                            >
+                                <dt className="font-heading text-foreground">{dayLabel}</dt>
+                                <dd className="text-foreground/70">
+                                    {row.status === "closed"
+                                        ? "Stengt"
+                                        : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
+                                    {row.note && (
+                                        <span className="mt-1 block text-foreground/60">
+                                            {row.note}
+                                        </span>
+                                    )}
+                                </dd>
+                            </div>
+                        )
+                    },
                 )}
             </dl>
         </section>

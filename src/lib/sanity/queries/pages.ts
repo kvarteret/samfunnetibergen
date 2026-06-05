@@ -1,6 +1,7 @@
 import { defineQuery } from "next-sanity"
 import { sourceLinkProjection } from "../fragments/links"
 import { portableTextProjection } from "../fragments/portableText"
+import { openingHoursProjection } from "../fragments/rooms"
 import { editorialSectionProjection } from "../fragments/sections"
 
 export const siteMetadataNbQuery =
@@ -14,6 +15,15 @@ export const siteMetadataNbQuery =
     oembedTitle,
     oembedDescription,
     "oembedImageUrl": oembedImage.asset->url
+}`)
+
+export const houseHoursQuery = defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
+    "operationsManagerHours": openingHours ${openingHoursProjection},
+    "houseClosedDates": houseClosedDates[] {
+        _key,
+        date,
+        note
+    }
 }`)
 
 export const homePageNbQuery = defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
