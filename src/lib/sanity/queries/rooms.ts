@@ -43,6 +43,18 @@ export const roomSlugsQuery = defineQuery(`*[_type == "room" && defined(slug.cur
     "slug": slug.current
 }`)
 
+export const bookableRoomsQuery =
+    defineQuery(`*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {
+    title,
+    "slug": slug.current,
+    summary,
+    capacityStanding,
+    capacitySeated,
+    crescatRoomId,
+    "openingHours": openingHours ${openingHoursProjection},
+    "image": images[0] ${sourcedImageProjection}
+}`)
+
 export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current == $slug][0] {
     title,
     "slug": slug.current,

@@ -41,7 +41,65 @@ export interface TermsSection {
     content: { accepted: boolean }
 }
 
-export type EventRequestSection = RoomBookingSection | MetaDataSection | TermsSection
+export interface RecurringDatesSection {
+    title: string
+    description: string
+    type: "recurringDates"
+    content: null
+}
+
+export interface KeyContact {
+    name: string
+    role: string
+    email: string
+    phone: string
+    country_code: string
+}
+
+export interface KeyContactsSection {
+    title: string
+    description: string
+    type: "keyContacts"
+    content: KeyContact[]
+}
+
+export interface Assignment {
+    title: string
+    description: string | null
+    start: string
+    end: string
+}
+
+export interface AssignmentsSection {
+    title: string
+    description: string
+    type: "assignments"
+    content: Assignment[]
+}
+
+export interface AlternativeDatesSection {
+    title: string
+    description: string
+    type: "alternativeDates"
+    content: string[]
+}
+
+export interface MoreInformationSection {
+    title: string
+    description: string
+    type: "moreInformation"
+    content: { url: string; text: string; title: string }
+}
+
+export type EventRequestSection =
+    | RoomBookingSection
+    | MetaDataSection
+    | TermsSection
+    | RecurringDatesSection
+    | KeyContactsSection
+    | AssignmentsSection
+    | AlternativeDatesSection
+    | MoreInformationSection
 
 export interface EventRequestBody {
     name: string

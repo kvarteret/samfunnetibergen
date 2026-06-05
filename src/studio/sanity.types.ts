@@ -560,6 +560,7 @@ export type Room = {
     slug: Slug
     summary: string
     body?: PortableTextContent
+    crescatRoomId?: number
     menu?: Menu
     orderRank?: string
     floor?: number

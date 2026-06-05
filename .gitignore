@@ -47,3 +47,6 @@ next-env.d.ts
 
 # hey-api generated files
 src/lib/integrations/kvarteret-personal-api/
+
+# HAR captures (may contain session cookies / PII)
+*.har
