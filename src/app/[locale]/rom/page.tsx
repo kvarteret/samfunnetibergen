@@ -60,22 +60,13 @@ function InlineContentLink({ link }: { link: ContentLink }) {
     )
 }
 
-function BookingButton({ link }: { link: ContentLink }) {
-    if (!link.href) return null
-
+function BookingButton({ label }: { label?: string | null }) {
     return (
         <Button asChild className="w-fit lg:justify-self-end" size="lg">
-            {isExternalHref(link.href) ? (
-                <a href={link.href} rel="noreferrer" target="_blank">
-                    <ExternalLink aria-hidden="true" />
-                    {link.label}
-                </a>
-            ) : (
-                <Link href={link.href}>
-                    <ArrowRight aria-hidden="true" />
-                    {link.label}
-                </Link>
-            )}
+            <Link href="/rom/book">
+                <ArrowRight aria-hidden="true" />
+                {label ?? "Book rom her"}
+            </Link>
         </Button>
     )
 }
@@ -202,7 +193,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                         </p>
                     ) : null}
                 </div>
-                {content?.bookingLink ? <BookingButton link={content.bookingLink} /> : null}
+                <BookingButton label={content?.bookingLink?.label} />
             </header>
 
             {howToSection ? <HowToSection section={howToSection} /> : null}

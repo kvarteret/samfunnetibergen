@@ -6,6 +6,7 @@ import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
     barPreviewsQuery,
+    bookableRoomsQuery,
     roomBySlugQuery,
     roomSlugsQuery,
     roomsPageQuery,
@@ -24,6 +25,11 @@ export type SourcedImage = NonNullable<
 export type RoomsPageContent = NonNullable<ClientReturn<typeof roomsPageQuery>>
 
 export type RoomSummary = ClientReturn<typeof roomsQuery>[number]
+
+export type BookableRoom = ClientReturn<typeof bookableRoomsQuery>[number] & {
+    slug: string
+    crescatRoomId: number
+}
 
 export type RoomDetail = NonNullable<ClientReturn<typeof roomBySlugQuery>>
 
@@ -45,6 +51,14 @@ export async function fetchRoomsPageContent(
 export async function fetchRooms(): Promise<RoomSummary[]> {
     const { data: rooms } = await sanityFetch({ query: roomsQuery, tags: ["rooms"] })
     return withRequiredKeys(rooms, "slug").map(room => ({ ...room, slug: stegaClean(room.slug) }))
+}
+
+export async function fetchBookableRooms(): Promise<BookableRoom[]> {
+    const { data: rooms } = await sanityFetch({ query: bookableRoomsQuery, tags: ["rooms"] })
+    return withRequiredKeys(rooms, "slug", "crescatRoomId").map(room => ({
+        ...room,
+        slug: stegaClean(room.slug),
+    }))
 }
 
 export async function fetchBarPreviews(): Promise<BarPreviewsContent | null> {

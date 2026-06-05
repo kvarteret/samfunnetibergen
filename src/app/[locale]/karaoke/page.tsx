@@ -4,7 +4,7 @@ import { KaraokeBookingForm } from "@/features/karaoke/components/KaraokeBooking
 import type { KaraokeRoom } from "@/features/karaoke/types"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, getLocaleStaticParams, resolvePageLocale } from "@/lib/app-locale"
-import { fetchRoomBySlug } from "@/lib/sanity/fetch"
+import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
     return getLocaleStaticParams()
@@ -31,7 +31,7 @@ export default async function KaraokePage({ params }: { params: Promise<{ locale
     const locale = await resolvePageLocale(params)
     activateRequestLocale(locale)
 
-    const roomData = await fetchRoomBySlug("maos")
+    const [roomData, houseHours] = await Promise.all([fetchRoomBySlug("maos"), fetchHouseHours()])
     const room: KaraokeRoom = roomData
         ? {
               slug: roomData.slug ?? MAOS_FALLBACK.slug,
@@ -113,7 +113,11 @@ export default async function KaraokePage({ params }: { params: Promise<{ locale
             </header>
 
             {/* ── Form + sidebar ──────────────────────────────────────────── */}
-            <KaraokeBookingForm room={room} />
+            <KaraokeBookingForm
+                room={room}
+                operationsManagerHours={houseHours?.operationsManagerHours}
+                houseClosedDates={houseHours?.houseClosedDates}
+            />
         </article>
     )
 }
