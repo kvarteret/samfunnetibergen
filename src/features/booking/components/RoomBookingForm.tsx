@@ -1,10 +1,34 @@
 "use client"
 
-import { ArrowRight, Building2, CalendarClock, Loader2, User, X } from "lucide-react"
-import { useEffect, useId, useMemo, useState, useTransition } from "react"
+import {
+    ArrowRight,
+    Building2,
+    CalendarClock,
+    Check,
+    Clock,
+    Loader2,
+    Music,
+    Projector,
+    User,
+    Users,
+    UtensilsCrossed,
+    X,
+    type LucideIcon,
+} from "lucide-react"
+import Image from "next/image"
+import {
+    type FormEvent,
+    type ReactNode,
+    useEffect,
+    useId,
+    useMemo,
+    useReducer,
+    useState,
+    useTransition,
+} from "react"
 
 import { type CresatBooking, fetchRoomAvailability } from "@/app/actions/room-availability"
-import { type RoomBookingPayload, submitRoomBooking } from "@/app/actions/submit-room-booking"
+import { submitRoomBooking } from "@/app/actions/submit-room-booking"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,8 +40,19 @@ import {
     SelectField,
 } from "@/features/events/components/FormFields"
 import { Link } from "@/i18n/navigation"
-import type { BookerType } from "@/lib/integrations/crescat/room-booking"
+import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import { cn } from "@/lib/utils"
+import {
+    buildBookingPayload,
+    canSubmitBooking,
+    composeCatering,
+    composeTechEquipment,
+    initialBookingState,
+    isExternalBooker,
+    reducer,
+    type BookerType,
+    type BookingFormState,
+} from "../domain/formState"
 import type { BookingRoom } from "../types"
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -36,13 +71,37 @@ const FREE_PAID_OPTIONS = [
     { value: "Betalt", label: "Betalt" },
 ]
 
+const BOOKER_OPTIONS: Array<{
+    type: BookerType
+    label: string
+    hint: string
+    icon: LucideIcon
+}> = [
+    {
+        type: "ekstern",
+        label: "Ekstern / privat",
+        hint: "Privatpersoner og bedrifter.",
+        icon: User,
+    },
+    {
+        type: "studentorg",
+        label: "Studentorganisasjon",
+        hint: "Registrert under Studentbergen.no.",
+        icon: Users,
+    },
+    {
+        type: "intern",
+        label: "Intern",
+        hint: "Driftsorganisasjoner og interne arrangører.",
+        icon: Building2,
+    },
+]
+
 const minutesOf = (time: string) => {
     const [h, m] = time.split(":").map(Number)
     return h * 60 + m
 }
 
-// Absolute millisecond range for a slot, advancing the end past midnight when
-// the end time is at or before the start time.
 function slotRangeMs(date: string, startTime: string, endTime: string): [number, number] {
     const baseMs = new Date(`${date}T00:00:00`).getTime()
     const startMs = baseMs + minutesOf(startTime) * 60_000
@@ -70,51 +129,33 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
     const [isPending, startTransition] = useTransition()
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
     const [errorMessage, setErrorMessage] = useState("")
-
-    const [bookerType, setBookerType] = useState<BookerType>("ekstern")
-    const [roomSlug, setRoomSlug] = useState(rooms[0]?.slug ?? "")
-    const [eventName, setEventName] = useState("")
-    const [startDate, setStartDate] = useState("")
-    const [startTime, setStartTime] = useState("18:00")
-    const [endTime, setEndTime] = useState("22:00")
-    const [audienceCount, setAudienceCount] = useState("")
-    const [openOrClosed, setOpenOrClosed] = useState("Åpent")
-    const [description, setDescription] = useState("")
-    const [furniture, setFurniture] = useState("")
-    const [techEquipment, setTechEquipment] = useState("")
-    const [cateringWishes, setCateringWishes] = useState("")
-    const [freeOrPaid, setFreeOrPaid] = useState("Gratis")
-    const [ticketTypes, setTicketTypes] = useState("")
-    const [contactName, setContactName] = useState("")
-    const [contactEmail, setContactEmail] = useState("")
-    const [contactPhone, setContactPhone] = useState("")
-    const [onBehalfOfStudentOrg, setOnBehalfOfStudentOrg] = useState(false)
-    const [studentOrgName, setStudentOrgName] = useState("")
-    const [invoiceAddress, setInvoiceAddress] = useState("")
-    const [orgNumber, setOrgNumber] = useState("")
-    const [acceptTerms, setAcceptTerms] = useState(false)
     const [bookings, setBookings] = useState<CresatBooking[]>([])
+    const [state, dispatch] = useReducer(reducer, rooms, currentRooms => ({
+        ...initialBookingState,
+        roomSlug: currentRooms[0]?.slug ?? "",
+    }))
 
-    const isExternal = bookerType === "ekstern"
+    const setField =
+        <Key extends keyof BookingFormState>(key: Key) =>
+        (value: BookingFormState[Key]) => {
+            dispatch({ type: "SET", key, value })
+        }
+
     const selectedRoom = useMemo(
-        () => rooms.find(room => room.slug === roomSlug),
-        [rooms, roomSlug],
+        () => rooms.find(room => room.slug === state.roomSlug),
+        [rooms, state.roomSlug],
     )
 
-    // Pull the venue calendar for the selected date so we can flag clashes for
-    // the chosen room. Covers only rooms on the standard venue calendar.
     useEffect(() => {
-        if (!startDate) return
+        if (!state.startDate) return
         let active = true
-        const end = new Date(`${startDate}T00:00:00`)
-        end.setDate(end.getDate() + 1)
-        fetchRoomAvailability(startDate, end.toISOString().split("T")[0]).then(result => {
+        fetchRoomAvailability(state.startDate, addDaysDateOnly(state.startDate, 1)).then(result => {
             if (active) setBookings(result)
         })
         return () => {
             active = false
         }
-    }, [startDate])
+    }, [state.startDate])
 
     const roomBookings = useMemo(
         () =>
@@ -123,64 +164,22 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
     )
 
     const hasConflict = useMemo(() => {
-        if (!startDate || roomBookings.length === 0) return false
-        const [startMs, endMs] = slotRangeMs(startDate, startTime, endTime)
+        if (!state.startDate || roomBookings.length === 0) return false
+        const [startMs, endMs] = slotRangeMs(state.startDate, state.startTime, state.endTime)
         return roomBookings.some(b => overlaps(startMs, endMs, b))
-    }, [startDate, startTime, endTime, roomBookings])
+    }, [state.startDate, state.startTime, state.endTime, roomBookings])
 
-    const canSubmit =
-        Boolean(selectedRoom) &&
-        eventName.trim() !== "" &&
-        startDate !== "" &&
-        !hasConflict &&
-        audienceCount.trim() !== "" &&
-        furniture.trim() !== "" &&
-        techEquipment.trim() !== "" &&
-        contactName.trim() !== "" &&
-        contactEmail.trim() !== "" &&
-        (!isExternal || invoiceAddress.trim() !== "") &&
-        acceptTerms
+    const isExternal = isExternalBooker(state.bookerType)
+    const canSubmit = canSubmitBooking(state, Boolean(selectedRoom), hasConflict)
+    const techSummary = composeTechEquipment(state)
+    const cateringSummary = composeCatering(state)
 
-    const roomOptions = rooms.map(room => ({
-        value: room.slug,
-        label: room.title ?? room.slug,
-    }))
-
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = (event: FormEvent) => {
         event.preventDefault()
         if (!canSubmit || !selectedRoom) return
 
-        const payload: RoomBookingPayload = {
-            bookerType,
-            eventName,
-            roomId: selectedRoom.crescatRoomId,
-            startDate,
-            startTime,
-            endTime,
-            description,
-            audienceCount: Number(audienceCount) || 0,
-            openOrClosed: openOrClosed as "Åpent" | "Lukket",
-            furniture,
-            techEquipment,
-            cateringWishes,
-            freeOrPaid: freeOrPaid as "Gratis" | "Betalt",
-            ticketTypes,
-            contactName,
-            contactEmail,
-            contactPhone,
-            acceptTerms: true,
-            ...(isExternal
-                ? {
-                      onBehalfOfStudentOrg,
-                      studentOrgName,
-                      invoiceAddress,
-                      orgNumber: orgNumber.trim() ? Number(orgNumber) : null,
-                  }
-                : {}),
-        }
-
         startTransition(async () => {
-            const result = await submitRoomBooking(payload)
+            const result = await submitRoomBooking(buildBookingPayload(state, selectedRoom))
             if (result.ok) {
                 setSubmitStatus("success")
             } else {
@@ -195,155 +194,256 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
     }
 
     return (
-        <form className="min-w-0 max-w-2xl space-y-14" noValidate onSubmit={handleSubmit}>
+        <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
             <section className="space-y-6">
                 <SectionHeader number="01" title="Hvem booker" />
-                <BookerTypeToggle value={bookerType} onChange={setBookerType} />
+                <BookerTypeToggle value={state.bookerType} onChange={setField("bookerType")} />
+                {state.bookerType === "studentorg" && (
+                    <FieldGroup className="max-w-xl">
+                        <Label htmlFor={`${uid}-studentOrg`}>Navn på studentorganisasjon *</Label>
+                        <Input
+                            id={`${uid}-studentOrg`}
+                            onChange={e => setField("studentOrgName")(e.target.value)}
+                            placeholder="Registrert under Studentbergen.no"
+                            value={state.studentOrgName}
+                        />
+                    </FieldGroup>
+                )}
             </section>
 
             <section className="space-y-6">
-                <SectionHeader number="02" title="Arrangement" />
-
+                <SectionHeader number="02" title="Rom og tidspunkt" />
                 {rooms.length > 0 ? (
-                    <SelectField
-                        id={`${uid}-room`}
-                        label="Rom *"
-                        onChange={setRoomSlug}
-                        options={roomOptions}
-                        value={roomSlug}
+                    <RoomPicker
+                        rooms={rooms}
+                        selectedSlug={state.roomSlug}
+                        onChange={setField("roomSlug")}
                     />
                 ) : (
                     <FieldHint>Ingen rom er tilgjengelige for booking akkurat nå.</FieldHint>
                 )}
 
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
-                    <Input
-                        autoComplete="off"
-                        id={`${uid}-eventName`}
-                        onChange={e => setEventName(e.target.value)}
-                        placeholder="F.eks. Vorspiel, konsert, møte"
-                        required
-                        value={eventName}
+                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FieldGroup>
+                        <Label htmlFor={`${uid}-date`}>Dato *</Label>
+                        <Input
+                            id={`${uid}-date`}
+                            onChange={e => setField("startDate")(e.target.value)}
+                            type="date"
+                            value={state.startDate}
+                        />
+                    </FieldGroup>
+                    <SelectField
+                        id={`${uid}-doorsTime`}
+                        label="Dørene åpner"
+                        onChange={setField("doorsTime")}
+                        options={TIME_OPTIONS}
+                        placeholder="Ikke relevant"
+                        value={state.doorsTime}
                     />
-                </FieldGroup>
-
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-date`}>Dato *</Label>
-                    <Input
-                        id={`${uid}-date`}
-                        onChange={e => setStartDate(e.target.value)}
-                        type="date"
-                        value={startDate}
-                    />
-                </FieldGroup>
-
-                <div className="grid grid-cols-2 gap-4">
                     <SelectField
                         id={`${uid}-startTime`}
-                        label="Fra *"
-                        onChange={setStartTime}
+                        label="Arrangementet starter *"
+                        onChange={setField("startTime")}
                         options={TIME_OPTIONS}
-                        value={startTime}
+                        value={state.startTime}
                     />
                     <SelectField
                         id={`${uid}-endTime`}
-                        label="Til *"
-                        onChange={setEndTime}
+                        label="Arrangementet slutter *"
+                        onChange={setField("endTime")}
                         options={TIME_OPTIONS}
-                        value={endTime}
+                        value={state.endTime}
                     />
                 </div>
 
-                {selectedRoom && startDate && (
+                {isExternal && (
+                    <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
+                        <CheckboxSquare
+                            checked={state.flexibleDates}
+                            onChange={setField("flexibleDates")}
+                        />
+                        <span className="text-sm leading-6 text-foreground/80">
+                            Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt
+                            eller rom hvis dette passer bedre.
+                        </span>
+                    </label>
+                )}
+
+                {selectedRoom && state.startDate && (
                     <RoomAvailability
                         bookings={roomBookings}
                         hasConflict={hasConflict}
                         roomTitle={selectedRoom.title ?? selectedRoom.slug}
                     />
                 )}
+            </section>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <section className="space-y-6">
+                <SectionHeader number="03" title="Arrangement" />
+                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FieldGroup className="sm:col-span-2">
+                        <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
+                        <Input
+                            autoComplete="off"
+                            id={`${uid}-eventName`}
+                            onChange={e => setField("eventName")(e.target.value)}
+                            placeholder="F.eks. konsert, møte, foredrag"
+                            value={state.eventName}
+                        />
+                    </FieldGroup>
                     <FieldGroup>
                         <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
                         <Input
                             id={`${uid}-audience`}
                             min={0}
-                            onChange={e => setAudienceCount(e.target.value)}
+                            onChange={e => setField("audienceCount")(e.target.value)}
                             placeholder="F.eks. 50"
                             type="number"
-                            value={audienceCount}
+                            value={state.audienceCount}
                         />
                     </FieldGroup>
                     <SelectField
                         id={`${uid}-openClosed`}
                         label="Åpent / lukket *"
-                        onChange={setOpenOrClosed}
+                        onChange={value =>
+                            setField("openOrClosed")(value as BookingFormState["openOrClosed"])
+                        }
                         options={OPEN_CLOSED_OPTIONS}
-                        value={openOrClosed}
+                        value={state.openOrClosed}
+                    />
+                    <FieldGroup className="sm:col-span-2">
+                        <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
+                        <Textarea
+                            id={`${uid}-description`}
+                            onChange={setField("description")}
+                            placeholder="Fortell oss kort om arrangementet ditt..."
+                            value={state.description}
+                        />
+                    </FieldGroup>
+                </div>
+            </section>
+
+            <section className="space-y-6">
+                <SectionHeader number="04" title="Behov" />
+                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FieldGroup className="sm:col-span-2">
+                        <Label htmlFor={`${uid}-furniture`}>Ønsket møblement *</Label>
+                        <Input
+                            id={`${uid}-furniture`}
+                            onChange={e => setField("furniture")(e.target.value)}
+                            placeholder="F.eks. bord og stoler til 30 personer"
+                            value={state.furniture}
+                        />
+                    </FieldGroup>
+                    <ToggleOption
+                        checked={state.micEnabled}
+                        icon={Users}
+                        label="Mikrofoner"
+                        onChange={setField("micEnabled")}
+                    >
+                        {state.micEnabled && (
+                            <div className="mt-3 flex items-center gap-3">
+                                <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
+                                <Input
+                                    className="w-24"
+                                    id={`${uid}-micQuantity`}
+                                    min={1}
+                                    onChange={e =>
+                                        setField("micQuantity")(Number(e.target.value) || 1)
+                                    }
+                                    type="number"
+                                    value={state.micQuantity}
+                                />
+                            </div>
+                        )}
+                    </ToggleOption>
+                    <ToggleOption
+                        checked={state.projector}
+                        icon={Projector}
+                        label="Projektor + lerret"
+                        onChange={setField("projector")}
+                    />
+                    <ToggleOption
+                        checked={state.music}
+                        icon={Music}
+                        label="Musikkavspilling"
+                        onChange={setField("music")}
+                    />
+                    <ToggleOption
+                        checked={state.soundTech}
+                        icon={Clock}
+                        label="Dedikert lydtekniker"
+                        onChange={setField("soundTech")}
+                    />
+                    <ToggleOption
+                        checked={state.lightTech}
+                        icon={Clock}
+                        label="Dedikert lystekniker"
+                        onChange={setField("lightTech")}
                     />
                 </div>
-
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
-                    <Textarea
-                        id={`${uid}-description`}
-                        onChange={setDescription}
-                        placeholder="Fortell oss kort om arrangementet ditt..."
-                        value={description}
-                    />
-                </FieldGroup>
+                <FieldHint>
+                    Nødvendig teknisk utstyr sendes til Crescat som: {techSummary}
+                </FieldHint>
             </section>
 
             <section className="space-y-6">
-                <SectionHeader number="03" title="Behov" />
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-furniture`}>Ønsket møblement *</Label>
-                    <Input
-                        id={`${uid}-furniture`}
-                        onChange={e => setFurniture(e.target.value)}
-                        placeholder="F.eks. bord og stoler til 30 personer"
-                        value={furniture}
-                    />
-                </FieldGroup>
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-tech`}>Nødvendig teknisk utstyr *</Label>
-                    <Input
-                        id={`${uid}-tech`}
-                        onChange={e => setTechEquipment(e.target.value)}
-                        placeholder="F.eks. mikrofon, projektor"
-                        value={techEquipment}
-                    />
-                </FieldGroup>
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-catering`}>Bar / catering</Label>
-                    <Textarea
-                        id={`${uid}-catering`}
-                        onChange={setCateringWishes}
-                        placeholder="Beskriv eventuelle ønsker om mat, snacks, drikke eller bar. La stå tom om det ikke er aktuelt."
-                        value={cateringWishes}
-                    />
-                </FieldGroup>
+                <SectionHeader number="05" title="Mat og bar" />
+                <div className="max-w-3xl space-y-4">
+                    <ToggleOption
+                        checked={state.cateringCustom}
+                        icon={UtensilsCrossed}
+                        label="Skreddersydd meny"
+                        onChange={setField("cateringCustom")}
+                    >
+                        {state.cateringCustom && (
+                            <div className="mt-3">
+                                <Textarea
+                                    id={`${uid}-catering`}
+                                    onChange={setField("cateringText")}
+                                    placeholder="Beskriv ønsker om mat, snacks eller drikke."
+                                    value={state.cateringText}
+                                />
+                            </div>
+                        )}
+                    </ToggleOption>
+                    <ToggleOption
+                        checked={state.bar}
+                        icon={UtensilsCrossed}
+                        label="Kvarteret stiller i bar"
+                        onChange={setField("bar")}
+                    >
+                        <FieldHint>Pris: 2000 kr eks. mva.</FieldHint>
+                    </ToggleOption>
+                    {cateringSummary && (
+                        <p className="whitespace-pre-line border-l-2 border-border pl-4 text-sm leading-6 text-foreground/70">
+                            {cateringSummary}
+                        </p>
+                    )}
+                </div>
             </section>
 
             <section className="space-y-6">
-                <SectionHeader number="04" title="Billett" />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <SectionHeader number="06" title="Billett" />
+                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
                     <SelectField
                         id={`${uid}-freePaid`}
                         label="Gratis / betalt *"
-                        onChange={setFreeOrPaid}
+                        onChange={value =>
+                            setField("freeOrPaid")(value as BookingFormState["freeOrPaid"])
+                        }
                         options={FREE_PAID_OPTIONS}
-                        value={freeOrPaid}
+                        value={state.freeOrPaid}
                     />
-                    {freeOrPaid === "Betalt" && (
+                    {state.freeOrPaid === "Betalt" && (
                         <FieldGroup>
                             <Label htmlFor={`${uid}-tickets`}>Billettyper og priser</Label>
                             <Input
                                 id={`${uid}-tickets`}
-                                onChange={e => setTicketTypes(e.target.value)}
+                                onChange={e => setField("ticketTypes")(e.target.value)}
                                 placeholder="F.eks. Ordinær 150 kr, student 100 kr"
-                                value={ticketTypes}
+                                value={state.ticketTypes}
                             />
                         </FieldGroup>
                     )}
@@ -351,16 +451,16 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
             </section>
 
             <section className="space-y-6">
-                <SectionHeader number="05" title="Kontaktinformasjon" />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <SectionHeader number="07" title="Kontaktinformasjon" />
+                <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
                     <FieldGroup>
                         <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
                         <Input
                             autoComplete="name"
                             id={`${uid}-contactName`}
-                            onChange={e => setContactName(e.target.value)}
+                            onChange={e => setField("contactName")(e.target.value)}
                             placeholder="Fullt navn"
-                            value={contactName}
+                            value={state.contactName}
                         />
                     </FieldGroup>
                     <FieldGroup>
@@ -368,44 +468,56 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
                         <Input
                             autoComplete="email"
                             id={`${uid}-contactEmail`}
-                            onChange={e => setContactEmail(e.target.value)}
+                            onChange={e => setField("contactEmail")(e.target.value)}
                             placeholder="din@epost.no"
                             type="email"
-                            value={contactEmail}
+                            value={state.contactEmail}
                         />
                     </FieldGroup>
+                    <FieldGroup>
+                        <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
+                        <Input
+                            autoComplete="tel"
+                            id={`${uid}-contactPhone`}
+                            onChange={e => setField("contactPhone")(e.target.value)}
+                            placeholder="+47 55 55 55 55"
+                            type="tel"
+                            value={state.contactPhone}
+                        />
+                    </FieldGroup>
+                    {isExternal && (
+                        <>
+                            <FieldGroup>
+                                <Label htmlFor={`${uid}-invoiceAddress`}>Fakturaadresse *</Label>
+                                <Input
+                                    id={`${uid}-invoiceAddress`}
+                                    onChange={e => setField("invoiceAddress")(e.target.value)}
+                                    placeholder="Adresse for faktura"
+                                    value={state.invoiceAddress}
+                                />
+                            </FieldGroup>
+                            <FieldGroup>
+                                <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
+                                <Input
+                                    id={`${uid}-orgNumber`}
+                                    onChange={e => setField("orgNumber")(e.target.value)}
+                                    placeholder="Valgfritt"
+                                    type="number"
+                                    value={state.orgNumber}
+                                />
+                            </FieldGroup>
+                        </>
+                    )}
                 </div>
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
-                    <Input
-                        autoComplete="tel"
-                        id={`${uid}-contactPhone`}
-                        onChange={e => setContactPhone(e.target.value)}
-                        placeholder="+47 55 55 55 55"
-                        type="tel"
-                        value={contactPhone}
-                    />
-                </FieldGroup>
-
-                {isExternal && (
-                    <ExternalContactFields
-                        invoiceAddress={invoiceAddress}
-                        onBehalfOfStudentOrg={onBehalfOfStudentOrg}
-                        orgNumber={orgNumber}
-                        studentOrgName={studentOrgName}
-                        uid={uid}
-                        onInvoiceAddressChange={setInvoiceAddress}
-                        onOnBehalfChange={setOnBehalfOfStudentOrg}
-                        onOrgNumberChange={setOrgNumber}
-                        onStudentOrgNameChange={setStudentOrgName}
-                    />
-                )}
             </section>
 
             <section className="space-y-4">
-                <SectionHeader number="06" title="Vilkår" />
-                <label className="group flex cursor-pointer items-start gap-3">
-                    <CheckboxSquare checked={acceptTerms} onChange={setAcceptTerms} />
+                <SectionHeader number="08" title="Vilkår" />
+                <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
+                    <CheckboxSquare
+                        checked={state.acceptTerms}
+                        onChange={setField("acceptTerms")}
+                    />
                     <span className="text-sm leading-6 text-foreground/80">
                         Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår.
                     </span>
@@ -414,7 +526,7 @@ export function RoomBookingForm({ rooms }: RoomBookingFormProps) {
 
             <section className="space-y-4 border-t-2 border-border pt-8">
                 {submitStatus === "error" && (
-                    <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
+                    <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
                         <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
                         <div>
                             <p className="text-sm font-heading text-destructive">
@@ -453,31 +565,16 @@ interface BookerTypeToggleProps {
 }
 
 function BookerTypeToggle({ value, onChange }: BookerTypeToggleProps) {
-    const options: Array<{ type: BookerType; label: string; hint: string; icon: typeof User }> = [
-        {
-            type: "ekstern",
-            label: "Ekstern / privat",
-            hint: "Privatpersoner, bedrifter og studentorganisasjoner.",
-            icon: User,
-        },
-        {
-            type: "intern",
-            label: "Intern",
-            hint: "Driftsorganisasjoner og interne arrangører på Kvarteret.",
-            icon: Building2,
-        },
-    ]
-
     return (
-        <div className="grid gap-3 sm:grid-cols-2">
-            {options.map(option => {
+        <div className="grid gap-3 md:grid-cols-3">
+            {BOOKER_OPTIONS.map(option => {
                 const Icon = option.icon
                 const selected = value === option.type
                 return (
                     <button
                         aria-pressed={selected}
                         className={cn(
-                            "flex flex-col gap-2 border-2 p-4 text-left transition-colors",
+                            "flex min-h-32 flex-col gap-2 border-2 p-4 text-left transition-colors",
                             selected
                                 ? "border-primary bg-primary/5"
                                 : "border-border hover:bg-muted",
@@ -498,6 +595,102 @@ function BookerTypeToggle({ value, onChange }: BookerTypeToggleProps) {
     )
 }
 
+interface RoomPickerProps {
+    rooms: BookingRoom[]
+    selectedSlug: string
+    onChange: (slug: string) => void
+}
+
+function RoomPicker({ rooms, selectedSlug, onChange }: RoomPickerProps) {
+    return (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {rooms.map(room => {
+                const selected = selectedSlug === room.slug
+                const imageUrl = room.image?.assetUrl
+                return (
+                    <button
+                        aria-pressed={selected}
+                        className={cn(
+                            "group overflow-hidden border-2 bg-card text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            selected ? "border-primary" : "border-border hover:border-primary",
+                        )}
+                        key={room.slug}
+                        onClick={() => onChange(room.slug)}
+                        type="button"
+                    >
+                        <div className="relative aspect-[16/9] bg-muted">
+                            {imageUrl ? (
+                                <Image
+                                    alt={room.image?.alt ?? room.title ?? room.slug}
+                                    className="object-cover"
+                                    fill
+                                    sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+                                    src={imageUrl}
+                                />
+                            ) : (
+                                <div className="flex h-full items-center justify-center text-foreground/30">
+                                    <Building2 aria-hidden className="size-8" />
+                                </div>
+                            )}
+                            {selected && (
+                                <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
+                                    <Check aria-hidden className="size-4" />
+                                </span>
+                            )}
+                        </div>
+                        <div className="space-y-2 p-4">
+                            <p className="font-heading text-lg text-foreground">
+                                {room.title ?? room.slug}
+                            </p>
+                            {room.summary && (
+                                <p className="line-clamp-2 text-sm leading-5 text-foreground/65">
+                                    {room.summary}
+                                </p>
+                            )}
+                            <p className="text-xs text-foreground/50">
+                                {[
+                                    room.capacityStanding && `${room.capacityStanding} stående`,
+                                    room.capacitySeated && `${room.capacitySeated} sittende`,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" / ")}
+                            </p>
+                        </div>
+                    </button>
+                )
+            })}
+        </div>
+    )
+}
+
+interface ToggleOptionProps {
+    checked: boolean
+    icon: LucideIcon
+    label: string
+    children?: ReactNode
+    onChange: (checked: boolean) => void
+}
+
+function ToggleOption({ checked, icon: Icon, label, children, onChange }: ToggleOptionProps) {
+    return (
+        <div
+            className={cn(
+                "border-2 p-4 transition-colors",
+                checked ? "border-primary bg-primary/5" : "border-border bg-card",
+            )}
+        >
+            <label className="group flex cursor-pointer items-start gap-3">
+                <CheckboxSquare checked={checked} onChange={onChange} />
+                <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-sm text-foreground">
+                    <Icon aria-hidden className="size-4 text-primary" />
+                    {label}
+                </span>
+            </label>
+            {children}
+        </div>
+    )
+}
+
 interface RoomAvailabilityProps {
     bookings: CresatBooking[]
     hasConflict: boolean
@@ -508,13 +701,13 @@ function RoomAvailability({ bookings, hasConflict, roomTitle }: RoomAvailability
     return (
         <div
             className={cn(
-                "border-2 p-4 space-y-2",
+                "max-w-3xl border-2 p-4 space-y-2",
                 hasConflict ? "border-destructive bg-destructive/10" : "border-border bg-card",
             )}
         >
             <p className="flex items-center gap-2 font-heading text-sm text-foreground">
                 <CalendarClock aria-hidden className="size-4 text-primary" />
-                {roomTitle} — opptatt denne dagen
+                {roomTitle} - opptatt denne dagen
             </p>
             {bookings.length === 0 ? (
                 <p className="text-sm text-foreground/60">
@@ -525,7 +718,7 @@ function RoomAvailability({ bookings, hasConflict, roomTitle }: RoomAvailability
                     {bookings.map(booking => (
                         <li key={booking.id} className="flex justify-between gap-4">
                             <span className="font-heading">
-                                {formatBookingTime(booking.start)}–{formatBookingTime(booking.end)}
+                                {formatBookingTime(booking.start)}-{formatBookingTime(booking.end)}
                             </span>
                             <span className="truncate text-foreground/55">{booking.title}</span>
                         </li>
@@ -537,75 +730,6 @@ function RoomAvailability({ bookings, hasConflict, roomTitle }: RoomAvailability
                     Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.
                 </p>
             )}
-        </div>
-    )
-}
-
-interface ExternalContactFieldsProps {
-    invoiceAddress: string
-    onBehalfOfStudentOrg: boolean
-    orgNumber: string
-    studentOrgName: string
-    uid: string
-    onInvoiceAddressChange: (value: string) => void
-    onOnBehalfChange: (value: boolean) => void
-    onOrgNumberChange: (value: string) => void
-    onStudentOrgNameChange: (value: string) => void
-}
-
-function ExternalContactFields({
-    invoiceAddress,
-    onBehalfOfStudentOrg,
-    orgNumber,
-    studentOrgName,
-    uid,
-    onInvoiceAddressChange,
-    onOnBehalfChange,
-    onOrgNumberChange,
-    onStudentOrgNameChange,
-}: ExternalContactFieldsProps) {
-    return (
-        <div className="space-y-6 border-t border-border pt-6">
-            <label className="group flex cursor-pointer items-start gap-3">
-                <CheckboxSquare checked={onBehalfOfStudentOrg} onChange={onOnBehalfChange} />
-                <span className="text-sm leading-6 text-foreground/80">
-                    Bookingen er på vegne av en studentorganisasjon.
-                </span>
-            </label>
-
-            {onBehalfOfStudentOrg && (
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-studentOrg`}>Navn på studentorganisasjon</Label>
-                    <Input
-                        id={`${uid}-studentOrg`}
-                        onChange={e => onStudentOrgNameChange(e.target.value)}
-                        placeholder="Registrert under Studentbergen.no"
-                        value={studentOrgName}
-                    />
-                </FieldGroup>
-            )}
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-invoiceAddress`}>Fakturaadresse *</Label>
-                    <Input
-                        id={`${uid}-invoiceAddress`}
-                        onChange={e => onInvoiceAddressChange(e.target.value)}
-                        placeholder="Adresse for faktura"
-                        value={invoiceAddress}
-                    />
-                </FieldGroup>
-                <FieldGroup>
-                    <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
-                    <Input
-                        id={`${uid}-orgNumber`}
-                        onChange={e => onOrgNumberChange(e.target.value)}
-                        placeholder="Valgfritt"
-                        type="number"
-                        value={orgNumber}
-                    />
-                </FieldGroup>
-            </div>
         </div>
     )
 }
@@ -642,7 +766,7 @@ function BookingSuccess() {
                 className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-primary"
                 href="/rom"
             >
-                ← Tilbake til rom
+                Tilbake til rom
             </Link>
         </div>
     )

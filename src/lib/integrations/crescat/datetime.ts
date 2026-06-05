@@ -5,9 +5,9 @@ export function toDateTime(date: string, time: string): string {
     return `${date} ${time}:00`
 }
 
-function nextDay(date: string): string {
-    const d = new Date(`${date}T00:00:00`)
-    d.setDate(d.getDate() + 1)
+export function addDaysDateOnly(date: string, days: number): string {
+    const [year, month, day] = date.split("-").map(Number)
+    const d = new Date(Date.UTC(year, month - 1, day + days))
     return d.toISOString().split("T")[0]
 }
 
@@ -19,7 +19,7 @@ export function addHoursToDateTime(date: string, time: string, hours: number): s
     const endH = Math.floor(totalMinutes / 60) % 24
     const endM = totalMinutes % 60
     const crossesMidnight = endH < h || (endH === h && endM < m)
-    const endDate = crossesMidnight ? nextDay(date) : date
+    const endDate = crossesMidnight ? addDaysDateOnly(date, 1) : date
     return `${endDate} ${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`
 }
 
@@ -29,6 +29,6 @@ export function resolveEndDateTime(date: string, startTime: string, endTime: str
     const [sh, sm] = startTime.split(":").map(Number)
     const [eh, em] = endTime.split(":").map(Number)
     const crossesMidnight = eh * 60 + em <= sh * 60 + sm
-    const endDate = crossesMidnight ? nextDay(date) : date
+    const endDate = crossesMidnight ? addDaysDateOnly(date, 1) : date
     return `${endDate} ${endTime}:00`
 }

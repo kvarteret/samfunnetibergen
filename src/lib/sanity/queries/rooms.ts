@@ -50,7 +50,8 @@ export const bookableRoomsQuery =
     summary,
     capacityStanding,
     capacitySeated,
-    crescatRoomId
+    crescatRoomId,
+    "image": images[0] ${sourcedImageProjection}
 }`)
 
 export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current == $slug][0] {

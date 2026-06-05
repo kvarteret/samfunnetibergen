@@ -3,6 +3,12 @@
 import { z } from "zod"
 
 import { postEventRequest } from "@/lib/integrations/crescat/client"
+import { fetchVenueCalendar, VENUE_CALENDAR_SLUG } from "@/lib/integrations/crescat/calendar"
+import {
+    addDaysDateOnly,
+    resolveEndDateTime,
+    toDateTime,
+} from "@/lib/integrations/crescat/datetime"
 import { buildRoomBooking, slugForBookerType } from "@/lib/integrations/crescat/room-booking"
 import { err, type Result } from "@/lib/result"
 
@@ -38,10 +44,44 @@ const payloadSchema = z.object({
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
 
+function formatOsloDateTime(value: string): string {
+    const parts = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Europe/Oslo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+    }).formatToParts(new Date(value))
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+        parts.find(item => item.type === type)?.value ?? ""
+    return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
+}
+
+async function hasVenueCalendarConflict(payload: z.output<typeof payloadSchema>): Promise<boolean> {
+    const bookings = await fetchVenueCalendar(
+        VENUE_CALENDAR_SLUG,
+        payload.startDate,
+        addDaysDateOnly(payload.startDate, 1),
+    )
+    const start = toDateTime(payload.startDate, payload.startTime)
+    const end = resolveEndDateTime(payload.startDate, payload.startTime, payload.endTime)
+    return bookings.some(booking => {
+        if (booking.resourceId !== payload.roomId) return false
+        return start < formatOsloDateTime(booking.end) && end > formatOsloDateTime(booking.start)
+    })
+}
+
 export async function submitRoomBooking(payload: RoomBookingPayload): Promise<Result<number>> {
     const parsed = payloadSchema.safeParse(payload)
     if (!parsed.success) {
         return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
+    }
+
+    if (await hasVenueCalendarConflict(parsed.data)) {
+        return err("Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.")
     }
 
     const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
