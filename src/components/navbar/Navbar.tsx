@@ -1,158 +1,171 @@
-import Link from "next/link"
+import Image from "next/image";
+import Link from "next/link";
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
-import type { NavbarContent, NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
-import { MobileMenu } from "./MobileMenu"
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import type {
+  NavbarContent,
+  NavGroup,
+  NavItem,
+  NavLeaf,
+} from "@/lib/sanity/fetch";
+import { MobileMenu } from "./MobileMenu";
 
 type NavbarProps = {
-    navbar: NavbarContent | null
+  navbar: NavbarContent | null;
+};
+
+function resolveHref(item: {
+  href?: string | null;
+  externalUrl?: string | null;
+}) {
+  return item.href ?? item.externalUrl ?? "#";
 }
 
-function resolveHref(item: { href?: string | null; externalUrl?: string | null }) {
-    return item.href ?? item.externalUrl ?? "#"
-}
-
-function isExternal(item: { href?: string | null; externalUrl?: string | null }) {
-    return !item.href && Boolean(item.externalUrl)
+function isExternal(item: {
+  href?: string | null;
+  externalUrl?: string | null;
+}) {
+  return !item.href && Boolean(item.externalUrl);
 }
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export function Navbar({ navbar }: NavbarProps) {
-    const items = navbar?.items ?? []
+  const items = navbar?.items ?? [];
 
-    return (
-        <header className="sticky top-0 z-30 border-b-2 border-border bg-background">
-            <nav
-                aria-label="Hovednavigasjon"
-                className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
-            >
-                <Link
-                    aria-label="Samfunnet i Bergen"
-                    className="block py-2.5 transition-opacity hover:opacity-75"
-                    href="/"
-                >
-                    <img
-                        alt=""
-                        className="h-8 w-auto sm:h-10"
-                        height={62}
-                        src="/kvarteret-logo.svg"
-                        width={100}
-                    />
-                </Link>
+  return (
+    <header className="sticky top-0 z-30 border-b-2 border-border bg-background">
+      <nav
+        aria-label="Hovednavigasjon"
+        className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
+      >
+        <Link
+          aria-label="Samfunnet i Bergen"
+          className="block py-2.5 transition-opacity hover:opacity-75"
+          href="/"
+        >
+          <Image
+            alt="Samfunnet i Bergen logo"
+            className="h-8 w-auto sm:h-10"
+            height={62}
+            priority
+            src="/kvarteret-logo.svg"
+            width={100}
+          />
+        </Link>
 
-                <DesktopNav items={items} />
+        <DesktopNav items={items} />
 
-                <MobileMenu items={items} />
-            </nav>
-        </header>
-    )
+        <MobileMenu items={items} />
+      </nav>
+    </header>
+  );
 }
 
 // ─── DesktopNav ───────────────────────────────────────────────────────────────
 
 function DesktopNav({ items }: { items: NavItem[] }) {
-    return (
-        <NavigationMenu className="hidden lg:flex">
-            <NavigationMenuList className="gap-7">
-                {items.map(item => (
-                    <DesktopNavItem item={item} key={item._key} />
-                ))}
-            </NavigationMenuList>
-        </NavigationMenu>
-    )
+  return (
+    <NavigationMenu className="hidden lg:flex">
+      <NavigationMenuList className="gap-7">
+        {items.map((item) => (
+          <DesktopNavItem item={item} key={item._key} />
+        ))}
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
 }
 
 // ─── DesktopNavItem ───────────────────────────────────────────────────────────
 
 function DesktopNavItem({ item }: { item: NavItem }) {
-    const hasDropdown = (item.children?.length ?? 0) > 0
-    const href = resolveHref(item)
-    const external = isExternal(item)
+  const hasDropdown = (item.children?.length ?? 0) > 0;
+  const href = resolveHref(item);
+  const external = isExternal(item);
 
-    if (!hasDropdown) {
-        return (
-            <NavigationMenuItem value={item._key}>
-                <NavigationMenuLink asChild>
-                    <NavLink external={external} href={href}>
-                        {item.label}
-                    </NavLink>
-                </NavigationMenuLink>
-            </NavigationMenuItem>
-        )
-    }
-
+  if (!hasDropdown) {
     return (
-        <NavigationMenuItem value={item._key}>
-            <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
-            <NavigationMenuContent>
-                <DropdownGroups groups={item.children ?? []} />
-            </NavigationMenuContent>
-        </NavigationMenuItem>
-    )
+      <NavigationMenuItem value={item._key}>
+        <NavigationMenuLink asChild>
+          <NavLink external={external} href={href}>
+            {item.label}
+          </NavLink>
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+    );
+  }
+
+  return (
+    <NavigationMenuItem value={item._key}>
+      <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <DropdownGroups groups={item.children ?? []} />
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  );
 }
 
 // ─── DropdownGroups ───────────────────────────────────────────────────────────
 
 function DropdownGroups({ groups }: { groups: NavGroup[] }) {
-    return (
-        <div className="min-w-[14rem] p-3">
-            {groups.map((group, gi) => (
-                <div className="space-y-0.5" key={group._key ?? gi}>
-                    {group.groupLabel && (
-                        <p className="px-2 py-1.5 font-heading text-[10px] uppercase tracking-widest text-foreground/40">
-                            {group.groupLabel}
-                        </p>
-                    )}
-                    {group.items?.map((leaf: NavLeaf, li) => {
-                        const leafHref = resolveHref(leaf)
-                        const leafExternal = isExternal(leaf)
-                        return (
-                            <NavigationMenuLink asChild key={leaf._key ?? `${gi}-${li}`}>
-                                {leafExternal ? (
-                                    <a href={leafHref} rel="noreferrer" target="_blank">
-                                        {leaf.label}
-                                    </a>
-                                ) : (
-                                    <Link href={leafHref}>{leaf.label}</Link>
-                                )}
-                            </NavigationMenuLink>
-                        )
-                    })}
-                </div>
-            ))}
+  return (
+    <div className="min-w-[14rem] p-3">
+      {groups.map((group, gi) => (
+        <div className="space-y-0.5" key={group._key ?? gi}>
+          {group.groupLabel && (
+            <p className="px-2 py-1.5 font-heading text-[10px] uppercase tracking-widest text-foreground/40">
+              {group.groupLabel}
+            </p>
+          )}
+          {group.items?.map((leaf: NavLeaf, li) => {
+            const leafHref = resolveHref(leaf);
+            const leafExternal = isExternal(leaf);
+            return (
+              <NavigationMenuLink asChild key={leaf._key ?? `${gi}-${li}`}>
+                {leafExternal ? (
+                  <a href={leafHref} rel="noreferrer" target="_blank">
+                    {leaf.label}
+                  </a>
+                ) : (
+                  <Link href={leafHref}>{leaf.label}</Link>
+                )}
+              </NavigationMenuLink>
+            );
+          })}
         </div>
-    )
+      ))}
+    </div>
+  );
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
 
 function NavLink({
-    href,
-    external,
-    children,
-    ...props
+  href,
+  external,
+  children,
+  ...props
 }: {
-    href: string
-    external?: boolean
-    children: React.ReactNode
+  href: string;
+  external?: boolean;
+  children: React.ReactNode;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
-    const cls =
-        "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
+  const cls =
+    "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full";
 
-    return external ? (
-        <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>
-            {children}
-        </a>
-    ) : (
-        <Link className={cls} href={href} {...props}>
-            {children}
-        </Link>
-    )
+  return external ? (
+    <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>
+      {children}
+    </a>
+  ) : (
+    <Link className={cls} href={href} {...props}>
+      {children}
+    </Link>
+  );
 }
