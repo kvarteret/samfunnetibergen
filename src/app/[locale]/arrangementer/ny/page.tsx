@@ -19,6 +19,28 @@ export async function generateMetadata() {
   };
 }
 
+export default async function NyttArrangementPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = await resolvePageLocale(params);
+  activateRequestLocale(locale);
+
+  const [rooms, eventTypes, groups] = await Promise.all([
+    fetchEventRooms(),
+    fetchEventTypes(),
+    fetchEventGroups(),
+  ]);
+
+  return (
+    <article className="flex w-full flex-col gap-12">
+      <SubmitEventPageIntro />
+      <SubmitEventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
+    </article>
+  );
+}
+
 function SubmitEventPageIntro() {
   return (
     <header className="space-y-6">
@@ -84,27 +106,5 @@ function SubmitEventPageIntro() {
         </Surface>
       </div>
     </header>
-  );
-}
-
-export default async function NyttArrangementPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
-
-  const [rooms, eventTypes, groups] = await Promise.all([
-    fetchEventRooms(),
-    fetchEventTypes(),
-    fetchEventGroups(),
-  ]);
-
-  return (
-    <article className="flex w-full flex-col gap-12">
-      <SubmitEventPageIntro />
-      <SubmitEventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
-    </article>
   );
 }

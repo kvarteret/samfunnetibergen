@@ -1,6 +1,32 @@
 import Link from "next/link";
 import { fetchLinkInBio } from "@/lib/sanity/fetch";
 
+type LinkInBioLink = {
+  _key: string;
+  link?: {
+    label?: string | null;
+    href?: string | null;
+  } | null;
+  emoji?: string | null;
+  highlight?: boolean | null;
+};
+
+export default async function LinkInBioPage() {
+  const data = await fetchLinkInBio();
+
+  if (!data) return null;
+
+  const links = (data.links ?? []) as LinkInBioLink[];
+
+  return (
+    <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
+      <LinkInBioProfile heading={data.heading} bio={data.bio} />
+      <LinkInBioLinkList links={links} />
+      <p className="mt-10 text-xs text-foreground/30">samfunnetibergen.no</p>
+    </main>
+  );
+}
+
 function LinkInBioProfile({
   heading,
   bio,
@@ -15,16 +41,6 @@ function LinkInBioProfile({
     </div>
   );
 }
-
-type LinkInBioLink = {
-  _key: string;
-  link?: {
-    label?: string | null;
-    href?: string | null;
-  } | null;
-  emoji?: string | null;
-  highlight?: boolean | null;
-};
 
 function LinkInBioLinkList({ links }: { links: LinkInBioLink[] }) {
   return (
@@ -68,21 +84,5 @@ function LinkInBioLinkList({ links }: { links: LinkInBioLink[] }) {
         );
       })}
     </ul>
-  );
-}
-
-export default async function LinkInBioPage() {
-  const data = await fetchLinkInBio();
-
-  if (!data) return null;
-
-  const links = (data.links ?? []) as LinkInBioLink[];
-
-  return (
-    <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
-      <LinkInBioProfile heading={data.heading} bio={data.bio} />
-      <LinkInBioLinkList links={links} />
-      <p className="mt-10 text-xs text-foreground/30">samfunnetibergen.no</p>
-    </main>
   );
 }

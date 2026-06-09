@@ -11,6 +11,67 @@ import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch";
 import { KaraokeBookingForm } from "@/features/karaoke/components/KaraokeBookingForm";
 import type { KaraokeRoom } from "@/features/karaoke/types";
 
+export function generateStaticParams() {
+  return getLocaleStaticParams();
+}
+
+export async function generateMetadata() {
+  return {
+    title: "Booking av karaoke | Samfunnet i Bergen",
+    description:
+      "Book karaoke på Maos Lille Røde hos Studentersamfunnet i Bergen. Fyll ut skjemaet så behandler vi forespørselen din så fort vi ser den.",
+  };
+}
+
+const MAOS_FALLBACK: KaraokeRoom = {
+  slug: "maos",
+  title: "Maos Lille Røde",
+  summary: "En rød og intim stue med moderne teknikk.",
+  capacitySeated: 50,
+  capacityStanding: 75,
+  images: [],
+};
+
+export default async function KaraokePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = await resolvePageLocale(params);
+  activateRequestLocale(locale);
+
+  const [roomData, houseHours] = await Promise.all([
+    fetchRoomBySlug("maos"),
+    fetchHouseHours(),
+  ]);
+  const room: KaraokeRoom = roomData
+    ? {
+        slug: roomData.slug ?? MAOS_FALLBACK.slug,
+        title: roomData.title ?? MAOS_FALLBACK.title,
+        summary: roomData.summary ?? null,
+        capacitySeated: roomData.capacitySeated ?? null,
+        capacityStanding: roomData.capacityStanding ?? null,
+        images: (roomData.images ?? []).map((img) => ({
+          _key: img._key ?? null,
+          assetUrl: img.assetUrl ?? null,
+          alt: img.alt ?? null,
+          caption: img.caption ?? null,
+        })),
+      }
+    : MAOS_FALLBACK;
+
+  return (
+    <article className="flex w-full flex-col gap-10">
+      <KaraokePageIntro />
+      <KaraokeBookingForm
+        room={room}
+        operationsManagerHours={houseHours?.operationsManagerHours}
+        houseClosedDates={houseHours?.houseClosedDates}
+      />
+    </article>
+  );
+}
+
 function KaraokePageIntro() {
   return (
     <header className="space-y-4">
@@ -80,66 +141,5 @@ function SameDayKaraokeNotice() {
         406 26 601
       </a>
     </Surface>
-  );
-}
-
-export function generateStaticParams() {
-  return getLocaleStaticParams();
-}
-
-export async function generateMetadata() {
-  return {
-    title: "Booking av karaoke | Samfunnet i Bergen",
-    description:
-      "Book karaoke på Maos Lille Røde hos Studentersamfunnet i Bergen. Fyll ut skjemaet så behandler vi forespørselen din så fort vi ser den.",
-  };
-}
-
-const MAOS_FALLBACK: KaraokeRoom = {
-  slug: "maos",
-  title: "Maos Lille Røde",
-  summary: "En rød og intim stue med moderne teknikk.",
-  capacitySeated: 50,
-  capacityStanding: 75,
-  images: [],
-};
-
-export default async function KaraokePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
-
-  const [roomData, houseHours] = await Promise.all([
-    fetchRoomBySlug("maos"),
-    fetchHouseHours(),
-  ]);
-  const room: KaraokeRoom = roomData
-    ? {
-        slug: roomData.slug ?? MAOS_FALLBACK.slug,
-        title: roomData.title ?? MAOS_FALLBACK.title,
-        summary: roomData.summary ?? null,
-        capacitySeated: roomData.capacitySeated ?? null,
-        capacityStanding: roomData.capacityStanding ?? null,
-        images: (roomData.images ?? []).map((img) => ({
-          _key: img._key ?? null,
-          assetUrl: img.assetUrl ?? null,
-          alt: img.alt ?? null,
-          caption: img.caption ?? null,
-        })),
-      }
-    : MAOS_FALLBACK;
-
-  return (
-    <article className="flex w-full flex-col gap-10">
-      <KaraokePageIntro />
-      <KaraokeBookingForm
-        room={room}
-        operationsManagerHours={houseHours?.operationsManagerHours}
-        houseClosedDates={houseHours?.houseClosedDates}
-      />
-    </article>
   );
 }

@@ -30,18 +30,16 @@ import {
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload";
-import {
-  EventDetailsFields,
-  EventImageField,
-  EventLinksFields,
-  EventListPreview,
-  EventOrganizerFields,
-  EventPlaceFields,
-  EventPriceFields,
-  EventScheduleFields,
-  SubmitEventActions,
-  SubmitterFields,
-} from "./FormSections";
+import { EventDetailsFields } from "./EventDetailsFields";
+import { EventImageField } from "./EventImageField";
+import { EventLinksFields } from "./EventLinksFields";
+import { EventListPreview } from "./EventListPreview";
+import { EventOrganizerFields } from "./EventOrganizerFields";
+import { EventPlaceFields } from "./EventPlaceFields";
+import { EventPriceFields } from "./EventPriceFields";
+import { EventScheduleFields } from "./EventScheduleFields";
+import { SubmitEventActions } from "./SubmitEventActions";
+import { SubmitterFields } from "./SubmitterFields";
 
 interface SubmitEventFormProps {
   rooms: EventRoom[];
