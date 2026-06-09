@@ -50,3 +50,9 @@ src/lib/integrations/kvarteret-personal-api/
 
 # HAR captures (may contain session cookies / PII)
 *.har
+
+# SonarQube project config (contains token)
+sonar-project.properties
+.ralph/
+.scannerwork/
+.agents/design-system.md

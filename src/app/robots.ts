@@ -1,16 +1,16 @@
-import type { MetadataRoute } from "next"
+import type { MetadataRoute } from "next";
 
-import { resolveSiteUrl } from "@/lib/site-url"
+import { resolveSiteUrl } from "@/lib/site-url";
 
 export default function robots(): MetadataRoute.Robots {
-    const siteUrl = resolveSiteUrl()
+  const siteUrl = resolveSiteUrl();
 
-    return {
-        rules: {
-            userAgent: "*",
-            allow: "/",
-        },
-        host: siteUrl,
-        sitemap: `${siteUrl}/sitemap.xml`,
-    }
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+    },
+    host: siteUrl,
+    sitemap: `${siteUrl}/sitemap.xml`,
+  };
 }

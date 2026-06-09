@@ -1,131 +1,145 @@
-import type { fetchPublishedEvents } from "@/lib/sanity/fetch"
+import type { fetchPublishedEvents } from "@/lib/sanity/fetch";
 
-export type PublishedEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
+export type PublishedEvent = Awaited<
+  ReturnType<typeof fetchPublishedEvents>
+>[number];
 
 export type TaxonomyGroup = {
-    _id: string
-    name: string
-}
+  _id: string;
+  name: string;
+};
 
 export type TaxonomyEventType = {
-    _id: string
-    name: string
-    taxonomyGroupName: string
-}
+  _id: string;
+  name: string;
+  taxonomyGroupName: string;
+};
 
 export type OrganizerGroup = {
-    _id: string
-    name: string
-}
+  _id: string;
+  name: string;
+};
 
 export type EventTaxonomy = {
-    taxonomyGroups: TaxonomyGroup[]
-    eventTypes: TaxonomyEventType[]
-    organizerGroups: OrganizerGroup[]
-}
+  taxonomyGroups: TaxonomyGroup[];
+  eventTypes: TaxonomyEventType[];
+  organizerGroups: OrganizerGroup[];
+};
 
 export type EventFilters = {
-    taxonomyGroupName: string | null
-    eventTypeIds: string[]
-    organizerGroupIds: string[]
+  taxonomyGroupName: string | null;
+  eventTypeIds: string[];
+  organizerGroupIds: string[];
+};
+
+export function buildTaxonomyFromEvents(
+  events: PublishedEvent[],
+): EventTaxonomy {
+  const taxonomyGroupsMap = new Map<string, TaxonomyGroup>();
+  const eventTypesMap = new Map<string, TaxonomyEventType>();
+  const organizerGroupsMap = new Map<string, OrganizerGroup>();
+
+  for (const e of events) {
+    if (e.eventType) {
+      if (e.eventType.taxonomyGroup) {
+        taxonomyGroupsMap.set(e.eventType.taxonomyGroup._id, {
+          _id: e.eventType.taxonomyGroup._id,
+          name: e.eventType.taxonomyGroup.name,
+        });
+      }
+      eventTypesMap.set(e.eventType._id, {
+        _id: e.eventType._id,
+        name: e.eventType.name,
+        taxonomyGroupName: e.eventType.taxonomyGroup?.name ?? "Annet",
+      });
+    }
+    if (e.organizerGroup) {
+      organizerGroupsMap.set(e.organizerGroup._id, {
+        _id: e.organizerGroup._id,
+        name: e.organizerGroup.name,
+      });
+    }
+  }
+
+  return {
+    taxonomyGroups: [...taxonomyGroupsMap.values()],
+    eventTypes: [...eventTypesMap.values()],
+    organizerGroups: [...organizerGroupsMap.values()],
+  };
 }
 
-export function buildTaxonomyFromEvents(events: PublishedEvent[]): EventTaxonomy {
-    const taxonomyGroupsMap = new Map<string, TaxonomyGroup>()
-    const eventTypesMap = new Map<string, TaxonomyEventType>()
-    const organizerGroupsMap = new Map<string, OrganizerGroup>()
+export function filterEvents(
+  events: PublishedEvent[],
+  filters: EventFilters,
+): PublishedEvent[] {
+  const eventTypeIds = new Set(filters.eventTypeIds);
+  const organizerGroupIds = new Set(filters.organizerGroupIds);
 
-    for (const e of events) {
-        if (e.eventType) {
-            if (e.eventType.taxonomyGroup) {
-                taxonomyGroupsMap.set(e.eventType.taxonomyGroup._id, {
-                    _id: e.eventType.taxonomyGroup._id,
-                    name: e.eventType.taxonomyGroup.name,
-                })
-            }
-            eventTypesMap.set(e.eventType._id, {
-                _id: e.eventType._id,
-                name: e.eventType.name,
-                taxonomyGroupName: e.eventType.taxonomyGroup?.name ?? "Annet",
-            })
-        }
-        if (e.organizerGroup) {
-            organizerGroupsMap.set(e.organizerGroup._id, {
-                _id: e.organizerGroup._id,
-                name: e.organizerGroup.name,
-            })
-        }
+  return events.filter((e) => {
+    if (
+      filters.taxonomyGroupName !== null &&
+      e.eventType?.taxonomyGroup?.name !== filters.taxonomyGroupName
+    ) {
+      return false;
     }
-
-    return {
-        taxonomyGroups: [...taxonomyGroupsMap.values()],
-        eventTypes: [...eventTypesMap.values()],
-        organizerGroups: [...organizerGroupsMap.values()],
+    if (eventTypeIds.size > 0 && !eventTypeIds.has(e.eventType?._id ?? "")) {
+      return false;
     }
-}
-
-export function filterEvents(events: PublishedEvent[], filters: EventFilters): PublishedEvent[] {
-    const eventTypeIds = new Set(filters.eventTypeIds)
-    const organizerGroupIds = new Set(filters.organizerGroupIds)
-
-    return events.filter(e => {
-        if (
-            filters.taxonomyGroupName !== null &&
-            e.eventType?.taxonomyGroup?.name !== filters.taxonomyGroupName
-        ) {
-            return false
-        }
-        if (eventTypeIds.size > 0 && !eventTypeIds.has(e.eventType?._id ?? "")) {
-            return false
-        }
-        if (organizerGroupIds.size > 0 && !organizerGroupIds.has(e.organizerGroup?._id ?? "")) {
-            return false
-        }
-        return true
-    })
+    if (
+      organizerGroupIds.size > 0 &&
+      !organizerGroupIds.has(e.organizerGroup?._id ?? "")
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
 export function countEventFilters(filters: EventFilters): number {
-    return (
-        (filters.taxonomyGroupName !== null ? 1 : 0) +
-        filters.eventTypeIds.length +
-        filters.organizerGroupIds.length
-    )
+  return (
+    (filters.taxonomyGroupName !== null ? 1 : 0) +
+    filters.eventTypeIds.length +
+    filters.organizerGroupIds.length
+  );
 }
 
 export function parseEventFilters(
-    searchParams: Record<string, string | string[] | undefined>,
+  searchParams: Record<string, string | string[] | undefined>,
 ): EventFilters {
-    const taxonomy = searchParams.taxonomy
-    const type = searchParams.type
-    const organizer = searchParams.organizer
+  const taxonomy = searchParams.taxonomy;
+  const type = searchParams.type;
+  const organizer = searchParams.organizer;
 
-    const taxonomyGroupName = Array.isArray(taxonomy) ? (taxonomy[0] ?? null) : (taxonomy ?? null)
+  const taxonomyGroupName = Array.isArray(taxonomy)
+    ? (taxonomy[0] ?? null)
+    : (taxonomy ?? null);
 
-    const toIds = (value: string | string[] | undefined): string[] => {
-        if (!value) return []
-        return (Array.isArray(value) ? value : value.split(",")).map(s => s.trim()).filter(Boolean)
-    }
+  const toIds = (value: string | string[] | undefined): string[] => {
+    if (!value) return [];
+    return (Array.isArray(value) ? value : value.split(","))
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  };
 
-    return {
-        taxonomyGroupName,
-        eventTypeIds: toIds(type),
-        organizerGroupIds: toIds(organizer),
-    }
+  return {
+    taxonomyGroupName,
+    eventTypeIds: toIds(type),
+    organizerGroupIds: toIds(organizer),
+  };
 }
 
 export function serializeEventFilters(filters: EventFilters): string {
-    const params = new URLSearchParams()
+  const params = new URLSearchParams();
 
-    if (filters.taxonomyGroupName) {
-        params.set("taxonomy", filters.taxonomyGroupName)
-    }
-    if (filters.eventTypeIds.length > 0) {
-        params.set("type", filters.eventTypeIds.join(","))
-    }
-    if (filters.organizerGroupIds.length > 0) {
-        params.set("organizer", filters.organizerGroupIds.join(","))
-    }
+  if (filters.taxonomyGroupName) {
+    params.set("taxonomy", filters.taxonomyGroupName);
+  }
+  if (filters.eventTypeIds.length > 0) {
+    params.set("type", filters.eventTypeIds.join(","));
+  }
+  if (filters.organizerGroupIds.length > 0) {
+    params.set("organizer", filters.organizerGroupIds.join(","));
+  }
 
-    return params.toString()
+  return params.toString();
 }

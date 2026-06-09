@@ -3,12 +3,14 @@
 // union (no class instances) so React can pass it to client components intact.
 // The `ok` discriminant matches the `fetch().ok` vocabulary used elsewhere.
 
-export type Result<T, E = string> = { ok: true; value: T } | { ok: false; error: E }
+export type Result<T, E = string> =
+  | { ok: true; value: T }
+  | { ok: false; error: E };
 
 export function ok<T>(value: T): Result<T, never> {
-    return { ok: true, value }
+  return { ok: true, value };
 }
 
 export function err<E = string>(error: E): Result<never, E> {
-    return { ok: false, error }
+  return { ok: false, error };
 }

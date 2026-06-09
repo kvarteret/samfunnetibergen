@@ -1,11 +1,12 @@
-import { defineQuery } from "next-sanity"
+import { defineQuery } from "next-sanity";
 
-import { sourcedImageProjection } from "../fragments/images"
-import { sourceLinkProjection } from "../fragments/links"
-import { portableTextProjection } from "../fragments/portableText"
-import { openingHoursProjection } from "../fragments/rooms"
+import { sourcedImageProjection } from "../fragments/images";
+import { sourceLinkProjection } from "../fragments/links";
+import { portableTextProjection } from "../fragments/portableText";
+import { openingHoursProjection } from "../fragments/rooms";
 
-export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc) {
+export const roomsQuery =
+  defineQuery(`*[_type == "room"] | order(orderRank asc) {
     title,
     "slug": slug.current,
     summary,
@@ -21,7 +22,7 @@ export const roomsQuery = defineQuery(`*[_type == "room"] | order(orderRank asc)
     hasAV,
     avDetails,
     "image": images[0] ${sourcedImageProjection}
-}`)
+}`);
 
 export const barPreviewsQuery = defineQuery(`{
     "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {
@@ -37,14 +38,15 @@ export const barPreviewsQuery = defineQuery(`{
         "openingHours": openingHours ${openingHoursProjection},
         "image": images[0] ${sourcedImageProjection}
     }
-}`)
+}`);
 
-export const roomSlugsQuery = defineQuery(`*[_type == "room" && defined(slug.current)] {
+export const roomSlugsQuery =
+  defineQuery(`*[_type == "room" && defined(slug.current)] {
     "slug": slug.current
-}`)
+}`);
 
 export const bookableRoomsQuery =
-    defineQuery(`*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {
+  defineQuery(`*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {
     title,
     "slug": slug.current,
     summary,
@@ -53,9 +55,10 @@ export const bookableRoomsQuery =
     crescatRoomId,
     "openingHours": openingHours ${openingHoursProjection},
     "image": images[0] ${sourcedImageProjection}
-}`)
+}`);
 
-export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current == $slug][0] {
+export const roomBySlugQuery =
+  defineQuery(`*[_type == "room" && slug.current == $slug][0] {
     title,
     "slug": slug.current,
     summary,
@@ -84,4 +87,4 @@ export const roomBySlugQuery = defineQuery(`*[_type == "room" && slug.current ==
         "originalFilename": file.asset->originalFilename
     },
     "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink ${sourceLinkProjection}
-}`)
+}`);
