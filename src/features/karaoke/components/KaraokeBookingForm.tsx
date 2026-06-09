@@ -1,15 +1,9 @@
 "use client";
 
+import { useForm } from "@tanstack/react-form";
 import { ChevronDown, ExternalLink, Loader2, Mic, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useReducer,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability";
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking";
@@ -48,11 +42,9 @@ import {
   KARAOKE_PRICING,
   type KaraokeDerivedState,
   type KaraokeFormState,
-  karaokeReducer,
-  type SetKaraokeField,
-  type SubmitStatus,
 } from "../domain/formState";
 import type { KaraokeRoom, KaraokeRoomImage, PriceType } from "../types";
+import { KaraokeFormContext, useKaraokeForm } from "./karaokeFormContext";
 
 interface KaraokeBookingFormProps {
   room: KaraokeRoom;
@@ -66,15 +58,24 @@ export function KaraokeBookingForm({
   houseClosedDates,
 }: KaraokeBookingFormProps) {
   const uid = useId();
-  const [state, dispatch] = useReducer(karaokeReducer, initialKaraokeState);
-  const [isPending, startTransition] = useTransition();
   const [bookings, setBookings] = useState<CresatBooking[]>([]);
   const today = useMemo(() => isoDate(new Date()), []);
-  const derived = useMemo(() => deriveKaraokeState(state), [state]);
 
-  const setField: SetKaraokeField = (key) => (value) => {
-    dispatch({ type: "SET", key, value });
-  };
+  const form = useForm({
+    defaultValues: initialKaraokeState as KaraokeFormState,
+    onSubmit: async ({ value }) => {
+      const derived = deriveKaraokeState(value);
+      const result = await submitKaraokeBooking(
+        buildKaraokePayload(value, derived),
+      );
+      if (!result.ok) throw new Error(result.error);
+    },
+  });
+
+  const derived = useMemo(
+    () => deriveKaraokeState(form.state.values),
+    [form.state.values],
+  );
 
   useEffect(() => {
     const end = new Date(today);
@@ -83,112 +84,91 @@ export function KaraokeBookingForm({
   }, [today]);
 
   useEffect(() => {
-    if (!state.startDate || state.startSlotMin === null) return;
+    const values = form.state.values;
+    if (!values.startDate || values.startSlotMin === null) return;
     const allowedSlots = slotRangesForDate(
-      state.startDate,
-      state.duration,
+      values.startDate,
+      values.duration,
       operationsManagerHours,
       houseClosedDates,
     );
     const slotTaken = slotOverlapsKaraokeBookings(
-      state.startDate,
-      state.startSlotMin,
-      state.duration,
+      values.startDate,
+      values.startSlotMin,
+      values.duration,
       bookings,
     );
-    if (!allowedSlots.includes(state.startSlotMin) || slotTaken) {
-      dispatch({ type: "CLEAR_SLOT" });
+    if (!allowedSlots.includes(values.startSlotMin) || slotTaken) {
+      form.setFieldValue("startSlotMin", null);
     }
   }, [
     bookings,
     houseClosedDates,
     operationsManagerHours,
-    state.duration,
-    state.startDate,
-    state.startSlotMin,
+    form.state.values.duration,
+    form.state.values.startDate,
+    form.state.values.startSlotMin,
   ]);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!canSubmitKaraokeBooking(state)) return;
-
-    startTransition(async () => {
-      dispatch({ type: "SET_SUBMIT_STATUS", status: "submitting" });
-      const result = await submitKaraokeBooking(
-        buildKaraokePayload(state, derived),
-      );
-      if (result.ok) {
-        dispatch({ type: "SET_SUBMIT_STATUS", status: "success" });
-      } else {
-        dispatch({
-          type: "SET_SUBMIT_STATUS",
-          status: "error",
-          errorMessage: result.error,
-        });
-      }
-    });
-  };
+  if (form.state.isSubmitSuccessful) {
+    return <KaraokeBookingSuccess />;
+  }
 
   return (
-    <div className="grid gap-12 items-start lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      {state.submitStatus === "success" ? (
-        <KaraokeBookingSuccess />
-      ) : (
-        <form className="min-w-0 space-y-14" noValidate onSubmit={submit}>
+    <KaraokeFormContext.Provider value={form}>
+      <div className="grid gap-12 items-start lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <form
+          className="min-w-0 space-y-14"
+          noValidate
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault();
+            if (!canSubmitKaraokeBooking(form.state.values)) return;
+            form.handleSubmit();
+          }}
+        >
           <KaraokeDetailsSection
             derived={derived}
             uid={uid}
-            state={state}
             today={today}
             bookings={bookings}
             houseClosedDates={houseClosedDates}
             operationsManagerHours={operationsManagerHours}
-            setField={setField}
           />
-          <KaraokePackageSection
-            uid={uid}
-            state={state}
-            derived={derived}
-            setField={setField}
-          />
-          <KaraokeContactSection uid={uid} state={state} setField={setField} />
-          <KaraokeTermsSection state={state} setField={setField} />
-          <KaraokeSubmitSection
-            errorMessage={state.errorMessage}
-            isPending={isPending}
-            state={state}
-            submitStatus={state.submitStatus}
-          />
+          <KaraokePackageSection uid={uid} derived={derived} />
+          <KaraokeContactSection uid={uid} />
+          <KaraokeTermsSection />
+          <KaraokeSubmitSection />
         </form>
-      )}
 
-      <aside className="space-y-5 lg:sticky lg:top-8">
-        <KaraokeOrderPreview state={state} derived={derived} />
-        <KaraokeRoomCard room={room} />
-      </aside>
-    </div>
+        <aside className="space-y-5 lg:sticky lg:top-8">
+          <KaraokeOrderPreview derived={derived} />
+          <KaraokeRoomCard room={room} />
+        </aside>
+      </div>
+    </KaraokeFormContext.Provider>
   );
 }
 
+/* ── Details section ─────────────────────────────────────────────────── */
+
 function KaraokeDetailsSection({
   uid,
-  state,
   derived,
   today,
   bookings,
   operationsManagerHours,
   houseClosedDates,
-  setField,
 }: {
   uid: string;
-  state: KaraokeFormState;
   derived: KaraokeDerivedState;
   today: string;
   bookings: CresatBooking[];
   operationsManagerHours?: OpeningHours | null;
   houseClosedDates?: ClosedDate[] | null;
-  setField: SetKaraokeField;
 }) {
+  const form = useKaraokeForm();
+  const values = form.state.values;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="01" title="Detaljer" />
@@ -198,10 +178,12 @@ function KaraokeDetailsSection({
         <Input
           autoComplete="off"
           id={`${uid}-eventName`}
-          onChange={(event) => setField("eventName")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("eventName", event.target.value)
+          }
           placeholder="F.eks. Bursdagsfeiring"
           required
-          value={state.eventName}
+          value={values.eventName}
         />
       </FieldGroup>
 
@@ -209,8 +191,10 @@ function KaraokeDetailsSection({
         <Label htmlFor={`${uid}-duration`}>Varighet</Label>
         <KaraokeSelect
           id={`${uid}-duration`}
-          value={String(state.duration)}
-          onChange={(value) => setField("duration")(Number(value))}
+          value={String(values.duration)}
+          onChange={(value) =>
+            form.setFieldValue("duration", Number(value))
+          }
         >
           {KARAOKE_DURATION_OPTIONS.map((hours) => (
             <option key={hours} value={hours}>
@@ -225,17 +209,19 @@ function KaraokeDetailsSection({
           <Label>Dato og tidspunkt *</Label>
           <KaraokeSlotPicker
             bookings={bookings}
-            duration={state.duration}
-            selectedDate={state.startDate}
-            selectedSlotMin={state.startSlotMin}
+            duration={values.duration}
+            selectedDate={values.startDate}
+            selectedSlotMin={values.startSlotMin}
             today={today}
             operationsManagerHours={operationsManagerHours}
             houseClosedDates={houseClosedDates}
             onDateChange={(date) => {
-              setField("startDate")(date);
-              dispatchDateSlotClear(setField);
+              form.setFieldValue("startDate", date);
+              form.setFieldValue("startSlotMin", null);
             }}
-            onSlotChange={setField("startSlotMin")}
+            onSlotChange={(slotMin) =>
+              form.setFieldValue("startSlotMin", slotMin)
+            }
           />
           {derived.startTime && (
             <p className="text-sm text-foreground/60 font-heading mt-1">
@@ -244,60 +230,45 @@ function KaraokeDetailsSection({
           )}
         </FieldGroup>
       )}
-
-      <FieldGroup>
-        <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
-        <textarea
-          className="w-full resize-y border-2 border-border bg-background px-3 py-2 text-sm font-base text-foreground placeholder:text-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          id={`${uid}-description`}
-          onChange={(event) => setField("description")(event.target.value)}
-          placeholder="Fortell oss litt om anledningen..."
-          rows={4}
-          value={state.description}
-        />
-      </FieldGroup>
     </section>
   );
 }
 
+/* ── Package section ─────────────────────────────────────────────────── */
+
 function KaraokePackageSection({
   uid,
-  state,
   derived,
-  setField,
 }: {
   uid: string;
-  state: KaraokeFormState;
   derived: KaraokeDerivedState;
-  setField: SetKaraokeField;
 }) {
+  const form = useKaraokeForm();
+  const values = form.state.values;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="02" title="Karaokepakke" />
       <KaraokePriceTypeTabs
-        priceType={state.priceType}
-        onChange={setField("priceType")}
+        priceType={values.priceType as PriceType}
+        onChange={(v) => form.setFieldValue("priceType", v)}
       />
-      <KaraokePackageNotice priceType={state.priceType} />
-      {state.priceType !== "frivillig" && (
-        <KaraokePeopleField uid={uid} state={state} setField={setField} />
+      <KaraokePackageNotice priceType={values.priceType as PriceType} />
+      {values.priceType !== "frivillig" && (
+        <KaraokePeopleField uid={uid} />
       )}
-      {derived.people > 0 && state.priceType !== "frivillig" && (
+      {derived.people > 0 && values.priceType !== "frivillig" && (
         <KaraokeTotalPrice derived={derived} />
       )}
     </section>
   );
 }
 
-function KaraokeContactSection({
-  uid,
-  state,
-  setField,
-}: {
-  uid: string;
-  state: KaraokeFormState;
-  setField: SetKaraokeField;
-}) {
+/* ── Contact section ─────────────────────────────────────────────────── */
+
+function KaraokeContactSection({ uid }: { uid: string }) {
+  const form = useKaraokeForm();
+
   return (
     <section className="space-y-6">
       <SectionHeader number="03" title="Kontaktinformasjon" />
@@ -308,10 +279,12 @@ function KaraokeContactSection({
           <Input
             autoComplete="name"
             id={`${uid}-contactName`}
-            onChange={(event) => setField("contactName")(event.target.value)}
+            onChange={(event) =>
+              form.setFieldValue("contactName", event.target.value)
+            }
             placeholder="Fullt navn"
             required
-            value={state.contactName}
+            value={form.state.values.contactName}
           />
         </FieldGroup>
 
@@ -320,11 +293,13 @@ function KaraokeContactSection({
           <Input
             autoComplete="email"
             id={`${uid}-contactEmail`}
-            onChange={(event) => setField("contactEmail")(event.target.value)}
+            onChange={(event) =>
+              form.setFieldValue("contactEmail", event.target.value)
+            }
             placeholder="din@epost.no"
             required
             type="email"
-            value={state.contactEmail}
+            value={form.state.values.contactEmail}
           />
         </FieldGroup>
       </div>
@@ -334,30 +309,32 @@ function KaraokeContactSection({
         <Input
           autoComplete="tel"
           id={`${uid}-contactPhone`}
-          onChange={(event) => setField("contactPhone")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("contactPhone", event.target.value)
+          }
           placeholder="+47 55 55 55 55"
           type="tel"
-          value={state.contactPhone}
+          value={form.state.values.contactPhone}
         />
       </FieldGroup>
     </section>
   );
 }
 
-function KaraokeTermsSection({
-  state,
-  setField,
-}: {
-  state: KaraokeFormState;
-  setField: SetKaraokeField;
-}) {
+/* ── Terms section ───────────────────────────────────────────────────── */
+
+function KaraokeTermsSection() {
+  const form = useKaraokeForm();
+  const values = form.state.values;
+  const priceType = values.priceType as PriceType;
+
   return (
     <section className="space-y-4">
       <SectionHeader number="04" title="Vilkår" />
       <label className="group flex cursor-pointer items-start gap-3">
         <CheckboxSquare
-          checked={state.acceptTerms}
-          onChange={setField("acceptTerms")}
+          checked={values.acceptTerms}
+          onChange={(v) => form.setFieldValue("acceptTerms", v)}
         />
         <span className="text-sm leading-6 text-foreground/80">
           Ved å krysse av denne boksen aksepterer jeg at jeg har lest, forstått
@@ -371,11 +348,13 @@ function KaraokeTermsSection({
           .
         </span>
       </label>
-      {state.priceType === "student" && (
+      {priceType === "student" && (
         <label className="group flex cursor-pointer items-start gap-3">
           <CheckboxSquare
-            checked={state.studentProofAccepted}
-            onChange={setField("studentProofAccepted")}
+            checked={values.studentProofAccepted}
+            onChange={(v) =>
+              form.setFieldValue("studentProofAccepted", v)
+            }
           />
           <span className="text-sm leading-6 text-foreground/80">
             Jeg lover å ta med studentbevis 🤞
@@ -386,27 +365,30 @@ function KaraokeTermsSection({
   );
 }
 
-function KaraokeSubmitSection({
-  errorMessage,
-  isPending,
-  state,
-  submitStatus,
-}: {
-  errorMessage: string;
-  isPending: boolean;
-  state: KaraokeFormState;
-  submitStatus: SubmitStatus;
-}) {
+/* ── Submit section ──────────────────────────────────────────────────── */
+
+function KaraokeSubmitSection() {
+  const form = useKaraokeForm();
+  const values = form.state.values;
+  const priceType = values.priceType as PriceType;
+  const isPending = form.state.isSubmitting;
+  const submitError = form.state.errorMap.onSubmit;
+
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
-      {submitStatus === "error" && (
+      {submitError && (
         <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-          <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <X
+            aria-hidden
+            className="mt-0.5 size-4 shrink-0 text-destructive"
+          />
           <div>
             <p className="text-sm font-heading text-destructive">
               Det oppstod en feil
             </p>
-            <p className="mt-0.5 text-sm text-foreground/70">{errorMessage}</p>
+            <p className="mt-0.5 text-sm text-foreground/70">
+              {submitError.message}
+            </p>
           </div>
         </div>
       )}
@@ -414,8 +396,8 @@ function KaraokeSubmitSection({
         className="w-full sm:w-auto"
         disabled={
           isPending ||
-          !state.acceptTerms ||
-          (state.priceType === "student" && !state.studentProofAccepted)
+          !values.acceptTerms ||
+          (priceType === "student" && !values.studentProofAccepted)
         }
         size="lg"
         type="submit"
@@ -436,6 +418,8 @@ function KaraokeSubmitSection({
   );
 }
 
+/* ── Success view ────────────────────────────────────────────────────── */
+
 function KaraokeBookingSuccess() {
   return (
     <Card className="space-y-4 border-primary bg-primary/5 p-8 py-8">
@@ -449,6 +433,8 @@ function KaraokeBookingSuccess() {
     </Card>
   );
 }
+
+/* ── Slot picker (prop-based — external data only) ───────────────────── */
 
 function KaraokeSlotPicker({
   bookings,
@@ -557,7 +543,9 @@ function KaraokeDateButton({
   onClick: () => void;
 }) {
   const parsedDate = new Date(date);
-  const weekday = parsedDate.toLocaleDateString("nb-NO", { weekday: "short" });
+  const weekday = parsedDate.toLocaleDateString("nb-NO", {
+    weekday: "short",
+  });
   const month = parsedDate
     .toLocaleDateString("nb-NO", { month: "short" })
     .replace(".", "");
@@ -573,7 +561,9 @@ function KaraokeDateButton({
         getDateButtonClass(isSelected, available, isToday),
       )}
     >
-      <span className="text-[10px] uppercase tracking-widest">{weekday}</span>
+      <span className="text-[10px] uppercase tracking-widest">
+        {weekday}
+      </span>
       <span className="text-base font-heading leading-none">
         {parsedDate.getDate()}
       </span>
@@ -643,7 +633,12 @@ function KaraokeSlotButton({
   slotMin: number;
   onClick: () => void;
 }) {
-  const taken = slotOverlapsKaraokeBookings(date, slotMin, duration, bookings);
+  const taken = slotOverlapsKaraokeBookings(
+    date,
+    slotMin,
+    duration,
+    bookings,
+  );
 
   return (
     <button
@@ -660,6 +655,8 @@ function KaraokeSlotButton({
     </button>
   );
 }
+
+/* ── Price type tabs ─────────────────────────────────────────────────── */
 
 function KaraokePriceTypeTabs({
   priceType,
@@ -701,7 +698,9 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
           Som intern frivillig kan du bruke karaokerommet gratis, men eksterne
           bookinger har alltid prioritet. En ekstern booking kan overta rommet
           ved å booke senest{" "}
-          <strong className="font-heading text-foreground">12 timer før</strong>{" "}
+          <strong className="font-heading text-foreground">
+            12 timer før
+          </strong>{" "}
           — i så fall vil du bli varslet og bookingen din kanselleres.
         </p>
       </Card>
@@ -720,31 +719,29 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
   );
 }
 
-function KaraokePeopleField({
-  uid,
-  state,
-  setField,
-}: {
-  uid: string;
-  state: KaraokeFormState;
-  setField: SetKaraokeField;
-}) {
+function KaraokePeopleField({ uid }: { uid: string }) {
+  const form = useKaraokeForm();
+  const values = form.state.values;
+
   return (
     <FieldGroup>
       <Label htmlFor={`${uid}-people`}>Antall personer *</Label>
       <KaraokeSelect
         id={`${uid}-people`}
-        value={state.numberOfPeople}
-        onChange={setField("numberOfPeople")}
+        value={values.numberOfPeople}
+        onChange={(v) => form.setFieldValue("numberOfPeople", v)}
       >
-        {Array.from({ length: 25 }, (_, index) => index + 1).map((count) => (
-          <option key={count} value={count}>
-            {count} {count === 1 ? "person" : "personer"}
-          </option>
-        ))}
+        {Array.from({ length: 25 }, (_, index) => index + 1).map(
+          (count) => (
+            <option key={count} value={count}>
+              {count} {count === 1 ? "person" : "personer"}
+            </option>
+          ),
+        )}
       </KaraokeSelect>
       <FieldHint>
-        Minimumspris er {KARAOKE_PRICING[state.priceType].minPerHour} kr per
+        Minimumspris er{" "}
+        {KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per
         time.
       </FieldHint>
     </FieldGroup>
@@ -790,9 +787,9 @@ function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
             {derived.totalPrice.toLocaleString("nb-NO")} kr
           </span>
           <p className="text-xs text-foreground/50 mt-0.5">
-            {Math.round(derived.totalPrice / derived.people).toLocaleString(
-              "nb-NO",
-            )}{" "}
+            {Math.round(
+              derived.totalPrice / derived.people,
+            ).toLocaleString("nb-NO")}{" "}
             kr per person
           </p>
         </div>
@@ -801,14 +798,16 @@ function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
   );
 }
 
+/* ── Order preview ───────────────────────────────────────────────────── */
+
 function KaraokeOrderPreview({
-  state,
   derived,
 }: {
-  state: KaraokeFormState;
   derived: KaraokeDerivedState;
 }) {
-  const isEmpty = !state.eventName && !state.startDate && !derived.people;
+  const form = useKaraokeForm();
+  const values = form.state.values;
+  const isEmpty = !values.eventName && !values.startDate && !derived.people;
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
@@ -821,16 +820,18 @@ function KaraokeOrderPreview({
         </p>
       ) : (
         <div className="space-y-2 text-sm">
-          {state.eventName && (
+          {values.eventName && (
             <KaraokeSummaryRow label="Arrangement">
-              {state.eventName}
+              {values.eventName}
             </KaraokeSummaryRow>
           )}
-          <KaraokeSummaryRow label="Rom">Maos Lille Røde</KaraokeSummaryRow>
-          {state.startDate && (
+          <KaraokeSummaryRow label="Rom">
+            Maos Lille Røde
+          </KaraokeSummaryRow>
+          {values.startDate && (
             <KaraokeSummaryRow label="Dato">
               <span className="capitalize">
-                {formatKaraokeDate(state.startDate)}
+                {formatKaraokeDate(values.startDate)}
               </span>
             </KaraokeSummaryRow>
           )}
@@ -841,17 +842,25 @@ function KaraokeOrderPreview({
             </KaraokeSummaryRow>
           )}
           <KaraokeSummaryRow label="Varighet">
-            {state.duration} {state.duration === 1 ? "time" : "timer"}
+            {values.duration}{" "}
+            {values.duration === 1 ? "time" : "timer"}
           </KaraokeSummaryRow>
           <KaraokeSummaryRow label="Pakke">
-            <span className="capitalize">{state.priceType}</span>
+            <span className="capitalize">
+              {values.priceType as string}
+            </span>
           </KaraokeSummaryRow>
           {derived.people > 0 && (
             <KaraokeSummaryRow label="Antall">
-              {derived.people} {derived.people === 1 ? "person" : "personer"}
+              {derived.people}{" "}
+              {derived.people === 1 ? "person" : "personer"}
             </KaraokeSummaryRow>
           )}
-          <KaraokePriceSummary state={state} derived={derived} />
+          <KaraokePriceSummary
+            priceType={values.priceType as PriceType}
+            people={derived.people}
+            totalPrice={derived.totalPrice}
+          />
         </div>
       )}
     </Card>
@@ -874,13 +883,15 @@ function KaraokeSummaryRow({
 }
 
 function KaraokePriceSummary({
-  state,
-  derived,
+  priceType,
+  people,
+  totalPrice,
 }: {
-  state: KaraokeFormState;
-  derived: KaraokeDerivedState;
+  priceType: PriceType;
+  people: number;
+  totalPrice: number;
 }) {
-  if (state.priceType === "frivillig") {
+  if (priceType === "frivillig") {
     return (
       <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
         <span className="text-foreground/60 shrink-0">Pris</span>
@@ -889,17 +900,19 @@ function KaraokePriceSummary({
     );
   }
 
-  if (derived.people <= 0) return null;
+  if (people <= 0) return null;
 
   return (
     <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
       <span className="text-foreground/60 shrink-0">Pris</span>
       <span className="font-heading text-primary text-lg">
-        {derived.totalPrice.toLocaleString("nb-NO")} kr
+        {totalPrice.toLocaleString("nb-NO")} kr
       </span>
     </div>
   );
 }
+
+/* ── Room card ───────────────────────────────────────────────────────── */
 
 function KaraokeRoomCard({ room }: { room: KaraokeRoom }) {
   const firstImage: KaraokeRoomImage | undefined = room.images?.[0];
@@ -934,7 +947,9 @@ function KaraokeRoomCard({ room }: { room: KaraokeRoom }) {
         </Link>
       </div>
       {room.summary && (
-        <p className="text-sm leading-6 text-foreground/70">{room.summary}</p>
+        <p className="text-sm leading-6 text-foreground/70">
+          {room.summary}
+        </p>
       )}
       {(room.capacitySeated || room.capacityStanding) && (
         <div className="border-t border-border pt-4 flex gap-6 text-sm">
@@ -973,6 +988,8 @@ function KaraokeRoomCapacity({
   );
 }
 
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
 function buildKaraokeDates(today: string): string[] {
   return Array.from({ length: KARAOKE_DATE_COUNT }, (_, index) => {
     const date = new Date(today);
@@ -981,18 +998,24 @@ function buildKaraokeDates(today: string): string[] {
   });
 }
 
-function dispatchDateSlotClear(setField: SetKaraokeField) {
-  setField("startSlotMin")(null);
-}
-
-function getDateButtonClass(isSelected: boolean, available: boolean, isToday: boolean): string {
-  if (isSelected) return "bg-primary border-primary text-primary-foreground";
-  if (available) return cn("border-border hover:bg-muted cursor-pointer", isToday && "border-primary/50");
+function getDateButtonClass(
+  isSelected: boolean,
+  available: boolean,
+  isToday: boolean,
+): string {
+  if (isSelected)
+    return "bg-primary border-primary text-primary-foreground";
+  if (available)
+    return cn(
+      "border-border hover:bg-muted cursor-pointer",
+      isToday && "border-primary/50",
+    );
   return "border-border/30 text-foreground/25 cursor-not-allowed";
 }
 
 function getSlotButtonClass(isSelected: boolean, taken: boolean): string {
-  if (isSelected) return "bg-primary border-primary text-primary-foreground";
+  if (isSelected)
+    return "bg-primary border-primary text-primary-foreground";
   if (taken) return "border-border/30 text-foreground/25 cursor-not-allowed";
   return "border-border hover:bg-muted";
 }

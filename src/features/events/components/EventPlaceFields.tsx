@@ -9,23 +9,20 @@ import {
 } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SetFormField } from "../domain/formState";
+import { useSubmitEventForm } from "./submitEventFormContext";
 
 interface EventPlaceFieldsProps {
   uid: string;
-  room: string;
-  roomText: string;
   roomOptions: SelectOption[];
-  setField: SetFormField;
 }
 
 export function EventPlaceFields({
   uid,
-  room,
-  roomText,
   roomOptions,
-  setField,
 }: EventPlaceFieldsProps) {
+  const form = useSubmitEventForm();
+  const values = form.state.values;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="04" title="Sted" />
@@ -34,10 +31,10 @@ export function EventPlaceFields({
         hint="Velg rommet om arrangementet er i et av Kvarterets lokaler."
         id={`${uid}-room`}
         label="Rom på Kvarteret"
-        onChange={setField("room")}
+        onChange={(v) => form.setFieldValue("room", v)}
         options={roomOptions}
         placeholder="Velg rom (valgfritt)"
-        value={room}
+        value={values.room}
       />
 
       <FieldGroup>
@@ -48,9 +45,11 @@ export function EventPlaceFields({
         </FieldHint>
         <Input
           id={`${uid}-roomText`}
-          onChange={(event) => setField("roomText")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("roomText", event.target.value)
+          }
           placeholder="Fritekst"
-          value={roomText}
+          value={values.roomText}
         />
       </FieldGroup>
     </section>

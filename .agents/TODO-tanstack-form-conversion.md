@@ -1,6 +1,9 @@
 # TODO: Convert remaining forms to @tanstack/react-form
 
-RoomBookingForm is done. Two forms remain: KaraokeBookingForm and SubmitEventForm.
+All three forms are now converted:
+- RoomBookingForm ✅ (already done)
+- KaraokeBookingForm ✅
+- SubmitEventForm ✅
 
 ---
 

@@ -9,23 +9,20 @@ import {
 } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SetFormField } from "../domain/formState";
+import { useSubmitEventForm } from "./submitEventFormContext";
 
 interface EventOrganizerFieldsProps {
   uid: string;
-  organizerGroup: string;
-  organizerText: string;
   groupOptions: SelectOption[];
-  setField: SetFormField;
 }
 
 export function EventOrganizerFields({
   uid,
-  organizerGroup,
-  organizerText,
   groupOptions,
-  setField,
 }: EventOrganizerFieldsProps) {
+  const form = useSubmitEventForm();
+  const values = form.state.values;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="05" title="Arrangør" />
@@ -34,23 +31,27 @@ export function EventOrganizerFields({
         hint="Om din gruppe er registrert på Kvarteret, velg den her."
         id={`${uid}-organizerGroup`}
         label="Gruppe på Kvarteret"
-        onChange={setField("organizerGroup")}
+        onChange={(v) => form.setFieldValue("organizerGroup", v)}
         options={groupOptions}
         placeholder="Velg gruppe (valgfritt)"
-        value={organizerGroup}
+        value={values.organizerGroup}
       />
 
       <FieldGroup>
-        <Label htmlFor={`${uid}-organizerText`}>Arrangørnavn (fritekst)</Label>
+        <Label htmlFor={`${uid}-organizerText`}>
+          Arrangørnavn (fritekst)
+        </Label>
         <FieldHint>
           Bruk dette om dere ikke er i lista - f.eks. &quot;Bandet
           Skumringen&quot;, &quot;Fagutvalget ved MN&quot;.
         </FieldHint>
         <Input
           id={`${uid}-organizerText`}
-          onChange={(event) => setField("organizerText")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("organizerText", event.target.value)
+          }
           placeholder="Arrangørens navn"
-          value={organizerText}
+          value={values.organizerText}
         />
       </FieldGroup>
     </section>

@@ -60,7 +60,7 @@ export type UpdateDateField = (
   value: string,
 ) => void;
 
-const newDate = (): DateEntry => ({
+export const newDate = (): DateEntry => ({
   id: Math.random().toString(36).slice(2),
   startDate: "",
   startTime: "",

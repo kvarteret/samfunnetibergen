@@ -10,27 +10,20 @@ import {
 } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SetFormField } from "../domain/formState";
+import { useSubmitEventForm } from "./submitEventFormContext";
 
 interface EventDetailsFieldsProps {
   uid: string;
-  title: string;
-  description: string;
-  eventTypeId: string;
   eventTypeOptions: SelectOption[];
-  isInternalEvent: boolean;
-  setField: SetFormField;
 }
 
 export function EventDetailsFields({
   uid,
-  title,
-  description,
-  eventTypeId,
   eventTypeOptions,
-  isInternalEvent,
-  setField,
 }: EventDetailsFieldsProps) {
+  const form = useSubmitEventForm();
+  const values = form.state.values;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="01" title="Om arrangementet" />
@@ -40,10 +33,12 @@ export function EventDetailsFields({
         <Input
           autoComplete="off"
           id={`${uid}-title`}
-          onChange={(event) => setField("title")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("title", event.target.value)
+          }
           placeholder="Navn på arrangementet"
           required
-          value={title}
+          value={values.title}
         />
       </FieldGroup>
 
@@ -56,26 +51,28 @@ export function EventDetailsFields({
         <textarea
           className="w-full resize-y border-2 border-border bg-background px-3 py-2 text-sm font-base text-foreground placeholder:text-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           id={`${uid}-description`}
-          onChange={(event) => setField("description")(event.target.value)}
+          onChange={(event) =>
+            form.setFieldValue("description", event.target.value)
+          }
           placeholder="Beskriv arrangementet..."
           rows={5}
-          value={description}
+          value={values.description}
         />
       </FieldGroup>
 
       <SelectField
         id={`${uid}-eventType`}
         label="Arrangementstype"
-        onChange={setField("eventTypeId")}
+        onChange={(v) => form.setFieldValue("eventTypeId", v)}
         options={eventTypeOptions}
         placeholder="Velg type (valgfritt)"
-        value={eventTypeId}
+        value={values.eventTypeId}
       />
 
       <label className="group flex cursor-pointer items-start gap-3">
         <CheckboxSquare
-          checked={isInternalEvent}
-          onChange={setField("isInternalEvent")}
+          checked={values.isInternalEvent}
+          onChange={(v) => form.setFieldValue("isInternalEvent", v)}
         />
         <span>
           <span className="block font-heading text-sm text-foreground">

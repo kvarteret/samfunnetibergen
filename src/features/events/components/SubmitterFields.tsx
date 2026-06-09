@@ -3,23 +3,15 @@
 import { FieldGroup, SectionHeader } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SetFormField } from "../domain/formState";
+import { useSubmitEventForm } from "./submitEventFormContext";
 
 interface SubmitterFieldsProps {
   uid: string;
-  submittedBy: string;
-  submittedByEmail: string;
-  submittedByOrganization: string;
-  setField: SetFormField;
 }
 
-export function SubmitterFields({
-  uid,
-  submittedBy,
-  submittedByEmail,
-  submittedByOrganization,
-  setField,
-}: SubmitterFieldsProps) {
+export function SubmitterFields({ uid }: SubmitterFieldsProps) {
+  const form = useSubmitEventForm();
+
   return (
     <section className="space-y-6">
       <SectionHeader number="08" title="Kontaktinformasjon" />
@@ -36,10 +28,12 @@ export function SubmitterFields({
           <Input
             autoComplete="name"
             id={`${uid}-submittedBy`}
-            onChange={(event) => setField("submittedBy")(event.target.value)}
+            onChange={(event) =>
+              form.setFieldValue("submittedBy", event.target.value)
+            }
             placeholder="Fullt navn"
             required
-            value={submittedBy}
+            value={form.state.values.submittedBy}
           />
         </FieldGroup>
 
@@ -51,12 +45,15 @@ export function SubmitterFields({
             autoComplete="email"
             id={`${uid}-submittedByEmail`}
             onChange={(event) =>
-              setField("submittedByEmail")(event.target.value)
+              form.setFieldValue(
+                "submittedByEmail",
+                event.target.value,
+              )
             }
             placeholder="epost@eksempel.no"
             required
             type="email"
-            value={submittedByEmail}
+            value={form.state.values.submittedByEmail}
           />
         </FieldGroup>
       </div>
@@ -66,10 +63,13 @@ export function SubmitterFields({
         <Input
           id={`${uid}-org`}
           onChange={(event) =>
-            setField("submittedByOrganization")(event.target.value)
+            form.setFieldValue(
+              "submittedByOrganization",
+              event.target.value,
+            )
           }
           placeholder="F.eks. Bandet Skumringen, Realfagskollegiet"
-          value={submittedByOrganization}
+          value={form.state.values.submittedByOrganization}
         />
       </FieldGroup>
     </section>
