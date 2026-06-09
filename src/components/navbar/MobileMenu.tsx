@@ -143,7 +143,6 @@ interface MobileNavItemProps {
 }
 
 function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
-  const hasLink = item.href || item.externalUrl;
   const delay = open ? `${index * 35 + 60}ms` : "0ms";
 
   const linkCls = cn(
