@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEventForm } from "./eventFormContext";
+import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormLinksSectionProps {
-  uid: string;
+  uid: string
 }
 
 export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
-  const form = useEventForm();
+  const form = useEventForm()
 
   return (
     <section className="space-y-6">
@@ -20,7 +20,7 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
         <Label htmlFor={`${uid}-ticketUrl`}>Billettlenke</Label>
         <Input
           id={`${uid}-ticketUrl`}
-          onChange={(event) =>
+          onChange={event =>
             form.setFieldValue("ticketUrl", event.target.value)
           }
           placeholder="https://ticketmaster.no/..."
@@ -30,12 +30,10 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
       </FieldGroup>
 
       <FieldGroup>
-        <Label htmlFor={`${uid}-facebookUrl`}>
-          Facebook-arrangement
-        </Label>
+        <Label htmlFor={`${uid}-facebookUrl`}>Facebook-arrangement</Label>
         <Input
           id={`${uid}-facebookUrl`}
-          onChange={(event) =>
+          onChange={event =>
             form.setFieldValue("facebookUrl", event.target.value)
           }
           placeholder="https://facebook.com/events/..."
@@ -44,5 +42,5 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
         />
       </FieldGroup>
     </section>
-  );
+  )
 }

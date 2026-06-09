@@ -5,8 +5,8 @@ import {
   LinkIcon,
   StarIcon,
   UsersIcon,
-} from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+} from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
   name: "siteMetadata",
@@ -51,7 +51,7 @@ export const siteMetadata = defineType({
               name: "date",
               title: "Dato",
               type: "date",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "note",
@@ -65,7 +65,7 @@ export const siteMetadata = defineType({
               return {
                 title: date ?? "Dato mangler",
                 subtitle: note ?? "Huset er stengt",
-              };
+              }
             },
           },
         }),
@@ -83,7 +83,7 @@ export const siteMetadata = defineType({
       type: "text",
       rows: 3,
       group: "identity",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
     defineField({
@@ -105,8 +105,7 @@ export const siteMetadata = defineType({
       type: "text",
       rows: 3,
       group: "sharing",
-      validation: (rule) =>
-        rule.max(200).warning("Hold teksten kort for deling"),
+      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
     }),
     defineField({
       name: "oembedTitle",
@@ -132,10 +131,10 @@ export const siteMetadata = defineType({
   preview: {
     select: { title: "siteName" },
     prepare({ title }) {
-      return { title: title ?? "Nettstedsinfo" };
+      return { title: title ?? "Nettstedsinfo" }
     },
   },
-});
+})
 
 export const homePage = defineType({
   name: "homePage",
@@ -159,7 +158,7 @@ export const homePage = defineType({
       title: "Tittel",
       type: "string",
       group: "hero",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
@@ -187,7 +186,7 @@ export const homePage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
     defineField({
@@ -209,8 +208,7 @@ export const homePage = defineType({
       type: "text",
       rows: 3,
       group: "sharing",
-      validation: (rule) =>
-        rule.max(200).warning("Hold teksten kort for deling"),
+      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
     }),
     defineField({
       name: "oembedTitle",
@@ -236,10 +234,10 @@ export const homePage = defineType({
   preview: {
     select: { title: "title" },
     prepare({ title }) {
-      return { title: title ?? "Hovedside" };
+      return { title: title ?? "Hovedside" }
     },
   },
-});
+})
 
 export const eventsPage = defineType({
   name: "eventsPage",
@@ -269,7 +267,7 @@ export const eventsPage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
     defineField({
@@ -291,8 +289,7 @@ export const eventsPage = defineType({
       type: "text",
       rows: 3,
       group: "sharing",
-      validation: (rule) =>
-        rule.max(200).warning("Hold teksten kort for deling"),
+      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
     }),
     defineField({
       name: "oembedTitle",
@@ -318,10 +315,10 @@ export const eventsPage = defineType({
   preview: {
     select: { title: "title" },
     prepare({ title }) {
-      return { title: title ?? "Arrangementer-side" };
+      return { title: title ?? "Arrangementer-side" }
     },
   },
-});
+})
 
 export const roomsPage = defineType({
   name: "roomsPage",
@@ -346,7 +343,7 @@ export const roomsPage = defineType({
       title: "Tittel",
       type: "string",
       group: "hero",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
@@ -388,7 +385,7 @@ export const roomsPage = defineType({
               name: "floor",
               title: "Etasje",
               type: "number",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "title",
@@ -402,7 +399,7 @@ export const roomsPage = defineType({
               options: {
                 accept: "image/svg+xml",
               },
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
           ],
           preview: {
@@ -410,7 +407,7 @@ export const roomsPage = defineType({
             prepare({ floor, title }) {
               return {
                 title: title ?? (floor ? `${floor}. etasje` : "Plantegning"),
-              };
+              }
             },
           },
         }),
@@ -430,17 +427,17 @@ export const roomsPage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
   ],
   preview: {
     select: { title: "title" },
     prepare({ title }) {
-      return { title: title ?? "Rom-side" };
+      return { title: title ?? "Rom-side" }
     },
   },
-});
+})
 
 export const sponsorsPage = defineType({
   name: "sponsorsPage",
@@ -464,7 +461,7 @@ export const sponsorsPage = defineType({
       title: "Tittel",
       type: "string",
       group: "hero",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
@@ -494,7 +491,7 @@ export const sponsorsPage = defineType({
               name: "title",
               title: "Tittel",
               type: "string",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "description",
@@ -505,7 +502,7 @@ export const sponsorsPage = defineType({
               name: "website",
               title: "Nettsted",
               type: "url",
-              validation: (rule) => rule.uri({ scheme: ["http", "https"] }),
+              validation: rule => rule.uri({ scheme: ["http", "https"] }),
             }),
           ],
           preview: {
@@ -528,17 +525,17 @@ export const sponsorsPage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
   ],
   preview: {
     select: { title: "title" },
     prepare({ title }) {
-      return { title: title ?? "Sponsorer-side" };
+      return { title: title ?? "Sponsorer-side" }
     },
   },
-});
+})
 
 export const internbevisBenefit = defineType({
   name: "internbevisBenefit",
@@ -550,14 +547,14 @@ export const internbevisBenefit = defineType({
       name: "name",
       title: "Fordel",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
       title: "Kort beskrivelse",
       type: "text",
       rows: 3,
-      validation: (rule) => rule.required().max(220),
+      validation: rule => rule.required().max(220),
     }),
     defineField({
       name: "minimumTier",
@@ -571,7 +568,7 @@ export const internbevisBenefit = defineType({
         ],
         layout: "radio",
       },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
   ],
   preview: {
@@ -581,16 +578,16 @@ export const internbevisBenefit = defineType({
         trinn1: "Trinn 1",
         trinn2: "Trinn 2",
         trinn3: "Trinn 3",
-      };
+      }
       return {
         title: title ?? "Fordel",
         subtitle: minimumTier
           ? `Gyldig fra ${tierLabels[minimumTier]}`
           : "Gyldig fra mangler",
-      };
+      }
     },
   },
-});
+})
 
 export const groupsPage = defineType({
   name: "groupsPage",
@@ -615,7 +612,7 @@ export const groupsPage = defineType({
       title: "Tittel",
       type: "string",
       group: "hero",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
@@ -646,7 +643,7 @@ export const groupsPage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
     defineField({
@@ -663,14 +660,14 @@ export const groupsPage = defineType({
               name: "question",
               title: "Spørsmål",
               type: "string",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "answer",
               title: "Svar",
               type: "array",
               of: [defineArrayMember({ type: "text" })],
-              validation: (rule) => rule.required().min(1),
+              validation: rule => rule.required().min(1),
             }),
           ],
           preview: { select: { title: "question" } },
@@ -681,10 +678,10 @@ export const groupsPage = defineType({
   preview: {
     select: { title: "title" },
     prepare({ title }) {
-      return { title: title ?? "Grupper-side" };
+      return { title: title ?? "Grupper-side" }
     },
   },
-});
+})
 
 export const linkInBio = defineType({
   name: "linkInBio",
@@ -697,7 +694,7 @@ export const linkInBio = defineType({
       title: "Overskrift",
       type: "string",
       description: "Vises øverst på siden, f.eks. «Kvarteret»",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "bio",
@@ -718,7 +715,7 @@ export const linkInBio = defineType({
               name: "link",
               title: "Lenke",
               type: "sourceLink",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "emoji",
@@ -746,7 +743,7 @@ export const linkInBio = defineType({
               return {
                 title: emoji ? `${emoji}  ${title}` : title,
                 subtitle: subtitle ?? href ?? externalUrl,
-              };
+              }
             },
           },
         }),
@@ -756,7 +753,7 @@ export const linkInBio = defineType({
   preview: {
     select: { title: "heading" },
     prepare({ title }) {
-      return { title: title ?? "Link-i-bio" };
+      return { title: title ?? "Link-i-bio" }
     },
   },
-});
+})

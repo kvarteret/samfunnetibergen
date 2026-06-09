@@ -1,38 +1,38 @@
-import { getTranslations } from "next-intl/server";
-import { EventsPage as EventsPageContent } from "@/features/events";
-import type { AppLocale } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server"
+import { EventsPage as EventsPageContent } from "@/features/events"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
+} from "@/lib/app-locale"
 import {
   fetchEventsPageContent,
   fetchPublishedEvents,
   fetchSiteMetadata,
-} from "@/lib/sanity/fetch";
+} from "@/lib/sanity/fetch"
 
-export const revalidate = 60;
+export const revalidate = 60
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/arrangementer">) {
-  const locale = await resolvePageLocale(params);
+  const locale = await resolvePageLocale(params)
   const [t, eventsPage, siteMetadata] = await Promise.all([
     getTranslations({ locale, namespace: "Metadata" }),
     fetchEventsPageContent(locale, { stega: false }),
     fetchSiteMetadata(locale, { stega: false }),
-  ]);
-  const title = eventsPage?.seoTitle ?? t("eventsTitle");
-  const description = eventsPage?.seoDescription ?? t("eventsDescription");
-  const openGraphTitle = eventsPage?.openGraphTitle ?? title;
-  const openGraphDescription = eventsPage?.openGraphDescription ?? description;
+  ])
+  const title = eventsPage?.seoTitle ?? t("eventsTitle")
+  const description = eventsPage?.seoDescription ?? t("eventsDescription")
+  const openGraphTitle = eventsPage?.openGraphTitle ?? title
+  const openGraphDescription = eventsPage?.openGraphDescription ?? description
   const openGraphImage =
-    eventsPage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl;
+    eventsPage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
 
   return {
     title,
@@ -43,15 +43,15 @@ export async function generateMetadata({
       images: openGraphImage ? [{ url: openGraphImage }] : undefined,
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
     },
-  };
+  }
 }
 
 export default async function EventsPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/arrangementer">) {
-  const locale = (await resolvePageLocale(params)) as AppLocale;
-  activateRequestLocale(locale);
+  const locale = (await resolvePageLocale(params)) as AppLocale
+  activateRequestLocale(locale)
 
   const [t, eventsContent, arrangements, resolvedSearchParams] =
     await Promise.all([
@@ -59,9 +59,9 @@ export default async function EventsPage({
       fetchEventsPageContent(locale),
       fetchPublishedEvents(),
       searchParams,
-    ]);
+    ])
 
-  const title = eventsContent?.title ?? t("title");
+  const title = eventsContent?.title ?? t("title")
 
   return (
     <EventsPageContent
@@ -70,5 +70,5 @@ export default async function EventsPage({
       searchParams={resolvedSearchParams}
       title={title}
     />
-  );
+  )
 }

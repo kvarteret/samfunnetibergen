@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   type ChangeEvent,
@@ -8,53 +8,49 @@ import {
   useId,
   useMemo,
   useState,
-} from "react";
+} from "react"
 
-import { useForm } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form"
 
 import {
   submitEvent,
   uploadEventImage,
-} from "@/features/events/actions/submitEvent";
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch";
+} from "@/features/events/actions/submitEvent"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
   buildPreviewEvent,
   initialState,
   type FormState,
-} from "../domain/formState";
+} from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
-} from "../domain/imageUpload";
-import { EventFormDetailsSection } from "./EventFormDetailsSection";
-import { EventFormImageSection } from "./EventFormImageSection";
-import { EventFormLinksSection } from "./EventFormLinksSection";
-import { EventFormPreview } from "./EventFormPreview";
-import { EventFormOrganizerSection } from "./EventFormOrganizerSection";
-import { EventFormPlaceSection } from "./EventFormPlaceSection";
-import { EventFormPriceSection } from "./EventFormPriceSection";
-import { EventFormScheduleSection } from "./EventFormScheduleSection";
-import { EventFormActions } from "./EventFormActions";
-import { EventFormSubmitterSection } from "./EventFormSubmitterSection";
-import { EventFormContext } from "./eventFormContext";
+} from "../domain/imageUpload"
+import { EventFormDetailsSection } from "./EventFormDetailsSection"
+import { EventFormImageSection } from "./EventFormImageSection"
+import { EventFormLinksSection } from "./EventFormLinksSection"
+import { EventFormPreview } from "./EventFormPreview"
+import { EventFormOrganizerSection } from "./EventFormOrganizerSection"
+import { EventFormPlaceSection } from "./EventFormPlaceSection"
+import { EventFormPriceSection } from "./EventFormPriceSection"
+import { EventFormScheduleSection } from "./EventFormScheduleSection"
+import { EventFormActions } from "./EventFormActions"
+import { EventFormSubmitterSection } from "./EventFormSubmitterSection"
+import { EventFormContext } from "./eventFormContext"
 
 interface EventFormProps {
-  rooms: EventRoom[];
-  eventTypes: EventType[];
-  groups: EventGroup[];
+  rooms: EventRoom[]
+  eventTypes: EventType[]
+  groups: EventGroup[]
 }
 
-export function EventForm({
-  rooms,
-  eventTypes,
-  groups,
-}: EventFormProps) {
-  const uid = useId();
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [imageAssetId, setImageAssetId] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageUploadError, setImageUploadError] = useState("");
+export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
+  const uid = useId()
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [imageAssetId, setImageAssetId] = useState<string | null>(null)
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState("")
 
   const form = useForm({
     defaultValues: initialState as FormState,
@@ -63,8 +59,8 @@ export function EventForm({
         title: value.title,
         description: value.description || undefined,
         dates: value.dates
-          .filter((date) => date.startDate)
-          .map((date) => ({
+          .filter(date => date.startDate)
+          .map(date => ({
             startDate: date.startDate,
             startTime: date.startTime || undefined,
             endTime: date.endTime || undefined,
@@ -75,8 +71,7 @@ export function EventForm({
         roomText: value.roomText || undefined,
         organizerGroup: value.organizerGroup || undefined,
         organizerText: value.organizerText || undefined,
-        submittedByOrganization:
-          value.submittedByOrganization || undefined,
+        submittedByOrganization: value.submittedByOrganization || undefined,
         eventTypeId: value.eventTypeId || undefined,
         imageAssetId: imageAssetId || undefined,
         isInternalEvent: value.isInternalEvent || undefined,
@@ -87,63 +82,59 @@ export function EventForm({
         priceStudent: value.priceStudent
           ? Number(value.priceStudent)
           : undefined,
-        priceMedlem: value.priceMedlem
-          ? Number(value.priceMedlem)
-          : undefined,
+        priceMedlem: value.priceMedlem ? Number(value.priceMedlem) : undefined,
         ticketUrl: value.ticketUrl || undefined,
         facebookUrl: value.facebookUrl || undefined,
         submittedBy: value.submittedBy,
         submittedByEmail: value.submittedByEmail,
-      });
+      })
 
-      if (!result.ok) throw new Error(result.error);
+      if (!result.ok) throw new Error(result.error)
     },
-  });
+  })
 
   // Initialize first date with today
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    const firstId = form.state.values.dates[0]?.id;
+    const today = new Date().toISOString().split("T")[0]
+    const firstId = form.state.values.dates[0]?.id
     if (firstId) {
       form.setFieldValue("dates", (dates: typeof initialState.dates) =>
-        dates.map((d) =>
-          d.id === firstId
-            ? { ...d, startDate: today, startTime: "21:00" }
-            : d,
+        dates.map(d =>
+          d.id === firstId ? { ...d, startDate: today, startTime: "21:00" } : d,
         ),
-      );
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   useEffect(() => {
     return () => {
       if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
+        URL.revokeObjectURL(imagePreviewUrl)
       }
-    };
-  }, [imagePreviewUrl]);
+    }
+  }, [imagePreviewUrl])
 
   const eventTypeOptions = useMemo(
     () =>
-      eventTypes.map((eventType) => ({
+      eventTypes.map(eventType => ({
         value: eventType._id,
         label: eventType.taxonomyGroup
           ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
           : eventType.name,
       })),
     [eventTypes],
-  );
+  )
 
   const roomOptions = useMemo(
-    () => rooms.map((room) => ({ value: room._id, label: room.title })),
+    () => rooms.map(room => ({ value: room._id, label: room.title })),
     [rooms],
-  );
+  )
 
   const groupOptions = useMemo(
-    () => groups.map((group) => ({ value: group._id, label: group.name })),
+    () => groups.map(group => ({ value: group._id, label: group.name })),
     [groups],
-  );
+  )
 
   const previewEvent = useMemo(
     () =>
@@ -155,80 +146,80 @@ export function EventForm({
         eventTypes,
       ),
     [form.state.values, imagePreviewUrl, rooms, groups, eventTypes],
-  );
+  )
 
   const handleImageChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const file = event.target.files?.[0]
 
       if (!file) {
-        return;
+        return
       }
 
-      setImageAssetId(null);
-      setImageUploadError("");
-      event.target.value = "";
+      setImageAssetId(null)
+      setImageUploadError("")
+      event.target.value = ""
 
       if (!isAcceptedEventImageType(file.type)) {
-        setImageUploadError("Bildet må være JPEG, PNG eller WebP");
-        return;
+        setImageUploadError("Bildet må være JPEG, PNG eller WebP")
+        return
       }
 
       if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
         setImageUploadError(
           `Bildet er for stort (maks ${formatEventImageMaxSize()})`,
-        );
-        return;
+        )
+        return
       }
 
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreviewUrl((previousUrl) => {
+      const previewUrl = URL.createObjectURL(file)
+      setImagePreviewUrl(previousUrl => {
         if (previousUrl) {
-          URL.revokeObjectURL(previousUrl);
+          URL.revokeObjectURL(previousUrl)
         }
-        return previewUrl;
-      });
-      setImageUploading(true);
+        return previewUrl
+      })
+      setImageUploading(true)
 
-      const formData = new FormData();
-      formData.append("image", file);
+      const formData = new FormData()
+      formData.append("image", file)
 
       try {
-        const result = await uploadEventImage(formData);
+        const result = await uploadEventImage(formData)
 
         if (result.ok) {
-          setImageAssetId(result.value);
+          setImageAssetId(result.value)
         } else {
-          setImageUploadError(result.error);
+          setImageUploadError(result.error)
         }
       } catch {
         setImageUploadError(
           "Kunne ikke laste opp bildet. Prøv igjen med et bilde under 10 MB.",
-        );
+        )
       } finally {
-        setImageUploading(false);
+        setImageUploading(false)
       }
     },
     [],
-  );
+  )
 
   const handleRemoveImage = useCallback(() => {
-    setImagePreviewUrl((previousUrl) => {
+    setImagePreviewUrl(previousUrl => {
       if (previousUrl) {
-        URL.revokeObjectURL(previousUrl);
+        URL.revokeObjectURL(previousUrl)
       }
-      return null;
-    });
-    setImageAssetId(null);
-    setImageUploadError("");
-  }, []);
+      return null
+    })
+    setImageAssetId(null)
+    setImageUploadError("")
+  }, [])
 
   if (form.state.isSubmitSuccessful) {
     return (
       <p className="font-heading text-green-600">
         Din forespørsel er sendt inn
       </p>
-    );
+    )
   }
 
   return (
@@ -238,16 +229,14 @@ export function EventForm({
           className="min-w-0 space-y-14"
           noValidate
           onSubmit={(e: FormEvent) => {
-            e.preventDefault();
+            e.preventDefault()
             if (
-              form.state.values.dates.every(
-                (date) => !date.startDate,
-              ) ||
+              form.state.values.dates.every(date => !date.startDate) ||
               imageUploading
             ) {
-              return;
+              return
             }
-            form.handleSubmit();
+            form.handleSubmit()
           }}
         >
           <EventFormDetailsSection
@@ -264,10 +253,7 @@ export function EventForm({
           />
           <EventFormScheduleSection uid={uid} />
           <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
-          <EventFormOrganizerSection
-            groupOptions={groupOptions}
-            uid={uid}
-          />
+          <EventFormOrganizerSection groupOptions={groupOptions} uid={uid} />
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
           <EventFormSubmitterSection uid={uid} />
@@ -277,5 +263,5 @@ export function EventForm({
         <EventFormPreview event={previewEvent} />
       </div>
     </EventFormContext.Provider>
-  );
+  )
 }

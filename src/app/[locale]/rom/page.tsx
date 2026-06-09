@@ -5,38 +5,38 @@ import {
   Music2,
   Users,
   UtensilsCrossed,
-} from "lucide-react";
-import Image from "next/image";
+} from "lucide-react"
+import Image from "next/image"
 
-import { Surface } from "@/components/ui/surface";
+import { Surface } from "@/components/ui/surface"
 
-import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
+} from "@/lib/app-locale"
 import type {
   EditorialSection,
   RoomSummary,
   SourcedImage,
-} from "@/lib/sanity/fetch";
-import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch";
+} from "@/lib/sanity/fetch"
+import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 type RoomsPageProps = {
-  params: Promise<{ locale: string }>;
-};
+  params: Promise<{ locale: string }>
+}
 
 export async function generateMetadata({ params }: RoomsPageProps) {
-  await resolvePageLocale(params);
-  const content = await fetchRoomsPageContent({ stega: false });
+  await resolvePageLocale(params)
+  const content = await fetchRoomsPageContent({ stega: false })
 
   return {
     title: `${content?.seoTitle ?? content?.title ?? "Booking"} | Samfunnet i Bergen`,
@@ -44,26 +44,26 @@ export async function generateMetadata({ params }: RoomsPageProps) {
       content?.seoDescription ??
       content?.description ??
       "Se rommene på Det Akademiske Kvarter.",
-  };
+  }
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl;
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 type ContentLink = {
-  _key?: string | null;
-  label?: string | null;
-  href?: string | null;
-};
+  _key?: string | null
+  label?: string | null
+  href?: string | null
+}
 
 function isExternalHref(href: string) {
-  return !href.startsWith("/");
+  return !href.startsWith("/")
 }
 
 function InlineContentLink({ link }: { link: ContentLink }) {
-  if (!link.href) return null;
+  if (!link.href) return null
 
   const className =
-    "inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4";
+    "inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
 
   return isExternalHref(link.href) ? (
     <a className={className} href={link.href} rel="noreferrer" target="_blank">
@@ -74,7 +74,7 @@ function InlineContentLink({ link }: { link: ContentLink }) {
     <Link className={className} href={link.href}>
       {link.label}
     </Link>
-  );
+  )
 }
 
 function BookingButton({ label }: { label?: string | null }) {
@@ -85,24 +85,24 @@ function BookingButton({ label }: { label?: string | null }) {
         {label ?? "Book rom her"}
       </Link>
     </Button>
-  );
+  )
 }
 
 function RoomImage({
   image,
   title,
 }: {
-  image: RoomSummary["image"];
-  title: string;
+  image: RoomSummary["image"]
+  title: string
 }) {
-  const src = imageUrl(image);
+  const src = imageUrl(image)
 
   if (!src) {
     return (
       <div className="flex aspect-[16/10] items-center justify-center bg-muted p-6 text-center font-heading text-2xl text-foreground/50">
         {title}
       </div>
-    );
+    )
   }
 
   return (
@@ -115,7 +115,7 @@ function RoomImage({
         src={src}
       />
     </div>
-  );
+  )
 }
 
 const SERVICES = [
@@ -140,7 +140,7 @@ const SERVICES = [
       "Kvarterets kjøkken skreddersyr mat etter ønske – fra tapas til storselskap.",
     href: "/catering",
   },
-] as const;
+] as const
 
 function ServicesSection() {
   return (
@@ -173,7 +173,7 @@ function ServicesSection() {
         ))}
       </div>
     </section>
-  );
+  )
 }
 
 function HowToSection({ section }: { section: EditorialSection }) {
@@ -196,20 +196,20 @@ function HowToSection({ section }: { section: EditorialSection }) {
         ))}
       </ol>
     </section>
-  );
+  )
 }
 
 export default async function RoomsPage({ params }: RoomsPageProps) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
   const [content, rooms] = await Promise.all([
     fetchRoomsPageContent(),
     fetchRooms(),
-  ]);
+  ])
 
-  const sections = content?.sections ?? [];
-  const [howToSection, ...infoSections] = sections;
+  const sections = content?.sections ?? []
+  const [howToSection, ...infoSections] = sections
 
   return (
     <div className="space-y-16">
@@ -240,9 +240,9 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
         aria-label="Tilgjengelige rom"
         className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
       >
-        {rooms.map((room) => {
-          if (!room.slug) return null;
-          const title = room.title ?? room.slug;
+        {rooms.map(room => {
+          if (!room.slug) return null
+          const title = room.title ?? room.slug
 
           return (
             <Link
@@ -293,7 +293,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                 </span>
               </div>
             </Link>
-          );
+          )
         })}
       </section>
 
@@ -325,5 +325,5 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
         </div>
       ) : null}
     </div>
-  );
+  )
 }

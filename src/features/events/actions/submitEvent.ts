@@ -1,22 +1,22 @@
-"use server";
+"use server"
 
-import { createClient } from "@sanity/client";
-import { nanoid } from "nanoid";
+import { createClient } from "@sanity/client"
+import { nanoid } from "nanoid"
 
-import { err, ok, type Result } from "@/lib/result";
+import { err, ok, type Result } from "@/lib/result"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
-} from "../domain/imageUpload";
+} from "../domain/imageUpload"
 
-const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN;
-const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv";
-const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production";
+const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
+const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
+const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
 
 function getWriteClient() {
   if (!WRITE_TOKEN) {
-    throw new Error("SANITY_WRITE_TOKEN is not configured");
+    throw new Error("SANITY_WRITE_TOKEN is not configured")
   }
   return createClient({
     projectId: PROJECT_ID,
@@ -24,69 +24,69 @@ function getWriteClient() {
     apiVersion: "2024-01-01",
     token: WRITE_TOKEN,
     useCdn: false,
-  });
+  })
 }
 
 export type EventDate = {
-  startDate: string;
-  startTime?: string;
-  endTime?: string;
-};
+  startDate: string
+  startTime?: string
+  endTime?: string
+}
 
 export type SubmitEventInput = {
-  title: string;
-  description?: string;
-  dates: EventDate[];
-  isRecurring?: boolean;
-  rrule?: string;
-  room?: string;
-  roomText?: string;
-  organizerGroup?: string;
-  organizerText?: string;
-  eventTypeId?: string;
-  imageAssetId?: string;
-  isInternalEvent?: boolean;
-  isFree?: boolean;
-  priceOrdinar?: number;
-  priceStudent?: number;
-  priceMedlem?: number;
-  ticketUrl?: string;
-  facebookUrl?: string;
-  submittedBy: string;
-  submittedByEmail: string;
-  submittedByOrganization?: string;
-};
+  title: string
+  description?: string
+  dates: EventDate[]
+  isRecurring?: boolean
+  rrule?: string
+  room?: string
+  roomText?: string
+  organizerGroup?: string
+  organizerText?: string
+  eventTypeId?: string
+  imageAssetId?: string
+  isInternalEvent?: boolean
+  isFree?: boolean
+  priceOrdinar?: number
+  priceStudent?: number
+  priceMedlem?: number
+  ticketUrl?: string
+  facebookUrl?: string
+  submittedBy: string
+  submittedByEmail: string
+  submittedByOrganization?: string
+}
 
-export type UploadImageResult = Result<string>;
+export type UploadImageResult = Result<string>
 
 export async function uploadEventImage(
   formData: FormData,
 ): Promise<UploadImageResult> {
   try {
-    const file = formData.get("image");
+    const file = formData.get("image")
     if (!(file instanceof File) || !file.size) {
-      return err("Ingen fil mottatt");
+      return err("Ingen fil mottatt")
     }
     if (!isAcceptedEventImageType(file.type)) {
-      return err("Bildet må være JPEG, PNG eller WebP");
+      return err("Bildet må være JPEG, PNG eller WebP")
     }
     if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
-      return err(`Bildet er for stort (maks ${formatEventImageMaxSize()})`);
+      return err(`Bildet er for stort (maks ${formatEventImageMaxSize()})`)
     }
-    const client = getWriteClient();
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const client = getWriteClient()
+    const buffer = Buffer.from(await file.arrayBuffer())
     const asset = await client.assets.upload("image", buffer, {
       contentType: file.type,
       filename: file.name,
-    });
-    return ok(asset._id);
+    })
+    return ok(asset._id)
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ukjent feil";
-    return err(message);
+    const message = error instanceof Error ? error.message : "Ukjent feil"
+    return err(message)
   }
 }
 
-export type SubmitEventResult = Result<string>;
+export type SubmitEventResult = Result<string>
 
 function toSlug(title: string): string {
   return title
@@ -96,68 +96,68 @@ function toSlug(title: string): string {
     .replace(/å/g, "a")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 96);
+    .slice(0, 96)
 }
 
 function sanitizeUrl(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  const trimmed = url.trim();
-  if (!trimmed) return undefined;
+  if (!url) return undefined
+  const trimmed = url.trim()
+  if (!trimmed) return undefined
   if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://"))
-    return undefined;
-  return trimmed;
+    return undefined
+  return trimmed
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function isValidDateString(dateStr: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  return !isNaN(d.getTime());
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false
+  const d = new Date(`${dateStr}T00:00:00Z`)
+  return !isNaN(d.getTime())
 }
 
 function validateEventInput(input: SubmitEventInput): string | null {
-  if (!input.title?.trim()) return "Tittel er påkrevd";
-  if (!input.submittedBy?.trim()) return "Navn er påkrevd";
-  if (!input.submittedByEmail?.trim()) return "E-post er påkrevd";
-  if (!EMAIL_RE.test(input.submittedByEmail.trim())) return "Ugyldig e-post";
+  if (!input.title?.trim()) return "Tittel er påkrevd"
+  if (!input.submittedBy?.trim()) return "Navn er påkrevd"
+  if (!input.submittedByEmail?.trim()) return "E-post er påkrevd"
+  if (!EMAIL_RE.test(input.submittedByEmail.trim())) return "Ugyldig e-post"
 
   const validDates = (input.dates ?? []).filter(
-    (d) => d.startDate && isValidDateString(d.startDate),
-  );
-  if (validDates.length === 0) return "Minst én gyldig dato er påkrevd";
+    d => d.startDate && isValidDateString(d.startDate),
+  )
+  if (validDates.length === 0) return "Minst én gyldig dato er påkrevd"
 
   if (input.isRecurring && !input.rrule?.trim()) {
-    return "RRule er påkrevd for gjentagende arrangementer";
+    return "RRule er påkrevd for gjentagende arrangementer"
   }
 
-  return null;
+  return null
 }
 
 export async function submitEvent(
   input: SubmitEventInput,
 ): Promise<SubmitEventResult> {
-  const validationError = validateEventInput(input);
-  if (validationError) return err(validationError);
+  const validationError = validateEventInput(input)
+  if (validationError) return err(validationError)
 
   try {
-    const doc = buildEventDocument(input);
-    const created = await getWriteClient().create(doc);
-    return ok(created._id);
+    const doc = buildEventDocument(input)
+    const created = await getWriteClient().create(doc)
+    return ok(created._id)
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ukjent feil";
-    return err(message);
+    const message = error instanceof Error ? error.message : "Ukjent feil"
+    return err(message)
   }
 }
 
 function buildEventDocument(input: SubmitEventInput) {
-  const slug = `${toSlug(input.title)}-${Date.now()}`;
+  const slug = `${toSlug(input.title)}-${Date.now()}`
   const doc: { _type: string; [key: string]: unknown } = {
     _type: "arrangement",
     title: input.title.trim(),
     slug: { _type: "slug", current: slug },
     approvalStatus: "pending",
-    dates: input.dates.map((d) => ({
+    dates: input.dates.map(d => ({
       _key: nanoid(),
       _type: "arrangementDate",
       startDate: d.startDate,
@@ -166,7 +166,7 @@ function buildEventDocument(input: SubmitEventInput) {
     })),
     submittedBy: input.submittedBy.trim(),
     submittedByEmail: input.submittedByEmail.trim(),
-  };
+  }
 
   if (input.description?.trim()) {
     doc.description = [
@@ -179,49 +179,60 @@ function buildEventDocument(input: SubmitEventInput) {
         ],
         markDefs: [],
       },
-    ];
+    ]
   }
 
   if (input.isRecurring && input.rrule) {
-    doc.isRecurring = true;
-    doc.rrule = input.rrule;
+    doc.isRecurring = true
+    doc.rrule = input.rrule
   }
 
-  setOpt(doc, "roomText", input.roomText?.trim());
-  setOpt(doc, "organizerText", input.organizerText?.trim());
-  setOpt(doc, "submittedByOrganization", input.submittedByOrganization?.trim());
+  setOpt(doc, "roomText", input.roomText?.trim())
+  setOpt(doc, "organizerText", input.organizerText?.trim())
+  setOpt(doc, "submittedByOrganization", input.submittedByOrganization?.trim())
 
-  if (input.isInternalEvent) doc.isInternalEvent = true;
+  if (input.isInternalEvent) doc.isInternalEvent = true
 
   if (input.isFree) {
-    doc.isFree = true;
+    doc.isFree = true
   } else {
-    setNum(doc, "priceOrdinar", input.priceOrdinar);
-    setNum(doc, "priceStudent", input.priceStudent);
-    setNum(doc, "priceMedlem", input.priceMedlem);
+    setNum(doc, "priceOrdinar", input.priceOrdinar)
+    setNum(doc, "priceStudent", input.priceStudent)
+    setNum(doc, "priceMedlem", input.priceMedlem)
   }
 
-  const ticketUrl = sanitizeUrl(input.ticketUrl);
-  if (ticketUrl) doc.ticketUrl = ticketUrl;
-  const facebookUrl = sanitizeUrl(input.facebookUrl);
-  if (facebookUrl) doc.facebookUrl = facebookUrl;
+  const ticketUrl = sanitizeUrl(input.ticketUrl)
+  if (ticketUrl) doc.ticketUrl = ticketUrl
+  const facebookUrl = sanitizeUrl(input.facebookUrl)
+  if (facebookUrl) doc.facebookUrl = facebookUrl
 
-  setRef(doc, "eventType", input.eventTypeId);
+  setRef(doc, "eventType", input.eventTypeId)
   if (input.imageAssetId) {
-    doc.image = { _type: "image", asset: { _type: "reference", _ref: input.imageAssetId } };
+    doc.image = {
+      _type: "image",
+      asset: { _type: "reference", _ref: input.imageAssetId },
+    }
   }
-  setRef(doc, "room", input.room);
-  setRef(doc, "organizerGroup", input.organizerGroup);
+  setRef(doc, "room", input.room)
+  setRef(doc, "organizerGroup", input.organizerGroup)
 
-  return doc;
+  return doc
 }
 
 function setOpt(doc: Record<string, unknown>, key: string, value?: string) {
-  if (value) doc[key] = value;
+  if (value) doc[key] = value
 }
-function setNum(doc: Record<string, unknown>, key: string, value: number | undefined) {
-  if (value !== undefined && value >= 0) doc[key] = value;
+function setNum(
+  doc: Record<string, unknown>,
+  key: string,
+  value: number | undefined,
+) {
+  if (value !== undefined && value >= 0) doc[key] = value
 }
-function setRef(doc: Record<string, unknown>, key: string, ref?: string | null) {
-  if (ref) doc[key] = { _type: "reference", _ref: ref };
+function setRef(
+  doc: Record<string, unknown>,
+  key: string,
+  ref?: string | null,
+) {
+  if (ref) doc[key] = { _type: "reference", _ref: ref }
 }

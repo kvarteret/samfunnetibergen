@@ -1,61 +1,61 @@
-"use client";
+"use client"
 
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   dateStyle: "long",
   timeZone: "Europe/Oslo",
-});
-import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns";
-import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react";
-import Image from "next/image";
-import { RRule } from "rrule";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "@/i18n/navigation";
-import type { AppLocale } from "@/i18n/routing";
-import { cn } from "@/lib/utils";
+})
+import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
+import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
+import Image from "next/image"
+import { RRule } from "rrule"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Link } from "@/i18n/navigation"
+import type { AppLocale } from "@/i18n/routing"
+import { cn } from "@/lib/utils"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type EventDateEntry = {
-  _key: string;
-  startDate: string;
-  startTime?: string | null;
-  endTime?: string | null;
-};
+  _key: string
+  startDate: string
+  startTime?: string | null
+  endTime?: string | null
+}
 
 export type EventSummary = {
-  _id: string;
-  title: string;
-  slug: string;
-  isRecurring?: boolean;
-  rrule?: string | null;
-  dates: EventDateEntry[];
-  isFree?: boolean;
-  priceOrdinar?: number | null;
-  priceStudent?: number | null;
-  priceMedlem?: number | null;
-  ticketUrl?: string | null;
-  facebookUrl?: string | null;
-  imageUrl?: string | null;
-  imageCaption?: string | null;
+  _id: string
+  title: string
+  slug: string
+  isRecurring?: boolean
+  rrule?: string | null
+  dates: EventDateEntry[]
+  isFree?: boolean
+  priceOrdinar?: number | null
+  priceStudent?: number | null
+  priceMedlem?: number | null
+  ticketUrl?: string | null
+  facebookUrl?: string | null
+  imageUrl?: string | null
+  imageCaption?: string | null
   room?: {
-    _id: string;
-    title: string;
-    slug: string;
-    floor?: number | null;
-    imageUrl?: string | null;
-  } | null;
-  roomText?: string | null;
-  organizerGroup?: { _id: string; name: string; slug: string } | null;
-  organizerText?: string | null;
+    _id: string
+    title: string
+    slug: string
+    floor?: number | null
+    imageUrl?: string | null
+  } | null
+  roomText?: string | null
+  organizerGroup?: { _id: string; name: string; slug: string } | null
+  organizerText?: string | null
   eventType?: {
-    _id: string;
-    name: string;
-    taxonomyGroup?: { _id: string; name: string } | null;
-  } | null;
-};
+    _id: string
+    name: string
+    taxonomyGroup?: { _id: string; name: string } | null
+  } | null
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,7 +74,7 @@ const MONTH_NAMES: Record<AppLocale, string[]> = {
     "nov",
     "des",
   ],
-};
+}
 
 const eventCardVariants = cva("overflow-hidden py-0", {
   variants: {
@@ -91,7 +91,7 @@ const eventCardVariants = cva("overflow-hidden py-0", {
     variant: "default",
     size: "default",
   },
-});
+})
 
 const eventCardContentVariants = cva("flex h-full flex-col", {
   variants: {
@@ -103,43 +103,43 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
   defaultVariants: {
     size: "default",
   },
-});
+})
 
 function formatShortDate(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00`);
-  const day = d.getDate();
-  const month = MONTH_NAMES["nb"][d.getMonth()];
-  return `${day}. ${month}`;
+  const d = new Date(`${dateStr}T00:00:00`)
+  const day = d.getDate()
+  const month = MONTH_NAMES["nb"][d.getMonth()]
+  return `${day}. ${month}`
 }
 
 function formatPrimaryDate(date: EventDateEntry): string {
-  const eventDate = new Date(`${date.startDate}T00:00:00`);
-  const daysUntil = differenceInCalendarDays(eventDate, new Date());
+  const eventDate = new Date(`${date.startDate}T00:00:00`)
+  const daysUntil = differenceInCalendarDays(eventDate, new Date())
   const timeRange = date.startTime
     ? formatTimeRange(date.startTime, date.endTime)
-    : null;
+    : null
 
-  let dayLabel: string;
+  let dayLabel: string
   if (isToday(eventDate)) {
-    dayLabel = "I dag";
+    dayLabel = "I dag"
   } else if (isTomorrow(eventDate)) {
-    dayLabel = "I morgen";
+    dayLabel = "I morgen"
   } else if (daysUntil > 0 && daysUntil <= 7) {
-    dayLabel = `Om ${daysUntil} dager`;
+    dayLabel = `Om ${daysUntil} dager`
   } else {
-    dayLabel = longDateFormatter.format(eventDate);
+    dayLabel = longDateFormatter.format(eventDate)
   }
 
-  return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel;
+  return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }
 
 function getRecurringLabel(rrule: string | null | undefined): string | null {
-  if (!rrule) return "Gjentagende";
-  const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase();
-  if (freq === "DAILY") return "Hver dag";
-  if (freq === "WEEKLY") return "Hver uke";
-  if (freq === "MONTHLY") return "Hver måned";
-  return "Gjentagende";
+  if (!rrule) return "Gjentagende"
+  const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase()
+  if (freq === "DAILY") return "Hver dag"
+  if (freq === "WEEKLY") return "Hver uke"
+  if (freq === "MONTHLY") return "Hver måned"
+  return "Gjentagende"
 }
 
 function expandRRuleDates(
@@ -151,13 +151,13 @@ function expandRRuleDates(
     const rule = new RRule({
       ...RRule.parseString(rruleStr),
       dtstart: new Date(`${seed.startDate}T12:00:00Z`),
-    });
-    const now = new Date();
+    })
+    const now = new Date()
     const ceiling = new Date(
       now.getFullYear() + 2,
       now.getMonth(),
       now.getDate(),
-    );
+    )
     return rule
       .between(now, ceiling, true)
       .slice(0, count)
@@ -166,37 +166,37 @@ function expandRRuleDates(
         startDate: d.toISOString().split("T")[0],
         startTime: seed.startTime ?? null,
         endTime: seed.endTime ?? null,
-      }));
+      }))
   } catch {
-    return [];
+    return []
   }
 }
 
 // ─── DateBadges ───────────────────────────────────────────────────────────────
 
-const MAX_VISIBLE_BADGES = 3;
+const MAX_VISIBLE_BADGES = 3
 
 function DateBadges({
   dates,
   primaryIndex,
   size = "default",
 }: {
-  dates: EventDateEntry[];
-  primaryIndex: number;
-  size?: "default" | "small";
+  dates: EventDateEntry[]
+  primaryIndex: number
+  size?: "default" | "small"
 }) {
-  const otherDates = dates.filter((_, i) => i !== primaryIndex);
-  if (otherDates.length === 0) return null;
+  const otherDates = dates.filter((_, i) => i !== primaryIndex)
+  if (otherDates.length === 0) return null
 
-  const visible = otherDates.slice(0, MAX_VISIBLE_BADGES);
-  const overflow = otherDates.length - MAX_VISIBLE_BADGES;
+  const visible = otherDates.slice(0, MAX_VISIBLE_BADGES)
+  const overflow = otherDates.length - MAX_VISIBLE_BADGES
 
   return (
     <div
       className={cn("flex flex-wrap", size === "small" ? "gap-2" : "gap-1.5")}
       aria-label="Andre datoer"
     >
-      {visible.map((d) => (
+      {visible.map(d => (
         <span
           key={d._key}
           className={cn(
@@ -218,17 +218,17 @@ function DateBadges({
         </span>
       )}
     </div>
-  );
+  )
 }
 
 // ─── EventCard ──────────────────────────────────────────────────────────
 
 export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
-  event: EventSummary;
-  facebookLabel: string;
-  showActions?: boolean;
-  showRoom?: boolean;
-  ticketsLabel: string;
+  event: EventSummary
+  facebookLabel: string
+  showActions?: boolean
+  showRoom?: boolean
+  ticketsLabel: string
 }
 
 export function EventCard({
@@ -240,22 +240,22 @@ export function EventCard({
   ticketsLabel,
   variant,
 }: EventCardProps) {
-  const cardSize = size ?? "default";
-  const todayStr = new Date().toISOString().split("T")[0]!;
-  const allDates = computeAllDates(event, todayStr);
-  const primaryDate = allDates[0];
+  const cardSize = size ?? "default"
+  const todayStr = new Date().toISOString().split("T")[0]!
+  const allDates = computeAllDates(event, todayStr)
+  const primaryDate = allDates[0]
   const taxonomy = [
     event.eventType?.name,
     event.organizerGroup?.name ?? event.organizerText,
   ]
     .filter(Boolean)
-    .join(" / ");
-  const roomTitle = event.room?.title ?? event.roomText;
-  const roomSlug = event.room?.slug;
-  const roomFloor = event.room?.floor;
-  const roomImageUrl = event.room?.imageUrl;
-  const href = `/arrangementer/${event.slug}`;
-  const timeLabel = primaryDate ? formatPrimaryDate(primaryDate) : null;
+    .join(" / ")
+  const roomTitle = event.room?.title ?? event.roomText
+  const roomSlug = event.room?.slug
+  const roomFloor = event.room?.floor
+  const roomImageUrl = event.room?.imageUrl
+  const href = `/arrangementer/${event.slug}`
+  const timeLabel = primaryDate ? formatPrimaryDate(primaryDate) : null
 
   return (
     <Card className={eventCardVariants({ variant, size })}>
@@ -399,26 +399,26 @@ export function EventCard({
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 function formatTimeRange(start: string, end?: string | null): string {
-  if (end) return `kl. ${start}–${end}`;
-  return `kl. ${start}`;
+  if (end) return `kl. ${start}–${end}`
+  return `kl. ${start}`
 }
 
 function computeAllDates(
   event: EventSummary,
   todayStr: string,
 ): EventDateEntry[] {
-  const seedDate = event.dates[0];
-  const futureDates = event.dates.filter((d) => d.startDate >= todayStr);
-  if (futureDates.length > 0) return futureDates;
+  const seedDate = event.dates[0]
+  const futureDates = event.dates.filter(d => d.startDate >= todayStr)
+  if (futureDates.length > 0) return futureDates
 
   if (event.rrule && seedDate) {
-    const expanded = expandRRuleDates(event.rrule, seedDate, 14);
-    if (expanded.length > 0) return expanded;
+    const expanded = expandRRuleDates(event.rrule, seedDate, 14)
+    if (expanded.length > 0) return expanded
   }
 
-  return seedDate ? [seedDate] : [];
+  return seedDate ? [seedDate] : []
 }

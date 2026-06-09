@@ -1,18 +1,18 @@
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "lucide-react"
 
-import { BookingForm, type BookingRoom } from "@/features/booking";
-import { Link } from "@/i18n/navigation";
+import { BookingForm, type BookingRoom } from "@/features/booking"
+import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch";
+} from "@/lib/app-locale"
+import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata() {
@@ -20,22 +20,22 @@ export async function generateMetadata() {
     title: "Book rom | Samfunnet i Bergen",
     description:
       "Send en bookingforespørsel for rom på Det Akademiske Kvarter. Fyll ut skjemaet, så behandler vi forespørselen din.",
-  };
+  }
 }
 
 export default async function BookRoomPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
   const [bookableRooms, houseHours] = await Promise.all([
     fetchBookableRooms(),
     fetchHouseHours(),
-  ]);
-  const rooms: BookingRoom[] = bookableRooms.map((room) => ({
+  ])
+  const rooms: BookingRoom[] = bookableRooms.map(room => ({
     title: room.title,
     slug: room.slug,
     summary: room.summary,
@@ -49,7 +49,7 @@ export default async function BookRoomPage({
           alt: room.image.alt,
         }
       : null,
-  }));
+  }))
 
   return (
     <article className="flex w-full flex-col gap-10">
@@ -87,5 +87,5 @@ export default async function BookRoomPage({
         rooms={rooms}
       />
     </article>
-  );
+  )
 }

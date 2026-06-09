@@ -1,16 +1,16 @@
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus } from "lucide-react"
 
-import { EventsProvider } from "@/features/events/context/EventsContext";
-import type { PublishedEvent } from "@/features/events/domain/eventUtils";
-import { Link } from "@/i18n/navigation";
-import { EventsPageFilters } from "./EventsPageFilters";
-import { EventsPageSections } from "./EventsPageSections";
+import { EventsProvider } from "@/features/events/context/EventsContext"
+import type { PublishedEvent } from "@/features/events/domain/eventUtils"
+import { Link } from "@/i18n/navigation"
+import { EventsPageFilters } from "./EventsPageFilters"
+import { EventsPageSections } from "./EventsPageSections"
 
 interface EventsPageProps {
-  arrangements: PublishedEvent[];
-  backLabel: string;
-  searchParams: Record<string, string | string[] | undefined>;
-  title: string;
+  arrangements: PublishedEvent[]
+  backLabel: string
+  searchParams: Record<string, string | string[] | undefined>
+  title: string
 }
 
 export function EventsPage({
@@ -64,5 +64,5 @@ export function EventsPage({
         </div>
       </div>
     </EventsProvider>
-  );
+  )
 }

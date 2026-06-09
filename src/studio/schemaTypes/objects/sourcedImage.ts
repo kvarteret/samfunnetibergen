@@ -1,5 +1,5 @@
-import { ImageIcon } from "@sanity/icons";
-import { defineField, defineType } from "sanity";
+import { ImageIcon } from "@sanity/icons"
+import { defineField, defineType } from "sanity"
 
 export const sourcedImage = defineType({
   name: "sourcedImage",
@@ -17,12 +17,12 @@ export const sourcedImage = defineType({
       name: "alt",
       title: "Alt Text",
       type: "string",
-      validation: (rule) =>
+      validation: rule =>
         rule.custom((alt, ctx) => {
-          const parent = ctx.parent as { image?: unknown } | undefined;
+          const parent = ctx.parent as { image?: unknown } | undefined
           if (parent?.image && !alt)
-            return "Alt-tekst er påkrevd når bilde er lastet opp.";
-          return true;
+            return "Alt-tekst er påkrevd når bilde er lastet opp."
+          return true
         }),
     }),
     defineField({
@@ -34,4 +34,4 @@ export const sourcedImage = defineType({
   preview: {
     select: { title: "alt", media: "image" },
   },
-});
+})

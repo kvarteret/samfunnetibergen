@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import { EventCard, type EventSummary } from "./EventCard";
+import { EventCard, type EventSummary } from "./EventCard"
 
 interface EventFormPreviewProps {
-  event: EventSummary;
+  event: EventSummary
 }
 
 export function EventFormPreview({ event }: EventFormPreviewProps) {
@@ -23,5 +23,5 @@ export function EventFormPreview({ event }: EventFormPreviewProps) {
         Slik vil arrangementet se ut i listen
       </p>
     </div>
-  );
+  )
 }

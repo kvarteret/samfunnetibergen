@@ -1,5 +1,5 @@
-import { DocumentTextIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { DocumentTextIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const editorialSection = defineType({
   name: "editorialSection",
@@ -13,7 +13,7 @@ export const editorialSection = defineType({
       title: "Avsnitt",
       type: "array",
       of: [defineArrayMember({ type: "text" })],
-      validation: (rule) => rule.required().min(1),
+      validation: rule => rule.required().min(1),
     }),
     defineField({
       name: "links",
@@ -25,7 +25,7 @@ export const editorialSection = defineType({
   preview: {
     select: { title: "title", paragraphs: "paragraphs" },
     prepare({ title, paragraphs }) {
-      return { title: title || paragraphs?.[0] || "Tekstseksjon" };
+      return { title: title || paragraphs?.[0] || "Tekstseksjon" }
     },
   },
-});
+})

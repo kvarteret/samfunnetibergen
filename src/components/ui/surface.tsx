@@ -1,6 +1,6 @@
-import { type ElementType, type ReactNode } from "react";
+import { type ElementType, type ReactNode } from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 // A raised surface that "pops" above the page background. Used across the app
 // for cards, info panels, form sections, and sidebars that need distinct
@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 // semantic element (`section`, `aside`, `article`, etc.).
 
 interface SurfaceProps {
-  as?: ElementType;
-  children: ReactNode;
-  className?: string;
+  as?: ElementType
+  children: ReactNode
+  className?: string
 }
 
 export function Surface({
@@ -31,5 +31,5 @@ export function Surface({
     >
       {children}
     </Component>
-  );
+  )
 }

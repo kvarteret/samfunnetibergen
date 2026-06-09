@@ -1,53 +1,53 @@
-import Image from "next/image";
-import Link from "next/link";
+import Image from "next/image"
+import Link from "next/link"
 
-import { Button } from "@/components/ui/button";
-import { HomeOpenStatus } from "@/features/bars";
+import { Button } from "@/components/ui/button"
+import { HomeOpenStatus } from "@/features/bars"
 
-import { HomeBarPreviews } from "./_components/HomeBarPreviews";
-import { EventCard, type EventSummary } from "@/features/events";
-import type { AppLocale } from "@/i18n/routing";
+import { HomeBarPreviews } from "./_components/HomeBarPreviews"
+import { EventCard, type EventSummary } from "@/features/events"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
+} from "@/lib/app-locale"
 import {
   fetchBarPreviews,
   fetchHomePageContent,
   fetchPublishedEvents,
   fetchSiteMetadata,
-} from "@/lib/sanity/fetch";
+} from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
-  const locale = await resolvePageLocale(params);
+  const locale = await resolvePageLocale(params)
   const [homePage, siteMetadata] = await Promise.all([
     fetchHomePageContent(locale, { stega: false }),
     fetchSiteMetadata(locale, { stega: false }),
-  ]);
+  ])
   const title =
     homePage?.seoTitle ??
     siteMetadata?.defaultSeoTitle ??
     homePage?.title ??
     siteMetadata?.siteName ??
-    undefined;
+    undefined
   const description =
     homePage?.seoDescription ??
     siteMetadata?.defaultSeoDescription ??
     homePage?.description ??
-    undefined;
+    undefined
   const openGraphTitle =
-    homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title;
+    homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title
   const openGraphDescription =
     homePage?.openGraphDescription ??
     siteMetadata?.defaultOpenGraphDescription ??
-    description;
+    description
   const openGraphImage =
-    homePage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl;
+    homePage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
   return {
     title,
     description,
@@ -57,16 +57,16 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
       images: openGraphImage ? [{ url: openGraphImage }] : undefined,
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
     },
-  };
+  }
 }
 
-type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number];
-type SanityEventDate = NonNullable<SanityEvent["dates"]>[number];
+type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
+type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
 
 function localizeHref(href: string | null | undefined, locale: AppLocale) {
-  if (!href) return `/${locale}`;
-  if (!href.startsWith("/")) return href;
-  return href === "/" ? `/${locale}` : `/${locale}${href}`;
+  if (!href) return `/${locale}`
+  if (!href.startsWith("/")) return href
+  return href === "/" ? `/${locale}` : `/${locale}${href}`
 }
 
 function toEventSummary(event: SanityEvent): EventSummary {
@@ -120,19 +120,19 @@ function toEventSummary(event: SanityEvent): EventSummary {
             : null,
         }
       : null,
-  };
+  }
 }
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
-  const locale = (await resolvePageLocale(params)) as AppLocale;
-  activateRequestLocale(locale);
+  const locale = (await resolvePageLocale(params)) as AppLocale
+  activateRequestLocale(locale)
 
   const [homePage, events, barPreviews] = await Promise.all([
     fetchHomePageContent(locale),
     fetchPublishedEvents(),
     fetchBarPreviews(),
-  ]);
-  const visibleEvents = (events ?? []).slice(0, 4);
+  ])
+  const visibleEvents = (events ?? []).slice(0, 4)
 
   return (
     <div className="flex flex-col gap-12 pb-12">
@@ -144,26 +144,26 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         rooms={barPreviews?.rooms ?? []}
       />
     </div>
-  );
+  )
 }
 
 // ─── HomeHero ─────────────────────────────────────────────────────────────────
 
-type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>;
-type BarPreviews = Awaited<ReturnType<typeof fetchBarPreviews>>;
+type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
+type BarPreviews = Awaited<ReturnType<typeof fetchBarPreviews>>
 
 function HomeHero({
   homePage,
   locale,
   barPreviews,
 }: {
-  homePage: HomePage;
-  locale: AppLocale;
-  barPreviews: BarPreviews;
+  homePage: HomePage
+  locale: AppLocale
+  barPreviews: BarPreviews
 }) {
   const ctaHref = homePage?.primaryCta?.href
     ? localizeHref(homePage.primaryCta.href, locale)
-    : null;
+    : null
 
   return (
     <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] lg:gap-12">
@@ -180,7 +180,7 @@ function HomeHero({
           </div>
         )}
         <div className="flex flex-col gap-6">
-          {homePage?.description?.split(/\n{2,}/).map((paragraph) => (
+          {homePage?.description?.split(/\n{2,}/).map(paragraph => (
             <p
               className="max-w-2xl text-base leading-relaxed text-foreground/75"
               key={paragraph}
@@ -205,18 +205,18 @@ function HomeHero({
         width={1595}
       />
     </section>
-  );
+  )
 }
 
 // ─── HomeEvents ───────────────────────────────────────────────────────────────
 
 interface HomeEventsProps {
-  events: SanityEvent[];
-  locale: AppLocale;
+  events: SanityEvent[]
+  locale: AppLocale
 }
 
 function HomeEvents({ events, locale }: HomeEventsProps) {
-  if (!events.length) return null;
+  if (!events.length) return null
 
   return (
     <section className="space-y-4">
@@ -232,7 +232,7 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {events.map((event) => (
+        {events.map(event => (
           <EventCard
             event={toEventSummary(event)}
             facebookLabel="Facebook"
@@ -246,5 +246,5 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
         ))}
       </div>
     </section>
-  );
+  )
 }

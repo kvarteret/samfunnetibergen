@@ -1,45 +1,45 @@
-"use client";
+"use client"
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl"
 
-import { useEvents } from "@/features/events/context/EventsContext";
-import { countEventFilters } from "@/features/events/domain/eventUtils";
-import { EventsPageFilterButton } from "./EventsPageFilterButton";
+import { useEvents } from "@/features/events/context/EventsContext"
+import { countEventFilters } from "@/features/events/domain/eventUtils"
+import { EventsPageFilterButton } from "./EventsPageFilterButton"
 
 export function EventsPageFilters() {
-  const t = useTranslations("EventsPage");
-  const { filters, filteredEvents, setFilters, taxonomy } = useEvents();
-  const activeFilterCount = countEventFilters(filters);
+  const t = useTranslations("EventsPage")
+  const { filters, filteredEvents, setFilters, taxonomy } = useEvents()
+  const activeFilterCount = countEventFilters(filters)
 
   const clearAll = () =>
     setFilters({
       taxonomyGroupName: null,
       eventTypeIds: [],
       organizerGroupIds: [],
-    });
+    })
 
   const toggleTaxonomyGroup = (name: string) =>
     setFilters({
       taxonomyGroupName: filters.taxonomyGroupName === name ? null : name,
       eventTypeIds: [],
       organizerGroupIds: filters.organizerGroupIds,
-    });
+    })
 
   const toggleEventType = (id: string) =>
     setFilters({
       ...filters,
       eventTypeIds: filters.eventTypeIds.includes(id)
-        ? filters.eventTypeIds.filter((x) => x !== id)
+        ? filters.eventTypeIds.filter(x => x !== id)
         : [...filters.eventTypeIds, id],
-    });
+    })
 
   const toggleOrganizer = (id: string) =>
     setFilters({
       ...filters,
       organizerGroupIds: filters.organizerGroupIds.includes(id)
-        ? filters.organizerGroupIds.filter((x) => x !== id)
+        ? filters.organizerGroupIds.filter(x => x !== id)
         : [...filters.organizerGroupIds, id],
-    });
+    })
 
   return (
     <div className="space-y-6 border-y-2 border-border py-6">
@@ -50,7 +50,7 @@ export function EventsPageFilters() {
             label={t("filterAll")}
             onClick={clearAll}
           />
-          {taxonomy.taxonomyGroups.map((group) => (
+          {taxonomy.taxonomyGroups.map(group => (
             <EventsPageFilterButton
               isActive={
                 filters.taxonomyGroupName === group.name &&
@@ -75,18 +75,18 @@ export function EventsPageFilters() {
             {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </summary>
           <div className="mt-6 space-y-8">
-            {taxonomy.taxonomyGroups.map((group) => {
+            {taxonomy.taxonomyGroups.map(group => {
               const groupEventTypes = taxonomy.eventTypes.filter(
-                (et) => et.taxonomyGroupName === group.name,
-              );
-              if (groupEventTypes.length === 0) return null;
+                et => et.taxonomyGroupName === group.name,
+              )
+              if (groupEventTypes.length === 0) return null
               return (
                 <div className="space-y-3" key={group._id}>
                   <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
                     {t("filterType")} — {group.name}
                   </h2>
                   <div className="flex flex-wrap gap-3">
-                    {groupEventTypes.map((eventType) => (
+                    {groupEventTypes.map(eventType => (
                       <EventsPageFilterButton
                         isActive={filters.eventTypeIds.includes(eventType._id)}
                         key={eventType._id}
@@ -96,7 +96,7 @@ export function EventsPageFilters() {
                     ))}
                   </div>
                 </div>
-              );
+              )
             })}
             {taxonomy.organizerGroups.length > 0 && (
               <div className="space-y-3">
@@ -104,7 +104,7 @@ export function EventsPageFilters() {
                   {t("filterOrganizer")}
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  {taxonomy.organizerGroups.map((group) => (
+                  {taxonomy.organizerGroups.map(group => (
                     <EventsPageFilterButton
                       isActive={filters.organizerGroupIds.includes(group._id)}
                       key={group._id}
@@ -119,5 +119,5 @@ export function EventsPageFilters() {
         </details>
       )}
     </div>
-  );
+  )
 }

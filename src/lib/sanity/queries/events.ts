@@ -1,6 +1,6 @@
-import { defineQuery } from "next-sanity";
+import { defineQuery } from "next-sanity"
 
-import { portableTextProjection } from "../fragments/portableText";
+import { portableTextProjection } from "../fragments/portableText"
 
 export const eventsPageContentNbQuery =
   defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
@@ -15,14 +15,14 @@ export const eventsPageContentNbQuery =
     oembedTitle,
     oembedDescription,
     "oembedImageUrl": oembedImage.asset->url
-}`);
+}`)
 
 export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
     "title": coalesce(title, ""),
     "slug": coalesce(slug.current, "")
-}`);
+}`)
 
 export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
@@ -34,14 +34,14 @@ export const eventTypesQuery = defineQuery(`
         "name": coalesce(name, ""),
         "slug": coalesce(slug.current, "")
     }
-}`);
+}`)
 
 export const eventGroupsQuery = defineQuery(`
     *[_type == "studentGroup"] | order(orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
     "category": coalesce(category, "")
-}`);
+}`)
 
 const eventProjection = `{
     _id,
@@ -83,26 +83,26 @@ const eventProjection = `{
         "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }
     },
     description[] ${portableTextProjection}
-}`;
+}`
 
 export const publishedEventsQuery = defineQuery(`
     *[_type == "arrangement" && approvalStatus == "approved" && (
         count(dates[startDate >= $today]) > 0
         || (isRecurring == true && defined(rrule) && count(dates) > 0)
-    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`);
+    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
 export const eventBySlugQuery = defineQuery(`
     *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (
         count(dates[startDate >= $today]) > 0
         || (isRecurring == true && defined(rrule) && count(dates) > 0)
-    )][0] ${eventProjection}`);
+    )][0] ${eventProjection}`)
 
 export const eventTaxonomyGroupsQuery = defineQuery(`
     *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
     "slug": coalesce(slug.current, "")
-}`);
+}`)
 
 export const feedEventsQuery = defineQuery(`
     *[
@@ -137,4 +137,4 @@ export const feedEventsQuery = defineQuery(`
         organizerText,
         "eventType": eventType-> { "name": coalesce(name, "") },
         description[] ${portableTextProjection}
-    }`);
+    }`)

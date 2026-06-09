@@ -1,44 +1,44 @@
-import { CalendarPlus } from "lucide-react";
-import { Surface } from "@/components/ui/surface";
-import { EventForm } from "@/features/events";
-import { Link } from "@/i18n/navigation";
-import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale";
+import { CalendarPlus } from "lucide-react"
+import { Surface } from "@/components/ui/surface"
+import { EventForm } from "@/features/events"
+import { Link } from "@/i18n/navigation"
+import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import {
   fetchEventGroups,
   fetchEventRooms,
   fetchEventTypes,
-} from "@/lib/sanity/fetch";
+} from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 export async function generateMetadata() {
   return {
     title: "Legg til arrangement | Samfunnet i Bergen",
     description:
       "Arrangerer du eller din organisasjon noe på Samfunnet i Bergen? Legg til arrangementet i listen her.",
-  };
+  }
 }
 
 export default async function NyttArrangementPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
   const [rooms, eventTypes, groups] = await Promise.all([
     fetchEventRooms(),
     fetchEventTypes(),
     fetchEventGroups(),
-  ]);
+  ])
 
   return (
     <article className="flex w-full flex-col gap-12">
       <SubmitEventPageIntro />
       <EventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
     </article>
-  );
+  )
 }
 
 function SubmitEventPageIntro() {
@@ -106,5 +106,5 @@ function SubmitEventPageIntro() {
         </Surface>
       </div>
     </header>
-  );
+  )
 }

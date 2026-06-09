@@ -1,4 +1,4 @@
-import { defineArrayMember, defineType } from "sanity";
+import { defineArrayMember, defineType } from "sanity"
 
 export const portableTextContent = defineType({
   name: "portableTextContent",
@@ -30,7 +30,7 @@ export const portableTextContent = defineType({
                 name: "href",
                 type: "url",
                 title: "URL",
-                validation: (rule) =>
+                validation: rule =>
                   rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
               },
               {
@@ -59,7 +59,7 @@ export const portableTextContent = defineType({
           name: "alt",
           type: "string",
           title: "Alt-tekst",
-          validation: (rule) => rule.required(),
+          validation: rule => rule.required(),
         },
         {
           name: "caption",
@@ -69,4 +69,4 @@ export const portableTextContent = defineType({
       ],
     }),
   ],
-});
+})

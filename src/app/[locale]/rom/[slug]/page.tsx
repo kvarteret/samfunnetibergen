@@ -1,50 +1,48 @@
-import { ArrowRight, Check, Clock, FileText, Users, X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { type CarouselSlide, ImageCarousel } from "@/features/rooms";
+import { ArrowRight, Check, Clock, FileText, Users, X } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { type CarouselSlide, ImageCarousel } from "@/features/rooms"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { formatWeekdays } from "@/lib/opening-hours";
-import { PortableTextContent } from "@/lib/portable-text-components";
-import type { SourcedImage } from "@/lib/sanity/fetch";
-import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch";
+} from "@/lib/app-locale"
+import { formatWeekdays } from "@/lib/opening-hours"
+import { PortableTextContent } from "@/lib/portable-text-components"
+import type { SourcedImage } from "@/lib/sanity/fetch"
+import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 type RoomPageProps = {
-  params: Promise<{ locale: string; slug: string }>;
-};
-
-type Room = NonNullable<Awaited<ReturnType<typeof fetchRoomBySlug>>>;
-
-export async function generateStaticParams() {
-  const locales = getLocaleStaticParams();
-  const slugs = await fetchRoomSlugs();
-  return locales.flatMap(({ locale }) =>
-    slugs.map((slug) => ({ locale, slug })),
-  );
+  params: Promise<{ locale: string; slug: string }>
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl;
+type Room = NonNullable<Awaited<ReturnType<typeof fetchRoomBySlug>>>
+
+export async function generateStaticParams() {
+  const locales = getLocaleStaticParams()
+  const slugs = await fetchRoomSlugs()
+  return locales.flatMap(({ locale }) => slugs.map(slug => ({ locale, slug })))
+}
+
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 function localizeHref(href: string, locale: string) {
-  if (!href.startsWith("/")) return href;
-  return href === "/" ? `/${locale}` : `/${locale}${href}`;
+  if (!href.startsWith("/")) return href
+  return href === "/" ? `/${locale}` : `/${locale}${href}`
 }
 
 export async function generateMetadata({ params }: RoomPageProps) {
-  const { slug, locale: localeParam } = await params;
-  await resolvePageLocale(Promise.resolve({ locale: localeParam }));
-  const room = await fetchRoomBySlug(slug, { stega: false });
-  if (!room) return {};
+  const { slug, locale: localeParam } = await params
+  await resolvePageLocale(Promise.resolve({ locale: localeParam }))
+  const room = await fetchRoomBySlug(slug, { stega: false })
+  if (!room) return {}
 
-  const title = room.title ?? slug;
-  const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined;
+  const title = room.title ?? slug
+  const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
 
   return {
     title: `${title} | Rom | Samfunnet i Bergen`,
@@ -54,24 +52,24 @@ export async function generateMetadata({ params }: RoomPageProps) {
       description: room.summary ?? undefined,
       images: firstImageUrl ? [{ url: firstImageUrl }] : undefined,
     },
-  };
+  }
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {
-  const { slug, locale: localeParam } = await params;
+  const { slug, locale: localeParam } = await params
   const locale = await resolvePageLocale(
     Promise.resolve({ locale: localeParam }),
-  );
-  activateRequestLocale(locale);
+  )
+  activateRequestLocale(locale)
 
-  const room = await fetchRoomBySlug(slug);
-  if (!room) notFound();
+  const room = await fetchRoomBySlug(slug)
+  if (!room) notFound()
 
-  const title = room.title ?? slug;
+  const title = room.title ?? slug
 
   const imageSlides: CarouselSlide[] = (room.images ?? []).flatMap(
     (image: SourcedImage) => {
-      const src = imageUrl(image);
+      const src = imageUrl(image)
       return src
         ? [
             {
@@ -82,9 +80,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
               caption: image.caption,
             },
           ]
-        : [];
+        : []
     },
-  );
+  )
 
   const carouselSlides: CarouselSlide[] = room.panoramaUrl
     ? [
@@ -96,7 +94,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
         },
         ...imageSlides,
       ]
-    : imageSlides;
+    : imageSlides
 
   return (
     <article>
@@ -136,15 +134,15 @@ export default async function RoomPage({ params }: RoomPageProps) {
         <RoomBookingButton label={room.bookingLink?.label} locale={locale} />
       </div>
     </article>
-  );
+  )
 }
 
 function RoomBookingButton({
   label,
   locale,
 }: {
-  label?: string | null;
-  locale: string;
+  label?: string | null
+  locale: string
 }) {
   return (
     <Button asChild className="w-fit" size="lg">
@@ -153,16 +151,16 @@ function RoomBookingButton({
         {label ?? "Book rom her"}
       </Link>
     </Button>
-  );
+  )
 }
 
 interface RoomSpecsProps {
-  room: Room;
+  room: Room
 }
 
 function RoomSpecs({ room }: RoomSpecsProps) {
   const hasCapacity =
-    room.capacityStanding != null || room.capacitySeated != null;
+    room.capacityStanding != null || room.capacitySeated != null
   const hasSpecs =
     room.floor != null ||
     hasCapacity ||
@@ -170,10 +168,10 @@ function RoomSpecs({ room }: RoomSpecsProps) {
     room.bar != null ||
     room.hasSound != null ||
     room.hasLighting != null ||
-    room.hasAV != null;
+    room.hasAV != null
 
   if (!hasSpecs) {
-    return null;
+    return null
   }
 
   return (
@@ -246,12 +244,12 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         </a>
       )}
     </section>
-  );
+  )
 }
 
 interface SpecRowProps {
-  children: React.ReactNode;
-  label: string;
+  children: React.ReactNode
+  label: string
 }
 
 function SpecRow({ children, label }: SpecRowProps) {
@@ -262,13 +260,13 @@ function SpecRow({ children, label }: SpecRowProps) {
       </dt>
       {children}
     </div>
-  );
+  )
 }
 
 interface BoolSpecProps {
-  details?: string | null;
-  label: string;
-  value: boolean;
+  details?: string | null
+  label: string
+  value: boolean
 }
 
 function BoolSpec({ details, label, value }: BoolSpecProps) {
@@ -298,16 +296,16 @@ function BoolSpec({ details, label, value }: BoolSpecProps) {
         )}
       </dd>
     </SpecRow>
-  );
+  )
 }
 
 function RoomFloorPlan({ room }: RoomSpecsProps) {
   const floorPlan = room.floorPlans?.find(
-    (plan) => plan.floor === room.floor && plan.assetUrl,
-  );
+    plan => plan.floor === room.floor && plan.assetUrl,
+  )
 
   if (!floorPlan?.assetUrl) {
-    return null;
+    return null
   }
 
   return (
@@ -325,16 +323,16 @@ function RoomFloorPlan({ room }: RoomSpecsProps) {
         />
       </div>
     </section>
-  );
+  )
 }
 
 interface RoomOpeningHoursProps {
-  room: Room;
+  room: Room
 }
 
 function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
   if (!room.openingHours?.rows?.length) {
-    return null;
+    return null
   }
 
   return (
@@ -348,8 +346,8 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
           (
             row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number],
           ) => {
-            const dayLabel = formatWeekdays(row.weekdays);
-            if (!dayLabel) return null;
+            const dayLabel = formatWeekdays(row.weekdays)
+            if (!dayLabel) return null
 
             return (
               <div
@@ -368,10 +366,10 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
                   )}
                 </dd>
               </div>
-            );
+            )
           },
         )}
       </dl>
     </section>
-  );
+  )
 }

@@ -1,9 +1,9 @@
-import "server-only";
+import "server-only"
 
-import type { ClientReturn } from "@sanity/client";
-import type { AppLocale } from "@/i18n/routing";
-import { sanityClient } from "../client";
-import { sanityFetch } from "../fetcher";
+import type { ClientReturn } from "@sanity/client"
+import type { AppLocale } from "@/i18n/routing"
+import { sanityClient } from "../client"
+import { sanityFetch } from "../fetcher"
 import {
   eventBySlugQuery,
   eventGroupsQuery,
@@ -11,22 +11,22 @@ import {
   eventsPageContentNbQuery,
   eventTypesQuery,
   publishedEventsQuery,
-} from "../queries";
-import { type FetchOptions, getOsloDateString } from "./shared";
+} from "../queries"
+import { type FetchOptions, getOsloDateString } from "./shared"
 
 export type EventsPageContent = NonNullable<
   ClientReturn<typeof eventsPageContentNbQuery>
->;
+>
 
-export type PublishedEvent = ClientReturn<typeof publishedEventsQuery>[number];
+export type PublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
 
-export type EventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>;
+export type EventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
 
-export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number];
+export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
 
-export type EventType = ClientReturn<typeof eventTypesQuery>[number];
+export type EventType = ClientReturn<typeof eventTypesQuery>[number]
 
-export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number];
+export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
 
 export async function fetchEventsPageContent(
   _locale: AppLocale,
@@ -36,8 +36,8 @@ export async function fetchEventsPageContent(
     query: eventsPageContentNbQuery,
     tags: ["eventsPage"],
     stega: options.stega,
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
@@ -45,8 +45,8 @@ export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
     query: publishedEventsQuery,
     params: { today: getOsloDateString() },
     tags: ["events"],
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchEventBySlug(
@@ -56,8 +56,8 @@ export async function fetchEventBySlug(
     query: eventBySlugQuery,
     params: { slug, today: getOsloDateString() },
     tags: ["events"],
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchEventRooms(): Promise<EventRoom[]> {
@@ -65,7 +65,7 @@ export async function fetchEventRooms(): Promise<EventRoom[]> {
     eventRoomsQuery,
     {},
     { next: { revalidate: 300, tags: ["rooms"] } },
-  );
+  )
 }
 
 export async function fetchEventTypes(): Promise<EventType[]> {
@@ -73,7 +73,7 @@ export async function fetchEventTypes(): Promise<EventType[]> {
     eventTypesQuery,
     {},
     { next: { revalidate: 300, tags: ["eventTypes"] } },
-  );
+  )
 }
 
 export async function fetchEventGroups(): Promise<EventGroup[]> {
@@ -81,5 +81,5 @@ export async function fetchEventGroups(): Promise<EventGroup[]> {
     eventGroupsQuery,
     {},
     { next: { revalidate: 300, tags: ["studentGroups"] } },
-  );
+  )
 }

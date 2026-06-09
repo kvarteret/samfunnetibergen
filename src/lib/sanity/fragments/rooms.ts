@@ -1,7 +1,7 @@
 const durationProjection = `{
     start,
     end
-}`;
+}`
 
 export const openingHoursProjection = `{
     rows[] {
@@ -11,4 +11,4 @@ export const openingHoursProjection = `{
         note,
         "duration": duration ${durationProjection}
     }
-}`;
+}`

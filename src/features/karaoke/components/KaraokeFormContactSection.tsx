@@ -1,21 +1,18 @@
-"use client";
+"use client"
 
-import {
-  FieldGroup,
-  SectionHeader,
-} from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useKaraokeForm } from "./karaokeFormContext";
+import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useKaraokeForm } from "./karaokeFormContext"
 
 interface KaraokeFormContactSectionProps {
-  uid: string;
+  uid: string
 }
 
 export function KaraokeFormContactSection({
   uid,
 }: KaraokeFormContactSectionProps) {
-  const form = useKaraokeForm();
+  const form = useKaraokeForm()
 
   return (
     <section className="space-y-6">
@@ -27,7 +24,7 @@ export function KaraokeFormContactSection({
           <Input
             autoComplete="name"
             id={`${uid}-contactName`}
-            onChange={(event) =>
+            onChange={event =>
               form.setFieldValue("contactName", event.target.value)
             }
             placeholder="Fullt navn"
@@ -41,7 +38,7 @@ export function KaraokeFormContactSection({
           <Input
             autoComplete="email"
             id={`${uid}-contactEmail`}
-            onChange={(event) =>
+            onChange={event =>
               form.setFieldValue("contactEmail", event.target.value)
             }
             placeholder="din@epost.no"
@@ -57,7 +54,7 @@ export function KaraokeFormContactSection({
         <Input
           autoComplete="tel"
           id={`${uid}-contactPhone`}
-          onChange={(event) =>
+          onChange={event =>
             form.setFieldValue("contactPhone", event.target.value)
           }
           placeholder="+47 55 55 55 55"
@@ -66,5 +63,5 @@ export function KaraokeFormContactSection({
         />
       </FieldGroup>
     </section>
-  );
+  )
 }

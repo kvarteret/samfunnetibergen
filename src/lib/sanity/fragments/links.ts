@@ -16,4 +16,4 @@ export const sourceLinkProjection = `{
         linkType == "internalPath" => internalPath,
         linkType == "external" => externalUrl
     )
-}`;
+}`

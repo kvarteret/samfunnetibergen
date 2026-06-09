@@ -1,27 +1,27 @@
-import type { MetadataRoute } from "next";
-import { type AppLocale, routing } from "@/i18n/routing";
-import { fetchStudentGroupSlugs } from "@/lib/sanity/fetch";
-import { resolveSiteUrl } from "@/lib/site-url";
+import type { MetadataRoute } from "next"
+import { type AppLocale, routing } from "@/i18n/routing"
+import { fetchStudentGroupSlugs } from "@/lib/sanity/fetch"
+import { resolveSiteUrl } from "@/lib/site-url"
 
 function localizedPath(locale: AppLocale, path = "") {
-  return path === "/" ? `/${locale}` : `/${locale}${path}`;
+  return path === "/" ? `/${locale}` : `/${locale}${path}`
 }
 
 function localizedAlternates(siteUrl: string, path = "") {
   return Object.fromEntries(
-    routing.locales.map((locale) => [
+    routing.locales.map(locale => [
       locale,
       `${siteUrl}${localizedPath(locale, path)}`,
     ]),
-  );
+  )
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = resolveSiteUrl();
-  const lastModified = new Date();
+  const siteUrl = resolveSiteUrl()
+  const lastModified = new Date()
 
-  const staticEntries: MetadataRoute.Sitemap = ["/"].flatMap((path) =>
-    routing.locales.map((locale) => ({
+  const staticEntries: MetadataRoute.Sitemap = ["/"].flatMap(path =>
+    routing.locales.map(locale => ({
       url: `${siteUrl}${localizedPath(locale, path)}`,
       lastModified,
       changeFrequency: path === "/" ? "weekly" : "monthly",
@@ -30,19 +30,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         languages: localizedAlternates(siteUrl, path),
       },
     })),
-  );
+  )
 
   const groupsByLocale = await Promise.all(
-    routing.locales.map(async (locale) => ({
+    routing.locales.map(async locale => ({
       locale: locale as AppLocale,
       slugs: await fetchStudentGroupSlugs(),
     })),
-  );
+  )
 
   const groupEntries: MetadataRoute.Sitemap = groupsByLocale.flatMap(
     ({ locale, slugs }) =>
-      slugs.map((slug) => {
-        const groupPath = `/grupper/${slug}`;
+      slugs.map(slug => {
+        const groupPath = `/grupper/${slug}`
         return {
           url: `${siteUrl}${localizedPath(locale, groupPath)}`,
           lastModified,
@@ -51,9 +51,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           alternates: {
             languages: localizedAlternates(siteUrl, groupPath),
           },
-        };
+        }
       }),
-  );
+  )
 
-  return [...staticEntries, ...groupEntries];
+  return [...staticEntries, ...groupEntries]
 }

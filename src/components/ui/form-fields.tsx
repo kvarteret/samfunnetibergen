@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { Check, ChevronDown } from "lucide-react";
-import type { ReactNode } from "react";
+import { Check, ChevronDown } from "lucide-react"
+import type { ReactNode } from "react"
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 export type SelectOption = {
-  value: string;
-  label: string;
-};
+  value: string
+  label: string
+}
 
 interface SectionHeaderProps {
-  number: string;
-  title: string;
+  number: string
+  title: string
 }
 
 export function SectionHeader({ number, title }: SectionHeaderProps) {
@@ -27,34 +27,34 @@ export function SectionHeader({ number, title }: SectionHeaderProps) {
         {title}
       </h2>
     </div>
-  );
+  )
 }
 
 interface FieldGroupProps {
-  children: ReactNode;
-  className?: string;
+  children: ReactNode
+  className?: string
 }
 
 export function FieldGroup({ children, className }: FieldGroupProps) {
-  return <div className={cn("space-y-2", className)}>{children}</div>;
+  return <div className={cn("space-y-2", className)}>{children}</div>
 }
 
 interface FieldHintProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function FieldHint({ children }: FieldHintProps) {
-  return <p className="text-xs text-foreground/55">{children}</p>;
+  return <p className="text-xs text-foreground/55">{children}</p>
 }
 
 interface SelectFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: SelectOption[];
-  placeholder?: string;
-  hint?: string;
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: SelectOption[]
+  placeholder?: string
+  hint?: string
 }
 
 export function SelectField({
@@ -74,11 +74,11 @@ export function SelectField({
         <select
           className="w-full appearance-none border-2 border-border bg-background px-3 py-2 pr-9 text-sm font-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           id={id}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={event => onChange(event.target.value)}
           value={value}
         >
           {placeholder && <option value="">{placeholder}</option>}
-          {options.map((option) => (
+          {options.map(option => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -90,14 +90,14 @@ export function SelectField({
         />
       </div>
     </FieldGroup>
-  );
+  )
 }
 
 interface PriceInputProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
 }
 
 export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
@@ -112,7 +112,7 @@ export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
           className="pl-9"
           id={id}
           min={0}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={event => onChange(event.target.value)}
           placeholder="0"
           step={1}
           type="number"
@@ -120,12 +120,12 @@ export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
         />
       </div>
     </FieldGroup>
-  );
+  )
 }
 
 interface CheckboxSquareProps {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+  checked: boolean
+  onChange: (checked: boolean) => void
 }
 
 export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
@@ -134,7 +134,7 @@ export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
       <input
         checked={checked}
         className="sr-only"
-        onChange={(event) => onChange(event.target.checked)}
+        onChange={event => onChange(event.target.checked)}
         type="checkbox"
       />
       <span
@@ -148,5 +148,5 @@ export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
         )}
       </span>
     </span>
-  );
+  )
 }

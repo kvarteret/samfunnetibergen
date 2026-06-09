@@ -1,5 +1,5 @@
-import { ClockIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { ClockIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 const weekdayLabels: Record<number, string> = {
   1: "Man",
@@ -9,20 +9,20 @@ const weekdayLabels: Record<number, string> = {
   5: "Fre",
   6: "Lør",
   7: "Søn",
-};
+}
 
 function formatWeekdays(weekdays?: number[]) {
-  const days = [...new Set(weekdays ?? [])].toSorted((a, b) => a - b);
-  if (!days.length) return "Ukedager mangler";
+  const days = [...new Set(weekdays ?? [])].toSorted((a, b) => a - b)
+  if (!days.length) return "Ukedager mangler"
 
   const isContiguous = days.every(
     (day, index) => index === 0 || day === days[index - 1] + 1,
-  );
+  )
   if (isContiguous && days.length > 1) {
-    return `${weekdayLabels[days[0]]}-${weekdayLabels[days[days.length - 1]]}`;
+    return `${weekdayLabels[days[0]]}-${weekdayLabels[days[days.length - 1]]}`
   }
 
-  return days.map((day) => weekdayLabels[day]).join(", ");
+  return days.map(day => weekdayLabels[day]).join(", ")
 }
 
 export const openingHoursRow = defineType({
@@ -36,14 +36,14 @@ export const openingHoursRow = defineType({
       description: "ISO: 1=man, 2=tir, 3=ons, 4=tor, 5=fre, 6=lør, 7=søn",
       type: "array",
       of: [defineArrayMember({ type: "number" })],
-      validation: (rule) =>
+      validation: rule =>
         rule.custom((weekdays, context) => {
           const parent = context.parent as
             | { closed?: boolean; status?: string }
-            | undefined;
+            | undefined
           if (parent?.status === "closed" || parent?.closed === true)
-            return true;
-          return weekdays?.length ? true : "Velg minst én ukedag";
+            return true
+          return weekdays?.length ? true : "Velg minst én ukedag"
         }),
       options: {
         list: [
@@ -76,22 +76,20 @@ export const openingHoursRow = defineType({
       type: "duration",
       hidden: ({ parent }) =>
         parent?.status === "closed" || parent?.closed === true,
-      validation: (rule) =>
+      validation: rule =>
         rule.custom((duration, context) => {
           const parent = context.parent as
             | { closed?: boolean; status?: string }
-            | undefined;
-          const value = duration as
-            | { start?: string; end?: string }
-            | undefined;
+            | undefined
+          const value = duration as { start?: string; end?: string } | undefined
           if (
             parent?.status === "closed" ||
             parent?.closed === true ||
             (value?.start && value?.end)
           ) {
-            return true;
+            return true
           }
-          return "Velg tidspunkt eller marker raden som stengt";
+          return "Velg tidspunkt eller marker raden som stengt"
         }),
     }),
     defineField({
@@ -111,18 +109,18 @@ export const openingHoursRow = defineType({
       note: "note",
     },
     prepare({ weekdays, status, closed, start, end, note }) {
-      const label = formatWeekdays(weekdays);
+      const label = formatWeekdays(weekdays)
       const time =
         status === "closed" || closed === true
           ? "Stengt"
-          : `${start ?? "?"}-${end ?? "?"}`;
+          : `${start ?? "?"}-${end ?? "?"}`
       return {
         title: `${label}: ${time}`,
         subtitle: note,
-      };
+      }
     },
   },
-});
+})
 
 export const openingHours = defineType({
   name: "openingHours",
@@ -140,8 +138,8 @@ export const openingHours = defineType({
   preview: {
     select: { rows: "rows" },
     prepare({ rows }) {
-      const count = rows?.length ?? 0;
-      return { title: "Åpningstider", subtitle: `${count} rader` };
+      const count = rows?.length ?? 0
+      return { title: "Åpningstider", subtitle: `${count} rader` }
     },
   },
-});
+})

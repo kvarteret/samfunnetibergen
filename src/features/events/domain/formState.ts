@@ -1,47 +1,47 @@
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch";
-import type { EventSummary } from "../components/EventCard";
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
+import type { EventSummary } from "../components/EventCard"
 
 export type DateEntry = {
-  id: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-};
+  id: string
+  startDate: string
+  startTime: string
+  endTime: string
+}
 
 export type FormState = {
-  title: string;
-  description: string;
-  dates: DateEntry[];
-  isRecurring: boolean;
-  rrule: string;
-  room: string;
-  roomText: string;
-  organizerGroup: string;
-  organizerText: string;
-  submittedByOrganization: string;
-  eventTypeId: string;
-  isInternalEvent: boolean;
-  isFree: boolean;
-  priceOrdinar: string;
-  priceStudent: string;
-  priceMedlem: string;
-  ticketUrl: string;
-  facebookUrl: string;
-  submittedBy: string;
-  submittedByEmail: string;
-};
+  title: string
+  description: string
+  dates: DateEntry[]
+  isRecurring: boolean
+  rrule: string
+  room: string
+  roomText: string
+  organizerGroup: string
+  organizerText: string
+  submittedByOrganization: string
+  eventTypeId: string
+  isInternalEvent: boolean
+  isFree: boolean
+  priceOrdinar: string
+  priceStudent: string
+  priceMedlem: string
+  ticketUrl: string
+  facebookUrl: string
+  submittedBy: string
+  submittedByEmail: string
+}
 
 export type SelectOption = {
-  value: string;
-  label: string;
-};
+  value: string
+  label: string
+}
 
 export const newDate = (): DateEntry => ({
   id: Math.random().toString(36).slice(2),
   startDate: "",
   startTime: "",
   endTime: "",
-});
+})
 
 export const initialState: FormState = {
   title: "",
@@ -64,8 +64,7 @@ export const initialState: FormState = {
   facebookUrl: "",
   submittedBy: "",
   submittedByEmail: "",
-};
-
+}
 
 export function buildPreviewEvent(
   state: FormState,
@@ -74,13 +73,11 @@ export function buildPreviewEvent(
   groups: EventGroup[],
   eventTypes: EventType[],
 ): EventSummary {
-  const selectedRoom = rooms.find((room) => room._id === state.room);
-  const selectedGroup = groups.find(
-    (group) => group._id === state.organizerGroup,
-  );
+  const selectedRoom = rooms.find(room => room._id === state.room)
+  const selectedGroup = groups.find(group => group._id === state.organizerGroup)
   const selectedEventType = eventTypes.find(
-    (eventType) => eventType._id === state.eventTypeId,
-  );
+    eventType => eventType._id === state.eventTypeId,
+  )
 
   return {
     _id: "preview",
@@ -88,8 +85,8 @@ export function buildPreviewEvent(
     slug: "preview",
     isRecurring: state.isRecurring,
     dates: state.dates
-      .filter((date) => date.startDate)
-      .map((date) => ({
+      .filter(date => date.startDate)
+      .map(date => ({
         _key: date.id,
         startDate: date.startDate,
         startTime: date.startTime || null,
@@ -123,5 +120,5 @@ export function buildPreviewEvent(
             : null,
         }
       : null,
-  };
+  }
 }

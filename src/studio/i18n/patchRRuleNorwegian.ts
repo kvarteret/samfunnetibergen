@@ -1,4 +1,4 @@
-import { RRule } from "rrule";
+import { RRule } from "rrule"
 
 const NB_LANGUAGE = {
   dayNames: [
@@ -25,7 +25,7 @@ const NB_LANGUAGE = {
     "desember",
   ],
   tokens: {},
-};
+}
 
 const NB_STRINGS: Record<string, string> = {
   every: "hver",
@@ -58,15 +58,15 @@ const NB_STRINGS: Record<string, string> = {
   nd: ".",
   rd: ".",
   th: ".",
-};
+}
 
 const nbGettext = (id: string | number | { toString(): string }) =>
-  NB_STRINGS[id.toString()] ?? id.toString();
+  NB_STRINGS[id.toString()] ?? id.toString()
 
 const nbDateFormatter = (year: number, month: string, day: number) =>
-  `${day}. ${month} ${year}`;
+  `${day}. ${month} ${year}`
 
-const originalToText = RRule.prototype.toText;
+const originalToText = RRule.prototype.toText
 
 RRule.prototype.toText = function (gettext, language, dateFormatter) {
   return originalToText.call(
@@ -74,5 +74,5 @@ RRule.prototype.toText = function (gettext, language, dateFormatter) {
     gettext ?? nbGettext,
     language ?? NB_LANGUAGE,
     dateFormatter ?? nbDateFormatter,
-  );
-};
+  )
+}

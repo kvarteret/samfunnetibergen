@@ -1,36 +1,36 @@
-import { addHoursToDateTime, toDateTime } from "./datetime";
-import type { EventRequestBody } from "./types";
+import { addHoursToDateTime, toDateTime } from "./datetime"
+import type { EventRequestBody } from "./types"
 
 // IDs from the live Crescat form (reverse-engineered from HAR)
-const KARAOKE_SLUG = "studentersamfunnet-i-bergen-booking-av-karoke";
-const KARAOKE_ROOM_ID = 98;
-const KARAOKE_FIELD_PEOPLE_ID = 1439211;
-const KARAOKE_META_PARENT_ID = 192383;
+const KARAOKE_SLUG = "studentersamfunnet-i-bergen-booking-av-karoke"
+const KARAOKE_ROOM_ID = 98
+const KARAOKE_FIELD_PEOPLE_ID = 1439211
+const KARAOKE_META_PARENT_ID = 192383
 
-export { KARAOKE_SLUG };
+export { KARAOKE_SLUG }
 
 export interface KaraokeBookingInput {
-  eventName: string;
-  startDate: string;
-  startTime: string;
-  durationHours: number;
-  description: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  numberOfPeople: number;
-  priceType: "ordinær" | "student" | "frivillig";
+  eventName: string
+  startDate: string
+  startTime: string
+  durationHours: number
+  description: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  numberOfPeople: number
+  priceType: "ordinær" | "student" | "frivillig"
 }
 
 export function buildKaraokeRequest(
   input: KaraokeBookingInput,
 ): EventRequestBody {
-  const start = toDateTime(input.startDate, input.startTime);
+  const start = toDateTime(input.startDate, input.startTime)
   const end = addHoursToDateTime(
     input.startDate,
     input.startTime,
     input.durationHours,
-  );
+  )
 
   const packageDescription = [
     "Vi tilbyr flere pakkeløsninger.",
@@ -43,7 +43,7 @@ export function buildKaraokeRequest(
     "STUDENT:",
     "- Timepris på 59 kroner per person",
     "- Minimumspris på 295 kroner per time",
-  ].join("\n");
+  ].join("\n")
 
   return {
     name: input.eventName,
@@ -101,5 +101,5 @@ export function buildKaraokeRequest(
         content: { accepted: true },
       },
     ],
-  };
+  }
 }

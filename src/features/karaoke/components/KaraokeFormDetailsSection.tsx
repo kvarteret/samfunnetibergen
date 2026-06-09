@@ -1,28 +1,25 @@
-"use client";
+"use client"
 
-import {
-  FieldGroup,
-  SectionHeader,
-} from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar";
-import type { ClosedDate, OpeningHours } from "@/lib/opening-hours";
+import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
 import {
   KARAOKE_DURATION_OPTIONS,
   type KaraokeDerivedState,
-} from "../domain/formState";
-import { useKaraokeForm } from "./karaokeFormContext";
-import { KaraokeSelect } from "./KaraokeFormPrimitives";
-import { KaraokeFormSlotPicker } from "./KaraokeFormSlotPicker";
+} from "../domain/formState"
+import { useKaraokeForm } from "./karaokeFormContext"
+import { KaraokeSelect } from "./KaraokeFormPrimitives"
+import { KaraokeFormSlotPicker } from "./KaraokeFormSlotPicker"
 
 interface KaraokeFormDetailsSectionProps {
-  uid: string;
-  derived: KaraokeDerivedState;
-  today: string;
-  bookings: CresatBooking[];
-  operationsManagerHours?: OpeningHours | null;
-  houseClosedDates?: ClosedDate[] | null;
+  uid: string
+  derived: KaraokeDerivedState
+  today: string
+  bookings: CresatBooking[]
+  operationsManagerHours?: OpeningHours | null
+  houseClosedDates?: ClosedDate[] | null
 }
 
 export function KaraokeFormDetailsSection({
@@ -33,8 +30,8 @@ export function KaraokeFormDetailsSection({
   operationsManagerHours,
   houseClosedDates,
 }: KaraokeFormDetailsSectionProps) {
-  const form = useKaraokeForm();
-  const values = form.state.values;
+  const form = useKaraokeForm()
+  const values = form.state.values
 
   return (
     <section className="space-y-6">
@@ -45,7 +42,7 @@ export function KaraokeFormDetailsSection({
         <Input
           autoComplete="off"
           id={`${uid}-eventName`}
-          onChange={(event) =>
+          onChange={event =>
             form.setFieldValue("eventName", event.target.value)
           }
           placeholder="F.eks. Bursdagsfeiring"
@@ -59,11 +56,9 @@ export function KaraokeFormDetailsSection({
         <KaraokeSelect
           id={`${uid}-duration`}
           value={String(values.duration)}
-          onChange={(value) =>
-            form.setFieldValue("duration", Number(value))
-          }
+          onChange={value => form.setFieldValue("duration", Number(value))}
         >
-          {KARAOKE_DURATION_OPTIONS.map((hours) => (
+          {KARAOKE_DURATION_OPTIONS.map(hours => (
             <option key={hours} value={hours}>
               {hours} {hours === 1 ? "time" : "timer"}
             </option>
@@ -82,11 +77,11 @@ export function KaraokeFormDetailsSection({
             today={today}
             operationsManagerHours={operationsManagerHours}
             houseClosedDates={houseClosedDates}
-            onDateChange={(date) => {
-              form.setFieldValue("startDate", date);
-              form.setFieldValue("startSlotMin", null);
+            onDateChange={date => {
+              form.setFieldValue("startDate", date)
+              form.setFieldValue("startSlotMin", null)
             }}
-            onSlotChange={(slotMin) =>
+            onSlotChange={slotMin =>
               form.setFieldValue("startSlotMin", slotMin)
             }
           />
@@ -98,5 +93,5 @@ export function KaraokeFormDetailsSection({
         </FieldGroup>
       )}
     </section>
-  );
+  )
 }

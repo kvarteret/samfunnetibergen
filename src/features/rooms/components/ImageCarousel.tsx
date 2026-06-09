@@ -1,80 +1,80 @@
-"use client";
+"use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import Image from "next/image"
+import { useCallback, useEffect, useState } from "react"
 
 import {
   Carousel,
   type CarouselApi,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel";
+} from "@/components/ui/carousel"
 
 type ImageSlide = {
-  _key: string;
-  type: "image";
-  src: string;
-  alt: string;
-  caption?: string | null;
-};
+  _key: string
+  type: "image"
+  src: string
+  alt: string
+  caption?: string | null
+}
 
 type PanoramaSlide = {
-  _key: string;
-  type: "panorama";
-  iframeSrc: string;
-  caption?: string | null;
-};
+  _key: string
+  type: "panorama"
+  iframeSrc: string
+  caption?: string | null
+}
 
-export type CarouselSlide = ImageSlide | PanoramaSlide;
+export type CarouselSlide = ImageSlide | PanoramaSlide
 
 // Back-compat alias used by the old API
 type CarouselImage = {
-  _key: string;
-  src: string;
-  alt: string;
-  caption?: string | null;
-};
+  _key: string
+  src: string
+  alt: string
+  caption?: string | null
+}
 
 function normalise(images: CarouselImage[]): ImageSlide[] {
-  return images.map((img) => ({ ...img, type: "image" as const }));
+  return images.map(img => ({ ...img, type: "image" as const }))
 }
 
 interface ImageCarouselProps {
-  images?: CarouselImage[];
-  slides?: CarouselSlide[];
+  images?: CarouselImage[]
+  slides?: CarouselSlide[]
 }
 
 export function ImageCarousel({ images, slides }: ImageCarouselProps) {
-  const allSlides: CarouselSlide[] = slides ?? normalise(images ?? []);
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
+  const allSlides: CarouselSlide[] = slides ?? normalise(images ?? [])
+  const [api, setApi] = useState<CarouselApi>()
+  const [current, setCurrent] = useState(0)
+  const [canScrollPrev, setCanScrollPrev] = useState(false)
+  const [canScrollNext, setCanScrollNext] = useState(false)
 
   const onSelect = useCallback((api: CarouselApi) => {
-    if (!api) return;
-    setCurrent(api.selectedScrollSnap());
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
-  }, []);
+    if (!api) return
+    setCurrent(api.selectedScrollSnap())
+    setCanScrollPrev(api.canScrollPrev())
+    setCanScrollNext(api.canScrollNext())
+  }, [])
 
   useEffect(() => {
-    if (!api) return;
-    const init = setTimeout(() => onSelect(api), 0);
-    api.on("select", onSelect);
-    api.on("reInit", onSelect);
+    if (!api) return
+    const init = setTimeout(() => onSelect(api), 0)
+    api.on("select", onSelect)
+    api.on("reInit", onSelect)
     return () => {
-      clearTimeout(init);
-      api.off("select", onSelect);
-      api.off("reInit", onSelect);
-    };
-  }, [api, onSelect]);
+      clearTimeout(init)
+      api.off("select", onSelect)
+      api.off("reInit", onSelect)
+    }
+  }, [api, onSelect])
 
-  if (!allSlides.length) return null;
+  if (!allSlides.length) return null
 
-  const single = allSlides.length === 1;
-  const currentSlide = allSlides[current];
+  const single = allSlides.length === 1
+  const currentSlide = allSlides[current]
 
   return (
     <div className="relative bg-muted">
@@ -155,5 +155,5 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
         )}
       </Carousel>
     </div>
-  );
+  )
 }

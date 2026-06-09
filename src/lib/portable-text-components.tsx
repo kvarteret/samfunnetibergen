@@ -1,49 +1,49 @@
-import Image from "next/image";
-import { PortableText } from "next-sanity";
+import Image from "next/image"
+import { PortableText } from "next-sanity"
 
 type PortableTextBlock = {
-  _key?: string;
-  _type: string;
-  [key: string]: unknown;
-};
+  _key?: string
+  _type: string
+  [key: string]: unknown
+}
 
 type PortableTextContentProps = {
-  value: PortableTextBlock[] | null | undefined;
-};
+  value: PortableTextBlock[] | null | undefined
+}
 
 type PortableTextChildrenProps = {
-  children?: React.ReactNode;
-};
+  children?: React.ReactNode
+}
 
 type PortableTextImageValue = {
-  imageUrl?: string;
-  alt?: string;
-  caption?: string;
-};
+  imageUrl?: string
+  alt?: string
+  caption?: string
+}
 
 type PortableTextLinkValue = {
-  href?: string;
-  target?: "self" | "blank";
-  blank?: boolean;
-};
+  href?: string
+  target?: "self" | "blank"
+  blank?: boolean
+}
 
 export function PortableTextContent({ value }: PortableTextContentProps) {
   if (!value?.length) {
-    return null;
+    return null
   }
 
-  let textBlocks: PortableTextBlock[] = [];
+  let textBlocks: PortableTextBlock[] = []
 
   return value.map((block, index, blocks) => {
     if (block._type === "block") {
-      textBlocks = [...textBlocks, block];
+      textBlocks = [...textBlocks, block]
 
       if (blocks[index + 1]?._type === "block") {
-        return null;
+        return null
       }
 
-      const groupedTextBlocks = textBlocks;
-      textBlocks = [];
+      const groupedTextBlocks = textBlocks
+      textBlocks = []
 
       return (
         <div
@@ -55,7 +55,7 @@ export function PortableTextContent({ value }: PortableTextContentProps) {
             value={groupedTextBlocks}
           />
         </div>
-      );
+      )
     }
 
     return (
@@ -64,8 +64,8 @@ export function PortableTextContent({ value }: PortableTextContentProps) {
         key={block._key}
         value={block}
       />
-    );
-  });
+    )
+  })
 }
 
 const portableTextComponents = {
@@ -75,11 +75,11 @@ const portableTextComponents = {
   marks: {
     link: PortableTextLink,
   },
-};
+}
 
 function PortableTextImage({ value }: { value: PortableTextImageValue }) {
   if (!value.imageUrl) {
-    return null;
+    return null
   }
 
   return (
@@ -99,20 +99,20 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
         </figcaption>
       )}
     </figure>
-  );
+  )
 }
 
 function PortableTextLink({
   children,
   value,
 }: PortableTextChildrenProps & {
-  value?: PortableTextLinkValue;
+  value?: PortableTextLinkValue
 }) {
   if (!value?.href) {
-    return children;
+    return children
   }
 
-  const opensInNewTab = value.target === "blank" || value.blank === true;
+  const opensInNewTab = value.target === "blank" || value.blank === true
 
   return (
     <a
@@ -122,5 +122,5 @@ function PortableTextLink({
     >
       {children}
     </a>
-  );
+  )
 }

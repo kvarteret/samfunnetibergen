@@ -12,9 +12,9 @@ import {
   TagIcon,
   TextIcon,
   UsersIcon,
-} from "@sanity/icons";
-import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list";
-import type { StructureBuilder, StructureResolver } from "sanity/structure";
+} from "@sanity/icons"
+import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
+import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
 export const singletonTypeNames = [
   "siteMetadata",
@@ -27,7 +27,7 @@ export const singletonTypeNames = [
   "kontaktPage",
   "navbar",
   "linkInBio",
-] as const;
+] as const
 
 function singletonListItem(
   S: StructureBuilder,
@@ -38,7 +38,7 @@ function singletonListItem(
   return S.listItem()
     .title(title)
     .icon(icon ?? DocumentIcon)
-    .child(S.document().schemaType(typeName).documentId(typeName).title(title));
+    .child(S.document().schemaType(typeName).documentId(typeName).title(title))
 }
 
 export const structure: StructureResolver = (S, context) =>
@@ -271,4 +271,4 @@ export const structure: StructureResolver = (S, context) =>
               }),
             ]),
         ),
-    ]);
+    ])

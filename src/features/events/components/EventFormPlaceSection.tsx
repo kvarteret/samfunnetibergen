@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   FieldGroup,
@@ -6,22 +6,22 @@ import {
   SectionHeader,
   SelectField,
   type SelectOption,
-} from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEventForm } from "./eventFormContext";
+} from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormPlaceSectionProps {
-  uid: string;
-  roomOptions: SelectOption[];
+  uid: string
+  roomOptions: SelectOption[]
 }
 
 export function EventFormPlaceSection({
   uid,
   roomOptions,
 }: EventFormPlaceSectionProps) {
-  const form = useEventForm();
-  const values = form.state.values;
+  const form = useEventForm()
+  const values = form.state.values
 
   return (
     <section className="space-y-6">
@@ -31,7 +31,7 @@ export function EventFormPlaceSection({
         hint="Velg rommet om arrangementet er i et av Kvarterets lokaler."
         id={`${uid}-room`}
         label="Rom på Kvarteret"
-        onChange={(v) => form.setFieldValue("room", v)}
+        onChange={v => form.setFieldValue("room", v)}
         options={roomOptions}
         placeholder="Velg rom (valgfritt)"
         value={values.room}
@@ -45,13 +45,11 @@ export function EventFormPlaceSection({
         </FieldHint>
         <Input
           id={`${uid}-roomText`}
-          onChange={(event) =>
-            form.setFieldValue("roomText", event.target.value)
-          }
+          onChange={event => form.setFieldValue("roomText", event.target.value)}
           placeholder="Fritekst"
           value={values.roomText}
         />
       </FieldGroup>
     </section>
-  );
+  )
 }

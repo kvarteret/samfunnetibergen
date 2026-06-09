@@ -1,45 +1,45 @@
-"use client";
+"use client"
 
-import { Music2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { AppLocale } from "@/i18n/routing";
+import { Music2 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
   formatOpeningHoursRow,
   isOpenAt,
   type OpeningHours,
-} from "@/lib/opening-hours";
+} from "@/lib/opening-hours"
 
 interface NowPlayingState {
-  authorized: boolean;
-  hasTrack: boolean;
-  isPlaybackActive: boolean;
-  name: string | null;
-  artists: string | null;
-  album: string | null;
-  image: string | null;
+  authorized: boolean
+  hasTrack: boolean
+  isPlaybackActive: boolean
+  name: string | null
+  artists: string | null
+  album: string | null
+  image: string | null
 }
 
 interface BarPreviewImage {
-  assetUrl?: string | null;
-  alt?: string | null;
+  assetUrl?: string | null
+  alt?: string | null
 }
 
 export interface HomeBarPreviewRoom {
-  title?: string | null;
-  slug?: string | null;
-  summary?: string | null;
-  bar?: string | null;
-  openingHours?: OpeningHours | null;
-  image?: BarPreviewImage | null;
+  title?: string | null
+  slug?: string | null
+  summary?: string | null
+  bar?: string | null
+  openingHours?: OpeningHours | null
+  image?: BarPreviewImage | null
 }
 
 interface HomeBarPreviewsProps {
-  rooms: HomeBarPreviewRoom[];
-  houseClosedDates?: ClosedDate[] | null;
-  locale: AppLocale;
+  rooms: HomeBarPreviewRoom[]
+  houseClosedDates?: ClosedDate[] | null
+  locale: AppLocale
 }
 
 function hasSpotifyTrack(
@@ -51,7 +51,7 @@ function hasSpotifyTrack(
     nowPlaying?.authorized === true &&
     nowPlaying.hasTrack &&
     nowPlaying.isPlaybackActive
-  );
+  )
 }
 
 export function HomeBarPreviews({
@@ -59,39 +59,39 @@ export function HomeBarPreviews({
   houseClosedDates,
   locale,
 }: HomeBarPreviewsProps) {
-  const [now, setNow] = useState(() => new Date());
-  const [nowPlaying, setNowPlaying] = useState<NowPlayingState | null>(null);
+  const [now, setNow] = useState(() => new Date())
+  const [nowPlaying, setNowPlaying] = useState<NowPlayingState | null>(null)
 
   useEffect(() => {
-    const tick = window.setInterval(() => setNow(new Date()), 60_000);
-    return () => window.clearInterval(tick);
-  }, []);
+    const tick = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(tick)
+  }, [])
 
   useEffect(() => {
-    const controller = new AbortController();
+    const controller = new AbortController()
 
     async function fetchNowPlaying() {
       try {
         const response = await fetch("/api/now-playing", {
           signal: controller.signal,
           cache: "no-store",
-        });
-        if (!response.ok) return;
-        setNowPlaying((await response.json()) as NowPlayingState | null);
+        })
+        if (!response.ok) return
+        setNowPlaying((await response.json()) as NowPlayingState | null)
       } catch {
-        if (!controller.signal.aborted) setNowPlaying(null);
+        if (!controller.signal.aborted) setNowPlaying(null)
       }
     }
 
-    void fetchNowPlaying();
-    const interval = window.setInterval(fetchNowPlaying, 15_000);
+    void fetchNowPlaying()
+    const interval = window.setInterval(fetchNowPlaying, 15_000)
     return () => {
-      controller.abort();
-      window.clearInterval(interval);
-    };
-  }, []);
+      controller.abort()
+      window.clearInterval(interval)
+    }
+  }, [])
 
-  if (!rooms.length) return null;
+  if (!rooms.length) return null
 
   return (
     <section className="space-y-4">
@@ -101,7 +101,7 @@ export function HomeBarPreviews({
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {rooms.map((room) => (
+        {rooms.map(room => (
           <HomeBarPreviewCard
             houseClosedDates={houseClosedDates}
             key={room.slug ?? room.title}
@@ -113,7 +113,7 @@ export function HomeBarPreviews({
         ))}
       </div>
     </section>
-  );
+  )
 }
 
 function HomeBarPreviewCard({
@@ -123,16 +123,16 @@ function HomeBarPreviewCard({
   nowPlaying,
   locale,
 }: {
-  room: HomeBarPreviewRoom;
-  houseClosedDates?: ClosedDate[] | null;
-  now: Date;
-  nowPlaying: NowPlayingState | null;
-  locale: AppLocale;
+  room: HomeBarPreviewRoom
+  houseClosedDates?: ClosedDate[] | null
+  now: Date
+  nowPlaying: NowPlayingState | null
+  locale: AppLocale
 }) {
-  const spotifyTrack = hasSpotifyTrack(nowPlaying, room);
-  const isOpen = isOpenAt(now, room.openingHours, houseClosedDates);
-  const imageUrl = room.image?.assetUrl;
-  const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`;
+  const spotifyTrack = hasSpotifyTrack(nowPlaying, room)
+  const isOpen = isOpenAt(now, room.openingHours, houseClosedDates)
+  const imageUrl = room.image?.assetUrl
+  const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 
   return (
     <Link
@@ -177,9 +177,9 @@ function HomeBarPreviewCard({
 
         {room.openingHours?.rows?.length ? (
           <dl className="space-y-1 border-t border-border pt-4">
-            {room.openingHours.rows.slice(0, 3).map((row) => {
-              const label = row ? formatOpeningHoursRow(row) : null;
-              if (!label) return null;
+            {room.openingHours.rows.slice(0, 3).map(row => {
+              const label = row ? formatOpeningHoursRow(row) : null
+              if (!label) return null
 
               return (
                 <div
@@ -188,13 +188,13 @@ function HomeBarPreviewCard({
                 >
                   {label}
                 </div>
-              );
+              )
             })}
           </dl>
         ) : null}
       </div>
     </Link>
-  );
+  )
 }
 
 function BarPreviewBody({
@@ -202,9 +202,9 @@ function BarPreviewBody({
   nowPlaying,
   summary,
 }: {
-  spotifyTrack: boolean;
-  nowPlaying: NowPlayingState | null;
-  summary?: string | null;
+  spotifyTrack: boolean
+  nowPlaying: NowPlayingState | null
+  summary?: string | null
 }) {
   if (spotifyTrack && nowPlaying) {
     return (
@@ -221,14 +221,14 @@ function BarPreviewBody({
           </p>
         )}
       </div>
-    );
+    )
   }
   if (summary) {
     return (
       <p className="line-clamp-3 text-sm leading-6 text-foreground/70">
         {summary}
       </p>
-    );
+    )
   }
-  return null;
+  return null
 }

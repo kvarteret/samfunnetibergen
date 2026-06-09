@@ -1,9 +1,9 @@
-import { addDays, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns"
 
-import { isoDate } from "@/lib/opening-hours";
-import type { KaraokeBookingPayload, PriceType } from "../types";
+import { isoDate } from "@/lib/opening-hours"
+import type { KaraokeBookingPayload, PriceType } from "../types"
 
-export const KARAOKE_DURATION_OPTIONS = [1, 2, 3, 4] as const;
+export const KARAOKE_DURATION_OPTIONS = [1, 2, 3, 4] as const
 
 export const KARAOKE_PRICING: Record<
   PriceType,
@@ -12,30 +12,30 @@ export const KARAOKE_PRICING: Record<
   ordinær: { perPerson: 79, minPerHour: 395 },
   student: { perPerson: 59, minPerHour: 295 },
   frivillig: { perPerson: 0, minPerHour: 0 },
-};
+}
 
 export type KaraokeFormState = {
-  eventName: string;
-  startDate: string;
-  startSlotMin: number | null;
-  duration: number;
-  description: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  priceType: PriceType;
-  numberOfPeople: string;
-  acceptTerms: boolean;
-  studentProofAccepted: boolean;
-};
+  eventName: string
+  startDate: string
+  startSlotMin: number | null
+  duration: number
+  description: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  priceType: PriceType
+  numberOfPeople: string
+  acceptTerms: boolean
+  studentProofAccepted: boolean
+}
 
 export type KaraokeDerivedState = {
-  startTime: string;
-  bookingStartDate: string;
-  endTime: string;
-  people: number;
-  totalPrice: number;
-};
+  startTime: string
+  bookingStartDate: string
+  endTime: string
+  people: number
+  totalPrice: number
+}
 
 export const initialKaraokeState: KaraokeFormState = {
   eventName: "",
@@ -50,13 +50,13 @@ export const initialKaraokeState: KaraokeFormState = {
   numberOfPeople: "4",
   acceptTerms: false,
   studentProofAccepted: false,
-};
+}
 
 export function deriveKaraokeState(
   state: KaraokeFormState,
 ): KaraokeDerivedState {
   const startTime =
-    state.startSlotMin === null ? "" : minutesToTimeOfDay(state.startSlotMin);
+    state.startSlotMin === null ? "" : minutesToTimeOfDay(state.startSlotMin)
   return {
     startTime,
     bookingStartDate:
@@ -70,7 +70,7 @@ export function deriveKaraokeState(
       Number.parseInt(state.numberOfPeople) || 0,
       state.duration,
     ),
-  };
+  }
 }
 
 export function canSubmitKaraokeBooking(state: KaraokeFormState): boolean {
@@ -82,7 +82,7 @@ export function canSubmitKaraokeBooking(state: KaraokeFormState): boolean {
     state.contactEmail.trim() !== "" &&
     state.acceptTerms &&
     (state.priceType !== "student" || state.studentProofAccepted)
-  );
+  )
 }
 
 export function buildKaraokePayload(
@@ -102,16 +102,16 @@ export function buildKaraokePayload(
     priceType: state.priceType,
     numberOfPeople: derived.people,
     totalPrice: derived.totalPrice,
-  };
+  }
 }
 
 export function formatKaraokeDate(dateStr: string): string {
-  if (!dateStr) return "";
+  if (!dateStr) return ""
   return new Date(dateStr).toLocaleDateString("nb-NO", {
     weekday: "short",
     day: "numeric",
     month: "long",
-  });
+  })
 }
 
 function calcKaraokePrice(
@@ -119,24 +119,24 @@ function calcKaraokePrice(
   people: number,
   durationHours: number,
 ): number {
-  if (people <= 0 || priceType === "frivillig") return 0;
-  const price = KARAOKE_PRICING[priceType];
-  return Math.max(price.perPerson * people, price.minPerHour) * durationHours;
+  if (people <= 0 || priceType === "frivillig") return 0
+  const price = KARAOKE_PRICING[priceType]
+  return Math.max(price.perPerson * people, price.minPerHour) * durationHours
 }
 
 function addHours(time: string, hours: number): string {
-  if (!time) return "";
-  const [hour, minute] = time.split(":").map(Number);
-  const total = hour * 60 + minute + hours * 60;
-  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  if (!time) return ""
+  const [hour, minute] = time.split(":").map(Number)
+  const total = hour * 60 + minute + hours * 60
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
 }
 
 function resolveSlotDate(dateStr: string, slotStartMin: number): string {
   return isoDate(
     addDays(parseISO(dateStr), Math.floor(slotStartMin / (24 * 60))),
-  );
+  )
 }
 
 function minutesToTimeOfDay(minutes: number): string {
-  return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+  return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`
 }

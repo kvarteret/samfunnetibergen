@@ -1,39 +1,38 @@
-"use client";
+"use client"
 
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react"
 
 import {
   CheckboxSquare,
   FieldGroup,
   SectionHeader,
-} from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { DateEntry } from "../domain/formState";
-import { newDate } from "../domain/formState";
-import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder";
-import { useEventForm } from "./eventFormContext";
+} from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { DateEntry } from "../domain/formState"
+import { newDate } from "../domain/formState"
+import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormScheduleSectionProps {
-  uid: string;
+  uid: string
 }
 
-export function EventFormScheduleSection({ uid }: EventFormScheduleSectionProps) {
-  const form = useEventForm();
-  const values = form.state.values;
+export function EventFormScheduleSection({
+  uid,
+}: EventFormScheduleSectionProps) {
+  const form = useEventForm()
+  const values = form.state.values
 
   const handleAddDate = () => {
-    form.setFieldValue("dates", (dates: DateEntry[]) => [
-      ...dates,
-      newDate(),
-    ]);
-  };
+    form.setFieldValue("dates", (dates: DateEntry[]) => [...dates, newDate()])
+  }
 
   const handleRemoveDate = (id: string) => {
     form.setFieldValue("dates", (dates: DateEntry[]) =>
-      dates.filter((date) => date.id !== id),
-    );
-  };
+      dates.filter(date => date.id !== id),
+    )
+  }
 
   const handleUpdateDate = (
     id: string,
@@ -41,30 +40,26 @@ export function EventFormScheduleSection({ uid }: EventFormScheduleSectionProps)
     value: string,
   ) => {
     form.setFieldValue("dates", (dates: DateEntry[]) =>
-      dates.map((date) =>
-        date.id === id ? { ...date, [key]: value } : date,
-      ),
-    );
-  };
+      dates.map(date => (date.id === id ? { ...date, [key]: value } : date)),
+    )
+  }
 
   return (
     <section className="space-y-6">
       <SectionHeader number="03" title="Dato og tid" />
 
       <div className="space-y-4">
-        {values.dates.map(
-          (date: DateEntry, index: number) => (
-            <EventDateCard
-              date={date}
-              index={index}
-              key={date.id}
-              totalDates={values.dates.length}
-              uid={uid}
-              removeDate={handleRemoveDate}
-              updateDate={handleUpdateDate}
-            />
-          ),
-        )}
+        {values.dates.map((date: DateEntry, index: number) => (
+          <EventDateCard
+            date={date}
+            index={index}
+            key={date.id}
+            totalDates={values.dates.length}
+            uid={uid}
+            removeDate={handleRemoveDate}
+            updateDate={handleUpdateDate}
+          />
+        ))}
 
         <button
           className="flex w-full items-center justify-center gap-2 border-2 border-dashed border-border px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
@@ -78,24 +73,20 @@ export function EventFormScheduleSection({ uid }: EventFormScheduleSectionProps)
 
       <EventRecurrenceFields
         isRecurring={values.isRecurring}
-        onRecurrenceChange={(rrule) =>
-          form.setFieldValue("rrule", rrule)
-        }
-        onRecurringToggle={(v) =>
-          form.setFieldValue("isRecurring", v)
-        }
+        onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
+        onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
       />
     </section>
-  );
+  )
 }
 
 interface EventDateCardProps {
-  uid: string;
-  date: DateEntry;
-  index: number;
-  totalDates: number;
-  removeDate: (id: string) => void;
-  updateDate: (id: string, key: keyof DateEntry, value: string) => void;
+  uid: string
+  date: DateEntry
+  index: number
+  totalDates: number
+  removeDate: (id: string) => void
+  updateDate: (id: string, key: keyof DateEntry, value: string) => void
 }
 
 function EventDateCard({
@@ -129,7 +120,7 @@ function EventDateCard({
           <Label htmlFor={`${uid}-date-${date.id}`}>Dato *</Label>
           <Input
             id={`${uid}-date-${date.id}`}
-            onChange={(event) =>
+            onChange={event =>
               updateDate(date.id, "startDate", event.target.value)
             }
             required={index === 0}
@@ -147,7 +138,7 @@ function EventDateCard({
           </Label>
           <Input
             id={`${uid}-starttime-${date.id}`}
-            onChange={(event) =>
+            onChange={event =>
               updateDate(date.id, "startTime", event.target.value)
             }
             type="time"
@@ -164,7 +155,7 @@ function EventDateCard({
           </Label>
           <Input
             id={`${uid}-endtime-${date.id}`}
-            onChange={(event) =>
+            onChange={event =>
               updateDate(date.id, "endTime", event.target.value)
             }
             type="time"
@@ -173,13 +164,13 @@ function EventDateCard({
         </FieldGroup>
       </div>
     </div>
-  );
+  )
 }
 
 interface EventRecurrenceFieldsProps {
-  isRecurring: boolean;
-  onRecurrenceChange: (rrule: string) => void;
-  onRecurringToggle: (isRecurring: boolean) => void;
+  isRecurring: boolean
+  onRecurrenceChange: (rrule: string) => void
+  onRecurringToggle: (isRecurring: boolean) => void
 }
 
 function EventRecurrenceFields({
@@ -190,10 +181,7 @@ function EventRecurrenceFields({
   return (
     <div className="space-y-4">
       <label className="group flex cursor-pointer items-start gap-3">
-        <CheckboxSquare
-          checked={isRecurring}
-          onChange={onRecurringToggle}
-        />
+        <CheckboxSquare checked={isRecurring} onChange={onRecurringToggle} />
         <span>
           <span className="block font-heading text-sm text-foreground">
             Gjentagende arrangement
@@ -209,5 +197,5 @@ function EventRecurrenceFields({
         <EventFormRecurrenceBuilder onChange={onRecurrenceChange} />
       )}
     </div>
-  );
+  )
 }

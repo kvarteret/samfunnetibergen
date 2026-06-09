@@ -1,12 +1,12 @@
-import { CalendarIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { CalendarIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 const APPROVAL_STATUS_OPTIONS = [
   { title: "Venter på godkjenning", value: "pending" },
   { title: "Godkjent", value: "approved" },
   { title: "Avvist", value: "rejected" },
   { title: "Arkivert", value: "archived" },
-];
+]
 
 export const arrangement = defineType({
   name: "arrangement",
@@ -31,7 +31,7 @@ export const arrangement = defineType({
       title: "Tittel",
       type: "string",
       group: "core",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "slug",
@@ -39,7 +39,7 @@ export const arrangement = defineType({
       type: "slug",
       group: "core",
       options: { source: "title" },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "eventType",
@@ -71,7 +71,7 @@ export const arrangement = defineType({
       type: "array",
       group: "dates",
       of: [defineArrayMember({ type: "arrangementDate" })],
-      validation: (rule) =>
+      validation: rule =>
         rule.required().min(1).error("Minst én dato er påkrevd"),
     }),
     defineField({
@@ -156,7 +156,7 @@ export const arrangement = defineType({
       type: "number",
       group: "pricing",
       hidden: ({ document }) => Boolean(document?.isFree),
-      validation: (rule) => rule.min(0),
+      validation: rule => rule.min(0),
     }),
     defineField({
       name: "priceStudent",
@@ -164,7 +164,7 @@ export const arrangement = defineType({
       type: "number",
       group: "pricing",
       hidden: ({ document }) => Boolean(document?.isFree),
-      validation: (rule) => rule.min(0),
+      validation: rule => rule.min(0),
     }),
     defineField({
       name: "priceMedlem",
@@ -172,7 +172,7 @@ export const arrangement = defineType({
       type: "number",
       group: "pricing",
       hidden: ({ document }) => Boolean(document?.isFree),
-      validation: (rule) => rule.min(0),
+      validation: rule => rule.min(0),
     }),
 
     // ─── Links ─────────────────────────────────────────────────
@@ -181,14 +181,14 @@ export const arrangement = defineType({
       title: "Billettlenke",
       type: "url",
       group: "links",
-      validation: (rule) => rule.uri({ scheme: ["http", "https"] }),
+      validation: rule => rule.uri({ scheme: ["http", "https"] }),
     }),
     defineField({
       name: "facebookUrl",
       title: "Facebook-arrangement",
       type: "url",
       group: "links",
-      validation: (rule) => rule.uri({ scheme: ["http", "https"] }),
+      validation: rule => rule.uri({ scheme: ["http", "https"] }),
     }),
 
     // ─── Sharing / embeds ─────────────────────────────────────
@@ -205,7 +205,7 @@ export const arrangement = defineType({
       type: "text",
       rows: 3,
       group: "sharing",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
     defineField({
@@ -228,8 +228,7 @@ export const arrangement = defineType({
       type: "text",
       rows: 3,
       group: "sharing",
-      validation: (rule) =>
-        rule.max(200).warning("Hold teksten kort for deling"),
+      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
     }),
     defineField({
       name: "oembedTitle",
@@ -304,12 +303,12 @@ export const arrangement = defineType({
         approved: "✅ Godkjent",
         rejected: "❌ Avvist",
         archived: "📦 Arkivert",
-      };
+      }
       return {
         title: title ?? "Arrangement",
         subtitle: [startDate, statusLabel[status]].filter(Boolean).join(" · "),
         media: image,
-      };
+      }
     },
   },
   orderings: [
@@ -324,4 +323,4 @@ export const arrangement = defineType({
       by: [{ field: "dates.0.startDate", direction: "asc" }],
     },
   ],
-});
+})

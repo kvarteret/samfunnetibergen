@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Building2,
@@ -7,30 +7,30 @@ import {
   Info,
   type LucideIcon,
   Wand2,
-} from "lucide-react";
-import Image from "next/image";
-import { type ReactNode } from "react";
+} from "lucide-react"
+import Image from "next/image"
+import { type ReactNode } from "react"
 
-import { Card } from "@/components/ui/card";
-import { CheckboxSquare } from "@/components/ui/form-fields";
+import { Card } from "@/components/ui/card"
+import { CheckboxSquare } from "@/components/ui/form-fields"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar";
-import { cn } from "@/lib/utils";
-import { formatBookingTime } from "../domain/availability";
-import type { BookingRoom } from "../types";
+} from "@/components/ui/popover"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import { cn } from "@/lib/utils"
+import { formatBookingTime } from "../domain/availability"
+import type { BookingRoom } from "../types"
 
 // ─── BookingSelectableCard ───────────────────────────────────────────────────
 
 interface BookingSelectableCardProps {
-  selected: boolean;
-  onSelect: () => void;
-  disabled?: boolean;
-  children: ReactNode;
-  className?: string;
+  selected: boolean
+  onSelect: () => void
+  disabled?: boolean
+  children: ReactNode
+  className?: string
 }
 
 export function BookingSelectableCard({
@@ -57,16 +57,16 @@ export function BookingSelectableCard({
     >
       {children}
     </button>
-  );
+  )
 }
 
 // ─── BookingRoomPicker ───────────────────────────────────────────────────────
 
 interface BookingRoomPickerProps {
-  rooms: BookingRoom[];
-  selectedSlug: string;
-  occupiedSlugs: Set<string>;
-  onChange: (slug: string) => void;
+  rooms: BookingRoom[]
+  selectedSlug: string
+  occupiedSlugs: Set<string>
+  onChange: (slug: string) => void
 }
 
 export function BookingRoomPicker({
@@ -77,9 +77,9 @@ export function BookingRoomPicker({
 }: BookingRoomPickerProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {rooms.map((room) => {
-        const selected = selectedSlug === room.slug;
-        const occupied = occupiedSlugs.has(room.slug);
+      {rooms.map(room => {
+        const selected = selectedSlug === room.slug
+        const occupied = occupiedSlugs.has(room.slug)
         return (
           <button
             aria-pressed={selected}
@@ -139,20 +139,20 @@ export function BookingRoomPicker({
               </p>
             </div>
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 // ─── BookingToggleOption ─────────────────────────────────────────────────────
 
 interface BookingToggleOptionProps {
-  checked: boolean;
-  icon: LucideIcon;
-  label: string;
-  children?: ReactNode;
-  onChange: (checked: boolean) => void;
+  checked: boolean
+  icon: LucideIcon
+  label: string
+  children?: ReactNode
+  onChange: (checked: boolean) => void
 }
 
 export function BookingToggleOption({
@@ -183,15 +183,15 @@ export function BookingToggleOption({
       </button>
       {children && <div className="px-4 pb-4">{children}</div>}
     </div>
-  );
+  )
 }
 
 // ─── BookingTechnicianOption ─────────────────────────────────────────────────
 
 interface BookingTechnicianOptionProps {
-  checked: boolean;
-  label: string;
-  onChange: (checked: boolean) => void;
+  checked: boolean
+  label: string
+  onChange: (checked: boolean) => void
 }
 
 export function BookingTechnicianOption({
@@ -232,15 +232,15 @@ export function BookingTechnicianOption({
         </PopoverContent>
       </Popover>
     </div>
-  );
+  )
 }
 
 // ─── BookingRoomAvailability ─────────────────────────────────────────────────
 
 interface BookingRoomAvailabilityProps {
-  bookings: CresatBooking[];
-  hasConflict: boolean;
-  roomTitle: string;
+  bookings: CresatBooking[]
+  hasConflict: boolean
+  roomTitle: string
 }
 
 export function BookingRoomAvailability({
@@ -265,7 +265,7 @@ export function BookingRoomAvailability({
         </p>
       ) : (
         <ul className="space-y-1 text-sm text-foreground/75">
-          {bookings.map((booking) => (
+          {bookings.map(booking => (
             <li key={booking.id} className="flex justify-between gap-4">
               <span className="font-heading">
                 {formatBookingTime(booking.start)}–
@@ -285,16 +285,16 @@ export function BookingRoomAvailability({
         </p>
       )}
     </Card>
-  );
+  )
 }
 
 // ─── BookingTextarea ─────────────────────────────────────────────────────────
 
 interface BookingTextareaProps {
-  id: string;
-  value: string;
-  placeholder?: string;
-  onChange: (value: string) => void;
+  id: string
+  value: string
+  placeholder?: string
+  onChange: (value: string) => void
 }
 
 export function BookingTextarea({
@@ -307,10 +307,10 @@ export function BookingTextarea({
     <textarea
       className="w-full resize-y border-2 border-border bg-background px-3 py-2 text-sm font-base text-foreground placeholder:text-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       id={id}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={4}
       value={value}
     />
-  );
+  )
 }

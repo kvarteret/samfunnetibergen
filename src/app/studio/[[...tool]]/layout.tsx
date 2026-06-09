@@ -1,9 +1,9 @@
-import Script from "next/script";
+import Script from "next/script"
 
 export default function StudioLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <>
@@ -15,5 +15,5 @@ export default function StudioLayout({
       />
       {children}
     </>
-  );
+  )
 }

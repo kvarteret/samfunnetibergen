@@ -1,10 +1,10 @@
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar";
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 
-const MINUTES_IN_DAY = 1440;
+const MINUTES_IN_DAY = 1440
 
 function minutesOf(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+  const [h, m] = time.split(":").map(Number)
+  return h * 60 + m
 }
 
 // Absolute millisecond range for a slot, advancing the end past midnight when
@@ -14,13 +14,13 @@ export function slotRangeMs(
   startTime: string,
   endTime: string,
 ): [number, number] {
-  const baseMs = new Date(`${date}T00:00:00`).getTime();
-  const startMs = baseMs + minutesOf(startTime) * 60_000;
-  const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime);
+  const baseMs = new Date(`${date}T00:00:00`).getTime()
+  const startMs = baseMs + minutesOf(startTime) * 60_000
+  const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime)
   const endMs =
     baseMs +
-    (minutesOf(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000;
-  return [startMs, endMs];
+    (minutesOf(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000
+  return [startMs, endMs]
 }
 
 export function overlaps(
@@ -28,16 +28,16 @@ export function overlaps(
   endMs: number,
   booking: CresatBooking,
 ): boolean {
-  const bStart = new Date(booking.start).getTime();
-  const bEnd = new Date(booking.end).getTime();
-  return startMs < bEnd && endMs > bStart;
+  const bStart = new Date(booking.start).getTime()
+  const bEnd = new Date(booking.end).getTime()
+  return startMs < bEnd && endMs > bStart
 }
 
 export function formatBookingTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("nb-NO", {
     hour: "2-digit",
     minute: "2-digit",
-  });
+  })
 }
 
 // Hours between two HH:mm times, wrapping past midnight when end <= start.
@@ -45,8 +45,8 @@ export function durationHoursBetween(
   startTime: string,
   endTime: string,
 ): number {
-  const diff = minutesOf(endTime) - minutesOf(startTime);
-  return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60;
+  const diff = minutesOf(endTime) - minutesOf(startTime)
+  return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
 }
 
 // Bookings for one Crescat room (resourceId) out of the day's calendar.
@@ -54,7 +54,7 @@ export function bookingsForRoom(
   bookings: CresatBooking[],
   crescatRoomId: number,
 ): CresatBooking[] {
-  return bookings.filter((booking) => booking.resourceId === crescatRoomId);
+  return bookings.filter(booking => booking.resourceId === crescatRoomId)
 }
 
 // Whether a given room is occupied for the chosen slot.
@@ -65,9 +65,9 @@ export function isRoomOccupied(
   startTime: string,
   endTime: string,
 ): boolean {
-  if (!date) return false;
-  const [startMs, endMs] = slotRangeMs(date, startTime, endTime);
-  return bookingsForRoom(bookings, crescatRoomId).some((booking) =>
+  if (!date) return false
+  const [startMs, endMs] = slotRangeMs(date, startTime, endTime)
+  return bookingsForRoom(bookings, crescatRoomId).some(booking =>
     overlaps(startMs, endMs, booking),
-  );
+  )
 }

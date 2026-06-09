@@ -1,4 +1,4 @@
-import { resolveEndDateTime, toDateTime } from "./datetime";
+import { resolveEndDateTime, toDateTime } from "./datetime"
 import {
   AUDIENCE_COUNT,
   CATERING_PARENT_ID,
@@ -21,20 +21,20 @@ import {
   TECH_EQUIPMENT,
   TICKET_TYPES,
   TICKETING_PARENT_ID,
-} from "./fields";
-import type { Assignment, EventRequestBody } from "./types";
+} from "./fields"
+import type { Assignment, EventRequestBody } from "./types"
 
 // The two venue forms behind this integration. Both slugs were verified at
 // HTTP 201 from captured HAR traces. See docs/adr/001-crescat-integration.md.
 export const ROOM_BOOKING_SLUGS = {
   ekstern: "studentersamfunnet-i-bergen-bookingskjema-standard",
   intern: "studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne",
-} as const;
+} as const
 
 // The website offers three booker types. Studentorg books through the same
 // standard form as ekstern, but flags the "på vegne av studentorganisasjon"
 // metadata; intern uses the internal form.
-export type BookerType = "ekstern" | "studentorg" | "intern";
+export type BookerType = "ekstern" | "studentorg" | "intern"
 
 const SLUG_BY_BOOKER_TYPE: Record<
   BookerType,
@@ -43,45 +43,45 @@ const SLUG_BY_BOOKER_TYPE: Record<
   ekstern: ROOM_BOOKING_SLUGS.ekstern,
   studentorg: ROOM_BOOKING_SLUGS.ekstern,
   intern: ROOM_BOOKING_SLUGS.intern,
-};
+}
 
 export function slugForBookerType(bookerType: BookerType): string {
-  return SLUG_BY_BOOKER_TYPE[bookerType];
+  return SLUG_BY_BOOKER_TYPE[bookerType]
 }
 
 export interface RoomBookingInput {
-  eventName: string;
-  roomId: number;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  description: string;
-  audienceCount: number;
-  openOrClosed: "Åpent" | "Lukket";
-  furniture: string;
-  techEquipment: string;
-  cateringWishes: string;
-  freeOrPaid: "Gratis" | "Betalt";
-  ticketTypes: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
+  eventName: string
+  roomId: number
+  startDate: string
+  startTime: string
+  endTime: string
+  description: string
+  audienceCount: number
+  openOrClosed: "Åpent" | "Lukket"
+  furniture: string
+  techEquipment: string
+  cateringWishes: string
+  freeOrPaid: "Gratis" | "Betalt"
+  ticketTypes: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
   // Optional: when doors open (HH:mm). Adds a 0-minute "Doors" timeline entry.
-  doorsTime?: string;
+  doorsTime?: string
   // Ekstern only
-  onBehalfOfStudentOrg?: boolean;
-  studentOrgName?: string;
-  invoiceAddress?: string;
-  orgNumber?: number | null;
+  onBehalfOfStudentOrg?: boolean
+  studentOrgName?: string
+  invoiceAddress?: string
+  orgNumber?: number | null
   // Ekstern only: flexible on date/room. No Crescat field — appended to description.
-  flexibleDates?: boolean;
+  flexibleDates?: boolean
 }
 
 function commonHead(input: RoomBookingInput): { start: string; end: string } {
   return {
     start: toDateTime(input.startDate, input.startTime),
     end: resolveEndDateTime(input.startDate, input.startTime, input.endTime),
-  };
+  }
 }
 
 function baseBody(
@@ -100,7 +100,7 @@ function baseBody(
     request_by_country_code: "+47",
     model_id: null,
     model_type: null,
-  };
+  }
 }
 
 // Derived fallbacks so the faithful Crescat payload stays complete even when
@@ -108,31 +108,31 @@ function baseBody(
 const ticketTypesOrNA = (input: RoomBookingInput) =>
   input.freeOrPaid === "Gratis" || !input.ticketTypes.trim()
     ? "N/A"
-    : input.ticketTypes.trim();
+    : input.ticketTypes.trim()
 const cateringOrNo = (input: RoomBookingInput) =>
-  input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei";
+  input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei"
 
 // A 0-minute "Doors" entry on the day's timeline, when a doors time is given.
 function doorsAssignments(input: RoomBookingInput): Assignment[] {
-  if (!input.doorsTime) return [];
-  const doors = toDateTime(input.startDate, input.doorsTime);
-  return [{ title: "Doors", description: null, start: doors, end: doors }];
+  if (!input.doorsTime) return []
+  const doors = toDateTime(input.startDate, input.doorsTime)
+  return [{ title: "Doors", description: null, start: doors, end: doors }]
 }
 
 // Ekstern/studentorg may flag flexibility on date/room (no Crescat field).
 function descriptionWithFlexible(input: RoomBookingInput): string {
-  if (!input.flexibleDates) return input.description;
-  const note = "Fleksibel på dato og rom: ja";
+  if (!input.flexibleDates) return input.description
+  const note = "Fleksibel på dato og rom: ja"
   return input.description.trim()
     ? `${input.description.trim()}\n\n${note}`
-    : note;
+    : note
 }
 
 export function buildExternalBooking(
   input: RoomBookingInput,
 ): EventRequestBody {
-  const { start, end } = commonHead(input);
-  const description = descriptionWithFlexible(input);
+  const { start, end } = commonHead(input)
+  const description = descriptionWithFlexible(input)
 
   return {
     ...baseBody(input, start, end),
@@ -253,13 +253,13 @@ export function buildExternalBooking(
         },
       },
     ],
-  };
+  }
 }
 
 export function buildInternalBooking(
   input: RoomBookingInput,
 ): EventRequestBody {
-  const { start, end } = commonHead(input);
+  const { start, end } = commonHead(input)
 
   return {
     ...baseBody(input, start, end),
@@ -345,7 +345,7 @@ export function buildInternalBooking(
         content: { accepted: true },
       },
     ],
-  };
+  }
 }
 
 export function buildRoomBooking(
@@ -353,14 +353,14 @@ export function buildRoomBooking(
   input: RoomBookingInput,
 ): EventRequestBody {
   if (bookerType === "intern") {
-    return buildInternalBooking(input);
+    return buildInternalBooking(input)
   }
   // ekstern + studentorg both submit the standard form; studentorg flags the
   // "på vegne av studentorganisasjon" metadata.
-  const isStudentOrg = bookerType === "studentorg";
+  const isStudentOrg = bookerType === "studentorg"
   return buildExternalBooking({
     ...input,
     onBehalfOfStudentOrg: isStudentOrg,
     studentOrgName: isStudentOrg ? (input.studentOrgName ?? "") : "",
-  });
+  })
 }

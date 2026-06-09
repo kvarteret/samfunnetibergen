@@ -1,41 +1,41 @@
-import { ExternalLink, Ticket } from "lucide-react";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
-import type { ReactNode } from "react";
+import { ExternalLink, Ticket } from "lucide-react"
+import Image from "next/image"
+import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
+import type { ReactNode } from "react"
 
-import { Button } from "@/components/ui/button";
-import { Surface } from "@/components/ui/surface";
-import { Link } from "@/i18n/navigation";
-import type { AppLocale } from "@/i18n/routing";
-import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale";
-import { PortableTextContent } from "@/lib/portable-text-components";
-import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch";
+import { Button } from "@/components/ui/button"
+import { Surface } from "@/components/ui/surface"
+import { Link } from "@/i18n/navigation"
+import type { AppLocale } from "@/i18n/routing"
+import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
+import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   dateStyle: "long",
   timeZone: "Europe/Oslo",
-});
+})
 
-type EventDetail = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>;
+type EventDetail = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>
 
 type EventPageProps = {
-  params: Promise<{ event: string; locale: string }>;
-};
+  params: Promise<{ event: string; locale: string }>
+}
 
 export default async function EventPage({ params }: EventPageProps) {
-  const resolvedParams = await params;
+  const resolvedParams = await params
   const locale = (await resolvePageLocale(
     Promise.resolve({ locale: resolvedParams.locale }),
-  )) as AppLocale;
-  activateRequestLocale(locale);
+  )) as AppLocale
+  activateRequestLocale(locale)
 
   const [eventData, t] = await Promise.all([
     fetchEventBySlug(resolvedParams.event),
     getTranslations({ locale, namespace: "EventPage" }),
-  ]);
+  ])
 
-  if (!eventData) notFound();
+  if (!eventData) notFound()
 
   return (
     <article className="flex w-full flex-col gap-8">
@@ -43,28 +43,28 @@ export default async function EventPage({ params }: EventPageProps) {
       <EventDetailScheduleAndMeta event={eventData} t={t} />
       <EventDetailDescription event={eventData} t={t} />
     </article>
-  );
+  )
 }
 
 export async function generateMetadata({ params }: EventPageProps) {
-  const resolvedParams = await params;
+  const resolvedParams = await params
   const [eventData, siteMetadata] = await Promise.all([
     fetchEventBySlug(resolvedParams.event),
     fetchSiteMetadata(resolvedParams.locale as AppLocale, { stega: false }),
-  ]);
+  ])
 
-  if (!eventData) return {};
-  const title = `${eventData.seoTitle ?? eventData.title} | Samfunnet i Bergen`;
+  if (!eventData) return {}
+  const title = `${eventData.seoTitle ?? eventData.title} | Samfunnet i Bergen`
   const description =
     eventData.seoDescription ??
     eventData.openGraphDescription ??
     siteMetadata?.defaultSeoDescription ??
-    undefined;
-  const openGraphTitle = eventData.openGraphTitle ?? eventData.title;
+    undefined
+  const openGraphTitle = eventData.openGraphTitle ?? eventData.title
   const openGraphImage =
     eventData.openGraphImageUrl ??
     eventData.imageUrl ??
-    siteMetadata?.defaultOpenGraphImageUrl;
+    siteMetadata?.defaultOpenGraphImageUrl
 
   return {
     title,
@@ -76,15 +76,15 @@ export async function generateMetadata({ params }: EventPageProps) {
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
       type: "article",
     },
-  };
+  }
 }
 
 function EventDetailHero({
   event,
   ticketsLabel,
 }: {
-  event: EventDetail;
-  ticketsLabel: string;
+  event: EventDetail
+  ticketsLabel: string
 }) {
   return (
     <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
@@ -128,33 +128,33 @@ function EventDetailHero({
         )}
       </Surface>
     </header>
-  );
+  )
 }
 
 function EventDetailScheduleAndMeta({
   event,
   t,
 }: {
-  event: EventDetail;
-  t: Awaited<ReturnType<typeof getTranslations>>;
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <EventDetailMetaSidebar event={event} t={t} />
       <EventDetailSchedule event={event} t={t} />
     </div>
-  );
+  )
 }
 
 function EventDetailMetaSidebar({
   event,
   t,
 }: {
-  event: EventDetail;
-  t: Awaited<ReturnType<typeof getTranslations>>;
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
 }) {
-  const organizer = event.organizerGroup?.name ?? event.organizerText;
-  const price = formatPrices(event);
+  const organizer = event.organizerGroup?.name ?? event.organizerText
+  const price = formatPrices(event)
 
   return (
     <aside className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
@@ -167,15 +167,15 @@ function EventDetailMetaSidebar({
         </EventDetailMetaItem>
       )}
     </aside>
-  );
+  )
 }
 
 function EventDetailMetaItem({
   label,
   children,
 }: {
-  label: string;
-  children: ReactNode;
+  label: string
+  children: ReactNode
 }) {
   return (
     <div className="space-y-3">
@@ -184,15 +184,15 @@ function EventDetailMetaItem({
       </p>
       <p className="text-lg leading-6 text-foreground">{children}</p>
     </div>
-  );
+  )
 }
 
 function EventDetailSchedule({
   event,
   t,
 }: {
-  event: EventDetail;
-  t: Awaited<ReturnType<typeof getTranslations>>;
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <section>
@@ -201,26 +201,22 @@ function EventDetailSchedule({
         <p>{t("time")}</p>
         <p>{t("place")}</p>
       </div>
-      {(event.dates ?? []).map((date) => (
-        <EventDetailScheduleItem
-          date={date}
-          event={event}
-          key={date._key}
-        />
+      {(event.dates ?? []).map(date => (
+        <EventDetailScheduleItem date={date} event={event} key={date._key} />
       ))}
     </section>
-  );
+  )
 }
 
 function EventDetailScheduleItem({
   date,
   event,
 }: {
-  date: NonNullable<EventDetail["dates"]>[number];
-  event: EventDetail;
+  date: NonNullable<EventDetail["dates"]>[number]
+  event: EventDetail
 }) {
-  const roomTitle = event.room?.title ?? event.roomText;
-  const roomSlug = event.room?.slug;
+  const roomTitle = event.room?.title ?? event.roomText
+  const roomSlug = event.room?.slug
 
   return (
     <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
@@ -238,7 +234,7 @@ function EventDetailScheduleItem({
         )}
       </p>
     </div>
-  );
+  )
 }
 
 function EventDetailRoomLink({
@@ -246,12 +242,12 @@ function EventDetailRoomLink({
   roomSlug,
   roomTitle,
 }: {
-  event: EventDetail;
-  roomSlug: string;
-  roomTitle?: string | null;
+  event: EventDetail
+  roomSlug: string
+  roomTitle?: string | null
 }) {
-  const roomFloor = event.room?.floor;
-  const roomImageUrl = event.room?.imageUrl;
+  const roomFloor = event.room?.floor
+  const roomImageUrl = event.room?.imageUrl
 
   return (
     <span className="group relative inline-block">
@@ -282,15 +278,15 @@ function EventDetailRoomLink({
         </span>
       )}
     </span>
-  );
+  )
 }
 
 function EventDetailDescription({
   event,
   t,
 }: {
-  event: EventDetail;
-  t: Awaited<ReturnType<typeof getTranslations>>;
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
@@ -303,15 +299,15 @@ function EventDetailDescription({
         )}
       </div>
     </section>
-  );
+  )
 }
 
 function EventDetailActions({
   event,
   t,
 }: {
-  event: EventDetail;
-  t: Awaited<ReturnType<typeof getTranslations>>;
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <div className="space-y-4">
@@ -324,26 +320,26 @@ function EventDetailActions({
         </Button>
       )}
     </div>
-  );
+  )
 }
 
 function formatDate(dateStr: string): string {
-  return longDateFormatter.format(new Date(`${dateStr}T00:00:00`));
+  return longDateFormatter.format(new Date(`${dateStr}T00:00:00`))
 }
 
 function formatScheduleTime(
   date: NonNullable<EventDetail["dates"]>[number],
 ): string {
-  if (!date.startTime) return "-";
-  if (!date.endTime) return date.startTime;
-  return `${date.startTime}–${date.endTime}`;
+  if (!date.startTime) return "-"
+  if (!date.endTime) return date.startTime
+  return `${date.startTime}–${date.endTime}`
 }
 
 function formatPrices(event: EventDetail): string | null {
-  if (event.isFree) return "Gratis";
-  const parts: string[] = [];
-  if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`);
-  if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`);
-  if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`);
-  return parts.length > 0 ? parts.join(" / ") : null;
+  if (event.isFree) return "Gratis"
+  const parts: string[] = []
+  if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`)
+  if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`)
+  if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`)
+  return parts.length > 0 ? parts.join(" / ") : null
 }

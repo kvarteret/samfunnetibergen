@@ -3,18 +3,18 @@ import { defineCliConfig } from "sanity/cli"
 import { dataset, projectId } from "./src/lib/sanity/env"
 
 export default defineCliConfig({
-    api: {
-        projectId,
-        dataset,
-    },
-    project: {
-        basePath: "/studio",
-    },
-    server: {
-        port: 3333,
-    },
-    schemaExtraction: {
-        enabled: true,
-        path: ".sanity/schema.json",
-    },
+  api: {
+    projectId,
+    dataset,
+  },
+  project: {
+    basePath: "/studio",
+  },
+  server: {
+    port: 3333,
+  },
+  schemaExtraction: {
+    enabled: true,
+    path: ".sanity/schema.json",
+  },
 })

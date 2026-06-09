@@ -1,21 +1,28 @@
-"use client";
+"use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useId } from "react";
-import { FieldGroup, SectionHeader, SelectField } from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { BookingTextarea } from "./BookingFormPrimitives";
-import { useBookingForm } from "./bookingFormContext";
+import { useId } from "react"
+import {
+  FieldGroup,
+  SectionHeader,
+  SelectField,
+} from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { BookingTextarea } from "./BookingFormPrimitives"
+import { useBookingForm } from "./bookingFormContext"
 
-const OPEN_CLOSED_OPTIONS = [{ value: "Åpent", label: "Åpent arrangement" }, { value: "Lukket", label: "Lukket arrangement" }];
+const OPEN_CLOSED_OPTIONS = [
+  { value: "Åpent", label: "Åpent arrangement" },
+  { value: "Lukket", label: "Lukket arrangement" },
+]
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props {}
 
-export function BookingFormEventDetailsSection({ }: Props) {
-  const uid = useId();
-  const form = useBookingForm();
+export function BookingFormEventDetailsSection({}: Props) {
+  const uid = useId()
+  const form = useBookingForm()
   return (
     <section className="space-y-6">
       <SectionHeader number="03" title="Arrangement" />
@@ -27,7 +34,7 @@ export function BookingFormEventDetailsSection({ }: Props) {
               <Input
                 autoComplete="off"
                 id={`${uid}-eventName`}
-                onChange={(e) => field.handleChange(e.target.value)}
+                onChange={e => field.handleChange(e.target.value)}
                 placeholder="F.eks. konsert, møte, foredrag"
                 value={field.state.value as string}
               />
@@ -38,25 +45,38 @@ export function BookingFormEventDetailsSection({ }: Props) {
           <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
           <form.Field name="audienceCount">
             {(field: any) => (
-              <Input id={`${uid}-audience`} min={0} onChange={(e) => field.handleChange(e.target.value)} placeholder="F.eks. 50" type="number" value={field.state.value as string} />
+              <Input
+                id={`${uid}-audience`}
+                min={0}
+                onChange={e => field.handleChange(e.target.value)}
+                placeholder="F.eks. 50"
+                type="number"
+                value={field.state.value as string}
+              />
             )}
           </form.Field>
         </FieldGroup>
         <form.Field name="openOrClosed">
           {(field: any) => (
-            <SelectField id={`${uid}-openClosed`} label="Åpent / lukket *" onChange={field.handleChange} options={OPEN_CLOSED_OPTIONS} value={field.state.value as string} />
+            <SelectField
+              id={`${uid}-openClosed`}
+              label="Åpent / lukket *"
+              onChange={field.handleChange}
+              options={OPEN_CLOSED_OPTIONS}
+              value={field.state.value as string}
+            />
           )}
         </form.Field>
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
           <BookingTextarea
             id={`${uid}-description`}
-            onChange={(v) => form.setFieldValue("description", v)}
+            onChange={v => form.setFieldValue("description", v)}
             placeholder="Fortell oss kort om arrangementet ditt..."
             value={form.state.values.description}
           />
         </FieldGroup>
       </div>
     </section>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl"
 
-import { useEvents } from "@/features/events/context/EventsContext";
-import type { PublishedEvent } from "@/features/events/domain/eventUtils";
-import { EventCard, type EventSummary } from "./EventCard";
+import { useEvents } from "@/features/events/context/EventsContext"
+import type { PublishedEvent } from "@/features/events/domain/eventUtils"
+import { EventCard, type EventSummary } from "./EventCard"
 
-type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number];
+type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number]
 
 function toEventSummary(event: PublishedEvent): EventSummary {
   return {
@@ -59,22 +59,20 @@ function toEventSummary(event: PublishedEvent): EventSummary {
             : null,
         }
       : null,
-  };
+  }
 }
 
 export function EventsPageSections() {
-  const t = useTranslations("EventsPage");
-  const { filteredEvents } = useEvents();
+  const t = useTranslations("EventsPage")
+  const { filteredEvents } = useEvents()
 
   if (filteredEvents.length === 0) {
-    return (
-      <p className="text-sm leading-6 text-foreground/75">{t("empty")}</p>
-    );
+    return <p className="text-sm leading-6 text-foreground/75">{t("empty")}</p>
   }
 
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      {filteredEvents.map((event) => (
+      {filteredEvents.map(event => (
         <EventCard
           event={toEventSummary(event)}
           facebookLabel={t("facebook")}
@@ -83,5 +81,5 @@ export function EventsPageSections() {
         />
       ))}
     </div>
-  );
+  )
 }

@@ -1,10 +1,10 @@
-import Link from "next/link";
+import Link from "next/link"
 
 export default async function HomeLayout({
   children,
   params,
 }: LayoutProps<"/[locale]/home">) {
-  const { locale } = await params;
+  const { locale } = await params
   return (
     <div>
       {children}
@@ -23,5 +23,5 @@ export default async function HomeLayout({
         </Link>
       </nav>
     </div>
-  );
+  )
 }

@@ -3,4 +3,4 @@ export const sourcedImageProjection = `{
     "assetUrl": image.asset->url,
     alt,
     caption
-}`;
+}`

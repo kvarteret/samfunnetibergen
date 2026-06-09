@@ -1,40 +1,40 @@
-import { Mail, Phone } from "lucide-react";
-import Image from "next/image";
-import { Surface } from "@/components/ui/surface";
+import { Mail, Phone } from "lucide-react"
+import Image from "next/image"
+import { Surface } from "@/components/ui/surface"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { fetchKontaktPage } from "@/lib/sanity/fetch";
+} from "@/lib/app-locale"
+import { fetchKontaktPage } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata() {
-  const page = await fetchKontaktPage();
+  const page = await fetchKontaktPage()
   return {
     title: page?.seoTitle ?? "Kontakt | Samfunnet i Bergen",
     description:
       page?.seoDescription ?? "Kontaktinformasjon for Samfunnet i Bergen.",
-  };
+  }
 }
 
-type KontaktPage = NonNullable<Awaited<ReturnType<typeof fetchKontaktPage>>>;
-type ContactGroup = NonNullable<KontaktPage["contactGroups"]>[number];
-type ContactPerson = NonNullable<ContactGroup["persons"]>[number];
+type KontaktPage = NonNullable<Awaited<ReturnType<typeof fetchKontaktPage>>>
+type ContactGroup = NonNullable<KontaktPage["contactGroups"]>[number]
+type ContactPerson = NonNullable<ContactGroup["persons"]>[number]
 
 function AddressBlock({
   label,
   value,
 }: {
-  label: string;
-  value: string | null | undefined;
+  label: string
+  value: string | null | undefined
 }) {
-  if (!value) return null;
+  if (!value) return null
   return (
     <div className="space-y-2">
       <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
@@ -44,7 +44,7 @@ function AddressBlock({
         {value}
       </p>
     </div>
-  );
+  )
 }
 
 function PersonCard({ person }: { person: ContactPerson }) {
@@ -88,18 +88,18 @@ function PersonCard({ person }: { person: ContactPerson }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export default async function KontaktPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
-  const page = await fetchKontaktPage();
+  const page = await fetchKontaktPage()
 
   return (
     <article className="flex w-full flex-col gap-12">
@@ -168,5 +168,5 @@ export default async function KontaktPage({
         </Surface>
       </div>
     </article>
-  );
+  )
 }

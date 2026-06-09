@@ -1,9 +1,9 @@
-import "server-only";
+import "server-only"
 
-import type { ClientReturn } from "@sanity/client";
-import type { AppLocale } from "@/i18n/routing";
-import { sanityClient } from "../client";
-import { sanityFetch } from "../fetcher";
+import type { ClientReturn } from "@sanity/client"
+import type { AppLocale } from "@/i18n/routing"
+import { sanityClient } from "../client"
+import { sanityFetch } from "../fetcher"
 import {
   footerQuery,
   homePageNbQuery,
@@ -15,32 +15,32 @@ import {
   pageSlugsQuery,
   siteMetadataNbQuery,
   sponsorsPageQuery,
-} from "../queries";
-import { compact, type FetchOptions } from "./shared";
+} from "../queries"
+import { compact, type FetchOptions } from "./shared"
 
 export type SiteMetadataContent = NonNullable<
   ClientReturn<typeof siteMetadataNbQuery>
->;
+>
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
->;
+>
 
-export type HomePageContent = NonNullable<ClientReturn<typeof homePageNbQuery>>;
+export type HomePageContent = NonNullable<ClientReturn<typeof homePageNbQuery>>
 
 export type SponsorsPageContent = NonNullable<
   ClientReturn<typeof sponsorsPageQuery>
->;
+>
 
-export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>;
+export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
 
-export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>;
+export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
 
-export type NavItem = NonNullable<NavbarContent["items"]>[number];
+export type NavItem = NonNullable<NavbarContent["items"]>[number]
 
-export type NavGroup = NonNullable<NavItem["children"]>[number];
+export type NavGroup = NonNullable<NavItem["children"]>[number]
 
-export type NavLeaf = NonNullable<NavGroup["items"]>[number];
+export type NavLeaf = NonNullable<NavGroup["items"]>[number]
 
 export async function fetchSiteMetadata(
   _locale: AppLocale,
@@ -50,8 +50,8 @@ export async function fetchSiteMetadata(
     query: siteMetadataNbQuery,
     tags: ["siteMetadata"],
     stega: options.stega,
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchHomePageContent(
@@ -62,13 +62,13 @@ export async function fetchHomePageContent(
     query: homePageNbQuery,
     tags: ["homePage"],
     stega: options.stega,
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchNavbar(): Promise<NavbarContent | null> {
-  const { data } = await sanityFetch({ query: navbarQuery, tags: ["navbar"] });
-  return data;
+  const { data } = await sanityFetch({ query: navbarQuery, tags: ["navbar"] })
+  return data
 }
 
 export async function fetchSponsorsPageContent(
@@ -78,8 +78,8 @@ export async function fetchSponsorsPageContent(
     query: sponsorsPageQuery,
     tags: ["sponsorsPage"],
     stega: options.stega,
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchPageSlugs(): Promise<string[]> {
@@ -87,8 +87,8 @@ export async function fetchPageSlugs(): Promise<string[]> {
     pageSlugsQuery,
     {},
     { next: { revalidate: 300, tags: ["pages"] } },
-  );
-  return compact(pages.map((p) => p.slug));
+  )
+  return compact(pages.map(p => p.slug))
 }
 
 export async function fetchPageBySlug(
@@ -100,35 +100,35 @@ export async function fetchPageBySlug(
     params: { slug },
     tags: ["pages"],
     stega: options.stega,
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchKontaktPage() {
   const { data } = await sanityFetch({
     query: kontaktPageQuery,
     tags: ["kontaktPage"],
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchFooter() {
-  const { data } = await sanityFetch({ query: footerQuery, tags: ["footer"] });
-  return data;
+  const { data } = await sanityFetch({ query: footerQuery, tags: ["footer"] })
+  return data
 }
 
 export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
   const { data } = await sanityFetch({
     query: houseHoursQuery,
     tags: ["siteMetadata"],
-  });
-  return data;
+  })
+  return data
 }
 
 export async function fetchLinkInBio() {
   const { data } = await sanityFetch({
     query: linkInBioQuery,
     tags: ["linkInBio"],
-  });
-  return data;
+  })
+  return data
 }

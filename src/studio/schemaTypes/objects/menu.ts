@@ -1,4 +1,4 @@
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const menuItem = defineType({
   name: "menuItem",
@@ -9,7 +9,7 @@ export const menuItem = defineType({
       name: "title",
       title: "Navn",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "description",
@@ -25,10 +25,10 @@ export const menuItem = defineType({
       return {
         title: title ?? "Rett",
         subtitle: subtitle != null ? `${subtitle} kr` : undefined,
-      };
+      }
     },
   },
-});
+})
 
 export const menuSection = defineType({
   name: "menuSection",
@@ -39,7 +39,7 @@ export const menuSection = defineType({
       name: "title",
       title: "Tittel",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "fixedPrice",
@@ -62,11 +62,11 @@ export const menuSection = defineType({
   preview: {
     select: { title: "title", items: "items" },
     prepare({ title, items }) {
-      const count = Array.isArray(items) ? items.length : 0;
-      return { title: title ?? "Seksjon", subtitle: `${count} retter` };
+      const count = Array.isArray(items) ? items.length : 0
+      return { title: title ?? "Seksjon", subtitle: `${count} retter` }
     },
   },
-});
+})
 
 export const menuSchema = defineType({
   name: "menu",
@@ -86,4 +86,4 @@ export const menuSchema = defineType({
       rows: 3,
     }),
   ],
-});
+})

@@ -1,18 +1,22 @@
-"use client";
+"use client"
 
-import { Check, Loader2, Trash2, Upload } from "lucide-react";
-import type { ChangeEvent } from "react";
+import { Check, Loader2, Trash2, Upload } from "lucide-react"
+import type { ChangeEvent } from "react"
 
-import { FieldGroup, FieldHint, SectionHeader } from "@/components/ui/form-fields";
-import { formatEventImageMaxSize } from "../domain/imageUpload";
+import {
+  FieldGroup,
+  FieldHint,
+  SectionHeader,
+} from "@/components/ui/form-fields"
+import { formatEventImageMaxSize } from "../domain/imageUpload"
 
 interface EventFormImageSectionProps {
-  imageAssetId: string | null;
-  imagePreviewUrl: string | null;
-  imageUploading: boolean;
-  imageUploadError: string;
-  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: () => void;
+  imageAssetId: string | null
+  imagePreviewUrl: string | null
+  imageUploading: boolean
+  imageUploadError: string
+  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
+  onRemoveImage: () => void
 }
 
 export function EventFormImageSection({
@@ -46,15 +50,15 @@ export function EventFormImageSection({
         )}
       </FieldGroup>
     </section>
-  );
+  )
 }
 
 interface UploadedImagePreviewProps {
-  imageAssetId: string | null;
-  imagePreviewUrl: string;
-  imageUploading: boolean;
-  imageUploadError: string;
-  onRemoveImage: () => void;
+  imageAssetId: string | null
+  imagePreviewUrl: string
+  imageUploading: boolean
+  imageUploadError: string
+  onRemoveImage: () => void
 }
 
 function UploadedImagePreview({
@@ -97,11 +101,11 @@ function UploadedImagePreview({
         Fjern bilde
       </button>
     </div>
-  );
+  )
 }
 
 interface ImageUploadDropzoneProps {
-  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 function ImageUploadDropzone({ onImageChange }: ImageUploadDropzoneProps) {
@@ -118,5 +122,5 @@ function ImageUploadDropzone({ onImageChange }: ImageUploadDropzoneProps) {
         Klikk for å velge bilde
       </span>
     </label>
-  );
+  )
 }

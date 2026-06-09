@@ -1,34 +1,34 @@
-"use client";
+"use client"
 
-import { ArrowRight, Mail } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
+import { ArrowRight, Mail } from "lucide-react"
+import Image from "next/image"
+import { useState } from "react"
 
-import { Link } from "@/i18n/navigation";
-import type { StudentGroupSummary } from "@/lib/sanity/fetch";
-import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation"
+import type { StudentGroupSummary } from "@/lib/sanity/fetch"
+import { cn } from "@/lib/utils"
 
 type GroupSection = {
-  title: string;
-  groups: StudentGroupSummary[];
-};
+  title: string
+  groups: StudentGroupSummary[]
+}
 
 interface GroupsFilterProps {
-  sections: GroupSection[];
-  allLabels: string[];
+  sections: GroupSection[]
+  allLabels: string[]
 }
 
 export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
-  const [activeLabel, setActiveLabel] = useState<string | null>(null);
+  const [activeLabel, setActiveLabel] = useState<string | null>(null)
 
   const filteredSections = activeLabel
     ? sections
-        .map((section) => ({
+        .map(section => ({
           ...section,
-          groups: section.groups.filter((g) => g.labels?.includes(activeLabel)),
+          groups: section.groups.filter(g => g.labels?.includes(activeLabel)),
         }))
-        .filter((section) => section.groups.length > 0)
-    : sections;
+        .filter(section => section.groups.length > 0)
+    : sections
 
   return (
     <div className="space-y-12">
@@ -45,7 +45,7 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
           >
             Alle
           </button>
-          {allLabels.map((label) => (
+          {allLabels.map(label => (
             <button
               className={cn(
                 "border-2 border-border px-3 py-1.5 font-heading text-sm transition-colors",
@@ -64,20 +64,20 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
         </div>
       )}
 
-      {filteredSections.map((section) => (
+      {filteredSections.map(section => (
         <section className="space-y-5" key={section.title}>
           <h2 className="font-heading text-4xl leading-none text-foreground">
             {section.title}
           </h2>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {section.groups.map((group) => (
+            {section.groups.map(group => (
               <GroupCard group={group} key={group.slug} />
             ))}
           </div>
         </section>
       ))}
     </div>
-  );
+  )
 }
 
 function GroupCard({ group }: { group: StudentGroupSummary }) {
@@ -145,5 +145,5 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
         </span>
       </div>
     </Link>
-  );
+  )
 }

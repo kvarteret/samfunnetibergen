@@ -1,7 +1,7 @@
-import { LinkIcon } from "@sanity/icons";
-import { defineField, defineType } from "sanity";
+import { LinkIcon } from "@sanity/icons"
+import { defineField, defineType } from "sanity"
 
-const internalPathPattern = /^\/(?!\/)/;
+const internalPathPattern = /^\/(?!\/)/
 
 export const sourceLink = defineType({
   name: "sourceLink",
@@ -13,7 +13,7 @@ export const sourceLink = defineType({
       name: "label",
       title: "Label",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       type: "string",
@@ -28,7 +28,7 @@ export const sourceLink = defineType({
           { title: "Ekstern URL", value: "external" },
         ],
       },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "internalPage",
@@ -47,13 +47,13 @@ export const sourceLink = defineType({
         { type: "studentGroup" },
       ],
       hidden: ({ parent }) => parent?.linkType !== "internalPage",
-      validation: (rule) =>
+      validation: rule =>
         rule.custom((value, context) => {
-          const parent = context.parent as { linkType?: string } | undefined;
+          const parent = context.parent as { linkType?: string } | undefined
           if (parent?.linkType === "internalPage" && !value?._ref) {
-            return "Velg et internt dokument";
+            return "Velg et internt dokument"
           }
-          return true;
+          return true
         }),
     }),
     defineField({
@@ -63,13 +63,13 @@ export const sourceLink = defineType({
       description:
         "Brukes bare for interne ruter som ikke har et Sanity-dokument.",
       hidden: ({ parent }) => parent?.linkType !== "internalPath",
-      validation: (rule) =>
+      validation: rule =>
         rule.custom((value, context) => {
-          const parent = context.parent as { linkType?: string } | undefined;
-          if (parent?.linkType !== "internalPath") return true;
-          if (!value) return "Skriv inn en intern sti";
-          if (internalPathPattern.test(value)) return true;
-          return "Bruk en intern sti som starter med /";
+          const parent = context.parent as { linkType?: string } | undefined
+          if (parent?.linkType !== "internalPath") return true
+          if (!value) return "Skriv inn en intern sti"
+          if (internalPathPattern.test(value)) return true
+          return "Bruk en intern sti som starter med /"
         }),
     }),
     defineField({
@@ -77,16 +77,16 @@ export const sourceLink = defineType({
       title: "Ekstern URL",
       type: "url",
       hidden: ({ parent }) => parent?.linkType !== "external",
-      validation: (rule) => rule.uri({ scheme: ["http", "https", "mailto"] }),
+      validation: rule => rule.uri({ scheme: ["http", "https", "mailto"] }),
     }),
   ],
-  validation: (rule) =>
-    rule.custom((value) => {
-      if (!value) return true;
+  validation: rule =>
+    rule.custom(value => {
+      if (!value) return true
       if (value.linkType === "external" && !value.externalUrl) {
-        return "Skriv inn en ekstern URL";
+        return "Skriv inn en ekstern URL"
       }
-      return true;
+      return true
     }),
   preview: {
     select: {
@@ -109,21 +109,21 @@ export const sourceLink = defineType({
       internalPath,
       externalUrl,
     }) {
-      let subtitle = "Mangler lenke";
+      let subtitle = "Mangler lenke"
       if (linkType === "internalPage") {
         subtitle = pageSlug
           ? `/${pageSlug}`
-          : (pageTitle ?? pageName ?? pageType ?? "Velg dokument");
+          : (pageTitle ?? pageName ?? pageType ?? "Velg dokument")
       } else if (linkType === "internalPath") {
-        subtitle = internalPath ?? "Mangler intern sti";
+        subtitle = internalPath ?? "Mangler intern sti"
       } else if (linkType === "external") {
-        subtitle = externalUrl ?? "Mangler ekstern URL";
+        subtitle = externalUrl ?? "Mangler ekstern URL"
       }
 
       return {
         title,
         subtitle,
-      };
+      }
     },
   },
-});
+})

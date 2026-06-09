@@ -1,26 +1,26 @@
-import { ObjectInputMember, type ObjectInputProps } from "sanity";
+import { ObjectInputMember, type ObjectInputProps } from "sanity"
 
 type DurationValue = {
-  _type?: "duration";
-  start?: string;
-  end?: string;
-};
+  _type?: "duration"
+  start?: string
+  end?: string
+}
 
 export function DurationInput(props: ObjectInputProps<DurationValue>) {
-  const { members } = props;
+  const { members } = props
 
   const startMember = members.find(
-    (member) => member.kind === "field" && member.name === "start",
-  );
+    member => member.kind === "field" && member.name === "start",
+  )
   const endMember = members.find(
-    (member) => member.kind === "field" && member.name === "end",
-  );
+    member => member.kind === "field" && member.name === "end",
+  )
 
   if (!startMember || !endMember) {
     console.error(
       `Missing "start" or "end" member in DurationInput: "${props.schemaType.name}"`,
-    );
-    return props.renderDefault(props);
+    )
+    return props.renderDefault(props)
   }
 
   const renderProps = {
@@ -28,7 +28,7 @@ export function DurationInput(props: ObjectInputProps<DurationValue>) {
     renderInput: props.renderInput,
     renderItem: props.renderItem,
     renderPreview: props.renderPreview,
-  };
+  }
 
   return (
     <div
@@ -41,5 +41,5 @@ export function DurationInput(props: ObjectInputProps<DurationValue>) {
       <ObjectInputMember member={startMember} {...renderProps} />
       <ObjectInputMember member={endMember} {...renderProps} />
     </div>
-  );
+  )
 }

@@ -1,28 +1,28 @@
-import { ExternalLink } from "lucide-react";
-import Image from "next/image";
-import { Surface } from "@/components/ui/surface";
+import { ExternalLink } from "lucide-react"
+import Image from "next/image"
+import { Surface } from "@/components/ui/surface"
 
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { PortableTextContent } from "@/lib/portable-text-components";
-import { fetchSponsorsPageContent } from "@/lib/sanity/fetch";
+} from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
+import { fetchSponsorsPageContent } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 type SponsorsPageProps = {
-  params: Promise<{ locale: string }>;
-};
+  params: Promise<{ locale: string }>
+}
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata({ params }: SponsorsPageProps) {
-  await resolvePageLocale(params);
-  const content = await fetchSponsorsPageContent({ stega: false });
+  await resolvePageLocale(params)
+  const content = await fetchSponsorsPageContent({ stega: false })
 
   return {
     title: `${content?.seoTitle ?? content?.title ?? "Sponsorer"} | Samfunnet i Bergen`,
@@ -30,15 +30,15 @@ export async function generateMetadata({ params }: SponsorsPageProps) {
       content?.seoDescription ??
       content?.description ??
       "Se sponsorer for Samfunnet i Bergen.",
-  };
+  }
 }
 
 export default async function SponsorsPage({ params }: SponsorsPageProps) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
-  const content = await fetchSponsorsPageContent();
-  const sponsors = content?.sponsors ?? [];
+  const content = await fetchSponsorsPageContent()
+  const sponsors = content?.sponsors ?? []
 
   return (
     <div className="space-y-12">
@@ -60,7 +60,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
 
       {sponsors.length ? (
         <section className="grid gap-6 md:grid-cols-2">
-          {sponsors.map((sponsor) => (
+          {sponsors.map(sponsor => (
             <Surface
               as="article"
               className="flex min-h-full flex-col gap-5 shadow-shadow"
@@ -99,5 +99,5 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
         </section>
       ) : null}
     </div>
-  );
+  )
 }

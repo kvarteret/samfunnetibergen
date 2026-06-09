@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
 import {
   CheckboxSquare,
   FieldHint,
   PriceInput,
   SectionHeader,
-} from "@/components/ui/form-fields";
-import { useEventForm } from "./eventFormContext";
+} from "@/components/ui/form-fields"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormPriceSectionProps {
-  uid: string;
+  uid: string
 }
 
 export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
-  const form = useEventForm();
-  const values = form.state.values;
+  const form = useEventForm()
+  const values = form.state.values
 
   return (
     <section className="space-y-6">
@@ -23,7 +23,7 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
       <label className="group flex cursor-pointer items-center gap-3">
         <CheckboxSquare
           checked={values.isFree}
-          onChange={(v) => form.setFieldValue("isFree", v)}
+          onChange={v => form.setFieldValue("isFree", v)}
         />
         <span className="font-heading text-sm text-foreground">
           Gratis inngang
@@ -35,19 +35,19 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
           <PriceInput
             id={`${uid}-priceOrdinar`}
             label="Ordinær"
-            onChange={(v) => form.setFieldValue("priceOrdinar", v)}
+            onChange={v => form.setFieldValue("priceOrdinar", v)}
             value={values.priceOrdinar}
           />
           <PriceInput
             id={`${uid}-priceStudent`}
             label="Student"
-            onChange={(v) => form.setFieldValue("priceStudent", v)}
+            onChange={v => form.setFieldValue("priceStudent", v)}
             value={values.priceStudent}
           />
           <PriceInput
             id={`${uid}-priceMedlem`}
             label="Medlem"
-            onChange={(v) => form.setFieldValue("priceMedlem", v)}
+            onChange={v => form.setFieldValue("priceMedlem", v)}
             value={values.priceMedlem}
           />
         </div>
@@ -58,5 +58,5 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
         gjerne kontakt for avklaring.
       </FieldHint>
     </section>
-  );
+  )
 }

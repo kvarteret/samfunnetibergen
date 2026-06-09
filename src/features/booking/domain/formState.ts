@@ -1,40 +1,40 @@
-import type { RoomBookingPayload } from "../actions/submit-room-booking";
-import type { BookerType } from "@/lib/integrations/crescat/room-booking";
-import type { BookingRoom } from "../types";
+import type { RoomBookingPayload } from "../actions/submit-room-booking"
+import type { BookerType } from "@/lib/integrations/crescat/room-booking"
+import type { BookingRoom } from "../types"
 
-export type { BookerType };
+export type { BookerType }
 
 export interface BookingFormState {
-  bookerType: BookerType;
-  studentOrgName: string;
-  roomSlug: string;
-  eventName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  doorsTime: string;
-  audienceCount: string;
-  openOrClosed: "Åpent" | "Lukket";
-  description: string;
-  furniture: string;
-  micEnabled: boolean;
-  micQuantity: number;
-  projector: boolean;
-  music: boolean;
-  soundTech: boolean;
-  lightTech: boolean;
-  cateringCustom: boolean;
-  cateringText: string;
-  bar: boolean;
-  freeOrPaid: "Gratis" | "Betalt";
-  ticketTypes: string;
-  invoiceAddress: string;
-  orgNumber: string;
-  flexibleDates: boolean;
-  acceptTerms: boolean;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
+  bookerType: BookerType
+  studentOrgName: string
+  roomSlug: string
+  eventName: string
+  startDate: string
+  startTime: string
+  endTime: string
+  doorsTime: string
+  audienceCount: string
+  openOrClosed: "Åpent" | "Lukket"
+  description: string
+  furniture: string
+  micEnabled: boolean
+  micQuantity: number
+  projector: boolean
+  music: boolean
+  soundTech: boolean
+  lightTech: boolean
+  cateringCustom: boolean
+  cateringText: string
+  bar: boolean
+  freeOrPaid: "Gratis" | "Betalt"
+  ticketTypes: string
+  invoiceAddress: string
+  orgNumber: string
+  flexibleDates: boolean
+  acceptTerms: boolean
+  contactName: string
+  contactEmail: string
+  contactPhone: string
 }
 
 export const initialBookingState: BookingFormState = {
@@ -68,39 +68,39 @@ export const initialBookingState: BookingFormState = {
   contactName: "",
   contactEmail: "",
   contactPhone: "",
-};
+}
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
-  bookerType !== "intern";
+  bookerType !== "intern"
 
 // --- Crescat free-text composition (shared by the order summary and payload) ---
 
 export function composeTechEquipment(state: BookingFormState): string {
-  const parts: string[] = [];
-  if (state.micEnabled) parts.push(`Mikrofon ${state.micQuantity}x`);
-  if (state.projector) parts.push("Projektor + lerret");
-  if (state.music) parts.push("Musikkavspilling");
-  if (state.soundTech) parts.push("Dedikert lydtekniker");
-  if (state.lightTech) parts.push("Dedikert lystekniker");
-  return parts.length > 0 ? parts.join(", ") : "Ingen";
+  const parts: string[] = []
+  if (state.micEnabled) parts.push(`Mikrofon ${state.micQuantity}x`)
+  if (state.projector) parts.push("Projektor + lerret")
+  if (state.music) parts.push("Musikkavspilling")
+  if (state.soundTech) parts.push("Dedikert lydtekniker")
+  if (state.lightTech) parts.push("Dedikert lystekniker")
+  return parts.length > 0 ? parts.join(", ") : "Ingen"
 }
 
 export function composeCatering(state: BookingFormState): string {
-  const parts: string[] = [];
+  const parts: string[] = []
   if (state.cateringCustom) {
-    parts.push(state.cateringText.trim() || "Ønsker skreddersydd meny");
+    parts.push(state.cateringText.trim() || "Ønsker skreddersydd meny")
   }
   if (state.bar) {
-    parts.push("Bar: ønsker at Kvarteret stiller i bar (2000 kr eks. mva)");
+    parts.push("Bar: ønsker at Kvarteret stiller i bar (2000 kr eks. mva)")
   }
-  return parts.join("\n");
+  return parts.join("\n")
 }
 
 export function buildBookingPayload(
   state: BookingFormState,
   room: BookingRoom,
 ): RoomBookingPayload {
-  const isExternal = isExternalBooker(state.bookerType);
+  const isExternal = isExternalBooker(state.bookerType)
   return {
     bookerType: state.bookerType,
     eventName: state.eventName,
@@ -129,7 +129,7 @@ export function buildBookingPayload(
       isExternal && state.orgNumber.trim()
         ? Number(state.orgNumber)
         : undefined,
-  };
+  }
 }
 
 export function canSubmitBooking(
@@ -137,7 +137,7 @@ export function canSubmitBooking(
   roomSelected: boolean,
   hasConflict: boolean,
 ): boolean {
-  const isExternal = isExternalBooker(state.bookerType);
+  const isExternal = isExternalBooker(state.bookerType)
   return (
     roomSelected &&
     !hasConflict &&
@@ -150,5 +150,5 @@ export function canSubmitBooking(
     (!isExternal || state.invoiceAddress.trim() !== "") &&
     (state.bookerType !== "studentorg" || state.studentOrgName.trim() !== "") &&
     state.acceptTerms
-  );
+  )
 }

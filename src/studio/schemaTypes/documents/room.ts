@@ -1,6 +1,6 @@
-import { ComponentIcon } from "@sanity/icons";
-import { orderRankField } from "@sanity/orderable-document-list";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { ComponentIcon } from "@sanity/icons"
+import { orderRankField } from "@sanity/orderable-document-list"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const room = defineType({
   name: "room",
@@ -21,7 +21,7 @@ export const room = defineType({
       title: "Navn",
       type: "string",
       group: "info",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "slug",
@@ -29,7 +29,7 @@ export const room = defineType({
       type: "slug",
       group: "info",
       options: { source: "title" },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "summary",
@@ -37,7 +37,7 @@ export const room = defineType({
       type: "text",
       rows: 3,
       group: "info",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "body",
@@ -53,7 +53,7 @@ export const room = defineType({
         "Romnummeret i Crescat. Brukes for å sende bookingforespørsler til riktig rom. Hentes fra Crescat-bookingskjemaet. Rom uten ID kan ikke bookes via nettsiden.",
       type: "number",
       group: "info",
-      validation: (rule) => rule.integer().positive(),
+      validation: rule => rule.integer().positive(),
     }),
     defineField({
       name: "menu",
@@ -153,7 +153,7 @@ export const room = defineType({
       description: "URL til PDF eller dokument med tekniske spesifikasjoner",
       type: "url",
       group: "specs",
-      validation: (rule) => rule.uri({ scheme: ["http", "https"] }),
+      validation: rule => rule.uri({ scheme: ["http", "https"] }),
     }),
 
     // — Opening hours —
@@ -172,7 +172,7 @@ export const room = defineType({
         "Lim inn iframe src-URL fra Google Maps for å vise 360°-visning som første bilde",
       type: "url",
       group: "media",
-      validation: (rule) => rule.uri({ scheme: ["https"] }),
+      validation: rule => rule.uri({ scheme: ["https"] }),
     }),
     defineField({
       name: "images",
@@ -193,8 +193,8 @@ export const room = defineType({
       const cap =
         standing || seated
           ? `${standing ?? "?"} stående / ${seated ?? "?"} sittende`
-          : undefined;
-      return { title: title ?? "Rom", subtitle: cap, media };
+          : undefined
+      return { title: title ?? "Rom", subtitle: cap, media }
     },
   },
-});
+})

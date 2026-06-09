@@ -1,5 +1,5 @@
-import { ComponentIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { ComponentIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 const socialLinkSchema = defineType({
   name: "footerSocialLink",
@@ -22,25 +22,25 @@ const socialLinkSchema = defineType({
         ],
         layout: "dropdown",
       },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "label",
       title: "Visningsnavn",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "url",
       title: "URL",
       type: "url",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
   ],
   preview: {
     select: { title: "label", subtitle: "platform" },
   },
-});
+})
 
 export const footer = defineType({
   name: "footer",
@@ -62,9 +62,9 @@ export const footer = defineType({
   ],
   preview: {
     prepare() {
-      return { title: "Bunntekst" };
+      return { title: "Bunntekst" }
     },
   },
-});
+})
 
-export const footerSocialLinkSchema = socialLinkSchema;
+export const footerSocialLinkSchema = socialLinkSchema

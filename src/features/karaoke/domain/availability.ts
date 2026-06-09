@@ -1,11 +1,11 @@
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar";
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
   type OpeningHours,
   slotRangesForDate,
-} from "@/lib/opening-hours";
+} from "@/lib/opening-hours"
 
-export const KARAOKE_DATE_COUNT = 60;
+export const KARAOKE_DATE_COUNT = 60
 
 export function slotOverlapsKaraokeBookings(
   date: string,
@@ -13,14 +13,14 @@ export function slotOverlapsKaraokeBookings(
   durationHours: number,
   bookings: CresatBooking[],
 ): boolean {
-  const baseDateMs = new Date(date + "T00:00:00").getTime();
-  const slotStartMs = baseDateMs + slotStartMin * 60 * 1000;
-  const slotEndMs = slotStartMs + durationHours * 3600 * 1000;
-  return bookings.some((booking) => {
-    const bookStart = new Date(booking.start).getTime();
-    const bookEnd = new Date(booking.end).getTime();
-    return slotStartMs < bookEnd && slotEndMs > bookStart;
-  });
+  const baseDateMs = new Date(date + "T00:00:00").getTime()
+  const slotStartMs = baseDateMs + slotStartMin * 60 * 1000
+  const slotEndMs = slotStartMs + durationHours * 3600 * 1000
+  return bookings.some(booking => {
+    const bookStart = new Date(booking.start).getTime()
+    const bookEnd = new Date(booking.end).getTime()
+    return slotStartMs < bookEnd && slotEndMs > bookStart
+  })
 }
 
 export function dateHasKaraokeSlot(
@@ -36,7 +36,7 @@ export function dateHasKaraokeSlot(
     operationsManagerHours,
     houseClosedDates,
   ).some(
-    (slotMin) =>
+    slotMin =>
       !slotOverlapsKaraokeBookings(date, slotMin, durationHours, bookings),
-  );
+  )
 }

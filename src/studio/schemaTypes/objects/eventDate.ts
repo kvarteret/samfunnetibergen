@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity"
 
 export const arrangementDate = defineType({
   name: "arrangementDate",
@@ -11,14 +11,14 @@ export const arrangementDate = defineType({
       description: "Hvilken dato arrangementet starter",
       type: "date",
       options: { dateFormat: "YYYY-MM-DD" },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "startTime",
       title: "Starttid",
       description: "Format: HH:MM (f.eks. 19:00). Anbefalt, men ikke påkrevd.",
       type: "string",
-      validation: (rule) =>
+      validation: rule =>
         rule
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
             name: "tid",
@@ -32,7 +32,7 @@ export const arrangementDate = defineType({
       description:
         "Format: HH:MM. Valgfritt — antas å slutte ved midnatt om ikke angitt.",
       type: "string",
-      validation: (rule) =>
+      validation: rule =>
         rule
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
             name: "tid",
@@ -48,14 +48,14 @@ export const arrangementDate = defineType({
       endTime: "endTime",
     },
     prepare({ startDate, startTime, endTime }) {
-      let timeRange = "";
+      let timeRange = ""
       if (startTime) {
-        timeRange = endTime ? `${startTime}–${endTime}` : startTime;
+        timeRange = endTime ? `${startTime}–${endTime}` : startTime
       }
       return {
         title: startDate ?? "Dato",
         subtitle: timeRange || undefined,
-      };
+      }
     },
   },
-});
+})

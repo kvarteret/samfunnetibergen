@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   CheckboxSquare,
@@ -7,22 +7,22 @@ import {
   SectionHeader,
   SelectField,
   type SelectOption,
-} from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEventForm } from "./eventFormContext";
+} from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormDetailsSectionProps {
-  uid: string;
-  eventTypeOptions: SelectOption[];
+  uid: string
+  eventTypeOptions: SelectOption[]
 }
 
 export function EventFormDetailsSection({
   uid,
   eventTypeOptions,
 }: EventFormDetailsSectionProps) {
-  const form = useEventForm();
-  const values = form.state.values;
+  const form = useEventForm()
+  const values = form.state.values
 
   return (
     <section className="space-y-6">
@@ -33,9 +33,7 @@ export function EventFormDetailsSection({
         <Input
           autoComplete="off"
           id={`${uid}-title`}
-          onChange={(event) =>
-            form.setFieldValue("title", event.target.value)
-          }
+          onChange={event => form.setFieldValue("title", event.target.value)}
           placeholder="Navn på arrangementet"
           required
           value={values.title}
@@ -51,7 +49,7 @@ export function EventFormDetailsSection({
         <textarea
           className="w-full resize-y border-2 border-border bg-background px-3 py-2 text-sm font-base text-foreground placeholder:text-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           id={`${uid}-description`}
-          onChange={(event) =>
+          onChange={event =>
             form.setFieldValue("description", event.target.value)
           }
           placeholder="Beskriv arrangementet..."
@@ -63,7 +61,7 @@ export function EventFormDetailsSection({
       <SelectField
         id={`${uid}-eventType`}
         label="Arrangementstype"
-        onChange={(v) => form.setFieldValue("eventTypeId", v)}
+        onChange={v => form.setFieldValue("eventTypeId", v)}
         options={eventTypeOptions}
         placeholder="Velg type (valgfritt)"
         value={values.eventTypeId}
@@ -72,7 +70,7 @@ export function EventFormDetailsSection({
       <label className="group flex cursor-pointer items-start gap-3">
         <CheckboxSquare
           checked={values.isInternalEvent}
-          onChange={(v) => form.setFieldValue("isInternalEvent", v)}
+          onChange={v => form.setFieldValue("isInternalEvent", v)}
         />
         <span>
           <span className="block font-heading text-sm text-foreground">
@@ -84,5 +82,5 @@ export function EventFormDetailsSection({
         </span>
       </label>
     </section>
-  );
+  )
 }

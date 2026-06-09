@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { ChevronDown } from "lucide-react";
-import * as React from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion"
+import { ChevronDown } from "lucide-react"
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 function Accordion({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-  return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
+  return <AccordionPrimitive.Root data-slot="accordion" {...props} />
 }
 
 function AccordionItem({
@@ -22,7 +22,7 @@ function AccordionItem({
       data-slot="accordion-item"
       {...props}
     />
-  );
+  )
 }
 
 function AccordionTrigger({
@@ -44,7 +44,7 @@ function AccordionTrigger({
         <ChevronDown className="size-4 shrink-0 transition-transform duration-200" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
-  );
+  )
 }
 
 function AccordionContent({
@@ -60,7 +60,7 @@ function AccordionContent({
     >
       <div className={cn("pb-4 pt-1", className)}>{children}</div>
     </AccordionPrimitive.Content>
-  );
+  )
 }
 
-export { Accordion, AccordionContent, AccordionItem, AccordionTrigger };
+export { Accordion, AccordionContent, AccordionItem, AccordionTrigger }

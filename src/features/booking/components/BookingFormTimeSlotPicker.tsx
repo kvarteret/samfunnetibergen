@@ -1,4 +1,4 @@
-import { FieldHint, SelectField } from "@/components/ui/form-fields";
+import { FieldHint, SelectField } from "@/components/ui/form-fields"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,
@@ -6,15 +6,15 @@ import {
   isHouseClosed,
   minutesToTime,
   type OpeningHours,
-} from "@/lib/opening-hours";
+} from "@/lib/opening-hours"
 
-const SLOT_STEP_MIN = 30;
-const MINUTES_IN_DAY = 24 * 60;
+const SLOT_STEP_MIN = 30
+const MINUTES_IN_DAY = 24 * 60
 
 interface TimeOption {
-  value: string;
-  label: string;
-  min: number;
+  value: string
+  label: string
+  min: number
 }
 
 // 30-minute marks within the day's open range(s), as absolute minutes from
@@ -25,7 +25,7 @@ function slotMarks(
   roomHours: OpeningHours | null,
   closed: ClosedDate[],
 ): number[] {
-  const marks = new Set<number>();
+  const marks = new Set<number>()
   for (const range of combineOpeningRangesForDate(
     date,
     hours,
@@ -33,29 +33,29 @@ function slotMarks(
     closed,
   )) {
     for (let m = range.startMin; m <= range.endMin; m += SLOT_STEP_MIN)
-      marks.add(m);
+      marks.add(m)
   }
-  return Array.from(marks).toSorted((a, b) => a - b);
+  return Array.from(marks).toSorted((a, b) => a - b)
 }
 
 const toOption = (min: number): TimeOption => ({
   value: minutesToTime(min),
   label: minutesToTime(min),
   min,
-});
+})
 
 interface BookingFormTimeSlotPickerProps {
-  uid: string;
-  date: string;
-  openingHours: OpeningHours | null;
-  roomOpeningHours: OpeningHours | null;
-  closedDates: ClosedDate[];
-  startTime: string;
-  endTime: string;
-  doorsTime: string;
-  onStartChange: (value: string) => void;
-  onEndChange: (value: string) => void;
-  onDoorsChange: (value: string) => void;
+  uid: string
+  date: string
+  openingHours: OpeningHours | null
+  roomOpeningHours: OpeningHours | null
+  closedDates: ClosedDate[]
+  startTime: string
+  endTime: string
+  doorsTime: string
+  onStartChange: (value: string) => void
+  onEndChange: (value: string) => void
+  onDoorsChange: (value: string) => void
 }
 
 export function BookingFormTimeSlotPicker({
@@ -72,24 +72,24 @@ export function BookingFormTimeSlotPicker({
   onDoorsChange,
 }: BookingFormTimeSlotPickerProps) {
   if (!date) {
-    return <FieldHint>Velg en dato for å se ledige tidspunkt.</FieldHint>;
+    return <FieldHint>Velg en dato for å se ledige tidspunkt.</FieldHint>
   }
   if (isHouseClosed(date, closedDates)) {
     return (
       <FieldHint>Huset er stengt denne dagen. Velg en annen dato.</FieldHint>
-    );
+    )
   }
 
-  const marks = slotMarks(date, openingHours, roomOpeningHours, closedDates);
+  const marks = slotMarks(date, openingHours, roomOpeningHours, closedDates)
   const hasConfiguredHours =
-    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours);
+    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
 
   if (marks.length === 0 && hasConfiguredHours) {
     return (
       <FieldHint>
         Ingen tilgjengelige tidspunkt for valgt rom denne dagen.
       </FieldHint>
-    );
+    )
   }
 
   // No registered opening hours → fall back to an unconstrained day so the
@@ -105,17 +105,17 @@ export function BookingFormTimeSlotPicker({
         onEndChange={onEndChange}
         onDoorsChange={onDoorsChange}
       />
-    );
+    )
   }
 
-  const options = marks.map(toOption);
+  const options = marks.map(toOption)
   const startMin =
-    options.find((option) => option.value === startTime)?.min ?? marks[0];
+    options.find(option => option.value === startTime)?.min ?? marks[0]
   const startOptions = options
-    .filter((option) => option.min < MINUTES_IN_DAY)
-    .slice(0, -1);
-  const endOptions = options.filter((option) => option.min > startMin);
-  const doorsOptions = options.filter((option) => option.min <= startMin);
+    .filter(option => option.min < MINUTES_IN_DAY)
+    .slice(0, -1)
+  const endOptions = options.filter(option => option.min > startMin)
+  const doorsOptions = options.filter(option => option.min <= startMin)
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -144,23 +144,23 @@ export function BookingFormTimeSlotPicker({
         value={endTime}
       />
     </div>
-  );
+  )
 }
 
 const FALLBACK_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = String(Math.floor(i / 2)).padStart(2, "0");
-  const m = i % 2 === 0 ? "00" : "30";
-  return { value: `${h}:${m}`, label: `${h}:${m}` };
-});
+  const h = String(Math.floor(i / 2)).padStart(2, "0")
+  const m = i % 2 === 0 ? "00" : "30"
+  return { value: `${h}:${m}`, label: `${h}:${m}` }
+})
 
 interface UnconstrainedTimesProps {
-  uid: string;
-  startTime: string;
-  endTime: string;
-  doorsTime: string;
-  onStartChange: (value: string) => void;
-  onEndChange: (value: string) => void;
-  onDoorsChange: (value: string) => void;
+  uid: string
+  startTime: string
+  endTime: string
+  doorsTime: string
+  onStartChange: (value: string) => void
+  onEndChange: (value: string) => void
+  onDoorsChange: (value: string) => void
 }
 
 function UnconstrainedTimes({
@@ -197,5 +197,5 @@ function UnconstrainedTimes({
         value={endTime}
       />
     </div>
-  );
+  )
 }

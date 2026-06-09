@@ -20,7 +20,7 @@ export type {
   SponsorsPageContent,
   StudentGroupDetail,
   StudentGroupSummary,
-} from "./fetch";
+} from "./fetch"
 export type {
   Arrangement,
   EventsPage,
@@ -36,4 +36,4 @@ export type {
   SiteMetadata,
   SponsorsPage,
   StudentGroup,
-} from "./sanity.types";
+} from "./sanity.types"

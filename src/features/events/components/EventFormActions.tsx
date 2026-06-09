@@ -1,29 +1,24 @@
-"use client";
+"use client"
 
-import { Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { useEventForm } from "./eventFormContext";
+import { Button } from "@/components/ui/button"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormActionsProps {
-  imageUploading: boolean;
+  imageUploading: boolean
 }
 
-export function EventFormActions({
-  imageUploading,
-}: EventFormActionsProps) {
-  const form = useEventForm();
-  const isPending = form.state.isSubmitting;
-  const submitError = form.state.errorMap.onSubmit;
+export function EventFormActions({ imageUploading }: EventFormActionsProps) {
+  const form = useEventForm()
+  const isPending = form.state.isSubmitting
+  const submitError = form.state.errorMap.onSubmit
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
       {submitError && (
         <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-          <X
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-destructive"
-          />
+          <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div>
             <p className="text-sm font-heading text-destructive">
               Det oppstod en feil
@@ -53,14 +48,14 @@ export function EventFormActions({
         {submitButtonLabel(isPending, imageUploading)}
       </Button>
     </section>
-  );
+  )
 }
 
 function submitButtonLabel(
   isPending: boolean,
   imageUploading: boolean,
 ): string {
-  if (isPending) return "Sender inn...";
-  if (imageUploading) return "Laster opp bilde...";
-  return "Send inn arrangement";
+  if (isPending) return "Sender inn..."
+  if (imageUploading) return "Laster opp bilde..."
+  return "Send inn arrangement"
 }

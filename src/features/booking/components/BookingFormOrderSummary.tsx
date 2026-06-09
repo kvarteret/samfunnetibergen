@@ -1,37 +1,37 @@
-import { CalendarClock, DoorOpen, MapPin, Users } from "lucide-react";
-import Image from "next/image";
-import type { ReactNode } from "react";
+import { CalendarClock, DoorOpen, MapPin, Users } from "lucide-react"
+import Image from "next/image"
+import type { ReactNode } from "react"
 
-import { Surface } from "@/components/ui/surface";
+import { Surface } from "@/components/ui/surface"
 
 import {
   type BookerType,
   type BookingFormState,
   composeCatering,
   composeTechEquipment,
-} from "../domain/formState";
-import type { BookingRoom } from "../types";
+} from "../domain/formState"
+import type { BookingRoom } from "../types"
 
 const BOOKER_LABELS: Record<BookerType, string> = {
   ekstern: "Ekstern / privat",
   studentorg: "Studentorganisasjon",
   intern: "Intern",
-};
+}
 
 interface BookingOrderSummaryProps {
-  state: BookingFormState;
-  selectedRoom?: BookingRoom;
+  state: BookingFormState
+  selectedRoom?: BookingRoom
 }
 
 export function BookingFormOrderSummary({
   state,
   selectedRoom,
 }: BookingOrderSummaryProps) {
-  const tech = composeTechEquipment(state);
-  const catering = composeCatering(state);
+  const tech = composeTechEquipment(state)
+  const catering = composeCatering(state)
   const time = state.startDate
     ? `${state.startDate} · ${state.startTime}–${state.endTime}`
-    : "Ikke valgt";
+    : "Ikke valgt"
 
   return (
     <aside>
@@ -81,7 +81,7 @@ export function BookingFormOrderSummary({
         </div>
       </Surface>
     </aside>
-  );
+  )
 }
 
 function SelectedRoomCard({ room }: { room?: BookingRoom }) {
@@ -91,7 +91,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
         <MapPin aria-hidden className="mr-2 size-4" />
         Velg et rom
       </div>
-    );
+    )
   }
 
   return (
@@ -121,13 +121,13 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 interface SummaryRowProps {
-  label: string;
-  icon?: typeof Users;
-  children: ReactNode;
+  label: string
+  icon?: typeof Users
+  children: ReactNode
 }
 
 function SummaryRow({ label, icon: Icon, children }: SummaryRowProps) {
@@ -139,5 +139,5 @@ function SummaryRow({ label, icon: Icon, children }: SummaryRowProps) {
       </dt>
       <dd className="text-foreground/85">{children}</dd>
     </div>
-  );
+  )
 }

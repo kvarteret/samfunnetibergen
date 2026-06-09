@@ -1,64 +1,62 @@
-import { ExternalLink, Globe, Mail } from "lucide-react";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-import { Surface } from "@/components/ui/surface";
+import { ExternalLink, Globe, Mail } from "lucide-react"
+import Image from "next/image"
+import { notFound } from "next/navigation"
+import { Surface } from "@/components/ui/surface"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { PortableTextContent } from "@/lib/portable-text-components";
+} from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
-} from "@/lib/sanity/fetch";
+} from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
 const CATEGORY_LABELS: Record<string, string> = {
   arbeidsgruppe: "Arbeidsgruppe",
   komitee: "Komité",
   dorg: "Driftsorganisasjon",
   borg: "Brukerorganisasjon",
-};
+}
 
 type GroupPageProps = {
-  params: Promise<{ locale: string; slug: string }>;
-};
+  params: Promise<{ locale: string; slug: string }>
+}
 
 export async function generateStaticParams() {
-  const locales = getLocaleStaticParams();
-  const slugs = await fetchStudentGroupSlugs();
-  return locales.flatMap(({ locale }) =>
-    slugs.map((slug) => ({ locale, slug })),
-  );
+  const locales = getLocaleStaticParams()
+  const slugs = await fetchStudentGroupSlugs()
+  return locales.flatMap(({ locale }) => slugs.map(slug => ({ locale, slug })))
 }
 
 export async function generateMetadata({ params }: GroupPageProps) {
-  const { slug, locale: localeParam } = await params;
-  await resolvePageLocale(Promise.resolve({ locale: localeParam }));
-  const group = await fetchStudentGroupBySlug(slug, { stega: false });
-  if (!group) return {};
+  const { slug, locale: localeParam } = await params
+  await resolvePageLocale(Promise.resolve({ locale: localeParam }))
+  const group = await fetchStudentGroupBySlug(slug, { stega: false })
+  if (!group) return {}
 
   return {
     title: `${group.name} | Grupper | Samfunnet i Bergen`,
     description: group.summary,
-  };
+  }
 }
 
 export default async function GroupPage({ params }: GroupPageProps) {
-  const { slug, locale: localeParam } = await params;
+  const { slug, locale: localeParam } = await params
   const locale = await resolvePageLocale(
     Promise.resolve({ locale: localeParam }),
-  );
-  activateRequestLocale(locale);
+  )
+  activateRequestLocale(locale)
 
-  const group = await fetchStudentGroupBySlug(slug);
-  if (!group) notFound();
+  const group = await fetchStudentGroupBySlug(slug)
+  if (!group) notFound()
 
   const categoryLabel = group.category
     ? (CATEGORY_LABELS[group.category] ?? null)
-    : null;
+    : null
 
   return (
     <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -165,7 +163,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
               Undergrupper
             </h2>
             <ul className="flex flex-wrap gap-2">
-              {group.subGroups.map((subGroup) => (
+              {group.subGroups.map(subGroup => (
                 <li
                   className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
                   key={subGroup.slug ?? subGroup.name}
@@ -178,5 +176,5 @@ export default async function GroupPage({ params }: GroupPageProps) {
         ) : null}
       </aside>
     </article>
-  );
+  )
 }

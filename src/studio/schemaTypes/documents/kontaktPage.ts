@@ -1,5 +1,5 @@
-import { EnvelopeIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { EnvelopeIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 const contactPerson = defineType({
   name: "contactPerson",
@@ -10,7 +10,7 @@ const contactPerson = defineType({
       name: "name",
       title: "Navn",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "rolle",
@@ -29,7 +29,7 @@ const contactPerson = defineType({
   preview: {
     select: { title: "name", subtitle: "email" },
   },
-});
+})
 
 const contactGroup = defineType({
   name: "contactGroup",
@@ -40,7 +40,7 @@ const contactGroup = defineType({
       name: "title",
       title: "Overskrift",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "persons",
@@ -55,10 +55,10 @@ const contactGroup = defineType({
       return {
         title,
         subtitle: `${Array.isArray(persons) ? persons.length : 0} person(er)`,
-      };
+      }
     },
   },
-});
+})
 
 export const kontaktPage = defineType({
   name: "kontaktPage",
@@ -145,16 +145,16 @@ export const kontaktPage = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
   ],
   preview: {
     prepare() {
-      return { title: "Kontakt og organisasjon" };
+      return { title: "Kontakt og organisasjon" }
     },
   },
-});
+})
 
-export const contactPersonSchema = contactPerson;
-export const contactGroupSchema = contactGroup;
+export const contactPersonSchema = contactPerson
+export const contactGroupSchema = contactGroup

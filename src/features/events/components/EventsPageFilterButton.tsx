@@ -1,14 +1,18 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 export interface EventsPageFilterButtonProps {
-  isActive: boolean;
-  label: string;
-  onClick: () => void;
+  isActive: boolean
+  label: string
+  onClick: () => void
 }
 
-export function EventsPageFilterButton({ isActive, label, onClick }: EventsPageFilterButtonProps) {
+export function EventsPageFilterButton({
+  isActive,
+  label,
+  onClick,
+}: EventsPageFilterButtonProps) {
   return (
     <button
       className={cn(
@@ -22,5 +26,5 @@ export function EventsPageFilterButton({ isActive, label, onClick }: EventsPageF
     >
       {label}
     </button>
-  );
+  )
 }

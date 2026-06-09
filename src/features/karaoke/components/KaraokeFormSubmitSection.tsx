@@ -1,27 +1,24 @@
-"use client";
+"use client"
 
-import { Loader2, Mic, X } from "lucide-react";
+import { Loader2, Mic, X } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import type { PriceType } from "../types";
-import { useKaraokeForm } from "./karaokeFormContext";
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import type { PriceType } from "../types"
+import { useKaraokeForm } from "./karaokeFormContext"
 
 export function KaraokeFormSubmitSection() {
-  const form = useKaraokeForm();
-  const values = form.state.values;
-  const priceType = values.priceType as PriceType;
-  const isPending = form.state.isSubmitting;
-  const submitError = form.state.errorMap.onSubmit;
+  const form = useKaraokeForm()
+  const values = form.state.values
+  const priceType = values.priceType as PriceType
+  const isPending = form.state.isSubmitting
+  const submitError = form.state.errorMap.onSubmit
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
       {submitError && (
         <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-          <X
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-destructive"
-          />
+          <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div>
             <p className="text-sm font-heading text-destructive">
               Det oppstod en feil
@@ -55,7 +52,7 @@ export function KaraokeFormSubmitSection() {
         )}
       </Button>
     </section>
-  );
+  )
 }
 
 export function KaraokeBookingSuccess() {
@@ -69,5 +66,5 @@ export function KaraokeBookingSuccess() {
         kontakt på e-post.
       </p>
     </Card>
-  );
+  )
 }

@@ -1,5 +1,5 @@
-import { LinkIcon, MenuIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { LinkIcon, MenuIcon } from "@sanity/icons"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 const navItem = defineType({
   name: "navItem",
@@ -11,7 +11,7 @@ const navItem = defineType({
       name: "label",
       title: "Tekst",
       type: "string",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "href",
@@ -57,7 +57,7 @@ const navItem = defineType({
                       name: "label",
                       title: "Tekst",
                       type: "string",
-                      validation: (rule) => rule.required(),
+                      validation: rule => rule.required(),
                     }),
                     defineField({
                       name: "href",
@@ -76,14 +76,14 @@ const navItem = defineType({
                   },
                 }),
               ],
-              validation: (rule) => rule.required().min(1),
+              validation: rule => rule.required().min(1),
             }),
           ],
           preview: {
             select: { title: "groupLabel", items: "items" },
             prepare({ title, items }) {
-              const count = items?.length ?? 0;
-              return { title: title || "Gruppe", subtitle: `${count} lenker` };
+              const count = items?.length ?? 0
+              return { title: title || "Gruppe", subtitle: `${count} lenker` }
             },
           },
         }),
@@ -93,14 +93,14 @@ const navItem = defineType({
   preview: {
     select: { title: "label", subtitle: "href", children: "children" },
     prepare({ title, subtitle, children }) {
-      const hasDropdown = (children?.length ?? 0) > 0;
+      const hasDropdown = (children?.length ?? 0) > 0
       return {
         title: title ?? "Element",
         subtitle: hasDropdown ? "Dropdown" : (subtitle ?? "Lenke"),
-      };
+      }
     },
   },
-});
+})
 
 export const navbar = defineType({
   name: "navbar",
@@ -113,16 +113,16 @@ export const navbar = defineType({
       title: "Navigasjonselementer",
       type: "array",
       of: [defineArrayMember({ type: "navItem" })],
-      validation: (rule) => rule.required().min(1),
+      validation: rule => rule.required().min(1),
     }),
   ],
   preview: {
     select: { items: "items" },
     prepare({ items }) {
-      const count = items?.length ?? 0;
-      return { title: "Navigasjon", subtitle: `${count} toppnivåelementer` };
+      const count = items?.length ?? 0
+      return { title: "Navigasjon", subtitle: `${count} toppnivåelementer` }
     },
   },
-});
+})
 
-export const navItemSchema = navItem;
+export const navItemSchema = navItem

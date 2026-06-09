@@ -1,8 +1,8 @@
-import { defineQuery } from "next-sanity";
-import { sourceLinkProjection } from "../fragments/links";
-import { portableTextProjection } from "../fragments/portableText";
-import { openingHoursProjection } from "../fragments/rooms";
-import { editorialSectionProjection } from "../fragments/sections";
+import { defineQuery } from "next-sanity"
+import { sourceLinkProjection } from "../fragments/links"
+import { portableTextProjection } from "../fragments/portableText"
+import { openingHoursProjection } from "../fragments/rooms"
+import { editorialSectionProjection } from "../fragments/sections"
 
 export const siteMetadataNbQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
@@ -15,7 +15,7 @@ export const siteMetadataNbQuery =
     oembedTitle,
     oembedDescription,
     "oembedImageUrl": oembedImage.asset->url
-}`);
+}`)
 
 export const houseHoursQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
@@ -25,7 +25,7 @@ export const houseHoursQuery =
         date,
         note
     }
-}`);
+}`)
 
 export const homePageNbQuery =
   defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
@@ -41,7 +41,7 @@ export const homePageNbQuery =
     oembedTitle,
     oembedDescription,
     "oembedImageUrl": oembedImage.asset->url
-}`);
+}`)
 
 export const roomsPageQuery =
   defineQuery(`*[_type == "roomsPage" && _id == "roomsPage"][0] {
@@ -52,7 +52,7 @@ export const roomsPageQuery =
     seoDescription,
     "sections": sections[] ${editorialSectionProjection},
     bookingLink ${sourceLinkProjection}
-}`);
+}`)
 
 export const sponsorsPageQuery =
   defineQuery(`*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {
@@ -69,7 +69,7 @@ export const sponsorsPageQuery =
         "logoAlt": coalesce(logo.alt, title),
         description[] ${portableTextProjection}
     }
-}`);
+}`)
 
 export const groupsPageQuery =
   defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
@@ -84,12 +84,12 @@ export const groupsPageQuery =
         question,
         answer
     }
-}`);
+}`)
 
 export const pageSlugsQuery =
   defineQuery(`*[_type == "page" && defined(slug.current)] {
     "slug": slug.current
-}`);
+}`)
 
 export const pageBySlugQuery =
   defineQuery(`*[_type == "page" && slug.current == $slug][0] {
@@ -99,7 +99,7 @@ export const pageBySlugQuery =
     seoTitle,
     seoDescription,
     content
-}`);
+}`)
 
 export const kontaktPageQuery =
   defineQuery(`*[_type == "kontaktPage" && _id == "kontaktPage"][0] {
@@ -124,7 +124,7 @@ export const kontaktPageQuery =
             "imageUrl": image.asset->url
         }
     }
-}`);
+}`)
 
 export const linkInBioQuery = defineQuery(`*[_type == "linkInBio"][0] {
     heading,
@@ -135,4 +135,4 @@ export const linkInBioQuery = defineQuery(`*[_type == "linkInBio"][0] {
         emoji,
         highlight
     }
-}`);
+}`)

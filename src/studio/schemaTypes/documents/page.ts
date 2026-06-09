@@ -1,5 +1,5 @@
-import { DocumentIcon } from "@sanity/icons";
-import { defineField, defineType } from "sanity";
+import { DocumentIcon } from "@sanity/icons"
+import { defineField, defineType } from "sanity"
 
 export const page = defineType({
   name: "page",
@@ -18,7 +18,7 @@ export const page = defineType({
       title: "Tittel",
       type: "string",
       group: "content",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "slug",
@@ -26,7 +26,7 @@ export const page = defineType({
       type: "slug",
       group: "content",
       options: { source: "title" },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "content",
@@ -48,7 +48,7 @@ export const page = defineType({
       type: "text",
       rows: 3,
       group: "seo",
-      validation: (rule) =>
+      validation: rule =>
         rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
     }),
   ],
@@ -58,7 +58,7 @@ export const page = defineType({
       return {
         title: title ?? "Side",
         subtitle: slug ? `/${slug}` : "Mangler slug",
-      };
+      }
     },
   },
-});
+})

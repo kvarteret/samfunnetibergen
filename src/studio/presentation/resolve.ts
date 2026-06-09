@@ -2,10 +2,10 @@ import {
   defineDocuments,
   defineLocations,
   type PresentationPluginOptions,
-} from "sanity/presentation";
+} from "sanity/presentation"
 
-const defaultLocale = "nb";
-const defaultPreviewPath = `/${defaultLocale}`;
+const defaultLocale = "nb"
+const defaultPreviewPath = `/${defaultLocale}`
 
 export const resolve: PresentationPluginOptions["resolve"] = {
   mainDocuments: defineDocuments([
@@ -59,7 +59,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     }),
     room: defineLocations({
       select: { title: "title", slug: "slug.current" },
-      resolve: (doc) => ({
+      resolve: doc => ({
         locations: [
           {
             title: doc?.title ?? "Ukjent rom",
@@ -72,7 +72,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
 
     studentGroup: defineLocations({
       select: { title: "name", slug: "slug.current" },
-      resolve: (doc) => ({
+      resolve: doc => ({
         locations: [
           {
             title: doc?.title ?? "Ukjent gruppe",
@@ -85,7 +85,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
 
     page: defineLocations({
       select: { title: "title", slug: "slug.current" },
-      resolve: (doc) => ({
+      resolve: doc => ({
         locations: [
           {
             title: doc?.title ?? "Ukjent side",
@@ -129,7 +129,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
 
     arrangement: defineLocations({
       select: { title: "title", slug: "slug.current" },
-      resolve: (doc) => ({
+      resolve: doc => ({
         locations: [
           {
             title: doc?.title ?? "Ukjent arrangement",
@@ -182,14 +182,14 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       }),
     }),
   },
-};
+}
 
 export function resolvePresentationInitialUrl() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
   if (!siteUrl) {
-    return defaultPreviewPath;
+    return defaultPreviewPath
   }
 
-  return new URL(defaultPreviewPath, siteUrl).toString();
+  return new URL(defaultPreviewPath, siteUrl).toString()
 }

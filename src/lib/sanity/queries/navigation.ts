@@ -1,6 +1,6 @@
-import { defineQuery } from "next-sanity";
+import { defineQuery } from "next-sanity"
 
-import { openingHoursProjection } from "../fragments/rooms";
+import { openingHoursProjection } from "../fragments/rooms"
 
 // Anonymous object: always returns data regardless of whether the footer doc exists.
 export const footerQuery = defineQuery(`{
@@ -22,7 +22,7 @@ export const footerQuery = defineQuery(`{
         "slug": slug.current,
         "hours": openingHours ${openingHoursProjection}
     }
-}`);
+}`)
 
 export const navbarQuery =
   defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {
@@ -42,4 +42,4 @@ export const navbarQuery =
             }
         }
     }
-}`);
+}`)

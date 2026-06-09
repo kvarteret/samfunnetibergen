@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { ExternalLink, Mic } from "lucide-react";
+import { ExternalLink, Mic } from "lucide-react"
 
-import { Card } from "@/components/ui/card";
-import { Link } from "@/i18n/navigation";
-import type { KaraokeRoom, KaraokeRoomImage } from "../types";
+import { Card } from "@/components/ui/card"
+import { Link } from "@/i18n/navigation"
+import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
 interface KaraokeFormRoomCardProps {
-  room: KaraokeRoom;
+  room: KaraokeRoom
 }
 
 export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
-  const firstImage: KaraokeRoomImage | undefined = room.images?.[0];
+  const firstImage: KaraokeRoomImage | undefined = room.images?.[0]
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
@@ -43,9 +43,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         </Link>
       </div>
       {room.summary && (
-        <p className="text-sm leading-6 text-foreground/70">
-          {room.summary}
-        </p>
+        <p className="text-sm leading-6 text-foreground/70">{room.summary}</p>
       )}
       {(room.capacitySeated || room.capacityStanding) && (
         <div className="border-t border-border pt-4 flex gap-6 text-sm">
@@ -64,15 +62,15 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         </div>
       )}
     </Card>
-  );
+  )
 }
 
 function KaraokeRoomCapacity({
   label,
   value,
 }: {
-  label: string;
-  value: number;
+  label: string
+  value: number
 }) {
   return (
     <div>
@@ -81,5 +79,5 @@ function KaraokeRoomCapacity({
       </p>
       <p className="font-heading">{value}</p>
     </div>
-  );
+  )
 }

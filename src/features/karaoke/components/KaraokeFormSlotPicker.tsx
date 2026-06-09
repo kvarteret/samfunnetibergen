@@ -1,34 +1,34 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { useMemo } from "react"
+import { cn } from "@/lib/utils"
 import {
   minutesToTime,
   type ClosedDate,
   type OpeningHours,
   slotRangesForDate,
-} from "@/lib/opening-hours";
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar";
+} from "@/lib/opening-hours"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   dateHasKaraokeSlot,
   slotOverlapsKaraokeBookings,
-} from "../domain/availability";
+} from "../domain/availability"
 import {
   buildKaraokeDates,
   getDateButtonClass,
   getSlotButtonClass,
-} from "./KaraokeFormPrimitives";
+} from "./KaraokeFormPrimitives"
 
 interface KaraokeFormSlotPickerProps {
-  bookings: CresatBooking[];
-  duration: number;
-  selectedDate: string;
-  selectedSlotMin: number | null;
-  today: string;
-  operationsManagerHours?: OpeningHours | null;
-  houseClosedDates?: ClosedDate[] | null;
-  onDateChange: (date: string) => void;
-  onSlotChange: (slotMin: number | null) => void;
+  bookings: CresatBooking[]
+  duration: number
+  selectedDate: string
+  selectedSlotMin: number | null
+  today: string
+  operationsManagerHours?: OpeningHours | null
+  houseClosedDates?: ClosedDate[] | null
+  onDateChange: (date: string) => void
+  onSlotChange: (slotMin: number | null) => void
 }
 
 export function KaraokeFormSlotPicker({
@@ -42,7 +42,7 @@ export function KaraokeFormSlotPicker({
   onDateChange,
   onSlotChange,
 }: KaraokeFormSlotPickerProps) {
-  const dates = useMemo(() => buildKaraokeDates(today), [today]);
+  const dates = useMemo(() => buildKaraokeDates(today), [today])
 
   return (
     <div className="space-y-4">
@@ -68,7 +68,7 @@ export function KaraokeFormSlotPicker({
         />
       )}
     </div>
-  );
+  )
 }
 
 function KaraokeDateScroller({
@@ -81,19 +81,19 @@ function KaraokeDateScroller({
   houseClosedDates,
   onDateChange,
 }: {
-  bookings: CresatBooking[];
-  dates: string[];
-  duration: number;
-  selectedDate: string;
-  today: string;
-  operationsManagerHours?: OpeningHours | null;
-  houseClosedDates?: ClosedDate[] | null;
-  onDateChange: (date: string) => void;
+  bookings: CresatBooking[]
+  dates: string[]
+  duration: number
+  selectedDate: string
+  today: string
+  operationsManagerHours?: OpeningHours | null
+  houseClosedDates?: ClosedDate[] | null
+  onDateChange: (date: string) => void
 }) {
   return (
     <div className="overflow-x-auto">
       <div className="flex gap-1.5 pb-1 min-w-max">
-        {dates.map((date) => (
+        {dates.map(date => (
           <KaraokeDateButton
             available={dateHasKaraokeSlot(
               date,
@@ -111,7 +111,7 @@ function KaraokeDateScroller({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function KaraokeDateButton({
@@ -121,19 +121,19 @@ function KaraokeDateButton({
   isToday,
   onClick,
 }: {
-  available: boolean;
-  date: string;
-  isSelected: boolean;
-  isToday: boolean;
-  onClick: () => void;
+  available: boolean
+  date: string
+  isSelected: boolean
+  isToday: boolean
+  onClick: () => void
 }) {
-  const parsedDate = new Date(date);
+  const parsedDate = new Date(date)
   const weekday = parsedDate.toLocaleDateString("nb-NO", {
     weekday: "short",
-  });
+  })
   const month = parsedDate
     .toLocaleDateString("nb-NO", { month: "short" })
-    .replace(".", "");
+    .replace(".", "")
 
   return (
     <button
@@ -146,15 +146,13 @@ function KaraokeDateButton({
         getDateButtonClass(isSelected, available, isToday),
       )}
     >
-      <span className="text-[10px] uppercase tracking-widest">
-        {weekday}
-      </span>
+      <span className="text-[10px] uppercase tracking-widest">{weekday}</span>
       <span className="text-base font-heading leading-none">
         {parsedDate.getDate()}
       </span>
       <span className="text-[10px]">{month}</span>
     </button>
-  );
+  )
 }
 
 function KaraokeSlotGrid({
@@ -166,20 +164,20 @@ function KaraokeSlotGrid({
   houseClosedDates,
   onSlotChange,
 }: {
-  bookings: CresatBooking[];
-  duration: number;
-  selectedDate: string;
-  selectedSlotMin: number | null;
-  operationsManagerHours?: OpeningHours | null;
-  houseClosedDates?: ClosedDate[] | null;
-  onSlotChange: (slotMin: number | null) => void;
+  bookings: CresatBooking[]
+  duration: number
+  selectedDate: string
+  selectedSlotMin: number | null
+  operationsManagerHours?: OpeningHours | null
+  houseClosedDates?: ClosedDate[] | null
+  onSlotChange: (slotMin: number | null) => void
 }) {
   const slots = slotRangesForDate(
     selectedDate,
     duration,
     operationsManagerHours,
     houseClosedDates,
-  );
+  )
 
   return (
     <div className="space-y-2">
@@ -187,7 +185,7 @@ function KaraokeSlotGrid({
         Velg starttidspunkt
       </p>
       <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-        {slots.map((slotMin) => (
+        {slots.map(slotMin => (
           <KaraokeSlotButton
             date={selectedDate}
             bookings={bookings}
@@ -200,7 +198,7 @@ function KaraokeSlotGrid({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function KaraokeSlotButton({
@@ -211,19 +209,14 @@ function KaraokeSlotButton({
   slotMin,
   onClick,
 }: {
-  bookings: CresatBooking[];
-  date: string;
-  duration: number;
-  isSelected: boolean;
-  slotMin: number;
-  onClick: () => void;
+  bookings: CresatBooking[]
+  date: string
+  duration: number
+  isSelected: boolean
+  slotMin: number
+  onClick: () => void
 }) {
-  const taken = slotOverlapsKaraokeBookings(
-    date,
-    slotMin,
-    duration,
-    bookings,
-  );
+  const taken = slotOverlapsKaraokeBookings(date, slotMin, duration, bookings)
 
   return (
     <button
@@ -238,5 +231,5 @@ function KaraokeSlotButton({
     >
       {minutesToTime(slotMin)}
     </button>
-  );
+  )
 }

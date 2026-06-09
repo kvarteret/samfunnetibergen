@@ -1,6 +1,6 @@
-import { defineQuery } from "next-sanity";
+import { defineQuery } from "next-sanity"
 
-import { sourcedImageProjection } from "../fragments/images";
+import { sourcedImageProjection } from "../fragments/images"
 
 export const studentGroupsQuery =
   defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
@@ -17,17 +17,17 @@ export const studentGroupsQuery =
         name,
         "slug": slug.current
     }
-}`);
+}`)
 
 export const studentGroupSlugsQuery =
   defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
     "slug": slug.current
-}`);
+}`)
 
 export const allStudentGroupSlugsQuery =
   defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
     "slug": slug.current
-}`);
+}`)
 
 export const studentGroupBySlugQuery =
   defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
@@ -51,4 +51,4 @@ export const studentGroupBySlugQuery =
         "image": image ${sourcedImageProjection}
     },
     "image": image ${sourcedImageProjection}
-}`);
+}`)

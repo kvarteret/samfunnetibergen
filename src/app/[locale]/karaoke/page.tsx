@@ -1,17 +1,17 @@
-import { Mic, Phone } from "lucide-react";
+import { Mic, Phone } from "lucide-react"
 
-import { Surface } from "@/components/ui/surface";
-import { Link } from "@/i18n/navigation";
+import { Surface } from "@/components/ui/surface"
+import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch";
-import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke";
+} from "@/lib/app-locale"
+import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
+import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata() {
@@ -19,7 +19,7 @@ export async function generateMetadata() {
     title: "Booking av karaoke | Samfunnet i Bergen",
     description:
       "Book karaoke på Maos Lille Røde hos Studentersamfunnet i Bergen. Fyll ut skjemaet så behandler vi forespørselen din så fort vi ser den.",
-  };
+  }
 }
 
 const MAOS_FALLBACK: KaraokeRoom = {
@@ -29,20 +29,20 @@ const MAOS_FALLBACK: KaraokeRoom = {
   capacitySeated: 50,
   capacityStanding: 75,
   images: [],
-};
+}
 
 export default async function KaraokePage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
   const [roomData, houseHours] = await Promise.all([
     fetchRoomBySlug("maos"),
     fetchHouseHours(),
-  ]);
+  ])
   const room: KaraokeRoom = roomData
     ? {
         slug: roomData.slug ?? MAOS_FALLBACK.slug,
@@ -50,14 +50,14 @@ export default async function KaraokePage({
         summary: roomData.summary ?? null,
         capacitySeated: roomData.capacitySeated ?? null,
         capacityStanding: roomData.capacityStanding ?? null,
-        images: (roomData.images ?? []).map((img) => ({
+        images: (roomData.images ?? []).map(img => ({
           _key: img._key ?? null,
           assetUrl: img.assetUrl ?? null,
           alt: img.alt ?? null,
           caption: img.caption ?? null,
         })),
       }
-    : MAOS_FALLBACK;
+    : MAOS_FALLBACK
 
   return (
     <article className="flex w-full flex-col gap-10">
@@ -68,7 +68,7 @@ export default async function KaraokePage({
         houseClosedDates={houseHours?.houseClosedDates}
       />
     </article>
-  );
+  )
 }
 
 function KaraokePageIntro() {
@@ -106,7 +106,7 @@ function KaraokePageIntro() {
 
       <SameDayKaraokeNotice />
     </header>
-  );
+  )
 }
 
 function SameDayKaraokeNotice() {
@@ -117,8 +117,7 @@ function SameDayKaraokeNotice() {
       </p>
       <ul className="space-y-1.5 text-sm text-foreground/75 leading-6">
         <li>
-          På{" "}
-          <strong className="font-heading text-foreground">hverdager</strong>
+          På <strong className="font-heading text-foreground">hverdager</strong>
           må bookinger for samme dag gjøres{" "}
           <strong className="font-heading text-foreground">
             før kl. 12:00
@@ -141,5 +140,5 @@ function SameDayKaraokeNotice() {
         406 26 601
       </a>
     </Surface>
-  );
+  )
 }

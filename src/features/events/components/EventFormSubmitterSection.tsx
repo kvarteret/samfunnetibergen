@@ -1,16 +1,18 @@
-"use client";
+"use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEventForm } from "./eventFormContext";
+import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useEventForm } from "./eventFormContext"
 
 interface EventFormSubmitterSectionProps {
-  uid: string;
+  uid: string
 }
 
-export function EventFormSubmitterSection({ uid }: EventFormSubmitterSectionProps) {
-  const form = useEventForm();
+export function EventFormSubmitterSection({
+  uid,
+}: EventFormSubmitterSectionProps) {
+  const form = useEventForm()
 
   return (
     <section className="space-y-6">
@@ -28,7 +30,7 @@ export function EventFormSubmitterSection({ uid }: EventFormSubmitterSectionProp
           <Input
             autoComplete="name"
             id={`${uid}-submittedBy`}
-            onChange={(event) =>
+            onChange={event =>
               form.setFieldValue("submittedBy", event.target.value)
             }
             placeholder="Fullt navn"
@@ -38,17 +40,12 @@ export function EventFormSubmitterSection({ uid }: EventFormSubmitterSectionProp
         </FieldGroup>
 
         <FieldGroup>
-          <Label htmlFor={`${uid}-submittedByEmail`}>
-            E-postadresse *
-          </Label>
+          <Label htmlFor={`${uid}-submittedByEmail`}>E-postadresse *</Label>
           <Input
             autoComplete="email"
             id={`${uid}-submittedByEmail`}
-            onChange={(event) =>
-              form.setFieldValue(
-                "submittedByEmail",
-                event.target.value,
-              )
+            onChange={event =>
+              form.setFieldValue("submittedByEmail", event.target.value)
             }
             placeholder="epost@eksempel.no"
             required
@@ -62,16 +59,13 @@ export function EventFormSubmitterSection({ uid }: EventFormSubmitterSectionProp
         <Label htmlFor={`${uid}-org`}>Organisasjon / gruppe</Label>
         <Input
           id={`${uid}-org`}
-          onChange={(event) =>
-            form.setFieldValue(
-              "submittedByOrganization",
-              event.target.value,
-            )
+          onChange={event =>
+            form.setFieldValue("submittedByOrganization", event.target.value)
           }
           placeholder="F.eks. Bandet Skumringen, Realfagskollegiet"
           value={form.state.values.submittedByOrganization}
         />
       </FieldGroup>
     </section>
-  );
+  )
 }

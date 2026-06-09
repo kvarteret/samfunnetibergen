@@ -1,24 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
 import {
   fetchEventBySlug,
   fetchEventsPageContent,
   fetchHomePageContent,
   fetchSiteMetadata,
-} from "@/lib/sanity/fetch";
-import { resolveSiteUrl } from "@/lib/site-url";
+} from "@/lib/sanity/fetch"
+import { resolveSiteUrl } from "@/lib/site-url"
 
 type OembedPayload = {
-  version: "1.0";
-  type: "link";
-  provider_name: string;
-  provider_url: string;
-  title: string;
-  thumbnail_url?: string;
-};
+  version: "1.0"
+  type: "link"
+  provider_name: string
+  provider_url: string
+  title: string
+  thumbnail_url?: string
+}
 
 function pathWithoutLocale(url: URL) {
-  const parts = url.pathname.split("/").filter(Boolean);
-  return parts[0] === "nb" ? parts.slice(1) : parts;
+  const parts = url.pathname.split("/").filter(Boolean)
+  return parts[0] === "nb" ? parts.slice(1) : parts
 }
 
 function oembedJson(payload: OembedPayload) {
@@ -26,37 +26,37 @@ function oembedJson(payload: OembedPayload) {
     headers: {
       "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
     },
-  });
+  })
 }
 
 export async function GET(request: Request) {
-  const siteUrl = resolveSiteUrl();
-  const providerUrl = siteUrl;
-  const requestUrl = new URL(request.url);
-  const embeddedUrlParam = requestUrl.searchParams.get("url");
+  const siteUrl = resolveSiteUrl()
+  const providerUrl = siteUrl
+  const requestUrl = new URL(request.url)
+  const embeddedUrlParam = requestUrl.searchParams.get("url")
 
   if (!embeddedUrlParam) {
     return NextResponse.json(
       { error: "Missing url parameter" },
       { status: 400 },
-    );
+    )
   }
 
-  let embeddedUrl: URL;
+  let embeddedUrl: URL
   try {
-    embeddedUrl = new URL(embeddedUrlParam, siteUrl);
+    embeddedUrl = new URL(embeddedUrlParam, siteUrl)
   } catch {
     return NextResponse.json(
       { error: "Invalid url parameter" },
       { status: 400 },
-    );
+    )
   }
-  const [firstSegment, secondSegment] = pathWithoutLocale(embeddedUrl);
-  const siteMetadata = await fetchSiteMetadata("nb", { stega: false });
-  const providerName = siteMetadata?.siteName ?? "Samfunnet i Bergen";
+  const [firstSegment, secondSegment] = pathWithoutLocale(embeddedUrl)
+  const siteMetadata = await fetchSiteMetadata("nb", { stega: false })
+  const providerName = siteMetadata?.siteName ?? "Samfunnet i Bergen"
 
   if (!firstSegment) {
-    const homePage = await fetchHomePageContent("nb", { stega: false });
+    const homePage = await fetchHomePageContent("nb", { stega: false })
     return oembedJson({
       version: "1.0",
       type: "link",
@@ -74,13 +74,13 @@ export async function GET(request: Request) {
         siteMetadata?.oembedImageUrl ??
         siteMetadata?.defaultOpenGraphImageUrl ??
         undefined,
-    });
+    })
   }
 
   if (firstSegment === "arrangementer" && secondSegment) {
-    const event = await fetchEventBySlug(secondSegment);
+    const event = await fetchEventBySlug(secondSegment)
     if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+      return NextResponse.json({ error: "Event not found" }, { status: 404 })
     }
 
     return oembedJson({
@@ -100,11 +100,11 @@ export async function GET(request: Request) {
         siteMetadata?.oembedImageUrl ??
         siteMetadata?.defaultOpenGraphImageUrl ??
         undefined,
-    });
+    })
   }
 
   if (firstSegment === "arrangementer") {
-    const eventsPage = await fetchEventsPageContent("nb", { stega: false });
+    const eventsPage = await fetchEventsPageContent("nb", { stega: false })
     return oembedJson({
       version: "1.0",
       type: "link",
@@ -121,11 +121,8 @@ export async function GET(request: Request) {
         siteMetadata?.oembedImageUrl ??
         siteMetadata?.defaultOpenGraphImageUrl ??
         undefined,
-    });
+    })
   }
 
-  return NextResponse.json(
-    { error: "Unsupported oEmbed URL" },
-    { status: 404 },
-  );
+  return NextResponse.json({ error: "Unsupported oEmbed URL" }, { status: 404 })
 }

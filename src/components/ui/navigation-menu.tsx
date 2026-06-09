@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { ChevronDown } from "lucide-react";
-import * as React from "react";
+import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
+import { ChevronDown } from "lucide-react"
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 function NavigationMenu({
   className,
@@ -12,7 +12,7 @@ function NavigationMenu({
   viewport = true,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Root> & {
-  viewport?: boolean;
+  viewport?: boolean
 }) {
   return (
     <NavigationMenuPrimitive.Root
@@ -27,7 +27,7 @@ function NavigationMenu({
       {children}
       {viewport && <NavigationMenuViewport />}
     </NavigationMenuPrimitive.Root>
-  );
+  )
 }
 
 function NavigationMenuList({
@@ -43,7 +43,7 @@ function NavigationMenuList({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function NavigationMenuItem({
@@ -56,7 +56,7 @@ function NavigationMenuItem({
       className={cn("relative", className)}
       {...props}
     />
-  );
+  )
 }
 
 function NavigationMenuTrigger({
@@ -81,7 +81,7 @@ function NavigationMenuTrigger({
         className="size-3.5 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
       />
     </NavigationMenuPrimitive.Trigger>
-  );
+  )
 }
 
 function NavigationMenuContent({
@@ -101,7 +101,7 @@ function NavigationMenuContent({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function NavigationMenuLink({
@@ -117,7 +117,7 @@ function NavigationMenuLink({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function NavigationMenuViewport({
@@ -143,7 +143,7 @@ function NavigationMenuViewport({
         {...props}
       />
     </div>
-  );
+  )
 }
 
 function NavigationMenuIndicator({
@@ -161,7 +161,7 @@ function NavigationMenuIndicator({
       )}
       {...props}
     />
-  );
+  )
 }
 
 export {
@@ -173,4 +173,4 @@ export {
   NavigationMenuList,
   NavigationMenuTrigger,
   NavigationMenuViewport,
-};
+}

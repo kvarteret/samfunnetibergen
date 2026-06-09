@@ -1,6 +1,6 @@
-import { ClockIcon } from "@sanity/icons";
-import { defineField, defineType } from "sanity";
-import { DurationInput } from "./DurationInput";
+import { ClockIcon } from "@sanity/icons"
+import { defineField, defineType } from "sanity"
+import { DurationInput } from "./DurationInput"
 
 export const timeValue = defineType({
   name: "timeValue",
@@ -9,7 +9,7 @@ export const timeValue = defineType({
   options: {
     list: allowedTimes(),
   },
-});
+})
 
 export const duration = defineType({
   name: "duration",
@@ -21,13 +21,13 @@ export const duration = defineType({
       name: "start",
       title: "Fra",
       type: "timeValue",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "end",
       title: "Til",
       type: "timeValue",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
   ],
   options: { columns: 2 },
@@ -37,19 +37,19 @@ export const duration = defineType({
     prepare({ start, end }) {
       return {
         title: start && end ? `${start} - ${end}` : "Varighet mangler",
-      };
+      }
     },
   },
-});
+})
 
 function allowedTimes() {
-  const times = [];
+  const times = []
   for (let hour = 0; hour < 24; hour += 1) {
     for (let minute = 0; minute < 60; minute += 30) {
       times.push(
         `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
-      );
+      )
     }
   }
-  return times;
+  return times
 }

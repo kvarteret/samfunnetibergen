@@ -1,6 +1,6 @@
-"use server";
+"use server"
 
-import { z } from "zod";
+import { z } from "zod"
 
 const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Europe/Oslo",
@@ -11,29 +11,29 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
   minute: "2-digit",
   second: "2-digit",
   hour12: false,
-});
+})
 import {
   fetchVenueCalendar,
   VENUE_CALENDAR_SLUG,
-} from "@/lib/integrations/crescat/calendar";
-import { postEventRequest } from "@/lib/integrations/crescat/client";
+} from "@/lib/integrations/crescat/calendar"
+import { postEventRequest } from "@/lib/integrations/crescat/client"
 import {
   addDaysDateOnly,
   resolveEndDateTime,
   toDateTime,
-} from "@/lib/integrations/crescat/datetime";
+} from "@/lib/integrations/crescat/datetime"
 import {
   buildRoomBooking,
   slugForBookerType,
-} from "@/lib/integrations/crescat/room-booking";
+} from "@/lib/integrations/crescat/room-booking"
 import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
-} from "@/lib/opening-hours";
-import { err, type Result } from "@/lib/result";
-import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch";
+} from "@/lib/opening-hours"
+import { err, type Result } from "@/lib/result"
+import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const payloadSchema = z.object({
   bookerType: z.enum(["intern", "ekstern", "studentorg"]),
@@ -61,15 +61,15 @@ const payloadSchema = z.object({
   studentOrgName: z.string().trim().optional(),
   invoiceAddress: z.string().trim().optional(),
   orgNumber: z.number().int().nullable().optional(),
-});
+})
 
-export type RoomBookingPayload = z.input<typeof payloadSchema>;
+export type RoomBookingPayload = z.input<typeof payloadSchema>
 
 function formatOsloDateTime(value: string): string {
-  const parts = osloDateTimePartsFormatter.formatToParts(new Date(value));
+  const parts = osloDateTimePartsFormatter.formatToParts(new Date(value))
   const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((item) => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`;
+    parts.find(item => item.type === type)?.value ?? ""
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
 }
 
 async function hasVenueCalendarConflict(
@@ -79,29 +79,29 @@ async function hasVenueCalendarConflict(
     VENUE_CALENDAR_SLUG,
     payload.startDate,
     addDaysDateOnly(payload.startDate, 1),
-  );
-  const start = toDateTime(payload.startDate, payload.startTime);
+  )
+  const start = toDateTime(payload.startDate, payload.startTime)
   const end = resolveEndDateTime(
     payload.startDate,
     payload.startTime,
     payload.endTime,
-  );
-  return bookings.some((booking) => {
-    if (booking.resourceId !== payload.roomId) return false;
+  )
+  return bookings.some(booking => {
+    if (booking.resourceId !== payload.roomId) return false
     return (
       start < formatOsloDateTime(booking.end) &&
       end > formatOsloDateTime(booking.start)
-    );
-  });
+    )
+  })
 }
 
 function durationHoursBetween(startTime: string, endTime: string): number {
-  const [startHour, startMinute] = startTime.split(":").map(Number);
-  const [endHour, endMinute] = endTime.split(":").map(Number);
-  const startMin = startHour * 60 + startMinute;
-  const endMin = endHour * 60 + endMinute;
-  const diff = endMin - startMin;
-  return (diff <= 0 ? diff + 24 * 60 : diff) / 60;
+  const [startHour, startMinute] = startTime.split(":").map(Number)
+  const [endHour, endMinute] = endTime.split(":").map(Number)
+  const startMin = startHour * 60 + startMinute
+  const endMin = endHour * 60 + endMinute
+  const diff = endMin - startMin
+  return (diff <= 0 ? diff + 24 * 60 : diff) / 60
 }
 
 async function isAllowedByOpeningHours(
@@ -110,17 +110,17 @@ async function isAllowedByOpeningHours(
   const [houseHours, rooms] = await Promise.all([
     fetchHouseHours(),
     fetchBookableRooms(),
-  ]);
+  ])
   const room = rooms.find(
-    (candidate) => candidate.crescatRoomId === payload.roomId,
-  );
-  if (!room) return false;
+    candidate => candidate.crescatRoomId === payload.roomId,
+  )
+  if (!room) return false
 
-  const baseHours = houseHours?.operationsManagerHours ?? null;
-  const roomHours = room.openingHours ?? null;
+  const baseHours = houseHours?.operationsManagerHours ?? null
+  const roomHours = room.openingHours ?? null
   const hasConfiguredHours =
-    hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours);
-  if (!hasConfiguredHours) return true;
+    hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)
+  if (!hasConfiguredHours) return true
 
   return isSlotAllowedForCombinedHours(
     payload.startDate,
@@ -129,28 +129,28 @@ async function isAllowedByOpeningHours(
     baseHours,
     roomHours,
     houseHours?.houseClosedDates ?? [],
-  );
+  )
 }
 
 export async function submitRoomBooking(
   payload: RoomBookingPayload,
 ): Promise<Result<number>> {
-  const parsed = payloadSchema.safeParse(payload);
+  const parsed = payloadSchema.safeParse(payload)
   if (!parsed.success) {
-    return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.");
+    return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
   }
 
   if (!(await isAllowedByOpeningHours(parsed.data))) {
-    return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.");
+    return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
   }
 
   if (await hasVenueCalendarConflict(parsed.data)) {
     return err(
       "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
-    );
+    )
   }
 
-  const body = buildRoomBooking(parsed.data.bookerType, parsed.data);
+  const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
 
-  return postEventRequest(slugForBookerType(parsed.data.bookerType), body);
+  return postEventRequest(slugForBookerType(parsed.data.bookerType), body)
 }

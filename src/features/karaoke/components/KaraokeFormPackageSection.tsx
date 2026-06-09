@@ -1,61 +1,56 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
 import {
   FieldGroup,
   FieldHint,
   SectionHeader,
-} from "@/components/ui/form-fields";
-import { Label } from "@/components/ui/label";
-import {
-  KARAOKE_PRICING,
-  type KaraokeDerivedState,
-} from "../domain/formState";
-import type { PriceType } from "../types";
-import { useKaraokeForm } from "./karaokeFormContext";
-import { KaraokeSelect } from "./KaraokeFormPrimitives";
+} from "@/components/ui/form-fields"
+import { Label } from "@/components/ui/label"
+import { KARAOKE_PRICING, type KaraokeDerivedState } from "../domain/formState"
+import type { PriceType } from "../types"
+import { useKaraokeForm } from "./karaokeFormContext"
+import { KaraokeSelect } from "./KaraokeFormPrimitives"
 
 interface KaraokeFormPackageSectionProps {
-  uid: string;
-  derived: KaraokeDerivedState;
+  uid: string
+  derived: KaraokeDerivedState
 }
 
 export function KaraokeFormPackageSection({
   uid,
   derived,
 }: KaraokeFormPackageSectionProps) {
-  const form = useKaraokeForm();
-  const values = form.state.values;
+  const form = useKaraokeForm()
+  const values = form.state.values
 
   return (
     <section className="space-y-6">
       <SectionHeader number="02" title="Karaokepakke" />
       <KaraokePriceTypeTabs
         priceType={values.priceType as PriceType}
-        onChange={(v) => form.setFieldValue("priceType", v)}
+        onChange={v => form.setFieldValue("priceType", v)}
       />
       <KaraokePackageNotice priceType={values.priceType as PriceType} />
-      {values.priceType !== "frivillig" && (
-        <KaraokePeopleField uid={uid} />
-      )}
+      {values.priceType !== "frivillig" && <KaraokePeopleField uid={uid} />}
       {derived.people > 0 && values.priceType !== "frivillig" && (
         <KaraokeTotalPrice derived={derived} />
       )}
     </section>
-  );
+  )
 }
 
 function KaraokePriceTypeTabs({
   priceType,
   onChange,
 }: {
-  priceType: PriceType;
-  onChange: (value: PriceType) => void;
+  priceType: PriceType
+  onChange: (value: PriceType) => void
 }) {
   return (
     <div className="flex border-2 border-border" role="tablist">
-      {(["ordinær", "student", "frivillig"] as const).map((type) => (
+      {(["ordinær", "student", "frivillig"] as const).map(type => (
         <button
           aria-pressed={priceType === type}
           className={cn(
@@ -72,7 +67,7 @@ function KaraokePriceTypeTabs({
         </button>
       ))}
     </div>
-  );
+  )
 }
 
 function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
@@ -86,13 +81,11 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
           Som intern frivillig kan du bruke karaokerommet gratis, men eksterne
           bookinger har alltid prioritet. En ekstern booking kan overta rommet
           ved å booke senest{" "}
-          <strong className="font-heading text-foreground">
-            12 timer før
-          </strong>{" "}
+          <strong className="font-heading text-foreground">12 timer før</strong>{" "}
           — i så fall vil du bli varslet og bookingen din kanselleres.
         </p>
       </Card>
-    );
+    )
   }
 
   return (
@@ -104,12 +97,12 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
         </span>
       </div>
     </Card>
-  );
+  )
 }
 
 function KaraokePeopleField({ uid }: { uid: string }) {
-  const form = useKaraokeForm();
-  const values = form.state.values;
+  const form = useKaraokeForm()
+  const values = form.state.values
 
   return (
     <FieldGroup>
@@ -117,23 +110,20 @@ function KaraokePeopleField({ uid }: { uid: string }) {
       <KaraokeSelect
         id={`${uid}-people`}
         value={values.numberOfPeople}
-        onChange={(v) => form.setFieldValue("numberOfPeople", v)}
+        onChange={v => form.setFieldValue("numberOfPeople", v)}
       >
-        {Array.from({ length: 25 }, (_, index) => index + 1).map(
-          (count) => (
-            <option key={count} value={count}>
-              {count} {count === 1 ? "person" : "personer"}
-            </option>
-          ),
-        )}
+        {Array.from({ length: 25 }, (_, index) => index + 1).map(count => (
+          <option key={count} value={count}>
+            {count} {count === 1 ? "person" : "personer"}
+          </option>
+        ))}
       </KaraokeSelect>
       <FieldHint>
         Minimumspris er{" "}
-        {KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per
-        time.
+        {KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per time.
       </FieldHint>
     </FieldGroup>
-  );
+  )
 }
 
 function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
@@ -146,13 +136,13 @@ function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
             {derived.totalPrice.toLocaleString("nb-NO")} kr
           </span>
           <p className="text-xs text-foreground/50 mt-0.5">
-            {Math.round(
-              derived.totalPrice / derived.people,
-            ).toLocaleString("nb-NO")}{" "}
+            {Math.round(derived.totalPrice / derived.people).toLocaleString(
+              "nb-NO",
+            )}{" "}
             kr per person
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }

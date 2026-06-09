@@ -1,18 +1,18 @@
-import { UsersIcon } from "@sanity/icons";
+import { UsersIcon } from "@sanity/icons"
 import {
   orderRankField,
   orderRankOrdering,
-} from "@sanity/orderable-document-list";
-import { defineArrayMember, defineField, defineType } from "sanity";
+} from "@sanity/orderable-document-list"
+import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const GRUPPE_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
   { title: "Komité (Arg)", value: "komitee" },
   { title: "Driftsorganisasjon (Dorg)", value: "dorg" },
   { title: "Brukerorganisasjon (Borg)", value: "borg" },
-];
+]
 
-export type GruppeCategory = "arbeidsgruppe" | "komitee" | "dorg" | "borg";
+export type GruppeCategory = "arbeidsgruppe" | "komitee" | "dorg" | "borg"
 
 export const gruppe = defineType({
   name: "studentGroup",
@@ -31,7 +31,7 @@ export const gruppe = defineType({
       title: "Navn",
       type: "string",
       group: "identity",
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "slug",
@@ -39,7 +39,7 @@ export const gruppe = defineType({
       type: "slug",
       group: "identity",
       options: { source: "name" },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "category",
@@ -50,7 +50,7 @@ export const gruppe = defineType({
         list: GRUPPE_CATEGORIES,
         layout: "radio",
       },
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "parentGroup",
@@ -71,7 +71,7 @@ export const gruppe = defineType({
       type: "text",
       group: "identity",
       rows: 3,
-      validation: (rule) => rule.required(),
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "body",
@@ -112,14 +112,14 @@ export const gruppe = defineType({
               name: "title",
               title: "Tittel",
               type: "string",
-              validation: (rule) => rule.required(),
+              validation: rule => rule.required(),
             }),
             defineField({
               name: "paragraphs",
               title: "Avsnitt",
               type: "array",
               of: [defineArrayMember({ type: "text", rows: 3 })],
-              validation: (rule) => rule.required().min(1),
+              validation: rule => rule.required().min(1),
             }),
           ],
           preview: { select: { title: "title" } },
@@ -131,14 +131,14 @@ export const gruppe = defineType({
       title: "E-post",
       type: "string",
       group: "contact",
-      validation: (rule) => rule.email(),
+      validation: rule => rule.email(),
     }),
     defineField({
       name: "website",
       title: "Nettside",
       type: "url",
       group: "contact",
-      validation: (rule) =>
+      validation: rule =>
         rule.uri({ scheme: ["http", "https"] }).error("Må være en gyldig URL"),
     }),
     defineField({
@@ -157,7 +157,7 @@ export const gruppe = defineType({
       type: "array",
       group: "identity",
       of: [defineArrayMember({ type: "string" })],
-      validation: (rule) => rule.max(3),
+      validation: rule => rule.max(3),
     }),
     defineField({
       name: "image",
@@ -180,12 +180,12 @@ export const gruppe = defineType({
         komitee: "Komité (Arg)",
         dorg: "Driftsorganisasjon (Dorg)",
         borg: "Brukerorganisasjon",
-      };
+      }
       return {
         title: title ?? "Gruppe",
         subtitle: categoryLabel[subtitle] ?? subtitle,
         media,
-      };
+      }
     },
   },
-});
+})

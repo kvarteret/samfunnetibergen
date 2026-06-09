@@ -1,47 +1,47 @@
-"use client";
+"use client"
 
-import { Menu, X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
-import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch";
-import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useEffect, useState, useSyncExternalStore } from "react"
+import { createPortal } from "react-dom"
+import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
+import { cn } from "@/lib/utils"
 
 type MobileMenuProps = {
-  items: NavItem[];
-};
+  items: NavItem[]
+}
 
-const subscribe = () => () => {};
+const subscribe = () => () => {}
 const navShellClass =
-  "mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14";
-const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75";
+  "mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
+const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 
 export function MobileMenu({ items }: MobileMenuProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   const mounted = useSyncExternalStore(
     subscribe,
     () => true,
     () => false,
-  );
+  )
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [open])
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    document.body.style.overflow = open ? "hidden" : ""
     return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+      document.body.style.overflow = ""
+    }
+  }, [open])
 
-  const close = () => setOpen(false);
+  const close = () => setOpen(false)
 
   return (
     <>
@@ -49,7 +49,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
         aria-expanded={open}
         aria-label={open ? "Lukk meny" : "Åpne meny"}
         className="relative p-2 lg:hidden"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(v => !v)}
         type="button"
       >
         <span className="relative block size-6">
@@ -130,26 +130,26 @@ export function MobileMenu({ items }: MobileMenuProps) {
           document.body,
         )}
     </>
-  );
+  )
 }
 
 // ─── MobileNavItem ────────────────────────────────────────────────────────────
 
 interface MobileNavItemProps {
-  item: NavItem;
-  onClose: () => void;
-  open: boolean;
-  index: number;
+  item: NavItem
+  onClose: () => void
+  open: boolean
+  index: number
 }
 
 function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
-  const delay = open ? `${index * 35 + 60}ms` : "0ms";
+  const delay = open ? `${index * 35 + 60}ms` : "0ms"
 
   const linkCls = cn(
     "block px-6 py-5 font-heading text-2xl text-foreground",
     "transition-[opacity,transform] duration-300 hover:bg-muted",
     open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-  );
+  )
 
   return (
     <div style={{ transitionDelay: delay }}>
@@ -168,7 +168,7 @@ function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
         )),
       )}
     </div>
-  );
+  )
 }
 
 function renderNavItemLabel(
@@ -176,18 +176,24 @@ function renderNavItemLabel(
   onClose: () => void,
   linkCls: string,
 ) {
-  const hasLink = item.href || item.externalUrl;
-  if (!hasLink) return <p className={linkCls}>{item.label}</p>;
+  const hasLink = item.href || item.externalUrl
+  if (!hasLink) return <p className={linkCls}>{item.label}</p>
   if (item.externalUrl && !item.href) {
     return (
-      <a className={linkCls} href={item.externalUrl} onClick={onClose} rel="noreferrer" target="_blank">
+      <a
+        className={linkCls}
+        href={item.externalUrl}
+        onClick={onClose}
+        rel="noreferrer"
+        target="_blank"
+      >
         {item.label}
       </a>
-    );
+    )
   }
   return (
     <Link className={linkCls} href={item.href ?? "#"} onClick={onClose}>
       {item.label}
     </Link>
-  );
+  )
 }

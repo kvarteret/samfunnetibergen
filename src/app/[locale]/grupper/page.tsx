@@ -1,23 +1,20 @@
-import { GroupsFilter } from "@/features/grupper";
+import { GroupsFilter } from "@/features/grupper"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
-import type {
-  GroupsPageContent,
-  StudentGroupSummary,
-} from "@/lib/sanity/fetch";
-import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch";
+} from "@/lib/app-locale"
+import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
+import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
 
-export const revalidate = 300;
+export const revalidate = 300
 
-type GroupCategory = NonNullable<StudentGroupSummary["category"]>;
+type GroupCategory = NonNullable<StudentGroupSummary["category"]>
 
 type GroupSection = {
-  title: string;
-  categories: GroupCategory[];
-};
+  title: string
+  categories: GroupCategory[]
+}
 
 const GROUP_SECTIONS: GroupSection[] = [
   {
@@ -28,36 +25,36 @@ const GROUP_SECTIONS: GroupSection[] = [
     title: "Samarbeidspartnere",
     categories: ["dorg", "borg"],
   },
-];
+]
 
 const groupCategories = new Set<string>(
-  GROUP_SECTIONS.flatMap((section) => section.categories),
-);
+  GROUP_SECTIONS.flatMap(section => section.categories),
+)
 
 const groupBySection = (groups: StudentGroupSummary[]) =>
-  GROUP_SECTIONS.map((section) => ({
+  GROUP_SECTIONS.map(section => ({
     ...section,
     groups: groups.filter(
-      (group) => group.category && section.categories.includes(group.category),
+      group => group.category && section.categories.includes(group.category),
     ),
-  })).filter((section) => section.groups.length > 0);
+  })).filter(section => section.groups.length > 0)
 
 const uncategorizedGroups = (groups: StudentGroupSummary[]) =>
   groups.filter(
-    (group) => !group.category || !groupCategories.has(group.category),
-  );
+    group => !group.category || !groupCategories.has(group.category),
+  )
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 type GroupsPageProps = {
-  params: Promise<{ locale: string }>;
-};
+  params: Promise<{ locale: string }>
+}
 
 export async function generateMetadata({ params }: GroupsPageProps) {
-  await resolvePageLocale(params);
-  const content = await fetchGroupsPageContent({ stega: false });
+  await resolvePageLocale(params)
+  const content = await fetchGroupsPageContent({ stega: false })
 
   return {
     title: `${content?.seoTitle ?? content?.title ?? "Grupper"} | Samfunnet i Bergen`,
@@ -65,26 +62,26 @@ export async function generateMetadata({ params }: GroupsPageProps) {
       content?.seoDescription ??
       content?.description ??
       "Se gruppene i Samfunnet.",
-  };
+  }
 }
 
 export default async function GroupsPage({ params }: GroupsPageProps) {
-  const locale = await resolvePageLocale(params);
-  activateRequestLocale(locale);
+  const locale = await resolvePageLocale(params)
+  activateRequestLocale(locale)
 
   const [content, groups] = await Promise.all([
     fetchGroupsPageContent(),
     fetchStudentGroups(),
-  ]);
+  ])
 
   const sections = [
     ...groupBySection(groups),
     { title: "Andre grupper", groups: uncategorizedGroups(groups) },
-  ].filter((section) => section.groups.length > 0);
+  ].filter(section => section.groups.length > 0)
 
   const allLabels = Array.from(
-    new Set(groups.flatMap((g) => g.labels ?? [])),
-  ).toSorted((a, b) => a.localeCompare(b, "nb"));
+    new Set(groups.flatMap(g => g.labels ?? [])),
+  ).toSorted((a, b) => a.localeCompare(b, "nb"))
 
   return (
     <div className="space-y-12">
@@ -133,5 +130,5 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
         </section>
       ) : null}
     </div>
-  );
+  )
 }

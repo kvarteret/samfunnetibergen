@@ -1,5 +1,5 @@
-import Image from "next/image";
-import Link from "next/link";
+import Image from "next/image"
+import Link from "next/link"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -7,37 +7,37 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from "@/components/ui/navigation-menu"
 import type {
   NavbarContent,
   NavGroup,
   NavItem,
   NavLeaf,
-} from "@/lib/sanity/fetch";
-import { MobileMenu } from "./MobileMenu";
+} from "@/lib/sanity/fetch"
+import { MobileMenu } from "./MobileMenu"
 
 type NavbarProps = {
-  navbar: NavbarContent | null;
-};
+  navbar: NavbarContent | null
+}
 
 function resolveHref(item: {
-  href?: string | null;
-  externalUrl?: string | null;
+  href?: string | null
+  externalUrl?: string | null
 }) {
-  return item.href ?? item.externalUrl ?? "#";
+  return item.href ?? item.externalUrl ?? "#"
 }
 
 function isExternal(item: {
-  href?: string | null;
-  externalUrl?: string | null;
+  href?: string | null
+  externalUrl?: string | null
 }) {
-  return !item.href && Boolean(item.externalUrl);
+  return !item.href && Boolean(item.externalUrl)
 }
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export function Navbar({ navbar }: NavbarProps) {
-  const items = navbar?.items ?? [];
+  const items = navbar?.items ?? []
 
   return (
     <header className="sticky top-0 z-30 border-b-2 border-border bg-background">
@@ -65,7 +65,7 @@ export function Navbar({ navbar }: NavbarProps) {
         <MobileMenu items={items} />
       </nav>
     </header>
-  );
+  )
 }
 
 // ─── DesktopNav ───────────────────────────────────────────────────────────────
@@ -74,20 +74,20 @@ function DesktopNav({ items }: { items: NavItem[] }) {
   return (
     <NavigationMenu className="hidden lg:flex">
       <NavigationMenuList className="gap-7">
-        {items.map((item) => (
+        {items.map(item => (
           <DesktopNavItem item={item} key={item._key} />
         ))}
       </NavigationMenuList>
     </NavigationMenu>
-  );
+  )
 }
 
 // ─── DesktopNavItem ───────────────────────────────────────────────────────────
 
 function DesktopNavItem({ item }: { item: NavItem }) {
-  const hasDropdown = (item.children?.length ?? 0) > 0;
-  const href = resolveHref(item);
-  const external = isExternal(item);
+  const hasDropdown = (item.children?.length ?? 0) > 0
+  const href = resolveHref(item)
+  const external = isExternal(item)
 
   if (!hasDropdown) {
     return (
@@ -98,7 +98,7 @@ function DesktopNavItem({ item }: { item: NavItem }) {
           </NavLink>
         </NavigationMenuLink>
       </NavigationMenuItem>
-    );
+    )
   }
 
   return (
@@ -108,7 +108,7 @@ function DesktopNavItem({ item }: { item: NavItem }) {
         <DropdownGroups groups={item.children ?? []} />
       </NavigationMenuContent>
     </NavigationMenuItem>
-  );
+  )
 }
 
 // ─── DropdownGroups ───────────────────────────────────────────────────────────
@@ -124,8 +124,8 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
             </p>
           )}
           {group.items?.map((leaf: NavLeaf, li) => {
-            const leafHref = resolveHref(leaf);
-            const leafExternal = isExternal(leaf);
+            const leafHref = resolveHref(leaf)
+            const leafExternal = isExternal(leaf)
             return (
               <NavigationMenuLink asChild key={leaf._key ?? `${gi}-${li}`}>
                 {leafExternal ? (
@@ -136,12 +136,12 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
                   <Link href={leafHref}>{leaf.label}</Link>
                 )}
               </NavigationMenuLink>
-            );
+            )
           })}
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
@@ -152,12 +152,12 @@ function NavLink({
   children,
   ...props
 }: {
-  href: string;
-  external?: boolean;
-  children: React.ReactNode;
+  href: string
+  external?: boolean
+  children: React.ReactNode
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const cls =
-    "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full";
+    "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
 
   return external ? (
     <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>
@@ -167,5 +167,5 @@ function NavLink({
     <Link className={cls} href={href} {...props}>
       {children}
     </Link>
-  );
+  )
 }
