@@ -87,7 +87,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             <div className="space-y-3">
                 <div className="flex items-start gap-4">
                     {group.logoUrl ? (
-                        <div className="relative size-12 shrink-0 overflow-hidden border-2 border-border bg-muted">
+                        <div className="relative size-12 shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
                             <Image
                                 alt={`${group.name} logo`}
                                 className="object-contain p-1"

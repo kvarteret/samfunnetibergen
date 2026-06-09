@@ -127,15 +127,6 @@ function getRecurringLabel(rrule: string | null | undefined): string | null {
     return "Gjentagende"
 }
 
-function formatPrices(event: EventSummary, _locale: AppLocale): string | null {
-    if (event.isFree) return "Gratis"
-    const parts: string[] = []
-    if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`)
-    if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`)
-    if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`)
-    return parts.length > 0 ? parts.join(" / ") : null
-}
-
 function expandRRuleDates(rruleStr: string, seed: EventDateEntry, count: number): EventDateEntry[] {
     try {
         const rule = new RRule({
@@ -251,7 +242,6 @@ export function EventCard({
     const roomSlug = event.room?.slug
     const roomFloor = event.room?.floor
     const roomImageUrl = event.room?.imageUrl
-    const price = formatPrices(event, locale)
     const href = `/arrangementer/${event.slug}`
     const timeLabel = primaryDate ? formatPrimaryDate(primaryDate, locale) : null
 
@@ -299,7 +289,6 @@ export function EventCard({
                         )}
                     >
                         {taxonomy && <span>{taxonomy}</span>}
-                        {price && <span>{price}</span>}
                         {event.isRecurring && (
                             <span className="text-foreground/40">
                                 {getRecurringLabel(event.rrule)}

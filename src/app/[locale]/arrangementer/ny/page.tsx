@@ -73,7 +73,7 @@ export default async function NyttArrangementPage({
                             </li>
                             <li className="flex gap-2.5">
                                 <span className="font-heading text-primary shrink-0">2.</span>
-                                PR-gruppen gjennomgår innmeldingen
+                                Vi gjennomgår innmeldingen
                             </li>
                             <li className="flex gap-2.5">
                                 <span className="font-heading text-primary shrink-0">3.</span>

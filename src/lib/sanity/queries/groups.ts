@@ -59,6 +59,7 @@ export const studentGroupBySlugQuery =
     email,
     website,
     category,
+    "logoUrl": logo.asset->url,
     "parentGroup": parentGroup-> {
         name,
         "slug": slug.current

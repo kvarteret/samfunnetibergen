@@ -37,7 +37,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
     return (
         <div className="flex gap-4 py-4 border-t border-border first:border-t-0">
             {person.imageUrl && (
-                <div className="relative size-14 shrink-0 overflow-hidden bg-muted">
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-full bg-muted">
                     <Image
                         alt={person.name ?? "Kontaktperson"}
                         className="object-cover"

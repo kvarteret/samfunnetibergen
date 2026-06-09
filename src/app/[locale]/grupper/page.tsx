@@ -18,12 +18,8 @@ const GROUP_SECTIONS: GroupSection[] = [
         categories: ["arbeidsgruppe", "komitee"],
     },
     {
-        title: "Driftsorganisasjoner",
-        categories: ["dorg"],
-    },
-    {
-        title: "Brukerorganisasjoner",
-        categories: ["borg"],
+        title: "Samarbeidspartnere",
+        categories: ["dorg", "borg"],
     },
 ]
 
@@ -93,7 +89,9 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
 
             {content?.faq?.length ? (
                 <section className="space-y-5">
-                    <h2 className="font-heading text-4xl leading-none text-foreground">FAQ</h2>
+                    <h2 className="font-heading text-4xl leading-none text-foreground">
+                        Ofte stilte spørsmål
+                    </h2>
                     <div className="grid gap-4">
                         {content.faq.map((item: NonNullable<GroupsPageContent["faq"]>[number]) => (
                             <details className="border-2 border-border bg-card p-5" key={item._key}>

@@ -1,4 +1,5 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { GroupVolunteerForm } from "@/features/blifrivillig/components/GroupVolunteerForm"
 import { getInstitutionOptions } from "@/features/blifrivillig/content"
@@ -56,11 +57,42 @@ export default async function GroupPage({ params }: GroupPageProps) {
                             {categoryLabel}
                         </p>
                     )}
-                    <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-                        {group.name}
-                    </h1>
+                    <div className="flex items-start gap-4">
+                        {group.logoUrl ? (
+                            <div className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
+                                <Image
+                                    alt={`${group.name} logo`}
+                                    className="object-contain p-1.5"
+                                    fill
+                                    src={group.logoUrl}
+                                />
+                            </div>
+                        ) : null}
+                        <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
+                            {group.name}
+                        </h1>
+                    </div>
                     <p className="text-xl leading-8 text-foreground">{group.summary}</p>
                 </header>
+
+                {group.image?.assetUrl ? (
+                    <figure className="space-y-2">
+                        <div className="relative aspect-[16/9] w-full overflow-hidden border-2 border-border bg-muted">
+                            <Image
+                                alt={group.image.alt ?? group.name ?? ""}
+                                className="object-cover"
+                                fill
+                                sizes="(min-width: 1024px) 60vw, 100vw"
+                                src={group.image.assetUrl}
+                            />
+                        </div>
+                        {group.image.caption ? (
+                            <figcaption className="text-sm text-muted-foreground">
+                                {group.image.caption}
+                            </figcaption>
+                        ) : null}
+                    </figure>
+                ) : null}
 
                 {group.body && group.body.length > 0 && (
                     <div className="text-lg leading-8 text-foreground">
