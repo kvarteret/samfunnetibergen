@@ -6,31 +6,19 @@ import { Link } from "@/i18n/navigation";
 import { EventsPageFilters } from "./EventsPageFilters";
 import { EventsPageSections } from "./EventsPageSections";
 
+interface EventsPageProps {
+  arrangements: PublishedEvent[];
+  backLabel: string;
+  searchParams: Record<string, string | string[] | undefined>;
+  title: string;
+}
+
 export function EventsPage({
   arrangements,
   backLabel,
-  emptyLabel,
-  facebookLabel,
-  filterAllLabel,
-  filterMoreLabel,
-  filterOrganizerLabel,
-  filterTypeLabel,
   searchParams,
-  ticketsLabel,
   title,
-}: {
-  arrangements: PublishedEvent[];
-  backLabel: string;
-  emptyLabel: string;
-  facebookLabel: string;
-  filterAllLabel: string;
-  filterMoreLabel: string;
-  filterOrganizerLabel: string;
-  filterTypeLabel: string;
-  searchParams: Record<string, string | string[] | undefined>;
-  ticketsLabel: string;
-  title: string;
-}) {
+}: EventsPageProps) {
   return (
     <EventsProvider
       initialEvents={arrangements}
@@ -47,18 +35,9 @@ export function EventsPage({
           <h1 className="font-heading text-4xl">{title}</h1>
         </header>
 
-        <EventsPageFilters
-          filterAllLabel={filterAllLabel}
-          filterMoreLabel={filterMoreLabel}
-          filterOrganizerLabel={filterOrganizerLabel}
-          filterTypeLabel={filterTypeLabel}
-        />
+        <EventsPageFilters />
 
-        <EventsPageSections
-          emptyLabel={emptyLabel}
-          facebookLabel={facebookLabel}
-          ticketsLabel={ticketsLabel}
-        />
+        <EventsPageSections />
 
         <div className="flex flex-col gap-4 border-2 border-border bg-card p-5 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex size-10 shrink-0 items-center justify-center bg-primary">

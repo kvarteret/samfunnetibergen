@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useEvents } from "@/features/events/context/EventsContext";
 import type { PublishedEvent } from "@/features/events/domain/eventUtils";
 import { EventCard, type EventSummary } from "./EventCard";
@@ -60,21 +62,14 @@ function toEventSummary(event: PublishedEvent): EventSummary {
   };
 }
 
-interface EventsSectionsProps {
-  emptyLabel: string;
-  facebookLabel: string;
-  ticketsLabel: string;
-}
-
-export function EventsPageSections({
-  emptyLabel,
-  facebookLabel,
-  ticketsLabel,
-}: EventsSectionsProps) {
+export function EventsPageSections() {
+  const t = useTranslations("EventsPage");
   const { filteredEvents } = useEvents();
 
   if (filteredEvents.length === 0) {
-    return <p className="text-sm leading-6 text-foreground/75">{emptyLabel}</p>;
+    return (
+      <p className="text-sm leading-6 text-foreground/75">{t("empty")}</p>
+    );
   }
 
   return (
@@ -82,9 +77,9 @@ export function EventsPageSections({
       {filteredEvents.map((event) => (
         <EventCard
           event={toEventSummary(event)}
-          facebookLabel={facebookLabel}
+          facebookLabel={t("facebook")}
           key={event._id}
-          ticketsLabel={ticketsLabel}
+          ticketsLabel={t("tickets")}
         />
       ))}
     </div>

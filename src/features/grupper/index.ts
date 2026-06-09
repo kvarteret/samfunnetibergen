@@ -1,1 +1,1 @@
-export { GroupsFilter } from "./components/GroupsFilter";
+export { GroupsFilter } from "./components/GroupsFilter"

@@ -6,19 +6,7 @@ import { useEvents } from "@/features/events/context/EventsContext";
 import { countEventFilters } from "@/features/events/domain/eventUtils";
 import { EventsPageFilterButton } from "./EventsPageFilterButton";
 
-interface EventsFiltersProps {
-  filterAllLabel: string;
-  filterMoreLabel: string;
-  filterOrganizerLabel: string;
-  filterTypeLabel: string;
-}
-
-export function EventsPageFilters({
-  filterAllLabel,
-  filterMoreLabel,
-  filterOrganizerLabel,
-  filterTypeLabel,
-}: EventsFiltersProps) {
+export function EventsPageFilters() {
   const t = useTranslations("EventsPage");
   const { filters, filteredEvents, setFilters, taxonomy } = useEvents();
   const activeFilterCount = countEventFilters(filters);
@@ -59,7 +47,7 @@ export function EventsPageFilters({
         <div className="flex flex-wrap items-center gap-3">
           <EventsPageFilterButton
             isActive={activeFilterCount === 0}
-            label={filterAllLabel}
+            label={t("filterAll")}
             onClick={clearAll}
           />
           {taxonomy.taxonomyGroups.map((group) => (
@@ -83,7 +71,7 @@ export function EventsPageFilters({
         taxonomy.organizerGroups.length > 0) && (
         <details>
           <summary className="cursor-pointer list-none text-sm font-bold uppercase tracking-[0.18em] text-foreground underline underline-offset-4">
-            {filterMoreLabel}
+            {t("filterMore")}
             {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </summary>
           <div className="mt-6 space-y-8">
@@ -95,7 +83,7 @@ export function EventsPageFilters({
               return (
                 <div className="space-y-3" key={group._id}>
                   <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                    {filterTypeLabel} — {group.name}
+                    {t("filterType")} — {group.name}
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {groupEventTypes.map((eventType) => (
@@ -113,7 +101,7 @@ export function EventsPageFilters({
             {taxonomy.organizerGroups.length > 0 && (
               <div className="space-y-3">
                 <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                  {filterOrganizerLabel}
+                  {t("filterOrganizer")}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {taxonomy.organizerGroups.map((group) => (

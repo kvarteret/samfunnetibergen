@@ -67,14 +67,7 @@ export default async function EventsPage({
     <EventsPageContent
       arrangements={arrangements}
       backLabel={t("back")}
-      emptyLabel={t("empty")}
-      facebookLabel={t("facebook")}
-      filterAllLabel={t("filterAll")}
-      filterMoreLabel={t("filterMore")}
-      filterOrganizerLabel={t("filterOrganizer")}
-      filterTypeLabel={t("filterType")}
       searchParams={resolvedSearchParams}
-      ticketsLabel={t("tickets")}
       title={title}
     />
   );
