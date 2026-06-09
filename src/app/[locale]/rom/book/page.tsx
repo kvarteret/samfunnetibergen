@@ -1,6 +1,6 @@
 import { CalendarCheck } from "lucide-react";
 
-import { RoomBookingForm } from "@/features/booking/components/RoomBookingForm";
+import { BookingForm } from "@/features/booking/components/BookingForm";
 import type { BookingRoom } from "@/features/booking/types";
 import { Link } from "@/i18n/navigation";
 import {
@@ -82,7 +82,7 @@ export default async function BookRoomPage({
         </p>
       </header>
 
-      <RoomBookingForm
+      <BookingForm
         closedDates={houseHours?.houseClosedDates ?? []}
         openingHours={houseHours?.operationsManagerHours ?? null}
         rooms={rooms}

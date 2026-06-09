@@ -1,6 +1,6 @@
 import { CalendarPlus } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
-import { SubmitEventForm } from "@/features/events/components/SubmitEventForm";
+import { EventForm } from "@/features/events/components/EventForm";
 import { Link } from "@/i18n/navigation";
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale";
 import {
@@ -36,7 +36,7 @@ export default async function NyttArrangementPage({
   return (
     <article className="flex w-full flex-col gap-12">
       <SubmitEventPageIntro />
-      <SubmitEventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
+      <EventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
     </article>
   );
 }

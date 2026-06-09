@@ -8,7 +8,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale";
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch";
-import { KaraokeBookingForm } from "@/features/karaoke/components/KaraokeBookingForm";
+import { KaraokeForm } from "@/features/karaoke/components/KaraokeForm";
 import type { KaraokeRoom } from "@/features/karaoke/types";
 
 export function generateStaticParams() {
@@ -63,7 +63,7 @@ export default async function KaraokePage({
   return (
     <article className="flex w-full flex-col gap-10">
       <KaraokePageIntro />
-      <KaraokeBookingForm
+      <KaraokeForm
         room={room}
         operationsManagerHours={houseHours?.operationsManagerHours}
         houseClosedDates={houseHours?.houseClosedDates}
