@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
+import { useBookingForm } from "./bookingFormContext";
 import {
   CheckboxSquare,
   FieldGroup,
@@ -19,11 +20,7 @@ import {
 } from "@/lib/opening-hours";
 import { cn } from "@/lib/utils";
 import { durationHoursBetween, overlaps } from "../domain/availability";
-import {
-  type BookingFormState,
-  isExternalBooker,
-  type SetBookingField,
-} from "../domain/formState";
+import { isExternalBooker } from "../domain/formState";
 import type { BookingRoom } from "../types";
 import {
   BookingRoomAvailability,
@@ -35,9 +32,6 @@ const DATE_COUNT = 7;
 const MINUTES_IN_DAY = 24 * 60;
 
 interface BookingScheduleSectionProps {
-  state: BookingFormState;
-  setField: SetBookingField;
-  uid: string;
   rooms: BookingRoom[];
   occupiedSlugs: Set<string>;
   roomBookings: CresatBooking[];
@@ -50,9 +44,6 @@ interface BookingScheduleSectionProps {
 }
 
 export function BookingScheduleSection({
-  state,
-  setField,
-  uid,
   rooms,
   occupiedSlugs,
   roomBookings,
@@ -63,9 +54,12 @@ export function BookingScheduleSection({
   openingHours,
   closedDates,
 }: BookingScheduleSectionProps) {
+  const uid = useId();
+  const form = useBookingForm();
+  const values = form.state.values;
   const durationHours =
-    state.startTime && state.endTime
-      ? durationHoursBetween(state.startTime, state.endTime)
+    values.startTime && values.endTime
+      ? durationHoursBetween(values.startTime, values.endTime)
       : 1;
 
   return (
@@ -74,9 +68,9 @@ export function BookingScheduleSection({
       {rooms.length > 0 ? (
         <BookingRoomPicker
           occupiedSlugs={occupiedSlugs}
-          onChange={setField("roomSlug")}
+          onChange={(v) => form.setFieldValue("roomSlug", v)}
           rooms={rooms}
-          selectedSlug={state.roomSlug}
+          selectedSlug={values.roomSlug}
         />
       ) : (
         <FieldHint>
@@ -91,32 +85,32 @@ export function BookingScheduleSection({
             bookings={roomBookings}
             closedDates={closedDates}
             durationHours={durationHours}
-            onChange={setField("startDate")}
+            onChange={(v) => form.setFieldValue("startDate", v)}
             openingHours={openingHours}
             room={selectedRoom}
-            selectedDate={state.startDate}
+            selectedDate={values.startDate}
           />
         </FieldGroup>
         <TimeSlotPicker
           closedDates={closedDates}
-          date={state.startDate}
-          doorsTime={state.doorsTime}
-          endTime={state.endTime}
-          onDoorsChange={setField("doorsTime")}
-          onEndChange={setField("endTime")}
-          onStartChange={setField("startTime")}
+          date={values.startDate}
+          doorsTime={values.doorsTime}
+          endTime={values.endTime}
+          onDoorsChange={(v) => form.setFieldValue("doorsTime", v)}
+          onEndChange={(v) => form.setFieldValue("endTime", v)}
+          onStartChange={(v) => form.setFieldValue("startTime", v)}
           openingHours={openingHours}
           roomOpeningHours={selectedRoom?.openingHours ?? null}
-          startTime={state.startTime}
+          startTime={values.startTime}
           uid={uid}
         />
       </div>
 
-      {isExternalBooker(state.bookerType) && (
+      {isExternalBooker(values.bookerType) && (
         <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
           <CheckboxSquare
-            checked={state.flexibleDates}
-            onChange={setField("flexibleDates")}
+            checked={values.flexibleDates}
+            onChange={(v) => form.setFieldValue("flexibleDates", v)}
           />
           <span className="text-sm leading-6 text-foreground/80">
             Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt
@@ -125,7 +119,7 @@ export function BookingScheduleSection({
         </label>
       )}
 
-      {selectedRoomTitle && state.startDate && (
+      {selectedRoomTitle && values.startDate && (
         <BookingRoomAvailability
           bookings={selectedDateRoomBookings}
           hasConflict={hasConflict}

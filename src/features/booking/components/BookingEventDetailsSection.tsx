@@ -1,72 +1,57 @@
 "use client";
 
-import {
-  FieldGroup,
-  SectionHeader,
-  SelectField,
-} from "@/components/ui/form-fields";
+import { useId } from "react";
+import { FieldGroup, SectionHeader, SelectField } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { BookingFormState, SetBookingField } from "../domain/formState";
 import { BookingTextarea } from "./BookingPrimitives";
+import { useBookingForm } from "./bookingFormContext";
 
-const OPEN_CLOSED_OPTIONS = [
-  { value: "Åpent", label: "Åpent arrangement" },
-  { value: "Lukket", label: "Lukket arrangement" },
-];
+const OPEN_CLOSED_OPTIONS = [{ value: "Åpent", label: "Åpent arrangement" }, { value: "Lukket", label: "Lukket arrangement" }];
 
-interface BookingEventDetailsSectionProps {
-  state: BookingFormState;
-  setField: SetBookingField;
-  uid: string;
-}
+interface Props {}
 
-export function BookingEventDetailsSection({
-  state,
-  setField,
-  uid,
-}: BookingEventDetailsSectionProps) {
+export function BookingEventDetailsSection({ }: Props) {
+  const uid = useId();
+  const form = useBookingForm();
   return (
     <section className="space-y-6">
       <SectionHeader number="03" title="Arrangement" />
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
-          <Input
-            autoComplete="off"
-            id={`${uid}-eventName`}
-            onChange={(e) => setField("eventName")(e.target.value)}
-            placeholder="F.eks. konsert, møte, foredrag"
-            value={state.eventName}
-          />
+          <form.Field name="eventName">
+            {(field: any) => (
+              <Input
+                autoComplete="off"
+                id={`${uid}-eventName`}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="F.eks. konsert, møte, foredrag"
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
         <FieldGroup>
           <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
-          <Input
-            id={`${uid}-audience`}
-            min={0}
-            onChange={(e) => setField("audienceCount")(e.target.value)}
-            placeholder="F.eks. 50"
-            type="number"
-            value={state.audienceCount}
-          />
+          <form.Field name="audienceCount">
+            {(field: any) => (
+              <Input id={`${uid}-audience`} min={0} onChange={(e) => field.handleChange(e.target.value)} placeholder="F.eks. 50" type="number" value={field.state.value as string} />
+            )}
+          </form.Field>
         </FieldGroup>
-        <SelectField
-          id={`${uid}-openClosed`}
-          label="Åpent / lukket *"
-          onChange={(value) =>
-            setField("openOrClosed")(value as BookingFormState["openOrClosed"])
-          }
-          options={OPEN_CLOSED_OPTIONS}
-          value={state.openOrClosed}
-        />
+        <form.Field name="openOrClosed">
+          {(field: any) => (
+            <SelectField id={`${uid}-openClosed`} label="Åpent / lukket *" onChange={field.handleChange} options={OPEN_CLOSED_OPTIONS} value={field.state.value as string} />
+          )}
+        </form.Field>
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
           <BookingTextarea
             id={`${uid}-description`}
-            onChange={setField("description")}
+            onChange={(v) => form.setFieldValue("description", v)}
             placeholder="Fortell oss kort om arrangementet ditt..."
-            value={state.description}
+            value={form.state.values.description}
           />
         </FieldGroup>
       </div>

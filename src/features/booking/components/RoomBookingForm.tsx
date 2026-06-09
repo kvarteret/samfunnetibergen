@@ -2,8 +2,9 @@
 
 import { useForm } from "@tanstack/react-form";
 import { ArrowRight, Loader2, X } from "lucide-react";
-import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
+import { BookingFormContext } from "./bookingFormContext";
 import { fetchRoomAvailability } from "../actions/room-availability";
 import { submitRoomBooking } from "../actions/submit-room-booking";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
   overlaps,
   slotRangeMs,
 } from "../domain/availability";
-import { canSubmitBooking, initialBookingState } from "../domain/formState";
+import { buildBookingPayload, canSubmitBooking, initialBookingState } from "../domain/formState";
 import type { BookingRoom } from "../types";
 import { BookingOrderSummary } from "./BookingOrderSummary";
 import { BookingBookerTypeSection } from "./BookingBookerTypeSection";
@@ -35,6 +36,8 @@ import { BookingScheduleSection } from "./BookingScheduleSection";
 import { BookingTermsSection } from "./BookingTermsSection";
 import { BookingTicketSection } from "./BookingTicketSection";
 
+// TODO: resolve form type when @tanstack/react-form stabilizes
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type BookingFormValues = typeof initialBookingState & {
   roomSlug: string;
 };
@@ -52,7 +55,6 @@ export function RoomBookingForm({
   openingHours,
   closedDates,
 }: RoomBookingFormProps) {
-  const uid = useId();
   const [bookings, setBookings] = useState<CresatBooking[]>([]);
   const today = useMemo(() => isoDate(new Date()), []);
 
@@ -64,7 +66,9 @@ export function RoomBookingForm({
     onSubmit: async ({ value }) => {
       const room = rooms.find((r) => r.slug === value.roomSlug);
       if (!room) throw new Error("Ingen rom valgt");
-      const result = await submitRoomBooking(value, room);
+      const result = await submitRoomBooking(
+        buildBookingPayload(value, room),
+      );
       if (!result.ok) throw new Error(result.error);
     },
   });
@@ -160,6 +164,7 @@ export function RoomBookingForm({
   const submitError = form.state.errorMap.onSubmit;
 
   return (
+    <BookingFormContext.Provider value={form}>
     <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <form
         className="min-w-0 space-y-14"
@@ -169,10 +174,8 @@ export function RoomBookingForm({
           form.handleSubmit();
         }}
       >
-        <BookingBookerTypeSection form={form} uid={uid} />
+        <BookingBookerTypeSection />
         <BookingScheduleSection
-          form={form}
-          uid={uid}
           rooms={rooms}
           selectedRoom={selectedRoom}
           roomBookings={roomBookings}
@@ -182,12 +185,12 @@ export function RoomBookingForm({
           closedDates={closedDates}
           hasConflict={hasConflict}
         />
-        <BookingEventDetailsSection form={form} uid={uid} />
-        <BookingNeedsSection form={form} uid={uid} />
-        <BookingCateringBarSection form={form} uid={uid} />
-        <BookingTicketSection form={form} uid={uid} />
-        <BookingContactSection form={form} uid={uid} />
-        <BookingTermsSection form={form} />
+        <BookingEventDetailsSection />
+        <BookingNeedsSection />
+        <BookingCateringBarSection />
+        <BookingTicketSection />
+        <BookingContactSection />
+        <BookingTermsSection />
 
         <section className="space-y-4 border-t-2 border-border pt-8">
           {!slotWithinHours && values.startDate && (
@@ -233,5 +236,6 @@ export function RoomBookingForm({
         </form.Subscribe>
       </div>
     </div>
+    </BookingFormContext.Provider>
   );
 }
