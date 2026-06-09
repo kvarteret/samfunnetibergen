@@ -66,16 +66,19 @@ export function EventsProvider({
     [initialEvents, filters],
   );
 
+  const contextValue = useMemo(
+    () => ({
+      events: initialEvents,
+      taxonomy,
+      filters,
+      setFilters,
+      filteredEvents,
+    }),
+    [initialEvents, taxonomy, filters, setFilters, filteredEvents],
+  );
+
   return (
-    <EventsContext
-      value={{
-        events: initialEvents,
-        taxonomy,
-        filters,
-        setFilters,
-        filteredEvents,
-      }}
-    >
+    <EventsContext value={contextValue}>
       {children}
     </EventsContext>
   );
