@@ -3,10 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  type CarouselSlide,
-  ImageCarousel,
-} from "@/features/rooms/components/ImageCarousel";
+import { type CarouselSlide, ImageCarousel } from "@/features/rooms";
 import {
   activateRequestLocale,
   getLocaleStaticParams,

@@ -1,7 +1,6 @@
 import { CalendarCheck } from "lucide-react";
 
-import { BookingForm } from "@/features/booking/components/BookingForm";
-import type { BookingRoom } from "@/features/booking/types";
+import { BookingForm, type BookingRoom } from "@/features/booking";
 import { Link } from "@/i18n/navigation";
 import {
   activateRequestLocale,

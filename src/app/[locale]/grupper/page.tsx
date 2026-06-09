@@ -1,4 +1,4 @@
-import { GroupsFilter } from "@/features/grupper/components/GroupsFilter";
+import { GroupsFilter } from "@/features/grupper";
 import {
   activateRequestLocale,
   getLocaleStaticParams,

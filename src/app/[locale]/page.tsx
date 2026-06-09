@@ -4,10 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HomeBarPreviews } from "@/features/bars/components/HomeBarPreviews";
 import { HomeOpenStatus } from "@/features/bars/components/HomeOpenStatus";
-import {
-  EventCard,
-  type EventSummary,
-} from "@/features/events/components/EventCard";
+import { EventCard, type EventSummary } from "@/features/events";
 import type { AppLocale } from "@/i18n/routing";
 import {
   activateRequestLocale,

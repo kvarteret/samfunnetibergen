@@ -8,8 +8,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale";
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch";
-import { KaraokeForm } from "@/features/karaoke/components/KaraokeForm";
-import type { KaraokeRoom } from "@/features/karaoke/types";
+import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke";
 
 export function generateStaticParams() {
   return getLocaleStaticParams();

@@ -1,6 +1,6 @@
 import { CalendarPlus } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
-import { EventForm } from "@/features/events/components/EventForm";
+import { EventForm } from "@/features/events";
 import { Link } from "@/i18n/navigation";
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale";
 import {
