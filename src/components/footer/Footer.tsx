@@ -170,8 +170,12 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
 
 type ContactSegment = { type: "text" | "phone" | "email"; value: string };
 
-const CONTACT_PATTERN =
-  /(\+?47[\s-]?)?(\d{3}[\s-]?\d{2}[\s-]?\d{3}|\d{2}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+const PHONE_PATTERN = /(\+?47[\s-]?)?(\d{3}[\s-]?\d{2}[\s-]?\d{3}|\d{2}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2})/g;
+const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const CONTACT_PATTERN = new RegExp(
+  `${PHONE_PATTERN.source}|${EMAIL_PATTERN.source}`,
+  "g",
+);
 
 function parseContactSegments(text: string): ContactSegment[] {
   const segments: ContactSegment[] = [];

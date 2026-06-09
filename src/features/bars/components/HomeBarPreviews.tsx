@@ -168,25 +168,11 @@ function HomeBarPreviewCard({
             ) : null}
           </div>
 
-          {spotifyTrack && nowPlaying ? (
-            <div className="space-y-1 border-l-2 border-primary pl-3">
-              <p className="text-xs font-heading uppercase tracking-[0.14em] text-primary">
-                Spotify
-              </p>
-              <p className="line-clamp-1 font-heading text-sm text-foreground">
-                {nowPlaying.name ?? "Spiller nå"}
-              </p>
-              {nowPlaying.artists && (
-                <p className="line-clamp-1 text-sm text-foreground/65">
-                  {nowPlaying.artists}
-                </p>
-              )}
-            </div>
-          ) : room.summary ? (
-            <p className="line-clamp-3 text-sm leading-6 text-foreground/70">
-              {room.summary}
-            </p>
-          ) : null}
+          <BarPreviewBody
+            spotifyTrack={spotifyTrack}
+            nowPlaying={nowPlaying}
+            summary={room.summary}
+          />
         </div>
 
         {room.openingHours?.rows?.length ? (
@@ -209,4 +195,40 @@ function HomeBarPreviewCard({
       </div>
     </Link>
   );
+}
+
+function BarPreviewBody({
+  spotifyTrack,
+  nowPlaying,
+  summary,
+}: {
+  spotifyTrack: boolean;
+  nowPlaying: NowPlayingState | null;
+  summary?: string | null;
+}) {
+  if (spotifyTrack && nowPlaying) {
+    return (
+      <div className="space-y-1 border-l-2 border-primary pl-3">
+        <p className="text-xs font-heading uppercase tracking-[0.14em] text-primary">
+          Spotify
+        </p>
+        <p className="line-clamp-1 font-heading text-sm text-foreground">
+          {nowPlaying.name ?? "Spiller nå"}
+        </p>
+        {nowPlaying.artists && (
+          <p className="line-clamp-1 text-sm text-foreground/65">
+            {nowPlaying.artists}
+          </p>
+        )}
+      </div>
+    );
+  }
+  if (summary) {
+    return (
+      <p className="line-clamp-3 text-sm leading-6 text-foreground/70">
+        {summary}
+      </p>
+    );
+  }
+  return null;
 }
