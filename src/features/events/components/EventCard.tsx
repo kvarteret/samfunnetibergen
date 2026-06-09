@@ -116,7 +116,7 @@ function formatPrimaryDate(date: EventDateEntry): string {
   const eventDate = new Date(`${date.startDate}T00:00:00`);
   const daysUntil = differenceInCalendarDays(eventDate, new Date());
   const timeRange = date.startTime
-    ? `kl. ${date.endTime ? `${date.startTime}–${date.endTime}` : date.startTime}`
+    ? formatTimeRange(date.startTime, date.endTime)
     : null;
 
   let dayLabel: string;
@@ -241,19 +241,8 @@ export function EventCard({
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default";
-  const seedDate = event.dates[0];
   const todayStr = new Date().toISOString().split("T")[0]!;
-  const futureDates = event.dates.filter((d) => d.startDate >= todayStr);
-  const expandedDates: EventDateEntry[] =
-    futureDates.length > 0
-      ? futureDates
-      : event.rrule && seedDate
-        ? expandRRuleDates(event.rrule, seedDate, 14)
-        : event.dates;
-  // For rrule events the expansion yields only future dates — use those as the
-  // full list. Fall back to the seed date if the rule produces nothing yet.
-  const allDates =
-    expandedDates.length > 0 ? expandedDates : seedDate ? [seedDate] : [];
+  const allDates = computeAllDates(event, todayStr);
   const primaryDate = allDates[0];
   const taxonomy = [
     event.eventType?.name,
@@ -411,4 +400,24 @@ export function EventCard({
       </CardContent>
     </Card>
   );
+}
+
+function formatTimeRange(start: string, end?: string | null): string {
+  return `kl. ${end ? `${start}–${end}` : start}`;
+}
+
+function computeAllDates(
+  event: EventSummary,
+  todayStr: string,
+): EventDateEntry[] {
+  const seedDate = event.dates[0];
+  const futureDates = event.dates.filter((d) => d.startDate >= todayStr);
+  if (futureDates.length > 0) return futureDates;
+
+  if (event.rrule && seedDate) {
+    const expanded = expandRRuleDates(event.rrule, seedDate, 14);
+    if (expanded.length > 0) return expanded;
+  }
+
+  return seedDate ? [seedDate] : [];
 }

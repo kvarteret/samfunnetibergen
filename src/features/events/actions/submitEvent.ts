@@ -141,113 +141,87 @@ export async function submitEvent(
   if (validationError) return err(validationError);
 
   try {
-    const client = getWriteClient();
-
-    const slug = `${toSlug(input.title)}-${Date.now()}`;
-
-    const doc: { _type: string; [key: string]: unknown } = {
-      _type: "arrangement",
-      title: input.title.trim(),
-      slug: { _type: "slug", current: slug },
-      approvalStatus: "pending",
-      dates: input.dates.map((d) => ({
-        _key: nanoid(),
-        _type: "arrangementDate",
-        startDate: d.startDate,
-        ...(d.startTime ? { startTime: d.startTime } : {}),
-        ...(d.endTime ? { endTime: d.endTime } : {}),
-      })),
-      submittedBy: input.submittedBy.trim(),
-      submittedByEmail: input.submittedByEmail.trim(),
-    };
-
-    if (input.description?.trim()) {
-      doc.description = [
-        {
-          _key: nanoid(),
-          _type: "block",
-          style: "normal",
-          children: [
-            { _key: nanoid(), _type: "span", text: input.description.trim() },
-          ],
-          markDefs: [],
-        },
-      ];
-    }
-
-    if (input.isRecurring && input.rrule) {
-      doc.isRecurring = true;
-      doc.rrule = input.rrule;
-    }
-
-    if (input.roomText?.trim()) {
-      doc.roomText = input.roomText.trim();
-    }
-
-    if (input.organizerText?.trim()) {
-      doc.organizerText = input.organizerText.trim();
-    }
-
-    if (input.submittedByOrganization?.trim()) {
-      doc.submittedByOrganization = input.submittedByOrganization.trim();
-    }
-
-    if (input.isInternalEvent) {
-      doc.isInternalEvent = true;
-    }
-
-    if (input.isFree) {
-      doc.isFree = true;
-    } else {
-      if (input.priceOrdinar !== undefined && input.priceOrdinar >= 0) {
-        doc.priceOrdinar = input.priceOrdinar;
-      }
-      if (input.priceStudent !== undefined && input.priceStudent >= 0) {
-        doc.priceStudent = input.priceStudent;
-      }
-      if (input.priceMedlem !== undefined && input.priceMedlem >= 0) {
-        doc.priceMedlem = input.priceMedlem;
-      }
-    }
-
-    const ticketUrl = sanitizeUrl(input.ticketUrl);
-    if (ticketUrl) doc.ticketUrl = ticketUrl;
-
-    const facebookUrl = sanitizeUrl(input.facebookUrl);
-    if (facebookUrl) doc.facebookUrl = facebookUrl;
-
-    if (input.eventTypeId) {
-      doc.eventType = {
-        _type: "reference",
-        _ref: input.eventTypeId,
-      };
-    }
-
-    if (input.imageAssetId) {
-      doc.image = {
-        _type: "image",
-        asset: { _type: "reference", _ref: input.imageAssetId },
-      };
-    }
-
-    if (input.room) {
-      doc.room = {
-        _type: "reference",
-        _ref: input.room,
-      };
-    }
-
-    if (input.organizerGroup) {
-      doc.organizerGroup = {
-        _type: "reference",
-        _ref: input.organizerGroup,
-      };
-    }
-
-    const created = await client.create(doc);
+    const doc = buildEventDocument(input);
+    const created = await getWriteClient().create(doc);
     return ok(created._id);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil";
     return err(message);
   }
+}
+
+function buildEventDocument(input: SubmitEventInput) {
+  const slug = `${toSlug(input.title)}-${Date.now()}`;
+  const doc: { _type: string; [key: string]: unknown } = {
+    _type: "arrangement",
+    title: input.title.trim(),
+    slug: { _type: "slug", current: slug },
+    approvalStatus: "pending",
+    dates: input.dates.map((d) => ({
+      _key: nanoid(),
+      _type: "arrangementDate",
+      startDate: d.startDate,
+      ...(d.startTime ? { startTime: d.startTime } : {}),
+      ...(d.endTime ? { endTime: d.endTime } : {}),
+    })),
+    submittedBy: input.submittedBy.trim(),
+    submittedByEmail: input.submittedByEmail.trim(),
+  };
+
+  if (input.description?.trim()) {
+    doc.description = [
+      {
+        _key: nanoid(),
+        _type: "block",
+        style: "normal",
+        children: [
+          { _key: nanoid(), _type: "span", text: input.description.trim() },
+        ],
+        markDefs: [],
+      },
+    ];
+  }
+
+  if (input.isRecurring && input.rrule) {
+    doc.isRecurring = true;
+    doc.rrule = input.rrule;
+  }
+
+  setOpt(doc, "roomText", input.roomText?.trim());
+  setOpt(doc, "organizerText", input.organizerText?.trim());
+  setOpt(doc, "submittedByOrganization", input.submittedByOrganization?.trim());
+
+  if (input.isInternalEvent) doc.isInternalEvent = true;
+
+  if (input.isFree) {
+    doc.isFree = true;
+  } else {
+    setNum(doc, "priceOrdinar", input.priceOrdinar);
+    setNum(doc, "priceStudent", input.priceStudent);
+    setNum(doc, "priceMedlem", input.priceMedlem);
+  }
+
+  const ticketUrl = sanitizeUrl(input.ticketUrl);
+  if (ticketUrl) doc.ticketUrl = ticketUrl;
+  const facebookUrl = sanitizeUrl(input.facebookUrl);
+  if (facebookUrl) doc.facebookUrl = facebookUrl;
+
+  setRef(doc, "eventType", input.eventTypeId);
+  if (input.imageAssetId) {
+    doc.image = { _type: "image", asset: { _type: "reference", _ref: input.imageAssetId } };
+  }
+  setRef(doc, "room", input.room);
+  setRef(doc, "organizerGroup", input.organizerGroup);
+
+  return doc;
+}
+
+function setOpt(doc: Record<string, unknown>, key: string, value?: string) {
+  if (value) doc[key] = value;
+}
+function setNum(doc: Record<string, unknown>, key: string, value: number | undefined) {
+  if (value !== undefined && value >= 0) doc[key] = value;
+}
+function setRef(doc: Record<string, unknown>, key: string, ref?: string | null) {
+  if (ref) doc[key] = { _type: "reference", _ref: ref };
 }

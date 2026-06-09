@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { SubmitStatus } from "../domain/formState";
@@ -46,23 +46,17 @@ export function SubmitEventActions({
         size="lg"
         type="submit"
       >
-        {isPending ? (
-          <>
-            <Loader2 aria-hidden className="animate-spin" />
-            Sender inn...
-          </>
-        ) : imageUploading ? (
-          <>
-            <Loader2 aria-hidden className="animate-spin" />
-            Laster opp bilde...
-          </>
-        ) : (
-          <>
-            <CalendarPlus aria-hidden />
-            Send inn arrangement
-          </>
+        {(isPending || imageUploading) && (
+          <Loader2 aria-hidden className="animate-spin" />
         )}
+        {submitButtonLabel(isPending, imageUploading)}
       </Button>
     </section>
   );
+}
+
+function submitButtonLabel(isPending: boolean, imageUploading: boolean): string {
+  if (isPending) return "Sender inn...";
+  if (imageUploading) return "Laster opp bilde...";
+  return "Send inn arrangement";
 }

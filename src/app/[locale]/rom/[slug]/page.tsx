@@ -26,10 +26,8 @@ type RoomPageProps = {
 type Room = NonNullable<Awaited<ReturnType<typeof fetchRoomBySlug>>>;
 
 export async function generateStaticParams() {
-  const [locales, slugs] = await Promise.all([
-    getLocaleStaticParams(),
-    fetchRoomSlugs(),
-  ]);
+  const locales = getLocaleStaticParams();
+  const slugs = await fetchRoomSlugs();
   return locales.flatMap(({ locale }) =>
     slugs.map((slug) => ({ locale, slug })),
   );

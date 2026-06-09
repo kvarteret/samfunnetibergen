@@ -84,7 +84,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
 
   const allLabels = Array.from(
     new Set(groups.flatMap((g) => g.labels ?? [])),
-  ).sort();
+  ).toSorted((a, b) => a.localeCompare(b, "nb"));
 
   return (
     <div className="space-y-12">

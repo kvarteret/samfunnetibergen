@@ -16,10 +16,8 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const [locales, slugs] = await Promise.all([
-    getLocaleStaticParams(),
-    fetchPageSlugs(),
-  ]);
+  const locales = getLocaleStaticParams();
+  const slugs = await fetchPageSlugs();
   return locales.flatMap(({ locale }) =>
     slugs.map((slug) => ({ locale, slug })),
   );

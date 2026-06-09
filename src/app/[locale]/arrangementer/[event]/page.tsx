@@ -231,7 +231,7 @@ function EventDetailScheduleItem({
 
   return (
     <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
-      <p>{formatDate(date.startDate, locale)}</p>
+      <p>{formatDate(date.startDate)}</p>
       <p>{formatScheduleTime(date)}</p>
       <p>
         {roomSlug ? (
@@ -334,9 +334,7 @@ function EventDetailActions({
   );
 }
 
-function formatDate(dateStr: string, locale: AppLocale): string {
-  void locale;
-
+function formatDate(dateStr: string): string {
   return longDateFormatter.format(new Date(`${dateStr}T00:00:00`));
 }
 

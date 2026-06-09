@@ -27,10 +27,8 @@ type GroupPageProps = {
 };
 
 export async function generateStaticParams() {
-  const [locales, slugs] = await Promise.all([
-    getLocaleStaticParams(),
-    fetchStudentGroupSlugs(),
-  ]);
+  const locales = getLocaleStaticParams();
+  const slugs = await fetchStudentGroupSlugs();
   return locales.flatMap(({ locale }) =>
     slugs.map((slug) => ({ locale, slug })),
   );
