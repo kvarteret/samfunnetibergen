@@ -2,13 +2,13 @@
 
 import { cn } from "@/lib/utils";
 
-export interface FilterButtonProps {
+export interface EventsPageFilterButtonProps {
   isActive: boolean;
   label: string;
   onClick: () => void;
 }
 
-export function EventsPageFilterButton({ isActive, label, onClick }: FilterButtonProps) {
+export function EventsPageFilterButton({ isActive, label, onClick }: EventsPageFilterButtonProps) {
   return (
     <button
       className={cn(

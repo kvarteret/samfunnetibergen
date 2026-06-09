@@ -43,7 +43,7 @@ export type BookingFormValues = typeof initialBookingState & {
 
 const DATE_COUNT = 7;
 
-interface RoomBookingFormProps {
+interface BookingFormProps {
   rooms: BookingRoom[];
   openingHours: OpeningHours | null;
   closedDates: ClosedDate[];
@@ -53,7 +53,7 @@ export function BookingForm({
   rooms,
   openingHours,
   closedDates,
-}: RoomBookingFormProps) {
+}: BookingFormProps) {
   const [bookings, setBookings] = useState<CresatBooking[]>([]);
   const today = useMemo(() => isoDate(new Date()), []);
 

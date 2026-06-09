@@ -16,7 +16,7 @@ import { useKaraokeForm } from "./karaokeFormContext";
 import { KaraokeSelect } from "./KaraokeFormPrimitives";
 import { KaraokeFormSlotPicker } from "./KaraokeFormSlotPicker";
 
-interface KaraokeDetailsSectionProps {
+interface KaraokeFormDetailsSectionProps {
   uid: string;
   derived: KaraokeDerivedState;
   today: string;
@@ -32,7 +32,7 @@ export function KaraokeFormDetailsSection({
   bookings,
   operationsManagerHours,
   houseClosedDates,
-}: KaraokeDetailsSectionProps) {
+}: KaraokeFormDetailsSectionProps) {
   const form = useKaraokeForm();
   const values = form.state.values;
 

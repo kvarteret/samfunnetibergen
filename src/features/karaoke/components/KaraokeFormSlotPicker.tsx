@@ -19,7 +19,7 @@ import {
   getSlotButtonClass,
 } from "./KaraokeFormPrimitives";
 
-interface KaraokeSlotPickerProps {
+interface KaraokeFormSlotPickerProps {
   bookings: CresatBooking[];
   duration: number;
   selectedDate: string;
@@ -41,7 +41,7 @@ export function KaraokeFormSlotPicker({
   houseClosedDates,
   onDateChange,
   onSlotChange,
-}: KaraokeSlotPickerProps) {
+}: KaraokeFormSlotPickerProps) {
   const dates = useMemo(() => buildKaraokeDates(today), [today]);
 
   return (

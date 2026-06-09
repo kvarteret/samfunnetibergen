@@ -18,7 +18,7 @@ type WeekdayOption = {
   value: typeof RRule.MO;
 };
 
-interface RecurrenceBuilderProps {
+interface EventFormRecurrenceBuilderProps {
   onChange: (rrule: string) => void;
 }
 
@@ -44,7 +44,7 @@ const endTypeOptions: Array<{ value: EndType; label: string }> = [
   { value: "never", label: "Aldri" },
 ];
 
-export function EventFormRecurrenceBuilder({ onChange }: RecurrenceBuilderProps) {
+export function EventFormRecurrenceBuilder({ onChange }: EventFormRecurrenceBuilderProps) {
   const [frequency, setFrequency] = useState<Frequency>("WEEKLY");
   const [interval, setInterval] = useState(1);
   const [weekdays, setWeekdays] = useState<number[]>([1]);

@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/form-fields";
 import { useEventForm } from "./eventFormContext";
 
-interface EventPriceFieldsProps {
+interface EventFormPriceSectionProps {
   uid: string;
 }
 
-export function EventFormPriceSection({ uid }: EventPriceFieldsProps) {
+export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
   const form = useEventForm();
   const values = form.state.values;
 

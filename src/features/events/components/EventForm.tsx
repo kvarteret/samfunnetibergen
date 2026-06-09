@@ -39,7 +39,7 @@ import { EventFormActions } from "./EventFormActions";
 import { EventFormSubmitterSection } from "./EventFormSubmitterSection";
 import { EventFormContext } from "./eventFormContext";
 
-interface SubmitEventFormProps {
+interface EventFormProps {
   rooms: EventRoom[];
   eventTypes: EventType[];
   groups: EventGroup[];
@@ -49,7 +49,7 @@ export function EventForm({
   rooms,
   eventTypes,
   groups,
-}: SubmitEventFormProps) {
+}: EventFormProps) {
   const uid = useId();
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageAssetId, setImageAssetId] = useState<string | null>(null);

@@ -14,11 +14,11 @@ import { newDate } from "../domain/formState";
 import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder";
 import { useEventForm } from "./eventFormContext";
 
-interface EventScheduleFieldsProps {
+interface EventFormScheduleSectionProps {
   uid: string;
 }
 
-export function EventFormScheduleSection({ uid }: EventScheduleFieldsProps) {
+export function EventFormScheduleSection({ uid }: EventFormScheduleSectionProps) {
   const form = useEventForm();
   const values = form.state.values;
 

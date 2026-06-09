@@ -44,7 +44,7 @@ const toOption = (min: number): TimeOption => ({
   min,
 });
 
-interface TimeSlotPickerProps {
+interface BookingFormTimeSlotPickerProps {
   uid: string;
   date: string;
   openingHours: OpeningHours | null;
@@ -70,7 +70,7 @@ export function BookingFormTimeSlotPicker({
   onStartChange,
   onEndChange,
   onDoorsChange,
-}: TimeSlotPickerProps) {
+}: BookingFormTimeSlotPickerProps) {
   if (!date) {
     return <FieldHint>Velg en dato for å se ledige tidspunkt.</FieldHint>;
   }

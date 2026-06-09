@@ -31,7 +31,7 @@ import { BookingFormTimeSlotPicker } from "./BookingFormTimeSlotPicker";
 const DATE_COUNT = 7;
 const MINUTES_IN_DAY = 24 * 60;
 
-interface BookingScheduleSectionProps {
+interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[];
   occupiedSlugs: Set<string>;
   roomBookings: CresatBooking[];
@@ -53,7 +53,7 @@ export function BookingFormScheduleSection({
   selectedRoom,
   openingHours,
   closedDates,
-}: BookingScheduleSectionProps) {
+}: BookingFormScheduleSectionProps) {
   const uid = useId();
   const form = useBookingForm();
   const values = form.state.values;

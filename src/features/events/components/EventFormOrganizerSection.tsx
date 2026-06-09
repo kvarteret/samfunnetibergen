@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEventForm } from "./eventFormContext";
 
-interface EventOrganizerFieldsProps {
+interface EventFormOrganizerSectionProps {
   uid: string;
   groupOptions: SelectOption[];
 }
@@ -19,7 +19,7 @@ interface EventOrganizerFieldsProps {
 export function EventFormOrganizerSection({
   uid,
   groupOptions,
-}: EventOrganizerFieldsProps) {
+}: EventFormOrganizerSectionProps) {
   const form = useEventForm();
   const values = form.state.values;
 

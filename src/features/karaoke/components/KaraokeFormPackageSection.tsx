@@ -16,7 +16,7 @@ import type { PriceType } from "../types";
 import { useKaraokeForm } from "./karaokeFormContext";
 import { KaraokeSelect } from "./KaraokeFormPrimitives";
 
-interface KaraokePackageSectionProps {
+interface KaraokeFormPackageSectionProps {
   uid: string;
   derived: KaraokeDerivedState;
 }
@@ -24,7 +24,7 @@ interface KaraokePackageSectionProps {
 export function KaraokeFormPackageSection({
   uid,
   derived,
-}: KaraokePackageSectionProps) {
+}: KaraokeFormPackageSectionProps) {
   const form = useKaraokeForm();
   const values = form.state.values;
 

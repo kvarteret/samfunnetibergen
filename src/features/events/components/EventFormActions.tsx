@@ -5,13 +5,13 @@ import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEventForm } from "./eventFormContext";
 
-interface SubmitEventActionsProps {
+interface EventFormActionsProps {
   imageUploading: boolean;
 }
 
 export function EventFormActions({
   imageUploading,
-}: SubmitEventActionsProps) {
+}: EventFormActionsProps) {
   const form = useEventForm();
   const isPending = form.state.isSubmitting;
   const submitError = form.state.errorMap.onSubmit;

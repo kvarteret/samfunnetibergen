@@ -17,9 +17,9 @@ const BOOKER_OPTIONS: Array<{ type: BookerType; label: string; hint: string; ico
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface BookingBookerTypeSectionProps {}
+interface BookingFormBookerTypeSectionProps {}
 
-export function BookingFormBookerTypeSection({}: BookingBookerTypeSectionProps) {
+export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionProps) {
   const uid = useId();
   const form = useBookingForm();
   const bookerType = form.state.values.bookerType as BookerType;

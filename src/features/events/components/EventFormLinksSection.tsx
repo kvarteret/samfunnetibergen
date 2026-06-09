@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEventForm } from "./eventFormContext";
 
-interface EventLinksFieldsProps {
+interface EventFormLinksSectionProps {
   uid: string;
 }
 
-export function EventFormLinksSection({ uid }: EventLinksFieldsProps) {
+export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
   const form = useEventForm();
 
   return (

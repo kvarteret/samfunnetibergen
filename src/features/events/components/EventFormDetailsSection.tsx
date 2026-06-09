@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEventForm } from "./eventFormContext";
 
-interface EventDetailsFieldsProps {
+interface EventFormDetailsSectionProps {
   uid: string;
   eventTypeOptions: SelectOption[];
 }
@@ -20,7 +20,7 @@ interface EventDetailsFieldsProps {
 export function EventFormDetailsSection({
   uid,
   eventTypeOptions,
-}: EventDetailsFieldsProps) {
+}: EventFormDetailsSectionProps) {
   const form = useEventForm();
   const values = form.state.values;
 

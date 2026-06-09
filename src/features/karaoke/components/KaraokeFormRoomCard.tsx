@@ -6,11 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import type { KaraokeRoom, KaraokeRoomImage } from "../types";
 
-interface KaraokeRoomCardProps {
+interface KaraokeFormRoomCardProps {
   room: KaraokeRoom;
 }
 
-export function KaraokeFormRoomCard({ room }: KaraokeRoomCardProps) {
+export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
   const firstImage: KaraokeRoomImage | undefined = room.images?.[0];
 
   return (

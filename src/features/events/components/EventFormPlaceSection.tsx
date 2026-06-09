@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEventForm } from "./eventFormContext";
 
-interface EventPlaceFieldsProps {
+interface EventFormPlaceSectionProps {
   uid: string;
   roomOptions: SelectOption[];
 }
@@ -19,7 +19,7 @@ interface EventPlaceFieldsProps {
 export function EventFormPlaceSection({
   uid,
   roomOptions,
-}: EventPlaceFieldsProps) {
+}: EventFormPlaceSectionProps) {
   const form = useEventForm();
   const values = form.state.values;
 

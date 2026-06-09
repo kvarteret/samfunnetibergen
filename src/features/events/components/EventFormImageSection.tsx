@@ -6,7 +6,7 @@ import type { ChangeEvent } from "react";
 import { FieldGroup, FieldHint, SectionHeader } from "@/components/ui/form-fields";
 import { formatEventImageMaxSize } from "../domain/imageUpload";
 
-interface EventImageFieldProps {
+interface EventFormImageSectionProps {
   imageAssetId: string | null;
   imagePreviewUrl: string | null;
   imageUploading: boolean;
@@ -22,7 +22,7 @@ export function EventFormImageSection({
   imageUploadError,
   onImageChange,
   onRemoveImage,
-}: EventImageFieldProps) {
+}: EventFormImageSectionProps) {
   return (
     <section className="space-y-6">
       <SectionHeader number="02" title="Bilde" />

@@ -2,11 +2,11 @@
 
 import { EventCard, type EventSummary } from "./EventCard";
 
-interface EventListPreviewProps {
+interface EventFormPreviewProps {
   event: EventSummary;
 }
 
-export function EventFormPreview({ event }: EventListPreviewProps) {
+export function EventFormPreview({ event }: EventFormPreviewProps) {
   return (
     <div aria-hidden className="sticky top-8 hidden space-y-3 xl:block">
       <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">

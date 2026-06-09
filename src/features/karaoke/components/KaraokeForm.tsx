@@ -34,7 +34,7 @@ import { KaraokeFormSubmitSection, KaraokeBookingSuccess } from "./KaraokeFormSu
 import { KaraokeOrderPreview } from "./KaraokeFormOrderSummary";
 import { KaraokeFormRoomCard } from "./KaraokeFormRoomCard";
 
-interface KaraokeBookingFormProps {
+interface KaraokeFormProps {
   room: KaraokeRoom;
   operationsManagerHours?: OpeningHours | null;
   houseClosedDates?: ClosedDate[] | null;
@@ -44,7 +44,7 @@ export function KaraokeForm({
   room,
   operationsManagerHours,
   houseClosedDates,
-}: KaraokeBookingFormProps) {
+}: KaraokeFormProps) {
   const uid = useId();
   const [bookings, setBookings] = useState<CresatBooking[]>([]);
   const today = useMemo(() => isoDate(new Date()), []);

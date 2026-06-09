@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useKaraokeForm } from "./karaokeFormContext";
 
-interface KaraokeContactSectionProps {
+interface KaraokeFormContactSectionProps {
   uid: string;
 }
 
 export function KaraokeFormContactSection({
   uid,
-}: KaraokeContactSectionProps) {
+}: KaraokeFormContactSectionProps) {
   const form = useKaraokeForm();
 
   return (
