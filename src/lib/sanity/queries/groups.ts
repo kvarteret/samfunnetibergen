@@ -1,30 +1,9 @@
-import { defineQuery } from "next-sanity"
+import { defineQuery } from "next-sanity";
 
-import { sourcedImageProjection } from "../fragments/images"
-
-export const volunteerGroupsNbQuery =
-    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {
-    "slug": slug.current,
-    name,
-    "eyebrow": recruitmentLabel,
-    "lead": coalesce(recruitmentLead, summary),
-    "imageUrl": image.image.asset->url,
-    "accordionSections": recruitmentSections[] {
-        _key,
-        title,
-        paragraphs
-    },
-    "detailSections": []
-}`)
-
-export const volunteerGroupSummariesNbQuery =
-    defineQuery(`*[_type == "blifrivilligPage" && _id == "blifrivilligPage"][0].recruitingGroups[]-> {
-    name,
-    "description": coalesce(recruitmentLead, summary)
-}`)
+import { sourcedImageProjection } from "../fragments/images";
 
 export const studentGroupsQuery =
-    defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
+  defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
     name,
     "slug": slug.current,
     summary,
@@ -38,20 +17,20 @@ export const studentGroupsQuery =
         name,
         "slug": slug.current
     }
-}`)
+}`);
 
 export const studentGroupSlugsQuery =
-    defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
+  defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
     "slug": slug.current
-}`)
+}`);
 
 export const allStudentGroupSlugsQuery =
-    defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
+  defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
     "slug": slug.current
-}`)
+}`);
 
 export const studentGroupBySlugQuery =
-    defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
+  defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
     name,
     "slug": slug.current,
     summary,
@@ -72,4 +51,4 @@ export const studentGroupBySlugQuery =
         "image": image ${sourcedImageProjection}
     },
     "image": image ${sourcedImageProjection}
-}`)
+}`);

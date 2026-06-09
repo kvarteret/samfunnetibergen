@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
 
 export default async function Home({ params }: PageProps<"/[locale]/home">) {
-    const { locale } = await params
+  const { locale } = await params;
 
-    redirect(`/${locale}/home/forslag1`)
+  redirect(`/${locale}/home/forslag1`);
 }

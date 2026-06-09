@@ -1,5 +1,0 @@
-export { sourcedImageProjection } from "./images"
-export { sourceLinkProjection } from "./links"
-export { portableTextProjection } from "./portableText"
-export { openingHoursProjection } from "./rooms"
-export { editorialSectionProjection } from "./sections"

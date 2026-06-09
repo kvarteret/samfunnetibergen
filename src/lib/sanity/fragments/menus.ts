@@ -1,1 +1,1 @@
-export { sourceLinkProjection as menuLinkProjection } from "./links"
+export { sourceLinkProjection as menuLinkProjection } from "./links";
