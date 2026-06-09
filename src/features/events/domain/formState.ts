@@ -31,34 +31,10 @@ export type FormState = {
   submittedByEmail: string;
 };
 
-type Action =
-  | { type: "SET"; key: keyof FormState; value: string | boolean }
-  | { type: "ADD_DATE" }
-  | { type: "REMOVE_DATE"; id: string }
-  | { type: "UPDATE_DATE"; id: string; key: keyof DateEntry; value: string };
-
-export type SubmitStatus = "idle" | "success" | "error";
-
 export type SelectOption = {
   value: string;
   label: string;
 };
-
-type ScalarFormFieldKey = {
-  [Key in keyof FormState]: FormState[Key] extends string | boolean
-    ? Key
-    : never;
-}[keyof FormState];
-
-export type SetFormField = <Key extends ScalarFormFieldKey>(
-  key: Key,
-) => (value: FormState[Key]) => void;
-
-export type UpdateDateField = (
-  id: string,
-  key: keyof DateEntry,
-  value: string,
-) => void;
 
 export const newDate = (): DateEntry => ({
   id: Math.random().toString(36).slice(2),
@@ -90,28 +66,6 @@ export const initialState: FormState = {
   submittedByEmail: "",
 };
 
-export function reducer(state: FormState, action: Action): FormState {
-  switch (action.type) {
-    case "SET":
-      return { ...state, [action.key]: action.value };
-    case "ADD_DATE":
-      return { ...state, dates: [...state.dates, newDate()] };
-    case "REMOVE_DATE":
-      return {
-        ...state,
-        dates: state.dates.filter((date) => date.id !== action.id),
-      };
-    case "UPDATE_DATE":
-      return {
-        ...state,
-        dates: state.dates.map((date) =>
-          date.id === action.id
-            ? { ...date, [action.key]: action.value }
-            : date,
-        ),
-      };
-  }
-}
 
 export function buildPreviewEvent(
   state: FormState,

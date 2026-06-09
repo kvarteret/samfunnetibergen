@@ -51,14 +51,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     },
   ]),
   locations: {
-    homeBar: defineLocations({
-      select: { title: "nameNb" },
-      resolve: (doc) => ({
-        locations: [
-          { title: doc?.title ?? "Forside", href: `/${defaultLocale}` },
-        ],
-      }),
-    }),
     homePage: defineLocations({
       select: {},
       resolve: () => ({

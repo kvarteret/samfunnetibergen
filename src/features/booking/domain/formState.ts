@@ -4,8 +4,6 @@ import type { BookingRoom } from "../types";
 
 export type { BookerType };
 
-export type SubmitStatus = "idle" | "success" | "error";
-
 export interface BookingFormState {
   bookerType: BookerType;
   studentOrgName: string;
@@ -71,28 +69,6 @@ export const initialBookingState: BookingFormState = {
   contactEmail: "",
   contactPhone: "",
 };
-
-type BookingFieldValue = string | boolean | number;
-
-export type BookingAction = {
-  type: "SET";
-  key: keyof BookingFormState;
-  value: BookingFieldValue;
-};
-
-export type SetBookingField = <Key extends keyof BookingFormState>(
-  key: Key,
-) => (value: BookingFormState[Key]) => void;
-
-export function reducer(
-  state: BookingFormState,
-  action: BookingAction,
-): BookingFormState {
-  switch (action.type) {
-    case "SET":
-      return { ...state, [action.key]: action.value };
-  }
-}
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
   bookerType !== "intern";

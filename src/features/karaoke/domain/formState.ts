@@ -14,8 +14,6 @@ export const KARAOKE_PRICING: Record<
   frivillig: { perPerson: 0, minPerHour: 0 },
 };
 
-export type SubmitStatus = "idle" | "submitting" | "success" | "error";
-
 export type KaraokeFormState = {
   eventName: string;
   startDate: string;
@@ -29,8 +27,6 @@ export type KaraokeFormState = {
   numberOfPeople: string;
   acceptTerms: boolean;
   studentProofAccepted: boolean;
-  submitStatus: SubmitStatus;
-  errorMessage: string;
 };
 
 export type KaraokeDerivedState = {
@@ -40,19 +36,6 @@ export type KaraokeDerivedState = {
   people: number;
   totalPrice: number;
 };
-
-export type KaraokeAction =
-  | {
-      type: "SET";
-      key: keyof KaraokeFormState;
-      value: KaraokeFormState[keyof KaraokeFormState];
-    }
-  | { type: "CLEAR_SLOT" }
-  | { type: "SET_SUBMIT_STATUS"; status: SubmitStatus; errorMessage?: string };
-
-export type SetKaraokeField = <Key extends keyof KaraokeFormState>(
-  key: Key,
-) => (value: KaraokeFormState[Key]) => void;
 
 export const initialKaraokeState: KaraokeFormState = {
   eventName: "",
@@ -67,27 +50,7 @@ export const initialKaraokeState: KaraokeFormState = {
   numberOfPeople: "4",
   acceptTerms: false,
   studentProofAccepted: false,
-  submitStatus: "idle",
-  errorMessage: "",
 };
-
-export function karaokeReducer(
-  state: KaraokeFormState,
-  action: KaraokeAction,
-): KaraokeFormState {
-  switch (action.type) {
-    case "SET":
-      return { ...state, [action.key]: action.value };
-    case "CLEAR_SLOT":
-      return { ...state, startSlotMin: null };
-    case "SET_SUBMIT_STATUS":
-      return {
-        ...state,
-        submitStatus: action.status,
-        errorMessage: action.errorMessage ?? "",
-      };
-  }
-}
 
 export function deriveKaraokeState(
   state: KaraokeFormState,
