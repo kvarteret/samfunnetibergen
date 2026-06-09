@@ -170,10 +170,13 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
 
 type ContactSegment = { type: "text" | "phone" | "email"; value: string };
 
-const PHONE_PATTERN = /(\+?47[\s-]?)?(\d{3}[\s-]?\d{2}[\s-]?\d{3}|\d{2}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2})/g;
-const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const NORWAY_PREFIX = /\+?47[\s-]?/;
+const PHONE_DIGITS =
+  /\d{2,3}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2}/g;
+const EMAIL_PATTERN =
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const CONTACT_PATTERN = new RegExp(
-  `${PHONE_PATTERN.source}|${EMAIL_PATTERN.source}`,
+  `${PHONE_DIGITS.source}|${EMAIL_PATTERN.source}`,
   "g",
 );
 

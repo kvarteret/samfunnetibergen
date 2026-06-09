@@ -1,16 +1,14 @@
 "use client";
 
 import { Building2, User, Users, type LucideIcon } from "lucide-react";
+import type { ReactFormExtendedApi } from "@tanstack/react-form";
 
 import { FieldGroup, SectionHeader } from "@/components/ui/form-fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  type BookerType,
-  type BookingFormState,
-  type SetBookingField,
-} from "../domain/formState";
+import type { BookerType } from "../domain/formState";
 import { BookingSelectableCard } from "./BookingPrimitives";
+import type { BookingFormValues } from "./RoomBookingForm";
 
 const BOOKER_OPTIONS: Array<{
   type: BookerType;
@@ -18,37 +16,19 @@ const BOOKER_OPTIONS: Array<{
   hint: string;
   icon: LucideIcon;
 }> = [
-  {
-    type: "ekstern",
-    label: "Ekstern / privat",
-    hint: "Privatpersoner og bedrifter.",
-    icon: User,
-  },
-  {
-    type: "studentorg",
-    label: "Studentorganisasjon",
-    hint: "Registrert under Studentbergen.no.",
-    icon: Users,
-  },
-  {
-    type: "intern",
-    label: "Intern",
-    hint: "Driftsorganisasjoner og interne arrangører.",
-    icon: Building2,
-  },
+  { type: "ekstern", label: "Ekstern / privat", hint: "Privatpersoner og bedrifter.", icon: User },
+  { type: "studentorg", label: "Studentorganisasjon", hint: "Registrert under Studentbergen.no.", icon: Users },
+  { type: "intern", label: "Intern", hint: "Driftsorganisasjoner og interne arrangører.", icon: Building2 },
 ];
 
 interface BookingBookerTypeSectionProps {
-  state: BookingFormState;
-  setField: SetBookingField;
+  form: ReactFormExtendedApi<BookingFormValues>;
   uid: string;
 }
 
-export function BookingBookerTypeSection({
-  state,
-  setField,
-  uid,
-}: BookingBookerTypeSectionProps) {
+export function BookingBookerTypeSection({ form, uid }: BookingBookerTypeSectionProps) {
+  const bookerType = form.state.values.bookerType;
+
   return (
     <section className="space-y-6">
       <SectionHeader number="01" title="Hvem booker" />
@@ -56,32 +36,36 @@ export function BookingBookerTypeSection({
         {BOOKER_OPTIONS.map((option) => (
           <BookingSelectableCard
             key={option.type}
-            selected={state.bookerType === option.type}
-            onSelect={() => setField("bookerType")(option.type)}
+            selected={bookerType === option.type}
+            onSelect={() => form.setFieldValue("bookerType", option.type)}
           >
             <span className="flex items-center gap-2 font-heading text-foreground">
               <option.icon aria-hidden className="size-4 text-primary" />
               {option.label}
             </span>
-            <span className="text-sm leading-5 text-foreground/65">
-              {option.hint}
-            </span>
+            <span className="text-sm leading-5 text-foreground/65">{option.hint}</span>
           </BookingSelectableCard>
         ))}
       </div>
-      {state.bookerType === "studentorg" && (
-        <FieldGroup className="max-w-xl">
-          <Label htmlFor={`${uid}-studentOrg`}>
-            Navn på studentorganisasjon *
-          </Label>
-          <Input
-            id={`${uid}-studentOrg`}
-            onChange={(e) => setField("studentOrgName")(e.target.value)}
-            placeholder="Registrert under Studentbergen.no"
-            value={state.studentOrgName}
-          />
-        </FieldGroup>
-      )}
+      <form.Subscribe selector={(s) => s.values.bookerType}>
+        {(bookerTypeVal) =>
+          bookerTypeVal === "studentorg" ? (
+            <FieldGroup className="max-w-xl">
+              <Label htmlFor={`${uid}-studentOrg`}>Navn på studentorganisasjon *</Label>
+              <form.Field name="studentOrgName">
+                {(field) => (
+                  <Input
+                    id={`${uid}-studentOrg`}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Registrert under Studentbergen.no"
+                    value={field.state.value}
+                  />
+                )}
+              </form.Field>
+            </FieldGroup>
+          ) : null
+        }
+      </form.Subscribe>
     </section>
   );
 }

@@ -1,15 +1,8 @@
 "use client";
 
+import { useForm } from "@tanstack/react-form";
 import { ArrowRight, Loader2, X } from "lucide-react";
-import {
-  type FormEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useReducer,
-  useState,
-  useTransition,
-} from "react";
+import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
 
 import { fetchRoomAvailability } from "../actions/room-availability";
 import { submitRoomBooking } from "../actions/submit-room-booking";
@@ -30,13 +23,7 @@ import {
   overlaps,
   slotRangeMs,
 } from "../domain/availability";
-import {
-  type BookingFormState,
-  buildBookingPayload,
-  canSubmitBooking,
-  initialBookingState,
-  reducer,
-} from "../domain/formState";
+import { canSubmitBooking, initialBookingState } from "../domain/formState";
 import type { BookingRoom } from "../types";
 import { BookingOrderSummary } from "./BookingOrderSummary";
 import { BookingBookerTypeSection } from "./BookingBookerTypeSection";
@@ -47,6 +34,10 @@ import { BookingNeedsSection } from "./BookingNeedsSection";
 import { BookingScheduleSection } from "./BookingScheduleSection";
 import { BookingTermsSection } from "./BookingTermsSection";
 import { BookingTicketSection } from "./BookingTicketSection";
+
+export type BookingFormValues = typeof initialBookingState & {
+  roomSlug: string;
+};
 
 const DATE_COUNT = 7;
 
@@ -62,27 +53,27 @@ export function RoomBookingForm({
   closedDates,
 }: RoomBookingFormProps) {
   const uid = useId();
-  const [isPending, startTransition] = useTransition();
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "success" | "error"
-  >("idle");
-  const [errorMessage, setErrorMessage] = useState("");
   const [bookings, setBookings] = useState<CresatBooking[]>([]);
   const today = useMemo(() => isoDate(new Date()), []);
-  const [state, dispatch] = useReducer(reducer, rooms, (currentRooms) => ({
-    ...initialBookingState,
-    roomSlug: currentRooms[0]?.slug ?? "",
-  }));
 
-  const setField =
-    <Key extends keyof BookingFormState>(key: Key) =>
-    (value: BookingFormState[Key]) => {
-      dispatch({ type: "SET", key, value });
-    };
+  const form = useForm({
+    defaultValues: {
+      ...initialBookingState,
+      roomSlug: rooms[0]?.slug ?? "",
+    } as BookingFormValues,
+    onSubmit: async ({ value }) => {
+      const room = rooms.find((r) => r.slug === value.roomSlug);
+      if (!room) throw new Error("Ingen rom valgt");
+      const result = await submitRoomBooking(value, room);
+      if (!result.ok) throw new Error(result.error);
+    },
+  });
+
+  const values = form.state.values;
 
   const selectedRoom = useMemo(
-    () => rooms.find((room) => room.slug === state.roomSlug),
-    [rooms, state.roomSlug],
+    () => rooms.find((room) => room.slug === values.roomSlug),
+    [rooms, values.roomSlug],
   );
 
   useEffect(() => {
@@ -107,168 +98,119 @@ export function RoomBookingForm({
   );
 
   const selectedDateRoomBookings = useMemo(() => {
-    if (!state.startDate) return [];
-    const [dayStartMs, dayEndMs] = slotRangeMs(
-      state.startDate,
-      "00:00",
-      "00:00",
-    );
-    return roomBookings.filter((booking) =>
-      overlaps(dayStartMs, dayEndMs, booking),
-    );
-  }, [roomBookings, state.startDate]);
+    if (!values.startDate) return [];
+    const [dayStartMs, dayEndMs] = slotRangeMs(values.startDate, "00:00", "00:00");
+    return roomBookings.filter((booking) => overlaps(dayStartMs, dayEndMs, booking));
+  }, [roomBookings, values.startDate]);
 
   const hasConflict = useMemo(() => {
-    if (!state.startDate || selectedDateRoomBookings.length === 0) return false;
-    const [startMs, endMs] = slotRangeMs(
-      state.startDate,
-      state.startTime,
-      state.endTime,
-    );
+    if (!values.startDate || selectedDateRoomBookings.length === 0) return false;
+    const [startMs, endMs] = slotRangeMs(values.startDate, values.startTime, values.endTime);
     return selectedDateRoomBookings.some((b) => overlaps(startMs, endMs, b));
-  }, [
-    state.startDate,
-    state.startTime,
-    state.endTime,
-    selectedDateRoomBookings,
-  ]);
+  }, [values.startDate, values.startTime, values.endTime, selectedDateRoomBookings]);
 
   const occupiedSlugs = useMemo(() => {
-    if (!state.startDate) return new Set<string>();
+    if (!values.startDate) return new Set<string>();
     return new Set(
       rooms
         .filter((room) =>
-          isRoomOccupied(
-            bookings,
-            room.crescatRoomId,
-            state.startDate,
-            state.startTime,
-            state.endTime,
-          ),
+          isRoomOccupied(bookings, room.crescatRoomId, values.startDate, values.startTime, values.endTime),
         )
         .map((room) => room.slug),
     );
-  }, [rooms, bookings, state.startDate, state.startTime, state.endTime]);
+  }, [rooms, bookings, values.startDate, values.startTime, values.endTime]);
 
-  // When house hours are known, the chosen slot must fit inside an open
-  // range; with no hours configured we don't constrain.
   const slotWithinHours = useMemo(() => {
     const hasConfiguredHours =
       hasOpeningHoursRows(openingHours) ||
       hasOpeningHoursRows(selectedRoom?.openingHours ?? null);
-    if (
-      !hasConfiguredHours ||
-      !state.startDate ||
-      !state.startTime ||
-      !state.endTime
-    ) {
+    if (!hasConfiguredHours || !values.startDate || !values.startTime || !values.endTime) {
       return !hasConfiguredHours;
     }
     return isSlotAllowedForCombinedHours(
-      state.startDate,
-      state.startTime,
-      durationHoursBetween(state.startTime, state.endTime),
+      values.startDate,
+      values.startTime,
+      durationHoursBetween(values.startTime, values.endTime),
       openingHours,
       selectedRoom?.openingHours ?? null,
       closedDates,
     );
-  }, [
-    openingHours,
-    selectedRoom,
-    closedDates,
-    state.startDate,
-    state.startTime,
-    state.endTime,
-  ]);
+  }, [openingHours, selectedRoom, closedDates, values.startDate, values.startTime, values.endTime]);
 
   const canSubmit =
-    canSubmitBooking(state, Boolean(selectedRoom), hasConflict) &&
-    slotWithinHours;
+    canSubmitBooking(values, Boolean(selectedRoom), hasConflict) && slotWithinHours;
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!canSubmit || !selectedRoom) return;
-
-    startTransition(async () => {
-      const result = await submitRoomBooking(
-        buildBookingPayload(state, selectedRoom),
-      );
-      if (result.ok) {
-        setSubmitStatus("success");
-      } else {
-        setSubmitStatus("error");
-        setErrorMessage(result.error);
-      }
-    });
-  };
-
-  if (submitStatus === "success") {
-    return <BookingSuccess />;
+  if (form.state.isSubmitSuccessful) {
+    return (
+      <div className="max-w-2xl space-y-4 border-2 border-primary bg-primary/5 p-8">
+        <p className="font-heading text-xl text-foreground">Forespørsel mottatt!</p>
+        <p className="text-sm leading-6 text-foreground/70">
+          Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar kontakt på e-post.
+        </p>
+        <Link
+          className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-primary"
+          href="/rom"
+        >
+          Tilbake til rom
+        </Link>
+      </div>
+    );
   }
+
+  const submitError = form.state.errorMap.onSubmit;
 
   return (
     <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <form className="min-w-0 space-y-14" noValidate onSubmit={handleSubmit}>
-        <BookingBookerTypeSection setField={setField} state={state} uid={uid} />
+      <form
+        className="min-w-0 space-y-14"
+        noValidate
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <BookingBookerTypeSection form={form} uid={uid} />
         <BookingScheduleSection
-          closedDates={closedDates}
-          hasConflict={hasConflict}
+          form={form}
+          uid={uid}
+          rooms={rooms}
+          selectedRoom={selectedRoom}
+          roomBookings={roomBookings}
+          selectedDateRoomBookings={selectedDateRoomBookings}
           occupiedSlugs={occupiedSlugs}
           openingHours={openingHours}
-          roomBookings={roomBookings}
-          rooms={rooms}
-          selectedDateRoomBookings={selectedDateRoomBookings}
-          selectedRoom={selectedRoom}
-          selectedRoomTitle={selectedRoom?.title ?? selectedRoom?.slug}
-          setField={setField}
-          state={state}
-          uid={uid}
+          closedDates={closedDates}
+          hasConflict={hasConflict}
         />
-        <BookingEventDetailsSection
-          setField={setField}
-          state={state}
-          uid={uid}
-        />
-        <BookingNeedsSection setField={setField} state={state} uid={uid} />
-        <BookingCateringBarSection
-          setField={setField}
-          state={state}
-          uid={uid}
-        />
-        <BookingTicketSection setField={setField} state={state} uid={uid} />
-        <BookingContactSection setField={setField} state={state} uid={uid} />
-        <BookingTermsSection setField={setField} state={state} />
+        <BookingEventDetailsSection form={form} uid={uid} />
+        <BookingNeedsSection form={form} uid={uid} />
+        <BookingCateringBarSection form={form} uid={uid} />
+        <BookingTicketSection form={form} uid={uid} />
+        <BookingContactSection form={form} uid={uid} />
+        <BookingTermsSection form={form} />
 
         <section className="space-y-4 border-t-2 border-border pt-8">
-          {!slotWithinHours && state.startDate && (
+          {!slotWithinHours && values.startDate && (
             <p className="max-w-3xl text-sm text-destructive">
-              Valgt start- eller sluttid er utenfor husets åpningstider for
-              denne dagen.
+              Valgt start- eller sluttid er utenfor husets åpningstider for denne dagen.
             </p>
           )}
-          {submitStatus === "error" && (
+          {submitError && (
             <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-              <X
-                aria-hidden
-                className="mt-0.5 size-4 shrink-0 text-destructive"
-              />
+              <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
               <div>
-                <p className="text-sm font-heading text-destructive">
-                  Det oppstod en feil
-                </p>
-                <p className="mt-0.5 text-sm text-foreground/70">
-                  {errorMessage}
-                </p>
+                <p className="text-sm font-heading text-destructive">Det oppstod en feil</p>
+                <p className="mt-0.5 text-sm text-foreground/70">{String(submitError)}</p>
               </div>
             </div>
           )}
           <Button
             className="w-full sm:w-auto"
-            disabled={isPending || !canSubmit}
+            disabled={form.state.isSubmitting || !canSubmit}
             size="lg"
             type="submit"
           >
-            {isPending ? (
+            {form.state.isSubmitting ? (
               <>
                 <Loader2 aria-hidden className="animate-spin" />
                 Sender inn...
@@ -284,28 +226,12 @@ export function RoomBookingForm({
       </form>
 
       <div className="order-first space-y-6 lg:order-none lg:sticky lg:top-24">
-        <BookingOrderSummary selectedRoom={selectedRoom} state={state} />
+        <form.Subscribe selector={(s) => s.values}>
+          {(values) => (
+            <BookingOrderSummary selectedRoom={selectedRoom} state={values} />
+          )}
+        </form.Subscribe>
       </div>
-    </div>
-  );
-}
-
-function BookingSuccess() {
-  return (
-    <div className="max-w-2xl space-y-4 border-2 border-primary bg-primary/5 p-8">
-      <p className="font-heading text-xl text-foreground">
-        Forespørsel mottatt!
-      </p>
-      <p className="text-sm leading-6 text-foreground/70">
-        Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar
-        kontakt på e-post.
-      </p>
-      <Link
-        className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-primary"
-        href="/rom"
-      >
-        Tilbake til rom
-      </Link>
     </div>
   );
 }
