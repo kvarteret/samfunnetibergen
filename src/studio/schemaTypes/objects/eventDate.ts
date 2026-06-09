@@ -48,11 +48,10 @@ export const arrangementDate = defineType({
       endTime: "endTime",
     },
     prepare({ startDate, startTime, endTime }) {
-      const timeRange = startTime
-        ? endTime
-          ? `${startTime}–${endTime}`
-          : startTime
-        : "";
+      let timeRange = "";
+      if (startTime) {
+        timeRange = endTime ? `${startTime}–${endTime}` : startTime;
+      }
       return {
         title: startDate ?? "Dato",
         subtitle: timeRange || undefined,

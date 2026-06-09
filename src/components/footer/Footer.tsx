@@ -259,12 +259,7 @@ function HoursRow({ row }: { row: HoursRow }) {
   const dayLabel = formatWeekdays(row.weekdays);
   if (!dayLabel) return null;
 
-  const time =
-    row.status === "closed"
-      ? "Stengt"
-      : row.duration?.start && row.duration?.end
-        ? `${row.duration.start}–${row.duration.end}`
-        : null;
+  const time = formatOpeningTimeLabel(row);
   return (
     <div className="flex justify-between gap-4 text-sm">
       <dt className="text-foreground/80">{dayLabel}</dt>
@@ -273,6 +268,14 @@ function HoursRow({ row }: { row: HoursRow }) {
       )}
     </div>
   );
+}
+
+function formatOpeningTimeLabel(row: HoursRow): string | null {
+  if (row.status === "closed") return "Stengt";
+  if (row.duration?.start && row.duration?.end) {
+    return `${row.duration.start}–${row.duration.end}`;
+  }
+  return null;
 }
 
 function OpeningHoursColumn({
