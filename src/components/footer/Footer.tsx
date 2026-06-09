@@ -170,31 +170,31 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
 
 type ContactSegment = { type: "text" | "phone" | "email"; value: string };
 
-const NORWAY_PREFIX = /\+?47[\s-]?/;
-const PHONE_DIGITS =
-  /\d{2,3}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2}/g;
+const PHONE_PATTERN = /\d{2,3}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2}/g;
 const EMAIL_PATTERN =
   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const CONTACT_PATTERN = new RegExp(
-  `${PHONE_DIGITS.source}|${EMAIL_PATTERN.source}`,
-  "g",
-);
 
 function parseContactSegments(text: string): ContactSegment[] {
+  const matches: Array<{ index: number; value: string; type: "phone" | "email" }> = [];
+
+  for (let re = PHONE_PATTERN, m: RegExpExecArray | null; (m = re.exec(text)) !== null; ) {
+    matches.push({ index: m.index, value: m[0], type: "phone" });
+  }
+  PHONE_PATTERN.lastIndex = 0;
+  for (let re = EMAIL_PATTERN, m: RegExpExecArray | null; (m = re.exec(text)) !== null; ) {
+    matches.push({ index: m.index, value: m[0], type: "email" });
+  }
+
+  matches.sort((a, b) => a.index - b.index);
+
   const segments: ContactSegment[] = [];
   let lastIndex = 0;
-  CONTACT_PATTERN.lastIndex = 0;
-  let match: RegExpExecArray | null;
-  while ((match = CONTACT_PATTERN.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({
-        type: "text",
-        value: text.slice(lastIndex, match.index),
-      });
+  for (const m of matches) {
+    if (m.index > lastIndex) {
+      segments.push({ type: "text", value: text.slice(lastIndex, m.index) });
     }
-    const val = match[0];
-    segments.push({ type: val.includes("@") ? "email" : "phone", value: val });
-    lastIndex = match.index + val.length;
+    segments.push({ type: m.type, value: m.value });
+    lastIndex = m.index + m.value.length;
   }
   if (lastIndex < text.length) {
     segments.push({ type: "text", value: text.slice(lastIndex) });

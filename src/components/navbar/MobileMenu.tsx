@@ -154,25 +154,7 @@ function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
 
   return (
     <div style={{ transitionDelay: delay }}>
-      {hasLink ? (
-        item.externalUrl && !item.href ? (
-          <a
-            className={linkCls}
-            href={item.externalUrl}
-            onClick={onClose}
-            rel="noreferrer"
-            target="_blank"
-          >
-            {item.label}
-          </a>
-        ) : (
-          <Link className={linkCls} href={item.href ?? "#"} onClick={onClose}>
-            {item.label}
-          </Link>
-        )
-      ) : (
-        <p className={linkCls}>{item.label}</p>
-      )}
+      {renderNavItemLabel(item, onClose, linkCls)}
 
       {item.children?.map((group: NavGroup) =>
         group.items?.map((leaf: NavLeaf) => (
@@ -187,5 +169,26 @@ function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
         )),
       )}
     </div>
+  );
+}
+
+function renderNavItemLabel(
+  item: NavLeaf,
+  onClose: () => void,
+  linkCls: string,
+) {
+  const hasLink = item.href || item.externalUrl;
+  if (!hasLink) return <p className={linkCls}>{item.label}</p>;
+  if (item.externalUrl && !item.href) {
+    return (
+      <a className={linkCls} href={item.externalUrl} onClick={onClose} rel="noreferrer" target="_blank">
+        {item.label}
+      </a>
+    );
+  }
+  return (
+    <Link className={linkCls} href={item.href ?? "#"} onClick={onClose}>
+      {item.label}
+    </Link>
   );
 }
