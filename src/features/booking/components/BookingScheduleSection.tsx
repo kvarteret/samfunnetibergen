@@ -192,17 +192,17 @@ function BookingAvailableDatePicker({
             .toLocaleDateString("nb-NO", { month: "short" })
             .replace(".", "");
 
+          const slotClass = cn(
+            "flex min-w-[52px] shrink-0 flex-col items-center gap-0.5 border-2 px-2.5 py-2 transition-colors",
+            isSelected && "border-primary bg-primary text-primary-foreground",
+            !isSelected && available && "cursor-pointer border-border hover:bg-muted",
+            !isSelected && !available && "cursor-not-allowed border-border/30 text-foreground/25",
+          );
+
           return (
             <button
               key={date}
-              className={cn(
-                "flex min-w-[52px] shrink-0 flex-col items-center gap-0.5 border-2 px-2.5 py-2 transition-colors",
-                isSelected
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : available
-                    ? "cursor-pointer border-border hover:bg-muted"
-                    : "cursor-not-allowed border-border/30 text-foreground/25",
-              )}
+              className={slotClass}
               disabled={!available}
               onClick={() => onChange(date)}
               type="button"

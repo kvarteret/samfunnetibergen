@@ -118,7 +118,8 @@ function SameDayKaraokeNotice() {
       </p>
       <ul className="space-y-1.5 text-sm text-foreground/75 leading-6">
         <li>
-          På <strong className="font-heading text-foreground">hverdager</strong>{" "}
+          På{" "}
+          <strong className="font-heading text-foreground">hverdager</strong>
           må bookinger for samme dag gjøres{" "}
           <strong className="font-heading text-foreground">
             før kl. 12:00

@@ -82,7 +82,6 @@ export async function postEventRequest(
     detail = await res.text().catch(() => "");
   }
 
-  return err(
-    `Bookingsystemet svarte med status ${res.status}${detail ? `: ${detail}` : ""}.`,
-  );
+  const detailPart = detail ? `: ${detail}` : "";
+  return err(`Bookingsystemet svarte med status ${res.status}${detailPart}.`);
 }

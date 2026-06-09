@@ -41,15 +41,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const groupEntries: MetadataRoute.Sitemap = groupsByLocale.flatMap(
     ({ locale, slugs }) =>
-      slugs.map((slug) => ({
-        url: `${siteUrl}${localizedPath(locale, `/grupper/${slug}`)}`,
-        lastModified,
-        changeFrequency: "monthly" as const,
-        priority: 0.7,
-        alternates: {
-          languages: localizedAlternates(siteUrl, `/grupper/${slug}`),
-        },
-      })),
+      slugs.map((slug) => {
+        const groupPath = `/grupper/${slug}`;
+        return {
+          url: `${siteUrl}${localizedPath(locale, groupPath)}`,
+          lastModified,
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+          alternates: {
+            languages: localizedAlternates(siteUrl, groupPath),
+          },
+        };
+      }),
   );
 
   return [...staticEntries, ...groupEntries];

@@ -403,7 +403,8 @@ export function EventCard({
 }
 
 function formatTimeRange(start: string, end?: string | null): string {
-  return `kl. ${end ? `${start}–${end}` : start}`;
+  if (end) return `kl. ${start}–${end}`;
+  return `kl. ${start}`;
 }
 
 function computeAllDates(
