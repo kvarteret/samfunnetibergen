@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { formatWeekdays } from "@/lib/opening-hours";
 import type { fetchFooter } from "@/lib/sanity/fetch";
-import { BarOpenStatus } from "./BarOpenStatus";
+import { BarOpenStatus } from "@/features/bars";
 
 // ─── App store links ──────────────────────────────────────────────────────────
 

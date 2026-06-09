@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { HomeBarPreviews } from "@/features/bars/components/HomeBarPreviews";
-import { HomeOpenStatus } from "@/features/bars/components/HomeOpenStatus";
+import { HomeOpenStatus } from "@/features/bars";
+
+import { HomeBarPreviews } from "./_components/HomeBarPreviews";
 import { EventCard, type EventSummary } from "@/features/events";
 import type { AppLocale } from "@/i18n/routing";
 import {
