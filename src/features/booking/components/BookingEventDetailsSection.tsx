@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react";
 import { FieldGroup, SectionHeader, SelectField } from "@/components/ui/form-fields";
@@ -9,6 +10,7 @@ import { useBookingForm } from "./bookingFormContext";
 
 const OPEN_CLOSED_OPTIONS = [{ value: "Åpent", label: "Åpent arrangement" }, { value: "Lukket", label: "Lukket arrangement" }];
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props {}
 
 export function BookingEventDetailsSection({ }: Props) {

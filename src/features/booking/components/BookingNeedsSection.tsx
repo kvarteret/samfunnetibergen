@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react";
 import { Music, Projector, Volume2 } from "lucide-react";

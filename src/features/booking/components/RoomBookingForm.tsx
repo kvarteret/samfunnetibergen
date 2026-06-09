@@ -37,7 +37,6 @@ import { BookingTermsSection } from "./BookingTermsSection";
 import { BookingTicketSection } from "./BookingTicketSection";
 
 // TODO: resolve form type when @tanstack/react-form stabilizes
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type BookingFormValues = typeof initialBookingState & {
   roomSlug: string;
 };

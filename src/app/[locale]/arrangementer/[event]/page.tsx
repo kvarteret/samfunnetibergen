@@ -40,7 +40,7 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <article className="flex w-full flex-col gap-8">
       <EventDetailHero event={eventData} ticketsLabel={t("tickets")} />
-      <EventDetailScheduleAndMeta event={eventData} locale={locale} t={t} />
+      <EventDetailScheduleAndMeta event={eventData} t={t} />
       <EventDetailDescription event={eventData} t={t} />
     </article>
   );
@@ -133,17 +133,15 @@ function EventDetailHero({
 
 function EventDetailScheduleAndMeta({
   event,
-  locale,
   t,
 }: {
   event: EventDetail;
-  locale: AppLocale;
   t: Awaited<ReturnType<typeof getTranslations>>;
 }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <EventDetailMetaSidebar event={event} t={t} />
-      <EventDetailSchedule event={event} locale={locale} t={t} />
+      <EventDetailSchedule event={event} t={t} />
     </div>
   );
 }
@@ -191,11 +189,9 @@ function EventDetailMetaItem({
 
 function EventDetailSchedule({
   event,
-  locale,
   t,
 }: {
   event: EventDetail;
-  locale: AppLocale;
   t: Awaited<ReturnType<typeof getTranslations>>;
 }) {
   return (
@@ -210,7 +206,6 @@ function EventDetailSchedule({
           date={date}
           event={event}
           key={date._key}
-          locale={locale}
         />
       ))}
     </section>
@@ -220,11 +215,9 @@ function EventDetailSchedule({
 function EventDetailScheduleItem({
   date,
   event,
-  locale,
 }: {
   date: NonNullable<EventDetail["dates"]>[number];
   event: EventDetail;
-  locale: AppLocale;
 }) {
   const roomTitle = event.room?.title ?? event.roomText;
   const roomSlug = event.room?.slug;

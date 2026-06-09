@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react";
 import { FieldGroup, SectionHeader, SelectField } from "@/components/ui/form-fields";

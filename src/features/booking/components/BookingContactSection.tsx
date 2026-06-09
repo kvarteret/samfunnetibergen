@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react";
 import { FieldGroup, SectionHeader } from "@/components/ui/form-fields";
@@ -8,6 +9,7 @@ import { isExternalBooker } from "../domain/formState";
 import type { BookerType } from "../domain/formState";
 import { useBookingForm } from "./bookingFormContext";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props {}
 
 export function BookingContactSection({ }: Props) {

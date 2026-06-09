@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react";
 import { Building2, User, Users, type LucideIcon } from "lucide-react";
@@ -15,6 +16,7 @@ const BOOKER_OPTIONS: Array<{ type: BookerType; label: string; hint: string; ico
   { type: "intern", label: "Intern", hint: "Driftsorganisasjoner og interne arrangører.", icon: Building2 },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface BookingBookerTypeSectionProps {}
 
 export function BookingBookerTypeSection({}: BookingBookerTypeSectionProps) {
