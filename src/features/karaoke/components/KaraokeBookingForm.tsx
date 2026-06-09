@@ -570,14 +570,7 @@ function KaraokeDateButton({
       onClick={onClick}
       className={cn(
         "flex flex-col items-center gap-0.5 px-2.5 py-2 border-2 min-w-[52px] transition-colors shrink-0",
-        isSelected
-          ? "bg-primary border-primary text-primary-foreground"
-          : available
-            ? cn(
-                "border-border hover:bg-muted cursor-pointer",
-                isToday && "border-primary/50",
-              )
-            : "border-border/30 text-foreground/25 cursor-not-allowed",
+        getDateButtonClass(isSelected, available, isToday),
       )}
     >
       <span className="text-[10px] uppercase tracking-widest">{weekday}</span>
@@ -660,11 +653,7 @@ function KaraokeSlotButton({
       onClick={onClick}
       className={cn(
         "py-2.5 text-sm font-heading border-2 text-center transition-colors",
-        isSelected
-          ? "bg-primary border-primary text-primary-foreground"
-          : taken
-            ? "border-border/30 text-foreground/25 cursor-not-allowed"
-            : "border-border hover:bg-muted",
+        getSlotButtonClass(isSelected, taken),
       )}
     >
       {minutesToTime(slotMin)}
@@ -994,4 +983,16 @@ function buildKaraokeDates(today: string): string[] {
 
 function dispatchDateSlotClear(setField: SetKaraokeField) {
   setField("startSlotMin")(null);
+}
+
+function getDateButtonClass(isSelected: boolean, available: boolean, isToday: boolean): string {
+  if (isSelected) return "bg-primary border-primary text-primary-foreground";
+  if (available) return cn("border-border hover:bg-muted cursor-pointer", isToday && "border-primary/50");
+  return "border-border/30 text-foreground/25 cursor-not-allowed";
+}
+
+function getSlotButtonClass(isSelected: boolean, taken: boolean): string {
+  if (isSelected) return "bg-primary border-primary text-primary-foreground";
+  if (taken) return "border-border/30 text-foreground/25 cursor-not-allowed";
+  return "border-border hover:bg-muted";
 }
