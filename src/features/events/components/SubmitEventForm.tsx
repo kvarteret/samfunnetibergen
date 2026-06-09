@@ -23,6 +23,11 @@ import {
     type UpdateDateField,
 } from "../domain/formState"
 import {
+    EVENT_IMAGE_MAX_SIZE_BYTES,
+    formatEventImageMaxSize,
+    isAcceptedEventImageType,
+} from "../domain/imageUpload"
+import {
     EventDetailsFields,
     EventImageField,
     EventLinksFields,
@@ -120,6 +125,20 @@ export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormPr
             return
         }
 
+        setImageAssetId(null)
+        setImageUploadError("")
+        event.target.value = ""
+
+        if (!isAcceptedEventImageType(file.type)) {
+            setImageUploadError("Bildet må være JPEG, PNG eller WebP")
+            return
+        }
+
+        if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
+            setImageUploadError(`Bildet er for stort (maks ${formatEventImageMaxSize()})`)
+            return
+        }
+
         const previewUrl = URL.createObjectURL(file)
         setImagePreviewUrl(previousUrl => {
             if (previousUrl) {
@@ -127,20 +146,23 @@ export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormPr
             }
             return previewUrl
         })
-        setImageAssetId(null)
-        setImageUploadError("")
         setImageUploading(true)
 
         const formData = new FormData()
         formData.append("image", file)
 
-        const result = await uploadEventImage(formData)
-        setImageUploading(false)
+        try {
+            const result = await uploadEventImage(formData)
 
-        if (result.ok) {
-            setImageAssetId(result.value)
-        } else {
-            setImageUploadError(result.error)
+            if (result.ok) {
+                setImageAssetId(result.value)
+            } else {
+                setImageUploadError(result.error)
+            }
+        } catch {
+            setImageUploadError("Kunne ikke laste opp bildet. Prøv igjen med et bilde under 10 MB.")
+        } finally {
+            setImageUploading(false)
         }
     }, [])
 
@@ -207,7 +229,7 @@ export function SubmitEventForm({ rooms, eventTypes, groups }: SubmitEventFormPr
     }
 
     if (submitStatus === "success") {
-        return <p className="font-heading text-green-600">yey</p>
+        return <p className="font-heading text-green-600">Din forespørsel er sendt inn</p>
     }
 
     return (

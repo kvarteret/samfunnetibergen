@@ -1,6 +1,11 @@
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
 import { err, ok, type Result } from "@/lib/result"
+import {
+    EVENT_IMAGE_MAX_SIZE_BYTES,
+    formatEventImageMaxSize,
+    isAcceptedEventImageType,
+} from "../domain/imageUpload"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
@@ -57,8 +62,11 @@ export async function uploadEventImage(formData: FormData): Promise<UploadImageR
         if (!(file instanceof File) || !file.size) {
             return err("Ingen fil mottatt")
         }
-        if (file.size > 8 * 1024 * 1024) {
-            return err("Bildet er for stort (maks 8 MB)")
+        if (!isAcceptedEventImageType(file.type)) {
+            return err("Bildet må være JPEG, PNG eller WebP")
+        }
+        if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
+            return err(`Bildet er for stort (maks ${formatEventImageMaxSize()})`)
         }
         const client = getWriteClient()
         const buffer = Buffer.from(await file.arrayBuffer())

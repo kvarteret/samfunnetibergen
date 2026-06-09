@@ -13,6 +13,7 @@ import type {
     SubmitStatus,
     UpdateDateField,
 } from "../domain/formState"
+import { formatEventImageMaxSize } from "../domain/imageUpload"
 import { EventCard, type EventSummary } from "./EventCard"
 import {
     CheckboxSquare,
@@ -121,7 +122,8 @@ export function EventImageField({
 
             <FieldGroup>
                 <FieldHint>
-                    JPEG, PNG eller WebP - maks 8 MB. Vises i listinga og på arrangementssiden.
+                    JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i listinga og på
+                    arrangementssiden.
                 </FieldHint>
 
                 {imagePreviewUrl ? (
