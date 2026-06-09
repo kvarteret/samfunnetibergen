@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useEvents } from "@/features/events/context/EventsContext";
 import { countEventFilters } from "@/features/events/domain/eventUtils";
-import { FilterButton } from "./FilterButton";
+import { EventsPageFilterButton } from "./EventsPageFilterButton";
 
 interface EventsFiltersProps {
   filterAllLabel: string;
@@ -13,7 +13,7 @@ interface EventsFiltersProps {
   filterTypeLabel: string;
 }
 
-export function EventsFilters({
+export function EventsPageFilters({
   filterAllLabel,
   filterMoreLabel,
   filterOrganizerLabel,
@@ -57,13 +57,13 @@ export function EventsFilters({
     <div className="space-y-6 border-y-2 border-border py-6">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <FilterButton
+          <EventsPageFilterButton
             isActive={activeFilterCount === 0}
             label={filterAllLabel}
             onClick={clearAll}
           />
           {taxonomy.taxonomyGroups.map((group) => (
-            <FilterButton
+            <EventsPageFilterButton
               isActive={
                 filters.taxonomyGroupName === group.name &&
                 filters.eventTypeIds.length === 0
@@ -99,7 +99,7 @@ export function EventsFilters({
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {groupEventTypes.map((eventType) => (
-                      <FilterButton
+                      <EventsPageFilterButton
                         isActive={filters.eventTypeIds.includes(eventType._id)}
                         key={eventType._id}
                         label={eventType.name}
@@ -117,7 +117,7 @@ export function EventsFilters({
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {taxonomy.organizerGroups.map((group) => (
-                    <FilterButton
+                    <EventsPageFilterButton
                       isActive={filters.organizerGroupIds.includes(group._id)}
                       key={group._id}
                       label={group.name}

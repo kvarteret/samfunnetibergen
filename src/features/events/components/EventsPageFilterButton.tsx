@@ -8,7 +8,7 @@ export interface FilterButtonProps {
   onClick: () => void;
 }
 
-export function FilterButton({ isActive, label, onClick }: FilterButtonProps) {
+export function EventsPageFilterButton({ isActive, label, onClick }: FilterButtonProps) {
   return (
     <button
       className={cn(

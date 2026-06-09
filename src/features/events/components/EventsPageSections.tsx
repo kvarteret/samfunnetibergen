@@ -66,7 +66,7 @@ interface EventsSectionsProps {
   ticketsLabel: string;
 }
 
-export function EventsSections({
+export function EventsPageSections({
   emptyLabel,
   facebookLabel,
   ticketsLabel,
