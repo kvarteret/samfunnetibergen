@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react"
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { isExternalBooker } from "../domain/formState"
@@ -19,8 +19,7 @@ export function BookingFormContactSection({}: Props) {
   const isExternal = isExternalBooker(bookerType)
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="07" title="Kontaktinformasjon" />
+    <FormSection number="07" title="Kontaktinformasjon">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup>
           <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
@@ -100,6 +99,6 @@ export function BookingFormContactSection({}: Props) {
           </>
         )}
       </div>
-    </section>
+    </FormSection>
   )
 }

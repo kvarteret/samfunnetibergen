@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { HomeOpenStatus } from "@/features/bars"
+import { OpenStatus } from "@/components/ui/open-status"
 
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { EventCard, type EventSummary } from "@/features/events"
@@ -173,9 +173,10 @@ function HomeHero({
             <h1 className="font-heading text-3xl leading-tight sm:text-4xl">
               {homePage.title}
             </h1>
-            <HomeOpenStatus
+            <OpenStatus
               houseClosedDates={barPreviews?.houseClosedDates}
               rooms={barPreviews?.rooms ?? []}
+              variant="announcement"
             />
           </div>
         )}
@@ -221,9 +222,7 @@ function HomeEvents({ events, locale }: HomeEventsProps) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-          Arrangementer
-        </p>
+        <p className="text-eyebrow text-foreground/50">Arrangementer</p>
         <Link
           className="text-xs uppercase tracking-[0.18em] underline underline-offset-4"
           href={`/${locale}/arrangementer`}

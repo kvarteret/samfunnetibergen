@@ -1,5 +1,1 @@
-export { BarOpenStatus } from "./components/BarOpenStatus"
-export {
-  HomeOpenStatus,
-  type HomeOpenStatusRoom,
-} from "./components/HomeOpenStatus"
+export { OpenStatus, type OpenStatusRoom } from "@/components/ui/open-status"

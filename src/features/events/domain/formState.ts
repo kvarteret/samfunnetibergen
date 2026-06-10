@@ -36,8 +36,10 @@ export type SelectOption = {
   label: string
 }
 
+let dateCounter = 0
+
 export const newDate = (): DateEntry => ({
-  id: Math.random().toString(36).slice(2),
+  id: `date-${++dateCounter}`,
   startDate: "",
   startTime: "",
   endTime: "",
@@ -81,7 +83,7 @@ export function buildPreviewEvent(
 
   return {
     _id: "preview",
-    title: state.title.trim() || "Arrangementstittelen",
+    title: state.title.trim() || "midlertidig tittel",
     slug: "preview",
     isRecurring: state.isRecurring,
     dates: state.dates

@@ -37,9 +37,7 @@ function AddressBlock({
   if (!value) return null
   return (
     <div className="space-y-2">
-      <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-        {label}
-      </p>
+      <p className="text-eyebrow">{label}</p>
       <p className="text-sm leading-6 text-foreground whitespace-pre-line">
         {value}
       </p>
@@ -130,9 +128,7 @@ export default async function KontaktPage({
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
             <div className="space-y-2">
-              <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-                Generell kontakt
-              </p>
+              <p className="text-eyebrow">Generell kontakt</p>
               <p className="text-sm leading-6 text-foreground whitespace-pre-line">
                 {page.generalContact}
               </p>
@@ -140,9 +136,7 @@ export default async function KontaktPage({
           )}
           {page?.pressContact && (
             <div className="space-y-2">
-              <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-                Pressekontakt
-              </p>
+              <p className="text-eyebrow">Pressekontakt</p>
               <p className="text-sm leading-6 text-foreground whitespace-pre-line">
                 {page.pressContact}
               </p>

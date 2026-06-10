@@ -75,9 +75,7 @@ function SubmitEventPageIntro() {
         </div>
 
         <Surface className="space-y-3 lg:min-w-64">
-          <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-            Slik fungerer det
-          </p>
+          <p className="text-eyebrow">Slik fungerer det</p>
           <ol className="space-y-2 text-sm text-foreground/80 leading-6">
             <li className="flex gap-2.5">
               <span className="font-heading text-primary shrink-0">1.</span>

@@ -52,9 +52,11 @@ interface SelectFieldProps {
   label: string
   value: string
   onChange: (value: string) => void
-  options: SelectOption[]
+  options?: SelectOption[]
   placeholder?: string
   hint?: string
+  children?: ReactNode
+  className?: string
 }
 
 export function SelectField({
@@ -65,24 +67,30 @@ export function SelectField({
   options,
   placeholder,
   hint,
+  children,
+  className,
 }: SelectFieldProps) {
   return (
     <FieldGroup>
       <Label htmlFor={id}>{label}</Label>
       {hint && <FieldHint>{hint}</FieldHint>}
-      <div className="relative">
+      <div className={cn("relative", className)}>
         <select
-          className="w-full appearance-none border-2 border-border bg-background px-3 py-2 pr-9 text-sm font-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full appearance-none border-2 border-border bg-card px-3 py-2 pr-9 text-sm font-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           id={id}
           onChange={event => onChange(event.target.value)}
           value={value}
         >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {children ?? (
+            <>
+              {placeholder && <option value="">{placeholder}</option>}
+              {options?.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </>
+          )}
         </select>
         <ChevronDown
           aria-hidden
@@ -140,7 +148,7 @@ export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
       <span
         className={cn(
           "flex size-5 items-center justify-center border-2 border-border transition-colors",
-          checked ? "bg-primary" : "bg-background group-hover:bg-muted",
+          checked ? "bg-primary" : "bg-card group-hover:bg-muted",
         )}
       >
         {checked && (
@@ -150,3 +158,6 @@ export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
     </span>
   )
 }
+
+export { CheckboxField } from "@/components/ui/checkbox-field"
+export { FormSection } from "@/components/ui/form-section"

@@ -12,8 +12,8 @@ import Image from "next/image"
 import { RRule } from "rrule"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { DateBadges, type DateBadgeEntry } from "@/components/ui/date-badges"
 import { Link } from "@/i18n/navigation"
-import type { AppLocale } from "@/i18n/routing"
 import { cn } from "@/lib/utils"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -59,23 +59,6 @@ export type EventSummary = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MONTH_NAMES: Record<AppLocale, string[]> = {
-  nb: [
-    "jan",
-    "feb",
-    "mar",
-    "apr",
-    "mai",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "okt",
-    "nov",
-    "des",
-  ],
-}
-
 const eventCardVariants = cva("overflow-hidden py-0", {
   variants: {
     variant: {
@@ -104,13 +87,6 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
     size: "default",
   },
 })
-
-function formatShortDate(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00`)
-  const day = d.getDate()
-  const month = MONTH_NAMES["nb"][d.getMonth()]
-  return `${day}. ${month}`
-}
 
 function formatPrimaryDate(date: EventDateEntry): string {
   const eventDate = new Date(`${date.startDate}T00:00:00`)
@@ -170,55 +146,6 @@ function expandRRuleDates(
   } catch {
     return []
   }
-}
-
-// ─── DateBadges ───────────────────────────────────────────────────────────────
-
-const MAX_VISIBLE_BADGES = 3
-
-function DateBadges({
-  dates,
-  primaryIndex,
-  size = "default",
-}: {
-  dates: EventDateEntry[]
-  primaryIndex: number
-  size?: "default" | "small"
-}) {
-  const otherDates = dates.filter((_, i) => i !== primaryIndex)
-  if (otherDates.length === 0) return null
-
-  const visible = otherDates.slice(0, MAX_VISIBLE_BADGES)
-  const overflow = otherDates.length - MAX_VISIBLE_BADGES
-
-  return (
-    <div
-      className={cn("flex flex-wrap", size === "small" ? "gap-2" : "gap-1.5")}
-      aria-label="Andre datoer"
-    >
-      {visible.map(d => (
-        <span
-          key={d._key}
-          className={cn(
-            "border border-border font-heading text-foreground/60 bg-muted",
-            size === "small" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs",
-          )}
-        >
-          {formatShortDate(d.startDate)}
-        </span>
-      ))}
-      {overflow > 0 && (
-        <span
-          className={cn(
-            "border border-border font-heading text-foreground/60 bg-muted",
-            size === "small" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs",
-          )}
-        >
-          {overflow >= 9 ? "9+" : `+${overflow}`}
-        </span>
-      )}
-    </div>
-  )
 }
 
 // ─── EventCard ──────────────────────────────────────────────────────────

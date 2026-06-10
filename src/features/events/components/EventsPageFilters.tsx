@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { countEventFilters } from "@/features/events/domain/eventUtils"
 import { EventsPageFilterButton } from "./EventsPageFilterButton"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 
 export function EventsPageFilters() {
   const t = useTranslations("EventsPage")
@@ -45,22 +46,28 @@ export function EventsPageFilters() {
     <div className="space-y-6 border-y-2 border-border py-6">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <EventsPageFilterButton
-            isActive={activeFilterCount === 0}
-            label={t("filterAll")}
-            onClick={clearAll}
-          />
-          {taxonomy.taxonomyGroups.map(group => (
-            <EventsPageFilterButton
-              isActive={
-                filters.taxonomyGroupName === group.name &&
-                filters.eventTypeIds.length === 0
+          <SegmentedControl
+            onChange={value => {
+              if (value === "all") {
+                clearAll()
+              } else {
+                toggleTaxonomyGroup(value)
               }
-              key={group._id}
-              label={group.name}
-              onClick={() => toggleTaxonomyGroup(group.name)}
-            />
-          ))}
+            }}
+            options={[
+              { value: "all", label: t("filterAll") },
+              ...taxonomy.taxonomyGroups.map(group => ({
+                value: group.name,
+                label: group.name,
+              })),
+            ]}
+            value={
+              activeFilterCount === 0
+                ? "all"
+                : (filters.taxonomyGroupName ?? "all")
+            }
+            variant="inverse"
+          />
         </div>
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
           {t("filterResultCount", { count: filteredEvents.length })}

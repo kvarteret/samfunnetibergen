@@ -3,9 +3,9 @@
 import {
   FieldGroup,
   FieldHint,
-  SectionHeader,
   SelectField,
   type SelectOption,
+  FormSection,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,9 +24,7 @@ export function EventFormOrganizerSection({
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="05" title="Arrangør" />
-
+    <FormSection number="05" title="Arrangør">
       <SelectField
         hint="Om din gruppe er registrert på Kvarteret, velg den her."
         id={`${uid}-organizerGroup`}
@@ -52,6 +50,6 @@ export function EventFormOrganizerSection({
           value={values.organizerText}
         />
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }

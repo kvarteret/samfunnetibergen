@@ -3,6 +3,7 @@
 import { ExternalLink, Mic } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Link } from "@/i18n/navigation"
 import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
@@ -15,21 +16,12 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
-      <div className="aspect-video w-full bg-muted overflow-hidden border-2 border-border/50">
-        {firstImage?.assetUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={firstImage.assetUrl}
-            alt={firstImage.alt ?? room.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Mic className="size-10 text-foreground/20" aria-hidden />
-          </div>
-        )}
-      </div>
+      <ImageWithFallback
+        alt={firstImage?.alt ?? room.title}
+        className="border-2 border-border/50"
+        fallback={<Mic className="size-10 text-foreground/20" aria-hidden />}
+        src={firstImage?.assetUrl}
+      />
       <div className="space-y-1">
         <Link
           className="group flex items-center gap-1.5 font-heading text-base text-foreground hover:text-primary transition-colors"
@@ -43,7 +35,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         </Link>
       </div>
       {room.summary && (
-        <p className="text-sm leading-6 text-foreground/70">{room.summary}</p>
+        <p className="text-body text-foreground/70">{room.summary}</p>
       )}
       {(room.capacitySeated || room.capacityStanding) && (
         <div className="border-t border-border pt-4 flex gap-6 text-sm">

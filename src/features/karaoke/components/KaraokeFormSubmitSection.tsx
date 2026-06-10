@@ -61,7 +61,7 @@ export function KaraokeBookingSuccess() {
       <p className="font-heading text-xl text-foreground">
         Forespørsel mottatt!
       </p>
-      <p className="text-sm leading-6 text-foreground/70">
+      <p className="text-body text-foreground/70">
         Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar
         kontakt på e-post.
       </p>

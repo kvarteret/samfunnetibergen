@@ -32,7 +32,7 @@ export function EventFormActions({ imageUploading }: EventFormActionsProps) {
 
       <p className="text-sm leading-6 text-foreground/60">
         Arrangementet sendes til godkjenning hos PR-gruppen på Kvarteret. Det
-        vil ikke vises på nettsiden før det er godkjent. Vi tar vanligvis 1-3
+        vil ikke vises på nettsiden før det er godkjent. vi bruker vanligvis 1-3
         virkedager.
       </p>
 

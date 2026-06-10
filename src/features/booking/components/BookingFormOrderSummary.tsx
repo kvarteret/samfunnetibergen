@@ -1,8 +1,9 @@
 import { CalendarClock, DoorOpen, MapPin, Users } from "lucide-react"
-import Image from "next/image"
-import type { ReactNode } from "react"
 
 import { Surface } from "@/components/ui/surface"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { DetailRow } from "@/components/ui/detail-row"
+import { RoomCapacity } from "@/components/ui/room-capacity"
 
 import {
   type BookerType,
@@ -44,39 +45,43 @@ export function BookingFormOrderSummary({
           </p>
 
           <dl className="space-y-2.5 text-sm">
-            <SummaryRow icon={Users} label="Booker">
+            <DetailRow icon={Users} label="Booker" layout="vertical">
               {BOOKER_LABELS[state.bookerType]}
               {state.bookerType === "studentorg" && state.studentOrgName
                 ? ` · ${state.studentOrgName}`
                 : ""}
-            </SummaryRow>
-            <SummaryRow icon={CalendarClock} label="Tidspunkt">
+            </DetailRow>
+            <DetailRow icon={CalendarClock} label="Tidspunkt" layout="vertical">
               {time}
-            </SummaryRow>
+            </DetailRow>
             {state.doorsTime && (
-              <SummaryRow icon={DoorOpen} label="Dørene åpner">
+              <DetailRow icon={DoorOpen} label="Dørene åpner" layout="vertical">
                 {state.doorsTime}
-              </SummaryRow>
+              </DetailRow>
             )}
             {state.eventName.trim() && (
-              <SummaryRow label="Arrangement">{state.eventName}</SummaryRow>
+              <DetailRow label="Arrangement" layout="vertical">
+                {state.eventName}
+              </DetailRow>
             )}
             {state.audienceCount.trim() && (
-              <SummaryRow label="Publikum">
+              <DetailRow label="Publikum" layout="vertical">
                 {state.audienceCount} personer
-              </SummaryRow>
+              </DetailRow>
             )}
-            <SummaryRow label="Teknisk">{tech}</SummaryRow>
+            <DetailRow label="Teknisk" layout="vertical">
+              {tech}
+            </DetailRow>
             {catering && (
-              <SummaryRow label="Mat og bar">
+              <DetailRow label="Mat og bar" layout="vertical">
                 <span className="whitespace-pre-line">{catering}</span>
-              </SummaryRow>
+              </DetailRow>
             )}
-            <SummaryRow label="Billett">
+            <DetailRow label="Billett" layout="vertical">
               {state.freeOrPaid === "Betalt" && state.ticketTypes.trim()
                 ? `Betalt · ${state.ticketTypes}`
                 : state.freeOrPaid}
-            </SummaryRow>
+            </DetailRow>
           </dl>
         </div>
       </Surface>
@@ -96,17 +101,17 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
 
   return (
     <div>
-      <div className="relative aspect-[16/9] bg-muted">
-        {room.image?.assetUrl && (
-          <Image
-            alt={room.image.alt ?? room.title ?? room.slug}
-            className="object-cover"
-            fill
-            sizes="(min-width: 1024px) 360px, 100vw"
-            src={room.image.assetUrl}
-          />
-        )}
-      </div>
+      <ImageWithFallback
+        alt={room.image?.alt ?? room.title ?? room.slug}
+        fallback={
+          <span className="flex items-center gap-2 text-sm text-foreground/45">
+            <MapPin aria-hidden className="size-4" />
+            Velg et rom
+          </span>
+        }
+        sizes="(min-width: 1024px) 360px, 100vw"
+        src={room.image?.assetUrl}
+      />
       <div className="border-b-2 border-border p-5">
         <p className="font-heading text-xl leading-tight text-foreground">
           {room.title ?? room.slug}
@@ -120,24 +125,6 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
             .join(" / ")}
         </p>
       </div>
-    </div>
-  )
-}
-
-interface SummaryRowProps {
-  label: string
-  icon?: typeof Users
-  children: ReactNode
-}
-
-function SummaryRow({ label, icon: Icon, children }: SummaryRowProps) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-foreground/45">
-        {Icon && <Icon aria-hidden className="size-3.5" />}
-        {label}
-      </dt>
-      <dd className="text-foreground/85">{children}</dd>
     </div>
   )
 }

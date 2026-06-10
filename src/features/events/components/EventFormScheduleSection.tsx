@@ -3,9 +3,9 @@
 import { Plus, X } from "lucide-react"
 
 import {
-  CheckboxSquare,
+  CheckboxField,
   FieldGroup,
-  SectionHeader,
+  FormSection,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -45,9 +45,7 @@ export function EventFormScheduleSection({
   }
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="03" title="Dato og tid" />
-
+    <FormSection number="03" title="Dato og tid">
       <div className="space-y-4">
         {values.dates.map((date: DateEntry, index: number) => (
           <EventDateCard
@@ -62,7 +60,7 @@ export function EventFormScheduleSection({
         ))}
 
         <button
-          className="flex w-full items-center justify-center gap-2 border-2 border-dashed border-border px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
           onClick={handleAddDate}
           type="button"
         >
@@ -76,7 +74,7 @@ export function EventFormScheduleSection({
         onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
         onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
       />
-    </section>
+    </FormSection>
   )
 }
 
@@ -180,18 +178,12 @@ function EventRecurrenceFields({
 }: EventRecurrenceFieldsProps) {
   return (
     <div className="space-y-4">
-      <label className="group flex cursor-pointer items-start gap-3">
-        <CheckboxSquare checked={isRecurring} onChange={onRecurringToggle} />
-        <span>
-          <span className="block font-heading text-sm text-foreground">
-            Gjentagende arrangement
-          </span>
-          <span className="mt-0.5 block text-xs text-foreground/55">
-            Arrangementet gjentas etter et fast mønster (f.eks. ukentlig quiz,
-            månedlig konsert)
-          </span>
-        </span>
-      </label>
+      <CheckboxField
+        checked={isRecurring}
+        hint="Arrangementet gjentas etter et fast mønster (f.eks. ukentlig quiz, månedlig konsert)"
+        label="Gjentagende arrangement"
+        onChange={onRecurringToggle}
+      />
 
       {isRecurring && (
         <EventFormRecurrenceBuilder onChange={onRecurrenceChange} />

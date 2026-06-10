@@ -2,29 +2,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react"
-import { Music, Projector, Volume2 } from "lucide-react"
-import {
-  FieldGroup,
-  FieldHint,
-  SectionHeader,
-} from "@/components/ui/form-fields"
+import { Music, Projector, Volume2, Wand2 } from "lucide-react"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { composeTechEquipment } from "../domain/formState"
-import {
-  BookingTechnicianOption,
-  BookingToggleOption,
-} from "./BookingFormPrimitives"
+import { ToggleOption } from "@/components/ui/toggle-option"
 import { useBookingForm } from "./bookingFormContext"
 
 export function BookingFormNeedsSection() {
   const uid = useId()
   const form = useBookingForm()
-  const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="04" title="Behov" />
+    <FormSection number="04" title="Behov">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-furniture`}>Ønsket møblement *</Label>
@@ -39,58 +29,89 @@ export function BookingFormNeedsSection() {
             )}
           </form.Field>
         </FieldGroup>
-        <BookingToggleOption
-          checked={values.micEnabled}
-          icon={Volume2}
-          label="Mikrofoner"
-          onChange={v => form.setFieldValue("micEnabled", v)}
-        >
-          {values.micEnabled && (
-            <div className="mt-3 flex items-center gap-3">
-              <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
-              <form.Field name="micQuantity">
-                {(field: any) => (
-                  <Input
-                    className="w-24"
-                    id={`${uid}-micQuantity`}
-                    min={1}
-                    onChange={e =>
-                      field.handleChange(Number(e.target.value) || 1)
-                    }
-                    type="number"
-                    value={field.state.value as number}
-                  />
-                )}
-              </form.Field>
-            </div>
+        <form.Field name="micEnabled">
+          {(field: any) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Volume2}
+              label="Mikrofoner"
+              onChange={field.handleChange}
+            >
+              {(field.state.value as boolean) && (
+                <div className="mt-3 flex items-center gap-3">
+                  <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
+                  <form.Field name="micQuantity">
+                    {(qtyField: any) => (
+                      <Input
+                        className="w-24"
+                        id={`${uid}-micQuantity`}
+                        min={1}
+                        onChange={e =>
+                          qtyField.handleChange(Number(e.target.value) || 1)
+                        }
+                        type="number"
+                        value={qtyField.state.value as number}
+                      />
+                    )}
+                  </form.Field>
+                </div>
+              )}
+            </ToggleOption>
           )}
-        </BookingToggleOption>
-        <BookingToggleOption
-          checked={values.projector}
-          icon={Projector}
-          label="Projektor + lerret"
-          onChange={v => form.setFieldValue("projector", v)}
-        />
-        <BookingToggleOption
-          checked={values.music}
-          icon={Music}
-          label="Musikkavspilling"
-          onChange={v => form.setFieldValue("music", v)}
-        />
-        <BookingTechnicianOption
-          checked={values.soundTech}
-          label="Dedikert lydtekniker"
-          onChange={v => form.setFieldValue("soundTech", v)}
-        />
-        <BookingTechnicianOption
-          checked={values.lightTech}
-          label="Dedikert lystekniker"
-          onChange={v => form.setFieldValue("lightTech", v)}
-        />
+        </form.Field>
+        <form.Field name="projector">
+          {(field: any) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Projector}
+              label="Projektor + lerret"
+              onChange={field.handleChange}
+            />
+          )}
+        </form.Field>
+        <form.Field name="music">
+          {(field: any) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Music}
+              label="Musikkavspilling"
+              onChange={field.handleChange}
+            />
+          )}
+        </form.Field>
+        <form.Field name="soundTech">
+          {(field: any) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Wand2}
+              label="Dedikert lydtekniker"
+              onChange={field.handleChange}
+            >
+              <p className="text-sm leading-6 text-foreground/70">
+                Dedikert tekniker koster <strong>3500 kr eks. mva</strong> per
+                tekniker. Avbestilling må skje senest <strong>10 dager</strong>{" "}
+                før arrangementet.
+              </p>
+            </ToggleOption>
+          )}
+        </form.Field>
+        <form.Field name="lightTech">
+          {(field: any) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Wand2}
+              label="Dedikert lystekniker"
+              onChange={field.handleChange}
+            >
+              <p className="text-sm leading-6 text-foreground/70">
+                Dedikert tekniker koster <strong>3500 kr eks. mva</strong> per
+                tekniker. Avbestilling må skje senest <strong>10 dager</strong>{" "}
+                før arrangementet.
+              </p>
+            </ToggleOption>
+          )}
+        </form.Field>
       </div>
-      <FieldHint>
-        Sendes til Crescat som teknisk utstyr: {composeTechEquipment(values)}
-      </FieldHint>
-    </section>
+    </FormSection>
   )
 }

@@ -3,9 +3,9 @@
 import {
   FieldGroup,
   FieldHint,
-  SectionHeader,
   SelectField,
   type SelectOption,
+  FormSection,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,9 +24,7 @@ export function EventFormPlaceSection({
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="04" title="Sted" />
-
+    <FormSection number="04" title="Sted">
       <SelectField
         hint="Velg rommet om arrangementet er i et av Kvarterets lokaler."
         id={`${uid}-room`}
@@ -50,6 +48,6 @@ export function EventFormPlaceSection({
           value={values.roomText}
         />
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }

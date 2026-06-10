@@ -1,6 +1,6 @@
 "use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useEventForm } from "./eventFormContext"
@@ -15,9 +15,7 @@ export function EventFormSubmitterSection({
   const form = useEventForm()
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="08" title="Kontaktinformasjon" />
-
+    <FormSection number="08" title="Kontaktinformasjon">
       <p className="text-sm leading-6 text-foreground/60">
         Vi trenger en kontaktperson for arrangementet. Informasjonen vises ikke
         offentlig - den brukes bare av Kvarterets PR-gruppe til å følge opp
@@ -66,6 +64,6 @@ export function EventFormSubmitterSection({
           value={form.state.values.submittedByOrganization}
         />
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }

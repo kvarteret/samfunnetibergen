@@ -4,8 +4,8 @@
 import { useId } from "react"
 import {
   FieldGroup,
-  SectionHeader,
   SelectField,
+  FormSection,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,8 +20,7 @@ export function BookingFormTicketSection() {
   const uid = useId()
   const form = useBookingForm()
   return (
-    <section className="space-y-6">
-      <SectionHeader number="06" title="Billett" />
+    <FormSection number="06" title="Billett">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <form.Field name="freeOrPaid">
           {(field: any) => (
@@ -54,6 +53,6 @@ export function BookingFormTicketSection() {
           }
         </form.Subscribe>
       </div>
-    </section>
+    </FormSection>
   )
 }

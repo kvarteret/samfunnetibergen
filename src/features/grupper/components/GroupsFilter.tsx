@@ -6,7 +6,7 @@ import { useState } from "react"
 
 import { Link } from "@/i18n/navigation"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"
-import { cn } from "@/lib/utils"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 
 type GroupSection = {
   title: string
@@ -33,35 +33,14 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
   return (
     <div className="space-y-12">
       {allLabels.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            className={cn(
-              "border-2 border-border px-3 py-1.5 font-heading text-sm transition-colors",
-              !activeLabel
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-foreground hover:bg-secondary-background",
-            )}
-            onClick={() => setActiveLabel(null)}
-          >
-            Alle
-          </button>
-          {allLabels.map(label => (
-            <button
-              className={cn(
-                "border-2 border-border px-3 py-1.5 font-heading text-sm transition-colors",
-                activeLabel === label
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-foreground hover:bg-secondary-background",
-              )}
-              key={label}
-              onClick={() =>
-                setActiveLabel(activeLabel === label ? null : label)
-              }
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          onChange={value => setActiveLabel(value === "all" ? null : value)}
+          options={[
+            { value: "all", label: "Alle" },
+            ...allLabels.map(label => ({ value: label, label })),
+          ]}
+          value={activeLabel ?? "all"}
+        />
       )}
 
       {filteredSections.map(section => (

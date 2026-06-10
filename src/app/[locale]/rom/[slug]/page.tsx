@@ -1,9 +1,14 @@
-import { ArrowRight, Check, Clock, FileText, Users, X } from "lucide-react"
+import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { type CarouselSlide, ImageCarousel } from "@/features/rooms"
+import { DetailRow } from "@/components/ui/detail-row"
+import { BoolSpec } from "@/components/ui/bool-spec"
+import {
+  type CarouselSlide,
+  BookingButton,
+  ImageCarousel,
+} from "@/features/rooms"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -29,11 +34,6 @@ export async function generateStaticParams() {
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
-
-function localizeHref(href: string, locale: string) {
-  if (!href.startsWith("/")) return href
-  return href === "/" ? `/${locale}` : `/${locale}${href}`
-}
 
 export async function generateMetadata({ params }: RoomPageProps) {
   const { slug, locale: localeParam } = await params
@@ -131,26 +131,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
         <RoomSpecs room={room} />
         <RoomFloorPlan room={room} />
         <RoomOpeningHours room={room} />
-        <RoomBookingButton label={room.bookingLink?.label} locale={locale} />
+        <BookingButton label={room.bookingLink?.label} locale={locale} />
       </div>
     </article>
-  )
-}
-
-function RoomBookingButton({
-  label,
-  locale,
-}: {
-  label?: string | null
-  locale: string
-}) {
-  return (
-    <Button asChild className="w-fit" size="lg">
-      <Link href={localizeHref("/rom/book", locale)}>
-        <ArrowRight aria-hidden />
-        {label ?? "Book rom her"}
-      </Link>
-    </Button>
   )
 }
 
@@ -179,39 +162,35 @@ function RoomSpecs({ room }: RoomSpecsProps) {
       <hr className="border-border" />
       <dl className="max-w-md divide-y divide-border">
         {room.floor != null && (
-          <SpecRow label="Etasje">
-            <dd className="text-sm text-foreground">{room.floor}. etasje</dd>
-          </SpecRow>
+          <DetailRow label="Etasje" layout="labelColumn">
+            {room.floor}. etasje
+          </DetailRow>
         )}
         {room.capacityStanding != null && (
-          <SpecRow label="Stående">
-            <dd className="flex items-center gap-1.5 text-sm text-foreground">
+          <DetailRow label="Stående" layout="labelColumn">
+            <span className="flex items-center gap-1.5">
               <Users aria-hidden className="size-3.5 text-foreground/40" />
               {room.capacityStanding} personer
-            </dd>
-          </SpecRow>
+            </span>
+          </DetailRow>
         )}
         {room.capacitySeated != null && (
-          <SpecRow label="Sittende">
-            <dd className="flex items-center gap-1.5 text-sm text-foreground">
+          <DetailRow label="Sittende" layout="labelColumn">
+            <span className="flex items-center gap-1.5">
               <Users aria-hidden className="size-3.5 text-foreground/40" />
               {room.capacitySeated} personer
-            </dd>
-          </SpecRow>
+            </span>
+          </DetailRow>
         )}
         {room.suitedPurposes?.length ? (
-          <SpecRow label="Passer til">
-            <dd className="text-sm text-foreground">
-              {room.suitedPurposes.join(", ")}
-            </dd>
-          </SpecRow>
+          <DetailRow label="Passer til" layout="labelColumn">
+            {room.suitedPurposes.join(", ")}
+          </DetailRow>
         ) : null}
         {room.bar != null && (
-          <SpecRow label="Bar">
-            <dd className="text-sm text-foreground">
-              {room.bar ? room.bar : "Nei"}
-            </dd>
-          </SpecRow>
+          <DetailRow label="Bar" layout="labelColumn">
+            {room.bar ? room.bar : "Nei"}
+          </DetailRow>
         )}
         {room.hasSound != null && (
           <BoolSpec
@@ -260,42 +239,6 @@ function SpecRow({ children, label }: SpecRowProps) {
       </dt>
       {children}
     </div>
-  )
-}
-
-interface BoolSpecProps {
-  details?: string | null
-  label: string
-  value: boolean
-}
-
-function BoolSpec({ details, label, value }: BoolSpecProps) {
-  return (
-    <SpecRow label={label}>
-      <dd className="text-sm text-foreground">
-        {value ? (
-          <span className="space-y-1">
-            <span className="inline-flex items-center gap-1.5 text-foreground">
-              <Check
-                aria-hidden
-                className="size-4 text-green-700 dark:text-green-400"
-              />
-              Ja
-            </span>
-            {details ? (
-              <span className="block max-w-xs text-foreground/70">
-                {details}
-              </span>
-            ) : null}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-foreground/40">
-            <X aria-hidden className="size-4" />
-            Nei
-          </span>
-        )}
-      </dd>
-    </SpecRow>
   )
 }
 

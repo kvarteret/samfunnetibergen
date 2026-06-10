@@ -96,7 +96,6 @@
     /* ── Extended semantic tokens ── */
     --main: var(--primary);
     --main-foreground: var(--primary-foreground);
-    --secondary-background: var(--cream-200);
 
     /* ── Shadow ── */
     --shadow: 4px 4px 0 0 var(--border);
@@ -137,7 +136,6 @@
   --color-ring:                 var(--ring);
   --color-main:                 var(--main);
   --color-main-foreground:      var(--main-foreground);
-  --color-secondary-background: var(--secondary-background);
 
   --shadow-shadow: var(--shadow);
 
@@ -177,6 +175,20 @@
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0 var(--color-border);
   }
+}
+
+@utility text-eyebrow {
+  font-weight: var(--font-weight-heading);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: color-mix(in oklab, var(--color-foreground) 60%, transparent);
+}
+
+@utility text-body {
+  font-size: var(--text-sm);
+  line-height: calc(1.5 * var(--text-sm));
+  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
 }
 
 /* P3 boost for supported displays */

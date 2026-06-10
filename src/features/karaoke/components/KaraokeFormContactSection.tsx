@@ -1,6 +1,6 @@
 "use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useKaraokeForm } from "./karaokeFormContext"
@@ -15,9 +15,7 @@ export function KaraokeFormContactSection({
   const form = useKaraokeForm()
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="03" title="Kontaktinformasjon" />
-
+    <FormSection number="03" title="Kontaktinformasjon">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup>
           <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
@@ -62,6 +60,6 @@ export function KaraokeFormContactSection({
           value={form.state.values.contactPhone}
         />
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }

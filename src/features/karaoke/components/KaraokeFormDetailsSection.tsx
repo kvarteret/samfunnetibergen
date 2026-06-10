@@ -1,6 +1,10 @@
 "use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import {
+  FieldGroup,
+  SelectField,
+  FormSection,
+} from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -10,7 +14,6 @@ import {
   type KaraokeDerivedState,
 } from "../domain/formState"
 import { useKaraokeForm } from "./karaokeFormContext"
-import { KaraokeSelect } from "./KaraokeFormPrimitives"
 import { KaraokeFormSlotPicker } from "./KaraokeFormSlotPicker"
 
 interface KaraokeFormDetailsSectionProps {
@@ -34,9 +37,7 @@ export function KaraokeFormDetailsSection({
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="01" title="Detaljer" />
-
+    <FormSection number="01" title="Detaljer">
       <FieldGroup>
         <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
         <Input
@@ -51,20 +52,18 @@ export function KaraokeFormDetailsSection({
         />
       </FieldGroup>
 
-      <FieldGroup>
-        <Label htmlFor={`${uid}-duration`}>Varighet</Label>
-        <KaraokeSelect
-          id={`${uid}-duration`}
-          value={String(values.duration)}
-          onChange={value => form.setFieldValue("duration", Number(value))}
-        >
-          {KARAOKE_DURATION_OPTIONS.map(hours => (
-            <option key={hours} value={hours}>
-              {hours} {hours === 1 ? "time" : "timer"}
-            </option>
-          ))}
-        </KaraokeSelect>
-      </FieldGroup>
+      <SelectField
+        id={`${uid}-duration`}
+        label="Varighet"
+        onChange={value => form.setFieldValue("duration", Number(value))}
+        value={String(values.duration)}
+      >
+        {KARAOKE_DURATION_OPTIONS.map(hours => (
+          <option key={hours} value={hours}>
+            {hours} {hours === 1 ? "time" : "timer"}
+          </option>
+        ))}
+      </SelectField>
 
       {today && (
         <FieldGroup>
@@ -92,6 +91,6 @@ export function KaraokeFormDetailsSection({
           )}
         </FieldGroup>
       )}
-    </section>
+    </FormSection>
   )
 }

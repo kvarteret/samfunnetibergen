@@ -1,8 +1,7 @@
 "use client"
 
 import { type UIEvent, useState } from "react"
-import { CheckboxSquare, SectionHeader } from "@/components/ui/form-fields"
-import { cn } from "@/lib/utils"
+import { CheckboxField, FormSection } from "@/components/ui/form-fields"
 import { useBookingForm } from "./bookingFormContext"
 
 const TERMS_URL = "https://kvarteret.no/leie-av-lokaler/"
@@ -18,10 +17,9 @@ export function BookingFormTermsSection() {
   }
 
   return (
-    <section className="space-y-4">
-      <SectionHeader number="08" title="Vilkår" />
+    <FormSection number="08" title="Vilkår">
       <div
-        className="max-w-3xl space-y-3 overflow-y-auto border-2 border-border bg-card p-4 text-sm leading-6 text-foreground/75"
+        className="max-w-3xl space-y-3 overflow-y-auto border-2 border-border bg-card p-4 text-body"
         onScroll={handleScroll}
         style={{ maxHeight: "12rem" }}
       >
@@ -61,23 +59,18 @@ export function BookingFormTermsSection() {
           Bla til bunnen for å bekrefte.
         </p>
       </div>
-      <label
-        className={cn(
-          "group flex max-w-3xl items-start gap-3",
-          hasRead ? "cursor-pointer" : "cursor-not-allowed opacity-60",
+      <form.Field name="acceptTerms">
+        {(field: any) => (
+          <CheckboxField
+            checked={field.state.value as boolean}
+            className="max-w-3xl"
+            disabled={!hasRead}
+            label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
+            labelClassName="font-sans font-base text-foreground/80"
+            onChange={value => hasRead && field.handleChange(value)}
+          />
         )}
-      >
-        <CheckboxSquare
-          checked={form.state.values.acceptTerms}
-          onChange={value =>
-            hasRead && form.setFieldValue("acceptTerms", value)
-          }
-        />
-        <span className="text-sm leading-6 text-foreground/80">
-          Jeg har lest, forstått og godkjenner Det Akademiske Kvarters
-          bookingvilkår.
-        </span>
-      </label>
-    </section>
+      </form.Field>
+    </FormSection>
   )
 }

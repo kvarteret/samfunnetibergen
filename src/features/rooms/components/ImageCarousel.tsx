@@ -1,6 +1,5 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
 
@@ -9,6 +8,8 @@ import {
   type CarouselApi,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel"
 
 type ImageSlide = {
@@ -49,14 +50,10 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
   const allSlides: CarouselSlide[] = slides ?? normalise(images ?? [])
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [canScrollPrev, setCanScrollPrev] = useState(false)
-  const [canScrollNext, setCanScrollNext] = useState(false)
 
   const onSelect = useCallback((api: CarouselApi) => {
     if (!api) return
     setCurrent(api.selectedScrollSnap())
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
   }, [])
 
   useEffect(() => {
@@ -117,24 +114,8 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
 
         {!single && (
           <>
-            <button
-              aria-label="Forrige bilde"
-              className="absolute left-3 top-1/2 -translate-y-1/2 border-2 border-border bg-background/90 p-1.5 shadow-shadow transition-colors disabled:opacity-30 hover:bg-background"
-              disabled={!canScrollPrev}
-              onClick={() => api?.scrollPrev()}
-              type="button"
-            >
-              <ChevronLeft aria-hidden className="size-5 text-foreground" />
-            </button>
-            <button
-              aria-label="Neste bilde"
-              className="absolute right-3 top-1/2 -translate-y-1/2 border-2 border-border bg-background/90 p-1.5 shadow-shadow transition-colors disabled:opacity-30 hover:bg-background"
-              disabled={!canScrollNext}
-              onClick={() => api?.scrollNext()}
-              type="button"
-            >
-              <ChevronRight aria-hidden className="size-5 text-foreground" />
-            </button>
+            <CarouselPrevious className="left-3 rounded-none border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
+            <CarouselNext className="right-3 rounded-none border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
           </>
         )}
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useEventForm } from "./eventFormContext"
@@ -13,9 +13,7 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
   const form = useEventForm()
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="07" title="Lenker" />
-
+    <FormSection number="07" title="Lenker">
       <FieldGroup>
         <Label htmlFor={`${uid}-ticketUrl`}>Billettlenke</Label>
         <Input
@@ -41,6 +39,6 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
           value={form.state.values.facebookUrl}
         />
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { Music2 } from "lucide-react"
-import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import type { AppLocale } from "@/i18n/routing"
@@ -96,9 +96,7 @@ export function HomeBarPreviews({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-          Barer
-        </p>
+        <p className="text-eyebrow text-foreground/50">Barer</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
@@ -141,19 +139,16 @@ function HomeBarPreviewCard({
       href={href}
     >
       <div className="relative min-h-full bg-muted">
-        {imageUrl ? (
-          <Image
-            alt={room.image?.alt ?? room.title ?? "Bar"}
-            className="object-cover"
-            fill
-            sizes="(min-width: 1024px) 25vw, 50vw"
-            src={imageUrl}
-          />
-        ) : (
-          <div className="flex h-full min-h-[15rem] items-center justify-center">
+        <ImageWithFallback
+          alt={room.image?.alt ?? room.title ?? "Bar"}
+          aspectRatio=""
+          className="min-h-full"
+          fallback={
             <Music2 aria-hidden className="size-10 text-foreground/20" />
-          </div>
-        )}
+          }
+          sizes="(min-width: 1024px) 25vw, 50vw"
+          src={imageUrl}
+        />
       </div>
       <div className="flex min-w-0 flex-col justify-between gap-5 p-5">
         <div className="space-y-3">
@@ -225,9 +220,7 @@ function BarPreviewBody({
   }
   if (summary) {
     return (
-      <p className="line-clamp-3 text-sm leading-6 text-foreground/70">
-        {summary}
-      </p>
+      <p className="line-clamp-3 text-body text-foreground/70">{summary}</p>
     )
   }
   return null

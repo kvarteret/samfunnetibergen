@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { formatWeekdays } from "@/lib/opening-hours"
 import type { fetchFooter } from "@/lib/sanity/fetch"
-import { BarOpenStatus } from "@/features/bars"
+import { OpenStatus } from "@/components/ui/open-status"
 
 // ─── App store links ──────────────────────────────────────────────────────────
 
@@ -132,11 +132,7 @@ const PLATFORM_ICONS: Record<string, () => React.ReactElement> = {
 }
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50 mb-3">
-      {children}
-    </p>
-  )
+  return <p className="text-eyebrow text-foreground/50 mb-3">{children}</p>
 }
 
 function SocialColumn({ links }: { links: SocialLink[] }) {
@@ -313,8 +309,8 @@ function OpeningHoursColumn({
               <p className="text-xs font-medium text-foreground/50 uppercase tracking-wide">
                 {room.title}
               </p>
-              <BarOpenStatus
-                hours={room.hours}
+              <OpenStatus
+                rooms={[{ openingHours: room.hours }]}
                 houseClosedDates={houseClosedDates}
               />
             </div>

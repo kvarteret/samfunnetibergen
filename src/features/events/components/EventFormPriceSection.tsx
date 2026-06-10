@@ -1,10 +1,10 @@
 "use client"
 
 import {
-  CheckboxSquare,
+  CheckboxField,
   FieldHint,
   PriceInput,
-  SectionHeader,
+  FormSection,
 } from "@/components/ui/form-fields"
 import { useEventForm } from "./eventFormContext"
 
@@ -17,18 +17,12 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="06" title="Pris" />
-
-      <label className="group flex cursor-pointer items-center gap-3">
-        <CheckboxSquare
-          checked={values.isFree}
-          onChange={v => form.setFieldValue("isFree", v)}
-        />
-        <span className="font-heading text-sm text-foreground">
-          Gratis inngang
-        </span>
-      </label>
+    <FormSection number="06" title="Pris">
+      <CheckboxField
+        checked={values.isFree}
+        label="Gratis inngang"
+        onChange={v => form.setFieldValue("isFree", v)}
+      />
 
       {!values.isFree && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -57,6 +51,6 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
         Alle prisfelt er valgfrie. La dem stå tomme om du er usikker - vi tar
         gjerne kontakt for avklaring.
       </FieldHint>
-    </section>
+    </FormSection>
   )
 }

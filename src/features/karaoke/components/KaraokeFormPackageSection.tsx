@@ -1,17 +1,11 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Card } from "@/components/ui/card"
-import {
-  FieldGroup,
-  FieldHint,
-  SectionHeader,
-} from "@/components/ui/form-fields"
-import { Label } from "@/components/ui/label"
+import { SelectField, FormSection } from "@/components/ui/form-fields"
 import { KARAOKE_PRICING, type KaraokeDerivedState } from "../domain/formState"
 import type { PriceType } from "../types"
 import { useKaraokeForm } from "./karaokeFormContext"
-import { KaraokeSelect } from "./KaraokeFormPrimitives"
 
 interface KaraokeFormPackageSectionProps {
   uid: string
@@ -26,47 +20,22 @@ export function KaraokeFormPackageSection({
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="02" title="Karaokepakke" />
-      <KaraokePriceTypeTabs
-        priceType={values.priceType as PriceType}
+    <FormSection number="02" title="Karaokepakke">
+      <SegmentedControl
         onChange={v => form.setFieldValue("priceType", v)}
+        options={(["ordinær", "student", "frivillig"] as const).map(type => ({
+          value: type,
+          label: type,
+        }))}
+        value={values.priceType as PriceType}
+        variant="fill"
       />
       <KaraokePackageNotice priceType={values.priceType as PriceType} />
       {values.priceType !== "frivillig" && <KaraokePeopleField uid={uid} />}
       {derived.people > 0 && values.priceType !== "frivillig" && (
         <KaraokeTotalPrice derived={derived} />
       )}
-    </section>
-  )
-}
-
-function KaraokePriceTypeTabs({
-  priceType,
-  onChange,
-}: {
-  priceType: PriceType
-  onChange: (value: PriceType) => void
-}) {
-  return (
-    <div className="flex border-2 border-border" role="tablist">
-      {(["ordinær", "student", "frivillig"] as const).map(type => (
-        <button
-          aria-pressed={priceType === type}
-          className={cn(
-            "flex-1 py-2.5 text-sm font-heading uppercase tracking-[0.12em] transition-colors",
-            priceType === type
-              ? "bg-primary text-primary-foreground"
-              : "text-foreground/60 hover:bg-muted hover:text-foreground",
-          )}
-          key={type}
-          onClick={() => onChange(type)}
-          type="button"
-        >
-          {type}
-        </button>
-      ))}
-    </div>
+    </FormSection>
   )
 }
 
@@ -105,24 +74,20 @@ function KaraokePeopleField({ uid }: { uid: string }) {
   const values = form.state.values
 
   return (
-    <FieldGroup>
-      <Label htmlFor={`${uid}-people`}>Antall personer *</Label>
-      <KaraokeSelect
-        id={`${uid}-people`}
-        value={values.numberOfPeople}
-        onChange={v => form.setFieldValue("numberOfPeople", v)}
-      >
-        {Array.from({ length: 25 }, (_, index) => index + 1).map(count => (
-          <option key={count} value={count}>
-            {count} {count === 1 ? "person" : "personer"}
-          </option>
-        ))}
-      </KaraokeSelect>
-      <FieldHint>
-        Minimumspris er{" "}
-        {KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per time.
-      </FieldHint>
-    </FieldGroup>
+    <SelectField
+      className="max-w-[180px]"
+      hint={`Minimumspris er ${KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per time.`}
+      id={`${uid}-people`}
+      label="Antall personer *"
+      onChange={v => form.setFieldValue("numberOfPeople", v)}
+      value={values.numberOfPeople}
+    >
+      {Array.from({ length: 25 }, (_, index) => index + 1).map(count => (
+        <option key={count} value={count}>
+          {count} {count === 1 ? "person" : "personer"}
+        </option>
+      ))}
+    </SelectField>
   )
 }
 

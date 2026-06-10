@@ -9,8 +9,10 @@ import {
 import Image from "next/image"
 
 import { Surface } from "@/components/ui/surface"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { RoomCapacity } from "@/components/ui/room-capacity"
 
-import { Button } from "@/components/ui/button"
+import { BookingButton } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
@@ -77,17 +79,6 @@ function InlineContentLink({ link }: { link: ContentLink }) {
   )
 }
 
-function BookingButton({ label }: { label?: string | null }) {
-  return (
-    <Button asChild className="w-fit lg:justify-self-end" size="lg">
-      <Link href="/rom/book">
-        <ArrowRight aria-hidden="true" />
-        {label ?? "Book rom her"}
-      </Link>
-    </Button>
-  )
-}
-
 function RoomImage({
   image,
   title,
@@ -97,24 +88,18 @@ function RoomImage({
 }) {
   const src = imageUrl(image)
 
-  if (!src) {
-    return (
-      <div className="flex aspect-[16/10] items-center justify-center bg-muted p-6 text-center font-heading text-2xl text-foreground/50">
-        {title}
-      </div>
-    )
-  }
-
   return (
-    <div className="relative aspect-[16/10] overflow-hidden">
-      <Image
-        alt={image?.alt || title}
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 50vw"
-        src={src}
-      />
-    </div>
+    <ImageWithFallback
+      alt={image?.alt || title}
+      aspectRatio="16/10"
+      fallback={
+        <span className="p-6 text-center font-heading text-2xl text-foreground/50">
+          {title}
+        </span>
+      }
+      sizes="(max-width: 768px) 100vw, 50vw"
+      src={src}
+    />
   )
 }
 
@@ -161,9 +146,7 @@ function ServicesSection() {
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
               <h3 className="font-heading text-xl text-foreground">{title}</h3>
-              <p className="text-sm leading-6 text-foreground/70">
-                {description}
-              </p>
+              <p className="text-body text-foreground/70">{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
               Les mer
@@ -229,7 +212,11 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             </p>
           ) : null}
         </div>
-        <BookingButton label={content?.bookingLink?.label} />
+        <BookingButton
+          className="lg:justify-self-end"
+          label={content?.bookingLink?.label}
+          locale={locale}
+        />
       </header>
 
       {howToSection ? <HowToSection section={howToSection} /> : null}
@@ -306,7 +293,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                   {section.title}
                 </h2>
               ) : null}
-              <div className="space-y-2 text-sm leading-6 text-foreground/80">
+              <div className="space-y-2 text-body text-foreground/80">
                 {section.paragraphs?.map((paragraph: string) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}

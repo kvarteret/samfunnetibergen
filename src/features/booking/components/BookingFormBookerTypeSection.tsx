@@ -3,11 +3,11 @@
 
 import { useId } from "react"
 import { Building2, User, Users, type LucideIcon } from "lucide-react"
-import { FieldGroup, SectionHeader } from "@/components/ui/form-fields"
+import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { BookerType } from "../domain/formState"
-import { BookingSelectableCard } from "./BookingFormPrimitives"
+import { SelectableCard } from "@/components/ui/selectable-card"
 import { useBookingForm } from "./bookingFormContext"
 
 const BOOKER_OPTIONS: Array<{
@@ -45,14 +45,13 @@ export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionPro
   const bookerType = form.state.values.bookerType as BookerType
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="01" title="Hvem booker" />
+    <FormSection number="01" title="Hvem booker">
       <div className="grid gap-3 md:grid-cols-3">
         {BOOKER_OPTIONS.map(option => (
-          <BookingSelectableCard
+          <SelectableCard
             key={option.type}
-            selected={bookerType === option.type}
             onSelect={() => form.setFieldValue("bookerType", option.type)}
+            selected={bookerType === option.type}
           >
             <span className="flex items-center gap-2 font-heading text-foreground">
               <option.icon aria-hidden className="size-4 text-primary" />
@@ -61,7 +60,7 @@ export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionPro
             <span className="text-sm leading-5 text-foreground/65">
               {option.hint}
             </span>
-          </BookingSelectableCard>
+          </SelectableCard>
         ))}
       </div>
       <form.Subscribe selector={(s: any) => s.values.bookerType}>
@@ -85,6 +84,6 @@ export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionPro
           ) : null
         }
       </form.Subscribe>
-    </section>
+    </FormSection>
   )
 }

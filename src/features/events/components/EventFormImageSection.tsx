@@ -1,13 +1,10 @@
 "use client"
 
-import { Check, Loader2, Trash2, Upload } from "lucide-react"
+import { Check, Loader2, Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
-import {
-  FieldGroup,
-  FieldHint,
-  SectionHeader,
-} from "@/components/ui/form-fields"
+import { FieldGroup, FieldHint, FormSection } from "@/components/ui/form-fields"
+import { ImageDropzone } from "@/components/ui/image-dropzone"
 import { formatEventImageMaxSize } from "../domain/imageUpload"
 
 interface EventFormImageSectionProps {
@@ -28,9 +25,7 @@ export function EventFormImageSection({
   onRemoveImage,
 }: EventFormImageSectionProps) {
   return (
-    <section className="space-y-6">
-      <SectionHeader number="02" title="Bilde" />
-
+    <FormSection number="02" title="Bilde">
       <FieldGroup>
         <FieldHint>
           JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
@@ -46,10 +41,10 @@ export function EventFormImageSection({
             onRemoveImage={onRemoveImage}
           />
         ) : (
-          <ImageUploadDropzone onImageChange={onImageChange} />
+          <ImageDropzone onImageChange={onImageChange} />
         )}
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }
 
@@ -101,26 +96,5 @@ function UploadedImagePreview({
         Fjern bilde
       </button>
     </div>
-  )
-}
-
-interface ImageUploadDropzoneProps {
-  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
-}
-
-function ImageUploadDropzone({ onImageChange }: ImageUploadDropzoneProps) {
-  return (
-    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40">
-      <input
-        accept="image/jpeg,image/png,image/webp"
-        className="sr-only"
-        onChange={onImageChange}
-        type="file"
-      />
-      <Upload aria-hidden className="size-7 text-foreground/30" />
-      <span className="text-sm text-foreground/50">
-        Klikk for å velge bilde
-      </span>
-    </label>
   )
 }

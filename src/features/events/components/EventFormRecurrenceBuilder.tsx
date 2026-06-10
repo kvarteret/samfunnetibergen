@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { RRule } from "rrule"
 
 import { cn } from "@/lib/utils"
+import { SegmentedControl } from "@/components/ui/segmented-control"
+import { ToggleGroup } from "@/components/ui/toggle-group"
 
 type Frequency = "WEEKLY" | "MONTHLY" | "DAILY"
 type EndType = "count" | "until" | "never"
@@ -73,31 +75,35 @@ export function EventFormRecurrenceBuilder({
     }
   }, [recurrence, onChange])
 
-  const toggleWeekday = (index: number) => {
-    setWeekdays(previousWeekdays =>
-      previousWeekdays.includes(index)
-        ? previousWeekdays.filter(day => day !== index)
-        : [...previousWeekdays, index],
-    )
-  }
-
   return (
     <div className="space-y-5 border-2 border-border bg-secondary/10 p-6">
       <RecurrenceHeader />
-      <RecurrenceFrequencyField
-        frequency={frequency}
-        onFrequencyChange={setFrequency}
-      />
+      <fieldset className="space-y-2">
+        <legend className="text-sm text-foreground/70">Gjentas</legend>
+        <SegmentedControl
+          onChange={setFrequency}
+          options={frequencyOptions}
+          value={frequency}
+        />
+      </fieldset>
       <RecurrenceIntervalField
         frequency={frequency}
         interval={interval}
         onIntervalChange={setInterval}
       />
       {frequency === "WEEKLY" && (
-        <RecurrenceWeekdayField
-          selectedWeekdays={weekdays}
-          onWeekdayToggle={toggleWeekday}
-        />
+        <fieldset className="space-y-2">
+          <legend className="text-sm text-foreground/70">Dager</legend>
+          <ToggleGroup
+            onChange={values => setWeekdays(values.map(Number))}
+            options={weekdayOptions.map((day, i) => ({
+              value: String(i),
+              label: day.label,
+            }))}
+            size="sm"
+            value={weekdays.map(String)}
+          />
+        </fieldset>
       )}
       <RecurrenceEndField
         count={count}
@@ -187,39 +193,6 @@ function RecurrenceHeader() {
   )
 }
 
-interface RecurrenceFrequencyFieldProps {
-  frequency: Frequency
-  onFrequencyChange: (frequency: Frequency) => void
-}
-
-function RecurrenceFrequencyField({
-  frequency,
-  onFrequencyChange,
-}: RecurrenceFrequencyFieldProps) {
-  return (
-    <fieldset className="space-y-2">
-      <legend className="text-sm text-foreground/70">Gjentas</legend>
-      <div className="flex flex-wrap gap-2">
-        {frequencyOptions.map(option => (
-          <button
-            className={cn(
-              "border-2 border-border px-3 py-1.5 text-sm font-heading transition-colors",
-              frequency === option.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-background text-foreground hover:bg-muted",
-            )}
-            key={option.value}
-            onClick={() => onFrequencyChange(option.value)}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  )
-}
-
 interface RecurrenceIntervalFieldProps {
   frequency: Frequency
   interval: number
@@ -261,39 +234,6 @@ function getFrequencyUnitLabel(frequency: Frequency): string {
   }
 
   return "uke"
-}
-
-interface RecurrenceWeekdayFieldProps {
-  selectedWeekdays: number[]
-  onWeekdayToggle: (index: number) => void
-}
-
-function RecurrenceWeekdayField({
-  selectedWeekdays,
-  onWeekdayToggle,
-}: RecurrenceWeekdayFieldProps) {
-  return (
-    <fieldset className="space-y-2">
-      <legend className="text-sm text-foreground/70">Dager</legend>
-      <div className="flex flex-wrap gap-1.5">
-        {weekdayOptions.map((day, index) => (
-          <button
-            className={cn(
-              "size-10 border-2 border-border text-sm font-heading transition-colors",
-              selectedWeekdays.includes(index)
-                ? "bg-primary text-primary-foreground"
-                : "bg-background text-foreground hover:bg-muted",
-            )}
-            key={day.label}
-            onClick={() => onWeekdayToggle(index)}
-            type="button"
-          >
-            {day.label}
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  )
 }
 
 interface RecurrenceEndFieldProps {

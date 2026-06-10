@@ -1,15 +1,16 @@
 "use client"
 
 import {
-  CheckboxSquare,
+  CheckboxField,
+  FormSection,
   FieldGroup,
   FieldHint,
-  SectionHeader,
   SelectField,
   type SelectOption,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormDetailsSectionProps {
@@ -25,9 +26,7 @@ export function EventFormDetailsSection({
   const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="01" title="Om arrangementet" />
-
+    <FormSection number="01" title="Om arrangementet">
       <FieldGroup>
         <Label htmlFor={`${uid}-title`}>Tittel *</Label>
         <Input
@@ -46,8 +45,8 @@ export function EventFormDetailsSection({
           Fortell gjerne om hva som skjer, hvem som opptrer, og hva folk kan
           vente seg.
         </FieldHint>
-        <textarea
-          className="w-full resize-y border-2 border-border bg-background px-3 py-2 text-sm font-base text-foreground placeholder:text-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <Textarea
+          className="resize-y"
           id={`${uid}-description`}
           onChange={event =>
             form.setFieldValue("description", event.target.value)
@@ -67,20 +66,12 @@ export function EventFormDetailsSection({
         value={values.eventTypeId}
       />
 
-      <label className="group flex cursor-pointer items-start gap-3">
-        <CheckboxSquare
-          checked={values.isInternalEvent}
-          onChange={v => form.setFieldValue("isInternalEvent", v)}
-        />
-        <span>
-          <span className="block font-heading text-sm text-foreground">
-            Internarrangement
-          </span>
-          <span className="mt-0.5 block text-xs text-foreground/55">
-            Arrangementet er kun tilgjengelig for frivillige.
-          </span>
-        </span>
-      </label>
-    </section>
+      <CheckboxField
+        checked={values.isInternalEvent}
+        hint="Arrangementet er kun tilgjengelig for frivillige."
+        label="Internarrangement"
+        onChange={v => form.setFieldValue("isInternalEvent", v)}
+      />
+    </FormSection>
   )
 }

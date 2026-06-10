@@ -67,7 +67,7 @@ export function EventsPageSections() {
   const { filteredEvents } = useEvents()
 
   if (filteredEvents.length === 0) {
-    return <p className="text-sm leading-6 text-foreground/75">{t("empty")}</p>
+    return <p className="text-body">{t("empty")}</p>
   }
 
   return (

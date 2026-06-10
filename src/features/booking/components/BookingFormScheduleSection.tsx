@@ -1,31 +1,38 @@
 "use client"
 
 import { useId, useMemo } from "react"
+import { Building2, CalendarClock, Check } from "lucide-react"
 
 import { useBookingForm } from "./bookingFormContext"
 import {
-  CheckboxSquare,
+  CheckboxField,
   FieldGroup,
   FieldHint,
-  SectionHeader,
+  FormSection,
 } from "@/components/ui/form-fields"
+import { Card } from "@/components/ui/card"
+import { DateScroller } from "@/components/ui/date-scroller"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
+import { RoomCapacity } from "@/components/ui/room-capacity"
+import { SelectableCard } from "@/components/ui/selectable-card"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
+  buildDateSequence,
   combinedSlotRangesForDate,
   hasOpeningHoursRows,
   isoDate,
   type OpeningHours,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
-import { durationHoursBetween, overlaps } from "../domain/availability"
+import {
+  durationHoursBetween,
+  formatBookingTime,
+  overlaps,
+} from "../domain/availability"
 import { isExternalBooker } from "../domain/formState"
 import type { BookingRoom } from "../types"
-import {
-  BookingRoomAvailability,
-  BookingRoomPicker,
-} from "./BookingFormPrimitives"
 import { BookingFormTimeSlotPicker } from "./BookingFormTimeSlotPicker"
 
 const DATE_COUNT = 7
@@ -62,16 +69,67 @@ export function BookingFormScheduleSection({
       ? durationHoursBetween(values.startTime, values.endTime)
       : 1
 
+  const today = useMemo(() => isoDate(new Date()), [])
+  const dates = useMemo(() => buildDateSequence(today, DATE_COUNT), [today])
+
   return (
-    <section className="space-y-6">
-      <SectionHeader number="02" title="Rom og tidspunkt" />
+    <FormSection number="02" title="Rom og tidspunkt">
       {rooms.length > 0 ? (
-        <BookingRoomPicker
-          occupiedSlugs={occupiedSlugs}
-          onChange={v => form.setFieldValue("roomSlug", v)}
-          rooms={rooms}
-          selectedSlug={values.roomSlug}
-        />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {rooms.map(room => {
+            const selected = values.roomSlug === room.slug
+            const occupied = occupiedSlugs.has(room.slug)
+            return (
+              <SelectableCard
+                className="hover:border-primary"
+                disabled={occupied}
+                image={
+                  <div className="relative aspect-[16/9] bg-muted">
+                    <ImageWithFallback
+                      alt={room.image?.alt ?? room.title ?? room.slug}
+                      fallback={
+                        <Building2
+                          aria-hidden
+                          className="size-8 text-foreground/30"
+                        />
+                      }
+                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+                      src={room.image?.assetUrl}
+                    />
+                    {selected && !occupied && (
+                      <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
+                        <Check aria-hidden className="size-4" />
+                      </span>
+                    )}
+                    {occupied && (
+                      <span className="absolute left-3 top-3 bg-foreground px-2 py-1 text-eyebrow text-background">
+                        Opptatt
+                      </span>
+                    )}
+                  </div>
+                }
+                key={room.slug}
+                onSelect={() => form.setFieldValue("roomSlug", room.slug)}
+                selected={selected}
+              >
+                <p className="font-heading text-lg text-foreground">
+                  {room.title ?? room.slug}
+                </p>
+                {room.summary && (
+                  <p className="line-clamp-2 text-sm leading-5 text-foreground/65">
+                    {room.summary}
+                  </p>
+                )}
+                <p className="text-xs text-foreground/50">
+                  <RoomCapacity
+                    seated={room.capacitySeated}
+                    standing={room.capacityStanding}
+                  />
+                </p>
+              </SelectableCard>
+            )
+          })}
+        </div>
       ) : (
         <FieldHint>
           Ingen rom er tilgjengelige for booking akkurat nå.
@@ -81,15 +139,30 @@ export function BookingFormScheduleSection({
       <div className="max-w-3xl space-y-4">
         <FieldGroup>
           <Label>Dato *</Label>
-          <BookingAvailableDatePicker
-            bookings={roomBookings}
-            closedDates={closedDates}
-            durationHours={durationHours}
-            onChange={v => form.setFieldValue("startDate", v)}
-            openingHours={openingHours}
-            room={selectedRoom}
-            selectedDate={values.startDate}
-          />
+          {selectedRoom ? (
+            <DateScroller
+              dates={dates}
+              getDateState={date =>
+                date === values.startDate
+                  ? "selected"
+                  : dateHasAvailableRoomSlot(
+                        date,
+                        durationHours,
+                        roomBookings,
+                        openingHours,
+                        selectedRoom.openingHours,
+                        closedDates,
+                      )
+                    ? "available"
+                    : "unavailable"
+              }
+              onChange={v => form.setFieldValue("startDate", v)}
+              selectedDate={values.startDate}
+              today={today}
+            />
+          ) : (
+            <FieldHint>Velg et rom for å se ledige dager.</FieldHint>
+          )}
         </FieldGroup>
         <BookingFormTimeSlotPicker
           closedDates={closedDates}
@@ -107,114 +180,58 @@ export function BookingFormScheduleSection({
       </div>
 
       {isExternalBooker(values.bookerType) && (
-        <label className="group flex max-w-3xl cursor-pointer items-start gap-3">
-          <CheckboxSquare
-            checked={values.flexibleDates}
-            onChange={v => form.setFieldValue("flexibleDates", v)}
-          />
-          <span className="text-sm leading-6 text-foreground/80">
-            Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt
-            eller rom hvis dette passer bedre.
-          </span>
-        </label>
+        <form.Field name="flexibleDates">
+          {(field: any) => (
+            <CheckboxField
+              checked={field.state.value as boolean}
+              className="max-w-3xl"
+              label="Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre."
+              labelClassName="font-sans font-base text-foreground/80"
+              onChange={field.handleChange}
+            />
+          )}
+        </form.Field>
       )}
 
       {selectedRoomTitle && values.startDate && (
-        <BookingRoomAvailability
-          bookings={selectedDateRoomBookings}
-          hasConflict={hasConflict}
-          roomTitle={selectedRoomTitle}
-        />
+        <Card
+          className={cn(
+            "max-w-3xl gap-2 p-4",
+            hasConflict && "border-destructive bg-destructive/10",
+          )}
+        >
+          <p className="flex items-center gap-2 font-heading text-sm text-foreground">
+            <CalendarClock aria-hidden className="size-4 text-primary" />
+            {selectedRoomTitle} – opptatt denne dagen
+          </p>
+          {selectedDateRoomBookings.length === 0 ? (
+            <p className="text-sm text-foreground/60">
+              Ingen registrerte bookinger denne dagen.
+            </p>
+          ) : (
+            <ul className="space-y-1 text-sm text-body">
+              {selectedDateRoomBookings.map(booking => (
+                <li key={booking.id} className="flex justify-between gap-4">
+                  <span className="font-heading">
+                    {formatBookingTime(booking.start)}–
+                    {formatBookingTime(booking.end)}
+                  </span>
+                  <span className="truncate text-foreground/55">
+                    {booking.title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {hasConflict && (
+            <p className="text-sm font-heading text-destructive">
+              Valgt tidsrom overlapper en eksisterende booking. Velg et annet
+              tidspunkt.
+            </p>
+          )}
+        </Card>
       )}
-    </section>
-  )
-}
-
-// ─── BookingAvailableDatePicker ──────────────────────────────────────────────
-
-interface BookingAvailableDatePickerProps {
-  bookings: CresatBooking[]
-  closedDates: ClosedDate[]
-  durationHours: number
-  openingHours: OpeningHours | null
-  room?: BookingRoom
-  selectedDate: string
-  onChange: (date: string) => void
-}
-
-function BookingAvailableDatePicker({
-  bookings,
-  closedDates,
-  durationHours,
-  openingHours,
-  room,
-  selectedDate,
-  onChange,
-}: BookingAvailableDatePickerProps) {
-  const today = useMemo(() => isoDate(new Date()), [])
-  const dates = useMemo(
-    () =>
-      Array.from({ length: DATE_COUNT }, (_, index) => {
-        const date = new Date(today)
-        date.setDate(date.getDate() + index)
-        return isoDate(date)
-      }),
-    [today],
-  )
-
-  if (!room) {
-    return <FieldHint>Velg et rom for å se ledige dager.</FieldHint>
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <div className="flex min-w-max gap-1.5 pb-1">
-        {dates.map(date => {
-          const available = dateHasAvailableRoomSlot(
-            date,
-            durationHours,
-            bookings,
-            openingHours,
-            room.openingHours,
-            closedDates,
-          )
-          const isSelected = date === selectedDate
-          const d = new Date(date)
-          const weekday = d.toLocaleDateString("nb-NO", { weekday: "short" })
-          const day = d.getDate()
-          const month = d
-            .toLocaleDateString("nb-NO", { month: "short" })
-            .replace(".", "")
-
-          const slotClass = cn(
-            "flex min-w-[52px] shrink-0 flex-col items-center gap-0.5 border-2 px-2.5 py-2 transition-colors",
-            isSelected && "border-primary bg-primary text-primary-foreground",
-            !isSelected &&
-              available &&
-              "cursor-pointer border-border hover:bg-muted",
-            !isSelected &&
-              !available &&
-              "cursor-not-allowed border-border/30 text-foreground/25",
-          )
-
-          return (
-            <button
-              key={date}
-              className={slotClass}
-              disabled={!available}
-              onClick={() => onChange(date)}
-              type="button"
-            >
-              <span className="text-[10px] uppercase tracking-widest">
-                {weekday}
-              </span>
-              <span className="font-heading text-base leading-none">{day}</span>
-              <span className="text-[10px]">{month}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
+    </FormSection>
   )
 }
 

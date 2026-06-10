@@ -1,8 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
-
 import { Card } from "@/components/ui/card"
+import { DetailRow } from "@/components/ui/detail-row"
 import {
   formatKaraokeDate,
   type KaraokeDerivedState,
@@ -21,44 +20,38 @@ export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
-      <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-        Bestillingsoversikt
-      </p>
+      <p className="text-eyebrow">Bestillingsoversikt</p>
       {isEmpty ? (
         <p className="text-sm text-foreground/40 italic">
           Fyll ut skjemaet for å se en oversikt.
         </p>
       ) : (
         <div className="space-y-2 text-sm">
-          {values.eventName && (
-            <KaraokeSummaryRow label="Arrangement">
-              {values.eventName}
-            </KaraokeSummaryRow>
-          )}
-          <KaraokeSummaryRow label="Rom">Maos Lille Røde</KaraokeSummaryRow>
+          <DetailRow label="Arrangement">{values.eventName}</DetailRow>
+          <DetailRow label="Rom">Maos Lille Røde</DetailRow>
           {values.startDate && (
-            <KaraokeSummaryRow label="Dato">
+            <DetailRow label="Dato">
               <span className="capitalize">
                 {formatKaraokeDate(values.startDate)}
               </span>
-            </KaraokeSummaryRow>
+            </DetailRow>
           )}
           {derived.startTime && (
-            <KaraokeSummaryRow label="Tid">
+            <DetailRow label="Tid">
               {derived.startTime}
               {derived.endTime && ` → ${derived.endTime}`}
-            </KaraokeSummaryRow>
+            </DetailRow>
           )}
-          <KaraokeSummaryRow label="Varighet">
+          <DetailRow label="Varighet">
             {values.duration} {values.duration === 1 ? "time" : "timer"}
-          </KaraokeSummaryRow>
-          <KaraokeSummaryRow label="Pakke">
+          </DetailRow>
+          <DetailRow label="Pakke">
             <span className="capitalize">{values.priceType as string}</span>
-          </KaraokeSummaryRow>
+          </DetailRow>
           {derived.people > 0 && (
-            <KaraokeSummaryRow label="Antall">
+            <DetailRow label="Antall">
               {derived.people} {derived.people === 1 ? "person" : "personer"}
-            </KaraokeSummaryRow>
+            </DetailRow>
           )}
           <KaraokePriceSummary
             priceType={values.priceType as PriceType}
@@ -68,21 +61,6 @@ export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
         </div>
       )}
     </Card>
-  )
-}
-
-function KaraokeSummaryRow({
-  label,
-  children,
-}: {
-  label: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-foreground/60 shrink-0">{label}</span>
-      <span className="font-heading text-right truncate">{children}</span>
-    </div>
   )
 }
 
