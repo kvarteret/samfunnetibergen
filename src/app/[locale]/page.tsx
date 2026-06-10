@@ -3,8 +3,6 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { OpenStatus } from "@/components/ui/open-status"
-
-import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { EventCard, type EventSummary } from "@/features/events"
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -18,6 +16,7 @@ import {
   fetchPublishedEvents,
   fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
+import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()

@@ -3,10 +3,9 @@
 import { ArrowRight, Mail } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
-
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Link } from "@/i18n/navigation"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"
-import { SegmentedControl } from "@/components/ui/segmented-control"
 
 type GroupSection = {
   title: string

@@ -2,11 +2,11 @@ import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { DetailRow } from "@/components/ui/detail-row"
 import { BoolSpec } from "@/components/ui/bool-spec"
+import { DetailRow } from "@/components/ui/detail-row"
 import {
-  type CarouselSlide,
   BookingButton,
+  type CarouselSlide,
   ImageCarousel,
 } from "@/features/rooms"
 import {
@@ -223,22 +223,6 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         </a>
       )}
     </section>
-  )
-}
-
-interface SpecRowProps {
-  children: React.ReactNode
-  label: string
-}
-
-function SpecRow({ children, label }: SpecRowProps) {
-  return (
-    <div className="flex gap-8 py-3">
-      <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-        {label}
-      </dt>
-      {children}
-    </div>
   )
 }
 

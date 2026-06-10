@@ -48,7 +48,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
       <button
         aria-expanded={open}
         aria-label={open ? "Lukk meny" : "Åpne meny"}
-        className="relative p-2 lg:hidden"
+        className="relative p-3 lg:hidden"
         onClick={() => setOpen(v => !v)}
         type="button"
       >
@@ -103,7 +103,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 </Link>
                 <button
                   aria-label="Lukk meny"
-                  className="p-2 text-foreground"
+                  className="p-3 text-foreground"
                   onClick={close}
                   type="button"
                 >

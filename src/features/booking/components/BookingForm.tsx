@@ -3,10 +3,6 @@
 import { useForm } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
 import { type FormEvent, useEffect, useMemo, useState } from "react"
-
-import { BookingFormContext } from "./bookingFormContext"
-import { fetchRoomAvailability } from "../actions/room-availability"
-import { submitRoomBooking } from "../actions/submit-room-booking"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -18,6 +14,8 @@ import {
   isSlotAllowedForCombinedHours,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import { fetchRoomAvailability } from "../actions/room-availability"
+import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
   durationHoursBetween,
   isRoomOccupied,
@@ -30,15 +28,16 @@ import {
   initialBookingState,
 } from "../domain/formState"
 import type { BookingRoom } from "../types"
-import { BookingFormOrderSummary } from "./BookingFormOrderSummary"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
 import { BookingFormEventDetailsSection } from "./BookingFormEventDetailsSection"
 import { BookingFormNeedsSection } from "./BookingFormNeedsSection"
+import { BookingFormOrderSummary } from "./BookingFormOrderSummary"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormTermsSection } from "./BookingFormTermsSection"
 import { BookingFormTicketSection } from "./BookingFormTicketSection"
+import { BookingFormContext } from "./bookingFormContext"
 
 // TODO: resolve form type when @tanstack/react-form stabilizes
 export type BookingFormValues = typeof initialBookingState & {
@@ -216,6 +215,7 @@ export function BookingForm({
           <BookingFormScheduleSection
             rooms={rooms}
             selectedRoom={selectedRoom}
+            selectedRoomTitle={selectedRoom?.title ?? undefined}
             roomBookings={roomBookings}
             selectedDateRoomBookings={selectedDateRoomBookings}
             occupiedSlugs={occupiedSlugs}

@@ -73,7 +73,7 @@ export function Navbar({ navbar }: NavbarProps) {
 function DesktopNav({ items }: { items: NavItem[] }) {
   return (
     <NavigationMenu className="hidden lg:flex">
-      <NavigationMenuList className="gap-7">
+      <NavigationMenuList>
         {items.map(item => (
           <DesktopNavItem item={item} key={item._key} />
         ))}
@@ -157,7 +157,7 @@ function NavLink({
   children: React.ReactNode
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const cls =
-    "relative px-0.5 py-1 font-heading text-sm text-foreground after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full"
+    "relative flex items-center px-3 py-2.5 font-heading text-sm text-foreground"
 
   return external ? (
     <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>

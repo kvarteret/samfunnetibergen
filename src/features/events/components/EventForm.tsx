@@ -1,5 +1,6 @@
 "use client"
 
+import { useForm } from "@tanstack/react-form"
 import {
   type ChangeEvent,
   type FormEvent,
@@ -10,8 +11,6 @@ import {
   useState,
 } from "react"
 
-import { useForm } from "@tanstack/react-form"
-
 import {
   submitEvent,
   uploadEventImage,
@@ -19,23 +18,23 @@ import {
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
   buildPreviewEvent,
-  initialState,
   type FormState,
+  initialState,
 } from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
+import { EventFormActions } from "./EventFormActions"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
 import { EventFormLinksSection } from "./EventFormLinksSection"
-import { EventFormPreview } from "./EventFormPreview"
 import { EventFormOrganizerSection } from "./EventFormOrganizerSection"
 import { EventFormPlaceSection } from "./EventFormPlaceSection"
+import { EventFormPreview } from "./EventFormPreview"
 import { EventFormPriceSection } from "./EventFormPriceSection"
 import { EventFormScheduleSection } from "./EventFormScheduleSection"
-import { EventFormActions } from "./EventFormActions"
 import { EventFormSubmitterSection } from "./EventFormSubmitterSection"
 import { EventFormContext } from "./eventFormContext"
 
@@ -51,6 +50,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const [imageAssetId, setImageAssetId] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUploadError, setImageUploadError] = useState("")
+  const [datesError, setDatesError] = useState("")
+  const [submitError, setSubmitError] = useState("")
 
   const form = useForm({
     defaultValues: initialState as FormState,
@@ -230,10 +231,30 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
+            setDatesError("")
+            setSubmitError("")
+
+            const values = form.state.values
+            if (!values.title.trim()) {
+              setSubmitError("Tittel er påkrevd.")
+              return
+            }
+            if (!values.submittedBy.trim()) {
+              setSubmitError("Kontaktperson er påkrevd.")
+              return
+            }
             if (
-              form.state.values.dates.every(date => !date.startDate) ||
-              imageUploading
+              !values.submittedByEmail.trim() ||
+              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.submittedByEmail)
             ) {
+              setSubmitError("Gyldig e-postadresse er påkrevd.")
+              return
+            }
+            if (values.dates.every(date => !date.startDate)) {
+              setDatesError("Minst én dato må fylles ut.")
+              return
+            }
+            if (imageUploading) {
               return
             }
             form.handleSubmit()
@@ -257,7 +278,10 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
           <EventFormSubmitterSection uid={uid} />
-          <EventFormActions imageUploading={imageUploading} />
+          <EventFormActions
+            formError={submitError || datesError}
+            imageUploading={imageUploading}
+          />
         </form>
 
         <EventFormPreview event={previewEvent} />

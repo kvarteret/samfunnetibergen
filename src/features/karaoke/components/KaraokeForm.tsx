@@ -3,9 +3,6 @@
 import { useForm } from "@tanstack/react-form"
 import type { FormEvent } from "react"
 import { useEffect, useId, useMemo, useState } from "react"
-
-import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
-import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -13,6 +10,8 @@ import {
   type OpeningHours,
   slotRangesForDate,
 } from "@/lib/opening-hours"
+import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
+import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
@@ -25,17 +24,17 @@ import {
   type KaraokeFormState,
 } from "../domain/formState"
 import type { KaraokeRoom } from "../types"
-import { KaraokeFormContext } from "./karaokeFormContext"
-import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
-import { KaraokeFormPackageSection } from "./KaraokeFormPackageSection"
 import { KaraokeFormContactSection } from "./KaraokeFormContactSection"
-import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
-import {
-  KaraokeFormSubmitSection,
-  KaraokeBookingSuccess,
-} from "./KaraokeFormSubmitSection"
+import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
 import { KaraokeOrderPreview } from "./KaraokeFormOrderSummary"
+import { KaraokeFormPackageSection } from "./KaraokeFormPackageSection"
 import { KaraokeFormRoomCard } from "./KaraokeFormRoomCard"
+import {
+  KaraokeBookingSuccess,
+  KaraokeFormSubmitSection,
+} from "./KaraokeFormSubmitSection"
+import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
+import { KaraokeFormContext } from "./karaokeFormContext"
 
 interface KaraokeFormProps {
   room: KaraokeRoom

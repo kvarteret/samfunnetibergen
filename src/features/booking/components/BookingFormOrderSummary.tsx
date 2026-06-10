@@ -1,9 +1,7 @@
 import { CalendarClock, DoorOpen, MapPin, Users } from "lucide-react"
-
-import { Surface } from "@/components/ui/surface"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { DetailRow } from "@/components/ui/detail-row"
-import { RoomCapacity } from "@/components/ui/room-capacity"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { Surface } from "@/components/ui/surface"
 
 import {
   type BookerType,

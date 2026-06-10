@@ -4,13 +4,12 @@ import { Loader2, Mic, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import type { PriceType } from "../types"
+import { canSubmitKaraokeBooking } from "../domain/formState"
 import { useKaraokeForm } from "./karaokeFormContext"
 
 export function KaraokeFormSubmitSection() {
   const form = useKaraokeForm()
   const values = form.state.values
-  const priceType = values.priceType as PriceType
   const isPending = form.state.isSubmitting
   const submitError = form.state.errorMap.onSubmit
 
@@ -24,18 +23,14 @@ export function KaraokeFormSubmitSection() {
               Det oppstod en feil
             </p>
             <p className="mt-0.5 text-sm text-foreground/70">
-              {submitError.message}
+              {String(submitError)}
             </p>
           </div>
         </div>
       )}
       <Button
         className="w-full sm:w-auto"
-        disabled={
-          isPending ||
-          !values.acceptTerms ||
-          (priceType === "student" && !values.studentProofAccepted)
-        }
+        disabled={isPending || !canSubmitKaraokeBooking(values)}
         size="lg"
         type="submit"
       >

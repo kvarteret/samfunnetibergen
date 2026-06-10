@@ -1,8 +1,7 @@
 import Link from "next/link"
-
+import { OpenStatus } from "@/components/ui/open-status"
 import { formatWeekdays } from "@/lib/opening-hours"
 import type { fetchFooter } from "@/lib/sanity/fetch"
-import { OpenStatus } from "@/components/ui/open-status"
 
 // ─── App store links ──────────────────────────────────────────────────────────
 

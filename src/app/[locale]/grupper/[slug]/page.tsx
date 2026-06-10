@@ -2,6 +2,7 @@ import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { Surface } from "@/components/ui/surface"
+import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -12,6 +13,7 @@ import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
+import nbMessages from "@/messages/nb.json"
 
 export const revalidate = 300
 
@@ -57,6 +59,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const categoryLabel = group.category
     ? (CATEGORY_LABELS[group.category] ?? null)
     : null
+
+  const institutionOptions = nbMessages.InstitutionOptions as Array<{
+    value: string
+    label: string
+  }>
 
   return (
     <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -174,6 +181,21 @@ export default async function GroupPage({ params }: GroupPageProps) {
             </ul>
           </Surface>
         ) : null}
+
+        {group.slug && (
+          <Surface as="section" className="p-5">
+            <GroupVolunteerForm
+              groupSlug={group.slug}
+              groupName={group.name ?? group.slug}
+              institutionOptions={institutionOptions}
+              subGroups={
+                group.subGroups?.flatMap(sg =>
+                  sg.slug && sg.name ? [{ slug: sg.slug, name: sg.name }] : [],
+                ) ?? []
+              }
+            />
+          </Surface>
+        )}
       </aside>
     </article>
   )

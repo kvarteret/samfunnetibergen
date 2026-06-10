@@ -1,9 +1,9 @@
 "use client"
 
 import { Music2 } from "lucide-react"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,

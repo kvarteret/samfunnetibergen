@@ -1,11 +1,10 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { countEventFilters } from "@/features/events/domain/eventUtils"
 import { EventsPageFilterButton } from "./EventsPageFilterButton"
-import { SegmentedControl } from "@/components/ui/segmented-control"
 
 export function EventsPageFilters() {
   const t = useTranslations("EventsPage")

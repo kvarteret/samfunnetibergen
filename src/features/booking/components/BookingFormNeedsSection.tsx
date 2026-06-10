@@ -1,8 +1,9 @@
 "use client"
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useId } from "react"
 import { Music, Projector, Volume2, Wand2 } from "lucide-react"
+import { useId } from "react"
 import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

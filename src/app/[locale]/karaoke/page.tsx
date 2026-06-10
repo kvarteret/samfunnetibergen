@@ -1,6 +1,7 @@
 import { Mic, Phone } from "lucide-react"
 
 import { Surface } from "@/components/ui/surface"
+import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
@@ -8,7 +9,6 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
-import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()

@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Plus, X } from "lucide-react"
 
@@ -22,7 +23,6 @@ export function EventFormScheduleSection({
   uid,
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
-  const values = form.state.values
 
   const handleAddDate = () => {
     form.setFieldValue("dates", (dates: DateEntry[]) => [...dates, newDate()])
@@ -46,34 +46,42 @@ export function EventFormScheduleSection({
 
   return (
     <FormSection number="03" title="Dato og tid">
-      <div className="space-y-4">
-        {values.dates.map((date: DateEntry, index: number) => (
-          <EventDateCard
-            date={date}
-            index={index}
-            key={date.id}
-            totalDates={values.dates.length}
-            uid={uid}
-            removeDate={handleRemoveDate}
-            updateDate={handleUpdateDate}
+      <form.Subscribe selector={(s: any) => s.values.dates}>
+        {(dates: DateEntry[]) => (
+          <div className="space-y-4">
+            {dates.map((date, index) => (
+              <EventDateCard
+                date={date}
+                index={index}
+                key={date.id}
+                totalDates={dates.length}
+                uid={uid}
+                removeDate={handleRemoveDate}
+                updateDate={handleUpdateDate}
+              />
+            ))}
+
+            <button
+              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
+              onClick={handleAddDate}
+              type="button"
+            >
+              <Plus aria-hidden className="size-4" />
+              Legg til dato
+            </button>
+          </div>
+        )}
+      </form.Subscribe>
+
+      <form.Subscribe selector={(s: any) => s.values.isRecurring}>
+        {(isRecurring: boolean) => (
+          <EventRecurrenceFields
+            isRecurring={isRecurring}
+            onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
+            onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
           />
-        ))}
-
-        <button
-          className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
-          onClick={handleAddDate}
-          type="button"
-        >
-          <Plus aria-hidden className="size-4" />
-          Legg til dato
-        </button>
-      </div>
-
-      <EventRecurrenceFields
-        isRecurring={values.isRecurring}
-        onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
-        onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
-      />
+        )}
+      </form.Subscribe>
     </FormSection>
   )
 }

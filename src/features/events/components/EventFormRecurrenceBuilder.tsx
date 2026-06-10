@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { RRule } from "rrule"
-
-import { cn } from "@/lib/utils"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 

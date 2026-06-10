@@ -3,8 +3,8 @@
 import {
   CheckboxField,
   FieldHint,
-  PriceInput,
   FormSection,
+  PriceInput,
 } from "@/components/ui/form-fields"
 import { useEventForm } from "./eventFormContext"
 

@@ -6,11 +6,8 @@ import {
   Users,
   UtensilsCrossed,
 } from "lucide-react"
-import Image from "next/image"
-
-import { Surface } from "@/components/ui/surface"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
-import { RoomCapacity } from "@/components/ui/room-capacity"
+import { Surface } from "@/components/ui/surface"
 
 import { BookingButton } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"

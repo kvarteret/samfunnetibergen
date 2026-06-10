@@ -2,8 +2,8 @@
 
 import {
   FieldGroup,
-  SelectField,
   FormSection,
+  SelectField,
 } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,8 +13,8 @@ import {
   KARAOKE_DURATION_OPTIONS,
   type KaraokeDerivedState,
 } from "../domain/formState"
-import { useKaraokeForm } from "./karaokeFormContext"
 import { KaraokeFormSlotPicker } from "./KaraokeFormSlotPicker"
+import { useKaraokeForm } from "./karaokeFormContext"
 
 interface KaraokeFormDetailsSectionProps {
   uid: string

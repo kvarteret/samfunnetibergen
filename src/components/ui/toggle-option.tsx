@@ -22,25 +22,25 @@ export function ToggleOption({
   onChange,
 }: ToggleOptionProps) {
   return (
-    <div
+    <button
+      aria-pressed={checked}
       className={cn(
-        "border-2 transition-colors",
-        checked ? "border-primary bg-primary/5" : "border-border bg-card",
+        "flex w-full cursor-pointer flex-col border-2 text-left transition-colors",
+        checked
+          ? "border-primary bg-primary/5"
+          : "border-border bg-card hover:bg-muted",
       )}
+      onClick={() => onChange(!checked)}
+      type="button"
     >
-      <button
-        aria-pressed={checked}
-        className="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
-        onClick={() => onChange(!checked)}
-        type="button"
-      >
+      <span className="flex items-center gap-3 p-4">
         <CheckboxSquare checked={checked} onChange={() => {}} />
         <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-sm text-foreground">
           <Icon aria-hidden className="size-4 text-primary" />
           {label}
         </span>
-      </button>
+      </span>
       {children && <div className="px-4 pb-4">{children}</div>}
-    </div>
+    </button>
   )
 }

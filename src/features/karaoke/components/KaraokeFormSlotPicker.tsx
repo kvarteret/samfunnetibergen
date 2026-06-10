@@ -3,19 +3,19 @@
 import { useMemo } from "react"
 import { DateScroller } from "@/components/ui/date-scroller"
 import { SlotGrid, type SlotOption } from "@/components/ui/slot-grid"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   buildDateSequence,
-  minutesToTime,
   type ClosedDate,
+  minutesToTime,
   type OpeningHours,
   slotRangesForDate,
 } from "@/lib/opening-hours"
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   dateHasKaraokeSlot,
+  KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
 } from "../domain/availability"
-import { KARAOKE_DATE_COUNT } from "../domain/availability"
 
 interface KaraokeFormSlotPickerProps {
   bookings: CresatBooking[]

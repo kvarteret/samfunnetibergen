@@ -5,8 +5,8 @@ import { useId } from "react"
 import { FieldGroup, FormSection } from "@/components/ui/form-fields"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { isExternalBooker } from "../domain/formState"
 import type { BookerType } from "../domain/formState"
+import { isExternalBooker } from "../domain/formState"
 import { useBookingForm } from "./bookingFormContext"
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

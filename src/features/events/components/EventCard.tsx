@@ -6,13 +6,14 @@ const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   dateStyle: "long",
   timeZone: "Europe/Oslo",
 })
+
 import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 import Image from "next/image"
 import { RRule } from "rrule"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { DateBadges, type DateBadgeEntry } from "@/components/ui/date-badges"
+import { DateBadges } from "@/components/ui/date-badges"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 

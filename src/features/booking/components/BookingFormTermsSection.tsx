@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { type UIEvent, useState } from "react"
 import { CheckboxField, FormSection } from "@/components/ui/form-fields"

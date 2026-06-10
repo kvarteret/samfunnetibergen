@@ -6,26 +6,30 @@ import { Button } from "@/components/ui/button"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormActionsProps {
+  formError: string
   imageUploading: boolean
 }
 
-export function EventFormActions({ imageUploading }: EventFormActionsProps) {
+export function EventFormActions({
+  formError,
+  imageUploading,
+}: EventFormActionsProps) {
   const form = useEventForm()
   const isPending = form.state.isSubmitting
   const submitError = form.state.errorMap.onSubmit
 
+  const displayError = String(submitError || formError || "")
+
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
-      {submitError && (
+      {displayError && (
         <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
           <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div>
             <p className="text-sm font-heading text-destructive">
               Det oppstod en feil
             </p>
-            <p className="mt-0.5 text-sm text-foreground/70">
-              {submitError.message}
-            </p>
+            <p className="mt-0.5 text-sm text-foreground/70">{displayError}</p>
           </div>
         </div>
       )}

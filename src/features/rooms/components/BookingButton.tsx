@@ -10,11 +10,7 @@ interface BookingButtonProps {
   className?: string
 }
 
-export function BookingButton({
-  label,
-  locale,
-  className,
-}: BookingButtonProps) {
+export function BookingButton({ label, className }: BookingButtonProps) {
   return (
     <Button asChild className={cn("w-fit", className)} size="lg">
       <Link href="/rom/book">

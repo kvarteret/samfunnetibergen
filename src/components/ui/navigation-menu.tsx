@@ -68,7 +68,7 @@ function NavigationMenuTrigger({
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
       className={cn(
-        "group relative flex items-center gap-1 px-0.5 py-1 font-heading text-sm text-foreground",
+        "group relative flex items-center gap-1 px-3 py-2.5 font-heading text-sm text-foreground",
         "after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-foreground after:transition-all after:duration-200 hover:after:w-full data-[state=open]:after:w-full",
         "focus:outline-none",
         className,

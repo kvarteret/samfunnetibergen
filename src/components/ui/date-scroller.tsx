@@ -31,7 +31,6 @@ interface DateScrollerProps {
 
 export function DateScroller({
   dates,
-  selectedDate,
   today,
   getDateState,
   onChange,
