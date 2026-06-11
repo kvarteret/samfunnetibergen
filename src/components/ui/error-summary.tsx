@@ -45,7 +45,7 @@ export function ErrorSummary({
         {errors.map(error => (
           <li key={`${error.fieldId}-${error.message}`}>
             <a
-              className="font-heading text-sm text-foreground underline underline-offset-4 focus-brutal"
+              className="font-heading text-base text-foreground underline underline-offset-4 focus-brutal"
               href={`#${error.fieldId}`}
               onClick={() => {
                 window.setTimeout(() => {

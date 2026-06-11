@@ -43,7 +43,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
     <div className="space-y-12">
       <header className="space-y-5">
         {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
             {content.eyebrow}
           </p>
         ) : null}
@@ -83,7 +83,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
               </div>
               {sponsor.website ? (
                 <a
-                  className="mt-auto inline-flex w-fit items-center gap-2 font-heading text-sm text-foreground underline underline-offset-4"
+                  className="mt-auto inline-flex w-fit items-center gap-2 font-heading text-base text-foreground underline underline-offset-4"
                   href={sponsor.website}
                   rel="noreferrer"
                   target="_blank"

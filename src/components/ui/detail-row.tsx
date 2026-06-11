@@ -21,7 +21,7 @@ export function DetailRow({
   if (layout === "vertical") {
     return (
       <div className={cn("flex flex-col gap-0.5", className)}>
-        <dt className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-foreground-muted">
+        <dt className="flex items-center gap-1.5 text-sm uppercase tracking-wide text-foreground-muted">
           {Icon && <Icon aria-hidden className="size-3.5" />}
           {label}
         </dt>
@@ -33,7 +33,7 @@ export function DetailRow({
   if (layout === "labelColumn") {
     return (
       <div className={cn("flex gap-8 py-3", className)}>
-        <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
+        <dt className="w-36 shrink-0 font-heading text-base font-medium text-foreground">
           {label}
         </dt>
         <dd>{children}</dd>

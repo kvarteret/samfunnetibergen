@@ -107,7 +107,7 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
         </CarouselContent>
 
         {currentSlide?.caption && (
-          <p className="absolute bottom-0 left-0 right-0 bg-background/70 px-4 py-2 text-xs text-foreground backdrop-blur-sm">
+          <p className="absolute bottom-0 left-0 right-0 bg-background/70 px-4 py-2 text-sm text-foreground backdrop-blur-sm">
             {currentSlide.caption}
           </p>
         )}

@@ -107,7 +107,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       <div className="mt-8 space-y-10">
         <header className="space-y-3">
           <Link
-            className="font-heading text-xs uppercase tracking-widest text-foreground-muted hover:text-foreground"
+            className="font-heading text-sm uppercase tracking-widest text-foreground-muted hover:text-foreground"
             href={`/${locale}/rom`}
           >
             Rom
@@ -213,7 +213,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
       {room.specsUrl && (
         <a
-          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
+          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-base text-foreground shadow-shadow transition-shadow hover:shadow-none"
           href={room.specsUrl}
           rel="noreferrer"
           target="_blank"
@@ -278,7 +278,7 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
 
             return (
               <div
-                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-base"
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>

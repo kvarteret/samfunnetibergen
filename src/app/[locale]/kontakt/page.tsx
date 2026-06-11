@@ -36,8 +36,10 @@ function AddressBlock({
   if (!value) return null
   return (
     <div className="space-y-2">
-      <p className="font-heading text-sm uppercase tracking-widest">{label}</p>
-      <p className="text-sm leading-6 text-foreground whitespace-pre-line">
+      <p className="font-heading text-base uppercase tracking-widest">
+        {label}
+      </p>
+      <p className="text-base leading-6 text-foreground whitespace-pre-line">
         {value}
       </p>
     </div>
@@ -59,15 +61,15 @@ function PersonCard({ person }: { person: ContactPerson }) {
         </div>
       )}
       <div className="min-w-0 space-y-1">
-        <p className="font-heading text-sm leading-snug text-foreground">
+        <p className="font-heading text-base leading-snug text-foreground">
           {person.name}
         </p>
         {person.rolle && (
-          <p className="text-xs text-foreground-muted">{person.rolle}</p>
+          <p className="text-sm text-foreground-muted">{person.rolle}</p>
         )}
         {person.email && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground-muted hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-base text-foreground-muted hover:text-foreground transition-colors"
             href={`mailto:${person.email}`}
           >
             <Mail className="size-3.5 shrink-0" aria-hidden />
@@ -76,7 +78,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
         )}
         {person.phone && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground-muted hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-base text-foreground-muted hover:text-foreground transition-colors"
             href={`tel:${person.phone.replace(/\s/g, "")}`}
           >
             <Phone className="size-3.5 shrink-0" aria-hidden />
@@ -110,7 +112,7 @@ export default async function KontaktPage({
         <div className="space-y-10">
           {(page?.contactGroups ?? []).map((group: ContactGroup) => (
             <section key={group._key}>
-              <h2 className="font-heading text-sm uppercase tracking-widest text-foreground mb-2">
+              <h2 className="font-heading text-base uppercase tracking-widest text-foreground mb-2">
                 {group.title}
               </h2>
               <div>
@@ -127,20 +129,20 @@ export default async function KontaktPage({
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
             <div className="space-y-2">
-              <p className="font-heading text-sm uppercase tracking-widest">
+              <p className="font-heading text-base uppercase tracking-widest">
                 Generell kontakt
               </p>
-              <p className="text-sm leading-6 text-foreground whitespace-pre-line">
+              <p className="text-base leading-6 text-foreground whitespace-pre-line">
                 {page.generalContact}
               </p>
             </div>
           )}
           {page?.pressContact && (
             <div className="space-y-2">
-              <p className="font-heading text-sm uppercase tracking-widest">
+              <p className="font-heading text-base uppercase tracking-widest">
                 Pressekontakt
               </p>
-              <p className="text-sm leading-6 text-foreground whitespace-pre-line">
+              <p className="text-base leading-6 text-foreground whitespace-pre-line">
                 {page.pressContact}
               </p>
             </div>

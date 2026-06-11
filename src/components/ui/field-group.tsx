@@ -29,5 +29,5 @@ interface FieldHintProps {
 }
 
 export function FieldHint({ children }: FieldHintProps) {
-  return <p className="text-xs text-foreground-muted">{children}</p>
+  return <p className="text-sm text-foreground-muted">{children}</p>
 }

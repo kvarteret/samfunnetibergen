@@ -1,64 +1,64 @@
-import { ArrowRight } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { ArrowRight } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   EventCard,
   type EventDateEntry,
   type EventSummary,
-} from "@/features/events";
+} from "@/features/events"
 import {
   computeAllDates,
   formatPrimaryDate,
   getRecurringLabel,
-} from "@/features/events/domain/dates";
-import type { AppLocale } from "@/i18n/routing";
+} from "@/features/events/domain/dates"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
-} from "@/lib/app-locale";
+} from "@/lib/app-locale"
 import {
   fetchBarPreviews,
   fetchHomePageContent,
   fetchPublishedEvents,
   fetchSiteMetadata,
-} from "@/lib/sanity/fetch";
-import { HomeBarPreviews } from "./_components/HomeBarPreviews";
-import { HomeBookingBanner } from "./_components/HomeBookingBanner";
-import { HomeGrupperBanner } from "./_components/HomeGrupperBanner";
+} from "@/lib/sanity/fetch"
+import { HomeBarPreviews } from "./_components/HomeBarPreviews"
+import { HomeBookingBanner } from "./_components/HomeBookingBanner"
+import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
 
 export function generateStaticParams() {
-  return getLocaleStaticParams();
+  return getLocaleStaticParams()
 }
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
-  const locale = await resolvePageLocale(params);
+  const locale = await resolvePageLocale(params)
   const [homePage, siteMetadata] = await Promise.all([
     fetchHomePageContent(locale, { stega: false }),
     fetchSiteMetadata(locale, { stega: false }),
-  ]);
+  ])
   const title =
     homePage?.seoTitle ??
     siteMetadata?.defaultSeoTitle ??
     homePage?.title ??
     siteMetadata?.siteName ??
-    undefined;
+    undefined
   const description =
     homePage?.seoDescription ??
     siteMetadata?.defaultSeoDescription ??
     homePage?.description ??
-    undefined;
+    undefined
   const openGraphTitle =
-    homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title;
+    homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title
   const openGraphDescription =
     homePage?.openGraphDescription ??
     siteMetadata?.defaultOpenGraphDescription ??
-    description;
+    description
   const openGraphImage =
-    homePage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl;
+    homePage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
   return {
     title,
     description,
@@ -68,27 +68,27 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
       images: openGraphImage ? [{ url: openGraphImage }] : undefined,
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
     },
-  };
+  }
 }
 
-type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number];
-type SanityEventDate = NonNullable<SanityEvent["dates"]>[number];
+type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
+type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
 
 function localizeHref(href: string | null | undefined, locale: AppLocale) {
-  if (!href) return `/${locale}`;
-  if (!href.startsWith("/")) return href;
-  return href === "/" ? `/${locale}` : `/${locale}${href}`;
+  if (!href) return `/${locale}`
+  if (!href.startsWith("/")) return href
+  return href === "/" ? `/${locale}` : `/${locale}${href}`
 }
 
 type EventCardLabels = {
-  today: string;
-  tomorrow: string;
-  inNDays: (n: number) => string;
-  recurringDaily: string;
-  recurringWeekly: string;
-  recurringMonthly: string;
-  recurringGeneric: string;
-};
+  today: string
+  tomorrow: string
+  inNDays: (n: number) => string
+  recurringDaily: string
+  recurringWeekly: string
+  recurringMonthly: string
+  recurringGeneric: string
+}
 
 function toEventSummary(
   event: SanityEvent,
@@ -101,10 +101,10 @@ function toEventSummary(
       startTime: d.startTime ?? null,
       endTime: d.endTime ?? null,
     }),
-  );
+  )
 
-  const todayStr = new Date().toISOString().split("T")[0]!;
-  const resolvedDates = computeAllDates(dates, event.rrule, todayStr);
+  const todayStr = new Date().toISOString().split("T")[0]!
+  const resolvedDates = computeAllDates(dates, event.rrule, todayStr)
 
   const primaryDateLabels = labels
     ? {
@@ -112,12 +112,12 @@ function toEventSummary(
         tomorrow: labels.tomorrow,
         inNDays: labels.inNDays,
       }
-    : undefined;
-  const primaryDate = resolvedDates[0];
+    : undefined
+  const primaryDate = resolvedDates[0]
   const primaryDateLabel =
     primaryDate && primaryDateLabels
       ? formatPrimaryDate(primaryDate, primaryDateLabels)
-      : null;
+      : null
   const recurringLabel =
     labels && event.isRecurring
       ? getRecurringLabel(event.rrule, {
@@ -126,7 +126,7 @@ function toEventSummary(
           monthly: labels.recurringMonthly,
           generic: labels.recurringGeneric,
         })
-      : null;
+      : null
 
   return {
     _id: event._id,
@@ -176,12 +176,12 @@ function toEventSummary(
             : null,
         }
       : null,
-  };
+  }
 }
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
-  const locale = (await resolvePageLocale(params)) as AppLocale;
-  activateRequestLocale(locale);
+  const locale = (await resolvePageLocale(params)) as AppLocale
+  activateRequestLocale(locale)
 
   const [homePage, events, barPreviews, t, homeT] = await Promise.all([
     fetchHomePageContent(locale),
@@ -189,8 +189,8 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     fetchBarPreviews(),
     getTranslations({ locale, namespace: "EventCard" }),
     getTranslations({ locale, namespace: "HomePage" }),
-  ]);
-  const visibleEvents = (events ?? []).slice(0, 3);
+  ])
+  const visibleEvents = (events ?? []).slice(0, 3)
 
   const eventCardLabels: EventCardLabels = {
     today: t("today"),
@@ -200,7 +200,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     recurringWeekly: t("recurringWeekly"),
     recurringMonthly: t("recurringMonthly"),
     recurringGeneric: t("recurringGeneric"),
-  };
+  }
 
   return (
     <div className="flex flex-col gap-12 pb-12">
@@ -231,23 +231,23 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         heading2={homeT("grupperBannerHeading2")}
       />
     </div>
-  );
+  )
 }
 
 // ─── HomeHero ─────────────────────────────────────────────────────────────────
 
-type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>;
+type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
 
 function HomeHero({
   homePage,
   locale,
 }: {
-  homePage: HomePage;
-  locale: AppLocale;
+  homePage: HomePage
+  locale: AppLocale
 }) {
   const ctaHref = homePage?.primaryCta?.href
     ? localizeHref(homePage.primaryCta.href, locale)
-    : null;
+    : null
 
   return (
     <section className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14">
@@ -257,7 +257,7 @@ function HomeHero({
             {homePage.title}
           </h1>
         )}
-        {homePage?.description?.split(/\n{2,}/).map((paragraph) => (
+        {homePage?.description?.split(/\n{2,}/).map(paragraph => (
           <p
             className="max-w-2xl text-base leading-relaxed text-foreground-muted"
             key={paragraph}
@@ -272,7 +272,7 @@ function HomeHero({
                 <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
               </Button>
               <Link
-                className="group inline-flex items-center gap-1.5 font-heading text-sm uppercase tracking-widest underline-offset-4 hover:underline focus-brutal"
+                className="group inline-flex items-center gap-1.5 font-heading text-base uppercase tracking-widest underline-offset-4 hover:underline focus-brutal"
                 href={`/${locale}/arrangementer`}
               >
                 Se arrangementer
@@ -299,28 +299,28 @@ function HomeHero({
         width={1595}
       />
     </section>
-  );
+  )
 }
 
 // ─── HomeEvents ───────────────────────────────────────────────────────────────
 
 interface HomeEventsProps {
-  events: SanityEvent[];
-  labels: EventCardLabels;
-  locale: AppLocale;
+  events: SanityEvent[]
+  labels: EventCardLabels
+  locale: AppLocale
 }
 
 function HomeEvents({ events, labels, locale }: HomeEventsProps) {
-  if (!events.length) return null;
+  if (!events.length) return null
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
           Arrangementer
         </p>
         <Link
-          className="group inline-flex items-center gap-1.5 font-heading text-sm uppercase tracking-widest underline underline-offset-4 focus-brutal"
+          className="group inline-flex items-center gap-1.5 font-heading text-base uppercase tracking-widest underline underline-offset-4 focus-brutal"
           href={`/${locale}/arrangementer`}
         >
           Se alle
@@ -328,7 +328,7 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
+        {events.map(event => (
           <EventCard
             event={toEventSummary(event, labels)}
             facebookLabel="Facebook"
@@ -342,5 +342,5 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
         ))}
       </div>
     </section>
-  );
+  )
 }

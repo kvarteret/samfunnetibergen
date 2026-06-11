@@ -156,11 +156,11 @@ export function BookingFormScheduleSection({
                           {room.title ?? room.slug}
                         </p>
                         {room.summary && (
-                          <p className="line-clamp-2 text-sm leading-5 text-foreground-muted">
+                          <p className="line-clamp-2 text-base leading-5 text-foreground-muted">
                             {room.summary}
                           </p>
                         )}
-                        <p className="text-xs text-foreground-muted">
+                        <p className="text-sm text-foreground-muted">
                           <RoomCapacity
                             seated={room.capacitySeated}
                             standing={room.capacityStanding}
@@ -249,7 +249,7 @@ export function BookingFormScheduleSection({
                     hasConflict && "border-destructive bg-destructive/10",
                   )}
                 >
-                  <p className="flex items-center gap-2 font-heading text-sm text-foreground">
+                  <p className="flex items-center gap-2 font-heading text-base text-foreground">
                     <CalendarClock
                       aria-hidden
                       className="size-4 text-primary"
@@ -257,11 +257,11 @@ export function BookingFormScheduleSection({
                     {selectedRoomTitle} – opptatt denne dagen
                   </p>
                   {selectedDateRoomBookings.length === 0 ? (
-                    <p className="text-sm text-foreground-muted">
+                    <p className="text-base text-foreground-muted">
                       Ingen registrerte bookinger denne dagen.
                     </p>
                   ) : (
-                    <ul className="space-y-1 text-sm text-body">
+                    <ul className="space-y-1 text-base text-body">
                       {selectedDateRoomBookings.map(booking => (
                         <li
                           key={booking.id}

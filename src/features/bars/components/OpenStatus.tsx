@@ -44,7 +44,7 @@ export function OpenStatus({
   if (variant === "announcement") {
     if (!isOpen) return null
     return (
-      <p className="mt-2 font-heading text-sm uppercase tracking-widest text-primary">
+      <p className="mt-2 font-heading text-base uppercase tracking-widest text-primary">
         er åpent!!
       </p>
     )

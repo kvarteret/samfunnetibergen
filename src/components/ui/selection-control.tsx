@@ -17,9 +17,9 @@ export const selectionControlVariants = cva(
       },
       size: {
         none: "",
-        default: "min-h-11 px-3 py-1.5 font-heading text-sm",
-        square: "size-11 font-heading text-sm",
-        fill: "min-h-11 flex-1 px-3 py-2.5 font-heading text-sm uppercase tracking-widest",
+        default: "min-h-11 px-3 py-1.5 font-heading text-base",
+        square: "size-11 font-heading text-base",
+        fill: "min-h-11 flex-1 px-3 py-2.5 font-heading text-base uppercase tracking-widest",
       },
     },
     compoundVariants: [

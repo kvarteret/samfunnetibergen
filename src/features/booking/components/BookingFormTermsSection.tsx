@@ -67,7 +67,7 @@ export function BookingFormTermsSection({
             Avbestillingsvilkår
           </a>
         </p>
-        <p className="text-xs text-foreground-muted">
+        <p className="text-sm text-foreground-muted">
           Bla til bunnen for å bekrefte.
         </p>
       </div>

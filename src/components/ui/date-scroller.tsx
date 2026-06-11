@@ -66,13 +66,13 @@ export function DateScroller({
               size="none"
               value={date}
             >
-              <span className="text-xs uppercase tracking-widest">
+              <span className="text-sm uppercase tracking-widest">
                 {weekday}
               </span>
               <span className="text-base font-heading leading-none">
                 {parsedDate.getDate()}
               </span>
-              <span className="text-xs">{month}</span>
+              <span className="text-sm">{month}</span>
             </RadioGroupItem>
           )
         })}

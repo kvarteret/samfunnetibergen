@@ -50,7 +50,7 @@ export function BookingFormCateringBarSection() {
               label="Kvarteret stiller i bar"
               onChange={field.handleChange}
             >
-              <p className="text-xs text-foreground-muted">
+              <p className="text-sm text-foreground-muted">
                 Pris: 2000 kr eks. mva. Forutsetter kapasitet.
               </p>
             </ToggleOption>

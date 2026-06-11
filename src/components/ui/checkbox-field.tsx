@@ -110,14 +110,14 @@ export function CheckboxField({
         <span>
           <span
             className={cn(
-              "block font-heading text-sm text-foreground",
+              "block font-heading text-base text-foreground",
               labelClassName,
             )}
           >
             {label}
           </span>
           {hint && (
-            <span className="mt-0.5 block text-xs text-foreground-muted">
+            <span className="mt-0.5 block text-sm text-foreground-muted">
               {hint}
             </span>
           )}

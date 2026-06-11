@@ -55,7 +55,7 @@ export default async function BookRoomPage({
     <article className="flex w-full flex-col gap-10">
       <header className="space-y-4">
         <Link
-          className="inline-flex font-heading text-sm uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
+          className="inline-flex font-heading text-base uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
           href="/rom"
         >
           ← Rom
@@ -68,7 +68,7 @@ export default async function BookRoomPage({
               aria-hidden
             />
           </div>
-          <p className="font-heading text-sm uppercase tracking-widest">
+          <p className="font-heading text-base uppercase tracking-widest">
             Booking
           </p>
         </div>

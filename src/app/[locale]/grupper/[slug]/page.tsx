@@ -69,7 +69,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
       <div className="space-y-8">
         <header className="space-y-5">
           {categoryLabel && (
-            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
               {categoryLabel}
             </p>
           )}
@@ -103,7 +103,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
               />
             </div>
             {group.image.caption ? (
-              <figcaption className="text-sm text-muted-foreground">
+              <figcaption className="text-base text-muted-foreground">
                 {group.image.caption}
               </figcaption>
             ) : null}
@@ -171,7 +171,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
             <ul className="flex flex-wrap gap-2">
               {group.subGroups.map(subGroup => (
                 <li
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
+                  className="border-2 border-border bg-background px-2 py-1 font-heading text-base text-foreground"
                   key={subGroup.slug ?? subGroup.name}
                 >
                   {subGroup.name}

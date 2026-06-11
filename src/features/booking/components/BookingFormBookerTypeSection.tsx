@@ -72,7 +72,7 @@ export function BookingFormBookerTypeSection({
                     <option.icon aria-hidden className="size-4 text-primary" />
                     {option.label}
                   </span>
-                  <span className="text-sm leading-5 text-foreground-muted">
+                  <span className="text-base leading-5 text-foreground-muted">
                     {option.hint}
                   </span>
                 </SelectableCard>

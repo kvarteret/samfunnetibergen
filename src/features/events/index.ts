@@ -1,4 +1,4 @@
-export { DateBadges, type DateBadgeEntry } from "./components/DateBadges"
+export { type DateBadgeEntry, DateBadges } from "./components/DateBadges"
 export type { EventDateEntry, EventSummary } from "./components/EventCard"
 export { EventCard } from "./components/EventCard"
 export { EventForm } from "./components/EventForm"

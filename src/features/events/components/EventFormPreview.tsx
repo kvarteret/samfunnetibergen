@@ -9,7 +9,7 @@ interface EventFormPreviewProps {
 export function EventFormPreview({ event }: EventFormPreviewProps) {
   return (
     <div aria-hidden className="sticky top-8 hidden space-y-3 xl:block">
-      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+      <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
         Forhåndsvisning
       </p>
       <div className="pointer-events-none select-none">
@@ -19,7 +19,7 @@ export function EventFormPreview({ event }: EventFormPreviewProps) {
           ticketsLabel="Billetter"
         />
       </div>
-      <p className="text-center text-xs text-foreground-muted">
+      <p className="text-center text-sm text-foreground-muted">
         Slik vil arrangementet se ut i listen
       </p>
     </div>

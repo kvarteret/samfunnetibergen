@@ -88,7 +88,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
     <div className="space-y-12">
       <header className="space-y-5">
         {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
             {content.eyebrow}
           </p>
         ) : null}

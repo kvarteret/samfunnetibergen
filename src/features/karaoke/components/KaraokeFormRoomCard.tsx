@@ -38,7 +38,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         <p className="text-body text-foreground-muted">{room.summary}</p>
       )}
       {(room.capacitySeated || room.capacityStanding) && (
-        <div className="border-t border-border pt-4 flex gap-6 text-sm">
+        <div className="border-t border-border pt-4 flex gap-6 text-base">
           {room.capacitySeated && (
             <KaraokeRoomCapacity
               label="Sitteplasser"
@@ -66,7 +66,7 @@ function KaraokeRoomCapacity({
 }) {
   return (
     <div>
-      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted mb-0.5">
+      <p className="font-heading text-base uppercase tracking-widest text-foreground-muted mb-0.5">
         {label}
       </p>
       <p className="font-heading">{value}</p>

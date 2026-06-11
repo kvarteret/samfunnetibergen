@@ -334,8 +334,8 @@
 }
 
 @utility text-body {
-  font-size: var(--text-sm);
-  line-height: calc(1.5 * var(--text-sm));
+  font-size: var(--text-base);
+  line-height: calc(1.5 * var(--text-base));
   color: var(--color-foreground-muted);
 }
 

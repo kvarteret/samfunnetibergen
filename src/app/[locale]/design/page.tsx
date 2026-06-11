@@ -164,7 +164,7 @@ export default function DesignGallery({
             label="Med ekstra innhold"
             onChange={() => {}}
           >
-            <p className="mt-1 text-sm text-foreground-muted">
+            <p className="mt-1 text-base text-foreground-muted">
               Her kan du legge til ekstra innhold.
             </p>
           </CheckboxField>
@@ -263,16 +263,16 @@ export default function DesignGallery({
       <Section header={<SectionHeader number="14" title="Shadow Scale" />}>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="panel shadow-hard-sm">
-            <p className="font-heading text-sm">shadow-hard-sm</p>
-            <p className="mt-1 text-xs text-foreground-muted">2px 2px 0</p>
+            <p className="font-heading text-base">shadow-hard-sm</p>
+            <p className="mt-1 text-sm text-foreground-muted">2px 2px 0</p>
           </div>
           <div className="panel shadow-shadow">
-            <p className="font-heading text-sm">shadow (default)</p>
-            <p className="mt-1 text-xs text-foreground-muted">4px 4px 0</p>
+            <p className="font-heading text-base">shadow (default)</p>
+            <p className="mt-1 text-sm text-foreground-muted">4px 4px 0</p>
           </div>
           <div className="panel shadow-hard-lg">
-            <p className="font-heading text-sm">shadow-hard-lg</p>
-            <p className="mt-1 text-xs text-foreground-muted">6px 6px 0</p>
+            <p className="font-heading text-base">shadow-hard-lg</p>
+            <p className="mt-1 text-sm text-foreground-muted">6px 6px 0</p>
           </div>
         </div>
       </Section>
@@ -316,7 +316,7 @@ function SegmentedControlDemo() {
   const [frequency, setFrequency] = useState("weekly")
   return (
     <div className="space-y-2">
-      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+      <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
         pills (default)
       </p>
       <SegmentedControl
@@ -338,7 +338,7 @@ function ToggleGroupDemo() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
           default — multi-select
         </p>
         <ToggleGroup
@@ -352,7 +352,7 @@ function ToggleGroupDemo() {
         />
       </div>
       <div className="space-y-2">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
           sm — weekdays
         </p>
         <ToggleGroup
@@ -417,12 +417,12 @@ function SelectableCardDemo() {
       {rooms.map(room => (
         <SelectableCard key={room.value} value={room.value}>
           <p className="font-heading">{room.title}</p>
-          <p className="text-sm text-foreground-muted">{room.detail}</p>
+          <p className="text-base text-foreground-muted">{room.detail}</p>
         </SelectableCard>
       ))}
       <SelectableCard disabled value="eldorado">
         <p className="font-heading">Eldorado</p>
-        <p className="text-sm text-foreground-muted">Ikke tilgjengelig</p>
+        <p className="text-base text-foreground-muted">Ikke tilgjengelig</p>
       </SelectableCard>
     </SelectableCardGroup>
   )

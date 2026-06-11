@@ -158,8 +158,8 @@ export function EventCard({
             className={cn(
               "flex flex-wrap gap-2 text-foreground-muted",
               cardSize === "small"
-                ? "justify-between font-heading text-sm uppercase tracking-widest"
-                : "font-heading text-sm uppercase tracking-widest",
+                ? "justify-between font-heading text-base uppercase tracking-widest"
+                : "font-heading text-base uppercase tracking-widest",
             )}
           >
             {taxonomy && <span>{taxonomy}</span>}
@@ -183,7 +183,7 @@ export function EventCard({
         <div
           className={cn(
             "space-y-2 leading-6 text-foreground-muted",
-            cardSize === "small" ? "text-xs" : "text-sm",
+            cardSize === "small" ? "text-sm" : "text-base",
           )}
         >
           {timeLabel && (

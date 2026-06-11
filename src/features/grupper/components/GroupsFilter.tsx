@@ -84,12 +84,12 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
           {group.summary}
         </p>
       </div>
-      <div className="mt-auto flex flex-col gap-3 text-sm text-foreground">
+      <div className="mt-auto flex flex-col gap-3 text-base text-foreground">
         {group.labels?.length ? (
           <div className="flex flex-wrap gap-2">
             {group.labels.map((label: string) => (
               <span
-                className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
+                className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
                 key={label}
               >
                 {label}
@@ -102,7 +102,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             {group.subGroups.map(
               (subGroup: { name: string | null; slug: string | null }) => (
                 <span
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
+                  className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
                   key={subGroup.slug ?? subGroup.name}
                 >
                   {subGroup.name}

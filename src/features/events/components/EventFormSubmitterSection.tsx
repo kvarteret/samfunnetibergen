@@ -28,7 +28,7 @@ export function EventFormSubmitterSection({
 
   return (
     <FormSection number="08" title="Kontaktinformasjon">
-      <p className="text-sm leading-6 text-foreground-muted">
+      <p className="text-base leading-6 text-foreground-muted">
         Vi trenger en kontaktperson for arrangementet. Informasjonen vises ikke
         offentlig - den brukes bare av Kvarterets PR-gruppe til å følge opp
         innmeldingen.

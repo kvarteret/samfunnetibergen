@@ -47,7 +47,7 @@ export function SelectField({
         <select
           aria-describedby={error && errorId ? errorId : undefined}
           aria-invalid={!!error}
-          className="w-full appearance-none border-2 border-border bg-card px-3 py-2 pr-9 text-sm font-base text-foreground focus-brutal"
+          className="w-full appearance-none border-2 border-border bg-card px-3 py-2 pr-9 text-base font-base text-foreground focus-brutal"
           id={id}
           onChange={event => onChange(event.target.value)}
           value={value}

@@ -80,7 +80,7 @@ function UploadedImagePreview({
           </div>
         )}
         {imageAssetId && !imageUploading && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-xs text-foreground-muted">
+          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-sm text-foreground-muted">
             <Check aria-hidden className="size-3 text-primary" />
             Lastet opp
           </div>
@@ -92,7 +92,7 @@ function UploadedImagePreview({
         </FieldError>
       )}
       <button
-        className="flex items-center gap-1.5 text-xs text-foreground-muted transition-colors hover:text-destructive"
+        className="flex items-center gap-1.5 text-sm text-foreground-muted transition-colors hover:text-destructive"
         onClick={onRemoveImage}
         type="button"
       >

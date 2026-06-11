@@ -22,7 +22,7 @@ export default async function LinkInBioPage() {
     <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
       <LinkInBioProfile heading={data.heading} bio={data.bio} />
       <LinkInBioLinkList links={links} />
-      <p className="mt-10 text-xs text-foreground-muted">samfunnetibergen.no</p>
+      <p className="mt-10 text-sm text-foreground-muted">samfunnetibergen.no</p>
     </main>
   )
 }
@@ -37,7 +37,7 @@ function LinkInBioProfile({
   return (
     <div className="mb-8 text-center space-y-2">
       <h1 className="font-heading text-2xl">{heading}</h1>
-      {bio && <p className="text-sm text-foreground-muted max-w-xs">{bio}</p>}
+      {bio && <p className="text-base text-foreground-muted max-w-xs">{bio}</p>}
     </div>
   )
 }
@@ -58,7 +58,7 @@ function LinkInBioLinkList({ links }: { links: LinkInBioLink[] }) {
           </span>
         )
         const className = [
-          "flex w-full items-center justify-center px-5 py-4 text-sm font-medium border-2 border-border transition-colors",
+          "flex w-full items-center justify-center px-5 py-4 text-base font-medium border-2 border-border transition-colors",
           link.highlight
             ? "bg-foreground text-background hover:bg-foreground/90"
             : "bg-card text-foreground hover:bg-muted",

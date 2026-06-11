@@ -40,7 +40,7 @@ export function ToggleOption({
         htmlFor={id}
       >
         <CheckboxSquare checked={checked} id={id} onChange={onChange} />
-        <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-sm text-foreground">
+        <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-base text-foreground">
           <Icon aria-hidden className="size-4 text-primary" />
           {label}
         </span>

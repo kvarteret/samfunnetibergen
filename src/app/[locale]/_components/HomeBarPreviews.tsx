@@ -96,7 +96,7 @@ export function HomeBarPreviews({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
           Barer
         </p>
       </div>
@@ -159,7 +159,7 @@ function HomeBarPreviewCard({
               {room.bar || room.title}
             </p>
             {isOpen ? (
-              <p className="mt-1 font-heading text-sm uppercase tracking-widest text-primary">
+              <p className="mt-1 font-heading text-base uppercase tracking-widest text-primary">
                 Åpen
               </p>
             ) : null}
@@ -180,7 +180,7 @@ function HomeBarPreviewCard({
 
               return (
                 <div
-                  className="text-xs text-foreground-muted"
+                  className="text-sm text-foreground-muted"
                   key={row?._key ?? label}
                 >
                   {label}
@@ -206,14 +206,14 @@ function BarPreviewBody({
   if (spotifyTrack && nowPlaying) {
     return (
       <div className="space-y-1 border-l-2 border-primary pl-3">
-        <p className="font-heading text-sm uppercase tracking-widest text-primary">
+        <p className="font-heading text-base uppercase tracking-widest text-primary">
           Spotify
         </p>
-        <p className="line-clamp-1 font-heading text-sm text-foreground">
+        <p className="line-clamp-1 font-heading text-base text-foreground">
           {nowPlaying.name ?? "Spiller nå"}
         </p>
         {nowPlaying.artists && (
-          <p className="line-clamp-1 text-sm text-foreground-muted">
+          <p className="line-clamp-1 text-base text-foreground-muted">
             {nowPlaying.artists}
           </p>
         )}

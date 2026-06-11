@@ -112,7 +112,7 @@ export function KaraokeFormDetailsSection({
                           onSlotChange={slotField.handleChange}
                         />
                         {derived.startTime && (
-                          <p className="text-sm text-foreground-muted font-heading mt-1">
+                          <p className="text-base text-foreground-muted font-heading mt-1">
                             {derived.startTime} → {derived.endTime}
                           </p>
                         )}

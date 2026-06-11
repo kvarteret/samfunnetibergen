@@ -61,7 +61,7 @@ function InlineContentLink({ link }: { link: ContentLink }) {
   if (!link.href) return null
 
   const className =
-    "inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+    "inline-flex items-center gap-2 font-heading text-base underline underline-offset-4"
 
   return isExternalHref(link.href) ? (
     <a className={className} href={link.href} rel="noreferrer" target="_blank">
@@ -144,7 +144,7 @@ function ServicesSection() {
               <h3 className="font-heading text-xl text-foreground">{title}</h3>
               <p className="text-body text-foreground-muted">{description}</p>
             </div>
-            <span className="mt-auto inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
+            <span className="mt-auto inline-flex items-center gap-2 font-heading text-base text-foreground group-hover:underline group-hover:underline-offset-4">
               Les mer
               <ArrowRight aria-hidden className="size-4" />
             </span>
@@ -167,10 +167,10 @@ function HowToSection({ section }: { section: EditorialSection }) {
             className="flex gap-4 border-l-2 border-border pl-4"
             key={paragraph}
           >
-            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground-muted">
+            <span className="mt-0.5 shrink-0 font-heading text-base text-foreground-muted">
               {i + 1}
             </span>
-            <p className="text-sm leading-6 text-foreground">{paragraph}</p>
+            <p className="text-base leading-6 text-foreground">{paragraph}</p>
           </li>
         ))}
       </ol>
@@ -195,7 +195,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
         <div className="space-y-5">
           {content?.eyebrow ? (
-            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
               {content.eyebrow}
             </p>
           ) : null}
@@ -245,7 +245,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     </p>
                   ) : null}
                 </div>
-                <dl className="mt-auto grid gap-3 text-sm text-foreground">
+                <dl className="mt-auto grid gap-3 text-base text-foreground">
                   {room.capacityStanding != null ||
                   room.capacitySeated != null ? (
                     <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     </div>
                   ) : null}
                 </dl>
-                <span className="inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
+                <span className="inline-flex items-center gap-2 font-heading text-base text-foreground group-hover:underline group-hover:underline-offset-4">
                   Les mer
                   <ArrowRight aria-hidden="true" className="size-4" />
                 </span>

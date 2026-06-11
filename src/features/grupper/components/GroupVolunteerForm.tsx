@@ -230,7 +230,9 @@ export function GroupVolunteerForm({
     <FormSection number="00" title={t("title")}>
       {hasSubGroups && (
         <FieldGroup>
-          <p className="text-sm text-foreground-muted">{t("selectSubGroup")}</p>
+          <p className="text-base text-foreground-muted">
+            {t("selectSubGroup")}
+          </p>
           <SegmentedControl
             onChange={selectFirstChoice}
             options={subGroups!.map(sub => ({
@@ -240,7 +242,7 @@ export function GroupVolunteerForm({
             value={selectedSlug}
           />
           {selectedSlug && (
-            <p className="text-xs text-foreground-muted">
+            <p className="text-sm text-foreground-muted">
               {t("applyingTo", {
                 group:
                   subGroups!.find(g => g.slug === selectedSlug)?.name ??
@@ -279,7 +281,7 @@ export function GroupVolunteerForm({
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
           {!hasSubGroups && (
-            <p className="text-sm text-foreground-muted">
+            <p className="text-base text-foreground-muted">
               {t("applyingTo", { group: groupName })}
             </p>
           )}
@@ -291,7 +293,7 @@ export function GroupVolunteerForm({
             >
               <div className="flex items-center gap-1">
                 <label
-                  className="text-sm font-heading text-foreground"
+                  className="text-base font-heading text-foreground"
                   htmlFor={fieldIds.firstName}
                 >
                   {t("firstNameLabel")}
@@ -323,7 +325,7 @@ export function GroupVolunteerForm({
             >
               <div className="flex items-center gap-1">
                 <label
-                  className="text-sm font-heading text-foreground"
+                  className="text-base font-heading text-foreground"
                   htmlFor={fieldIds.lastName}
                 >
                   {t("lastNameLabel")}
@@ -355,7 +357,7 @@ export function GroupVolunteerForm({
             >
               <div className="flex items-center gap-1">
                 <label
-                  className="text-sm font-heading text-foreground"
+                  className="text-base font-heading text-foreground"
                   htmlFor={fieldIds.email}
                 >
                   {t("emailLabel")}
@@ -389,7 +391,7 @@ export function GroupVolunteerForm({
             >
               <div className="flex items-center gap-1">
                 <label
-                  className="text-sm font-heading text-foreground"
+                  className="text-base font-heading text-foreground"
                   htmlFor={fieldIds.phone}
                 >
                   {t("phoneLabel")}
@@ -444,7 +446,7 @@ export function GroupVolunteerForm({
             {(field: AnyFieldApi) => (
               <FieldGroup>
                 <label
-                  className="text-sm font-heading text-foreground"
+                  className="text-base font-heading text-foreground"
                   htmlFor={fieldIds.backgroundDetails}
                 >
                   {t("backgroundDetailsLabel")}
@@ -467,10 +469,10 @@ export function GroupVolunteerForm({
               return (
                 <FieldGroup>
                   <div className="space-y-1">
-                    <p className="font-heading text-sm text-foreground">
+                    <p className="font-heading text-base text-foreground">
                       {t("friendSignupLabel")}
                     </p>
-                    <p className="text-sm text-foreground-muted">
+                    <p className="text-base text-foreground-muted">
                       {t("friendSignupHelp")}
                     </p>
                   </div>
@@ -484,7 +486,7 @@ export function GroupVolunteerForm({
                         <div className="flex items-end gap-2">
                           <FieldGroup className="min-w-0 flex-1">
                             <label
-                              className="text-sm font-heading text-foreground"
+                              className="text-base font-heading text-foreground"
                               htmlFor={fieldId}
                             >
                               {t("friendEmailLabel", { number: index + 1 })}

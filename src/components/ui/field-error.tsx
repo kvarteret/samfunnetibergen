@@ -8,7 +8,7 @@ interface FieldErrorProps {
 export function FieldError({ id, children }: FieldErrorProps) {
   return (
     <p
-      className="border-l-4 border-destructive pl-3 font-heading text-sm text-destructive"
+      className="border-l-4 border-destructive pl-3 font-heading text-base text-destructive"
       id={id}
     >
       {children}

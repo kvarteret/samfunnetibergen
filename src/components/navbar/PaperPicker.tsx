@@ -42,7 +42,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
       <summary
         className={cn(
           "flex cursor-pointer list-none items-center justify-between font-heading text-foreground focus-brutal",
-          mobile ? "px-10 py-4 text-base" : "px-2 py-2 text-sm",
+          mobile ? "px-10 py-4 text-base" : "px-2 py-2 text-base",
         )}
       >
         Enda mer
@@ -59,14 +59,14 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
         )}
       >
         <legend className="sr-only">Velg papir</legend>
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
           Velg papir
         </p>
         <div className="grid grid-cols-3 gap-2">
           {paperOptions.map(option => (
             <label
               className={cn(
-                "relative flex cursor-pointer flex-col items-center gap-2 border-2 border-border bg-background p-2 text-center font-heading text-xs focus-within-brutal",
+                "relative flex cursor-pointer flex-col items-center gap-2 border-2 border-border bg-background p-2 text-center font-heading text-sm focus-within-brutal",
                 paper === option.value && "bg-primary text-primary-foreground",
               )}
               key={option.value}
