@@ -156,6 +156,13 @@
     --paper-size: 100% var(--paper-writing-line);
     --paper-position: 0 0.6rem;
   }
+
+  /* No paper — plain background, no pattern. */
+  :root[data-paper="none"] {
+    --paper-pattern: none;
+    --paper-size: 0;
+    --paper-position: 0 0;
+  }
 }
 
 @theme inline {
