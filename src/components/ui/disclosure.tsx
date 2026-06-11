@@ -14,10 +14,7 @@ export function Disclosure({
 }: DisclosureProps) {
   return (
     <details
-      className={cn(
-        "group panel p-0 shadow-shadow",
-        className,
-      )}
+      className={cn("group panel p-0 shadow-shadow", className)}
       {...props}
     >
       <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 font-heading text-xl text-foreground focus-brutal [&::-webkit-details-marker]:hidden">

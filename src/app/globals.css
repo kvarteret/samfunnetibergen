@@ -46,17 +46,18 @@
     --red-950: oklch(14% 0.077 25);
 
     /* ── Green ── */
-    --green-50: oklch(97% 0.025 150);
-    --green-100: oklch(94% 0.042 150);
-    --green-200: oklch(88% 0.067 150);
-    --green-300: oklch(80% 0.109 150);
-    --green-400: oklch(70% 0.142 150);
-    --green-500: oklch(60% 0.150 150);
-    --green-600: oklch(50% 0.143 150);
-    --green-700: oklch(40% 0.128 150);
-    --green-800: oklch(30% 0.105 150);
-    --green-900: oklch(20% 0.075 150);
-    --green-950: oklch(14% 0.050 150);
+    /* Green ramp — amber primary hue-rotated by 120° */
+    --green-50: oklch(97% 0.027 176);
+    --green-100: oklch(94% 0.045 176);
+    --green-200: oklch(88% 0.072 176);
+    --green-300: oklch(80% 0.117 176);
+    --green-400: oklch(70% 0.153 176);
+    --green-500: oklch(60% 0.180 176);
+    --green-600: oklch(50% 0.171 176);
+    --green-700: oklch(40% 0.153 176);
+    --green-800: oklch(30% 0.126 176);
+    --green-900: oklch(20% 0.090 176);
+    --green-950: oklch(14% 0.063 176);
 
     /* ── Navy ── */
     --navy-50: oklch(97% 0.015 258);
@@ -95,8 +96,8 @@
     --accent-foreground: var(--navy-950);
     --destructive: var(--red-500);
     --destructive-foreground: var(--cream-100);
-    --success: var(--green-600);
-    --success-foreground: var(--cream-50);
+    --success: var(--green-500);
+    --success-foreground: var(--navy-950);
     --muted: var(--cream-400);
     --muted-foreground: var(--navy-600);
     --card: var(--cream-100);
@@ -240,7 +241,7 @@
 @utility panel {
   border: 2px solid var(--color-border);
   background-color: var(--color-card);
-  padding: var(--spacing-5);
+  padding: 1.25rem;
 }
 
 @utility text-eyebrow {

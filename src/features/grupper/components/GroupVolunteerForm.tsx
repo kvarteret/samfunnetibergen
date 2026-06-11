@@ -161,10 +161,7 @@ export function GroupVolunteerForm({
     useFormErrors(validationErrors)
 
   const aria = {
-    firstName: useFieldAria(
-      fieldIds.firstName,
-      errorFor(fieldIds.firstName),
-    ),
+    firstName: useFieldAria(fieldIds.firstName, errorFor(fieldIds.firstName)),
     lastName: useFieldAria(fieldIds.lastName, errorFor(fieldIds.lastName)),
     email: useFieldAria(fieldIds.email, errorFor(fieldIds.email)),
     phone: useFieldAria(fieldIds.phone, errorFor(fieldIds.phone)),

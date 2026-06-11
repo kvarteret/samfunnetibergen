@@ -283,10 +283,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       {infoSections.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {infoSections.map((section: EditorialSection) => (
-            <div
-              className="space-y-3 panel"
-              key={section._key}
-            >
+            <div className="space-y-3 panel" key={section._key}>
               {section.title ? (
                 <h2 className="font-heading text-xl leading-tight text-foreground">
                   {section.title}

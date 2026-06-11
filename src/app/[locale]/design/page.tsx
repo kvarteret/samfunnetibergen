@@ -238,9 +238,7 @@ export default function DesignGallery({
           </Card>
           <div className="panel shadow-shadow">
             <p className="font-heading text-lg">Kanonisk panel</p>
-            <p className="mt-2 text-foreground-muted">
-              panel shadow-shadow
-            </p>
+            <p className="mt-2 text-foreground-muted">panel shadow-shadow</p>
           </div>
         </div>
       </Section>
