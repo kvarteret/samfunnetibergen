@@ -232,65 +232,58 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
   return (
     <EventFormContext.Provider value={form}>
-      <form.Subscribe selector={s => s.values}>
-        {() => (
-          <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <form
-              className="min-w-0 space-y-14"
-              noValidate
-              onSubmit={(e: FormEvent) => {
-                e.preventDefault()
-                markSubmitAttempt()
-                if (validationErrors.length > 0) return
-                if (imageUploading) {
-                  return
-                }
-                form.handleSubmit()
-              }}
-            >
-              {visibleErrors.length > 0 && (
-                <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
-              )}
-              <EventFormDetailsSection
-                eventTypeOptions={eventTypeOptions}
-                titleError={errorFor(fieldIds.title)}
-                titleId={fieldIds.title}
-                uid={uid}
-              />
-              <EventFormImageSection
-                imageAssetId={imageAssetId}
-                imagePreviewUrl={imagePreviewUrl}
-                imageUploadError={imageUploadError}
-                imageUploading={imageUploading}
-                onImageChange={handleImageChange}
-                onRemoveImage={handleRemoveImage}
-              />
-              <EventFormScheduleSection
-                firstDateError={errorFor(fieldIds.firstDate)}
-                firstDateId={fieldIds.firstDate}
-                uid={uid}
-              />
-              <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
-              <EventFormOrganizerSection
-                groupOptions={groupOptions}
-                uid={uid}
-              />
-              <EventFormPriceSection uid={uid} />
-              <EventFormLinksSection uid={uid} />
-              <EventFormSubmitterSection
-                submittedByEmailError={errorFor(fieldIds.submittedByEmail)}
-                submittedByEmailId={fieldIds.submittedByEmail}
-                submittedByError={errorFor(fieldIds.submittedBy)}
-                submittedById={fieldIds.submittedBy}
-                uid={uid}
-              />
-              <EventFormActions formError="" imageUploading={imageUploading} />
-            </form>
+      <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <form
+          className="min-w-0 space-y-14"
+          noValidate
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault()
+            markSubmitAttempt()
+            if (validationErrors.length > 0) return
+            if (imageUploading) {
+              return
+            }
+            form.handleSubmit()
+          }}
+        >
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
+          <EventFormDetailsSection
+            eventTypeOptions={eventTypeOptions}
+            titleError={errorFor(fieldIds.title)}
+            titleId={fieldIds.title}
+            uid={uid}
+          />
+          <EventFormImageSection
+            imageAssetId={imageAssetId}
+            imagePreviewUrl={imagePreviewUrl}
+            imageUploadError={imageUploadError}
+            imageUploading={imageUploading}
+            onImageChange={handleImageChange}
+            onRemoveImage={handleRemoveImage}
+          />
+          <EventFormScheduleSection
+            firstDateError={errorFor(fieldIds.firstDate)}
+            firstDateId={fieldIds.firstDate}
+            uid={uid}
+          />
+          <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
+          <EventFormOrganizerSection groupOptions={groupOptions} uid={uid} />
+          <EventFormPriceSection uid={uid} />
+          <EventFormLinksSection uid={uid} />
+          <EventFormSubmitterSection
+            submittedByEmailError={errorFor(fieldIds.submittedByEmail)}
+            submittedByEmailId={fieldIds.submittedByEmail}
+            submittedByError={errorFor(fieldIds.submittedBy)}
+            submittedById={fieldIds.submittedBy}
+            uid={uid}
+          />
+          <EventFormActions formError="" imageUploading={imageUploading} />
+        </form>
 
-            <EventFormPreview event={previewEvent} />
-          </div>
-        )}
-      </form.Subscribe>
+        <EventFormPreview event={previewEvent} />
+      </div>
     </EventFormContext.Provider>
   )
 }
