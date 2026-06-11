@@ -40,7 +40,14 @@ export function ToggleOption({
           {label}
         </span>
       </span>
-      {children && <div className="px-4 pb-4">{children}</div>}
+      {children && (
+        // Stop propagation so interacting with children (inputs, selects)
+        // doesn't bubble to the button and toggle the parent off.
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+        <div className="px-4 pb-4" onClick={e => e.stopPropagation()}>
+          {children}
+        </div>
+      )}
     </button>
   )
 }

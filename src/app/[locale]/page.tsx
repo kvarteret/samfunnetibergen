@@ -229,7 +229,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         eyebrow={homeT("grupperBannerEyebrow")}
         heading1={homeT("grupperBannerHeading1")}
         heading2={homeT("grupperBannerHeading2")}
-        linkLabel={homeT("grupperBannerLink")}
       />
     </div>
   )

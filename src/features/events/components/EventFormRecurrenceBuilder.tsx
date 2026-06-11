@@ -198,7 +198,7 @@ function RecurrenceIntervalField({
 }: RecurrenceIntervalFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="text-sm text-foreground-subtle">
+      <label className="cursor-pointer text-sm text-foreground-subtle">
         Intervall - hver{" "}
         <input
           className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-brutal"

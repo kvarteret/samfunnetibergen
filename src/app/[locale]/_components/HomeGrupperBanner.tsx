@@ -7,7 +7,6 @@ interface HomeGrupperBannerProps {
   heading2: string
   body: string
   cta: string
-  linkLabel: string
 }
 
 export function HomeGrupperBanner({
@@ -16,7 +15,6 @@ export function HomeGrupperBanner({
   heading2,
   body,
   cta,
-  linkLabel,
 }: HomeGrupperBannerProps) {
   return (
     <section className="border-2 border-border bg-primary p-8 text-primary-foreground shadow-hard-lg sm:p-12">
@@ -27,17 +25,9 @@ export function HomeGrupperBanner({
         {heading2}
       </h2>
       <p className="mt-4 max-w-lg text-lg text-primary-foreground/75">{body}</p>
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <Button asChild size="lg" variant="neutral">
-          <Link href="/grupper">{cta}</Link>
-        </Button>
-        <Link
-          className="text-eyebrow underline underline-offset-4 focus-brutal"
-          href="/grupper#skjema"
-        >
-          {linkLabel}
-        </Link>
-      </div>
+      <Button asChild className="mt-6" size="lg" variant="neutral">
+        <Link href="/grupper">{cta}</Link>
+      </Button>
     </section>
   )
 }
