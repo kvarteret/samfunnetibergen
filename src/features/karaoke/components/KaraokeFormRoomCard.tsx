@@ -15,7 +15,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
   const firstImage: KaraokeRoomImage | undefined = room.images?.[0]
 
   return (
-    <Card className="space-y-4 bg-card p-5 py-5 interactive-brutal">
+    <Card className="space-y-4 bg-card p-5 py-5">
       <ImageWithFallback
         alt={firstImage?.alt ?? room.title}
         className="border-2 border-border/50"

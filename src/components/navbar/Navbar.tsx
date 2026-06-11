@@ -15,6 +15,7 @@ import type {
   NavLeaf,
 } from "@/lib/sanity/fetch"
 import { MobileMenu } from "./MobileMenu"
+import { PaperMenuSection } from "./PaperPicker"
 
 type NavbarProps = {
   navbar: NavbarContent | null
@@ -142,6 +143,7 @@ function DesktopNavItem({ item }: { item: NavItem }) {
       <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
       <NavigationMenuContent>
         <DropdownGroups groups={item.children ?? []} />
+        {item._key === moreItem._key && <PaperMenuSection />}
       </NavigationMenuContent>
     </NavigationMenuItem>
   )

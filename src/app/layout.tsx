@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { DM_Mono, Instrument_Serif } from "next/font/google"
 import localFont from "next/font/local"
+import Script from "next/script"
+import { paperPreferenceScript } from "@/lib/paper-preference"
 import { fetchSiteMetadata } from "@/lib/sanity/fetch"
 import { resolveSiteUrl } from "@/lib/site-url"
 
@@ -71,10 +73,17 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
+      data-paper="grid"
       lang="no"
       className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${dmMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <Script id="paper-preference" strategy="beforeInteractive">
+          {paperPreferenceScript}
+        </Script>
+        {children}
+      </body>
     </html>
   )
 }

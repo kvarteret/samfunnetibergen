@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
-import { EventsPage as EventsPageContent } from "@/features/events"
 import type { EventDateEntry } from "@/features/events"
+import { EventsPage as EventsPageContent } from "@/features/events"
 import {
   computeAllDates,
   formatPrimaryDate,

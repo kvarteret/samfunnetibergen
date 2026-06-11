@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
@@ -31,8 +32,11 @@ export function HomeBookingBanner({
         {heading2}
       </h2>
       <p className="mt-4 max-w-lg text-lg text-background/75">{body}</p>
-      <Button asChild className="mt-6" size="lg">
-        <Link href="/rom/book">{cta}</Link>
+      <Button asChild className="group mt-6" size="lg">
+        <Link href="/rom/book">
+          {cta}
+          <ArrowRight className="transition-transform duration-base ease-out group-hover:translate-x-1" />
+        </Link>
       </Button>
     </section>
   )

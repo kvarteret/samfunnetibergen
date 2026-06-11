@@ -24,7 +24,7 @@ export function SelectableCard({
     <RadioGroupItem
       appearance="soft"
       className={cn(
-        "flex flex-col text-left interactive-brutal",
+        "flex flex-col text-left transition-colors",
         disabled && "hover:bg-card",
         image ? "overflow-hidden" : "min-h-32 gap-2 p-4",
         className,

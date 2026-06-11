@@ -44,7 +44,7 @@ export default async function DynamicPage({ params }: PageProps) {
   if (!page) notFound()
 
   return (
-    <div className="prose prose-neutral max-w-4xl dark:prose-invert">
+    <div className="paper-prose prose prose-neutral max-w-4xl dark:prose-invert">
       <ReactMarkdown>{page.content ?? ""}</ReactMarkdown>
     </div>
   )

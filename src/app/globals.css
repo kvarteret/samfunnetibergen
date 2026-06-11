@@ -125,6 +125,36 @@
     --duration-fast: 80ms;
     --duration-base: 150ms;
     --duration-slow: 300ms;
+
+    /* ── Paper ── */
+    --paper-line: color-mix(in srgb, var(--foreground) 3.5%, transparent);
+    --paper-dot: color-mix(in srgb, var(--foreground) 6.5%, transparent);
+    --paper-pattern: linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    --paper-size: 20px 20px;
+    --paper-position: 0 0;
+    --paper-writing-line: 2rem;
+  }
+
+  :root[data-paper="dots"] {
+    --paper-pattern: radial-gradient(
+      circle,
+      var(--paper-dot) 1px,
+      transparent 1.2px
+    );
+    --paper-size: 20px 20px;
+  }
+
+  :root[data-paper="ruled"] {
+    --paper-pattern: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) var(--paper-writing-line)
+    );
+    --paper-size: 100% var(--paper-writing-line);
+    --paper-position: 0 0.6rem;
   }
 }
 
@@ -193,6 +223,67 @@
   h4 {
     @apply text-lg;
   }
+}
+
+.paper-canvas {
+  background-color: var(--background);
+}
+
+.paper-surface {
+  background-color: var(--background);
+  background-image: var(--paper-pattern);
+  background-position: var(--paper-position);
+  background-size: var(--paper-size);
+}
+
+.paper-prose {
+  background-color: var(--card);
+  padding: var(--paper-writing-line);
+  line-height: var(--paper-writing-line);
+  color: var(--color-foreground);
+}
+
+.paper-prose :where(p, li) {
+  line-height: var(--paper-writing-line);
+}
+
+.paper-prose :where(p) {
+  margin-top: 0;
+  margin-bottom: var(--paper-writing-line);
+}
+
+.paper-prose :where(p:last-child) {
+  margin-bottom: 0;
+}
+
+.bg-paper {
+  background-color: var(--background);
+}
+
+.paper-swatch-grid {
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.paper-swatch-dots {
+  background-image: radial-gradient(
+    circle,
+    var(--paper-dot) 1px,
+    transparent 1.2px
+  );
+  background-size: 8px 8px;
+}
+
+.paper-swatch-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 7px,
+    var(--paper-line) 7px,
+    var(--paper-line) 8px
+  );
 }
 
 /* House focus state: cream interior -> 2px black border -> 3px amber ring,

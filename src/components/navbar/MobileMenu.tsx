@@ -7,6 +7,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { useState } from "react"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
+import { PaperMenuSection } from "./PaperPicker"
 
 type MobileMenuProps = {
   items: NavItem[]
@@ -112,6 +113,7 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
           </Link>
         )),
       )}
+      {item._key === "static-more" && <PaperMenuSection mobile />}
     </div>
   )
 }

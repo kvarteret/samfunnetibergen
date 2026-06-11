@@ -47,7 +47,7 @@ export function PortableTextContent({ value }: PortableTextContentProps) {
 
       return (
         <div
-          className="prose prose-neutral max-w-none dark:prose-invert"
+          className="paper-prose prose prose-neutral max-w-none dark:prose-invert"
           key={block._key}
         >
           <PortableText

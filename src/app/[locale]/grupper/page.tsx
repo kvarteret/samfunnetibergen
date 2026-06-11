@@ -113,7 +113,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
             {content.faq.map(
               (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
                 <Disclosure key={item._key} summary={item.question}>
-                  <div className="space-y-3 text-base leading-7 text-foreground">
+                  <div className="paper-prose text-base text-foreground">
                     {item.answer?.map((paragraph: string) => (
                       <p key={paragraph}>{paragraph}</p>
                     ))}
