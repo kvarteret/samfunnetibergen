@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm, type AnyFieldApi } from "@tanstack/react-form"
+import { type AnyFieldApi, useForm, useStore } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
 import { type FormEvent, useState } from "react"
 
@@ -10,7 +10,6 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { useFormErrors } from "@/lib/use-form-errors"
 import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -19,6 +18,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { useFieldAria } from "@/lib/use-field-aria"
+import { useFormErrors } from "@/lib/use-form-errors"
 
 type SubGroup = {
   slug: string
@@ -44,6 +44,7 @@ type VolunteerFormValues = {
   phone: string
   studyInstitution: string
   backgroundDetails: string
+  friendEmails: string[]
 }
 
 const defaultValues: VolunteerFormValues = {
@@ -53,10 +54,15 @@ const defaultValues: VolunteerFormValues = {
   phone: "",
   studyInstitution: "",
   backgroundDetails: "",
+  friendEmails: [],
 }
 
 function isEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+}
+
+function friendFieldId(index: number) {
+  return index === 0 ? "gvf-friend-0" : "gvf-friend-1"
 }
 
 function getValidationErrors(
@@ -93,6 +99,33 @@ function getValidationErrors(
       message: "Studiested er påkrevd",
     })
   }
+  const normalizedEmail = values.email.trim().toLowerCase()
+  const normalizedFriends = values.friendEmails.map(email =>
+    email.trim().toLowerCase(),
+  )
+  values.friendEmails.forEach((friendEmail, index) => {
+    const fieldId = friendFieldId(index)
+    if (!friendEmail.trim() || !isEmail(friendEmail)) {
+      errors.push({
+        fieldId,
+        message: t("friendEmailInvalid"),
+      })
+    } else if (friendEmail.trim().toLowerCase() === normalizedEmail) {
+      errors.push({
+        fieldId,
+        message: t("friendEmailDuplicate"),
+      })
+    } else if (
+      normalizedFriends.findIndex(
+        email => email === normalizedFriends[index],
+      ) !== index
+    ) {
+      errors.push({
+        fieldId,
+        message: t("friendEmailDuplicate"),
+      })
+    }
+  })
 
   return errors
 }
@@ -127,6 +160,10 @@ export function GroupVolunteerForm({
         first_choice_group_slug: selectedSlug,
         second_choice_group_slug: secondChoiceSlug || undefined,
         background_details: value.backgroundDetails.trim() || undefined,
+        friend_emails:
+          value.friendEmails.length > 0
+            ? value.friendEmails.map(email => email.trim().toLowerCase())
+            : undefined,
       }
 
       const response = await fetch("/api/volunteer-prospects", {
@@ -156,7 +193,14 @@ export function GroupVolunteerForm({
     backgroundDetails: "gvf-background",
   }
 
-  const validationErrors = getValidationErrors(form.state.values, fieldIds, t)
+  const values = useStore(form.store, state => state.values)
+  const isSubmitting = useStore(form.store, state => state.isSubmitting)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
+  )
+  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
+  const validationErrors = getValidationErrors(values, fieldIds, t)
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -171,9 +215,7 @@ export function GroupVolunteerForm({
     ),
   }
 
-  const submitError = form.state.errorMap.onSubmit
-
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return (
       <FormSection number="00" title={t("title")}>
         <Alert variant="success">
@@ -188,9 +230,7 @@ export function GroupVolunteerForm({
     <FormSection number="00" title={t("title")}>
       {hasSubGroups && (
         <FieldGroup>
-          <p className="text-sm text-foreground-subtle">
-            {t("selectSubGroup")}
-          </p>
+          <p className="text-sm text-foreground-muted">{t("selectSubGroup")}</p>
           <SegmentedControl
             onChange={selectFirstChoice}
             options={subGroups!.map(sub => ({
@@ -200,7 +240,7 @@ export function GroupVolunteerForm({
             value={selectedSlug}
           />
           {selectedSlug && (
-            <p className="text-xs text-foreground-faint">
+            <p className="text-xs text-foreground-muted">
               {t("applyingTo", {
                 group:
                   subGroups!.find(g => g.slug === selectedSlug)?.name ??
@@ -239,7 +279,7 @@ export function GroupVolunteerForm({
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
           {!hasSubGroups && (
-            <p className="text-sm text-foreground-subtle">
+            <p className="text-sm text-foreground-muted">
               {t("applyingTo", { group: groupName })}
             </p>
           )}
@@ -420,12 +460,96 @@ export function GroupVolunteerForm({
             )}
           </form.Field>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.state.isSubmitting}
-          >
-            {form.state.isSubmitting ? t("submitPending") : t("submitIdle")}
+          <form.Field name="friendEmails">
+            {(field: AnyFieldApi) => {
+              const friendEmails = field.state.value as string[]
+
+              return (
+                <FieldGroup>
+                  <div className="space-y-1">
+                    <p className="font-heading text-sm text-foreground">
+                      {t("friendSignupLabel")}
+                    </p>
+                    <p className="text-sm text-foreground-muted">
+                      {t("friendSignupHelp")}
+                    </p>
+                  </div>
+
+                  {friendEmails.map((friendEmail, index) => {
+                    const fieldId = friendFieldId(index)
+                    const error = errorFor(fieldId)
+
+                    return (
+                      <div className="space-y-2" key={fieldId}>
+                        <div className="flex items-end gap-2">
+                          <FieldGroup className="min-w-0 flex-1">
+                            <label
+                              className="text-sm font-heading text-foreground"
+                              htmlFor={fieldId}
+                            >
+                              {t("friendEmailLabel", { number: index + 1 })}
+                            </label>
+                            <Input
+                              aria-describedby={
+                                error ? `${fieldId}-error` : undefined
+                              }
+                              aria-invalid={!!error}
+                              autoComplete="email"
+                              id={fieldId}
+                              onChange={event =>
+                                field.handleChange(
+                                  friendEmails.map((email, emailIndex) =>
+                                    emailIndex === index
+                                      ? event.target.value
+                                      : email,
+                                  ),
+                                )
+                              }
+                              placeholder={t("friendEmailPlaceholder")}
+                              type="email"
+                              value={friendEmail}
+                            />
+                          </FieldGroup>
+                          <Button
+                            onClick={() =>
+                              field.handleChange(
+                                friendEmails.filter(
+                                  (_, emailIndex) => emailIndex !== index,
+                                ),
+                              )
+                            }
+                            type="button"
+                            variant="neutral"
+                          >
+                            {t("removeFriend")}
+                          </Button>
+                        </div>
+                        {error && (
+                          <FieldError id={`${fieldId}-error`}>
+                            {error}
+                          </FieldError>
+                        )}
+                      </div>
+                    )
+                  })}
+
+                  {friendEmails.length < 2 && (
+                    <Button
+                      className="w-fit"
+                      onClick={() => field.handleChange([...friendEmails, ""])}
+                      type="button"
+                      variant="neutral"
+                    >
+                      {t("addFriend")}
+                    </Button>
+                  )}
+                </FieldGroup>
+              )
+            }}
+          </form.Field>
+
+          <Button className="w-full" disabled={isSubmitting} type="submit">
+            {isSubmitting ? t("submitPending") : t("submitIdle")}
           </Button>
 
           {submitError && (

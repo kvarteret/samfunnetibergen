@@ -138,6 +138,8 @@
     "friendEmailPlaceholder": "venn@example.no",
     "addFriend": "+ Legg til venn",
     "removeFriend": "Fjern venn",
+    "friendEmailInvalid": "Skriv inn en gyldig e-postadresse.",
+    "friendEmailDuplicate": "E-postadressene må være ulike.",
     "submitIdle": "Bli frivillig",
     "submitPending": "Sender...",
     "successTitle": "Registrering sendt",

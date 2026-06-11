@@ -20,6 +20,7 @@ interface VolunteerProspectBody {
   first_choice_group_slug: string
   second_choice_group_slug?: string
   background_details?: string
+  friend_emails?: string[]
 }
 
 const REQUIRED_FIELDS = [
@@ -57,6 +58,16 @@ function validate(body: unknown): body is VolunteerProspectBody {
   for (const field of REQUIRED_FIELDS) {
     if (fieldError(b, field)) return false
   }
+  if (
+    b.friend_emails !== undefined &&
+    (!Array.isArray(b.friend_emails) ||
+      b.friend_emails.length > 2 ||
+      b.friend_emails.some(
+        email => !isNonEmptyString(email) || !EMAIL_RE.test(email),
+      ))
+  ) {
+    return false
+  }
   return true
 }
 
@@ -85,18 +96,23 @@ export async function POST(request: Request) {
       )
     }
 
+    const requestBody = {
+      full_name: body.full_name.trim(),
+      email: body.email.trim().toLowerCase(),
+      phone: body.phone.trim().replace(/\D/g, ""),
+      study_institution: body.study_institution.trim(),
+      first_choice_group_slug: body.first_choice_group_slug.trim(),
+      second_choice_group_slug:
+        body.second_choice_group_slug?.trim() || undefined,
+      background_details: body.background_details?.trim() || undefined,
+      friend_emails: body.friend_emails?.map(email =>
+        email.trim().toLowerCase(),
+      ),
+    }
+
     const result = await createPublicVolunteerProspect({
       client: personalClient,
-      body: {
-        full_name: body.full_name.trim(),
-        email: body.email.trim().toLowerCase(),
-        phone: body.phone.trim().replace(/\D/g, ""),
-        study_institution: body.study_institution.trim(),
-        first_choice_group_slug: body.first_choice_group_slug.trim(),
-        second_choice_group_slug:
-          body.second_choice_group_slug?.trim() || undefined,
-        background_details: body.background_details?.trim() || undefined,
-      },
+      body: requestBody,
     })
 
     if (result.error) {
