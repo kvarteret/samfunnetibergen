@@ -44,7 +44,7 @@ export default async function AppenPage() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 bg-background">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-3xl">Last ned appen</h1>
-        <p className="text-foreground-muted text-base">
+        <p className="text-foreground-muted">
           Tilgjengelig for iOS og Android
         </p>
       </div>
@@ -57,8 +57,8 @@ export default async function AppenPage() {
           className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded focus-brutal"
         >
           <IconApple />
-          <span className="text-base font-medium leading-tight">
-            <span className="block font-heading text-base uppercase tracking-widest text-foreground-muted">
+          <span className=" font-medium leading-tight">
+            <span className="block font-heading uppercase tracking-widest text-foreground-muted">
               Last ned på
             </span>{" "}
             App Store
@@ -72,8 +72,8 @@ export default async function AppenPage() {
           className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded focus-brutal"
         >
           <IconAndroid />
-          <span className="text-base font-medium leading-tight">
-            <span className="block font-heading text-base uppercase tracking-widest text-foreground-muted">
+          <span className=" font-medium leading-tight">
+            <span className="block font-heading uppercase tracking-widest text-foreground-muted">
               Last ned på
             </span>{" "}
             Google Play

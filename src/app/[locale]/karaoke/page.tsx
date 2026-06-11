@@ -74,7 +74,7 @@ function KaraokePageIntro() {
   return (
     <header className="space-y-4">
       <Link
-        className="inline-flex font-heading text-base uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
+        className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
         href="/rom"
       >
         ← Rom
@@ -84,9 +84,7 @@ function KaraokePageIntro() {
         <div className="size-10 bg-primary flex items-center justify-center shrink-0">
           <Mic className="size-5 text-primary-foreground" aria-hidden />
         </div>
-        <p className="font-heading text-base uppercase tracking-widest">
-          Karaoke
-        </p>
+        <p className="font-heading uppercase tracking-widest">Karaoke</p>
       </div>
       <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
         Booking av karaoke
@@ -96,7 +94,7 @@ function KaraokePageIntro() {
         behandler vi forespørselen din så fort vi ser den.
       </p>
 
-      <p className="font-heading text-base uppercase tracking-widest text-destructive">
+      <p className="font-heading uppercase tracking-widest text-destructive">
         Aldersgrense 18 år*{" "}
         <span className="normal-case tracking-normal font-sans text-foreground-muted">
           (*18 år med studentbevis – 20 år for alle andre)
@@ -111,10 +109,10 @@ function KaraokePageIntro() {
 function SameDayKaraokeNotice() {
   return (
     <div className="space-y-3 max-w-xl panel">
-      <p className="text-base font-heading text-foreground">
+      <p className=" font-heading text-foreground">
         Vil du booke et karaokerom i dag?
       </p>
-      <ul className="space-y-1.5 text-base text-foreground-muted leading-6">
+      <ul className="space-y-1.5 text-foreground-muted leading-6">
         <li>
           På <strong className="font-heading text-foreground">hverdager</strong>{" "}
           må bookinger for samme dag gjøres{" "}
@@ -131,7 +129,7 @@ function SameDayKaraokeNotice() {
         </li>
       </ul>
       <a
-        className="flex items-center gap-2 text-base font-heading text-primary hover:underline underline-offset-4 transition-colors focus-brutal"
+        className="flex items-center gap-2 font-heading text-primary hover:underline underline-offset-4 transition-colors focus-brutal"
         href="tel:40626601"
       >
         <Phone className="size-4 shrink-0" aria-hidden />

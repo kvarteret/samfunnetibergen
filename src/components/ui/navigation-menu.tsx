@@ -68,7 +68,7 @@ function NavigationMenuTrigger({
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
       className={cn(
-        "group relative flex cursor-pointer items-center gap-1 border-2 border-transparent px-3 py-2.5 font-heading text-base text-foreground",
+        "group relative flex cursor-pointer items-center gap-1 border-2 border-transparent px-3 py-2.5 font-heading  text-foreground",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
         "focus-brutal",
         className,
@@ -109,7 +109,7 @@ function NavigationMenuLink({
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "block cursor-pointer border-2 border-transparent px-2 py-1.5 text-base text-foreground",
+        "block cursor-pointer border-2 border-transparent px-2 py-1.5  text-foreground",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
         className,
       )}

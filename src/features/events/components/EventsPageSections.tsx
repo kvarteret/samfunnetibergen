@@ -92,7 +92,7 @@ export function EventsPageSections({
   const { filteredEvents } = useEvents()
 
   if (filteredEvents.length === 0) {
-    return <p className="text-body">{t("empty")}</p>
+    return <p>{t("empty")}</p>
   }
 
   return (

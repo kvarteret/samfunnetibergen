@@ -5,12 +5,14 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-base text-base font-base gap-2 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-brutal disabled:cursor-not-allowed disabled:opacity-50",
+  "inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-base  font-base gap-2 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-brutal disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground btn-brutal",
-        neutral: "bg-background text-foreground btn-brutal",
+        default:
+          "bg-primary text-primary-foreground btn-brutal",
+        neutral:
+          "bg-background text-foreground btn-brutal",
       },
       size: {
         default: "h-10 px-4 py-2",

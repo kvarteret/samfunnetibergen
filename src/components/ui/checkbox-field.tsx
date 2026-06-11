@@ -110,7 +110,7 @@ export function CheckboxField({
         <span>
           <span
             className={cn(
-              "block font-heading text-base text-foreground",
+              "block font-heading  text-foreground",
               labelClassName,
             )}
           >

@@ -51,7 +51,7 @@ export function EventsPageFilters() {
             }
           />
         </div>
-        <p className="font-heading text-base uppercase tracking-widest">
+        <p className="font-heading uppercase tracking-widest">
           {t("filterResultCount", { count: filteredEvents.length })}
         </p>
       </div>
@@ -59,7 +59,7 @@ export function EventsPageFilters() {
       {(taxonomy.eventTypes.length > 0 ||
         taxonomy.organizerGroups.length > 0) && (
         <details>
-          <summary className="cursor-pointer list-none font-heading text-base uppercase tracking-widest text-foreground underline underline-offset-4 focus-brutal">
+          <summary className="cursor-pointer list-none font-heading uppercase tracking-widest text-foreground underline underline-offset-4 focus-brutal">
             {t("filterMore")}
             {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </summary>
@@ -74,7 +74,7 @@ export function EventsPageFilters() {
               )
               return (
                 <div className="space-y-3" key={group._id}>
-                  <h2 className="font-heading text-base uppercase tracking-widest">
+                  <h2 className="font-heading uppercase tracking-widest">
                     {t("filterType")} — {group.name}
                   </h2>
                   <ToggleGroup
@@ -102,7 +102,7 @@ export function EventsPageFilters() {
             })}
             {taxonomy.organizerGroups.length > 0 && (
               <div className="space-y-3">
-                <h2 className="font-heading text-base uppercase tracking-widest">
+                <h2 className="font-heading uppercase tracking-widest">
                   {t("filterOrganizer")}
                 </h2>
                 <ToggleGroup

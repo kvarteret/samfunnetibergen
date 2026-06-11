@@ -38,7 +38,7 @@ function AppColumn() {
       <ul className="space-y-2">
         <li>
           <Link
-            className="flex items-center gap-2 text-base text-foreground-muted hover:text-foreground transition-colors focus-brutal"
+            className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
             href="/appen"
           >
             <IconApple />
@@ -47,7 +47,7 @@ function AppColumn() {
         </li>
         <li>
           <Link
-            className="flex items-center gap-2 text-base text-foreground-muted hover:text-foreground transition-colors focus-brutal"
+            className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
             href="/appen"
           >
             <IconAndroid />
@@ -132,7 +132,7 @@ const PLATFORM_ICONS: Record<string, () => React.ReactElement> = {
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-heading text-base uppercase tracking-widest text-foreground-muted mb-3">
+    <p className="font-heading uppercase tracking-widest text-foreground-muted mb-3">
       {children}
     </p>
   )
@@ -149,7 +149,7 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
           return (
             <li key={link._key}>
               <a
-                className="flex items-center gap-2 text-base text-foreground-muted hover:text-foreground transition-colors focus-brutal"
+                className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
                 href={link.url ?? "#"}
                 rel="noreferrer"
                 target="_blank"
@@ -251,7 +251,7 @@ function ContactColumn({ generalContact }: { generalContact?: string | null }) {
   return (
     <div>
       <ColumnHeading>Kontakt oss</ColumnHeading>
-      <p className="text-base text-foreground-muted whitespace-pre-line leading-relaxed">
+      <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         <LinkedContactText text={generalContact} />
       </p>
     </div>
@@ -263,7 +263,7 @@ function AddressColumn({ address }: { address?: string | null }) {
   return (
     <div>
       <ColumnHeading>Besøk oss</ColumnHeading>
-      <p className="text-base text-foreground-muted whitespace-pre-line leading-relaxed">
+      <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         {address}
       </p>
     </div>
@@ -276,7 +276,7 @@ function HoursRow({ row }: { row: HoursRow }) {
 
   const time = formatOpeningTimeLabel(row)
   return (
-    <div className="flex justify-between gap-4 text-base">
+    <div className="flex justify-between gap-4">
       <dt className="text-foreground-muted">{dayLabel}</dt>
       {time && (
         <dd className="text-foreground-muted shrink-0 tabular-nums">{time}</dd>

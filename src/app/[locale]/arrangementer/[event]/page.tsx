@@ -89,7 +89,7 @@ function EventDetailHero({
     <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <div className="flex h-full flex-col justify-evenly">
         {event.eventType?.name && (
-          <p className="w-fit bg-primary px-3 py-1.5 text-base font-heading text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
             {event.eventType.name}
           </p>
         )}
@@ -178,7 +178,7 @@ function EventDetailMetaItem({
 }) {
   return (
     <div className="space-y-3">
-      <p className="font-heading text-base uppercase tracking-widest text-foreground">
+      <p className="font-heading uppercase tracking-widest text-foreground">
         {label}
       </p>
       <p className="text-lg leading-6 text-foreground">{children}</p>
@@ -195,7 +195,7 @@ function EventDetailSchedule({
 }) {
   return (
     <section>
-      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading text-base uppercase tracking-widest text-foreground sm:gap-4">
+      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading uppercase tracking-widest text-foreground sm:gap-4">
         <p>{t("date")}</p>
         <p>{t("time")}</p>
         <p>{t("place")}</p>

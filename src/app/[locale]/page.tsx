@@ -259,7 +259,7 @@ function HomeHero({
         )}
         {homePage?.description?.split(/\n{2,}/).map(paragraph => (
           <p
-            className="max-w-2xl text-base leading-relaxed text-foreground-muted"
+            className="max-w-2xl leading-relaxed text-foreground-muted"
             key={paragraph}
           >
             {paragraph}
@@ -272,7 +272,7 @@ function HomeHero({
                 <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
               </Button>
               <Link
-                className="group inline-flex items-center gap-1.5 font-heading text-base uppercase tracking-widest underline-offset-4 hover:underline focus-brutal"
+                className="group inline-flex items-center gap-1.5 font-heading uppercase tracking-widest underline-offset-4 hover:underline focus-brutal"
                 href={`/${locale}/arrangementer`}
               >
                 Se arrangementer
@@ -316,11 +316,11 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading uppercase tracking-widest text-foreground-muted">
           Arrangementer
         </p>
         <Link
-          className="group inline-flex items-center gap-1.5 font-heading text-base uppercase tracking-widest underline underline-offset-4 focus-brutal"
+          className="group inline-flex items-center gap-1.5 font-heading uppercase tracking-widest underline underline-offset-4 focus-brutal"
           href={`/${locale}/arrangementer`}
         >
           Se alle

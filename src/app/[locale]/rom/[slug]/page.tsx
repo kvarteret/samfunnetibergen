@@ -213,7 +213,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
       {room.specsUrl && (
         <a
-          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-base text-foreground shadow-shadow transition-shadow hover:shadow-none"
+          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-foreground shadow-shadow transition-shadow hover:shadow-none"
           href={room.specsUrl}
           rel="noreferrer"
           target="_blank"
@@ -278,7 +278,7 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
 
             return (
               <div
-                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-base"
+                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2"
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>

@@ -185,7 +185,7 @@ export function BookingForm({
           tar kontakt på e-post.
         </AlertDescription>
         <Link
-          className="col-start-2 inline-flex font-heading text-base uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
+          className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
         >
           Tilbake til rom

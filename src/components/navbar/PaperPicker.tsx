@@ -42,7 +42,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
       <summary
         className={cn(
           "flex cursor-pointer list-none items-center justify-between font-heading text-foreground focus-brutal",
-          mobile ? "px-10 py-4 text-base" : "px-2 py-2 text-base",
+          mobile ? "px-10 py-4 " : "px-2 py-2 ",
         )}
       >
         Enda mer
@@ -59,7 +59,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
         )}
       >
         <legend className="sr-only">Velg papir</legend>
-        <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
+        <p className="font-heading uppercase tracking-widest text-foreground-muted">
           Velg papir
         </p>
         <div className="grid grid-cols-3 gap-2">

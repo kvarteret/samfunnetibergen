@@ -104,7 +104,7 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
       {item.children?.map((group: NavGroup) =>
         group.items?.map((leaf: NavLeaf) => (
           <Link
-            className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-base text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+            className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
             href={leaf.href ?? leaf.externalUrl ?? "#"}
             key={leaf._key}
             onClick={onClose}

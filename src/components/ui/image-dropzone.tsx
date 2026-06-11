@@ -21,7 +21,7 @@ export function ImageDropzone({
         type="file"
       />
       <Upload aria-hidden className="size-7 text-foreground-muted" />
-      <span className="text-base text-foreground-muted">{label}</span>
+      <span className=" text-foreground-muted">{label}</span>
     </label>
   )
 }

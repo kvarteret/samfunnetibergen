@@ -40,7 +40,7 @@ export function KaraokeFormTermsSection({
               id={acceptTermsId}
               onChange={field.handleChange}
             >
-              <span className="text-body text-foreground-muted">
+              <span>
                 Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
                 forstått og godkjenner{" "}
                 <Link
@@ -73,9 +73,7 @@ export function KaraokeFormTermsSection({
                     id={studentProofId}
                     onChange={field.handleChange}
                   >
-                    <span className="text-body text-foreground-muted">
-                      Jeg lover å ta med studentbevis 🤞
-                    </span>
+                    <span>Jeg lover å ta med studentbevis 🤞</span>
                   </CheckboxField>
                 )}
               </form.Field>

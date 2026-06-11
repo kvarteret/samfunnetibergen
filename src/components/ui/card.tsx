@@ -42,7 +42,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-base font-base", className)}
+      className={cn(" font-base", className)}
       {...props}
     />
   )

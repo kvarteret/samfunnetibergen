@@ -34,7 +34,7 @@ export function EventFormActions({
         </Alert>
       )}
 
-      <p className="text-base leading-6 text-foreground-muted">
+      <p className=" leading-6 text-foreground-muted">
         Arrangementet sendes til godkjenning hos PR-gruppen på Kvarteret. Det
         vil ikke vises på nettsiden før det er godkjent. vi bruker vanligvis 1-3
         virkedager.

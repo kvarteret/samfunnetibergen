@@ -33,7 +33,7 @@ export function DetailRow({
   if (layout === "labelColumn") {
     return (
       <div className={cn("flex gap-8 py-3", className)}>
-        <dt className="w-36 shrink-0 font-heading text-base font-medium text-foreground">
+        <dt className="w-36 shrink-0 font-heading font-medium text-foreground">
           {label}
         </dt>
         <dd>{children}</dd>

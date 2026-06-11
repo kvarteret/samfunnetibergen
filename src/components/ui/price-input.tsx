@@ -16,7 +16,7 @@ export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
     <FieldGroup>
       <Label htmlFor={id}>{label}</Label>
       <div className="relative max-w-28">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-foreground-muted">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted">
           kr
         </span>
         <Input

@@ -44,7 +44,7 @@ function SubmitEventPageIntro() {
   return (
     <header className="space-y-6">
       <Link
-        className="inline-flex font-heading text-base uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
+        className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
         href="/arrangementer"
       >
         ← Arrangementer
@@ -59,7 +59,7 @@ function SubmitEventPageIntro() {
                 aria-hidden
               />
             </div>
-            <p className="font-heading text-base uppercase tracking-widest">
+            <p className="font-heading uppercase tracking-widest">
               Ny innmelding
             </p>
           </div>
@@ -74,10 +74,10 @@ function SubmitEventPageIntro() {
         </div>
 
         <aside className="space-y-3 panel lg:min-w-64">
-          <p className="font-heading text-base uppercase tracking-widest">
+          <p className="font-heading uppercase tracking-widest">
             Slik fungerer det
           </p>
-          <ol className="space-y-2 text-base text-foreground-muted leading-6">
+          <ol className="space-y-2 text-foreground-muted leading-6">
             <li className="flex gap-2.5">
               <span className="font-heading text-primary shrink-0">1.</span>{" "}
               Fyll ut skjemaet og send inn

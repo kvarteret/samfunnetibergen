@@ -37,11 +37,11 @@ export function BookingFormOrderSummary({
         <SelectedRoomCard room={selectedRoom} />
 
         <div className="space-y-3 p-5">
-          <p className="font-heading text-base uppercase tracking-widest">
+          <p className="font-heading uppercase tracking-widest">
             Bestillingsoversikt
           </p>
 
-          <dl className="space-y-2.5 text-base">
+          <dl className="space-y-2.5">
             <DetailRow icon={Users} label="Booker" layout="vertical">
               {BOOKER_LABELS[state.bookerType]}
               {state.bookerType === "studentorg" && state.studentOrgName
@@ -89,7 +89,7 @@ export function BookingFormOrderSummary({
 function SelectedRoomCard({ room }: { room?: BookingRoom }) {
   if (!room) {
     return (
-      <div className="flex aspect-video items-center justify-center bg-muted text-base text-foreground-muted">
+      <div className="flex aspect-video items-center justify-center bg-muted text-foreground-muted">
         <MapPin aria-hidden className="mr-2 size-4" />
         Velg et rom
       </div>
@@ -101,7 +101,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
       <ImageWithFallback
         alt={room.image?.alt ?? room.title ?? room.slug}
         fallback={
-          <span className="flex items-center gap-2 text-base text-foreground-muted">
+          <span className="flex items-center gap-2 text-foreground-muted">
             <MapPin aria-hidden className="size-4" />
             Velg et rom
           </span>

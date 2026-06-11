@@ -80,11 +80,11 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             {group.name}
           </h3>
         </div>
-        <p className="line-clamp-4 text-base leading-7 text-foreground">
+        <p className="line-clamp-4 leading-7 text-foreground">
           {group.summary}
         </p>
       </div>
-      <div className="mt-auto flex flex-col gap-3 text-base text-foreground">
+      <div className="mt-auto flex flex-col gap-3 text-foreground">
         {group.labels?.length ? (
           <div className="flex flex-wrap gap-2">
             {group.labels.map((label: string) => (

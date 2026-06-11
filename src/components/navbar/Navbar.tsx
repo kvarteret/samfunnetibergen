@@ -202,7 +202,7 @@ function NavLink({
   children: React.ReactNode
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const cls =
-    "relative flex cursor-pointer items-center border-2 border-transparent px-3 py-2.5 font-heading text-base text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+    "relative flex cursor-pointer items-center border-2 border-transparent px-3 py-2.5 font-heading  text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
 
   return external ? (
     <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>

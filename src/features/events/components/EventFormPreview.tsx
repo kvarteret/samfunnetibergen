@@ -9,7 +9,7 @@ interface EventFormPreviewProps {
 export function EventFormPreview({ event }: EventFormPreviewProps) {
   return (
     <div aria-hidden className="sticky top-8 hidden space-y-3 xl:block">
-      <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
+      <p className="font-heading uppercase tracking-widest text-foreground-muted">
         Forhåndsvisning
       </p>
       <div className="pointer-events-none select-none">

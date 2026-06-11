@@ -88,7 +88,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
     <div className="space-y-12">
       <header className="space-y-5">
         {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
             {content.eyebrow}
           </p>
         ) : null}
@@ -113,7 +113,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
             {content.faq.map(
               (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
                 <Disclosure key={item._key} summary={item.question}>
-                  <div className="paper-prose text-base text-foreground">
+                  <div className="paper-prose text-foreground">
                     {item.answer?.map((paragraph: string) => (
                       <p key={paragraph}>{paragraph}</p>
                     ))}

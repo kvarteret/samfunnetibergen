@@ -227,9 +227,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
         <AlertTitle className="text-xl">Forespørsel sendt inn</AlertTitle>
-        <AlertDescription className="text-body">
-          Din forespørsel er sendt inn.
-        </AlertDescription>
+        <AlertDescription>Din forespørsel er sendt inn.</AlertDescription>
       </Alert>
     )
   }

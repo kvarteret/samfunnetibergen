@@ -28,7 +28,7 @@ export function SlotGrid({
 }: SlotGridProps) {
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="font-heading text-base uppercase tracking-widest text-foreground-muted">
+      <p className="font-heading uppercase tracking-widest text-foreground-muted">
         {label}
       </p>
       <RadioGroup

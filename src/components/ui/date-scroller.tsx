@@ -69,7 +69,7 @@ export function DateScroller({
               <span className="text-sm uppercase tracking-widest">
                 {weekday}
               </span>
-              <span className="text-base font-heading leading-none">
+              <span className=" font-heading leading-none">
                 {parsedDate.getDate()}
               </span>
               <span className="text-sm">{month}</span>

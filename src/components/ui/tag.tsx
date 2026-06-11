@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const tagVariants = cva(
-  "inline-flex w-fit items-center border-2 px-2 py-0.5 font-heading text-base uppercase tracking-widest",
+  "inline-flex w-fit items-center border-2 px-2 py-0.5 font-heading  uppercase tracking-widest",
   {
     variants: {
       variant: {

@@ -65,7 +65,7 @@ export function EventFormRecurrenceBuilder({
     <div className="space-y-5 border-2 border-border bg-secondary/10 p-6">
       <RecurrenceHeader />
       <fieldset className="space-y-2">
-        <legend className="text-base text-foreground-muted">Gjentas</legend>
+        <legend className=" text-foreground-muted">Gjentas</legend>
         <SegmentedControl
           onChange={frequency => updateInput({ frequency })}
           options={frequencyOptions}
@@ -79,7 +79,7 @@ export function EventFormRecurrenceBuilder({
       />
       {input.frequency === "WEEKLY" && (
         <fieldset className="space-y-2">
-          <legend className="text-base text-foreground-muted">Dager</legend>
+          <legend className=" text-foreground-muted">Dager</legend>
           <ToggleGroup
             onChange={values => updateInput({ weekdays: values.map(Number) })}
             options={weekdayOptions.map((day, i) => ({
@@ -108,7 +108,7 @@ function RecurrenceHeader() {
   return (
     <div className="flex items-center gap-3">
       <div className="size-2 rounded-full bg-primary" />
-      <p className="font-heading text-base uppercase tracking-widest text-foreground">
+      <p className="font-heading uppercase tracking-widest text-foreground">
         Gjentagelsesmønster
       </p>
     </div>
@@ -128,10 +128,10 @@ function RecurrenceIntervalField({
 }: RecurrenceIntervalFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="cursor-pointer text-base text-foreground-muted">
+      <label className="cursor-pointer text-foreground-muted">
         Intervall - hver{" "}
         <input
-          className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center text-base font-heading text-foreground focus-brutal"
+          className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center font-heading text-foreground focus-brutal"
           max={52}
           min={1}
           onChange={event =>
@@ -177,7 +177,7 @@ function RecurrenceEndField({
 }: RecurrenceEndFieldProps) {
   return (
     <fieldset className="space-y-3">
-      <legend className="text-base text-foreground-muted">Avsluttes</legend>
+      <legend className=" text-foreground-muted">Avsluttes</legend>
       <div className="space-y-2">
         {endTypeOptions.map(option => (
           <label
@@ -192,16 +192,16 @@ function RecurrenceEndField({
               type="radio"
               value={option.value}
             />
-            <span className="text-base text-foreground">{option.label}</span>
+            <span className=" text-foreground">{option.label}</span>
           </label>
         ))}
       </div>
 
       {endType === "count" && (
         <div className="pl-6">
-          <label className="text-base text-foreground-muted">
+          <label className=" text-foreground-muted">
             <input
-              className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center text-base font-heading text-foreground focus-brutal"
+              className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center font-heading text-foreground focus-brutal"
               max={365}
               min={1}
               onChange={event =>
@@ -218,7 +218,7 @@ function RecurrenceEndField({
       {endType === "until" && (
         <div className="pl-6">
           <input
-            className="border-2 border-border bg-background px-3 py-1.5 text-base font-heading text-foreground focus-brutal"
+            className="border-2 border-border bg-background px-3 py-1.5 font-heading text-foreground focus-brutal"
             onChange={event => onUntilDateChange(event.target.value)}
             type="date"
             value={untilDate}
@@ -240,10 +240,8 @@ function RecurrencePreview({ preview }: RecurrencePreviewProps) {
 
   return (
     <div className="border-l-4 border-primary py-1 pl-4">
-      <p className="text-base text-foreground-muted">Forhåndsvisning:</p>
-      <p className="text-base font-heading capitalize text-foreground">
-        {preview}
-      </p>
+      <p className=" text-foreground-muted">Forhåndsvisning:</p>
+      <p className=" font-heading capitalize text-foreground">{preview}</p>
     </div>
   )
 }

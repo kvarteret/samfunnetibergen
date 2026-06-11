@@ -34,15 +34,15 @@ export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
 
                     return (
                       <Card className="space-y-4 bg-card p-5 py-5">
-                        <p className="font-heading text-base uppercase tracking-widest">
+                        <p className="font-heading uppercase tracking-widest">
                           Bestillingsoversikt
                         </p>
                         {isEmpty ? (
-                          <p className="text-base text-foreground-muted italic">
+                          <p className=" text-foreground-muted italic">
                             Fyll ut skjemaet for å se en oversikt.
                           </p>
                         ) : (
-                          <div className="space-y-2 text-base">
+                          <div className="space-y-2">
                             <DetailRow label="Arrangement">
                               {eventName}
                             </DetailRow>

@@ -69,7 +69,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
       <div className="space-y-8">
         <header className="space-y-5">
           {categoryLabel && (
-            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-base text-primary-foreground">
+            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
               {categoryLabel}
             </p>
           )}
@@ -103,7 +103,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
               />
             </div>
             {group.image.caption ? (
-              <figcaption className="text-base text-muted-foreground">
+              <figcaption className=" text-muted-foreground">
                 {group.image.caption}
               </figcaption>
             ) : null}
@@ -150,15 +150,13 @@ export default async function GroupPage({ params }: GroupPageProps) {
             <h2 className="font-heading text-xl text-foreground">Del av</h2>
             {group.parentGroup.slug ? (
               <a
-                className="text-base text-foreground underline underline-offset-4"
+                className=" text-foreground underline underline-offset-4"
                 href={`/${locale}/grupper/${group.parentGroup.slug}`}
               >
                 {group.parentGroup.name}
               </a>
             ) : (
-              <p className="text-base text-foreground">
-                {group.parentGroup.name}
-              </p>
+              <p className=" text-foreground">{group.parentGroup.name}</p>
             )}
           </section>
         )}
@@ -171,7 +169,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
             <ul className="flex flex-wrap gap-2">
               {group.subGroups.map(subGroup => (
                 <li
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-base text-foreground"
+                  className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
                   key={subGroup.slug ?? subGroup.name}
                 >
                   {subGroup.name}
