@@ -1,11 +1,9 @@
 "use client"
 
-import {
-  CheckboxField,
-  FieldHint,
-  FormSection,
-  PriceInput,
-} from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldHint } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
+import { PriceInput } from "@/components/ui/price-input"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormPriceSectionProps {

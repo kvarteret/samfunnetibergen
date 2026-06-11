@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { type UIEvent, useState } from "react"
-import { CheckboxField, FormSection } from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FormSection } from "@/components/ui/form-section"
 import { useBookingForm } from "./bookingFormContext"
 
 const TERMS_URL = "https://kvarteret.no/leie-av-lokaler/"

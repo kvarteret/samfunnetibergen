@@ -1,6 +1,7 @@
 "use client"
 
-import { FieldGroup, FormSection } from "@/components/ui/form-fields"
+import { FieldGroup } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useKaraokeForm } from "./karaokeFormContext"

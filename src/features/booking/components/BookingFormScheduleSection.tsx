@@ -5,12 +5,9 @@ import { Building2, CalendarClock, Check } from "lucide-react"
 import { useId } from "react"
 import { Card } from "@/components/ui/card"
 import { DateScroller } from "@/components/ui/date-scroller"
-import {
-  CheckboxField,
-  FieldGroup,
-  FieldHint,
-  FormSection,
-} from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
 import { RoomCapacity } from "@/components/ui/room-capacity"

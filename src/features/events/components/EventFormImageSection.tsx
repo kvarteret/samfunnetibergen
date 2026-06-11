@@ -3,7 +3,8 @@
 import { Check, Loader2, Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
-import { FieldGroup, FieldHint, FormSection } from "@/components/ui/form-fields"
+import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { ImageDropzone } from "@/components/ui/image-dropzone"
 import { formatEventImageMaxSize } from "../domain/imageUpload"
 

@@ -1,7 +1,8 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { FormSection, SelectField } from "@/components/ui/form-fields"
+import { FormSection } from "@/components/ui/form-section"
+import { SelectField } from "@/components/ui/select-field"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { KARAOKE_PRICING, type KaraokeDerivedState } from "../domain/formState"
 import type { PriceType } from "../types"

@@ -1,12 +1,8 @@
 "use client"
 
-import {
-  FieldGroup,
-  FieldHint,
-  FormSection,
-  SelectField,
-  type SelectOption,
-} from "@/components/ui/form-fields"
+import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
+import { SelectField, type SelectOption } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useEventForm } from "./eventFormContext"

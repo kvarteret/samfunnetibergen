@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
-import { CheckboxSquare } from "@/components/ui/form-fields"
+import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { cn } from "@/lib/utils"
 
 interface ToggleOptionProps {

@@ -1,6 +1,7 @@
 "use client"
 
-import { CheckboxField, SectionHeader } from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { SectionHeader } from "@/components/ui/section-header"
 import { Link } from "@/i18n/navigation"
 import type { PriceType } from "../types"
 import { useKaraokeForm } from "./karaokeFormContext"

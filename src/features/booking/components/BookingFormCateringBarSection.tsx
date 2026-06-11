@@ -3,7 +3,7 @@
 
 import { UtensilsCrossed } from "lucide-react"
 import { useId } from "react"
-import { FormSection } from "@/components/ui/form-fields"
+import { FormSection } from "@/components/ui/form-section"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleOption } from "@/components/ui/toggle-option"
 import { useBookingForm } from "./bookingFormContext"

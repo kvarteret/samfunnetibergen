@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { SectionHeader } from "@/components/ui/form-fields"
+import { SectionHeader } from "@/components/ui/section-header"
 import { cn } from "@/lib/utils"
 
 interface FormSectionProps {

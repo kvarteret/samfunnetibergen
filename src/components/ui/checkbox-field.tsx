@@ -1,9 +1,37 @@
 "use client"
 
+import { Check } from "lucide-react"
 import { type ReactNode } from "react"
 
-import { CheckboxSquare } from "@/components/ui/form-fields"
 import { cn } from "@/lib/utils"
+
+interface CheckboxSquareProps {
+  checked: boolean
+  onChange: (checked: boolean) => void
+}
+
+export function CheckboxSquare({ checked, onChange }: CheckboxSquareProps) {
+  return (
+    <span className="relative mt-0.5">
+      <input
+        checked={checked}
+        className="sr-only"
+        onChange={event => onChange(event.target.checked)}
+        type="checkbox"
+      />
+      <span
+        className={cn(
+          "flex size-5 items-center justify-center border-2 border-border transition-colors",
+          checked ? "bg-primary" : "bg-card group-hover:bg-muted",
+        )}
+      >
+        {checked && (
+          <Check aria-hidden className="size-3 text-primary-foreground" />
+        )}
+      </span>
+    </span>
+  )
+}
 
 interface CheckboxFieldProps {
   checked: boolean

@@ -3,11 +3,9 @@
 
 import { Plus, X } from "lucide-react"
 
-import {
-  CheckboxField,
-  FieldGroup,
-  FormSection,
-} from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldGroup } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { DateEntry } from "../domain/formState"

@@ -2,11 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useId } from "react"
-import {
-  FieldGroup,
-  FormSection,
-  SelectField,
-} from "@/components/ui/form-fields"
+import { FieldGroup } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
+import { SelectField } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
