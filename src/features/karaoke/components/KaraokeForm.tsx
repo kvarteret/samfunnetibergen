@@ -122,54 +122,58 @@ export function KaraokeForm({
 
   return (
     <KaraokeFormContext.Provider value={form}>
-      <div className="grid gap-12 items-start lg:grid-two-one">
-        <form
-          className="min-w-0 space-y-14"
-          noValidate
-          onSubmit={(e: FormEvent) => {
-            e.preventDefault()
-            markSubmitAttempt()
-            if (validationErrors.length > 0) return
-            form.handleSubmit()
-          }}
-        >
-          {visibleErrors.length > 0 && (
-            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
-          )}
-          <KaraokeFormDetailsSection
-            derived={derived}
-            uid={uid}
-            today={today}
-            bookings={bookings}
-            houseClosedDates={houseClosedDates}
-            operationsManagerHours={operationsManagerHours}
-            eventNameError={errorFor(fieldIds.eventName)}
-            eventNameId={fieldIds.eventName}
-            startDateError={errorFor(fieldIds.startDate)}
-            startDateId={fieldIds.startDate}
-          />
-          <KaraokeFormPackageSection uid={uid} derived={derived} />
-          <KaraokeFormContactSection
-            contactEmailError={errorFor(fieldIds.contactEmail)}
-            contactEmailId={fieldIds.contactEmail}
-            contactNameError={errorFor(fieldIds.contactName)}
-            contactNameId={fieldIds.contactName}
-            uid={uid}
-          />
-          <KaraokeFormTermsSection
-            acceptTermsError={errorFor(fieldIds.acceptTerms)}
-            acceptTermsId={fieldIds.acceptTerms}
-            studentProofError={errorFor(fieldIds.studentProof)}
-            studentProofId={fieldIds.studentProof}
-          />
-          <KaraokeFormSubmitSection />
-        </form>
+      <form.Subscribe selector={s => s.values}>
+        {() => (
+          <div className="grid gap-12 items-start lg:grid-two-one">
+            <form
+              className="min-w-0 space-y-14"
+              noValidate
+              onSubmit={(e: FormEvent) => {
+                e.preventDefault()
+                markSubmitAttempt()
+                if (validationErrors.length > 0) return
+                form.handleSubmit()
+              }}
+            >
+              {visibleErrors.length > 0 && (
+                <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+              )}
+              <KaraokeFormDetailsSection
+                derived={derived}
+                uid={uid}
+                today={today}
+                bookings={bookings}
+                houseClosedDates={houseClosedDates}
+                operationsManagerHours={operationsManagerHours}
+                eventNameError={errorFor(fieldIds.eventName)}
+                eventNameId={fieldIds.eventName}
+                startDateError={errorFor(fieldIds.startDate)}
+                startDateId={fieldIds.startDate}
+              />
+              <KaraokeFormPackageSection uid={uid} derived={derived} />
+              <KaraokeFormContactSection
+                contactEmailError={errorFor(fieldIds.contactEmail)}
+                contactEmailId={fieldIds.contactEmail}
+                contactNameError={errorFor(fieldIds.contactName)}
+                contactNameId={fieldIds.contactName}
+                uid={uid}
+              />
+              <KaraokeFormTermsSection
+                acceptTermsError={errorFor(fieldIds.acceptTerms)}
+                acceptTermsId={fieldIds.acceptTerms}
+                studentProofError={errorFor(fieldIds.studentProof)}
+                studentProofId={fieldIds.studentProof}
+              />
+              <KaraokeFormSubmitSection />
+            </form>
 
-        <aside className="space-y-5 lg:sticky lg:top-8">
-          <KaraokeOrderPreview derived={derived} />
-          <KaraokeFormRoomCard room={room} />
-        </aside>
-      </div>
+            <aside className="space-y-5 lg:sticky lg:top-8">
+              <KaraokeOrderPreview derived={derived} />
+              <KaraokeFormRoomCard room={room} />
+            </aside>
+          </div>
+        )}
+      </form.Subscribe>
     </KaraokeFormContext.Provider>
   )
 }
