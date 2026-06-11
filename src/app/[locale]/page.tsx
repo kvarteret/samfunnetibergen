@@ -254,7 +254,7 @@ function HomeHero({
     : null
 
   return (
-    <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-home-hero lg:gap-12">
+    <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] lg:gap-12">
       <div>
         {homePage?.title && (
           <div className="mb-8">

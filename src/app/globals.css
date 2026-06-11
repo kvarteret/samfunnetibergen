@@ -237,6 +237,12 @@
   @apply interactive-brutal border-border;
 }
 
+@utility panel {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-card);
+  padding: var(--spacing-5);
+}
+
 @utility text-eyebrow {
   font-weight: var(--font-weight-heading);
   font-size: var(--text-xs);
@@ -265,66 +271,6 @@
 
 @utility grid-two-one {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-}
-
-@utility grid-content-sidebar-20 {
-  grid-template-columns: minmax(0, 1fr) 20rem;
-}
-
-@utility grid-content-sidebar-22 {
-  grid-template-columns: minmax(0, 1fr) 22rem;
-}
-
-@utility grid-content-sidebar-24 {
-  grid-template-columns: minmax(0, 1fr) 24rem;
-}
-
-@utility grid-content-sidebar-360 {
-  grid-template-columns: minmax(0, 1fr) 360px;
-}
-
-@utility grid-home-hero {
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
-}
-
-@utility grid-home-bars {
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-}
-
-@utility grid-event-shell {
-  grid-template-columns: clamp(19rem, 20%, 23rem) minmax(0, 1fr);
-}
-
-@utility grid-event-schedule {
-  grid-template-columns: 1.3fr 0.6fr 1fr;
-}
-
-@utility grid-room-specs {
-  grid-template-columns: minmax(9rem, 1fr) minmax(9rem, 1fr);
-}
-
-@utility grid-card-header {
-  grid-template-rows: auto auto;
-}
-
-@utility grid-alert-icon {
-  grid-template-columns: calc(var(--spacing) * 4) 1fr;
-}
-
-@utility grid-alert-empty {
-  grid-template-columns: 0 1fr;
-}
-
-@utility h-navigation-viewport {
-  height: var(--radix-navigation-menu-viewport-height);
-}
-
-@utility w-navigation-viewport {
-  width: var(--radix-navigation-menu-viewport-width);
-}
-
-@utility backdrop-blur-soft {
-  backdrop-filter: blur(1px);
 }
 
 /* P3 boost for supported displays */

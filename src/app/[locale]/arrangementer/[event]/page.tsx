@@ -86,7 +86,7 @@ function EventDetailHero({
   ticketsLabel: string
 }) {
   return (
-    <header className="grid gap-6 lg:grid-event-shell">
+    <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <div className="flex h-full flex-col justify-evenly">
         {event.eventType?.name && (
           <p className="w-fit bg-primary px-3 py-1.5 text-sm font-heading text-primary-foreground">
@@ -138,7 +138,7 @@ function EventDetailScheduleAndMeta({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
-    <div className="grid gap-8 lg:grid-event-shell">
+    <div className="grid gap-8 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <EventDetailMetaSidebar event={event} t={t} />
       <EventDetailSchedule event={event} t={t} />
     </div>
@@ -193,7 +193,7 @@ function EventDetailSchedule({
 }) {
   return (
     <section>
-      <div className="grid grid-event-schedule gap-3 text-eyebrow text-foreground sm:gap-4">
+      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 text-eyebrow text-foreground sm:gap-4">
         <p>{t("date")}</p>
         <p>{t("time")}</p>
         <p>{t("place")}</p>
@@ -216,7 +216,7 @@ function EventDetailScheduleItem({
   const roomSlug = event.room?.slug
 
   return (
-    <div className="grid grid-event-schedule gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
+    <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
       <p>{formatDate(date.startDate)}</p>
       <p>{formatScheduleTime(date)}</p>
       <p>
@@ -286,7 +286,7 @@ function EventDetailDescription({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
-    <section className="grid gap-6 lg:grid-event-shell">
+    <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <EventDetailActions event={event} t={t} />
       <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (

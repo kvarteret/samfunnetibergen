@@ -278,7 +278,7 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
 
             return (
               <div
-                className="grid grid-room-specs gap-4 py-2 text-sm"
+                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>

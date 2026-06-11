@@ -16,6 +16,7 @@ import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
+import { useFieldAria } from "@/lib/use-field-aria"
 
 type SubGroup = {
   slug: string
@@ -153,6 +154,20 @@ export function GroupVolunteerForm({
   const getFieldError = (fieldId: string) =>
     visibleErrors.find(e => e.fieldId === fieldId)?.message
 
+  const aria = {
+    firstName: useFieldAria(
+      fieldIds.firstName,
+      getFieldError(fieldIds.firstName),
+    ),
+    lastName: useFieldAria(fieldIds.lastName, getFieldError(fieldIds.lastName)),
+    email: useFieldAria(fieldIds.email, getFieldError(fieldIds.email)),
+    phone: useFieldAria(fieldIds.phone, getFieldError(fieldIds.phone)),
+    studyInstitution: useFieldAria(
+      fieldIds.studyInstitution,
+      getFieldError(fieldIds.studyInstitution),
+    ),
+  }
+
   const submitError = form.state.errorMap.onSubmit
 
   if (form.state.isSubmitSuccessful) {
@@ -238,12 +253,7 @@ export function GroupVolunteerForm({
               <form.Field name="firstName">
                 {(field: AnyFieldApi) => (
                   <Input
-                    aria-describedby={
-                      getFieldError(fieldIds.firstName)
-                        ? `${fieldIds.firstName}-error`
-                        : undefined
-                    }
-                    aria-invalid={!!getFieldError(fieldIds.firstName)}
+                    {...aria.firstName}
                     autoComplete="given-name"
                     id={fieldIds.firstName}
                     onBlur={field.handleBlur}
@@ -275,12 +285,7 @@ export function GroupVolunteerForm({
               <form.Field name="lastName">
                 {(field: AnyFieldApi) => (
                   <Input
-                    aria-describedby={
-                      getFieldError(fieldIds.lastName)
-                        ? `${fieldIds.lastName}-error`
-                        : undefined
-                    }
-                    aria-invalid={!!getFieldError(fieldIds.lastName)}
+                    {...aria.lastName}
                     autoComplete="family-name"
                     id={fieldIds.lastName}
                     onBlur={field.handleBlur}
@@ -312,12 +317,7 @@ export function GroupVolunteerForm({
               <form.Field name="email">
                 {(field: AnyFieldApi) => (
                   <Input
-                    aria-describedby={
-                      getFieldError(fieldIds.email)
-                        ? `${fieldIds.email}-error`
-                        : undefined
-                    }
-                    aria-invalid={!!getFieldError(fieldIds.email)}
+                    {...aria.email}
                     autoComplete="email"
                     id={fieldIds.email}
                     onBlur={field.handleBlur}
@@ -351,12 +351,7 @@ export function GroupVolunteerForm({
               <form.Field name="phone">
                 {(field: AnyFieldApi) => (
                   <Input
-                    aria-describedby={
-                      getFieldError(fieldIds.phone)
-                        ? `${fieldIds.phone}-error`
-                        : undefined
-                    }
-                    aria-invalid={!!getFieldError(fieldIds.phone)}
+                    {...aria.phone}
                     autoComplete="tel"
                     className="max-w-48"
                     id={fieldIds.phone}

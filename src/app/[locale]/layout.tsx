@@ -39,7 +39,7 @@ export default async function LocaleLayout({
             backgroundSize: "20px 20px",
           }}
         >
-          <div className="flex min-h-screen flex-col bg-background/95 backdrop-blur-soft">
+          <div className="flex min-h-screen flex-col bg-background/95 backdrop-blur-[1px]">
             <Navbar navbar={navbar} />
             <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
               {children}

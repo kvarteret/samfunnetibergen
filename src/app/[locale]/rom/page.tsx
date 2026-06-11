@@ -192,7 +192,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   return (
     <div className="space-y-16">
-      <header className="grid gap-6 lg:grid-content-sidebar-24 lg:items-end">
+      <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
         <div className="space-y-5">
           {content?.eyebrow ? (
             <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">

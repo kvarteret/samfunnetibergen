@@ -199,7 +199,7 @@ export function BookingForm({
 
   return (
     <BookingFormContext.Provider value={form}>
-      <div className="grid items-start gap-10 lg:grid-content-sidebar-22">
+      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <form
           className="min-w-0 space-y-14"
           noValidate

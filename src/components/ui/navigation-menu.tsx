@@ -133,11 +133,11 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center relative mt-3 h-navigation-viewport w-full overflow-hidden",
+          "origin-top-center relative mt-3 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden",
           "border-2 border-border bg-background shadow-shadow",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90",
-          "md:w-navigation-viewport",
+          "md:w-[var(--radix-navigation-menu-viewport-width)]",
           className,
         )}
         {...props}

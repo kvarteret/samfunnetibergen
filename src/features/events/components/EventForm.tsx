@@ -233,7 +233,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
   return (
     <EventFormContext.Provider value={form}>
-      <div className="grid grid-cols-1 items-start gap-12 xl:grid-content-sidebar-360">
+      <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
         <form
           className="min-w-0 space-y-14"
           noValidate

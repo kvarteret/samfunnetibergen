@@ -65,7 +65,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
   }>
 
   return (
-    <article className="grid gap-10 lg:grid-content-sidebar-20">
+    <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-8">
         <header className="space-y-5">
           {categoryLabel && (
