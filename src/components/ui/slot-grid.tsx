@@ -1,27 +1,14 @@
 "use client"
 
-import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { RadioGroup, RadioGroupItem } from "./radio-group"
 
-const slotButtonVariants = cva(
-  "min-h-11 py-2.5 text-sm font-heading border-2 text-center transition-colors focus-brutal",
-  {
-    variants: {
-      state: {
-        selected: "bg-primary border-primary text-primary-foreground",
-        taken: "border-border/30 text-foreground-faint cursor-not-allowed",
-        available: "border-border hover:bg-muted",
-      },
-    },
-  },
-)
-
-export type SlotState = "selected" | "available" | "taken"
+export type SlotAvailability = "available" | "taken"
 
 export interface SlotOption {
   value: string
   label: string
-  state: SlotState
+  availability: SlotAvailability
 }
 
 interface SlotGridProps {
@@ -41,22 +28,31 @@ export function SlotGrid({
 }: SlotGridProps) {
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-eyebrow-sm text-foreground-faint">{label}</p>
-      <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-        {slots.map(slot => (
-          <button
-            key={slot.value}
-            type="button"
-            disabled={slot.state === "taken"}
-            onClick={() => onChange(slot.value)}
-            className={slotButtonVariants({
-              state: slot.value === selectedValue ? "selected" : slot.state,
-            })}
-          >
-            {slot.label}
-          </button>
-        ))}
-      </div>
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        {label}
+      </p>
+      <RadioGroup
+        className="grid grid-cols-4 gap-2 sm:grid-cols-5"
+        onValueChange={onChange}
+        value={selectedValue ?? ""}
+      >
+        {slots.map(slot => {
+          return (
+            <RadioGroupItem
+              className={cn(
+                "py-2.5 text-center",
+                slot.availability === "taken" &&
+                  "border-border/30 text-foreground-muted",
+              )}
+              disabled={slot.availability === "taken"}
+              key={slot.value}
+              value={slot.value}
+            >
+              {slot.label}
+            </RadioGroupItem>
+          )
+        })}
+      </RadioGroup>
     </div>
   )
 }

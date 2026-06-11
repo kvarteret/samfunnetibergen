@@ -131,7 +131,11 @@ const PLATFORM_ICONS: Record<string, () => React.ReactElement> = {
 }
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
-  return <p className="text-eyebrow text-foreground-faint mb-3">{children}</p>
+  return (
+    <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted mb-3">
+      {children}
+    </p>
+  )
 }
 
 function SocialColumn({ links }: { links: SocialLink[] }) {
@@ -275,7 +279,7 @@ function HoursRow({ row }: { row: HoursRow }) {
     <div className="flex justify-between gap-4 text-sm">
       <dt className="text-foreground-muted">{dayLabel}</dt>
       {time && (
-        <dd className="text-foreground-subtle shrink-0 tabular-nums">{time}</dd>
+        <dd className="text-foreground-muted shrink-0 tabular-nums">{time}</dd>
       )}
     </div>
   )
@@ -305,7 +309,7 @@ function OpeningHoursColumn({
         {roomsWithHours.map(room => (
           <div key={room.slug}>
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
-              <p className="text-xs font-medium text-foreground-faint uppercase tracking-wide">
+              <p className="text-xs font-medium text-foreground-muted uppercase tracking-wide">
                 {room.title}
               </p>
               <OpenStatus
@@ -354,7 +358,7 @@ export function Footer({ data, locale }: FooterProps) {
 
         <div className="mt-8 border-t border-border pt-5">
           <Link
-            className="text-xs text-foreground hover:text-foreground-subtle transition-colors focus-brutal"
+            className="text-xs text-foreground hover:text-foreground-muted transition-colors focus-brutal"
             href={`/${locale}/grupper/e-tjenesten`}
           >
             Med 💛 fra E-tjenesten

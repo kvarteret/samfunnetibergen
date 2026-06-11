@@ -94,7 +94,7 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
         />
       </div>
       {value.caption && (
-        <figcaption className="mt-2 text-sm text-foreground-subtle">
+        <figcaption className="mt-2 text-sm text-foreground-muted">
           {value.caption}
         </figcaption>
       )}

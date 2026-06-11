@@ -44,7 +44,7 @@ export default async function AppenPage() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 bg-background">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-3xl">Last ned appen</h1>
-        <p className="text-foreground-subtle text-sm">
+        <p className="text-foreground-muted text-sm">
           Tilgjengelig for iOS og Android
         </p>
       </div>
@@ -58,7 +58,7 @@ export default async function AppenPage() {
         >
           <IconApple />
           <span className="text-sm font-medium leading-tight">
-            <span className="block text-eyebrow-sm text-foreground-faint">
+            <span className="block font-heading text-sm uppercase tracking-widest text-foreground-muted">
               Last ned på
             </span>{" "}
             App Store
@@ -73,7 +73,7 @@ export default async function AppenPage() {
         >
           <IconAndroid />
           <span className="text-sm font-medium leading-tight">
-            <span className="block text-eyebrow-sm text-foreground-faint">
+            <span className="block font-heading text-sm uppercase tracking-widest text-foreground-muted">
               Last ned på
             </span>{" "}
             Google Play
@@ -83,7 +83,7 @@ export default async function AppenPage() {
 
       <Link
         href="/nb"
-        className="text-xs text-foreground-faint hover:text-foreground-subtle transition-colors"
+        className="text-xs text-foreground-muted hover:text-foreground-muted transition-colors"
       >
         ← Tilbake til forsiden
       </Link>

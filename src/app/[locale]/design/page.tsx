@@ -16,13 +16,15 @@ import { Input } from "@/components/ui/input"
 import { PriceInput } from "@/components/ui/price-input"
 import { SectionHeader } from "@/components/ui/section-header"
 import { SegmentedControl } from "@/components/ui/segmented-control"
-import { SelectableCard } from "@/components/ui/selectable-card"
 import { SelectField } from "@/components/ui/select-field"
+import {
+  SelectableCard,
+  SelectableCardGroup,
+} from "@/components/ui/selectable-card"
 import { SlotGrid } from "@/components/ui/slot-grid"
 import { Tag } from "@/components/ui/tag"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup } from "@/components/ui/toggle-group"
-import { ToggleOption } from "@/components/ui/toggle-option"
 
 export default function DesignGallery({
   params,
@@ -162,7 +164,7 @@ export default function DesignGallery({
             label="Med ekstra innhold"
             onChange={() => {}}
           >
-            <p className="mt-1 text-sm text-foreground-subtle">
+            <p className="mt-1 text-sm text-foreground-muted">
               Her kan du legge til ekstra innhold.
             </p>
           </CheckboxField>
@@ -227,20 +229,16 @@ export default function DesignGallery({
         </div>
       </Section>
 
-      {/* 11 — Card / Panel */}
-      <Section header={<SectionHeader number="11" title="Card / Panel" />}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Card>
-            <CardContent className="p-5">
-              <p className="font-heading text-lg">Kort</p>
-              <p className="mt-2 text-foreground-muted">Med CardContent.</p>
-            </CardContent>
-          </Card>
-          <div className="panel shadow-shadow">
-            <p className="font-heading text-lg">Kanonisk panel</p>
-            <p className="mt-2 text-foreground-muted">panel shadow-shadow</p>
-          </div>
-        </div>
+      {/* 11 — Card */}
+      <Section header={<SectionHeader number="11" title="Card" />}>
+        <Card className="max-w-xl">
+          <CardContent className="p-5">
+            <p className="font-heading text-lg">Kort</p>
+            <p className="mt-2 text-foreground-muted">
+              Den kanoniske panelsurfacen.
+            </p>
+          </CardContent>
+        </Card>
       </Section>
 
       {/* 12 — Text Emphasis */}
@@ -248,21 +246,11 @@ export default function DesignGallery({
         <div className="space-y-3 text-lg">
           <p className="text-foreground">foreground — primærtekst (100%)</p>
           <p className="text-foreground-muted">muted — dempet tekst (75%)</p>
-          <p className="text-foreground-subtle">subtle — subtil tekst (60%)</p>
-          <p className="text-foreground-faint">faint — svak tekst (45%)</p>
         </div>
       </Section>
 
-      {/* 13 — Eyebrows */}
-      <Section header={<SectionHeader number="13" title="Eyebrows" />}>
-        <div className="space-y-4">
-          <p className="text-eyebrow">text-eyebrow — 12px / 0.18em</p>
-          <p className="text-eyebrow-sm">text-eyebrow-sm — 11px / 0.12em</p>
-        </div>
-      </Section>
-
-      {/* 14 — Heading Scale */}
-      <Section header={<SectionHeader number="14" title="Heading Scale" />}>
+      {/* 13 — Heading Scale */}
+      <Section header={<SectionHeader number="13" title="Heading Scale" />}>
         <div className="space-y-4">
           <h1 className="font-heading text-4xl">h1 — Nivå 1 (text-4xl)</h1>
           <h2 className="font-heading text-3xl">h2 — Nivå 2 (text-3xl)</h2>
@@ -271,8 +259,8 @@ export default function DesignGallery({
         </div>
       </Section>
 
-      {/* 15 — Shadow Scale */}
-      <Section header={<SectionHeader number="15" title="Shadow Scale" />}>
+      {/* 14 — Shadow Scale */}
+      <Section header={<SectionHeader number="14" title="Shadow Scale" />}>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="panel shadow-hard-sm">
             <p className="font-heading text-sm">shadow-hard-sm</p>
@@ -289,33 +277,33 @@ export default function DesignGallery({
         </div>
       </Section>
 
-      {/* 16 — SegmentedControl */}
-      <Section header={<SectionHeader number="16" title="SegmentedControl" />}>
+      {/* 15 — SegmentedControl */}
+      <Section header={<SectionHeader number="15" title="SegmentedControl" />}>
         <SegmentedControlDemo />
       </Section>
 
-      {/* 17 — ToggleGroup */}
-      <Section header={<SectionHeader number="17" title="ToggleGroup" />}>
+      {/* 16 — ToggleGroup */}
+      <Section header={<SectionHeader number="16" title="ToggleGroup" />}>
         <ToggleGroupDemo />
       </Section>
 
-      {/* 18 — DateScroller */}
-      <Section header={<SectionHeader number="18" title="DateScroller" />}>
+      {/* 17 — DateScroller */}
+      <Section header={<SectionHeader number="17" title="DateScroller" />}>
         <DateScrollerDemo />
       </Section>
 
-      {/* 19 — SlotGrid */}
-      <Section header={<SectionHeader number="19" title="SlotGrid" />}>
+      {/* 18 — SlotGrid */}
+      <Section header={<SectionHeader number="18" title="SlotGrid" />}>
         <SlotGridDemo />
       </Section>
 
-      {/* 20 — SelectableCard */}
-      <Section header={<SectionHeader number="20" title="SelectableCard" />}>
+      {/* 19 — SelectableCard */}
+      <Section header={<SectionHeader number="19" title="SelectableCard" />}>
         <SelectableCardDemo />
       </Section>
 
-      {/* 21 — ImageDropzone */}
-      <Section header={<SectionHeader number="21" title="ImageDropzone" />}>
+      {/* 20 — ImageDropzone */}
+      <Section header={<SectionHeader number="20" title="ImageDropzone" />}>
         <ImageDropzone onImageChange={() => {}} />
       </Section>
     </div>
@@ -326,34 +314,20 @@ export default function DesignGallery({
 
 function SegmentedControlDemo() {
   const [frequency, setFrequency] = useState("weekly")
-  const [filter, setFilter] = useState("alle")
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-eyebrow text-foreground-subtle">pills (default)</p>
-        <SegmentedControl
-          onChange={setFrequency}
-          options={[
-            { value: "daily", label: "Hver dag" },
-            { value: "weekly", label: "Hver uke" },
-            { value: "monthly", label: "Hver måned" },
-          ]}
-          value={frequency}
-        />
-      </div>
-      <div className="space-y-2">
-        <p className="text-eyebrow text-foreground-subtle">inverse</p>
-        <SegmentedControl
-          onChange={setFilter}
-          options={[
-            { value: "alle", label: "Alle" },
-            { value: "konsert", label: "Konsert" },
-            { value: "quiz", label: "Quiz" },
-          ]}
-          value={filter}
-          variant="inverse"
-        />
-      </div>
+    <div className="space-y-2">
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        pills (default)
+      </p>
+      <SegmentedControl
+        onChange={setFrequency}
+        options={[
+          { value: "daily", label: "Hver dag" },
+          { value: "weekly", label: "Hver uke" },
+          { value: "monthly", label: "Hver måned" },
+        ]}
+        value={frequency}
+      />
     </div>
   )
 }
@@ -364,7 +338,7 @@ function ToggleGroupDemo() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-eyebrow text-foreground-subtle">
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
           default — multi-select
         </p>
         <ToggleGroup
@@ -378,7 +352,9 @@ function ToggleGroupDemo() {
         />
       </div>
       <div className="space-y-2">
-        <p className="text-eyebrow text-foreground-subtle">sm — weekdays</p>
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+          sm — weekdays
+        </p>
         <ToggleGroup
           onChange={setDays}
           options={["man", "tir", "ons", "tor", "fre", "lør", "søn"].map(
@@ -403,12 +379,8 @@ function DateScrollerDemo() {
   return (
     <DateScroller
       dates={dates}
-      getDateState={date =>
-        date === selected
-          ? "selected"
-          : dates.indexOf(date) % 4 === 3
-            ? "unavailable"
-            : "available"
+      getDateAvailability={date =>
+        dates.indexOf(date) % 4 === 3 ? "unavailable" : "available"
       }
       onChange={setSelected}
       selectedDate={selected}
@@ -423,12 +395,8 @@ function SlotGridDemo() {
     time => ({
       value: time,
       label: time,
-      state:
-        time === slot
-          ? ("selected" as const)
-          : time === "18:00"
-            ? ("taken" as const)
-            : ("available" as const),
+      availability:
+        time === "18:00" ? ("taken" as const) : ("available" as const),
     }),
   )
   return <SlotGrid onChange={setSlot} selectedValue={slot} slots={slots} />
@@ -441,22 +409,22 @@ function SelectableCardDemo() {
     { value: "tivoli", title: "Tivoli", detail: "120 stående" },
   ]
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <SelectableCardGroup
+      className="sm:grid-cols-3"
+      onValueChange={setSelected}
+      value={selected}
+    >
       {rooms.map(room => (
-        <SelectableCard
-          key={room.value}
-          onSelect={() => setSelected(room.value)}
-          selected={selected === room.value}
-        >
+        <SelectableCard key={room.value} value={room.value}>
           <p className="font-heading">{room.title}</p>
           <p className="text-sm text-foreground-muted">{room.detail}</p>
         </SelectableCard>
       ))}
-      <SelectableCard disabled onSelect={() => {}} selected={false}>
+      <SelectableCard disabled value="eldorado">
         <p className="font-heading">Eldorado</p>
         <p className="text-sm text-foreground-muted">Ikke tilgjengelig</p>
       </SelectableCard>
-    </div>
+    </SelectableCardGroup>
   )
 }
 

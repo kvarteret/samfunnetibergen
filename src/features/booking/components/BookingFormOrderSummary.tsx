@@ -37,7 +37,9 @@ export function BookingFormOrderSummary({
         <SelectedRoomCard room={selectedRoom} />
 
         <div className="space-y-3 p-5">
-          <p className="text-eyebrow">Bestillingsoversikt</p>
+          <p className="font-heading text-sm uppercase tracking-widest">
+            Bestillingsoversikt
+          </p>
 
           <dl className="space-y-2.5 text-sm">
             <DetailRow icon={Users} label="Booker" layout="vertical">
@@ -87,7 +89,7 @@ export function BookingFormOrderSummary({
 function SelectedRoomCard({ room }: { room?: BookingRoom }) {
   if (!room) {
     return (
-      <div className="flex aspect-video items-center justify-center bg-muted text-sm text-foreground-faint">
+      <div className="flex aspect-video items-center justify-center bg-muted text-sm text-foreground-muted">
         <MapPin aria-hidden className="mr-2 size-4" />
         Velg et rom
       </div>
@@ -99,7 +101,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
       <ImageWithFallback
         alt={room.image?.alt ?? room.title ?? room.slug}
         fallback={
-          <span className="flex items-center gap-2 text-sm text-foreground-faint">
+          <span className="flex items-center gap-2 text-sm text-foreground-muted">
             <MapPin aria-hidden className="size-4" />
             Velg et rom
           </span>
@@ -111,7 +113,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
         <p className="font-heading text-xl leading-tight text-foreground">
           {room.title ?? room.slug}
         </p>
-        <p className="mt-1 text-xs text-foreground-faint">
+        <p className="mt-1 text-xs text-foreground-muted">
           {[
             room.capacityStanding && `${room.capacityStanding} stående`,
             room.capacitySeated && `${room.capacitySeated} sittende`,

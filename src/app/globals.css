@@ -136,8 +136,6 @@
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
   --color-foreground-muted:     color-mix(in oklab, var(--foreground) 75%, transparent);
-  --color-foreground-subtle:    color-mix(in oklab, var(--foreground) 60%, transparent);
-  --color-foreground-faint:     color-mix(in oklab, var(--foreground) 45%, transparent);
   --color-primary:              var(--primary);
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
@@ -242,22 +240,6 @@
   border: 2px solid var(--color-border);
   background-color: var(--color-card);
   padding: 1.25rem;
-}
-
-@utility text-eyebrow {
-  font-weight: var(--font-weight-heading);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--color-foreground-subtle);
-}
-
-@utility text-eyebrow-sm {
-  font-weight: var(--font-weight-heading);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--color-foreground-subtle);
 }
 
 @utility text-body {

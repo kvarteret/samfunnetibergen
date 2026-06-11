@@ -104,7 +104,7 @@ export function BookingFormNeedsSection({
               label="Dedikert lydtekniker"
               onChange={field.handleChange}
             >
-              <p className="text-sm leading-6 text-foreground-subtle">
+              <p className="text-sm leading-6 text-foreground-muted">
                 Dedikert tekniker koster <strong>3500 kr eks. mva</strong> per
                 tekniker. Avbestilling må skje senest <strong>10 dager</strong>{" "}
                 før arrangementet.
@@ -120,7 +120,7 @@ export function BookingFormNeedsSection({
               label="Dedikert lystekniker"
               onChange={field.handleChange}
             >
-              <p className="text-sm leading-6 text-foreground-subtle">
+              <p className="text-sm leading-6 text-foreground-muted">
                 Dedikert tekniker koster <strong>3500 kr eks. mva</strong> per
                 tekniker. Avbestilling må skje senest <strong>10 dager</strong>{" "}
                 før arrangementet.

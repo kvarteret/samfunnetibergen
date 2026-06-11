@@ -20,8 +20,8 @@ export function ImageDropzone({
         onChange={onImageChange}
         type="file"
       />
-      <Upload aria-hidden className="size-7 text-foreground-faint" />
-      <span className="text-sm text-foreground-faint">{label}</span>
+      <Upload aria-hidden className="size-7 text-foreground-muted" />
+      <span className="text-sm text-foreground-muted">{label}</span>
     </label>
   )
 }

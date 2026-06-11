@@ -6,7 +6,10 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SelectableCard } from "@/components/ui/selectable-card"
+import {
+  SelectableCard,
+  SelectableCardGroup,
+} from "@/components/ui/selectable-card"
 import type { BookerType } from "../domain/formState"
 import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
@@ -56,23 +59,25 @@ export function BookingFormBookerTypeSection({
       >
         {(bookerType: BookerType) => (
           <>
-            <div className="grid gap-3 md:grid-cols-3">
+            <SelectableCardGroup
+              className="gap-3 md:grid-cols-3"
+              onValueChange={value =>
+                form.setFieldValue("bookerType", value as BookerType)
+              }
+              value={bookerType}
+            >
               {BOOKER_OPTIONS.map(option => (
-                <SelectableCard
-                  key={option.type}
-                  onSelect={() => form.setFieldValue("bookerType", option.type)}
-                  selected={bookerType === option.type}
-                >
+                <SelectableCard key={option.type} value={option.type}>
                   <span className="flex items-center gap-2 font-heading text-foreground">
                     <option.icon aria-hidden className="size-4 text-primary" />
                     {option.label}
                   </span>
-                  <span className="text-sm leading-5 text-foreground-subtle">
+                  <span className="text-sm leading-5 text-foreground-muted">
                     {option.hint}
                   </span>
                 </SelectableCard>
               ))}
-            </div>
+            </SelectableCardGroup>
             {bookerType === "studentorg" && (
               <FieldGroup
                 className="max-w-xl"

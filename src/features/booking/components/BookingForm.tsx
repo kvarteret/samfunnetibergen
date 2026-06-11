@@ -9,7 +9,6 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { useFormErrors } from "@/lib/use-form-errors"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -20,6 +19,7 @@ import {
   isSlotAllowedForCombinedHours,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
@@ -185,7 +185,7 @@ export function BookingForm({
           tar kontakt på e-post.
         </AlertDescription>
         <Link
-          className="col-start-2 inline-flex text-eyebrow text-success-foreground underline underline-offset-4 focus-brutal"
+          className="col-start-2 inline-flex font-heading text-sm uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
         >
           Tilbake til rom

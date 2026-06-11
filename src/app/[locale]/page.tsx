@@ -1,6 +1,6 @@
-import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
 import { OpenStatus } from "@/features/bars"
@@ -310,9 +310,11 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="text-eyebrow text-foreground-faint">Arrangementer</p>
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+          Arrangementer
+        </p>
         <Link
-          className="text-eyebrow underline underline-offset-4 focus-brutal"
+          className="font-heading text-sm uppercase tracking-widest underline underline-offset-4 focus-brutal"
           href={`/${locale}/arrangementer`}
         >
           Se alle

@@ -12,9 +12,7 @@ interface CheckboxSquareProps {
   id?: string
   "aria-describedby"?: string
   "aria-invalid"?: boolean
-  // Render only the visual box, no input. For use inside another interactive
-  // element (e.g. ToggleOption's button) where a nested input would create a
-  // second tab stop.
+  // Render only the visual box when another control owns the interaction.
   decorative?: boolean
 }
 
@@ -119,7 +117,7 @@ export function CheckboxField({
             {label}
           </span>
           {hint && (
-            <span className="mt-0.5 block text-xs text-foreground-subtle">
+            <span className="mt-0.5 block text-xs text-foreground-muted">
               {hint}
             </span>
           )}

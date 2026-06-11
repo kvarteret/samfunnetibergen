@@ -65,7 +65,7 @@ export function SelectField({
         </select>
         <ChevronDown
           aria-hidden
-          className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-foreground-faint"
+          className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-foreground-muted"
         />
       </div>
     </FieldGroup>

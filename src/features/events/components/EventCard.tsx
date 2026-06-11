@@ -112,7 +112,7 @@ export function EventCard({
     event.organizerGroup?.name ?? event.organizerText,
   ]
     .filter(Boolean)
-    .join(" / ")
+    .join(" med ")
   const roomTitle = event.room?.title ?? event.roomText
   const roomSlug = event.room?.slug
   const roomFloor = event.room?.floor
@@ -121,17 +121,12 @@ export function EventCard({
   const recurringLabel = event.recurringLabel
 
   return (
-    <Card
-      className={cn(
-        eventCardVariants({ variant, size }),
-        cardSize === "small" && "group interactive-brutal",
-      )}
-    >
+    <Card className={eventCardVariants({ variant, size })}>
       {event.imageUrl && (
         <Link href={href}>
           <div
             className={cn(
-              "relative w-full overflow-hidden",
+              "group/image relative w-full overflow-hidden",
               cardSize === "small"
                 ? "aspect-4/3 border-2 border-border bg-muted"
                 : "aspect-video",
@@ -142,7 +137,7 @@ export function EventCard({
               className={cn(
                 "object-cover",
                 cardSize === "small" &&
-                  "transition-transform duration-300 group-hover:scale-105",
+                  "transition-transform duration-300 group-hover/image:scale-105",
               )}
               fill
               sizes={
@@ -161,10 +156,10 @@ export function EventCard({
         <div className="space-y-2">
           <div
             className={cn(
-              "flex flex-wrap gap-2 text-foreground-subtle",
+              "flex flex-wrap gap-2 text-foreground-muted",
               cardSize === "small"
-                ? "justify-between text-eyebrow-sm"
-                : "text-eyebrow",
+                ? "justify-between font-heading text-sm uppercase tracking-widest"
+                : "font-heading text-sm uppercase tracking-widest",
             )}
           >
             {taxonomy && <span>{taxonomy}</span>}

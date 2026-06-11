@@ -1,6 +1,9 @@
 "use client"
 
+import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
+
 import { cn } from "@/lib/utils"
+import { selectionControlVariants } from "./selection-control"
 
 interface ToggleGroupProps<T extends string> {
   options: Array<{ value: T; label: string }>
@@ -18,35 +21,27 @@ export function ToggleGroup<T extends string>({
   size = "default",
 }: ToggleGroupProps<T>) {
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
-      {options.map(option => {
-        const selected = value.includes(option.value)
-
-        return (
-          <button
-            aria-pressed={selected}
-            className={cn(
-              "min-h-11 border-2 border-border font-heading transition-colors focus-brutal",
-              selected
-                ? "bg-primary text-primary-foreground"
-                : "bg-background text-foreground hover:bg-muted",
-              size === "default" && "px-3 py-1.5 text-sm",
-              size === "sm" && "size-11 text-sm",
-            )}
-            key={option.value}
-            onClick={() =>
-              onChange(
-                selected
-                  ? value.filter(v => v !== option.value)
-                  : [...value, option.value],
-              )
-            }
-            type="button"
-          >
-            {option.label}
-          </button>
-        )
-      })}
-    </div>
+    <ToggleGroupPrimitive.Root
+      className={cn("flex flex-wrap gap-2", className)}
+      onValueChange={nextValue => onChange(nextValue as T[])}
+      type="multiple"
+      value={value}
+    >
+      {options.map(option => (
+        <ToggleGroupPrimitive.Item
+          className={cn(
+            selectionControlVariants({
+              selected: false,
+              size: size === "sm" ? "square" : "default",
+            }),
+            "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+          )}
+          key={option.value}
+          value={option.value}
+        >
+          {option.label}
+        </ToggleGroupPrimitive.Item>
+      ))}
+    </ToggleGroupPrimitive.Root>
   )
 }

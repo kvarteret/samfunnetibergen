@@ -2,10 +2,10 @@ import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { BoolSpec } from "@/features/rooms"
 import { DetailRow } from "@/components/ui/detail-row"
 import {
   BookingButton,
+  BoolSpec,
   type CarouselSlide,
   ImageCarousel,
 } from "@/features/rooms"
@@ -107,7 +107,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       <div className="mt-8 space-y-10">
         <header className="space-y-3">
           <Link
-            className="font-heading text-xs uppercase tracking-widest text-foreground-faint hover:text-foreground"
+            className="font-heading text-xs uppercase tracking-widest text-foreground-muted hover:text-foreground"
             href={`/${locale}/rom`}
           >
             Rom
@@ -169,7 +169,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         {room.capacityStanding != null && (
           <DetailRow label="Stående" layout="labelColumn">
             <span className="flex items-center gap-1.5">
-              <Users aria-hidden className="size-3.5 text-foreground-faint" />
+              <Users aria-hidden className="size-3.5 text-foreground-muted" />
               {room.capacityStanding} personer
             </span>
           </DetailRow>
@@ -177,7 +177,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         {room.capacitySeated != null && (
           <DetailRow label="Sittende" layout="labelColumn">
             <span className="flex items-center gap-1.5">
-              <Users aria-hidden className="size-3.5 text-foreground-faint" />
+              <Users aria-hidden className="size-3.5 text-foreground-muted" />
               {room.capacitySeated} personer
             </span>
           </DetailRow>
@@ -282,12 +282,12 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>
-                <dd className="text-foreground-subtle">
+                <dd className="text-foreground-muted">
                   {row.status === "closed"
                     ? "Stengt"
                     : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
                   {row.note && (
-                    <span className="mt-1 block text-foreground-subtle">
+                    <span className="mt-1 block text-foreground-muted">
                       {row.note}
                     </span>
                   )}

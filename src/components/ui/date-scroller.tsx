@@ -1,32 +1,15 @@
 "use client"
 
-import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { RadioGroup, RadioGroupItem } from "./radio-group"
 
-const dateButtonVariants = cva(
-  "flex min-h-11 min-w-13 flex-col items-center gap-0.5 px-2.5 py-2 border-2 transition-colors shrink-0 focus-brutal",
-  {
-    variants: {
-      state: {
-        selected: "bg-primary border-primary text-primary-foreground",
-        available: "border-border hover:bg-muted cursor-pointer",
-        unavailable:
-          "border-border/30 text-foreground-faint cursor-not-allowed",
-      },
-      today: {
-        true: "border-primary/50",
-      },
-    },
-  },
-)
-
-export type DateState = "selected" | "available" | "unavailable"
+export type DateAvailability = "available" | "unavailable"
 
 interface DateScrollerProps {
   dates: string[]
   selectedDate: string
   today: string
-  getDateState: (date: string) => DateState
+  getDateAvailability: (date: string) => DateAvailability
   onChange: (date: string) => void
   id?: string
   "aria-describedby"?: string
@@ -35,8 +18,9 @@ interface DateScrollerProps {
 
 export function DateScroller({
   dates,
+  selectedDate,
   today,
-  getDateState,
+  getDateAvailability,
   onChange,
   id,
   "aria-describedby": ariaDescribedBy,
@@ -50,9 +34,14 @@ export function DateScroller({
       id={id}
       tabIndex={-1}
     >
-      <div className="flex gap-1.5 pb-1 min-w-max">
+      <RadioGroup
+        className="flex min-w-max gap-1.5 pb-1"
+        onValueChange={onChange}
+        value={selectedDate}
+      >
         {dates.map(date => {
-          const state = getDateState(date)
+          const availability = getDateAvailability(date)
+          const selected = date === selectedDate
           const parsedDate = new Date(date)
           const weekday = parsedDate.toLocaleDateString("nb-NO", {
             weekday: "short",
@@ -62,18 +51,20 @@ export function DateScroller({
             .replace(".", "")
 
           return (
-            <button
-              key={date}
-              type="button"
-              disabled={state === "unavailable"}
-              onClick={() => onChange(date)}
+            <RadioGroupItem
               className={cn(
-                dateButtonVariants({
-                  state,
-                  today:
-                    state === "available" && date === today ? true : undefined,
-                }),
+                "flex min-h-11 min-w-13 shrink-0 flex-col items-center gap-0.5 px-2.5 py-2",
+                availability === "unavailable" &&
+                  "border-border/30 text-foreground-muted",
+                availability === "available" &&
+                  !selected &&
+                  date === today &&
+                  "border-primary/50",
               )}
+              disabled={availability === "unavailable"}
+              key={date}
+              size="none"
+              value={date}
             >
               <span className="text-xs uppercase tracking-widest">
                 {weekday}
@@ -82,10 +73,10 @@ export function DateScroller({
                 {parsedDate.getDate()}
               </span>
               <span className="text-xs">{month}</span>
-            </button>
+            </RadioGroupItem>
           )
         })}
-      </div>
+      </RadioGroup>
     </div>
   )
 }

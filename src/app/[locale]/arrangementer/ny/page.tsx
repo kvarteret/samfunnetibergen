@@ -44,7 +44,7 @@ function SubmitEventPageIntro() {
   return (
     <header className="space-y-6">
       <Link
-        className="inline-flex text-eyebrow underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
+        className="inline-flex font-heading text-sm uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
         href="/arrangementer"
       >
         ← Arrangementer
@@ -59,12 +59,14 @@ function SubmitEventPageIntro() {
                 aria-hidden
               />
             </div>
-            <p className="text-eyebrow">Ny innmelding</p>
+            <p className="font-heading text-sm uppercase tracking-widest">
+              Ny innmelding
+            </p>
           </div>
           <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
             Legg til arrangement
           </h1>
-          <p className="text-lg leading-7 text-foreground-subtle max-w-xl">
+          <p className="text-lg leading-7 text-foreground-muted max-w-xl">
             Arrangerer du eller din organisasjon noe på Samfunnet i Bergen? Fyll
             ut skjemaet nedenfor, så vurderer PR-gruppen innmeldingen og legger
             det til i listen.
@@ -72,7 +74,9 @@ function SubmitEventPageIntro() {
         </div>
 
         <aside className="space-y-3 panel lg:min-w-64">
-          <p className="text-eyebrow">Slik fungerer det</p>
+          <p className="font-heading text-sm uppercase tracking-widest">
+            Slik fungerer det
+          </p>
           <ol className="space-y-2 text-sm text-foreground-muted leading-6">
             <li className="flex gap-2.5">
               <span className="font-heading text-primary shrink-0">1.</span>{" "}
@@ -88,7 +92,7 @@ function SubmitEventPageIntro() {
             </li>
           </ol>
           <div className="border-t border-border pt-3">
-            <p className="text-xs text-foreground-subtle">
+            <p className="text-xs text-foreground-muted">
               Vil du endre et arrangement etter innmelding? Send e-post til{" "}
               <a
                 className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"

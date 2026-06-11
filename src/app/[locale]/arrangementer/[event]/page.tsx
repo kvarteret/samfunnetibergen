@@ -120,7 +120,7 @@ function EventDetailHero({
           </div>
         ) : (
           <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
-            <p className="max-w-md font-heading text-4xl leading-tight text-foreground-faint">
+            <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
               {event.title}
             </p>
           </div>
@@ -178,7 +178,9 @@ function EventDetailMetaItem({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-eyebrow text-foreground">{label}</p>
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+        {label}
+      </p>
       <p className="text-lg leading-6 text-foreground">{children}</p>
     </div>
   )
@@ -193,7 +195,7 @@ function EventDetailSchedule({
 }) {
   return (
     <section>
-      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 text-eyebrow text-foreground sm:gap-4">
+      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading text-sm uppercase tracking-widest text-foreground sm:gap-4">
         <p>{t("date")}</p>
         <p>{t("time")}</p>
         <p>{t("place")}</p>

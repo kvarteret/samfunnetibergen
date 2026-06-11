@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const tagVariants = cva(
-  "inline-flex w-fit items-center border-2 px-2 py-0.5 text-eyebrow-sm",
+  "inline-flex w-fit items-center border-2 px-2 py-0.5 font-heading text-sm uppercase tracking-widest",
   {
     variants: {
       variant: {
@@ -13,7 +13,7 @@ const tagVariants = cva(
         warning: "border-border bg-primary text-primary-foreground",
         destructive:
           "border-destructive bg-destructive text-destructive-foreground",
-        outline: "border-border bg-transparent text-foreground-subtle",
+        outline: "border-border bg-transparent text-foreground-muted",
       },
     },
     defaultVariants: {

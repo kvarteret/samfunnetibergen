@@ -74,7 +74,7 @@ function KaraokePageIntro() {
   return (
     <header className="space-y-4">
       <Link
-        className="inline-flex text-eyebrow underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
+        className="inline-flex font-heading text-sm uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
         href="/rom"
       >
         ← Rom
@@ -84,19 +84,21 @@ function KaraokePageIntro() {
         <div className="size-10 bg-primary flex items-center justify-center shrink-0">
           <Mic className="size-5 text-primary-foreground" aria-hidden />
         </div>
-        <p className="text-eyebrow">Karaoke</p>
+        <p className="font-heading text-sm uppercase tracking-widest">
+          Karaoke
+        </p>
       </div>
       <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
         Booking av karaoke
       </h1>
-      <p className="text-lg leading-7 text-foreground-subtle max-w-xl">
+      <p className="text-lg leading-7 text-foreground-muted max-w-xl">
         Så gøy at du ønsker å booke karaoke hos oss! Fyll ut skjemaet under, så
         behandler vi forespørselen din så fort vi ser den.
       </p>
 
-      <p className="text-eyebrow-sm text-destructive">
+      <p className="font-heading text-sm uppercase tracking-widest text-destructive">
         Aldersgrense 18 år*{" "}
-        <span className="normal-case tracking-normal font-sans text-foreground-subtle">
+        <span className="normal-case tracking-normal font-sans text-foreground-muted">
           (*18 år med studentbevis – 20 år for alle andre)
         </span>
       </p>

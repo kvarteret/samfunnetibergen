@@ -3,9 +3,9 @@ import { CalendarPlus } from "lucide-react"
 import { EventsProvider } from "@/features/events/context/EventsContext"
 import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import { Link } from "@/i18n/navigation"
+import type { EventDateEntry } from "./EventCard"
 import { EventsPageFilters } from "./EventsPageFilters"
 import { EventsPageSections } from "./EventsPageSections"
-import type { EventDateEntry } from "./EventCard"
 
 interface EventsPageProps {
   arrangements: PublishedEvent[]
@@ -37,7 +37,7 @@ export function EventsPage({
       <div className="flex flex-col gap-10">
         <header className="space-y-5">
           <Link
-            className="inline-flex text-eyebrow underline underline-offset-4 focus-brutal"
+            className="inline-flex font-heading text-sm uppercase tracking-widest underline underline-offset-4 focus-brutal"
             href="/"
           >
             {backLabel}
@@ -60,7 +60,7 @@ export function EventsPage({
             <p className="font-heading text-sm leading-snug text-foreground">
               Arrangerer du eller din organisasjon noe på Samfunnet?
             </p>
-            <p className="mt-0.5 text-sm text-foreground-subtle">
+            <p className="mt-0.5 text-sm text-foreground-muted">
               Legg til arrangementet i listen — det gjennomgås av PR-gruppen og
               publiseres innen 1–3 virkedager.
             </p>

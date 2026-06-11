@@ -56,7 +56,7 @@ export function KaraokeFormSlotPicker({
       ).map(slotMin => ({
         value: String(slotMin),
         label: minutesToTime(slotMin),
-        state: slotOverlapsKaraokeBookings(
+        availability: slotOverlapsKaraokeBookings(
           selectedDate,
           slotMin,
           duration,
@@ -73,9 +73,8 @@ export function KaraokeFormSlotPicker({
         aria-describedby={ariaDescribedBy}
         aria-invalid={ariaInvalid}
         dates={dates}
-        getDateState={date => {
-          if (date === selectedDate) return "selected"
-          return dateHasKaraokeSlot(
+        getDateAvailability={date =>
+          dateHasKaraokeSlot(
             date,
             duration,
             bookings,
@@ -84,7 +83,7 @@ export function KaraokeFormSlotPicker({
           )
             ? "available"
             : "unavailable"
-        }}
+        }
         id={id}
         onChange={onDateChange}
         selectedDate={selectedDate}

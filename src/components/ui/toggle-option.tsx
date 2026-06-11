@@ -1,10 +1,11 @@
 "use client"
 
 import type { LucideIcon } from "lucide-react"
-import type { ReactNode } from "react"
+import { type ReactNode, useId } from "react"
 
 import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { cn } from "@/lib/utils"
+import { selectionControlVariants } from "./selection-control"
 
 interface ToggleOptionProps {
   checked: boolean
@@ -21,33 +22,30 @@ export function ToggleOption({
   children,
   onChange,
 }: ToggleOptionProps) {
+  const id = useId()
+
   return (
-    <button
-      aria-pressed={checked}
+    <div
       className={cn(
-        "flex w-full cursor-pointer flex-col border-2 text-left transition-colors focus-brutal",
-        checked
-          ? "border-primary bg-primary/5"
-          : "border-border bg-card hover:bg-muted",
+        "flex w-full flex-col text-left",
+        selectionControlVariants({
+          appearance: "soft",
+          selected: checked,
+          size: "none",
+        }),
       )}
-      onClick={() => onChange(!checked)}
-      type="button"
     >
-      <span className="flex items-center gap-3 p-4">
-        <CheckboxSquare checked={checked} decorative />
+      <label
+        className="flex cursor-pointer items-center gap-3 p-4"
+        htmlFor={id}
+      >
+        <CheckboxSquare checked={checked} id={id} onChange={onChange} />
         <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-sm text-foreground">
           <Icon aria-hidden className="size-4 text-primary" />
           {label}
         </span>
-      </span>
-      {children && (
-        // Stop propagation so interacting with children (inputs, selects)
-        // doesn't bubble to the button and toggle the parent off.
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-        <div className="px-4 pb-4" onClick={e => e.stopPropagation()}>
-          {children}
-        </div>
-      )}
-    </button>
+      </label>
+      {children && <div className="px-4 pb-4">{children}</div>}
+    </div>
   )
 }

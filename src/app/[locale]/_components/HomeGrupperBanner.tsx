@@ -18,7 +18,9 @@ export function HomeGrupperBanner({
 }: HomeGrupperBannerProps) {
   return (
     <section className="border-2 border-border bg-primary p-8 text-primary-foreground shadow-hard-lg sm:p-12">
-      <p className="text-eyebrow text-primary-foreground/75">{eyebrow}</p>
+      <p className="font-heading text-sm uppercase tracking-widest text-primary-foreground/75">
+        {eyebrow}
+      </p>
       <h2 className="mt-2 font-heading text-4xl uppercase leading-none sm:text-6xl">
         {heading1}
         <br />

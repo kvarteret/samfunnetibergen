@@ -89,7 +89,7 @@ function RoomImage({
       alt={image?.alt || title}
       aspectRatio="16/10"
       fallback={
-        <span className="p-6 text-center font-heading text-2xl text-foreground-faint">
+        <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
           {title}
         </span>
       }
@@ -142,7 +142,7 @@ function ServicesSection() {
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
               <h3 className="font-heading text-xl text-foreground">{title}</h3>
-              <p className="text-body text-foreground-subtle">{description}</p>
+              <p className="text-body text-foreground-muted">{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
               Les mer
@@ -167,7 +167,7 @@ function HowToSection({ section }: { section: EditorialSection }) {
             className="flex gap-4 border-l-2 border-border pl-4"
             key={paragraph}
           >
-            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground-faint">
+            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground-muted">
               {i + 1}
             </span>
             <p className="text-sm leading-6 text-foreground">{paragraph}</p>
