@@ -1,7 +1,10 @@
 import { createContext, useContext } from "react"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const KaraokeFormContext = createContext<any>(null)
+import type { AppFormApi } from "@/lib/form-api"
+import type { KaraokeFormState } from "../domain/formState"
+
+export const KaraokeFormContext =
+  createContext<AppFormApi<KaraokeFormState> | null>(null)
 
 export function useKaraokeForm() {
   const form = useContext(KaraokeFormContext)

@@ -9,6 +9,7 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -64,7 +65,6 @@ export function BookingForm({
 }: BookingFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const [hasSubmittedInvalid, setHasSubmittedInvalid] = useState(false)
   const today = isoDate(new Date())
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
@@ -173,9 +173,8 @@ export function BookingForm({
     hasConflict,
     slotWithinHours,
   })
-  const visibleErrors = hasSubmittedInvalid ? validationErrors : []
-  const getFieldError = (fieldId: string) =>
-    visibleErrors.find(error => error.fieldId === fieldId)?.message
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   if (form.state.isSubmitSuccessful) {
     return (
@@ -205,7 +204,7 @@ export function BookingForm({
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            setHasSubmittedInvalid(true)
+            markSubmitAttempt()
             if (validationErrors.length > 0) return
             form.handleSubmit()
           }}
@@ -214,7 +213,7 @@ export function BookingForm({
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
           <BookingFormBookerTypeSection
-            studentOrgNameError={getFieldError(fieldIds.studentOrgName)}
+            studentOrgNameError={errorFor(fieldIds.studentOrgName)}
             studentOrgNameId={fieldIds.studentOrgName}
           />
           <BookingFormScheduleSection
@@ -228,33 +227,33 @@ export function BookingForm({
             closedDates={closedDates}
             hasConflict={hasConflict}
             startDateError={
-              getFieldError(fieldIds.startDate) ??
-              getFieldError(`${fieldIds.startDate}-time`)
+              errorFor(fieldIds.startDate) ??
+              errorFor(`${fieldIds.startDate}-time`)
             }
             startDateId={fieldIds.startDate}
           />
           <BookingFormEventDetailsSection
-            audienceCountError={getFieldError(fieldIds.audienceCount)}
+            audienceCountError={errorFor(fieldIds.audienceCount)}
             audienceCountId={fieldIds.audienceCount}
-            eventNameError={getFieldError(fieldIds.eventName)}
+            eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
           />
           <BookingFormNeedsSection
-            furnitureError={getFieldError(fieldIds.furniture)}
+            furnitureError={errorFor(fieldIds.furniture)}
             furnitureId={fieldIds.furniture}
           />
           <BookingFormCateringBarSection />
           <BookingFormTicketSection />
           <BookingFormContactSection
-            contactEmailError={getFieldError(fieldIds.contactEmail)}
+            contactEmailError={errorFor(fieldIds.contactEmail)}
             contactEmailId={fieldIds.contactEmail}
-            contactNameError={getFieldError(fieldIds.contactName)}
+            contactNameError={errorFor(fieldIds.contactName)}
             contactNameId={fieldIds.contactName}
-            invoiceAddressError={getFieldError(fieldIds.invoiceAddress)}
+            invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
             invoiceAddressId={fieldIds.invoiceAddress}
           />
           <BookingFormTermsSection
-            acceptTermsError={getFieldError(fieldIds.acceptTerms)}
+            acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
           />
 

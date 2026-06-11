@@ -119,7 +119,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
       <aside className="space-y-6">
         {(group.email || group.website) && (
-          <section className="space-y-3 border-2 border-border bg-card p-5">
+          <section className="space-y-3 panel">
             <h2 className="font-heading text-xl text-foreground">Kontakt</h2>
             {group.email && (
               <a
@@ -146,7 +146,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
 
         {group.parentGroup && (
-          <section className="space-y-2 border-2 border-border bg-card p-5">
+          <section className="space-y-2 panel">
             <h2 className="font-heading text-xl text-foreground">Del av</h2>
             {group.parentGroup.slug ? (
               <a
@@ -164,7 +164,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
 
         {group.subGroups?.length ? (
-          <section className="space-y-3 border-2 border-border bg-card p-5">
+          <section className="space-y-3 panel">
             <h2 className="font-heading text-xl text-foreground">
               Undergrupper
             </h2>
@@ -182,7 +182,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         ) : null}
 
         {group.slug && (
-          <section className="border-2 border-border bg-card p-5">
+          <section className="panel">
             <GroupVolunteerForm
               groupSlug={group.slug}
               groupName={group.name ?? group.slug}

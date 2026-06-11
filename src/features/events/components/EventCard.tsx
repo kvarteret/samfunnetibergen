@@ -124,7 +124,7 @@ export function EventCard({
     <Card
       className={cn(
         eventCardVariants({ variant, size }),
-        cardSize === "small" && "interactive-brutal",
+        cardSize === "small" && "group interactive-brutal",
       )}
     >
       {event.imageUrl && (

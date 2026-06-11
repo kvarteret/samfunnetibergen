@@ -213,7 +213,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
       {room.specsUrl && (
         <a
-          className="inline-flex items-center gap-2 border-2 border-border bg-card px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
+          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
           href={room.specsUrl}
           rel="noreferrer"
           target="_blank"

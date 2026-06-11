@@ -135,7 +135,7 @@ function HomeBarPreviewCard({
   return (
     <Link
       aria-label={`Gå til ${room.title ?? "bar"}`}
-      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden border-2 border-border bg-card transition-colors hover:border-primary focus-brutal"
+      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden panel p-0 transition-colors hover:border-primary focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">

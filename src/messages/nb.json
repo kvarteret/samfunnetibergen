@@ -29,7 +29,7 @@
   "EventCard": {
     "today": "I dag",
     "tomorrow": "I morgen",
-    "inNDays": "Om %d dager",
+    "inNDays": "Om {n} dager",
     "recurringDaily": "Hver dag",
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
@@ -120,6 +120,8 @@
     "title": "Bli frivillig",
     "selectSubGroup": "Velg hvilken undergruppe du vil søke til:",
     "applyingTo": "Du søker til: {group}",
+    "secondChoiceLabel": "Andrevalg (valgfritt)",
+    "secondChoicePlaceholder": "Ingen andrevalg",
     "firstNameLabel": "Fornavn",
     "lastNameLabel": "Etternavn",
     "emailLabel": "E-postadresse",

@@ -1,19 +1,24 @@
 "use client"
 
-import { use } from "react"
+import { use, useState } from "react"
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
+import { DateScroller } from "@/components/ui/date-scroller"
 import { DetailRow } from "@/components/ui/detail-row"
 import { Disclosure } from "@/components/ui/disclosure"
 import { ErrorSummary } from "@/components/ui/error-summary"
 import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { ImageDropzone } from "@/components/ui/image-dropzone"
 import { Input } from "@/components/ui/input"
 import { PriceInput } from "@/components/ui/price-input"
 import { SectionHeader } from "@/components/ui/section-header"
+import { SegmentedControl } from "@/components/ui/segmented-control"
+import { SelectableCard } from "@/components/ui/selectable-card"
 import { SelectField } from "@/components/ui/select-field"
+import { SlotGrid } from "@/components/ui/slot-grid"
 import { Tag } from "@/components/ui/tag"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup } from "@/components/ui/toggle-group"
@@ -231,10 +236,10 @@ export default function DesignGallery({
               <p className="mt-2 text-foreground-muted">Med CardContent.</p>
             </CardContent>
           </Card>
-          <div className="border-2 border-border bg-card p-5 shadow-shadow">
+          <div className="panel shadow-shadow">
             <p className="font-heading text-lg">Kanonisk panel</p>
             <p className="mt-2 text-foreground-muted">
-              border-2 border-border bg-card p-5 shadow-shadow
+              panel shadow-shadow
             </p>
           </div>
         </div>
@@ -271,20 +276,188 @@ export default function DesignGallery({
       {/* 15 — Shadow Scale */}
       <Section header={<SectionHeader number="15" title="Shadow Scale" />}>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="border-2 border-border bg-card p-5 shadow-hard-sm">
+          <div className="panel shadow-hard-sm">
             <p className="font-heading text-sm">shadow-hard-sm</p>
             <p className="mt-1 text-xs text-foreground-muted">2px 2px 0</p>
           </div>
-          <div className="border-2 border-border bg-card p-5 shadow-shadow">
+          <div className="panel shadow-shadow">
             <p className="font-heading text-sm">shadow (default)</p>
             <p className="mt-1 text-xs text-foreground-muted">4px 4px 0</p>
           </div>
-          <div className="border-2 border-border bg-card p-5 shadow-hard-lg">
+          <div className="panel shadow-hard-lg">
             <p className="font-heading text-sm">shadow-hard-lg</p>
             <p className="mt-1 text-xs text-foreground-muted">6px 6px 0</p>
           </div>
         </div>
       </Section>
+
+      {/* 16 — SegmentedControl */}
+      <Section header={<SectionHeader number="16" title="SegmentedControl" />}>
+        <SegmentedControlDemo />
+      </Section>
+
+      {/* 17 — ToggleGroup */}
+      <Section header={<SectionHeader number="17" title="ToggleGroup" />}>
+        <ToggleGroupDemo />
+      </Section>
+
+      {/* 18 — DateScroller */}
+      <Section header={<SectionHeader number="18" title="DateScroller" />}>
+        <DateScrollerDemo />
+      </Section>
+
+      {/* 19 — SlotGrid */}
+      <Section header={<SectionHeader number="19" title="SlotGrid" />}>
+        <SlotGridDemo />
+      </Section>
+
+      {/* 20 — SelectableCard */}
+      <Section header={<SectionHeader number="20" title="SelectableCard" />}>
+        <SelectableCardDemo />
+      </Section>
+
+      {/* 21 — ImageDropzone */}
+      <Section header={<SectionHeader number="21" title="ImageDropzone" />}>
+        <ImageDropzone onImageChange={() => {}} />
+      </Section>
+    </div>
+  )
+}
+
+// ─── Interactive control demos ───────────────────────────────────────────────
+
+function SegmentedControlDemo() {
+  const [frequency, setFrequency] = useState("weekly")
+  const [filter, setFilter] = useState("alle")
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-eyebrow text-foreground-subtle">pills (default)</p>
+        <SegmentedControl
+          onChange={setFrequency}
+          options={[
+            { value: "daily", label: "Hver dag" },
+            { value: "weekly", label: "Hver uke" },
+            { value: "monthly", label: "Hver måned" },
+          ]}
+          value={frequency}
+        />
+      </div>
+      <div className="space-y-2">
+        <p className="text-eyebrow text-foreground-subtle">inverse</p>
+        <SegmentedControl
+          onChange={setFilter}
+          options={[
+            { value: "alle", label: "Alle" },
+            { value: "konsert", label: "Konsert" },
+            { value: "quiz", label: "Quiz" },
+          ]}
+          value={filter}
+          variant="inverse"
+        />
+      </div>
+    </div>
+  )
+}
+
+function ToggleGroupDemo() {
+  const [needs, setNeeds] = useState<string[]>(["scene"])
+  const [days, setDays] = useState<string[]>(["man", "ons"])
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-eyebrow text-foreground-subtle">
+          default — multi-select
+        </p>
+        <ToggleGroup
+          onChange={setNeeds}
+          options={[
+            { value: "scene", label: "Scene" },
+            { value: "lyd", label: "Lydanlegg" },
+            { value: "lys", label: "Lysrigg" },
+          ]}
+          value={needs}
+        />
+      </div>
+      <div className="space-y-2">
+        <p className="text-eyebrow text-foreground-subtle">sm — weekdays</p>
+        <ToggleGroup
+          onChange={setDays}
+          options={["man", "tir", "ons", "tor", "fre", "lør", "søn"].map(
+            day => ({ value: day, label: day }),
+          )}
+          size="sm"
+          value={days}
+        />
+      </div>
+    </div>
+  )
+}
+
+function DateScrollerDemo() {
+  const today = new Date().toISOString().split("T")[0]!
+  const dates = Array.from({ length: 10 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return d.toISOString().split("T")[0]!
+  })
+  const [selected, setSelected] = useState(dates[2])
+  return (
+    <DateScroller
+      dates={dates}
+      getDateState={date =>
+        date === selected
+          ? "selected"
+          : dates.indexOf(date) % 4 === 3
+            ? "unavailable"
+            : "available"
+      }
+      onChange={setSelected}
+      selectedDate={selected}
+      today={today}
+    />
+  )
+}
+
+function SlotGridDemo() {
+  const [slot, setSlot] = useState<string | null>("19:00")
+  const slots = ["17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(
+    time => ({
+      value: time,
+      label: time,
+      state:
+        time === slot
+          ? ("selected" as const)
+          : time === "18:00"
+            ? ("taken" as const)
+            : ("available" as const),
+    }),
+  )
+  return <SlotGrid onChange={setSlot} selectedValue={slot} slots={slots} />
+}
+
+function SelectableCardDemo() {
+  const [selected, setSelected] = useState("storsalen")
+  const rooms = [
+    { value: "storsalen", title: "Storsalen", detail: "350 stående" },
+    { value: "tivoli", title: "Tivoli", detail: "120 stående" },
+  ]
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      {rooms.map(room => (
+        <SelectableCard
+          key={room.value}
+          onSelect={() => setSelected(room.value)}
+          selected={selected === room.value}
+        >
+          <p className="font-heading">{room.title}</p>
+          <p className="text-sm text-foreground-muted">{room.detail}</p>
+        </SelectableCard>
+      ))}
+      <SelectableCard disabled onSelect={() => {}} selected={false}>
+        <p className="font-heading">Eldorado</p>
+        <p className="text-sm text-foreground-muted">Ikke tilgjengelig</p>
+      </SelectableCard>
     </div>
   )
 }

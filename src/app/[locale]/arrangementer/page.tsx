@@ -75,7 +75,7 @@ export default async function EventsPage({
   const primaryDateLabels: PrimaryDateLabels = {
     today: cardT("today"),
     tomorrow: cardT("tomorrow"),
-    inNDays: (n: number) => cardT("inNDays").replace("%d", String(n)),
+    inNDays: (n: number) => cardT("inNDays", { n }),
   }
   const recurringLabels: RecurringLabels = {
     daily: cardT("recurringDaily"),

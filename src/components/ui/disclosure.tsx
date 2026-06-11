@@ -15,7 +15,7 @@ export function Disclosure({
   return (
     <details
       className={cn(
-        "group border-2 border-border bg-card shadow-shadow",
+        "group panel p-0 shadow-shadow",
         className,
       )}
       {...props}

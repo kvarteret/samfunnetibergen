@@ -1,7 +1,11 @@
 import { createContext, useContext } from "react"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const EventFormContext = createContext<any>(null)
+import type { AppFormApi } from "@/lib/form-api"
+import type { FormState } from "../domain/formState"
+
+export const EventFormContext = createContext<AppFormApi<FormState> | null>(
+  null,
+)
 
 export function useEventForm() {
   const form = useContext(EventFormContext)

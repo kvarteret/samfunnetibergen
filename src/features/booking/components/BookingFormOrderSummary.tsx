@@ -33,7 +33,7 @@ export function BookingFormOrderSummary({
 
   return (
     <aside>
-      <div className="border-2 border-border bg-card">
+      <div className="panel p-0">
         <SelectedRoomCard room={selectedRoom} />
 
         <div className="space-y-3 p-5">

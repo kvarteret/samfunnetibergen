@@ -71,7 +71,7 @@ function SubmitEventPageIntro() {
           </p>
         </div>
 
-        <aside className="space-y-3 border-2 border-border bg-card p-5 lg:min-w-64">
+        <aside className="space-y-3 panel lg:min-w-64">
           <p className="text-eyebrow">Slik fungerer det</p>
           <ol className="space-y-2 text-sm text-foreground-muted leading-6">
             <li className="flex gap-2.5">

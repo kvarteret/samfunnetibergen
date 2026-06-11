@@ -10,10 +10,12 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { useFieldAria } from "@/lib/use-field-aria"
@@ -106,8 +108,13 @@ export function GroupVolunteerForm({
   const [selectedSlug, setSelectedSlug] = useState<string>(
     hasSubGroups ? "" : groupSlug,
   )
+  const [secondChoiceSlug, setSecondChoiceSlug] = useState("")
   const slugSelected = !hasSubGroups || selectedSlug !== ""
-  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
+
+  const selectFirstChoice = (slug: string) => {
+    setSelectedSlug(slug)
+    if (slug === secondChoiceSlug) setSecondChoiceSlug("")
+  }
 
   const form = useForm({
     defaultValues,
@@ -118,6 +125,7 @@ export function GroupVolunteerForm({
         phone: value.phone.trim().replace(/\D/g, ""),
         study_institution: value.studyInstitution.trim(),
         first_choice_group_slug: selectedSlug,
+        second_choice_group_slug: secondChoiceSlug || undefined,
         background_details: value.backgroundDetails.trim() || undefined,
       }
 
@@ -149,22 +157,20 @@ export function GroupVolunteerForm({
   }
 
   const validationErrors = getValidationErrors(form.state.values, fieldIds, t)
-  const visibleErrors = hasAttemptedSubmit ? validationErrors : []
-
-  const getFieldError = (fieldId: string) =>
-    visibleErrors.find(e => e.fieldId === fieldId)?.message
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   const aria = {
     firstName: useFieldAria(
       fieldIds.firstName,
-      getFieldError(fieldIds.firstName),
+      errorFor(fieldIds.firstName),
     ),
-    lastName: useFieldAria(fieldIds.lastName, getFieldError(fieldIds.lastName)),
-    email: useFieldAria(fieldIds.email, getFieldError(fieldIds.email)),
-    phone: useFieldAria(fieldIds.phone, getFieldError(fieldIds.phone)),
+    lastName: useFieldAria(fieldIds.lastName, errorFor(fieldIds.lastName)),
+    email: useFieldAria(fieldIds.email, errorFor(fieldIds.email)),
+    phone: useFieldAria(fieldIds.phone, errorFor(fieldIds.phone)),
     studyInstitution: useFieldAria(
       fieldIds.studyInstitution,
-      getFieldError(fieldIds.studyInstitution),
+      errorFor(fieldIds.studyInstitution),
     ),
   }
 
@@ -188,22 +194,14 @@ export function GroupVolunteerForm({
           <p className="text-sm text-foreground-subtle">
             {t("selectSubGroup")}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {subGroups!.map(sub => (
-              <button
-                key={sub.slug}
-                type="button"
-                onClick={() => setSelectedSlug(sub.slug)}
-                className={`border-2 px-3 py-1.5 font-heading text-sm transition-colors ${
-                  selectedSlug === sub.slug
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-foreground hover:border-primary"
-                }`}
-              >
-                {sub.name}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            onChange={selectFirstChoice}
+            options={subGroups!.map(sub => ({
+              value: sub.slug,
+              label: sub.name,
+            }))}
+            value={selectedSlug}
+          />
           {selectedSlug && (
             <p className="text-xs text-foreground-faint">
               {t("applyingTo", {
@@ -212,6 +210,19 @@ export function GroupVolunteerForm({
                   selectedSlug,
               })}
             </p>
+          )}
+          {selectedSlug && subGroups!.length > 1 && (
+            <SelectField
+              className="max-w-72"
+              id="volunteer-second-choice"
+              label={t("secondChoiceLabel")}
+              onChange={setSecondChoiceSlug}
+              options={subGroups!
+                .filter(sub => sub.slug !== selectedSlug)
+                .map(sub => ({ value: sub.slug, label: sub.name }))}
+              placeholder={t("secondChoicePlaceholder")}
+              value={secondChoiceSlug}
+            />
           )}
         </FieldGroup>
       )}
@@ -222,7 +233,7 @@ export function GroupVolunteerForm({
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            setHasAttemptedSubmit(true)
+            markSubmitAttempt()
             if (validationErrors.length > 0) return
             form.handleSubmit()
           }}
@@ -238,7 +249,7 @@ export function GroupVolunteerForm({
 
           <div className="grid grid-cols-2 gap-4">
             <FieldGroup
-              error={getFieldError(fieldIds.firstName)}
+              error={errorFor(fieldIds.firstName)}
               errorId={`${fieldIds.firstName}-error`}
             >
               <div className="flex items-center gap-1">
@@ -262,15 +273,15 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {getFieldError(fieldIds.firstName) && (
+              {errorFor(fieldIds.firstName) && (
                 <FieldError id={`${fieldIds.firstName}-error`}>
-                  {getFieldError(fieldIds.firstName)}
+                  {errorFor(fieldIds.firstName)}
                 </FieldError>
               )}
             </FieldGroup>
 
             <FieldGroup
-              error={getFieldError(fieldIds.lastName)}
+              error={errorFor(fieldIds.lastName)}
               errorId={`${fieldIds.lastName}-error`}
             >
               <div className="flex items-center gap-1">
@@ -294,15 +305,15 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {getFieldError(fieldIds.lastName) && (
+              {errorFor(fieldIds.lastName) && (
                 <FieldError id={`${fieldIds.lastName}-error`}>
-                  {getFieldError(fieldIds.lastName)}
+                  {errorFor(fieldIds.lastName)}
                 </FieldError>
               )}
             </FieldGroup>
 
             <FieldGroup
-              error={getFieldError(fieldIds.email)}
+              error={errorFor(fieldIds.email)}
               errorId={`${fieldIds.email}-error`}
             >
               <div className="flex items-center gap-1">
@@ -328,15 +339,15 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {getFieldError(fieldIds.email) && (
+              {errorFor(fieldIds.email) && (
                 <FieldError id={`${fieldIds.email}-error`}>
-                  {getFieldError(fieldIds.email)}
+                  {errorFor(fieldIds.email)}
                 </FieldError>
               )}
             </FieldGroup>
 
             <FieldGroup
-              error={getFieldError(fieldIds.phone)}
+              error={errorFor(fieldIds.phone)}
               errorId={`${fieldIds.phone}-error`}
             >
               <div className="flex items-center gap-1">
@@ -364,9 +375,9 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {getFieldError(fieldIds.phone) && (
+              {errorFor(fieldIds.phone) && (
                 <FieldError id={`${fieldIds.phone}-error`}>
-                  {getFieldError(fieldIds.phone)}
+                  {errorFor(fieldIds.phone)}
                 </FieldError>
               )}
             </FieldGroup>
@@ -375,7 +386,7 @@ export function GroupVolunteerForm({
           <form.Field name="studyInstitution">
             {(field: AnyFieldApi) => (
               <SelectField
-                error={getFieldError(fieldIds.studyInstitution)}
+                error={errorFor(fieldIds.studyInstitution)}
                 errorId={`${fieldIds.studyInstitution}-error`}
                 id={fieldIds.studyInstitution}
                 label={`${t("studyInstitutionLabel")}`}

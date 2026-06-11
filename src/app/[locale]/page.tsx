@@ -83,7 +83,7 @@ function localizeHref(href: string | null | undefined, locale: AppLocale) {
 type EventCardLabels = {
   today: string
   tomorrow: string
-  inNDays: string
+  inNDays: (n: number) => string
   recurringDaily: string
   recurringWeekly: string
   recurringMonthly: string
@@ -110,7 +110,7 @@ function toEventSummary(
     ? {
         today: labels.today,
         tomorrow: labels.tomorrow,
-        inNDays: (n: number) => labels.inNDays.replace("%d", String(n)),
+        inNDays: labels.inNDays,
       }
     : undefined
   const primaryDate = resolvedDates[0]
@@ -195,7 +195,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const eventCardLabels: EventCardLabels = {
     today: t("today"),
     tomorrow: t("tomorrow"),
-    inNDays: t("inNDays"),
+    inNDays: (n: number) => t("inNDays", { n }),
     recurringDaily: t("recurringDaily"),
     recurringWeekly: t("recurringWeekly"),
     recurringMonthly: t("recurringMonthly"),

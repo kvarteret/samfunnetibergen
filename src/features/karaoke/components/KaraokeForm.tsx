@@ -7,6 +7,7 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
+import { useFormErrors } from "@/lib/use-form-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -52,7 +53,6 @@ export function KaraokeForm({
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const [hasSubmittedInvalid, setHasSubmittedInvalid] = useState(false)
   const today = isoDate(new Date())
   const fieldIds = {
     eventName: `${uid}-eventName`,
@@ -79,9 +79,8 @@ export function KaraokeForm({
     form.state.values,
     fieldIds,
   )
-  const visibleErrors = hasSubmittedInvalid ? validationErrors : []
-  const getFieldError = (fieldId: string) =>
-    visibleErrors.find(error => error.fieldId === fieldId)?.message
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   useEffect(() => {
     const end = new Date(today)
@@ -129,7 +128,7 @@ export function KaraokeForm({
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            setHasSubmittedInvalid(true)
+            markSubmitAttempt()
             if (validationErrors.length > 0) return
             form.handleSubmit()
           }}
@@ -144,23 +143,23 @@ export function KaraokeForm({
             bookings={bookings}
             houseClosedDates={houseClosedDates}
             operationsManagerHours={operationsManagerHours}
-            eventNameError={getFieldError(fieldIds.eventName)}
+            eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
-            startDateError={getFieldError(fieldIds.startDate)}
+            startDateError={errorFor(fieldIds.startDate)}
             startDateId={fieldIds.startDate}
           />
           <KaraokeFormPackageSection uid={uid} derived={derived} />
           <KaraokeFormContactSection
-            contactEmailError={getFieldError(fieldIds.contactEmail)}
+            contactEmailError={errorFor(fieldIds.contactEmail)}
             contactEmailId={fieldIds.contactEmail}
-            contactNameError={getFieldError(fieldIds.contactName)}
+            contactNameError={errorFor(fieldIds.contactName)}
             contactNameId={fieldIds.contactName}
             uid={uid}
           />
           <KaraokeFormTermsSection
-            acceptTermsError={getFieldError(fieldIds.acceptTerms)}
+            acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
-            studentProofError={getFieldError(fieldIds.studentProof)}
+            studentProofError={errorFor(fieldIds.studentProof)}
             studentProofId={fieldIds.studentProof}
           />
           <KaraokeFormSubmitSection />

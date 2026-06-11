@@ -122,7 +122,7 @@ export default async function KontaktPage({
           ))}
         </div>
 
-        <aside className="space-y-6 self-start border-2 border-border bg-card p-5">
+        <aside className="space-y-6 self-start panel">
           <AddressBlock label="Besøksadresse" value={page?.visitAddress} />
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (

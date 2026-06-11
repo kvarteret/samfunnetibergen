@@ -31,7 +31,7 @@ export function BookingFormTermsSection({
   return (
     <FormSection number="08" title="Vilkår">
       <div
-        className="max-w-3xl space-y-3 overflow-y-auto border-2 border-border bg-card p-4 text-body"
+        className="max-w-3xl space-y-3 overflow-y-auto panel p-4 text-body"
         onScroll={handleScroll}
         style={{ maxHeight: "12rem" }}
       >

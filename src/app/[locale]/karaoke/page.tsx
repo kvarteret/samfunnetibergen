@@ -108,7 +108,7 @@ function KaraokePageIntro() {
 
 function SameDayKaraokeNotice() {
   return (
-    <div className="space-y-3 max-w-xl border-2 border-border bg-card p-5">
+    <div className="space-y-3 max-w-xl panel">
       <p className="text-sm font-heading text-foreground">
         Vil du booke et karaokerom i dag?
       </p>

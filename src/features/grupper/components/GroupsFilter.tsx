@@ -61,7 +61,7 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
 function GroupCard({ group }: { group: StudentGroupSummary }) {
   return (
     <Link
-      className="group flex min-h-full flex-col gap-4 border-2 border-border bg-card p-5 shadow-shadow transition-transform hover:-translate-y-1"
+      className="group flex min-h-full flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
       href={`/grupper/${group.slug}`}
     >
       <div className="space-y-3">

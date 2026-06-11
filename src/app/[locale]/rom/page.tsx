@@ -135,7 +135,7 @@ function ServicesSection() {
       <div className="grid gap-4 sm:grid-cols-3">
         {SERVICES.map(({ icon: Icon, title, description, href }) => (
           <Link
-            className="group flex flex-col gap-4 border-2 border-border bg-card p-5 shadow-shadow transition-transform hover:-translate-y-1"
+            className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
             href={href}
             key={href}
           >
@@ -229,7 +229,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
           return (
             <Link
-              className="group flex min-h-full flex-col overflow-hidden border-2 border-border bg-card shadow-shadow transition-transform hover:-translate-y-1"
+              className="group flex min-h-full flex-col overflow-hidden panel p-0 shadow-shadow transition-transform hover:-translate-y-1"
               href={`/rom/${room.slug}`}
               key={room.slug}
             >
@@ -284,7 +284,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
         <div className="grid gap-6 md:grid-cols-2">
           {infoSections.map((section: EditorialSection) => (
             <div
-              className="space-y-3 border-2 border-border bg-card p-5"
+              className="space-y-3 panel"
               key={section._key}
             >
               {section.title ? (

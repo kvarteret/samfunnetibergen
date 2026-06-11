@@ -19,6 +19,7 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
+import { useFormErrors } from "@/lib/use-form-errors"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
   buildPreviewEvent,
@@ -54,7 +55,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const [imageAssetId, setImageAssetId] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUploadError, setImageUploadError] = useState("")
-  const [hasSubmittedInvalid, setHasSubmittedInvalid] = useState(false)
   const fieldIds = {
     title: `${uid}-title`,
     firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
@@ -150,9 +150,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     eventTypes,
   )
   const validationErrors = getEventValidationErrors(form.state.values, fieldIds)
-  const visibleErrors = hasSubmittedInvalid ? validationErrors : []
-  const getFieldError = (fieldId: string) =>
-    visibleErrors.find(error => error.fieldId === fieldId)?.message
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   const handleImageChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -239,7 +238,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            setHasSubmittedInvalid(true)
+            markSubmitAttempt()
             if (validationErrors.length > 0) return
             if (imageUploading) {
               return
@@ -252,7 +251,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           )}
           <EventFormDetailsSection
             eventTypeOptions={eventTypeOptions}
-            titleError={getFieldError(fieldIds.title)}
+            titleError={errorFor(fieldIds.title)}
             titleId={fieldIds.title}
             uid={uid}
           />
@@ -265,7 +264,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             onRemoveImage={handleRemoveImage}
           />
           <EventFormScheduleSection
-            firstDateError={getFieldError(fieldIds.firstDate)}
+            firstDateError={errorFor(fieldIds.firstDate)}
             firstDateId={fieldIds.firstDate}
             uid={uid}
           />
@@ -274,9 +273,9 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
           <EventFormSubmitterSection
-            submittedByEmailError={getFieldError(fieldIds.submittedByEmail)}
+            submittedByEmailError={errorFor(fieldIds.submittedByEmail)}
             submittedByEmailId={fieldIds.submittedByEmail}
-            submittedByError={getFieldError(fieldIds.submittedBy)}
+            submittedByError={errorFor(fieldIds.submittedBy)}
             submittedById={fieldIds.submittedBy}
             uid={uid}
           />

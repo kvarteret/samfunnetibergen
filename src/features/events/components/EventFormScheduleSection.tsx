@@ -114,7 +114,7 @@ function EventDateCard({
   const dateErrorId = `${dateId}-error`
 
   return (
-    <div className="space-y-4 border-2 border-border bg-card p-4">
+    <div className="space-y-4 panel p-4">
       <div className="flex items-center justify-between">
         <p className="text-eyebrow-sm">
           Dato {totalDates > 1 ? index + 1 : ""}

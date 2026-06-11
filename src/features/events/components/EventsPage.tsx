@@ -49,7 +49,7 @@ export function EventsPage({
 
         <EventsPageSections precomputedDates={precomputedDates} />
 
-        <div className="flex flex-col gap-4 border-2 border-border bg-card p-5 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex flex-col gap-4 panel sm:flex-row sm:items-center sm:gap-6">
           <div className="flex size-10 shrink-0 items-center justify-center bg-primary">
             <CalendarPlus
               className="size-5 text-primary-foreground"
