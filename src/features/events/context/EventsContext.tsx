@@ -1,13 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react"
+import { createContext, useCallback, useContext, useState } from "react"
 
 import {
   buildTaxonomyFromEvents,
@@ -41,10 +35,7 @@ export function EventsProvider({
   const pathname = usePathname()
   const router = useRouter()
 
-  const taxonomy = useMemo(
-    () => buildTaxonomyFromEvents(initialEvents),
-    [initialEvents],
-  )
+  const taxonomy = buildTaxonomyFromEvents(initialEvents)
 
   const [filters, setFiltersState] = useState<EventFilters>(() =>
     parseEventFilters(initialSearchParams),
@@ -61,21 +52,15 @@ export function EventsProvider({
     [pathname, router],
   )
 
-  const filteredEvents = useMemo(
-    () => filterEvents(initialEvents, filters),
-    [initialEvents, filters],
-  )
+  const filteredEvents = filterEvents(initialEvents, filters)
 
-  const contextValue = useMemo(
-    () => ({
-      events: initialEvents,
-      taxonomy,
-      filters,
-      setFilters,
-      filteredEvents,
-    }),
-    [initialEvents, taxonomy, filters, setFilters, filteredEvents],
-  )
+  const contextValue = {
+    events: initialEvents,
+    taxonomy,
+    filters,
+    setFilters,
+    filteredEvents,
+  }
 
   return <EventsContext value={contextValue}>{children}</EventsContext>
 }

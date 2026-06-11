@@ -7,7 +7,6 @@ import {
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useState,
 } from "react"
 
@@ -116,37 +115,29 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     }
   }, [imagePreviewUrl])
 
-  const eventTypeOptions = useMemo(
-    () =>
-      eventTypes.map(eventType => ({
-        value: eventType._id,
-        label: eventType.taxonomyGroup
-          ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
-          : eventType.name,
-      })),
-    [eventTypes],
-  )
+  const eventTypeOptions = eventTypes.map(eventType => ({
+    value: eventType._id,
+    label: eventType.taxonomyGroup
+      ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
+      : eventType.name,
+  }))
 
-  const roomOptions = useMemo(
-    () => rooms.map(room => ({ value: room._id, label: room.title })),
-    [rooms],
-  )
+  const roomOptions = rooms.map(room => ({
+    value: room._id,
+    label: room.title,
+  }))
 
-  const groupOptions = useMemo(
-    () => groups.map(group => ({ value: group._id, label: group.name })),
-    [groups],
-  )
+  const groupOptions = groups.map(group => ({
+    value: group._id,
+    label: group.name,
+  }))
 
-  const previewEvent = useMemo(
-    () =>
-      buildPreviewEvent(
-        form.state.values,
-        imagePreviewUrl,
-        rooms,
-        groups,
-        eventTypes,
-      ),
-    [form.state.values, imagePreviewUrl, rooms, groups, eventTypes],
+  const previewEvent = buildPreviewEvent(
+    form.state.values,
+    imagePreviewUrl,
+    rooms,
+    groups,
+    eventTypes,
   )
 
   const handleImageChange = useCallback(

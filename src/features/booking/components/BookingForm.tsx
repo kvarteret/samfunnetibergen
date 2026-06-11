@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
-import { type FormEvent, useEffect, useMemo, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -58,7 +58,7 @@ export function BookingForm({
   closedDates,
 }: BookingFormProps) {
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const today = useMemo(() => isoDate(new Date()), [])
+  const today = isoDate(new Date())
 
   const form = useForm({
     defaultValues: {
@@ -75,13 +75,9 @@ export function BookingForm({
 
   const values = form.state.values
 
-  const selectedRoom = useMemo(
-    () => rooms.find(room => room.slug === values.roomSlug),
-    [rooms, values.roomSlug],
-  )
+  const selectedRoom = rooms.find(room => room.slug === values.roomSlug)
 
   useEffect(() => {
-    if (!today) return
     let active = true
     fetchRoomAvailability(today, addDaysDateOnly(today, DATE_COUNT)).then(
       result => {
@@ -91,61 +87,46 @@ export function BookingForm({
     return () => {
       active = false
     }
-  }, [today])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const roomBookings = useMemo(
-    () =>
-      selectedRoom
-        ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
-        : [],
-    [bookings, selectedRoom],
-  )
+  const roomBookings = selectedRoom
+    ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
+    : []
 
-  const selectedDateRoomBookings = useMemo(() => {
-    if (!values.startDate) return []
-    const [dayStartMs, dayEndMs] = slotRangeMs(
-      values.startDate,
-      "00:00",
-      "00:00",
+  const selectedDateRoomBookings = values.startDate
+    ? roomBookings.filter(booking =>
+        overlaps(...slotRangeMs(values.startDate, "00:00", "00:00"), booking),
+      )
+    : []
+
+  const hasConflict =
+    !!values.startDate &&
+    selectedDateRoomBookings.length > 0 &&
+    selectedDateRoomBookings.some(b =>
+      overlaps(
+        ...slotRangeMs(values.startDate, values.startTime, values.endTime),
+        b,
+      ),
     )
-    return roomBookings.filter(booking =>
-      overlaps(dayStartMs, dayEndMs, booking),
-    )
-  }, [roomBookings, values.startDate])
 
-  const hasConflict = useMemo(() => {
-    if (!values.startDate || selectedDateRoomBookings.length === 0) return false
-    const [startMs, endMs] = slotRangeMs(
-      values.startDate,
-      values.startTime,
-      values.endTime,
-    )
-    return selectedDateRoomBookings.some(b => overlaps(startMs, endMs, b))
-  }, [
-    values.startDate,
-    values.startTime,
-    values.endTime,
-    selectedDateRoomBookings,
-  ])
+  const occupiedSlugs = values.startDate
+    ? new Set(
+        rooms
+          .filter(room =>
+            isRoomOccupied(
+              bookings,
+              room.crescatRoomId,
+              values.startDate,
+              values.startTime,
+              values.endTime,
+            ),
+          )
+          .map(room => room.slug),
+      )
+    : new Set<string>()
 
-  const occupiedSlugs = useMemo(() => {
-    if (!values.startDate) return new Set<string>()
-    return new Set(
-      rooms
-        .filter(room =>
-          isRoomOccupied(
-            bookings,
-            room.crescatRoomId,
-            values.startDate,
-            values.startTime,
-            values.endTime,
-          ),
-        )
-        .map(room => room.slug),
-    )
-  }, [rooms, bookings, values.startDate, values.startTime, values.endTime])
-
-  const slotWithinHours = useMemo(() => {
+  const slotWithinHours = (() => {
     const hasConfiguredHours =
       hasOpeningHoursRows(openingHours) ||
       hasOpeningHoursRows(selectedRoom?.openingHours ?? null)
@@ -165,18 +146,10 @@ export function BookingForm({
       selectedRoom?.openingHours ?? null,
       closedDates,
     )
-  }, [
-    openingHours,
-    selectedRoom,
-    closedDates,
-    values.startDate,
-    values.startTime,
-    values.endTime,
-  ])
+  })()
 
   const canSubmit =
-    canSubmitBooking(values, Boolean(selectedRoom), hasConflict) &&
-    slotWithinHours
+    canSubmitBooking(values, !!selectedRoom, hasConflict) && slotWithinHours
 
   if (form.state.isSubmitSuccessful) {
     return (

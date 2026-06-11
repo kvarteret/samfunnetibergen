@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { RRule } from "rrule"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
@@ -54,18 +54,14 @@ export function EventFormRecurrenceBuilder({
   const [count, setCount] = useState(8)
   const [untilDate, setUntilDate] = useState("")
 
-  const recurrence = useMemo(
-    () =>
-      buildRecurrence({
-        frequency,
-        interval,
-        weekdays,
-        endType,
-        count,
-        untilDate,
-      }),
-    [frequency, interval, weekdays, endType, count, untilDate],
-  )
+  const recurrence = buildRecurrence({
+    frequency,
+    interval,
+    weekdays,
+    endType,
+    count,
+    untilDate,
+  })
 
   useEffect(() => {
     if (recurrence) {

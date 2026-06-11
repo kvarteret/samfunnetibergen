@@ -1,6 +1,5 @@
 "use client"
 
-import { useMemo } from "react"
 import { DateScroller } from "@/components/ui/date-scroller"
 import { SlotGrid, type SlotOption } from "@/components/ui/slot-grid"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -40,37 +39,27 @@ export function KaraokeFormSlotPicker({
   onDateChange,
   onSlotChange,
 }: KaraokeFormSlotPickerProps) {
-  const dates = useMemo(
-    () => buildDateSequence(today, KARAOKE_DATE_COUNT),
-    [today],
-  )
+  const dates = buildDateSequence(today, KARAOKE_DATE_COUNT)
 
-  const slotOptions: SlotOption[] = useMemo(() => {
-    if (!selectedDate) return []
-    return slotRangesForDate(
-      selectedDate,
-      duration,
-      operationsManagerHours,
-      houseClosedDates,
-    ).map(slotMin => ({
-      value: String(slotMin),
-      label: minutesToTime(slotMin),
-      state: slotOverlapsKaraokeBookings(
+  const slotOptions: SlotOption[] = selectedDate
+    ? slotRangesForDate(
         selectedDate,
-        slotMin,
         duration,
-        bookings,
-      )
-        ? "taken"
-        : "available",
-    })) as SlotOption[]
-  }, [
-    selectedDate,
-    duration,
-    operationsManagerHours,
-    houseClosedDates,
-    bookings,
-  ])
+        operationsManagerHours,
+        houseClosedDates,
+      ).map(slotMin => ({
+        value: String(slotMin),
+        label: minutesToTime(slotMin),
+        state: slotOverlapsKaraokeBookings(
+          selectedDate,
+          slotMin,
+          duration,
+          bookings,
+        )
+          ? "taken"
+          : "available",
+      }))
+    : []
 
   return (
     <div className="space-y-4">

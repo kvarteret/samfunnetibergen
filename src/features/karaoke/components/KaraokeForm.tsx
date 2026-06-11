@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form"
 import type { FormEvent } from "react"
-import { useEffect, useId, useMemo, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -49,7 +49,7 @@ export function KaraokeForm({
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const today = useMemo(() => isoDate(new Date()), [])
+  const today = isoDate(new Date())
 
   const form = useForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
@@ -62,10 +62,7 @@ export function KaraokeForm({
     },
   })
 
-  const derived = useMemo(
-    () => deriveKaraokeState(form.state.values),
-    [form.state.values],
-  )
+  const derived = deriveKaraokeState(form.state.values)
 
   useEffect(() => {
     const end = new Date(today)

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Building2, CalendarClock, Check } from "lucide-react"
-import { useId, useMemo } from "react"
+import { useId } from "react"
 import { Card } from "@/components/ui/card"
 import { DateScroller } from "@/components/ui/date-scroller"
 import {
@@ -65,8 +65,8 @@ export function BookingFormScheduleSection({
   const uid = useId()
   const form = useBookingForm()
 
-  const today = useMemo(() => isoDate(new Date()), [])
-  const dates = useMemo(() => buildDateSequence(today, DATE_COUNT), [today])
+  const today = isoDate(new Date())
+  const dates = buildDateSequence(today, DATE_COUNT)
 
   return (
     <FormSection number="02" title="Rom og tidspunkt">
