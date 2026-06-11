@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure"
 import { GroupsFilter } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -111,19 +112,13 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
           <div className="grid gap-4">
             {content.faq.map(
               (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
-                <details
-                  className="border-2 border-border bg-card p-5"
-                  key={item._key}
-                >
-                  <summary className="cursor-pointer font-heading text-xl text-foreground">
-                    {item.question}
-                  </summary>
-                  <div className="mt-3 space-y-3 text-base leading-7 text-foreground">
+                <Disclosure key={item._key} summary={item.question}>
+                  <div className="space-y-3 text-base leading-7 text-foreground">
                     {item.answer?.map((paragraph: string) => (
                       <p key={paragraph}>{paragraph}</p>
                     ))}
                   </div>
-                </details>
+                </Disclosure>
               ),
             )}
           </div>

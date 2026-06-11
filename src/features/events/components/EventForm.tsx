@@ -14,6 +14,11 @@ import {
   submitEvent,
   uploadEventImage,
 } from "@/features/events/actions/submitEvent"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  ErrorSummary,
+  type ErrorSummaryItem,
+} from "@/components/ui/error-summary"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import {
   buildPreviewEvent,
@@ -49,8 +54,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const [imageAssetId, setImageAssetId] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUploadError, setImageUploadError] = useState("")
-  const [datesError, setDatesError] = useState("")
-  const [submitError, setSubmitError] = useState("")
+  const [hasSubmittedInvalid, setHasSubmittedInvalid] = useState(false)
+  const fieldIds = {
+    title: `${uid}-title`,
+    firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
+    submittedBy: `${uid}-submittedBy`,
+    submittedByEmail: `${uid}-submittedByEmail`,
+  }
 
   const form = useForm({
     defaultValues: initialState as FormState,
@@ -139,6 +149,10 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     groups,
     eventTypes,
   )
+  const validationErrors = getEventValidationErrors(form.state.values, fieldIds)
+  const visibleErrors = hasSubmittedInvalid ? validationErrors : []
+  const getFieldError = (fieldId: string) =>
+    visibleErrors.find(error => error.fieldId === fieldId)?.message
 
   const handleImageChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -208,51 +222,38 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
   if (form.state.isSubmitSuccessful) {
     return (
-      <p className="font-heading text-green-600">
-        Din forespørsel er sendt inn
-      </p>
+      <Alert className="max-w-2xl p-8" variant="success">
+        <AlertTitle className="text-xl">Forespørsel sendt inn</AlertTitle>
+        <AlertDescription className="text-body">
+          Din forespørsel er sendt inn.
+        </AlertDescription>
+      </Alert>
     )
   }
 
   return (
     <EventFormContext.Provider value={form}>
-      <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 items-start gap-12 xl:grid-content-sidebar-360">
         <form
           className="min-w-0 space-y-14"
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            setDatesError("")
-            setSubmitError("")
-
-            const values = form.state.values
-            if (!values.title.trim()) {
-              setSubmitError("Tittel er påkrevd.")
-              return
-            }
-            if (!values.submittedBy.trim()) {
-              setSubmitError("Kontaktperson er påkrevd.")
-              return
-            }
-            if (
-              !values.submittedByEmail.trim() ||
-              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.submittedByEmail)
-            ) {
-              setSubmitError("Gyldig e-postadresse er påkrevd.")
-              return
-            }
-            if (values.dates.every(date => !date.startDate)) {
-              setDatesError("Minst én dato må fylles ut.")
-              return
-            }
+            setHasSubmittedInvalid(true)
+            if (validationErrors.length > 0) return
             if (imageUploading) {
               return
             }
             form.handleSubmit()
           }}
         >
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
           <EventFormDetailsSection
             eventTypeOptions={eventTypeOptions}
+            titleError={getFieldError(fieldIds.title)}
+            titleId={fieldIds.title}
             uid={uid}
           />
           <EventFormImageSection
@@ -263,20 +264,69 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             onImageChange={handleImageChange}
             onRemoveImage={handleRemoveImage}
           />
-          <EventFormScheduleSection uid={uid} />
+          <EventFormScheduleSection
+            firstDateError={getFieldError(fieldIds.firstDate)}
+            firstDateId={fieldIds.firstDate}
+            uid={uid}
+          />
           <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
           <EventFormOrganizerSection groupOptions={groupOptions} uid={uid} />
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
-          <EventFormSubmitterSection uid={uid} />
-          <EventFormActions
-            formError={submitError || datesError}
-            imageUploading={imageUploading}
+          <EventFormSubmitterSection
+            submittedByEmailError={getFieldError(fieldIds.submittedByEmail)}
+            submittedByEmailId={fieldIds.submittedByEmail}
+            submittedByError={getFieldError(fieldIds.submittedBy)}
+            submittedById={fieldIds.submittedBy}
+            uid={uid}
           />
+          <EventFormActions formError="" imageUploading={imageUploading} />
         </form>
 
         <EventFormPreview event={previewEvent} />
       </div>
     </EventFormContext.Provider>
   )
+}
+
+type EventFieldIds = Record<
+  "title" | "firstDate" | "submittedBy" | "submittedByEmail",
+  string
+>
+
+function getEventValidationErrors(
+  values: FormState,
+  fieldIds: EventFieldIds,
+): ErrorSummaryItem[] {
+  const errors: ErrorSummaryItem[] = []
+
+  if (!values.title.trim()) {
+    errors.push({
+      fieldId: fieldIds.title,
+      message: "Skriv inn tittel.",
+    })
+  }
+  if (values.dates.every(date => !date.startDate)) {
+    errors.push({
+      fieldId: fieldIds.firstDate,
+      message: "Fyll ut minst én dato.",
+    })
+  }
+  if (!values.submittedBy.trim()) {
+    errors.push({
+      fieldId: fieldIds.submittedBy,
+      message: "Skriv inn navn på kontaktperson.",
+    })
+  }
+  if (
+    !values.submittedByEmail.trim() ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.submittedByEmail)
+  ) {
+    errors.push({
+      fieldId: fieldIds.submittedByEmail,
+      message: "Skriv inn en gyldig e-postadresse.",
+    })
+  }
+
+  return errors
 }

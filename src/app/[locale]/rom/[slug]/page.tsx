@@ -2,7 +2,7 @@ import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { BoolSpec } from "@/components/ui/bool-spec"
+import { BoolSpec } from "@/features/rooms"
 import { DetailRow } from "@/components/ui/detail-row"
 import {
   BookingButton,
@@ -107,7 +107,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       <div className="mt-8 space-y-10">
         <header className="space-y-3">
           <Link
-            className="font-heading text-xs uppercase tracking-widest text-foreground/50 hover:text-foreground"
+            className="font-heading text-xs uppercase tracking-widest text-foreground-faint hover:text-foreground"
             href={`/${locale}/rom`}
           >
             Rom
@@ -116,7 +116,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             {title}
           </h1>
           {room.summary && (
-            <p className="max-w-2xl text-lg leading-7 text-foreground/80">
+            <p className="max-w-2xl text-lg leading-7 text-foreground-muted">
               {room.summary}
             </p>
           )}
@@ -169,7 +169,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         {room.capacityStanding != null && (
           <DetailRow label="Stående" layout="labelColumn">
             <span className="flex items-center gap-1.5">
-              <Users aria-hidden className="size-3.5 text-foreground/40" />
+              <Users aria-hidden className="size-3.5 text-foreground-faint" />
               {room.capacityStanding} personer
             </span>
           </DetailRow>
@@ -177,7 +177,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         {room.capacitySeated != null && (
           <DetailRow label="Sittende" layout="labelColumn">
             <span className="flex items-center gap-1.5">
-              <Users aria-hidden className="size-3.5 text-foreground/40" />
+              <Users aria-hidden className="size-3.5 text-foreground-faint" />
               {room.capacitySeated} personer
             </span>
           </DetailRow>
@@ -278,16 +278,16 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
 
             return (
               <div
-                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                className="grid grid-room-specs gap-4 py-2 text-sm"
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>
-                <dd className="text-foreground/70">
+                <dd className="text-foreground-subtle">
                   {row.status === "closed"
                     ? "Stengt"
                     : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
                   {row.note && (
-                    <span className="mt-1 block text-foreground/60">
+                    <span className="mt-1 block text-foreground-subtle">
                       {row.note}
                     </span>
                   )}

@@ -96,7 +96,7 @@ export function HomeBarPreviews({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="text-eyebrow text-foreground/50">Barer</p>
+        <p className="text-eyebrow text-foreground-faint">Barer</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
@@ -135,7 +135,7 @@ function HomeBarPreviewCard({
   return (
     <Link
       aria-label={`Gå til ${room.title ?? "bar"}`}
-      className="grid min-h-[15rem] grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden border-2 border-border bg-card transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="grid min-h-60 grid-home-bars overflow-hidden border-2 border-border bg-card transition-colors hover:border-primary focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">
@@ -144,7 +144,7 @@ function HomeBarPreviewCard({
           aspectRatio=""
           className="min-h-full"
           fallback={
-            <Music2 aria-hidden className="size-10 text-foreground/20" />
+            <Music2 aria-hidden className="size-10 text-foreground-faint" />
           }
           sizes="(min-width: 1024px) 25vw, 50vw"
           src={imageUrl}
@@ -157,9 +157,7 @@ function HomeBarPreviewCard({
               {room.bar || room.title}
             </p>
             {isOpen ? (
-              <p className="mt-1 font-heading text-xs uppercase tracking-[0.14em] text-primary">
-                Åpen
-              </p>
+              <p className="mt-1 text-eyebrow-sm text-primary">Åpen</p>
             ) : null}
           </div>
 
@@ -178,7 +176,7 @@ function HomeBarPreviewCard({
 
               return (
                 <div
-                  className="text-xs text-foreground/60"
+                  className="text-xs text-foreground-subtle"
                   key={row?._key ?? label}
                 >
                   {label}
@@ -204,14 +202,12 @@ function BarPreviewBody({
   if (spotifyTrack && nowPlaying) {
     return (
       <div className="space-y-1 border-l-2 border-primary pl-3">
-        <p className="text-xs font-heading uppercase tracking-[0.14em] text-primary">
-          Spotify
-        </p>
+        <p className="text-eyebrow-sm text-primary">Spotify</p>
         <p className="line-clamp-1 font-heading text-sm text-foreground">
           {nowPlaying.name ?? "Spiller nå"}
         </p>
         {nowPlaying.artists && (
-          <p className="line-clamp-1 text-sm text-foreground/65">
+          <p className="line-clamp-1 text-sm text-foreground-subtle">
             {nowPlaying.artists}
           </p>
         )}
@@ -220,7 +216,7 @@ function BarPreviewBody({
   }
   if (summary) {
     return (
-      <p className="line-clamp-3 text-body text-foreground/70">{summary}</p>
+      <p className="line-clamp-3 text-body text-foreground-subtle">{summary}</p>
     )
   }
   return null

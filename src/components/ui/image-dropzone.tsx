@@ -13,15 +13,15 @@ export function ImageDropzone({
   label = "Klikk for å velge bilde",
 }: ImageDropzoneProps) {
   return (
-    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border bg-card px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40">
+    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border bg-card px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40 focus-within-brutal">
       <input
         accept={accept}
         className="sr-only"
         onChange={onImageChange}
         type="file"
       />
-      <Upload aria-hidden className="size-7 text-foreground/30" />
-      <span className="text-sm text-foreground/50">{label}</span>
+      <Upload aria-hidden className="size-7 text-foreground-faint" />
+      <span className="text-sm text-foreground-faint">{label}</span>
     </label>
   )
 }

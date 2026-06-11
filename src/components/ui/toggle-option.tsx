@@ -25,7 +25,7 @@ export function ToggleOption({
     <button
       aria-pressed={checked}
       className={cn(
-        "flex w-full cursor-pointer flex-col border-2 text-left transition-colors",
+        "flex w-full cursor-pointer flex-col border-2 text-left transition-colors focus-brutal",
         checked
           ? "border-primary bg-primary/5"
           : "border-border bg-card hover:bg-muted",
@@ -34,7 +34,7 @@ export function ToggleOption({
       type="button"
     >
       <span className="flex items-center gap-3 p-4">
-        <CheckboxSquare checked={checked} onChange={() => {}} />
+        <CheckboxSquare checked={checked} decorative />
         <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-sm text-foreground">
           <Icon aria-hidden className="size-4 text-primary" />
           {label}

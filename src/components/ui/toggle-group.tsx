@@ -26,12 +26,12 @@ export function ToggleGroup<T extends string>({
           <button
             aria-pressed={selected}
             className={cn(
-              "border-2 border-border font-heading transition-colors",
+              "min-h-11 border-2 border-border font-heading transition-colors focus-brutal",
               selected
                 ? "bg-primary text-primary-foreground"
                 : "bg-background text-foreground hover:bg-muted",
               size === "default" && "px-3 py-1.5 text-sm",
-              size === "sm" && "size-10 text-sm",
+              size === "sm" && "size-11 text-sm",
             )}
             key={option.value}
             onClick={() =>

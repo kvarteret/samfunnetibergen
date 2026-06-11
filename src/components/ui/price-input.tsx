@@ -15,13 +15,14 @@ export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
   return (
     <FieldGroup>
       <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground/50">
+      <div className="relative max-w-28">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-foreground-faint">
           kr
         </span>
         <Input
           className="pl-9"
           id={id}
+          inputMode="numeric"
           min={0}
           onChange={event => onChange(event.target.value)}
           placeholder="0"

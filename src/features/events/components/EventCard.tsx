@@ -1,21 +1,12 @@
-"use client"
-
 import { cva, type VariantProps } from "class-variance-authority"
-
-const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
-  dateStyle: "long",
-  timeZone: "Europe/Oslo",
-})
-
-import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
 import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
 import Image from "next/image"
-import { RRule } from "rrule"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { DateBadges } from "@/components/ui/date-badges"
+import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
+import { DateBadges } from "./DateBadges"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +24,12 @@ export type EventSummary = {
   isRecurring?: boolean
   rrule?: string | null
   dates: EventDateEntry[]
+  /** Precomputed server-side. Used directly by the card. */
+  resolvedDates?: EventDateEntry[]
+  /** Precomputed server-side. Falls back to null if absent. */
+  recurringLabel?: string | null
+  /** Precomputed server-side label for the primary date (e.g. "I dag, kl. 21:00–02:00"). */
+  primaryDateLabel?: string | null
   isFree?: boolean
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -58,7 +55,7 @@ export type EventSummary = {
   } | null
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Variants ─────────────────────────────────────────────────────────────────
 
 const eventCardVariants = cva("overflow-hidden py-0", {
   variants: {
@@ -89,67 +86,7 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
   },
 })
 
-function formatPrimaryDate(date: EventDateEntry): string {
-  const eventDate = new Date(`${date.startDate}T00:00:00`)
-  const daysUntil = differenceInCalendarDays(eventDate, new Date())
-  const timeRange = date.startTime
-    ? formatTimeRange(date.startTime, date.endTime)
-    : null
-
-  let dayLabel: string
-  if (isToday(eventDate)) {
-    dayLabel = "I dag"
-  } else if (isTomorrow(eventDate)) {
-    dayLabel = "I morgen"
-  } else if (daysUntil > 0 && daysUntil <= 7) {
-    dayLabel = `Om ${daysUntil} dager`
-  } else {
-    dayLabel = longDateFormatter.format(eventDate)
-  }
-
-  return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
-}
-
-function getRecurringLabel(rrule: string | null | undefined): string | null {
-  if (!rrule) return "Gjentagende"
-  const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase()
-  if (freq === "DAILY") return "Hver dag"
-  if (freq === "WEEKLY") return "Hver uke"
-  if (freq === "MONTHLY") return "Hver måned"
-  return "Gjentagende"
-}
-
-function expandRRuleDates(
-  rruleStr: string,
-  seed: EventDateEntry,
-  count: number,
-): EventDateEntry[] {
-  try {
-    const rule = new RRule({
-      ...RRule.parseString(rruleStr),
-      dtstart: new Date(`${seed.startDate}T12:00:00Z`),
-    })
-    const now = new Date()
-    const ceiling = new Date(
-      now.getFullYear() + 2,
-      now.getMonth(),
-      now.getDate(),
-    )
-    return rule
-      .between(now, ceiling, true)
-      .slice(0, count)
-      .map((d, i) => ({
-        _key: `rrule-${i}`,
-        startDate: d.toISOString().split("T")[0],
-        startTime: seed.startTime ?? null,
-        endTime: seed.endTime ?? null,
-      }))
-  } catch {
-    return []
-  }
-}
-
-// ─── EventCard ──────────────────────────────────────────────────────────
+// ─── EventCard ────────────────────────────────────────────────────────────────
 
 export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   event: EventSummary
@@ -169,9 +106,7 @@ export function EventCard({
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default"
-  const todayStr = new Date().toISOString().split("T")[0]!
-  const allDates = computeAllDates(event, todayStr)
-  const primaryDate = allDates[0]
+  const allDates = event.resolvedDates ?? event.dates
   const taxonomy = [
     event.eventType?.name,
     event.organizerGroup?.name ?? event.organizerText,
@@ -181,20 +116,25 @@ export function EventCard({
   const roomTitle = event.room?.title ?? event.roomText
   const roomSlug = event.room?.slug
   const roomFloor = event.room?.floor
-  const roomImageUrl = event.room?.imageUrl
   const href = `/arrangementer/${event.slug}`
-  const timeLabel = primaryDate ? formatPrimaryDate(primaryDate) : null
+  const timeLabel = event.primaryDateLabel
+  const recurringLabel = event.recurringLabel
 
   return (
-    <Card className={eventCardVariants({ variant, size })}>
+    <Card
+      className={cn(
+        eventCardVariants({ variant, size }),
+        cardSize === "small" && "interactive-brutal",
+      )}
+    >
       {event.imageUrl && (
         <Link href={href}>
           <div
             className={cn(
               "relative w-full overflow-hidden",
               cardSize === "small"
-                ? "aspect-[4/3] border-2 border-border bg-muted"
-                : "aspect-[16/9]",
+                ? "aspect-4/3 border-2 border-border bg-muted"
+                : "aspect-video",
             )}
           >
             <Image
@@ -202,7 +142,7 @@ export function EventCard({
               className={cn(
                 "object-cover",
                 cardSize === "small" &&
-                  "transition-transform duration-300 hover:scale-105",
+                  "transition-transform duration-300 group-hover:scale-105",
               )}
               fill
               sizes={
@@ -221,18 +161,14 @@ export function EventCard({
         <div className="space-y-2">
           <div
             className={cn(
-              "flex flex-wrap gap-2 uppercase text-foreground/65",
+              "flex flex-wrap gap-2 text-foreground-subtle",
               cardSize === "small"
-                ? "justify-between text-[11px] tracking-[0.12em]"
-                : "text-xs tracking-[0.18em]",
+                ? "justify-between text-eyebrow-sm"
+                : "text-eyebrow",
             )}
           >
             {taxonomy && <span>{taxonomy}</span>}
-            {event.isRecurring && (
-              <span className="text-foreground/40">
-                {getRecurringLabel(event.rrule)}
-              </span>
-            )}
+            {recurringLabel && <Tag variant="outline">{recurringLabel}</Tag>}
           </div>
           <Link
             className="hover:underline hover:underline-offset-4"
@@ -251,7 +187,7 @@ export function EventCard({
 
         <div
           className={cn(
-            "space-y-2 leading-6 text-foreground/75",
+            "space-y-2 leading-6 text-foreground-muted",
             cardSize === "small" ? "text-xs" : "text-sm",
           )}
         >
@@ -265,35 +201,13 @@ export function EventCard({
             <p className="flex gap-2">
               <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
               {roomSlug ? (
-                <span className="group relative inline-block">
-                  <Link
-                    href={`/rom/${roomSlug}`}
-                    className="hover:underline hover:underline-offset-4"
-                  >
-                    {roomTitle}
-                  </Link>
-                  {(roomImageUrl != null || roomFloor != null) && (
-                    <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
-                      {roomImageUrl && (
-                        <span className="relative block aspect-[4/3] w-full">
-                          <Image
-                            src={roomImageUrl}
-                            alt={roomTitle}
-                            fill
-                            className="object-cover"
-                            sizes="176px"
-                            unoptimized={roomImageUrl.startsWith("blob:")}
-                          />
-                        </span>
-                      )}
-                      {roomFloor != null && (
-                        <span className="px-2 py-1 text-xs text-muted-foreground">
-                          {roomFloor}. etasje
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </span>
+                <Link
+                  href={`/rom/${roomSlug}`}
+                  className="hover:underline hover:underline-offset-4"
+                >
+                  {roomTitle}
+                  {roomFloor != null && ` · ${roomFloor}. etasje`}
+                </Link>
               ) : (
                 <span>{roomTitle}</span>
               )}
@@ -328,25 +242,4 @@ export function EventCard({
       </CardContent>
     </Card>
   )
-}
-
-function formatTimeRange(start: string, end?: string | null): string {
-  if (end) return `kl. ${start}–${end}`
-  return `kl. ${start}`
-}
-
-function computeAllDates(
-  event: EventSummary,
-  todayStr: string,
-): EventDateEntry[] {
-  const seedDate = event.dates[0]
-  const futureDates = event.dates.filter(d => d.startDate >= todayStr)
-  if (futureDates.length > 0) return futureDates
-
-  if (event.rrule && seedDate) {
-    const expanded = expandRRuleDates(event.rrule, seedDate, 14)
-    if (expanded.length > 0) return expanded
-  }
-
-  return seedDate ? [seedDate] : []
 }

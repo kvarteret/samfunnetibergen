@@ -73,7 +73,7 @@ export function EventFormRecurrenceBuilder({
     <div className="space-y-5 border-2 border-border bg-secondary/10 p-6">
       <RecurrenceHeader />
       <fieldset className="space-y-2">
-        <legend className="text-sm text-foreground/70">Gjentas</legend>
+        <legend className="text-sm text-foreground-subtle">Gjentas</legend>
         <SegmentedControl
           onChange={setFrequency}
           options={frequencyOptions}
@@ -87,7 +87,7 @@ export function EventFormRecurrenceBuilder({
       />
       {frequency === "WEEKLY" && (
         <fieldset className="space-y-2">
-          <legend className="text-sm text-foreground/70">Dager</legend>
+          <legend className="text-sm text-foreground-subtle">Dager</legend>
           <ToggleGroup
             onChange={values => setWeekdays(values.map(Number))}
             options={weekdayOptions.map((day, i) => ({
@@ -180,9 +180,7 @@ function RecurrenceHeader() {
   return (
     <div className="flex items-center gap-3">
       <div className="size-2 rounded-full bg-primary" />
-      <p className="font-heading text-sm uppercase tracking-[0.18em] text-foreground">
-        Gjentagelsesmønster
-      </p>
+      <p className="text-eyebrow text-foreground">Gjentagelsesmønster</p>
     </div>
   )
 }
@@ -200,10 +198,10 @@ function RecurrenceIntervalField({
 }: RecurrenceIntervalFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="text-sm text-foreground/70">
+      <label className="text-sm text-foreground-subtle">
         Intervall - hver{" "}
         <input
-          className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-brutal"
           max={52}
           min={1}
           onChange={event =>
@@ -249,7 +247,7 @@ function RecurrenceEndField({
 }: RecurrenceEndFieldProps) {
   return (
     <fieldset className="space-y-3">
-      <legend className="text-sm text-foreground/70">Avsluttes</legend>
+      <legend className="text-sm text-foreground-subtle">Avsluttes</legend>
       <div className="space-y-2">
         {endTypeOptions.map(option => (
           <label
@@ -271,9 +269,9 @@ function RecurrenceEndField({
 
       {endType === "count" && (
         <div className="pl-6">
-          <label className="text-sm text-foreground/70">
+          <label className="text-sm text-foreground-subtle">
             <input
-              className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-brutal"
               max={365}
               min={1}
               onChange={event =>
@@ -290,7 +288,7 @@ function RecurrenceEndField({
       {endType === "until" && (
         <div className="pl-6">
           <input
-            className="border-2 border-border bg-background px-3 py-1.5 text-sm font-heading text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="border-2 border-border bg-background px-3 py-1.5 text-sm font-heading text-foreground focus-brutal"
             onChange={event => onUntilDateChange(event.target.value)}
             type="date"
             value={untilDate}
@@ -312,7 +310,7 @@ function RecurrencePreview({ preview }: RecurrencePreviewProps) {
 
   return (
     <div className="border-l-4 border-primary py-1 pl-4">
-      <p className="text-sm text-foreground/70">Forhåndsvisning:</p>
+      <p className="text-sm text-foreground-subtle">Forhåndsvisning:</p>
       <p className="text-sm font-heading capitalize text-foreground">
         {preview}
       </p>

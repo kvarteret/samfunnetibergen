@@ -68,7 +68,7 @@ export function EventsPageFilters() {
             variant="inverse"
           />
         </div>
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
+        <p className="text-eyebrow">
           {t("filterResultCount", { count: filteredEvents.length })}
         </p>
       </div>
@@ -76,7 +76,7 @@ export function EventsPageFilters() {
       {(taxonomy.eventTypes.length > 0 ||
         taxonomy.organizerGroups.length > 0) && (
         <details>
-          <summary className="cursor-pointer list-none text-sm font-bold uppercase tracking-[0.18em] text-foreground underline underline-offset-4">
+          <summary className="cursor-pointer list-none text-eyebrow text-foreground underline underline-offset-4 focus-brutal">
             {t("filterMore")}
             {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </summary>
@@ -88,7 +88,7 @@ export function EventsPageFilters() {
               if (groupEventTypes.length === 0) return null
               return (
                 <div className="space-y-3" key={group._id}>
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
+                  <h2 className="text-eyebrow">
                     {t("filterType")} — {group.name}
                   </h2>
                   <div className="flex flex-wrap gap-3">
@@ -106,9 +106,7 @@ export function EventsPageFilters() {
             })}
             {taxonomy.organizerGroups.length > 0 && (
               <div className="space-y-3">
-                <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-foreground/65">
-                  {t("filterOrganizer")}
-                </h2>
+                <h2 className="text-eyebrow">{t("filterOrganizer")}</h2>
                 <div className="flex flex-wrap gap-3">
                   {taxonomy.organizerGroups.map(group => (
                     <EventsPageFilterButton

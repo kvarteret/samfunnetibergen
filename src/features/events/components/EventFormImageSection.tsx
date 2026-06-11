@@ -3,6 +3,7 @@
 import { Check, Loader2, Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
+import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageDropzone } from "@/components/ui/image-dropzone"
@@ -66,7 +67,7 @@ function UploadedImagePreview({
 }: UploadedImagePreviewProps) {
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[16/9] w-full overflow-hidden border-2 border-border">
+      <div className="relative aspect-video w-full overflow-hidden border-2 border-border">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           alt="Forhåndsvisning av opplastet bilde"
@@ -79,17 +80,19 @@ function UploadedImagePreview({
           </div>
         )}
         {imageAssetId && !imageUploading && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-xs text-foreground/70">
+          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-xs text-foreground-subtle">
             <Check aria-hidden className="size-3 text-primary" />
             Lastet opp
           </div>
         )}
       </div>
       {imageUploadError && (
-        <p className="text-xs text-destructive">{imageUploadError}</p>
+        <FieldError id="event-image-upload-error">
+          {imageUploadError}
+        </FieldError>
       )}
       <button
-        className="flex items-center gap-1.5 text-xs text-foreground/50 transition-colors hover:text-destructive"
+        className="flex items-center gap-1.5 text-xs text-foreground-faint transition-colors hover:text-destructive"
         onClick={onRemoveImage}
         type="button"
       >

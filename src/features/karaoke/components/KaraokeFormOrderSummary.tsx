@@ -22,7 +22,7 @@ export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
     <Card className="space-y-4 bg-card p-5 py-5">
       <p className="text-eyebrow">Bestillingsoversikt</p>
       {isEmpty ? (
-        <p className="text-sm text-foreground/40 italic">
+        <p className="text-sm text-foreground-faint italic">
           Fyll ut skjemaet for å se en oversikt.
         </p>
       ) : (
@@ -76,7 +76,7 @@ function KaraokePriceSummary({
   if (priceType === "frivillig") {
     return (
       <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
-        <span className="text-foreground/60 shrink-0">Pris</span>
+        <span className="text-foreground-subtle shrink-0">Pris</span>
         <span className="font-heading text-primary text-lg">Gratis</span>
       </div>
     )
@@ -86,7 +86,7 @@ function KaraokePriceSummary({
 
   return (
     <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
-      <span className="text-foreground/60 shrink-0">Pris</span>
+      <span className="text-foreground-subtle shrink-0">Pris</span>
       <span className="font-heading text-primary text-lg">
         {totalPrice.toLocaleString("nb-NO")} kr
       </span>

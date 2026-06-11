@@ -2,6 +2,7 @@
 
 import { Loader2, X } from "lucide-react"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useEventForm } from "./eventFormContext"
 
@@ -23,18 +24,16 @@ export function EventFormActions({
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
       {displayError && (
-        <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-          <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div>
-            <p className="text-sm font-heading text-destructive">
-              Det oppstod en feil
-            </p>
-            <p className="mt-0.5 text-sm text-foreground/70">{displayError}</p>
-          </div>
-        </div>
+        <Alert variant="destructive">
+          <X aria-hidden className="text-destructive" />
+          <AlertTitle className="text-destructive">
+            Det oppstod en feil
+          </AlertTitle>
+          <AlertDescription>{displayError}</AlertDescription>
+        </Alert>
       )}
 
-      <p className="text-sm leading-6 text-foreground/60">
+      <p className="text-sm leading-6 text-foreground-subtle">
         Arrangementet sendes til godkjenning hos PR-gruppen på Kvarteret. Det
         vil ikke vises på nettsiden før det er godkjent. vi bruker vanligvis 1-3
         virkedager.

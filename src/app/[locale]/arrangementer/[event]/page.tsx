@@ -5,7 +5,6 @@ import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
-import { Surface } from "@/components/ui/surface"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
@@ -87,7 +86,7 @@ function EventDetailHero({
   ticketsLabel: string
 }) {
   return (
-    <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
+    <header className="grid gap-6 lg:grid-event-shell">
       <div className="flex h-full flex-col justify-evenly">
         {event.eventType?.name && (
           <p className="w-fit bg-primary px-3 py-1.5 text-sm font-heading text-primary-foreground">
@@ -107,9 +106,9 @@ function EventDetailHero({
         )}
       </div>
 
-      <Surface className="overflow-hidden bg-muted p-0">
+      <div className="overflow-hidden border-2 border-border bg-muted">
         {event.imageUrl ? (
-          <div className="relative aspect-[16/10] max-h-[28rem] lg:aspect-[16/9]">
+          <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
             <Image
               alt={event.imageCaption ?? event.title}
               className="object-cover"
@@ -120,13 +119,13 @@ function EventDetailHero({
             />
           </div>
         ) : (
-          <div className="flex aspect-[16/10] max-h-[28rem] items-center justify-center p-8 text-center lg:aspect-[16/9]">
-            <p className="max-w-md font-heading text-4xl leading-tight text-foreground/50">
+          <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
+            <p className="max-w-md font-heading text-4xl leading-tight text-foreground-faint">
               {event.title}
             </p>
           </div>
         )}
-      </Surface>
+      </div>
     </header>
   )
 }
@@ -139,7 +138,7 @@ function EventDetailScheduleAndMeta({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
+    <div className="grid gap-8 lg:grid-event-shell">
       <EventDetailMetaSidebar event={event} t={t} />
       <EventDetailSchedule event={event} t={t} />
     </div>
@@ -179,9 +178,7 @@ function EventDetailMetaItem({
 }) {
   return (
     <div className="space-y-3">
-      <p className="font-heading text-sm uppercase tracking-[0.18em] text-foreground">
-        {label}
-      </p>
+      <p className="text-eyebrow text-foreground">{label}</p>
       <p className="text-lg leading-6 text-foreground">{children}</p>
     </div>
   )
@@ -196,7 +193,7 @@ function EventDetailSchedule({
 }) {
   return (
     <section>
-      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading text-xs uppercase tracking-[0.18em] text-foreground sm:gap-4 sm:text-sm">
+      <div className="grid grid-event-schedule gap-3 text-eyebrow text-foreground sm:gap-4">
         <p>{t("date")}</p>
         <p>{t("time")}</p>
         <p>{t("place")}</p>
@@ -219,7 +216,7 @@ function EventDetailScheduleItem({
   const roomSlug = event.room?.slug
 
   return (
-    <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
+    <div className="grid grid-event-schedule gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
       <p>{formatDate(date.startDate)}</p>
       <p>{formatScheduleTime(date)}</p>
       <p>
@@ -260,7 +257,7 @@ function EventDetailRoomLink({
       {(roomImageUrl != null || roomFloor != null) && (
         <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
           {roomImageUrl && (
-            <span className="relative block aspect-[4/3] w-full">
+            <span className="relative block aspect-4/3 w-full">
               <Image
                 src={roomImageUrl}
                 alt={roomTitle ?? ""}
@@ -289,9 +286,9 @@ function EventDetailDescription({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
-    <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
+    <section className="grid gap-6 lg:grid-event-shell">
       <EventDetailActions event={event} t={t} />
-      <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground/85 max-lg:border-l-0 max-lg:pl-0">
+      <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (
           <PortableTextContent value={event.description} />
         ) : (

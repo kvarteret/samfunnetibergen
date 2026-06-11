@@ -5,10 +5,19 @@ import type { PublishedEvent } from "@/features/events/domain/eventUtils"
 import { Link } from "@/i18n/navigation"
 import { EventsPageFilters } from "./EventsPageFilters"
 import { EventsPageSections } from "./EventsPageSections"
+import type { EventDateEntry } from "./EventCard"
 
 interface EventsPageProps {
   arrangements: PublishedEvent[]
   backLabel: string
+  precomputedDates: Map<
+    string,
+    {
+      resolvedDates: EventDateEntry[]
+      recurringLabel: string | null
+      primaryDateLabel: string | null
+    }
+  >
   searchParams: Record<string, string | string[] | undefined>
   title: string
 }
@@ -16,6 +25,7 @@ interface EventsPageProps {
 export function EventsPage({
   arrangements,
   backLabel,
+  precomputedDates,
   searchParams,
   title,
 }: EventsPageProps) {
@@ -27,7 +37,7 @@ export function EventsPage({
       <div className="flex flex-col gap-10">
         <header className="space-y-5">
           <Link
-            className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4"
+            className="inline-flex text-eyebrow underline underline-offset-4 focus-brutal"
             href="/"
           >
             {backLabel}
@@ -37,7 +47,7 @@ export function EventsPage({
 
         <EventsPageFilters />
 
-        <EventsPageSections />
+        <EventsPageSections precomputedDates={precomputedDates} />
 
         <div className="flex flex-col gap-4 border-2 border-border bg-card p-5 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex size-10 shrink-0 items-center justify-center bg-primary">
@@ -50,7 +60,7 @@ export function EventsPage({
             <p className="font-heading text-sm leading-snug text-foreground">
               Arrangerer du eller din organisasjon noe på Samfunnet?
             </p>
-            <p className="mt-0.5 text-sm text-foreground/60">
+            <p className="mt-0.5 text-sm text-foreground-subtle">
               Legg til arrangementet i listen — det gjennomgås av PR-gruppen og
               publiseres innen 1–3 virkedager.
             </p>

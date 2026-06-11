@@ -25,7 +25,7 @@ export function SelectableCard({
     <button
       aria-pressed={selected}
       className={cn(
-        "flex cursor-pointer flex-col border-2 bg-card text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-[4px]",
+        "flex cursor-pointer flex-col bg-card text-left transition-colors focus-brutal interactive-brutal",
         selected
           ? "border-primary bg-primary/5"
           : "border-border hover:bg-muted",

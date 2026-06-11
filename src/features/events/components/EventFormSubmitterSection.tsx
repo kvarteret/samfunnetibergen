@@ -8,27 +8,39 @@ import { useEventForm } from "./eventFormContext"
 
 interface EventFormSubmitterSectionProps {
   uid: string
+  submittedByEmailError?: string
+  submittedByEmailId: string
+  submittedByError?: string
+  submittedById: string
 }
 
 export function EventFormSubmitterSection({
   uid,
+  submittedByEmailError,
+  submittedByEmailId,
+  submittedByError,
+  submittedById,
 }: EventFormSubmitterSectionProps) {
   const form = useEventForm()
+  const submittedByEmailErrorId = `${submittedByEmailId}-error`
+  const submittedByErrorId = `${submittedById}-error`
 
   return (
     <FormSection number="08" title="Kontaktinformasjon">
-      <p className="text-sm leading-6 text-foreground/60">
+      <p className="text-sm leading-6 text-foreground-subtle">
         Vi trenger en kontaktperson for arrangementet. Informasjonen vises ikke
         offentlig - den brukes bare av Kvarterets PR-gruppe til å følge opp
         innmeldingen.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldGroup>
-          <Label htmlFor={`${uid}-submittedBy`}>Ditt navn *</Label>
+        <FieldGroup error={submittedByError} errorId={submittedByErrorId}>
+          <Label htmlFor={submittedById}>Ditt navn *</Label>
           <Input
+            aria-describedby={submittedByError ? submittedByErrorId : undefined}
+            aria-invalid={!!submittedByError}
             autoComplete="name"
-            id={`${uid}-submittedBy`}
+            id={submittedById}
             onChange={event =>
               form.setFieldValue("submittedBy", event.target.value)
             }
@@ -38,11 +50,18 @@ export function EventFormSubmitterSection({
           />
         </FieldGroup>
 
-        <FieldGroup>
-          <Label htmlFor={`${uid}-submittedByEmail`}>E-postadresse *</Label>
+        <FieldGroup
+          error={submittedByEmailError}
+          errorId={submittedByEmailErrorId}
+        >
+          <Label htmlFor={submittedByEmailId}>E-postadresse *</Label>
           <Input
+            aria-describedby={
+              submittedByEmailError ? submittedByEmailErrorId : undefined
+            }
+            aria-invalid={!!submittedByEmailError}
             autoComplete="email"
-            id={`${uid}-submittedByEmail`}
+            id={submittedByEmailId}
             onChange={event =>
               form.setFieldValue("submittedByEmail", event.target.value)
             }
@@ -57,6 +76,7 @@ export function EventFormSubmitterSection({
       <FieldGroup>
         <Label htmlFor={`${uid}-org`}>Organisasjon / gruppe</Label>
         <Input
+          autoComplete="organization"
           id={`${uid}-org`}
           onChange={event =>
             form.setFieldValue("submittedByOrganization", event.target.value)

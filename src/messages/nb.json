@@ -12,7 +12,28 @@
     "groupPageDescription": "Les mer om {group} og velg gruppen i frivilligskjemaet."
   },
   "HomePage": {
-    "footer": "Med 💛 fra E-tjenesten"
+    "footer": "Med 💛 fra E-tjenesten",
+    "bookingBannerEyebrow": "MØTER, FESTER, KONSERTER",
+    "bookingBannerHeading1": "TRENGER DU",
+    "bookingBannerHeading2": "ET LOKALE?",
+    "bookingBannerBody": "Vi har ni rom — fra kjeller til loft. Gratis for studentgrupper.",
+    "bookingBannerCta": "Book rom",
+    "bookingBannerSticker": "GRATIS FOR STUDENTGRUPPER",
+    "grupperBannerEyebrow": "40+ GRUPPER",
+    "grupperBannerHeading1": "BLI",
+    "grupperBannerHeading2": "FRIVILLIG",
+    "grupperBannerBody": "Kvarteret drives av studenter. Bli en av oss.",
+    "grupperBannerCta": "Se gruppene",
+    "grupperBannerLink": "Meld interesse"
+  },
+  "EventCard": {
+    "today": "I dag",
+    "tomorrow": "I morgen",
+    "inNDays": "Om %d dager",
+    "recurringDaily": "Hver dag",
+    "recurringWeekly": "Hver uke",
+    "recurringMonthly": "Hver måned",
+    "recurringGeneric": "Gjentagende"
   },
   "EventsPage": {
     "back": "Tilbake til forsiden",

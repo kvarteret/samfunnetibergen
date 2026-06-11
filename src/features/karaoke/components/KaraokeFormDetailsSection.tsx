@@ -21,6 +21,10 @@ interface KaraokeFormDetailsSectionProps {
   bookings: CresatBooking[]
   operationsManagerHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
+  eventNameError?: string
+  eventNameId: string
+  startDateError?: string
+  startDateId: string
 }
 
 export function KaraokeFormDetailsSection({
@@ -30,17 +34,25 @@ export function KaraokeFormDetailsSection({
   bookings,
   operationsManagerHours,
   houseClosedDates,
+  eventNameError,
+  eventNameId,
+  startDateError,
+  startDateId,
 }: KaraokeFormDetailsSectionProps) {
   const form = useKaraokeForm()
   const values = form.state.values
+  const eventNameErrorId = `${eventNameId}-error`
+  const startDateErrorId = `${startDateId}-error`
 
   return (
     <FormSection number="01" title="Detaljer">
-      <FieldGroup>
-        <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
+      <FieldGroup error={eventNameError} errorId={eventNameErrorId}>
+        <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
         <Input
+          aria-describedby={eventNameError ? eventNameErrorId : undefined}
+          aria-invalid={!!eventNameError}
           autoComplete="off"
-          id={`${uid}-eventName`}
+          id={eventNameId}
           onChange={event =>
             form.setFieldValue("eventName", event.target.value)
           }
@@ -64,11 +76,14 @@ export function KaraokeFormDetailsSection({
       </SelectField>
 
       {today && (
-        <FieldGroup>
+        <FieldGroup error={startDateError} errorId={startDateErrorId}>
           <Label>Dato og tidspunkt *</Label>
           <KaraokeFormSlotPicker
+            aria-describedby={startDateError ? startDateErrorId : undefined}
+            aria-invalid={!!startDateError}
             bookings={bookings}
             duration={values.duration}
+            id={startDateId}
             selectedDate={values.startDate}
             selectedSlotMin={values.startSlotMin}
             today={today}
@@ -83,7 +98,7 @@ export function KaraokeFormDetailsSection({
             }
           />
           {derived.startTime && (
-            <p className="text-sm text-foreground/60 font-heading mt-1">
+            <p className="text-sm text-foreground-subtle font-heading mt-1">
               {derived.startTime} → {derived.endTime}
             </p>
           )}

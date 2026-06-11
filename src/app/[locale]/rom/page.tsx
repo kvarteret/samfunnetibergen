@@ -7,7 +7,6 @@ import {
   UtensilsCrossed,
 } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
-import { Surface } from "@/components/ui/surface"
 
 import { BookingButton } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
@@ -90,7 +89,7 @@ function RoomImage({
       alt={image?.alt || title}
       aspectRatio="16/10"
       fallback={
-        <span className="p-6 text-center font-heading text-2xl text-foreground/50">
+        <span className="p-6 text-center font-heading text-2xl text-foreground-faint">
           {title}
         </span>
       }
@@ -143,7 +142,7 @@ function ServicesSection() {
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
               <h3 className="font-heading text-xl text-foreground">{title}</h3>
-              <p className="text-body text-foreground/70">{description}</p>
+              <p className="text-body text-foreground-subtle">{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
               Les mer
@@ -168,7 +167,7 @@ function HowToSection({ section }: { section: EditorialSection }) {
             className="flex gap-4 border-l-2 border-border pl-4"
             key={paragraph}
           >
-            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground/40">
+            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground-faint">
               {i + 1}
             </span>
             <p className="text-sm leading-6 text-foreground">{paragraph}</p>
@@ -193,7 +192,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   return (
     <div className="space-y-16">
-      <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+      <header className="grid gap-6 lg:grid-content-sidebar-24 lg:items-end">
         <div className="space-y-5">
           {content?.eyebrow ? (
             <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
@@ -284,13 +283,16 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       {infoSections.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {infoSections.map((section: EditorialSection) => (
-            <Surface className="space-y-3" key={section._key}>
+            <div
+              className="space-y-3 border-2 border-border bg-card p-5"
+              key={section._key}
+            >
               {section.title ? (
                 <h2 className="font-heading text-xl leading-tight text-foreground">
                   {section.title}
                 </h2>
               ) : null}
-              <div className="space-y-2 text-body text-foreground/80">
+              <div className="space-y-2 text-body text-foreground-muted">
                 {section.paragraphs?.map((paragraph: string) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
@@ -304,7 +306,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                   )}
                 </div>
               ) : null}
-            </Surface>
+            </div>
           ))}
         </div>
       ) : null}

@@ -22,7 +22,7 @@ export default async function LinkInBioPage() {
     <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
       <LinkInBioProfile heading={data.heading} bio={data.bio} />
       <LinkInBioLinkList links={links} />
-      <p className="mt-10 text-xs text-foreground/30">samfunnetibergen.no</p>
+      <p className="mt-10 text-xs text-foreground-faint">samfunnetibergen.no</p>
     </main>
   )
 }
@@ -37,7 +37,7 @@ function LinkInBioProfile({
   return (
     <div className="mb-8 text-center space-y-2">
       <h1 className="font-heading text-2xl">{heading}</h1>
-      {bio && <p className="text-sm text-foreground/60 max-w-xs">{bio}</p>}
+      {bio && <p className="text-sm text-foreground-subtle max-w-xs">{bio}</p>}
     </div>
   )
 }

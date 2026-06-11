@@ -12,22 +12,29 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormDetailsSectionProps {
   uid: string
   eventTypeOptions: SelectOption[]
+  titleError?: string
+  titleId: string
 }
 
 export function EventFormDetailsSection({
   uid,
   eventTypeOptions,
+  titleError,
+  titleId,
 }: EventFormDetailsSectionProps) {
   const form = useEventForm()
   const values = form.state.values
+  const titleErrorId = `${titleId}-error`
 
   return (
     <FormSection number="01" title="Om arrangementet">
-      <FieldGroup>
-        <Label htmlFor={`${uid}-title`}>Tittel *</Label>
+      <FieldGroup error={titleError} errorId={titleErrorId}>
+        <Label htmlFor={titleId}>Tittel *</Label>
         <Input
+          aria-describedby={titleError ? titleErrorId : undefined}
+          aria-invalid={!!titleError}
           autoComplete="off"
-          id={`${uid}-title`}
+          id={titleId}
           onChange={event => form.setFieldValue("title", event.target.value)}
           placeholder="Navn på arrangementet"
           required

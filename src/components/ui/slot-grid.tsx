@@ -4,12 +4,12 @@ import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const slotButtonVariants = cva(
-  "py-2.5 text-sm font-heading border-2 text-center transition-colors",
+  "min-h-11 py-2.5 text-sm font-heading border-2 text-center transition-colors focus-brutal",
   {
     variants: {
       state: {
         selected: "bg-primary border-primary text-primary-foreground",
-        taken: "border-border/30 text-foreground/25 cursor-not-allowed",
+        taken: "border-border/30 text-foreground-faint cursor-not-allowed",
         available: "border-border hover:bg-muted",
       },
     },
@@ -41,9 +41,7 @@ export function SlotGrid({
 }: SlotGridProps) {
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-xs font-heading uppercase tracking-[0.12em] text-foreground/50">
-        {label}
-      </p>
+      <p className="text-eyebrow-sm text-foreground-faint">{label}</p>
       <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
         {slots.map(slot => (
           <button

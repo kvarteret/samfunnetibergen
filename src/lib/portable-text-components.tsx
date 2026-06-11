@@ -84,7 +84,7 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
 
   return (
     <figure className="my-10">
-      <div className="relative aspect-[16/9] overflow-hidden border-2 border-border">
+      <div className="relative aspect-video overflow-hidden border-2 border-border">
         <Image
           alt={value.alt ?? ""}
           className="object-cover"
@@ -94,7 +94,7 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
         />
       </div>
       {value.caption && (
-        <figcaption className="mt-2 text-sm text-foreground/70">
+        <figcaption className="mt-2 text-sm text-foreground-subtle">
           {value.caption}
         </figcaption>
       )}

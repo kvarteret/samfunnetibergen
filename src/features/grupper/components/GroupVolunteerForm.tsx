@@ -1,13 +1,20 @@
 "use client"
 
+import { useForm, type AnyFieldApi } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
+import { type FormEvent, useState } from "react"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import {
+  ErrorSummary,
+  type ErrorSummaryItem,
+} from "@/components/ui/error-summary"
+import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
-import { SelectField } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
+import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 
 type SubGroup = {
@@ -27,7 +34,7 @@ type GroupVolunteerFormProps = {
   institutionOptions: InstitutionOption[]
 }
 
-type FormState = {
+type VolunteerFormValues = {
   firstName: string
   lastName: string
   email: string
@@ -36,13 +43,55 @@ type FormState = {
   backgroundDetails: string
 }
 
-const emptyForm: FormState = {
+const defaultValues: VolunteerFormValues = {
   firstName: "",
   lastName: "",
   email: "",
   phone: "",
   studyInstitution: "",
   backgroundDetails: "",
+}
+
+function isEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+}
+
+function getValidationErrors(
+  values: VolunteerFormValues,
+  fieldIds: Record<string, string>,
+  t: ReturnType<typeof useTranslations<"GroupVolunteerForm">>,
+): ErrorSummaryItem[] {
+  const errors: ErrorSummaryItem[] = []
+
+  if (!values.firstName.trim()) {
+    errors.push({
+      fieldId: fieldIds.firstName,
+      message: `${t("firstNameLabel")} er påkrevd`,
+    })
+  }
+  if (!values.lastName.trim()) {
+    errors.push({
+      fieldId: fieldIds.lastName,
+      message: `${t("lastNameLabel")} er påkrevd`,
+    })
+  }
+  if (!values.email.trim() || !isEmail(values.email)) {
+    errors.push({ fieldId: fieldIds.email, message: "Ugyldig e-postadresse" })
+  }
+  if (!values.phone.trim() || !/\d/.test(values.phone)) {
+    errors.push({
+      fieldId: fieldIds.phone,
+      message: "Telefonnummer er påkrevd",
+    })
+  }
+  if (!values.studyInstitution.trim()) {
+    errors.push({
+      fieldId: fieldIds.studyInstitution,
+      message: "Studiested er påkrevd",
+    })
+  }
+
+  return errors
 }
 
 export function GroupVolunteerForm({
@@ -56,55 +105,21 @@ export function GroupVolunteerForm({
   const [selectedSlug, setSelectedSlug] = useState<string>(
     hasSubGroups ? "" : groupSlug,
   )
-  const [form, setForm] = useState<FormState>(emptyForm)
-  const [fieldErrors, setFieldErrors] = useState<
-    Partial<Record<keyof FormState, string>>
-  >({})
-  const [message, setMessage] = useState<{
-    status: "success" | "error"
-    text: string
-  } | null>(null)
-  const [isPending, setIsPending] = useState(false)
+  const slugSelected = !hasSubGroups || selectedSlug !== ""
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
 
-  function updateField<K extends keyof FormState>(key: K, value: string) {
-    setForm(prev => ({ ...prev, [key]: value }))
-    if (fieldErrors[key]) {
-      setFieldErrors(prev => ({ ...prev, [key]: undefined }))
-    }
-  }
+  const form = useForm({
+    defaultValues,
+    onSubmit: async ({ value }) => {
+      const payload = {
+        full_name: `${value.firstName.trim()} ${value.lastName.trim()}`,
+        email: value.email.trim().toLowerCase(),
+        phone: value.phone.trim().replace(/\D/g, ""),
+        study_institution: value.studyInstitution.trim(),
+        first_choice_group_slug: selectedSlug,
+        background_details: value.backgroundDetails.trim() || undefined,
+      }
 
-  function validate(): boolean {
-    const errors: Partial<Record<keyof FormState, string>> = {}
-    if (!form.firstName.trim()) errors.firstName = "Fornavn er påkrevd"
-    if (!form.lastName.trim()) errors.lastName = "Etternavn er påkrevd"
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      errors.email = "Ugyldig e-postadresse"
-    if (!form.phone.trim() || !/\d/.test(form.phone))
-      errors.phone = "Telefonnummer er påkrevd"
-    if (!form.studyInstitution.trim())
-      errors.studyInstitution = "Studiested er påkrevd"
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setMessage(null)
-
-    if (!validate()) return
-
-    setIsPending(true)
-
-    const payload = {
-      full_name: `${form.firstName.trim()} ${form.lastName.trim()}`,
-      email: form.email.trim().toLowerCase(),
-      phone: form.phone.trim().replace(/\D/g, ""),
-      study_institution: form.studyInstitution.trim(),
-      first_choice_group_slug: selectedSlug,
-      background_details: form.backgroundDetails.trim() || undefined,
-    }
-
-    try {
       const response = await fetch("/api/volunteer-prospects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,30 +133,46 @@ export function GroupVolunteerForm({
           data && typeof data.detail === "string"
             ? data.detail
             : t("submitErrorFallback")
-        setMessage({ status: "error", text: detail })
-        return
+        throw new Error(detail)
       }
+    },
+  })
 
-      setForm(emptyForm)
-      setFieldErrors({})
-      setMessage({ status: "success", text: t("submittedMessage") })
-    } catch {
-      setMessage({ status: "error", text: t("submitErrorFallback") })
-    } finally {
-      setIsPending(false)
-    }
+  const fieldIds = {
+    firstName: "gvf-firstName",
+    lastName: "gvf-lastName",
+    email: "gvf-email",
+    phone: "gvf-phone",
+    studyInstitution: "gvf-institution",
+    backgroundDetails: "gvf-background",
   }
 
-  const selectedSubGroupName = subGroups?.find(
-    g => g.slug === selectedSlug,
-  )?.name
-  const formId = `gvf-${groupSlug}`
+  const validationErrors = getValidationErrors(form.state.values, fieldIds, t)
+  const visibleErrors = hasAttemptedSubmit ? validationErrors : []
+
+  const getFieldError = (fieldId: string) =>
+    visibleErrors.find(e => e.fieldId === fieldId)?.message
+
+  const submitError = form.state.errorMap.onSubmit
+
+  if (form.state.isSubmitSuccessful) {
+    return (
+      <FormSection number="00" title={t("title")}>
+        <Alert variant="success">
+          <AlertTitle>{t("successTitle")}</AlertTitle>
+          <AlertDescription>{t("submittedMessage")}</AlertDescription>
+        </Alert>
+      </FormSection>
+    )
+  }
 
   return (
     <FormSection number="00" title={t("title")}>
       {hasSubGroups && (
         <FieldGroup>
-          <p className="text-sm text-foreground/60">{t("selectSubGroup")}</p>
+          <p className="text-sm text-foreground-subtle">
+            {t("selectSubGroup")}
+          </p>
           <div className="flex flex-wrap gap-2">
             {subGroups!.map(sub => (
               <button
@@ -159,178 +190,246 @@ export function GroupVolunteerForm({
             ))}
           </div>
           {selectedSlug && (
-            <p className="text-xs text-foreground/50">
-              {t("applyingTo", { group: selectedSubGroupName ?? selectedSlug })}
+            <p className="text-xs text-foreground-faint">
+              {t("applyingTo", {
+                group:
+                  subGroups!.find(g => g.slug === selectedSlug)?.name ??
+                  selectedSlug,
+              })}
             </p>
           )}
         </FieldGroup>
       )}
 
-      {(!hasSubGroups || selectedSlug) && (
-        <form className="space-y-6" noValidate onSubmit={onSubmit}>
+      {slugSelected && (
+        <form
+          className="space-y-6"
+          noValidate
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault()
+            setHasAttemptedSubmit(true)
+            if (validationErrors.length > 0) return
+            form.handleSubmit()
+          }}
+        >
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
           {!hasSubGroups && (
-            <p className="text-sm text-foreground/60">
+            <p className="text-sm text-foreground-subtle">
               {t("applyingTo", { group: groupName })}
             </p>
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <FieldGroup>
+            <FieldGroup
+              error={getFieldError(fieldIds.firstName)}
+              errorId={`${fieldIds.firstName}-error`}
+            >
               <div className="flex items-center gap-1">
                 <label
                   className="text-sm font-heading text-foreground"
-                  htmlFor={`${formId}-firstName`}
+                  htmlFor={fieldIds.firstName}
                 >
                   {t("firstNameLabel")}
                 </label>
                 <span className="text-destructive">*</span>
               </div>
-              <Input
-                id={`${formId}-firstName`}
-                value={form.firstName}
-                onChange={e => updateField("firstName", e.target.value)}
-                autoComplete="given-name"
-              />
-              {fieldErrors.firstName && (
-                <p className="text-sm text-destructive">
-                  {fieldErrors.firstName}
-                </p>
+              <form.Field name="firstName">
+                {(field: AnyFieldApi) => (
+                  <Input
+                    aria-describedby={
+                      getFieldError(fieldIds.firstName)
+                        ? `${fieldIds.firstName}-error`
+                        : undefined
+                    }
+                    aria-invalid={!!getFieldError(fieldIds.firstName)}
+                    autoComplete="given-name"
+                    id={fieldIds.firstName}
+                    onBlur={field.handleBlur}
+                    onChange={e => field.handleChange(e.target.value)}
+                    value={field.state.value as string}
+                  />
+                )}
+              </form.Field>
+              {getFieldError(fieldIds.firstName) && (
+                <FieldError id={`${fieldIds.firstName}-error`}>
+                  {getFieldError(fieldIds.firstName)}
+                </FieldError>
               )}
             </FieldGroup>
 
-            <FieldGroup>
+            <FieldGroup
+              error={getFieldError(fieldIds.lastName)}
+              errorId={`${fieldIds.lastName}-error`}
+            >
               <div className="flex items-center gap-1">
                 <label
                   className="text-sm font-heading text-foreground"
-                  htmlFor={`${formId}-lastName`}
+                  htmlFor={fieldIds.lastName}
                 >
                   {t("lastNameLabel")}
                 </label>
                 <span className="text-destructive">*</span>
               </div>
-              <Input
-                id={`${formId}-lastName`}
-                value={form.lastName}
-                onChange={e => updateField("lastName", e.target.value)}
-                autoComplete="family-name"
-              />
-              {fieldErrors.lastName && (
-                <p className="text-sm text-destructive">
-                  {fieldErrors.lastName}
-                </p>
+              <form.Field name="lastName">
+                {(field: AnyFieldApi) => (
+                  <Input
+                    aria-describedby={
+                      getFieldError(fieldIds.lastName)
+                        ? `${fieldIds.lastName}-error`
+                        : undefined
+                    }
+                    aria-invalid={!!getFieldError(fieldIds.lastName)}
+                    autoComplete="family-name"
+                    id={fieldIds.lastName}
+                    onBlur={field.handleBlur}
+                    onChange={e => field.handleChange(e.target.value)}
+                    value={field.state.value as string}
+                  />
+                )}
+              </form.Field>
+              {getFieldError(fieldIds.lastName) && (
+                <FieldError id={`${fieldIds.lastName}-error`}>
+                  {getFieldError(fieldIds.lastName)}
+                </FieldError>
               )}
             </FieldGroup>
 
-            <FieldGroup>
+            <FieldGroup
+              error={getFieldError(fieldIds.email)}
+              errorId={`${fieldIds.email}-error`}
+            >
               <div className="flex items-center gap-1">
                 <label
                   className="text-sm font-heading text-foreground"
-                  htmlFor={`${formId}-email`}
+                  htmlFor={fieldIds.email}
                 >
                   {t("emailLabel")}
                 </label>
                 <span className="text-destructive">*</span>
               </div>
-              <Input
-                id={`${formId}-email`}
-                type="email"
-                value={form.email}
-                onChange={e => updateField("email", e.target.value)}
-                placeholder={t("emailPlaceholder")}
-                autoComplete="email"
-              />
-              {fieldErrors.email && (
-                <p className="text-sm text-destructive">{fieldErrors.email}</p>
+              <form.Field name="email">
+                {(field: AnyFieldApi) => (
+                  <Input
+                    aria-describedby={
+                      getFieldError(fieldIds.email)
+                        ? `${fieldIds.email}-error`
+                        : undefined
+                    }
+                    aria-invalid={!!getFieldError(fieldIds.email)}
+                    autoComplete="email"
+                    id={fieldIds.email}
+                    onBlur={field.handleBlur}
+                    onChange={e => field.handleChange(e.target.value)}
+                    placeholder={t("emailPlaceholder")}
+                    type="email"
+                    value={field.state.value as string}
+                  />
+                )}
+              </form.Field>
+              {getFieldError(fieldIds.email) && (
+                <FieldError id={`${fieldIds.email}-error`}>
+                  {getFieldError(fieldIds.email)}
+                </FieldError>
               )}
             </FieldGroup>
 
-            <FieldGroup>
+            <FieldGroup
+              error={getFieldError(fieldIds.phone)}
+              errorId={`${fieldIds.phone}-error`}
+            >
               <div className="flex items-center gap-1">
                 <label
                   className="text-sm font-heading text-foreground"
-                  htmlFor={`${formId}-phone`}
+                  htmlFor={fieldIds.phone}
                 >
                   {t("phoneLabel")}
                 </label>
                 <span className="text-destructive">*</span>
               </div>
-              <Input
-                id={`${formId}-phone`}
-                type="tel"
-                value={form.phone}
-                onChange={e => updateField("phone", e.target.value)}
-                placeholder={t("phonePlaceholder")}
-                autoComplete="tel"
-              />
-              {fieldErrors.phone && (
-                <p className="text-sm text-destructive">{fieldErrors.phone}</p>
+              <form.Field name="phone">
+                {(field: AnyFieldApi) => (
+                  <Input
+                    aria-describedby={
+                      getFieldError(fieldIds.phone)
+                        ? `${fieldIds.phone}-error`
+                        : undefined
+                    }
+                    aria-invalid={!!getFieldError(fieldIds.phone)}
+                    autoComplete="tel"
+                    className="max-w-48"
+                    id={fieldIds.phone}
+                    inputMode="tel"
+                    onBlur={field.handleBlur}
+                    onChange={e => field.handleChange(e.target.value)}
+                    placeholder={t("phonePlaceholder")}
+                    type="tel"
+                    value={field.state.value as string}
+                  />
+                )}
+              </form.Field>
+              {getFieldError(fieldIds.phone) && (
+                <FieldError id={`${fieldIds.phone}-error`}>
+                  {getFieldError(fieldIds.phone)}
+                </FieldError>
               )}
             </FieldGroup>
           </div>
 
-          <SelectField
-            id={`${formId}-institution`}
-            label={`${t("studyInstitutionLabel")}`}
-            onChange={v => updateField("studyInstitution", v)}
-            value={form.studyInstitution}
+          <form.Field name="studyInstitution">
+            {(field: AnyFieldApi) => (
+              <SelectField
+                error={getFieldError(fieldIds.studyInstitution)}
+                errorId={`${fieldIds.studyInstitution}-error`}
+                id={fieldIds.studyInstitution}
+                label={`${t("studyInstitutionLabel")}`}
+                onChange={v => field.handleChange(v)}
+                value={field.state.value as string}
+              >
+                <option value="">{t("studyInstitutionPlaceholder")}</option>
+                {institutionOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </SelectField>
+            )}
+          </form.Field>
+
+          <form.Field name="backgroundDetails">
+            {(field: AnyFieldApi) => (
+              <FieldGroup>
+                <label
+                  className="text-sm font-heading text-foreground"
+                  htmlFor={fieldIds.backgroundDetails}
+                >
+                  {t("backgroundDetailsLabel")}
+                </label>
+                <Textarea
+                  id={fieldIds.backgroundDetails}
+                  onChange={e => field.handleChange(e.target.value)}
+                  placeholder={t("backgroundDetailsPlaceholder")}
+                  rows={4}
+                  value={field.state.value as string}
+                />
+              </FieldGroup>
+            )}
+          </form.Field>
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={form.state.isSubmitting}
           >
-            <option value="">{t("studyInstitutionPlaceholder")}</option>
-            {institutionOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </SelectField>
-          {fieldErrors.studyInstitution && (
-            <p className="text-sm text-destructive">
-              {fieldErrors.studyInstitution}
-            </p>
-          )}
-
-          <FieldGroup>
-            {/* Using raw <label> to avoid double-wrapping since FieldGroup already
-                provides spacing; Label component is fine too, but consistent
-                fontWeight avoids extra imports */}
-            <label
-              className="text-sm font-heading text-foreground"
-              htmlFor={`${formId}-background`}
-            >
-              {t("backgroundDetailsLabel")}
-            </label>
-            <Textarea
-              id={`${formId}-background`}
-              value={form.backgroundDetails}
-              onChange={e => updateField("backgroundDetails", e.target.value)}
-              placeholder={t("backgroundDetailsPlaceholder")}
-              rows={4}
-            />
-          </FieldGroup>
-
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? t("submitPending") : t("submitIdle")}
+            {form.state.isSubmitting ? t("submitPending") : t("submitIdle")}
           </Button>
 
-          {message && (
-            <div
-              className={`border-2 p-4 ${
-                message.status === "success"
-                  ? "border-primary bg-primary/5"
-                  : "border-destructive bg-destructive/10"
-              }`}
-            >
-              <p
-                className={`font-heading text-sm ${
-                  message.status === "success"
-                    ? "text-primary"
-                    : "text-destructive"
-                }`}
-              >
-                {message.status === "success"
-                  ? t("successTitle")
-                  : t("errorTitle")}
-              </p>
-              <p className="mt-1 text-sm text-foreground/70">{message.text}</p>
-            </div>
+          {submitError && (
+            <Alert variant="destructive">
+              <AlertTitle>{t("errorTitle")}</AlertTitle>
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
           )}
         </form>
       )}

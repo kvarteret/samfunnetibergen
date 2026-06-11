@@ -45,6 +45,19 @@
     --red-900: oklch(20% 0.110 25);
     --red-950: oklch(14% 0.077 25);
 
+    /* ── Green ── */
+    --green-50: oklch(97% 0.025 150);
+    --green-100: oklch(94% 0.042 150);
+    --green-200: oklch(88% 0.067 150);
+    --green-300: oklch(80% 0.109 150);
+    --green-400: oklch(70% 0.142 150);
+    --green-500: oklch(60% 0.150 150);
+    --green-600: oklch(50% 0.143 150);
+    --green-700: oklch(40% 0.128 150);
+    --green-800: oklch(30% 0.105 150);
+    --green-900: oklch(20% 0.075 150);
+    --green-950: oklch(14% 0.050 150);
+
     /* ── Navy ── */
     --navy-50: oklch(97% 0.015 258);
     --navy-100: oklch(94% 0.025 258);
@@ -82,6 +95,8 @@
     --accent-foreground: var(--navy-950);
     --destructive: var(--red-500);
     --destructive-foreground: var(--cream-100);
+    --success: var(--green-600);
+    --success-foreground: var(--cream-50);
     --muted: var(--cream-400);
     --muted-foreground: var(--navy-600);
     --card: var(--cream-100);
@@ -98,7 +113,9 @@
     --main-foreground: var(--primary-foreground);
 
     /* ── Shadow ── */
+    --shadow-hard-sm-value: 2px 2px 0 0 var(--border);
     --shadow: 4px 4px 0 0 var(--border);
+    --shadow-hard-lg-value: 6px 6px 0 0 var(--border);
 
     /* ── Motion ── */
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -117,6 +134,9 @@
 
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
+  --color-foreground-muted:     color-mix(in oklab, var(--foreground) 75%, transparent);
+  --color-foreground-subtle:    color-mix(in oklab, var(--foreground) 60%, transparent);
+  --color-foreground-faint:     color-mix(in oklab, var(--foreground) 45%, transparent);
   --color-primary:              var(--primary);
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
@@ -125,6 +145,8 @@
   --color-accent-foreground:    var(--accent-foreground);
   --color-destructive:          var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success:              var(--success);
+  --color-success-foreground:   var(--success-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
   --color-card:                 var(--card);
@@ -137,7 +159,9 @@
   --color-main:                 var(--main);
   --color-main-foreground:      var(--main-foreground);
 
+  --shadow-hard-sm: var(--shadow-hard-sm-value);
   --shadow-shadow: var(--shadow);
+  --shadow-hard-lg: var(--shadow-hard-lg-value);
 
   --radius-base: var(--radius);
 
@@ -158,23 +182,59 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+  h1 {
+    @apply text-3xl sm:text-4xl;
+  }
+  h2 {
+    @apply text-2xl sm:text-3xl;
+  }
+  h3 {
+    @apply text-xl;
+  }
+  h4 {
+    @apply text-lg;
+  }
+}
+
+/* House focus state: cream interior -> 2px black border -> 3px amber ring,
+   with zero offset so no page background shows between border and ring. */
+@utility focus-brutal {
+  &:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
+}
+
+@utility focus-within-brutal {
+  &:focus-within {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
+}
+
+@utility interactive-brutal {
+  border-width: 2px;
+  border-style: solid;
+  box-shadow: 4px 4px 0 var(--color-border);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--color-border);
+    }
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--color-border);
+    }
+  }
 }
 
 @utility btn-brutal {
-  border: 2px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-border);
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
-
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--color-border);
-  }
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--color-border);
-  }
+  @apply interactive-brutal border-border;
 }
 
 @utility text-eyebrow {
@@ -182,13 +242,89 @@
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: color-mix(in oklab, var(--color-foreground) 60%, transparent);
+  color: var(--color-foreground-subtle);
+}
+
+@utility text-eyebrow-sm {
+  font-weight: var(--font-weight-heading);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-foreground-subtle);
 }
 
 @utility text-body {
   font-size: var(--text-sm);
   line-height: calc(1.5 * var(--text-sm));
-  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
+  color: var(--color-foreground-muted);
+}
+
+@utility grid-auto-side {
+  grid-template-columns: 1fr auto;
+}
+
+@utility grid-two-one {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+@utility grid-content-sidebar-20 {
+  grid-template-columns: minmax(0, 1fr) 20rem;
+}
+
+@utility grid-content-sidebar-22 {
+  grid-template-columns: minmax(0, 1fr) 22rem;
+}
+
+@utility grid-content-sidebar-24 {
+  grid-template-columns: minmax(0, 1fr) 24rem;
+}
+
+@utility grid-content-sidebar-360 {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+@utility grid-home-hero {
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+}
+
+@utility grid-home-bars {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+@utility grid-event-shell {
+  grid-template-columns: clamp(19rem, 20%, 23rem) minmax(0, 1fr);
+}
+
+@utility grid-event-schedule {
+  grid-template-columns: 1.3fr 0.6fr 1fr;
+}
+
+@utility grid-room-specs {
+  grid-template-columns: minmax(9rem, 1fr) minmax(9rem, 1fr);
+}
+
+@utility grid-card-header {
+  grid-template-rows: auto auto;
+}
+
+@utility grid-alert-icon {
+  grid-template-columns: calc(var(--spacing) * 4) 1fr;
+}
+
+@utility grid-alert-empty {
+  grid-template-columns: 0 1fr;
+}
+
+@utility h-navigation-viewport {
+  height: var(--radix-navigation-menu-viewport-height);
+}
+
+@utility w-navigation-viewport {
+  width: var(--radix-navigation-menu-viewport-width);
+}
+
+@utility backdrop-blur-soft {
+  backdrop-filter: blur(1px);
 }
 
 /* P3 boost for supported displays */

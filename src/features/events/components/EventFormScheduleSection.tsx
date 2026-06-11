@@ -1,6 +1,4 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Plus, X } from "lucide-react"
 
 import { CheckboxField } from "@/components/ui/checkbox-field"
@@ -8,17 +6,21 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { DateEntry } from "../domain/formState"
+import type { DateEntry, FormState } from "../domain/formState"
 import { newDate } from "../domain/formState"
 import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormScheduleSectionProps {
   uid: string
+  firstDateError?: string
+  firstDateId: string
 }
 
 export function EventFormScheduleSection({
   uid,
+  firstDateError,
+  firstDateId,
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
 
@@ -44,7 +46,7 @@ export function EventFormScheduleSection({
 
   return (
     <FormSection number="03" title="Dato og tid">
-      <form.Subscribe selector={(s: any) => s.values.dates}>
+      <form.Subscribe selector={(s: { values: FormState }) => s.values.dates}>
         {(dates: DateEntry[]) => (
           <div className="space-y-4">
             {dates.map((date, index) => (
@@ -54,13 +56,15 @@ export function EventFormScheduleSection({
                 key={date.id}
                 totalDates={dates.length}
                 uid={uid}
+                dateError={index === 0 ? firstDateError : undefined}
+                dateId={index === 0 ? firstDateId : `${uid}-date-${date.id}`}
                 removeDate={handleRemoveDate}
                 updateDate={handleUpdateDate}
               />
             ))}
 
             <button
-              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground-subtle transition-colors hover:border-primary hover:text-primary focus-brutal"
               onClick={handleAddDate}
               type="button"
             >
@@ -71,7 +75,9 @@ export function EventFormScheduleSection({
         )}
       </form.Subscribe>
 
-      <form.Subscribe selector={(s: any) => s.values.isRecurring}>
+      <form.Subscribe
+        selector={(s: { values: FormState }) => s.values.isRecurring}
+      >
         {(isRecurring: boolean) => (
           <EventRecurrenceFields
             isRecurring={isRecurring}
@@ -87,6 +93,8 @@ export function EventFormScheduleSection({
 interface EventDateCardProps {
   uid: string
   date: DateEntry
+  dateError?: string
+  dateId: string
   index: number
   totalDates: number
   removeDate: (id: string) => void
@@ -96,21 +104,25 @@ interface EventDateCardProps {
 function EventDateCard({
   uid,
   date,
+  dateError,
+  dateId,
   index,
   totalDates,
   removeDate,
   updateDate,
 }: EventDateCardProps) {
+  const dateErrorId = `${dateId}-error`
+
   return (
     <div className="space-y-4 border-2 border-border bg-card p-4">
       <div className="flex items-center justify-between">
-        <p className="font-heading text-sm uppercase tracking-[0.12em] text-foreground/60">
+        <p className="text-eyebrow-sm">
           Dato {totalDates > 1 ? index + 1 : ""}
         </p>
         {totalDates > 1 && (
           <button
             aria-label="Fjern dato"
-            className="text-foreground/40 transition-colors hover:text-destructive"
+            className="text-foreground-faint transition-colors hover:text-destructive focus-brutal"
             onClick={() => removeDate(date.id)}
             type="button"
           >
@@ -120,10 +132,12 @@ function EventDateCard({
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <FieldGroup>
-          <Label htmlFor={`${uid}-date-${date.id}`}>Dato *</Label>
+        <FieldGroup error={dateError} errorId={dateErrorId}>
+          <Label htmlFor={dateId}>Dato *</Label>
           <Input
-            id={`${uid}-date-${date.id}`}
+            aria-describedby={dateError ? dateErrorId : undefined}
+            aria-invalid={!!dateError}
+            id={dateId}
             onChange={event =>
               updateDate(date.id, "startDate", event.target.value)
             }
@@ -136,7 +150,7 @@ function EventDateCard({
         <FieldGroup>
           <Label htmlFor={`${uid}-starttime-${date.id}`}>
             Starttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground/40">
+            <span className="ml-1 font-sans font-normal text-foreground-faint">
               (anbefalt)
             </span>
           </Label>
@@ -153,7 +167,7 @@ function EventDateCard({
         <FieldGroup>
           <Label htmlFor={`${uid}-endtime-${date.id}`}>
             Sluttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground/40">
+            <span className="ml-1 font-sans font-normal text-foreground-faint">
               (valgfritt)
             </span>
           </Label>

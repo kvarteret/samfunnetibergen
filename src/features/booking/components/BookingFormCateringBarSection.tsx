@@ -1,6 +1,6 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { UtensilsCrossed } from "lucide-react"
 import { useId } from "react"
 import { FormSection } from "@/components/ui/form-section"
@@ -8,10 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ToggleOption } from "@/components/ui/toggle-option"
 import { useBookingForm } from "./bookingFormContext"
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Props {}
-
-export function BookingFormCateringBarSection({}: Props) {
+export function BookingFormCateringBarSection() {
   const uid = useId()
   const form = useBookingForm()
 
@@ -19,7 +16,7 @@ export function BookingFormCateringBarSection({}: Props) {
     <FormSection number="05" title="Mat og bar">
       <div className="max-w-3xl space-y-4">
         <form.Field name="cateringCustom">
-          {(field: any) => (
+          {(field: AnyFieldApi) => (
             <ToggleOption
               checked={field.state.value as boolean}
               icon={UtensilsCrossed}
@@ -29,7 +26,7 @@ export function BookingFormCateringBarSection({}: Props) {
               {(field.state.value as boolean) && (
                 <div className="mt-3">
                   <form.Field name="cateringText">
-                    {(textField: any) => (
+                    {(textField: AnyFieldApi) => (
                       <Textarea
                         className="resize-y"
                         id={`${uid}-catering`}
@@ -46,14 +43,14 @@ export function BookingFormCateringBarSection({}: Props) {
           )}
         </form.Field>
         <form.Field name="bar">
-          {(field: any) => (
+          {(field: AnyFieldApi) => (
             <ToggleOption
               checked={field.state.value as boolean}
               icon={UtensilsCrossed}
               label="Kvarteret stiller i bar"
               onChange={field.handleChange}
             >
-              <p className="px-4 pb-4 text-xs text-foreground/55">
+              <p className="px-4 pb-4 text-xs text-foreground-subtle">
                 Pris: 2000 kr eks. mva. Forutsetter kapasitet.
               </p>
             </ToggleOption>

@@ -47,7 +47,7 @@ export function Navbar({ navbar }: NavbarProps) {
       >
         <Link
           aria-label="Samfunnet i Bergen"
-          className="block py-2.5 transition-opacity hover:opacity-75"
+          className="block py-2.5 transition-opacity hover:opacity-75 focus-brutal"
           href="/"
         >
           <Image
@@ -115,11 +115,11 @@ function DesktopNavItem({ item }: { item: NavItem }) {
 
 function DropdownGroups({ groups }: { groups: NavGroup[] }) {
   return (
-    <div className="min-w-[14rem] p-3">
+    <div className="min-w-56 p-3">
       {groups.map((group, gi) => (
         <div className="space-y-0.5" key={group._key ?? gi}>
           {group.groupLabel && (
-            <p className="px-2 py-1.5 font-heading l uppercase tracking-widest text-foreground/40">
+            <p className="px-2 py-1.5 font-heading l uppercase tracking-widest text-foreground-faint">
               {group.groupLabel}
             </p>
           )}
@@ -129,11 +129,18 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
             return (
               <NavigationMenuLink asChild key={leaf._key ?? `${gi}-${li}`}>
                 {leafExternal ? (
-                  <a href={leafHref} rel="noreferrer" target="_blank">
+                  <a
+                    className="focus-brutal"
+                    href={leafHref}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
                     {leaf.label}
                   </a>
                 ) : (
-                  <Link href={leafHref}>{leaf.label}</Link>
+                  <Link className="focus-brutal" href={leafHref}>
+                    {leaf.label}
+                  </Link>
                 )}
               </NavigationMenuLink>
             )
@@ -157,7 +164,7 @@ function NavLink({
   children: React.ReactNode
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const cls =
-    "relative flex items-center px-3 py-2.5 font-heading text-sm text-foreground"
+    "relative flex items-center px-3 py-2.5 font-heading text-sm text-foreground focus-brutal"
 
   return external ? (
     <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>

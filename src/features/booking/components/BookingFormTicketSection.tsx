@@ -1,12 +1,13 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { SelectField } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
 const FREE_PAID_OPTIONS = [
@@ -21,7 +22,7 @@ export function BookingFormTicketSection() {
     <FormSection number="06" title="Billett">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <form.Field name="freeOrPaid">
-          {(field: any) => (
+          {(field: AnyFieldApi) => (
             <SelectField
               id={`${uid}-freePaid`}
               label="Gratis / betalt *"
@@ -31,13 +32,15 @@ export function BookingFormTicketSection() {
             />
           )}
         </form.Field>
-        <form.Subscribe selector={(s: any) => s.values.freeOrPaid}>
+        <form.Subscribe
+          selector={(s: { values: BookingFormValues }) => s.values.freeOrPaid}
+        >
           {(freeOrPaid: string) =>
             freeOrPaid === "Betalt" ? (
               <FieldGroup>
                 <Label htmlFor={`${uid}-tickets`}>Billettyper og priser</Label>
                 <form.Field name="ticketTypes">
-                  {(field: any) => (
+                  {(field: AnyFieldApi) => (
                     <Input
                       id={`${uid}-tickets`}
                       onChange={e => field.handleChange(e.target.value)}

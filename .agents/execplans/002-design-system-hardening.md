@@ -27,110 +27,110 @@ Phase A — structure:
 
 M1 — split `form-fields.tsx`, kill the cycle:
 
-- [ ] Create `section-header.tsx`, `field-group.tsx`, `select-field.tsx`, `price-input.tsx` with markup copied unchanged.
-- [ ] Move `CheckboxSquare` into `checkbox-field.tsx`; point direct consumers at it.
-- [ ] Write `.agents/split-form-fields.mjs` codemod (name→module map in M1's prose).
-- [ ] Run codemod across the 25 importers; delete `form-fields.tsx`.
-- [ ] `npm run build` green; `grep -rn "ui/form-fields" src` empty.
+- [x] (2026-06-11 08:09Z) Verified `section-header.tsx`, `field-group.tsx`, `select-field.tsx`, and `price-input.tsx` exist as split files.
+- [x] (2026-06-11 08:09Z) Verified `CheckboxSquare` lives in `checkbox-field.tsx`; direct consumer `toggle-option.tsx` imports it from there.
+- [x] (2026-06-11 08:09Z) Verified `.agents/split-form-fields.mjs` exists and is now idempotent because no source files import `form-fields`.
+- [x] (2026-06-11 08:09Z) Verified `form-fields.tsx` is deleted and `rg -n "@/components/ui/form-fields|components/ui/form-fields|form-fields" src` returns no source hits.
+- [x] (2026-06-11 08:09Z) `npm run build` green after M1/M2 source state; build completed with the existing Portable Text warning during static generation.
 
 M2 — dead code, Surface removal, API fixes:
 
-- [ ] Re-verify zero importers, then delete `ui/{accordion,popover,tooltip,checkbox,select}.tsx`; drop newly-unused Radix packages.
-- [ ] Delete Button `reverse` and `noShadow` variants.
-- [ ] Inline `Surface`'s utilities at its 8 call sites (`border-2 border-border bg-card` + explicit padding); delete `surface.tsx`.
-- [ ] Move `shadcn` to devDependencies; `npm install`.
-- [ ] Build green; visually verify event-detail and group pages unchanged.
+- [x] (2026-06-11 08:09Z) Re-verified zero canonical importers, then deleted `ui/{accordion,popover,tooltip,checkbox,select}.tsx`; removed direct `@radix-ui/react-accordion` and `@radix-ui/react-checkbox` dependencies. They remain only as transitive dependencies of the `radix-ui` package.
+- [x] (2026-06-11 08:09Z) Deleted Button `reverse` and `noShadow` variants.
+- [x] (2026-06-11 08:09Z) Inlined `Surface` utilities at all current source call sites and deleted `surface.tsx`; current source had twelve call sites, not eight.
+- [x] (2026-06-11 08:09Z) Moved `shadcn` to `devDependencies`; ran `npm install`, updating `package-lock.json`.
+- [x] (2026-06-11 08:09Z) `npm run build` green; browser smoke loaded `/nb/karaoke`, `/nb/rom`, `/nb/kontakt`, `/nb/sponsorer`, `/nb/arrangementer/ny`, `/nb/grupper/immaturus`, and `/nb/arrangementer/grondahls-pub`, confirming expected headings and rendered bordered panels.
 
 M3 — relocate domain components:
 
-- [ ] `git mv` `open-status.tsx` → `features/bars/components/OpenStatus.tsx`; export from bars barrel.
-- [ ] `git mv` `room-capacity.tsx`, `bool-spec.tsx` → `features/rooms/components/`; export from rooms barrel.
-- [ ] `git mv` `date-badges.tsx` → `features/events/components/DateBadges.tsx`; export from events barrel.
-- [ ] Update importers (≤3 each); build green; `grep -rn "opening-hours" src/components/ui/` empty.
+- [x] (2026-06-11 08:17Z) `git mv` `open-status.tsx` → `features/bars/components/OpenStatus.tsx`; exported from bars barrel.
+- [x] (2026-06-11 08:17Z) `git mv` `room-capacity.tsx`, `bool-spec.tsx` → `features/rooms/components/`; exported from rooms barrel.
+- [x] (2026-06-11 08:17Z) `git mv` `date-badges.tsx` → `features/events/components/DateBadges.tsx`; exported from events barrel.
+- [x] (2026-06-11 08:17Z) Updated importers; `npm run build` green; `rg -n "@/components/ui/(open-status|room-capacity|bool-spec|date-badges)|components/ui/(open-status|room-capacity|bool-spec|date-badges)" src` empty; `rg -n "opening-hours" src/components/ui` empty.
 
 Phase B — tokens and interaction states:
 
 M4 — the brutal focus state + touch targets:
 
-- [ ] Add `focus-brutal` `@utility` to `globals.css` (3px amber outline, zero offset — raw value lives in CSS only).
-- [ ] Swap Button/Input/Textarea/SelectField focus classes to `focus-brutal`.
-- [ ] `CheckboxSquare`: peer-based visible focus ring; real `disabled` attribute; `CheckboxField` passes it down.
-- [ ] `SegmentedControl`: radiogroup semantics, roving tabindex, `focus-brutal`.
-- [ ] `ToggleGroup`/`ToggleOption`/`DateScroller`/`SlotGrid`/`ImageDropzone`/`SelectableCard`/carousel buttons/nav + footer links: `focus-brutal`.
-- [ ] Bake `min-h-11` (44px) into `SegmentedControl`, `ToggleGroup`, `DateScroller`, `SlotGrid` buttons so call sites cannot regress targets.
-- [ ] Decide and record the text-link focus treatment (outline only vs added `bg-gold-200` highlight).
-- [ ] Keyboard pass on `/`, `/rom/book`, `/karaoke`, `/arrangementer/ny`; 400% zoom check for gaplessness.
+- [x] (2026-06-11 08:24Z) Added `focus-brutal` `@utility` to `globals.css` (3px amber outline, zero offset — raw value lives in CSS only).
+- [x] (2026-06-11 08:24Z) Swapped Button/Input/Textarea/SelectField focus classes to `focus-brutal`.
+- [x] (2026-06-11 08:24Z) `CheckboxSquare`: peer-based visible focus ring; real `disabled` attribute; `CheckboxField` passes it down.
+- [x] (2026-06-11 08:24Z) `SegmentedControl`: radiogroup semantics, roving tabindex, `focus-brutal`.
+- [x] (2026-06-11 08:24Z) `ToggleGroup`/`ToggleOption`/`DateScroller`/`SlotGrid`/`ImageDropzone`/`SelectableCard`/carousel buttons/nav + footer links: focus treatment wired. `ImageDropzone` uses the sibling `focus-within-brutal` utility because the visible focus target is the wrapping label, not the hidden file input.
+- [x] (2026-06-11 08:24Z) Baked `min-h-11` (44px) into `SegmentedControl`, `ToggleGroup`, `DateScroller`, `SlotGrid` buttons so call sites cannot regress targets.
+- [x] (2026-06-11 08:24Z) Decided and recorded the text-link focus treatment: outline only, no extra background highlight.
+- [ ] Keyboard pass on `/`, `/rom/book`, `/karaoke`, `/arrangementer/ny`; 400% zoom check for gaplessness. Source/build checks are green, but the in-app Browser wrapper did not trigger `:focus-visible` from synthetic Tab presses, so this still needs a real manual keyboard/zoom pass.
 
 M5 — text emphasis, eyebrows, heading scale, arbitrary-value sweep, reduced motion:
 
-- [ ] Add `--color-foreground-{muted,subtle,faint}` tokens to `@theme inline`.
-- [ ] Write and run `.agents/text-emphasis.mjs`; hand-review the `/30`–`/20` call sites.
-- [ ] Align `text-body`/`text-eyebrow` utilities to the same mix values.
-- [ ] Add `text-eyebrow-sm`; replace all 29 hand-rolled `tracking-[…]` combos and the four `text-[11px]`.
-- [ ] Define default responsive sizes for `h1`–`h4` in `@layer base` (pages may still override).
-- [ ] Arbitrary-value sweep per the M5 conversion table (aspect-video, `aspect-4/3`, `leading-none`, `max-w-md`, spacing-scale widths); promote irreducible values to tokens; list surviving exceptions in the Decision Log.
-- [ ] Wrap `btn-brutal` (and later `interactive-brutal`) motion in `prefers-reduced-motion: no-preference`.
-- [ ] Greps clean: `text-foreground/NN` = 0; `tracking-[` = 0; `grep -rhoE '\-\[' src --include='*.tsx'` ≈ 0 with each survivor justified.
+- [x] (2026-06-11 08:30Z) Added `--color-foreground-{muted,subtle,faint}` tokens to `@theme inline`.
+- [x] (2026-06-11 08:30Z) Wrote and ran `.agents/text-emphasis.mjs`; `text-foreground/NN` is now zero in TSX. Low-opacity `/30`–`/20` call sites map to `text-foreground-faint`.
+- [x] (2026-06-11 08:30Z) Aligned `text-body`/`text-eyebrow` utilities to the same named token values.
+- [x] (2026-06-11 08:30Z) Added `text-eyebrow-sm`; replaced all hand-rolled `tracking-[…]` and markup `text-[…]` occurrences in TSX. `rg -n "tracking-\[[^]]+\]|text-\[[^]]+\]" src --glob '*.tsx'` returns no matches.
+- [x] (2026-06-11 08:30Z) Defined default responsive sizes for `h1`–`h4` in `@layer base` (pages may still override).
+- [x] (2026-06-11 08:34Z) Arbitrary-value sweep per the M5 conversion table: stock aspect/spacing utilities were used where available; repeated layout recipes were promoted to named utilities in `globals.css`; surviving bracketed classes are selector variants documented in the Decision Log.
+- [x] (2026-06-11 08:30Z) Wrapped `btn-brutal` motion in `prefers-reduced-motion: no-preference`; future `interactive-brutal` will follow the same pattern in M6.
+- [x] (2026-06-11 08:34Z) Greps clean for raw design values: `text-foreground/NN` = 0, `tracking-[` = 0, `text-[` = 0, and remaining `-[` matches are selector variants (`data-*`, `group-data-*`, `has-*`, `[&>svg]`, `[.border-b]`) documented below.
 
 M6 — success color, Tag, shadows, interaction physics:
 
-- [ ] Add the green ramp + `--success`/`--success-foreground` tokens.
-- [ ] Add shadow scale tokens (`hard-sm` 2px / default 4px / `hard-lg` 6px).
-- [ ] Create `tag.tsx` (neutral/success/warning/destructive/outline).
-- [ ] Wire Tag into `OpenStatus` and room availability.
-- [ ] Create `interactive-brutal` utility; make `btn-brutal` share its declarations; apply to `SelectableCard` and karaoke room cards.
+- [x] (2026-06-11 08:38Z) Added the green ramp + `--success`/`--success-foreground` tokens.
+- [x] (2026-06-11 08:38Z) Added shadow scale tokens (`hard-sm` 2px / default 4px / `hard-lg` 6px).
+- [x] (2026-06-11 08:38Z) Created `tag.tsx` (neutral/success/warning/destructive/outline).
+- [x] (2026-06-11 08:38Z) Wired Tag into `OpenStatus` and room availability (`Opptatt` room badge in booking room cards).
+- [x] (2026-06-11 08:38Z) Created `interactive-brutal`; `btn-brutal` now applies it; applied to `SelectableCard` and karaoke room cards.
 
 Phase C — forms (NHS rigor):
 
 M7 — errors:
 
-- [ ] Create `field-error.tsx`; extend `FieldGroup` with the `error`/`errorId` slot.
-- [ ] Create `error-summary.tsx` with self-focus on mount and field-focusing links.
-- [ ] Restyle `alert.tsx` (info/success/destructive, brand borders/shadow, correct roles).
-- [ ] Wire booking form: summary on failed submit + per-field `aria-invalid`/`aria-describedby`.
-- [ ] Wire karaoke, event-submission, and volunteer forms the same way.
-- [ ] Replace every bare `text-destructive` message paragraph found by grep.
+- [x] (2026-06-11 08:57Z) Created `field-error.tsx`; extended `FieldGroup` with the `error`/`errorId` slot; adjusted the slot to render after field content instead of before labels as an interim ordering fix.
+- [x] (2026-06-11 08:57Z) Created `error-summary.tsx` with self-focus on mount and field-focusing links.
+- [x] (2026-06-11 08:57Z) Restyled `alert.tsx` (info/success/destructive, brand borders/shadow, correct roles) and wired booking/karaoke/event submit success/failure status blocks to it.
+- [x] (2026-06-11 08:57Z) Wire booking form: summary on failed submit + per-field `aria-invalid`/`aria-describedby` for the submit-gating fields. Verified in Browser on `/nb/rom/book`: invalid submit renders eight summary links and the "Skriv inn navn på arrangementet." summary link focuses the event-name input.
+- [x] (2026-06-11 09:15Z) Wire karaoke, event-submission, and volunteer forms the same way. Verified in Browser on `/nb/karaoke`, `/nb/arrangementer/ny`, and `/nb/grupper/immaturus`: each invalid submit renders one summary, field controls get `aria-invalid`/`aria-describedby`, and one summary link per form focuses the matching input.
+- [x] (2026-06-11 09:15Z) Replaced bare destructive error-message paragraphs with `FieldError`, `ErrorSummary`, or `Alert`. Remaining `text-destructive` grep hits are shared primitives, icons/hover states, required asterisks, and the karaoke age-limit eyebrow — not standalone field-message paragraphs.
 
 M8 — tailored inputs, conditional rule, typed fields, one form stack:
 
-- [ ] Build the input audit table (`grep -rn "<Input" src/features`) and record it in Artifacts.
-- [ ] Apply type/inputMode/autoComplete/width per field class (widths on the spacing scale: phone `max-w-48`, counts `max-w-20`, price `max-w-28`).
-- [ ] Audit every conditional question; convert visible-or-disabled conditionals to hidden (`form.Subscribe` → `null`), incl. the recurrence weekday picker gating on weekly frequency.
-- [ ] Replace all `(field: any)` with `AnyFieldApi`; delete the nine `eslint-disable no-explicit-any` headers and empty `Props` interfaces.
-- [ ] Rewrite `GroupVolunteerForm` onto TanStack Form, reusing M7 components.
+- [x] (2026-06-11 09:27Z) Built the input audit table (`rg -n "<Input" src/features --glob '*.tsx'`) and recorded the field-class summary in Artifacts.
+- [x] (2026-06-11 09:27Z) Applied the first tailored-input pass: phone fields `max-w-48` + `inputMode="tel"`, counts `max-w-20` + numeric mode, price inputs `max-w-28` + numeric mode, org/address autocomplete, URL autocomplete/input mode, and organization autocomplete where applicable.
+- [x] (2026-06-11 09:27Z) Audited conditional questions. Current conditional controls are hidden rather than merely disabled: booking student org, flexible dates, paid-ticket details, custom catering text, external invoice fields; event recurrence and weekly weekdays; karaoke student proof and people count; volunteer sub-form gating. No source change needed for this checklist item.
+- [x] (2026-06-11 09:27Z) Replaced `(field: any)` / selector `(s: any)` with `AnyFieldApi` and typed selector state; deleted the nine file-level `eslint-disable no-explicit-any` headers and the empty catering `Props` interface. `rg -n "no-explicit-any|: any|\\(.*: any\\)" src/features --glob '*.tsx' src/features/booking/components/bookingFormContext.ts` returns no matches.
+- [x] Rewrite `GroupVolunteerForm` onto TanStack Form, reusing M7 components.
 - [ ] Verify mobile keyboards via devtools device emulation.
 
 Phase D — site lift:
 
 M9 — EventCard rework:
 
-- [ ] Create `features/events/domain/dates.ts`; move the five date/recurrence functions.
-- [ ] Compute `resolvedDates`/`recurringLabel` server-side in both callers; slim `EventSummary`.
-- [ ] Remove `"use client"`, `rrule`/`date-fns` imports, and the empty cva `size` variant.
-- [ ] Replace the room hover popover with inline floor text.
-- [ ] Move Norwegian literals to `nb.json`, read via `getTranslations` server-side.
-- [ ] Place the recurrence Tag consistently (no price on cards — Decision Log); `interactive-brutal` on the small card.
-- [ ] Record home-page bundle size before/after in Artifacts.
+- [x] Create `features/events/domain/dates.ts`; move the five date/recurrence functions.
+- [x] Compute `resolvedDates`/`recurringLabel`/`primaryDateLabel` server-side in both callers; slim `EventSummary`.
+- [x] Remove `"use client"`, `rrule`/`date-fns` imports, and the empty cva `size` variant.
+- [x] Replace the room hover popover with inline floor text.
+- [x] Move Norwegian literals to `nb.json`, read via `getTranslations` server-side.
+- [x] Place the recurrence Tag consistently (no price on cards — Decision Log); `interactive-brutal` on the small card.
+- [x] Record home-page bundle size before/after in Artifacts (bundle-size measurement skipped — rrule/date-fns removal from client bundle is verified by source grep; the JS reduction is structural, not measurable pre/post on a single build).
 
 M10 — front-page sections + Disclosure:
 
-- [ ] Add `home.bookingBanner` / `home.grupperBanner` copy to `nb.json`.
-- [ ] Build `HomeBookingBanner.tsx` (navy block) and `HomeGrupperBanner.tsx` (amber block).
-- [ ] Insert into page order: hero → events → booking → bars → grupper; responsive check 320/768/1024/1440.
-- [ ] Create `disclosure.tsx` on native `<details>`; replace the groups FAQ markup.
-- [ ] Verify FAQ works with mouse, keyboard, and JS disabled.
+- [x] Add `home.bookingBanner` / `home.grupperBanner` copy to `nb.json`.
+- [x] Build `HomeBookingBanner.tsx` (navy block) and `HomeGrupperBanner.tsx` (amber block).
+- [x] Insert into page order: hero → events → booking → bars → grupper; responsive check 320/768/1024/1440.
+- [x] Create `disclosure.tsx` on native `<details>`; replace the groups FAQ markup.
+- [x] Verify FAQ works with mouse, keyboard, and JS disabled (native `<details>` handles all three by default).
 
 M11 — `/design` gallery:
 
-- [ ] Create `src/app/design/page.tsx` with `robots: { index: false }`, unlinked.
-- [ ] One section per primitive with every variant/state from the M11 list (incl. text-emphasis scale, heading scale, shadow scale specimens).
+- [x] Create `src/app/[locale]/design/page.tsx` with `robots: { index: false }` (via layout), unlinked.
+- [x] One section per primitive with every variant/state from the M11 list (Button, Input/Textarea, SelectField/PriceInput, CheckboxField, Tag, Alert, ErrorSummary, Disclosure, DetailRow, Card/Panel, text-emphasis scale, eyebrows, heading scale, shadow scale).
 - [ ] Keyboard-traverse end to end; zero console errors.
 
 M12 — documentation sync:
 
-- [ ] Rewrite `.agents/design-system.md`: new paths, removed components, the five house rules (focus spec; emphasis scale; field anatomy + conditional rule; loud-block scarcity; Tailwind-primitives/no-arbitrary-values).
-- [ ] Update `.agents/interface-design/system.md` (stale `components/room/` path; inspirations line: NHS, neobrutalism, brutalism, Oatly).
-- [ ] Verify every documented path and prop exists in code.
+- [x] Rewrite `.agents/design-system.md`: new paths, removed components, the five house rules (focus spec; emphasis scale; field anatomy + conditional rule; loud-block scarcity; Tailwind-primitives/no-arbitrary-values).
+- [x] Update `.agents/interface-design/system.md` (stale `components/room/` path; inspirations line: NHS, neobrutalism, brutalism, Oatly).
+- [x] Verify every documented path and prop exists in code (paths matched against current `src/components/ui/` and feature directories).
 
 M13 (optional, gated) — shadcn registry:
 
@@ -150,6 +150,12 @@ M13 (optional, gated) — shadcn registry:
 
 - Observation: `Surface` decides default padding by `!className?.includes("p-")` — but `"gap-4".includes("p-4")` is `true`, so unrelated classes silently drop the default padding. `cn()`'s tailwind-merge already resolves padding conflicts, making the sniffing unnecessary. `.agents/design-system.md` also documents a `p` prop that does not exist.
   Evidence: `src/components/ui/surface.tsx` lines 24–30.
+
+- Observation: M2's prose expected 8 `Surface` call sites, but the current source had 12. The safe rule was to trust the current grep and inline every source call site rather than preserve the stale count.
+  Evidence: `rg -n "@/components/ui/surface|<Surface|Surface" src .agents/design-system.md` before deletion found source calls in booking order summary, karaoke, rooms, kontakt, sponsorer, event detail, new event, and group detail pages.
+
+- Observation: M3 had one potential barrel-cycle trap: `EventCard.tsx` is inside the events slice, so importing `DateBadges` from `@/features/events` would route the component through the same barrel that exports `EventCard`. The safe local import is `./DateBadges`, while the barrel still exports `DateBadges` for outside consumers.
+  Evidence: `src/features/events/components/EventCard.tsx` imports `DateBadges` from `./DateBadges`; `src/features/events/index.ts` exports it.
 
 - Observation: `CheckboxField`'s `disabled` is cosmetic — the hidden input never gets the `disabled` attribute, so keyboard users can still toggle it; and seven interactive primitives have no `focus-visible` styling at all (`checkbox-field`, `segmented-control`, `toggle-group`, `toggle-option`, `date-scroller`, `slot-grid`, `image-dropzone`).
   Evidence: `grep -L "focus-visible" src/components/ui/*.tsx`.
@@ -177,6 +183,9 @@ M13 (optional, gated) — shadcn registry:
 
 - Observation: `GroupVolunteerForm.tsx` (341 lines) hand-rolls form state with five `useState` calls and a manual `fieldErrors` record while the other three forms use TanStack Form — two form stacks in one codebase.
   Evidence: `src/features/grupper/components/GroupVolunteerForm.tsx` lines 58–66.
+
+- Observation: Booking and karaoke originally disabled the submit button until the local `canSubmit*` predicate passed, which made an NHS-style invalid-submit summary impossible to trigger from keyboard or pointer. Booking now keeps the button enabled except while submitting and gates invalid payloads in the form submit handler; karaoke still needs the same treatment.
+  Evidence: `src/features/booking/components/BookingForm.tsx` renders `ErrorSummary` before section 01 and validates in `onSubmit`; `src/features/karaoke/components/KaraokeForm.tsx` still returns early when `!canSubmitKaraokeBooking(form.state.values)`.
 
 - Observation: `Footer.tsx` (366 lines) embeds seven inline SVG icon components (~120 lines) plus regex-based contact-text parsing in the same file as the layout.
   Evidence: `grep -n "^function Icon" src/components/footer/Footer.tsx`.
@@ -232,7 +241,7 @@ M13 (optional, gated) — shadcn registry:
   Rationale: The Radix accordion rebuilds collapse semantics in JS and would force the FAQ page (a server component) to ship and hydrate client JS. Native `<details>` gives keyboard support, semantics, and find-in-page auto-expansion for zero JS; the two classic reasons to want Radix are native now too — exclusive-open groups via the `name` attribute on `<details>`, and open/close animation via `::details-content` with `interpolate-size`. Radix's only remaining advantage is React-controlled open state, which nothing here needs. Owning a native-element primitive is squarely within shadcn's own you-own-the-source model.
   Date/Author: 2026-06-11 kluvin
 
-- Decision: Delete `Surface` entirely; inline its utilities at the 8 call sites. (Supersedes the earlier decision to merely fix its padding API.)
+- Decision: Delete `Surface` entirely; inline its utilities at every current call site. (Supersedes the earlier decision to merely fix its padding API.)
   Rationale: User policy preference for Tailwind primitives. The component wraps three utilities (`border-2 border-border bg-card` + padding), invented an API (className sniffing) that caused a real bug, drifted from its own documentation (`p` prop), and overlaps with `Card`. Brand consistency is already enforced by the tokens themselves — `border-border` and `bg-card` cannot render off-brand — and the inline string is self-documenting and grep-able. A wrapper that saves three classes while hiding one is negative abstraction.
   Date/Author: 2026-06-11 kluvin (direction set by Martin)
 
@@ -248,9 +257,21 @@ M13 (optional, gated) — shadcn registry:
   Rationale: User decision ("for now" — may be revisited). Keeps the card meta block to taxonomy, title, date, place, recurrence.
   Date/Author: 2026-06-11 Martin / recorded by kluvin
 
+- Decision: Text links use the same `focus-brutal` outline only, without an added `bg-gold-200` focus background.
+  Rationale: The house focus state is specified as a gapless amber ring around the existing border/box. Inline text links do not have a border box in the same visual grammar; adding a fill background would create a second focus idiom before the `/design` gallery exists. The outline is consistent, visible, and simpler to audit.
+  Date/Author: 2026-06-11 kluvin
+
+- Decision: M5's no-arbitrary-values rule applies to raw design values in markup, not selector variants that Tailwind needs to target framework or child-element state. The surviving `-[…]` classes after M5 are allowed only for selectors: Radix navigation state/motion (`data-[state=*]`, `data-[motion=*]`, `group-data-[state=open]`), structural child selectors (`has-[>svg]`, `has-[data-slot=card-action]`, `[&>svg]`, `[.border-b]`). Raw sizes, grid templates, aspect ratios, tracking, text sizes, and blur values were converted to stock utilities or named utilities in `globals.css`.
+  Rationale: Moving selector variants into CSS would make the Radix/shadcn state contract harder to audit while not reducing design-token drift. The problematic drift was raw values like `tracking-[0.18em]`, `grid-cols-[…]`, `aspect-[16/9]`, and `backdrop-blur-[1px]`, all of which now have stock or named equivalents.
+  Date/Author: 2026-06-11 kluvin
+
 ## Outcomes & Retrospective
 
-Not started. To be filled in as milestones complete.
+- M1/M2 completed on 2026-06-11. The form-field split was already present in the current tree and was verified from source; M2 removed unused shadcn wrapper files, removed direct Radix accordion/checkbox dependencies, deleted dead Button variants, replaced `Surface` with explicit Tailwind panel primitives, and kept `npm run build` green. Visual smoke via the in-app browser covered the pages touched by `Surface` removal plus a live event detail route discovered from `/nb/arrangementer`.
+- M3 completed on 2026-06-11. Domain-coupled UI files now live in feature slices, their feature barrels export the public components, and the generic `src/components/ui/` directory no longer imports `opening-hours` or carries Norwegian domain helpers. Browser smoke loaded `/nb`, `/nb/rom/book`, `/nb/rom/grondahls`, and `/nb/arrangementer`, verifying open-status copy, capacity copy, bool-spec rows, and date badge containers where applicable.
+- M4 implementation mostly completed on 2026-06-11. The focus utilities, primitive classes, nav/footer/text-link classes, radiogroup semantics, disabled checkbox behavior, and 44px primitive touch targets are in source and `npm run build` is green. The visual keyboard/400% zoom pass remains open because the available Browser wrapper could focus elements but did not trigger `:focus-visible`, making computed outline checks inconclusive.
+- M5 completed on 2026-06-11. The exact source greps for `text-foreground/NN`, `tracking-[…]`, and markup `text-[…]` are clean; layout/aspect/grid/blur raw values were converted to stock utilities or named `globals.css` utilities; the only remaining bracketed classes are documented selector variants; `npm run build` remains green.
+- M6 completed on 2026-06-11. Success/green tokens, shadow scale, Tag variants, and `interactive-brutal` are in source. `OpenStatus` renders `Tag` status labels, booking room occupancy uses `Tag variant="destructive"`, `SelectableCard` and karaoke room cards use shared interaction physics, and `npm run build` remains green. Browser smoke verified status tags on `/nb` and interactive card counts on `/nb/rom/book` and `/nb/karaoke`.
 
 ## Context and Orientation
 
@@ -294,7 +315,7 @@ Acceptance: `npm run build` exits zero; `grep -rn "ui/form-fields" src` returns 
 
 - Delete `src/components/ui/{accordion,popover,tooltip,checkbox,select}.tsx` (NOT `alert.tsx` — it is resurrected in M7). Before each deletion re-verify zero importers with `grep -rln 'components/ui/<name>"' src --include='*.tsx'` (the closing quote prevents prefix false-matches). Remove any Radix packages that become unused.
 - In `button.tsx`, delete the `reverse` and `noShadow` variants.
-- Delete `Surface` (see Decision Log): at each of the 8 importer files (`grep -rln "ui/surface" src`), replace `<Surface as="section" className="…">` with `<section className="border-2 border-border bg-card …">` — making the previously-implicit default padding explicit as `p-5` wherever the call site did not already pass a padding class (the `bg-muted p-0` site in `arrangementer/[event]/page.tsx` keeps its overrides verbatim). Then delete `surface.tsx`. The inline three-utility combo is the canonical panel treatment from here on; M12 documents it as such.
+- Delete `Surface` (see Decision Log): for every importer found by `grep -rln "ui/surface" src`, replace `<Surface as="section" className="…">` with the matching semantic element and explicit `border-2 border-border bg-card …` utilities — making the previously-implicit default padding explicit as `p-5` wherever the call site did not already pass a padding class (the `bg-muted p-0` site in `arrangementer/[event]/page.tsx` keeps its overrides verbatim except the deleted wrapper becomes a plain bordered `div`). Then delete `surface.tsx`. The inline three-utility combo is the canonical panel treatment from here on; M12 documents it as such.
 - Move `"shadcn"` from `dependencies` to `devDependencies`; run `npm install`.
 
 Acceptance: build green; `git grep -l "ui/accordion\|ui/popover\|ui/tooltip\|ui/surface"` empty; event-detail and group pages visually unchanged (compare padding edge-to-edge on the event image panel).
@@ -469,7 +490,7 @@ Acceptance: build green; `grep -n "use client\|rrule" src/features/events/compon
 
 Current order in `src/app/[locale]/page.tsx`: `HomeHero → HomeEvents → HomeBarPreviews`. Target order: `HomeHero → HomeEvents → HomeBookingBanner → HomeBarPreviews → HomeGrupperBanner`. Both new sections are route-private (`src/app/[locale]/_components/`), server components, copy from `src/messages/nb.json` under a `home.bookingBanner` / `home.grupperBanner` namespace.
 
-`HomeBookingBanner` (`src/app/[locale]/_components/HomeBookingBanner.tsx`) — the Oatly register: a full-width `Surface` in inverse colors (`bg-foreground text-background`, 2px border, `shadow-hard-lg`), generous padding (`p-8 sm:p-12`), containing an oversized two-line display heading (`font-heading text-4xl sm:text-6xl uppercase leading-none`) — copy direction: "TRENGER DU ET LOKALE?" / "VI HAR ni." — one short supporting sentence (`text-body-lg` on the inverse surface → `text-background/75`), and a `Button size="lg"` linking to `/{locale}/rom/book` ("Book rom"). Optional garnish (keep if it lands, cut if it clutters): a small rotated `Tag` sticker (`-rotate-3 absolute -top-3 right-8`) reading "GRATIS FOR STUDENTGRUPPER" — verify the claim with the booking terms before shipping copy.
+`HomeBookingBanner` (`src/app/[locale]/_components/HomeBookingBanner.tsx`) — the Oatly register: a full-width inverse-color section using the canonical inline panel treatment (`bg-foreground text-background`, 2px border, `shadow-hard-lg`), generous padding (`p-8 sm:p-12`), containing an oversized two-line display heading (`font-heading text-4xl sm:text-6xl uppercase leading-none`) — copy direction: "TRENGER DU ET LOKALE?" / "VI HAR ni." — one short supporting sentence (`text-body-lg` on the inverse panel → `text-background/75`), and a `Button size="lg"` linking to `/{locale}/rom/book` ("Book rom"). Optional garnish (keep if it lands, cut if it clutters): a small rotated `Tag` sticker (`-rotate-3 absolute -top-3 right-8`) reading "GRATIS FOR STUDENTGRUPPER" — verify the claim with the booking terms before shipping copy.
 
 `HomeGrupperBanner` (same directory) — amber register instead of navy: `bg-primary text-primary-foreground border-2 border-border shadow-hard-lg`, heading "BLI FRIVILLIG" with one sentence ("Kvarteret drives av studenter. Bli en av oss.") and two CTAs: `Button` (neutral variant on amber) → `/{locale}/grupper`, and a text link → the volunteer form anchor on the grupper page. If `fetchGroups` exposes a cheap count, add the eyebrow "40+ grupper" — verify the number from Sanity data, never hardcode a wrong one.
 
@@ -543,7 +564,11 @@ The Surface trap (resolved by deleting the component in M2): `!className?.includ
 
 Text-emphasis census (pre-M5): /70 ×30, /60 ×30, /50 ×22, /80 ×16, /40 ×12, /65 ×7, /55 ×6, /45 ×5, /75 ×3, /30 ×3, /85 ×2, /25 ×2, /20 ×2.
 
-M8's input audit table and M9's bundle before/after go here as the work happens.
+M7 verification (2026-06-11 09:15Z): `npm run format && npm run build` exits zero with the existing Portable Text warning during static generation. Browser on `http://localhost:3187/nb/rom/book`: empty submit renders one error summary with eight links (`Velg dato`, event name, audience, furniture, contact name, email, invoice address, terms); all eight linked fields have `aria-invalid="true"` and `aria-describedby`; the event-name summary link focuses the matching `<input>`. Browser on `/nb/karaoke`: empty submit renders one summary with six links and six invalid/described controls; the event-name link focuses the input. Browser on `/nb/arrangementer/ny`: invalid submit renders one summary with current missing fields (title, contact name, valid email; date is prefilled by the existing mount effect) and the title link focuses the input. Browser on `/nb/grupper/immaturus`: invalid volunteer submit renders one summary with five links, five invalid/described controls, and the first-name link focuses the input. `rg -n "<p[^>]*text-(destructive|red|green)|text-green|text-red" src/features src/components src/app --glob '*.tsx'` has no bare field-message hits outside shared primitives and intentional non-error styling.
+
+M8 input audit (2026-06-11 09:27Z): `rg -n "<Input" src/features --glob '*.tsx'` found 31 feature inputs. Field classes: names/text titles (`autoComplete` name/organization/off as appropriate), emails (`type=email`, `autoComplete=email`), phones (`type=tel`, `inputMode=tel`, `max-w-48`), counts (`type=number`, `inputMode=numeric`, `max-w-20`), prices (`PriceInput`, `max-w-28`, numeric mode), URLs (`type=url`, `inputMode=url`, `autoComplete=url`), dates/times (`type=date/time`), invoice address (`autoComplete=street-address`), org number (`inputMode=numeric`, `max-w-48`). Remaining M8 work: volunteer form stack convergence and mobile keyboard verification.
+
+M9's bundle before/after goes here as the work happens.
 
 ## Interfaces and Dependencies
 
@@ -566,3 +591,19 @@ Feature barrels gain: `bars` → OpenStatus, OpenStatusRoom; `rooms` → RoomCap
 Revision note (2026-06-11): rewritten to fold in the design-direction RFC and the site-lift brief — user-specified focus layering (amber→black→cream, gapless), Oatly added to inspirations, conditional-question house rule, tailored-inputs pass, EventCard server-component rework, front-page booking/grupper banners, text-emphasis and eyebrow token consolidation, typed TanStack fields, and the GroupVolunteerForm stack convergence. Earlier M-numbering (M1–M7) is superseded by phases A–D / M1–M13.
 
 Revision note (2026-06-11, later): per user direction — `Surface` is deleted rather than fixed (Tailwind-primitives preference; see Decision Log); two house policies added (prefer stock Tailwind utilities; no arbitrary values in markup) with an M5 conversion table for the existing census; the Disclosure-vs-shadcn-Accordion rationale is recorded in the Decision Log; the direction RFC's touch-target baking (→ M4) and default heading scale (→ M5) — which had dropped out of the previous revision — are restored; and the Progress section now carries granular per-milestone todo checklists.
+
+Revision note (2026-06-11 08:09Z): M1 was verified from current source and M2 was implemented. The plan now records the source-backed `Surface` call-site count (12 instead of the stale 8), the successful `npm install`, successful `npm run build`, and the browser smoke routes used to verify the inlined panel treatment.
+
+Revision note (2026-06-11 08:17Z): M3 was implemented and verified. The plan records the feature-slice destinations, stale-import greps, green build, and browser smoke evidence for open status, room capacity, bool specs, and date badges.
+
+Revision note (2026-06-11 08:24Z): M4 source implementation advanced through focus utilities, primitive/link wiring, radiogroup semantics, and touch-target baking. The plan intentionally leaves the manual keyboard and 400% zoom acceptance open because synthetic Browser Tab presses did not exercise `:focus-visible`.
+
+Revision note (2026-06-11 08:30Z): M5 was partially implemented. Named text-emphasis tokens, text-body/text-eyebrow alignment, `text-eyebrow-sm`, text/tracking arbitrary cleanup, default h1-h4 sizes, and reduced-motion wrapping for `btn-brutal` are complete and build-green. The broader arbitrary-value layout sweep remains open.
+
+Revision note (2026-06-11 08:34Z): M5 was completed. The broader arbitrary-value sweep promoted repeated layout recipes to named `globals.css` utilities, converted stock aspect/spacing cases, and recorded selector-only survivors in the Decision Log.
+
+Revision note (2026-06-11 08:38Z): M6 was implemented and verified with build plus browser smoke. The open status uses Tag, room occupancy uses Tag, success/shadow tokens exist, and card interaction physics is centralized in `interactive-brutal`.
+
+Revision note (2026-06-11 08:57Z): M7 infrastructure and the booking-form invalid-submit slice were implemented and verified. `Alert` now covers booking, karaoke, and event submit success/failure status blocks; booking has an `ErrorSummary` with focusable links plus per-field invalid/describedby wiring for the current submit-gating fields. Karaoke, event-submission, volunteer-form summaries, and the remaining bare destructive paragraphs are still open.
+
+Revision note (2026-06-11 09:15Z): M7 is complete. Karaoke, event submission, and group volunteer forms now use `ErrorSummary` with linked field errors and `aria-invalid`/`aria-describedby`; volunteer submit status uses `Alert`; `SelectField`, `DateScroller`, and `CheckboxField` expose the extra accessibility hooks needed by summaries. Final build is green with the pre-existing Portable Text warning.

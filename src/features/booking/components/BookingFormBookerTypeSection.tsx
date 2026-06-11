@@ -1,15 +1,14 @@
 "use client"
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { Building2, type LucideIcon, User, Users } from "lucide-react"
-import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SelectableCard } from "@/components/ui/selectable-card"
 import type { BookerType } from "../domain/formState"
+import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
 const BOOKER_OPTIONS: Array<{
@@ -38,16 +37,23 @@ const BOOKER_OPTIONS: Array<{
   },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface BookingFormBookerTypeSectionProps {}
+interface BookingFormBookerTypeSectionProps {
+  studentOrgNameError?: string
+  studentOrgNameId: string
+}
 
-export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionProps) {
-  const uid = useId()
+export function BookingFormBookerTypeSection({
+  studentOrgNameError,
+  studentOrgNameId,
+}: BookingFormBookerTypeSectionProps) {
   const form = useBookingForm()
+  const studentOrgErrorId = `${studentOrgNameId}-error`
 
   return (
     <FormSection number="01" title="Hvem booker">
-      <form.Subscribe selector={(s: any) => s.values.bookerType}>
+      <form.Subscribe
+        selector={(s: { values: BookingFormValues }) => s.values.bookerType}
+      >
         {(bookerType: BookerType) => (
           <>
             <div className="grid gap-3 md:grid-cols-3">
@@ -61,21 +67,30 @@ export function BookingFormBookerTypeSection({}: BookingFormBookerTypeSectionPro
                     <option.icon aria-hidden className="size-4 text-primary" />
                     {option.label}
                   </span>
-                  <span className="text-sm leading-5 text-foreground/65">
+                  <span className="text-sm leading-5 text-foreground-subtle">
                     {option.hint}
                   </span>
                 </SelectableCard>
               ))}
             </div>
             {bookerType === "studentorg" && (
-              <FieldGroup className="max-w-xl">
-                <Label htmlFor={`${uid}-studentOrg`}>
+              <FieldGroup
+                className="max-w-xl"
+                error={studentOrgNameError}
+                errorId={studentOrgErrorId}
+              >
+                <Label htmlFor={studentOrgNameId}>
                   Navn på studentorganisasjon *
                 </Label>
                 <form.Field name="studentOrgName">
-                  {(field: any) => (
+                  {(field: AnyFieldApi) => (
                     <Input
-                      id={`${uid}-studentOrg`}
+                      aria-describedby={
+                        studentOrgNameError ? studentOrgErrorId : undefined
+                      }
+                      aria-invalid={!!studentOrgNameError}
+                      autoComplete="organization"
+                      id={studentOrgNameId}
                       onChange={e => field.handleChange(e.target.value)}
                       placeholder="Registrert under Studentbergen.no"
                       value={field.state.value as string}

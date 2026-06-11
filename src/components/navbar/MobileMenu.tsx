@@ -48,7 +48,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
       <button
         aria-expanded={open}
         aria-label={open ? "Lukk meny" : "Åpne meny"}
-        className="relative p-3 lg:hidden"
+        className="relative p-3 focus-brutal lg:hidden"
         onClick={() => setOpen(v => !v)}
         type="button"
       >
@@ -75,8 +75,8 @@ export function MobileMenu({ items }: MobileMenuProps) {
           <div
             aria-hidden={!open}
             className={cn(
-              "fixed inset-0 z-[100] flex flex-col bg-background lg:hidden",
-              "transition-[opacity,transform] duration-200 ease-out",
+              "fixed inset-0 z-100 flex flex-col bg-background lg:hidden",
+              "transition duration-200 ease-out",
               open
                 ? "pointer-events-auto translate-y-0 opacity-100"
                 : "pointer-events-none -translate-y-3 opacity-0",
@@ -86,7 +86,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
               <div className={navShellClass}>
                 <Link
                   aria-label="Samfunnet i Bergen"
-                  className={brandLinkClass}
+                  className={`${brandLinkClass} focus-brutal`}
                   href="/"
                   onClick={close}
                 >
@@ -101,7 +101,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 </Link>
                 <button
                   aria-label="Lukk meny"
-                  className="p-3 text-foreground"
+                  className="p-3 text-foreground focus-brutal"
                   onClick={close}
                   type="button"
                 >
@@ -145,7 +145,7 @@ function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
 
   const linkCls = cn(
     "block px-6 py-5 font-heading text-2xl text-foreground",
-    "transition-[opacity,transform] duration-300 hover:bg-muted",
+    "transition duration-300 hover:bg-muted focus-brutal",
     open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
   )
 
@@ -156,7 +156,7 @@ function MobileNavItem({ item, onClose, open, index }: MobileNavItemProps) {
       {item.children?.map((group: NavGroup) =>
         group.items?.map((leaf: NavLeaf) => (
           <Link
-            className="block border-t border-border/50 px-10 py-3 text-sm text-foreground/60 transition-colors hover:bg-muted"
+            className="block border-t border-border/50 px-10 py-3 text-sm text-foreground-subtle transition-colors hover:bg-muted focus-brutal"
             href={leaf.href ?? leaf.externalUrl ?? "#"}
             key={leaf._key}
             onClick={onClose}

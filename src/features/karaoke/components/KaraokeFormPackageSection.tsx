@@ -47,7 +47,7 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
         <p className="text-sm font-heading text-foreground">
           Gratis for interne frivillige
         </p>
-        <p className="text-sm text-foreground/70 leading-6">
+        <p className="text-sm text-foreground-subtle leading-6">
           Som intern frivillig kan du bruke karaokerommet gratis, men eksterne
           bookinger har alltid prioritet. En ekstern booking kan overta rommet
           ved å booke senest{" "}
@@ -61,7 +61,7 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
   return (
     <Card className="bg-card p-4 py-4">
       <div className="flex justify-between text-sm">
-        <span className="text-foreground/60">Timepris per person</span>
+        <span className="text-foreground-subtle">Timepris per person</span>
         <span className="font-heading">
           {KARAOKE_PRICING[priceType].perPerson} kr
         </span>
@@ -76,7 +76,7 @@ function KaraokePeopleField({ uid }: { uid: string }) {
 
   return (
     <SelectField
-      className="max-w-[180px]"
+      className="max-w-44"
       hint={`Minimumspris er ${KARAOKE_PRICING[values.priceType as PriceType].minPerHour} kr per time.`}
       id={`${uid}-people`}
       label="Antall personer *"
@@ -96,12 +96,12 @@ function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
   return (
     <div className="border-2 border-primary bg-primary/5 p-4">
       <div className="flex items-baseline justify-between">
-        <span className="text-sm text-foreground/70">Totalpris</span>
+        <span className="text-sm text-foreground-subtle">Totalpris</span>
         <div className="text-right">
           <span className="font-heading text-2xl text-primary">
             {derived.totalPrice.toLocaleString("nb-NO")} kr
           </span>
-          <p className="text-xs text-foreground/50 mt-0.5">
+          <p className="text-xs text-foreground-faint mt-0.5">
             {Math.round(derived.totalPrice / derived.people).toLocaleString(
               "nb-NO",
             )}{" "}

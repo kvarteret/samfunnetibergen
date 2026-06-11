@@ -1,6 +1,5 @@
 import { Mail, Phone } from "lucide-react"
 import Image from "next/image"
-import { Surface } from "@/components/ui/surface"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -64,11 +63,11 @@ function PersonCard({ person }: { person: ContactPerson }) {
           {person.name}
         </p>
         {person.rolle && (
-          <p className="text-xs text-foreground/60">{person.rolle}</p>
+          <p className="text-xs text-foreground-subtle">{person.rolle}</p>
         )}
         {person.email && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground transition-colors"
             href={`mailto:${person.email}`}
           >
             <Mail className="size-3.5 shrink-0" aria-hidden />
@@ -77,7 +76,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
         )}
         {person.phone && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground transition-colors"
             href={`tel:${person.phone.replace(/\s/g, "")}`}
           >
             <Phone className="size-3.5 shrink-0" aria-hidden />
@@ -107,11 +106,11 @@ export default async function KontaktPage({
         </h1>
       </header>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-10 lg:grid-two-one">
         <div className="space-y-10">
           {(page?.contactGroups ?? []).map((group: ContactGroup) => (
             <section key={group._key}>
-              <h2 className="font-heading text-lg uppercase tracking-[0.12em] text-foreground mb-2">
+              <h2 className="text-eyebrow-sm text-foreground mb-2">
                 {group.title}
               </h2>
               <div>
@@ -123,7 +122,7 @@ export default async function KontaktPage({
           ))}
         </div>
 
-        <Surface as="aside" className="space-y-6 self-start">
+        <aside className="space-y-6 self-start border-2 border-border bg-card p-5">
           <AddressBlock label="Besøksadresse" value={page?.visitAddress} />
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
@@ -159,7 +158,7 @@ export default async function KontaktPage({
               )}
             </div>
           )}
-        </Surface>
+        </aside>
       </div>
     </article>
   )

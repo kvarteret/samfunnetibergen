@@ -1,7 +1,6 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { Surface } from "@/components/ui/surface"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -66,7 +65,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
   }>
 
   return (
-    <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <article className="grid gap-10 lg:grid-content-sidebar-20">
       <div className="space-y-8">
         <header className="space-y-5">
           {categoryLabel && (
@@ -94,7 +93,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
         {group.image?.assetUrl ? (
           <figure className="space-y-2">
-            <div className="relative aspect-[16/9] w-full overflow-hidden border-2 border-border bg-muted">
+            <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
               <Image
                 alt={group.image.alt ?? group.name ?? ""}
                 className="object-cover"
@@ -120,7 +119,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
       <aside className="space-y-6">
         {(group.email || group.website) && (
-          <Surface as="section" className="space-y-3">
+          <section className="space-y-3 border-2 border-border bg-card p-5">
             <h2 className="font-heading text-xl text-foreground">Kontakt</h2>
             {group.email && (
               <a
@@ -143,11 +142,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 <ExternalLink aria-hidden className="size-3" />
               </a>
             )}
-          </Surface>
+          </section>
         )}
 
         {group.parentGroup && (
-          <Surface as="section" className="space-y-2">
+          <section className="space-y-2 border-2 border-border bg-card p-5">
             <h2 className="font-heading text-xl text-foreground">Del av</h2>
             {group.parentGroup.slug ? (
               <a
@@ -161,11 +160,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 {group.parentGroup.name}
               </p>
             )}
-          </Surface>
+          </section>
         )}
 
         {group.subGroups?.length ? (
-          <Surface as="section" className="space-y-3">
+          <section className="space-y-3 border-2 border-border bg-card p-5">
             <h2 className="font-heading text-xl text-foreground">
               Undergrupper
             </h2>
@@ -179,11 +178,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 </li>
               ))}
             </ul>
-          </Surface>
+          </section>
         ) : null}
 
         {group.slug && (
-          <Surface as="section" className="p-5">
+          <section className="border-2 border-border bg-card p-5">
             <GroupVolunteerForm
               groupSlug={group.slug}
               groupName={group.name ?? group.slug}
@@ -194,7 +193,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 ) ?? []
               }
             />
-          </Surface>
+          </section>
         )}
       </aside>
     </article>

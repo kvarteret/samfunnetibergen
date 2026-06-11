@@ -1,17 +1,19 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { Building2, CalendarClock, Check } from "lucide-react"
 import { useId } from "react"
 import { Card } from "@/components/ui/card"
 import { DateScroller } from "@/components/ui/date-scroller"
 import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
-import { RoomCapacity } from "@/components/ui/room-capacity"
 import { SelectableCard } from "@/components/ui/selectable-card"
+import { Tag } from "@/components/ui/tag"
+import { RoomCapacity } from "@/features/rooms"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   buildDateSequence,
@@ -30,6 +32,7 @@ import {
 import type { BookerType } from "../domain/formState"
 import { isExternalBooker } from "../domain/formState"
 import type { BookingRoom } from "../types"
+import type { BookingFormValues } from "./BookingForm"
 import { BookingFormTimeSlotPicker } from "./BookingFormTimeSlotPicker"
 import { useBookingForm } from "./bookingFormContext"
 
@@ -46,6 +49,8 @@ interface BookingFormScheduleSectionProps {
   selectedRoom?: BookingRoom
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
+  startDateError?: string
+  startDateId: string
 }
 
 export function BookingFormScheduleSection({
@@ -58,9 +63,12 @@ export function BookingFormScheduleSection({
   selectedRoom,
   openingHours,
   closedDates,
+  startDateError,
+  startDateId,
 }: BookingFormScheduleSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const startDateErrorId = `${startDateId}-error`
 
   const today = isoDate(new Date())
   const dates = buildDateSequence(today, DATE_COUNT)
@@ -68,7 +76,7 @@ export function BookingFormScheduleSection({
   return (
     <FormSection number="02" title="Rom og tidspunkt">
       <form.Subscribe
-        selector={(s: any) => ({
+        selector={(s: { values: BookingFormValues }) => ({
           roomSlug: s.values.roomSlug,
           startDate: s.values.startDate,
           startTime: s.values.startTime,
@@ -107,13 +115,13 @@ export function BookingFormScheduleSection({
                         className="hover:border-primary"
                         disabled={occupied}
                         image={
-                          <div className="relative aspect-[16/9] bg-muted">
+                          <div className="relative aspect-video bg-muted">
                             <ImageWithFallback
                               alt={room.image?.alt ?? room.title ?? room.slug}
                               fallback={
                                 <Building2
                                   aria-hidden
-                                  className="size-8 text-foreground/30"
+                                  className="size-8 text-foreground-faint"
                                 />
                               }
                               sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
@@ -125,9 +133,12 @@ export function BookingFormScheduleSection({
                               </span>
                             )}
                             {occupied && (
-                              <span className="absolute left-3 top-3 bg-foreground px-2 py-1 text-eyebrow text-background">
+                              <Tag
+                                className="absolute left-3 top-3"
+                                variant="destructive"
+                              >
                                 Opptatt
-                              </span>
+                              </Tag>
                             )}
                           </div>
                         }
@@ -141,11 +152,11 @@ export function BookingFormScheduleSection({
                           {room.title ?? room.slug}
                         </p>
                         {room.summary && (
-                          <p className="line-clamp-2 text-sm leading-5 text-foreground/65">
+                          <p className="line-clamp-2 text-sm leading-5 text-foreground-subtle">
                             {room.summary}
                           </p>
                         )}
-                        <p className="text-xs text-foreground/50">
+                        <p className="text-xs text-foreground-faint">
                           <RoomCapacity
                             seated={room.capacitySeated}
                             standing={room.capacityStanding}
@@ -162,10 +173,14 @@ export function BookingFormScheduleSection({
               )}
 
               <div className="max-w-3xl space-y-4">
-                <FieldGroup>
+                <FieldGroup error={startDateError} errorId={startDateErrorId}>
                   <Label>Dato *</Label>
                   {selectedRoom ? (
                     <DateScroller
+                      aria-describedby={
+                        startDateError ? startDateErrorId : undefined
+                      }
+                      aria-invalid={!!startDateError}
                       dates={dates}
                       getDateState={date => {
                         if (date === startDate) return "selected"
@@ -180,6 +195,7 @@ export function BookingFormScheduleSection({
                           ? "available"
                           : "unavailable"
                       }}
+                      id={startDateId}
                       onChange={v => form.setFieldValue("startDate", v)}
                       selectedDate={startDate}
                       today={today}
@@ -188,29 +204,35 @@ export function BookingFormScheduleSection({
                     <FieldHint>Velg et rom for � se ledige dager.</FieldHint>
                   )}
                 </FieldGroup>
-                <BookingFormTimeSlotPicker
-                  closedDates={closedDates}
-                  date={startDate}
-                  doorsTime={doorsTime}
-                  endTime={endTime}
-                  onDoorsChange={v => form.setFieldValue("doorsTime", v)}
-                  onEndChange={v => form.setFieldValue("endTime", v)}
-                  onStartChange={v => form.setFieldValue("startTime", v)}
-                  openingHours={openingHours}
-                  roomOpeningHours={selectedRoom?.openingHours ?? null}
-                  startTime={startTime}
-                  uid={uid}
-                />
+                <div
+                  className="focus-brutal"
+                  id={`${startDateId}-time`}
+                  tabIndex={-1}
+                >
+                  <BookingFormTimeSlotPicker
+                    closedDates={closedDates}
+                    date={startDate}
+                    doorsTime={doorsTime}
+                    endTime={endTime}
+                    onDoorsChange={v => form.setFieldValue("doorsTime", v)}
+                    onEndChange={v => form.setFieldValue("endTime", v)}
+                    onStartChange={v => form.setFieldValue("startTime", v)}
+                    openingHours={openingHours}
+                    roomOpeningHours={selectedRoom?.openingHours ?? null}
+                    startTime={startTime}
+                    uid={uid}
+                  />
+                </div>
               </div>
 
               {isExternalBooker(bookerType) && (
                 <form.Field name="flexibleDates">
-                  {(field: any) => (
+                  {(field: AnyFieldApi) => (
                     <CheckboxField
                       checked={field.state.value as boolean}
                       className="max-w-3xl"
                       label="Dato og rom er fleksibelt. Kvarteret kan foresl� et annet tidspunkt eller rom hvis dette passer bedre."
-                      labelClassName="font-sans font-base text-foreground/80"
+                      labelClassName="font-sans font-base text-foreground-muted"
                       onChange={field.handleChange}
                     />
                   )}
@@ -232,7 +254,7 @@ export function BookingFormScheduleSection({
                     {selectedRoomTitle} – opptatt denne dagen
                   </p>
                   {selectedDateRoomBookings.length === 0 ? (
-                    <p className="text-sm text-foreground/60">
+                    <p className="text-sm text-foreground-subtle">
                       Ingen registrerte bookinger denne dagen.
                     </p>
                   ) : (
@@ -246,7 +268,7 @@ export function BookingFormScheduleSection({
                             {formatBookingTime(booking.start)}–
                             {formatBookingTime(booking.end)}
                           </span>
-                          <span className="truncate text-foreground/55">
+                          <span className="truncate text-foreground-subtle">
                             {booking.title}
                           </span>
                         </li>
@@ -254,10 +276,10 @@ export function BookingFormScheduleSection({
                     </ul>
                   )}
                   {hasConflict && (
-                    <p className="text-sm font-heading text-destructive">
+                    <FieldError id={`${startDateId}-time-conflict`}>
                       Valgt tidsrom overlapper en eksisterende booking. Velg et
                       annet tidspunkt.
-                    </p>
+                    </FieldError>
                   )}
                 </Card>
               )}

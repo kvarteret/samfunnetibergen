@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 
+import { Tag } from "@/components/ui/tag"
 import {
   type ClosedDate,
   isHouseClosed,
@@ -42,18 +43,12 @@ export function OpenStatus({
 
   if (variant === "announcement") {
     if (!isOpen) return null
-    return (
-      <p className="mt-2 font-heading text-xs uppercase tracking-[0.18em] text-primary">
-        er åpent!!
-      </p>
-    )
+    return <p className="mt-2 text-eyebrow text-primary">er åpent!!</p>
   }
 
   return (
-    <p
-      className={isOpen ? "text-xs text-primary" : "text-xs text-foreground/45"}
-    >
-      {isOpen ? "Åpen nå" : "Stengt nå"}
-    </p>
+    <Tag variant={isOpen ? "success" : "outline"}>
+      {isOpen ? "Åpent nå" : "Stengt nå"}
+    </Tag>
   )
 }

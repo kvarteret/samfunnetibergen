@@ -1,6 +1,6 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -15,22 +15,40 @@ const OPEN_CLOSED_OPTIONS = [
   { value: "Lukket", label: "Lukket arrangement" },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Props {}
+interface BookingFormEventDetailsSectionProps {
+  audienceCountError?: string
+  audienceCountId: string
+  eventNameError?: string
+  eventNameId: string
+}
 
-export function BookingFormEventDetailsSection({}: Props) {
+export function BookingFormEventDetailsSection({
+  audienceCountError,
+  audienceCountId,
+  eventNameError,
+  eventNameId,
+}: BookingFormEventDetailsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const audienceCountErrorId = `${audienceCountId}-error`
+  const eventNameErrorId = `${eventNameId}-error`
+
   return (
     <FormSection number="03" title="Arrangement">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldGroup className="sm:col-span-2">
-          <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
+        <FieldGroup
+          className="sm:col-span-2"
+          error={eventNameError}
+          errorId={eventNameErrorId}
+        >
+          <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
           <form.Field name="eventName">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
                 autoComplete="off"
-                id={`${uid}-eventName`}
+                aria-describedby={eventNameError ? eventNameErrorId : undefined}
+                aria-invalid={!!eventNameError}
+                id={eventNameId}
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="F.eks. konsert, møte, foredrag"
                 value={field.state.value as string}
@@ -38,12 +56,18 @@ export function BookingFormEventDetailsSection({}: Props) {
             )}
           </form.Field>
         </FieldGroup>
-        <FieldGroup>
-          <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
+        <FieldGroup error={audienceCountError} errorId={audienceCountErrorId}>
+          <Label htmlFor={audienceCountId}>Estimert antall publikum *</Label>
           <form.Field name="audienceCount">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
-                id={`${uid}-audience`}
+                aria-describedby={
+                  audienceCountError ? audienceCountErrorId : undefined
+                }
+                aria-invalid={!!audienceCountError}
+                className="max-w-20"
+                id={audienceCountId}
+                inputMode="numeric"
                 min={0}
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="F.eks. 50"
@@ -54,7 +78,7 @@ export function BookingFormEventDetailsSection({}: Props) {
           </form.Field>
         </FieldGroup>
         <form.Field name="openOrClosed">
-          {(field: any) => (
+          {(field: AnyFieldApi) => (
             <SelectField
               id={`${uid}-openClosed`}
               label="Åpent / lukket *"
@@ -67,7 +91,7 @@ export function BookingFormEventDetailsSection({}: Props) {
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
           <form.Field name="description">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Textarea
                 className="resize-y"
                 id={`${uid}-description`}

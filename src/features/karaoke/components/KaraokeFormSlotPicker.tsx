@@ -26,6 +26,9 @@ interface KaraokeFormSlotPickerProps {
   houseClosedDates?: ClosedDate[] | null
   onDateChange: (date: string) => void
   onSlotChange: (slotMin: number | null) => void
+  id?: string
+  "aria-describedby"?: string
+  "aria-invalid"?: boolean
 }
 
 export function KaraokeFormSlotPicker({
@@ -38,6 +41,9 @@ export function KaraokeFormSlotPicker({
   houseClosedDates,
   onDateChange,
   onSlotChange,
+  id,
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
 }: KaraokeFormSlotPickerProps) {
   const dates = buildDateSequence(today, KARAOKE_DATE_COUNT)
 
@@ -64,6 +70,8 @@ export function KaraokeFormSlotPicker({
   return (
     <div className="space-y-4">
       <DateScroller
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
         dates={dates}
         getDateState={date => {
           if (date === selectedDate) return "selected"
@@ -77,6 +85,7 @@ export function KaraokeFormSlotPicker({
             ? "available"
             : "unavailable"
         }}
+        id={id}
         onChange={onDateChange}
         selectedDate={selectedDate}
         today={today}

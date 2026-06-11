@@ -80,7 +80,7 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
         <CarouselContent className="ml-0">
           {allSlides.map((slide, i) => (
             <CarouselItem key={slide._key} className="pl-0">
-              <div className="relative aspect-[16/9] w-full">
+              <div className="relative aspect-video w-full">
                 {slide.type === "panorama" ? (
                   <iframe
                     allowFullScreen

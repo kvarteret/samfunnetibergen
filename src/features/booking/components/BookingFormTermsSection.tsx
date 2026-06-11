@@ -1,17 +1,27 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { type UIEvent, useState } from "react"
 import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldError } from "@/components/ui/field-error"
 import { FormSection } from "@/components/ui/form-section"
 import { useBookingForm } from "./bookingFormContext"
 
 const TERMS_URL = "https://kvarteret.no/leie-av-lokaler/"
 const CANCELLATION_URL = "https://kvarteret.no/avbestillingsvilkar/"
 
-export function BookingFormTermsSection() {
+interface BookingFormTermsSectionProps {
+  acceptTermsError?: string
+  acceptTermsId: string
+}
+
+export function BookingFormTermsSection({
+  acceptTermsError,
+  acceptTermsId,
+}: BookingFormTermsSectionProps) {
   const form = useBookingForm()
   const [hasRead, setHasRead] = useState(false)
+  const acceptTermsErrorId = `${acceptTermsId}-error`
 
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const el = event.currentTarget
@@ -41,7 +51,7 @@ export function BookingFormTermsSection() {
         </p>
         <p className="flex flex-wrap gap-4">
           <a
-            className="font-heading underline underline-offset-4"
+            className="font-heading underline underline-offset-4 focus-brutal"
             href={TERMS_URL}
             rel="noreferrer"
             target="_blank"
@@ -49,7 +59,7 @@ export function BookingFormTermsSection() {
             Vilkår for leie
           </a>
           <a
-            className="font-heading underline underline-offset-4"
+            className="font-heading underline underline-offset-4 focus-brutal"
             href={CANCELLATION_URL}
             rel="noreferrer"
             target="_blank"
@@ -57,20 +67,31 @@ export function BookingFormTermsSection() {
             Avbestillingsvilkår
           </a>
         </p>
-        <p className="text-xs text-foreground/45">
+        <p className="text-xs text-foreground-faint">
           Bla til bunnen for å bekrefte.
         </p>
       </div>
       <form.Field name="acceptTerms">
-        {(field: any) => (
-          <CheckboxField
-            checked={field.state.value as boolean}
-            className="max-w-3xl"
-            disabled={!hasRead}
-            label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
-            labelClassName="font-sans font-base text-foreground/80"
-            onChange={value => hasRead && field.handleChange(value)}
-          />
+        {(field: AnyFieldApi) => (
+          <div className="max-w-3xl space-y-2">
+            <CheckboxField
+              aria-describedby={
+                acceptTermsError ? acceptTermsErrorId : undefined
+              }
+              aria-invalid={!!acceptTermsError}
+              checked={field.state.value as boolean}
+              disabled={!hasRead}
+              id={acceptTermsId}
+              label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
+              labelClassName="font-sans font-base text-foreground-muted"
+              onChange={value => hasRead && field.handleChange(value)}
+            />
+            {acceptTermsError && (
+              <FieldError id={acceptTermsErrorId}>
+                {acceptTermsError}
+              </FieldError>
+            )}
+          </div>
         )}
       </form.Field>
     </FormSection>

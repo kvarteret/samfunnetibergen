@@ -8,21 +8,33 @@ import { useKaraokeForm } from "./karaokeFormContext"
 
 interface KaraokeFormContactSectionProps {
   uid: string
+  contactEmailError?: string
+  contactEmailId: string
+  contactNameError?: string
+  contactNameId: string
 }
 
 export function KaraokeFormContactSection({
   uid,
+  contactEmailError,
+  contactEmailId,
+  contactNameError,
+  contactNameId,
 }: KaraokeFormContactSectionProps) {
   const form = useKaraokeForm()
+  const contactEmailErrorId = `${contactEmailId}-error`
+  const contactNameErrorId = `${contactNameId}-error`
 
   return (
     <FormSection number="03" title="Kontaktinformasjon">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldGroup>
-          <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
+        <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
+          <Label htmlFor={contactNameId}>Navn *</Label>
           <Input
+            aria-describedby={contactNameError ? contactNameErrorId : undefined}
+            aria-invalid={!!contactNameError}
             autoComplete="name"
-            id={`${uid}-contactName`}
+            id={contactNameId}
             onChange={event =>
               form.setFieldValue("contactName", event.target.value)
             }
@@ -32,11 +44,15 @@ export function KaraokeFormContactSection({
           />
         </FieldGroup>
 
-        <FieldGroup>
-          <Label htmlFor={`${uid}-contactEmail`}>E-post *</Label>
+        <FieldGroup error={contactEmailError} errorId={contactEmailErrorId}>
+          <Label htmlFor={contactEmailId}>E-post *</Label>
           <Input
+            aria-describedby={
+              contactEmailError ? contactEmailErrorId : undefined
+            }
+            aria-invalid={!!contactEmailError}
             autoComplete="email"
-            id={`${uid}-contactEmail`}
+            id={contactEmailId}
             onChange={event =>
               form.setFieldValue("contactEmail", event.target.value)
             }
@@ -51,8 +67,10 @@ export function KaraokeFormContactSection({
       <FieldGroup>
         <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
         <Input
+          className="max-w-48"
           autoComplete="tel"
           id={`${uid}-contactPhone`}
+          inputMode="tel"
           onChange={event =>
             form.setFieldValue("contactPhone", event.target.value)
           }

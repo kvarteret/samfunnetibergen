@@ -38,6 +38,7 @@ export function EventFormOrganizerSection({
           Skumringen&quot;, &quot;Fagutvalget ved MN&quot;.
         </FieldHint>
         <Input
+          autoComplete="organization"
           id={`${uid}-organizerText`}
           onChange={event =>
             form.setFieldValue("organizerText", event.target.value)

@@ -1,6 +1,5 @@
 import { Mic, Phone } from "lucide-react"
 
-import { Surface } from "@/components/ui/surface"
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 import { Link } from "@/i18n/navigation"
 import {
@@ -75,7 +74,7 @@ function KaraokePageIntro() {
   return (
     <header className="space-y-4">
       <Link
-        className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-foreground/60 hover:text-foreground transition-colors"
+        className="inline-flex text-eyebrow underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
         href="/rom"
       >
         ← Rom
@@ -85,21 +84,19 @@ function KaraokePageIntro() {
         <div className="size-10 bg-primary flex items-center justify-center shrink-0">
           <Mic className="size-5 text-primary-foreground" aria-hidden />
         </div>
-        <p className="font-heading text-sm uppercase tracking-[0.18em] text-foreground/60">
-          Karaoke
-        </p>
+        <p className="text-eyebrow">Karaoke</p>
       </div>
       <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
         Booking av karaoke
       </h1>
-      <p className="text-lg leading-7 text-foreground/70 max-w-xl">
+      <p className="text-lg leading-7 text-foreground-subtle max-w-xl">
         Så gøy at du ønsker å booke karaoke hos oss! Fyll ut skjemaet under, så
         behandler vi forespørselen din så fort vi ser den.
       </p>
 
-      <p className="text-sm font-heading uppercase tracking-[0.12em] text-destructive">
+      <p className="text-eyebrow-sm text-destructive">
         Aldersgrense 18 år*{" "}
-        <span className="normal-case tracking-normal font-sans text-foreground/60">
+        <span className="normal-case tracking-normal font-sans text-foreground-subtle">
           (*18 år med studentbevis – 20 år for alle andre)
         </span>
       </p>
@@ -111,11 +108,11 @@ function KaraokePageIntro() {
 
 function SameDayKaraokeNotice() {
   return (
-    <Surface className="space-y-3 max-w-xl">
+    <div className="space-y-3 max-w-xl border-2 border-border bg-card p-5">
       <p className="text-sm font-heading text-foreground">
         Vil du booke et karaokerom i dag?
       </p>
-      <ul className="space-y-1.5 text-sm text-foreground/75 leading-6">
+      <ul className="space-y-1.5 text-sm text-foreground-muted leading-6">
         <li>
           På <strong className="font-heading text-foreground">hverdager</strong>{" "}
           må bookinger for samme dag gjøres{" "}
@@ -132,12 +129,12 @@ function SameDayKaraokeNotice() {
         </li>
       </ul>
       <a
-        className="flex items-center gap-2 text-sm font-heading text-primary hover:underline underline-offset-4 transition-colors"
+        className="flex items-center gap-2 text-sm font-heading text-primary hover:underline underline-offset-4 transition-colors focus-brutal"
         href="tel:40626601"
       >
         <Phone className="size-4 shrink-0" aria-hidden />
         406 26 601
       </a>
-    </Surface>
+    </div>
   )
 }

@@ -15,16 +15,16 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
   const firstImage: KaraokeRoomImage | undefined = room.images?.[0]
 
   return (
-    <Card className="space-y-4 bg-card p-5 py-5">
+    <Card className="space-y-4 bg-card p-5 py-5 interactive-brutal">
       <ImageWithFallback
         alt={firstImage?.alt ?? room.title}
         className="border-2 border-border/50"
-        fallback={<Mic className="size-10 text-foreground/20" aria-hidden />}
+        fallback={<Mic className="size-10 text-foreground-faint" aria-hidden />}
         src={firstImage?.assetUrl}
       />
       <div className="space-y-1">
         <Link
-          className="group flex items-center gap-1.5 font-heading text-base text-foreground hover:text-primary transition-colors"
+          className="group flex items-center gap-1.5 font-heading text-base text-foreground hover:text-primary transition-colors focus-brutal"
           href={`/rom/${room.slug}`}
         >
           {room.title}
@@ -35,7 +35,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         </Link>
       </div>
       {room.summary && (
-        <p className="text-body text-foreground/70">{room.summary}</p>
+        <p className="text-body text-foreground-subtle">{room.summary}</p>
       )}
       {(room.capacitySeated || room.capacityStanding) && (
         <div className="border-t border-border pt-4 flex gap-6 text-sm">
@@ -66,9 +66,7 @@ function KaraokeRoomCapacity({
 }) {
   return (
     <div>
-      <p className="font-heading text-xs uppercase tracking-[0.12em] text-foreground/50 mb-0.5">
-        {label}
-      </p>
+      <p className="text-eyebrow-sm text-foreground-faint mb-0.5">{label}</p>
       <p className="font-heading">{value}</p>
     </div>
   )

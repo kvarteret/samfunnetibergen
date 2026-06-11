@@ -19,7 +19,7 @@ export function EventsPageFilterButton({
         "inline-flex min-h-11 items-center justify-center border-2 border-border px-4 py-2 font-bold transition-colors",
         isActive
           ? "bg-foreground text-background"
-          : "bg-muted text-foreground/80 hover:bg-card",
+          : "bg-muted text-foreground-muted hover:bg-card",
       )}
       onClick={onClick}
       type="button"

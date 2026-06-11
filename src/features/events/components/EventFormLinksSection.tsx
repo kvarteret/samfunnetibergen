@@ -18,7 +18,9 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
       <FieldGroup>
         <Label htmlFor={`${uid}-ticketUrl`}>Billettlenke</Label>
         <Input
+          autoComplete="url"
           id={`${uid}-ticketUrl`}
+          inputMode="url"
           onChange={event =>
             form.setFieldValue("ticketUrl", event.target.value)
           }
@@ -31,7 +33,9 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
       <FieldGroup>
         <Label htmlFor={`${uid}-facebookUrl`}>Facebook-arrangement</Label>
         <Input
+          autoComplete="url"
           id={`${uid}-facebookUrl`}
+          inputMode="url"
           onChange={event =>
             form.setFieldValue("facebookUrl", event.target.value)
           }

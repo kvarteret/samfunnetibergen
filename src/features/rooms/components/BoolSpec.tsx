@@ -21,11 +21,13 @@ export function BoolSpec({ value, label, details }: BoolSpecProps) {
             Ja
           </span>
           {details && (
-            <span className="block max-w-xs text-foreground/70">{details}</span>
+            <span className="block max-w-xs text-foreground-subtle">
+              {details}
+            </span>
           )}
         </span>
       ) : (
-        <span className="inline-flex items-center gap-1.5 text-foreground/40">
+        <span className="inline-flex items-center gap-1.5 text-foreground-faint">
           <X aria-hidden className="size-4" />
           Nei
         </span>

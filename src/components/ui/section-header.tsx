@@ -9,7 +9,7 @@ export function SectionHeader({ number, title }: SectionHeaderProps) {
       <span className="font-heading text-4xl leading-none text-primary">
         {number}
       </span>
-      <h2 className="font-heading text-xl uppercase tracking-[0.15em] text-foreground">
+      <h2 className="font-heading text-xl uppercase tracking-widest text-foreground">
         {title}
       </h2>
     </div>

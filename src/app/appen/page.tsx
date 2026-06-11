@@ -44,7 +44,7 @@ export default async function AppenPage() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 bg-background">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-3xl">Last ned appen</h1>
-        <p className="text-foreground/60 text-sm">
+        <p className="text-foreground-subtle text-sm">
           Tilgjengelig for iOS og Android
         </p>
       </div>
@@ -54,11 +54,11 @@ export default async function AppenPage() {
           href={APP_STORE_URL}
           rel="noreferrer"
           target="_blank"
-          className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded"
+          className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded focus-brutal"
         >
           <IconApple />
           <span className="text-sm font-medium leading-tight">
-            <span className="block text-[10px] text-foreground/50 uppercase tracking-wide">
+            <span className="block text-eyebrow-sm text-foreground-faint">
               Last ned på
             </span>{" "}
             App Store
@@ -69,11 +69,11 @@ export default async function AppenPage() {
           href={GOOGLE_PLAY_URL}
           rel="noreferrer"
           target="_blank"
-          className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded"
+          className="flex items-center gap-3 border border-border bg-card hover:bg-muted transition-colors px-5 py-3 rounded focus-brutal"
         >
           <IconAndroid />
           <span className="text-sm font-medium leading-tight">
-            <span className="block text-[10px] text-foreground/50 uppercase tracking-wide">
+            <span className="block text-eyebrow-sm text-foreground-faint">
               Last ned på
             </span>{" "}
             Google Play
@@ -83,7 +83,7 @@ export default async function AppenPage() {
 
       <Link
         href="/nb"
-        className="text-xs text-foreground/40 hover:text-foreground/70 transition-colors"
+        className="text-xs text-foreground-faint hover:text-foreground-subtle transition-colors"
       >
         ← Tilbake til forsiden
       </Link>

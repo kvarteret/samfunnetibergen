@@ -1,6 +1,6 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -10,25 +10,45 @@ import type { BookerType } from "../domain/formState"
 import { isExternalBooker } from "../domain/formState"
 import { useBookingForm } from "./bookingFormContext"
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Props {}
+interface BookingFormContactSectionProps {
+  contactEmailError?: string
+  contactEmailId: string
+  contactNameError?: string
+  contactNameId: string
+  invoiceAddressError?: string
+  invoiceAddressId: string
+}
 
-export function BookingFormContactSection({}: Props) {
+export function BookingFormContactSection({
+  contactEmailError,
+  contactEmailId,
+  contactNameError,
+  contactNameId,
+  invoiceAddressError,
+  invoiceAddressId,
+}: BookingFormContactSectionProps) {
   const uid = useId()
   const form = useBookingForm()
   const bookerType = form.state.values.bookerType as BookerType
   const isExternal = isExternalBooker(bookerType)
+  const contactEmailErrorId = `${contactEmailId}-error`
+  const contactNameErrorId = `${contactNameId}-error`
+  const invoiceAddressErrorId = `${invoiceAddressId}-error`
 
   return (
     <FormSection number="07" title="Kontaktinformasjon">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldGroup>
-          <Label htmlFor={`${uid}-contactName`}>Navn *</Label>
+        <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
+          <Label htmlFor={contactNameId}>Navn *</Label>
           <form.Field name="contactName">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
+                aria-describedby={
+                  contactNameError ? contactNameErrorId : undefined
+                }
+                aria-invalid={!!contactNameError}
                 autoComplete="name"
-                id={`${uid}-contactName`}
+                id={contactNameId}
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="Fullt navn"
                 value={field.state.value as string}
@@ -36,13 +56,17 @@ export function BookingFormContactSection({}: Props) {
             )}
           </form.Field>
         </FieldGroup>
-        <FieldGroup>
-          <Label htmlFor={`${uid}-contactEmail`}>E-post *</Label>
+        <FieldGroup error={contactEmailError} errorId={contactEmailErrorId}>
+          <Label htmlFor={contactEmailId}>E-post *</Label>
           <form.Field name="contactEmail">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
+                aria-describedby={
+                  contactEmailError ? contactEmailErrorId : undefined
+                }
+                aria-invalid={!!contactEmailError}
                 autoComplete="email"
-                id={`${uid}-contactEmail`}
+                id={contactEmailId}
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="din@epost.no"
                 type="email"
@@ -54,10 +78,12 @@ export function BookingFormContactSection({}: Props) {
         <FieldGroup>
           <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
           <form.Field name="contactPhone">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
                 autoComplete="tel"
+                className="max-w-48"
                 id={`${uid}-contactPhone`}
+                inputMode="tel"
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="+47 55 55 55 55"
                 type="tel"
@@ -69,13 +95,19 @@ export function BookingFormContactSection({}: Props) {
         {isExternal && (
           <>
             <form.Field name="invoiceAddress">
-              {(field: any) => (
-                <FieldGroup>
-                  <Label htmlFor={`${uid}-invoiceAddress`}>
-                    Fakturaadresse *
-                  </Label>
+              {(field: AnyFieldApi) => (
+                <FieldGroup
+                  error={invoiceAddressError}
+                  errorId={invoiceAddressErrorId}
+                >
+                  <Label htmlFor={invoiceAddressId}>Fakturaadresse *</Label>
                   <Input
-                    id={`${uid}-invoiceAddress`}
+                    aria-describedby={
+                      invoiceAddressError ? invoiceAddressErrorId : undefined
+                    }
+                    aria-invalid={!!invoiceAddressError}
+                    autoComplete="street-address"
+                    id={invoiceAddressId}
                     onChange={e => field.handleChange(e.target.value)}
                     placeholder="Adresse for faktura"
                     value={field.state.value as string}
@@ -84,14 +116,15 @@ export function BookingFormContactSection({}: Props) {
               )}
             </form.Field>
             <form.Field name="orgNumber">
-              {(field: any) => (
+              {(field: AnyFieldApi) => (
                 <FieldGroup>
                   <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
                   <Input
+                    className="max-w-48"
                     id={`${uid}-orgNumber`}
+                    inputMode="numeric"
                     onChange={e => field.handleChange(e.target.value)}
                     placeholder="Valgfritt"
-                    type="number"
                     value={field.state.value as string}
                   />
                 </FieldGroup>

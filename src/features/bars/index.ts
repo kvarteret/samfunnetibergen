@@ -1,1 +1,1 @@
-export { OpenStatus, type OpenStatusRoom } from "@/components/ui/open-status"
+export { OpenStatus, type OpenStatusRoom } from "./components/OpenStatus"
