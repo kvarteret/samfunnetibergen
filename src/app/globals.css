@@ -286,6 +286,20 @@
   );
 }
 
+/* ── Accessibility: motion ── */
+/* Global safeguard: reduce all animation/transition durations for users
+   who prefer reduced motion. One rule covers every current and future
+   transition/animation in the codebase. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* House focus state: cream interior -> 2px black border -> 3px amber ring,
    with zero offset so no page background shows between border and ring. */
 @utility focus-brutal {
@@ -302,9 +316,8 @@
   }
 }
 
-@utility interactive-brutal {
-  border-width: 2px;
-  border-style: solid;
+@utility btn-brutal {
+  border: 2px solid var(--color-border);
   box-shadow: 4px 4px 0 var(--color-border);
 
   @media (prefers-reduced-motion: no-preference) {
@@ -316,6 +329,7 @@
       transform: translate(-2px, -2px);
       box-shadow: 6px 6px 0 var(--color-border);
     }
+
     &:active {
       transform: translate(2px, 2px);
       box-shadow: 2px 2px 0 var(--color-border);
@@ -323,20 +337,32 @@
   }
 }
 
-@utility btn-brutal {
-  @apply interactive-brutal border-border;
+/* Generalized interactive motion: the hover-lift / press-in choreography
+   that btn-brutal, selectable cards, and toggle options all share.
+   Apply as @apply interactive-brutal to any component that should feel
+   physical. Motion is wrapped in prefers-reduced-motion: no-preference. */
+@utility interactive-brutal {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--color-border);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--color-border);
+    }
+  }
 }
 
 @utility panel {
   border: 2px solid var(--color-border);
   background-color: var(--color-card);
   padding: 1.25rem;
-}
-
-@utility text-body {
-  font-size: var(--text-base);
-  line-height: calc(1.5 * var(--text-base));
-  color: var(--color-foreground-muted);
 }
 
 @utility grid-auto-side {
