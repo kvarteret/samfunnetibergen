@@ -76,19 +76,18 @@ export function KaraokeFormSlotPicker({
     <div className="space-y-4">
       <DateScroller
         dates={dates}
-        getDateState={date =>
-          date === selectedDate
-            ? "selected"
-            : dateHasKaraokeSlot(
-                  date,
-                  duration,
-                  bookings,
-                  operationsManagerHours,
-                  houseClosedDates,
-                )
-              ? "available"
-              : "unavailable"
-        }
+        getDateState={date => {
+          if (date === selectedDate) return "selected"
+          return dateHasKaraokeSlot(
+            date,
+            duration,
+            bookings,
+            operationsManagerHours,
+            houseClosedDates,
+          )
+            ? "available"
+            : "unavailable"
+        }}
         onChange={onDateChange}
         selectedDate={selectedDate}
         today={today}

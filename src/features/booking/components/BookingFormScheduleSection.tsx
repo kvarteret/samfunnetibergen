@@ -170,20 +170,19 @@ export function BookingFormScheduleSection({
                   {selectedRoom ? (
                     <DateScroller
                       dates={dates}
-                      getDateState={date =>
-                        date === startDate
-                          ? "selected"
-                          : dateHasAvailableRoomSlot(
-                                date,
-                                durationHours,
-                                roomBookings,
-                                openingHours,
-                                selectedRoom.openingHours,
-                                closedDates,
-                              )
-                            ? "available"
-                            : "unavailable"
-                      }
+                      getDateState={date => {
+                        if (date === startDate) return "selected"
+                        return dateHasAvailableRoomSlot(
+                          date,
+                          durationHours,
+                          roomBookings,
+                          openingHours,
+                          selectedRoom.openingHours,
+                          closedDates,
+                        )
+                          ? "available"
+                          : "unavailable"
+                      }}
                       onChange={v => form.setFieldValue("startDate", v)}
                       selectedDate={startDate}
                       today={today}

@@ -60,7 +60,7 @@ export default async function AppenPage() {
           <span className="text-sm font-medium leading-tight">
             <span className="block text-[10px] text-foreground/50 uppercase tracking-wide">
               Last ned på
-            </span>
+            </span>{" "}
             App Store
           </span>
         </a>
@@ -75,7 +75,7 @@ export default async function AppenPage() {
           <span className="text-sm font-medium leading-tight">
             <span className="block text-[10px] text-foreground/50 uppercase tracking-wide">
               Last ned på
-            </span>
+            </span>{" "}
             Google Play
           </span>
         </a>

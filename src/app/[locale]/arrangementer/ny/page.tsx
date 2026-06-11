@@ -78,15 +78,15 @@ function SubmitEventPageIntro() {
           <p className="text-eyebrow">Slik fungerer det</p>
           <ol className="space-y-2 text-sm text-foreground/80 leading-6">
             <li className="flex gap-2.5">
-              <span className="font-heading text-primary shrink-0">1.</span>
+              <span className="font-heading text-primary shrink-0">1.</span>{" "}
               Fyll ut skjemaet og send inn
             </li>
             <li className="flex gap-2.5">
-              <span className="font-heading text-primary shrink-0">2.</span>
-              Vi gjennomgår innmeldingen
+              <span className="font-heading text-primary shrink-0">2.</span> Vi
+              gjennomgår innmeldingen
             </li>
             <li className="flex gap-2.5">
-              <span className="font-heading text-primary shrink-0">3.</span>
+              <span className="font-heading text-primary shrink-0">3.</span>{" "}
               Godkjente arrangementer publiseres på nettsiden
             </li>
           </ol>

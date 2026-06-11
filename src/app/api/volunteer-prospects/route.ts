@@ -22,24 +22,57 @@ interface VolunteerProspectBody {
   background_details?: string
 }
 
+const REQUIRED_FIELDS = [
+  "full_name",
+  "email",
+  "phone",
+  "study_institution",
+  "first_choice_group_slug",
+] as const
+
+type RequiredField = (typeof REQUIRED_FIELDS)[number]
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim() !== ""
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_RE = /\d/
+
+function fieldError(
+  b: Record<string, unknown>,
+  key: RequiredField,
+): string | null {
+  if (!isNonEmptyString(b[key])) return `${key} er påkrevd`
+  if (key === "email" && !EMAIL_RE.test(b[key] as string))
+    return "Ugyldig e-post"
+  if (key === "phone" && !PHONE_RE.test(b[key] as string))
+    return "Telefonnummer er påkrevd"
+  return null
+}
+
 function validate(body: unknown): body is VolunteerProspectBody {
   if (!body || typeof body !== "object") return false
   const b = body as Record<string, unknown>
-  if (typeof b.full_name !== "string" || !b.full_name.trim()) return false
-  if (
-    typeof b.email !== "string" ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)
-  )
-    return false
-  if (typeof b.phone !== "string" || !/\d/.test(b.phone)) return false
-  if (typeof b.study_institution !== "string" || !b.study_institution.trim())
-    return false
-  if (
-    typeof b.first_choice_group_slug !== "string" ||
-    !b.first_choice_group_slug.trim()
-  )
-    return false
+  for (const field of REQUIRED_FIELDS) {
+    if (fieldError(b, field)) return false
+  }
   return true
+}
+
+function extractErrorDetail(err: unknown): string {
+  if (typeof err !== "object" || err === null || !("detail" in err)) {
+    return "Kunne ikke registrere frivillig."
+  }
+  const d = (err as { detail: unknown }).detail
+  if (typeof d === "string") return d
+  if (Array.isArray(d) && d.length > 0) {
+    const first = d[0]
+    return typeof first === "object" && first !== null && "msg" in first
+      ? String((first as { msg: unknown }).msg)
+      : JSON.stringify(first)
+  }
+  return "Kunne ikke registrere frivillig."
 }
 
 export async function POST(request: Request) {
@@ -67,24 +100,10 @@ export async function POST(request: Request) {
     })
 
     if (result.error) {
-      let detail = "Kunne ikke registrere frivillig."
-      if (
-        typeof result.error === "object" &&
-        result.error !== null &&
-        "detail" in result.error
-      ) {
-        const d = (result.error as { detail: unknown }).detail
-        if (Array.isArray(d) && d.length > 0) {
-          const first = d[0]
-          detail =
-            typeof first === "object" && first !== null && "msg" in first
-              ? String((first as { msg: unknown }).msg)
-              : JSON.stringify(first)
-        } else if (typeof d === "string") {
-          detail = d
-        }
-      }
-      return NextResponse.json({ detail }, { status: 422 })
+      return NextResponse.json(
+        { detail: extractErrorDetail(result.error) },
+        { status: 422 },
+      )
     }
 
     return NextResponse.json(

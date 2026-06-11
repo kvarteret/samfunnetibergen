@@ -111,7 +111,7 @@ export function EventFormRecurrenceBuilder({
         onUntilDateChange={setUntilDate}
         untilDate={untilDate}
       />
-      <RecurrencePreview preview={recurrence?.preview} />
+      <RecurrencePreview preview={recurrence?.preview} />{" "}
     </div>
   )
 }
@@ -285,7 +285,7 @@ function RecurrenceEndField({
               }
               type="number"
               value={count}
-            />
+            />{" "}
             ganger
           </label>
         </div>

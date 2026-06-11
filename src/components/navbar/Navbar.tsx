@@ -119,7 +119,7 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
       {groups.map((group, gi) => (
         <div className="space-y-0.5" key={group._key ?? gi}>
           {group.groupLabel && (
-            <p className="px-2 py-1.5 font-heading text-[10px] uppercase tracking-widest text-foreground/40">
+            <p className="px-2 py-1.5 font-heading l uppercase tracking-widest text-foreground/40">
               {group.groupLabel}
             </p>
           )}

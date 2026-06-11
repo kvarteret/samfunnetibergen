@@ -137,7 +137,7 @@ function EventDateCard({
 
         <FieldGroup>
           <Label htmlFor={`${uid}-starttime-${date.id}`}>
-            Starttid
+            Starttid{" "}
             <span className="ml-1 font-sans font-normal text-foreground/40">
               (anbefalt)
             </span>
@@ -154,7 +154,7 @@ function EventDateCard({
 
         <FieldGroup>
           <Label htmlFor={`${uid}-endtime-${date.id}`}>
-            Sluttid
+            Sluttid{" "}
             <span className="ml-1 font-sans font-normal text-foreground/40">
               (valgfritt)
             </span>

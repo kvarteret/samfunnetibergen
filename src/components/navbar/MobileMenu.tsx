@@ -74,8 +74,6 @@ export function MobileMenu({ items }: MobileMenuProps) {
         createPortal(
           <div
             aria-hidden={!open}
-            aria-modal={open}
-            role={open ? "dialog" : undefined}
             className={cn(
               "fixed inset-0 z-[100] flex flex-col bg-background lg:hidden",
               "transition-[opacity,transform] duration-200 ease-out",
