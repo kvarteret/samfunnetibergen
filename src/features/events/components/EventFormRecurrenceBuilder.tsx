@@ -1,17 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { RRule } from "rrule"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
-
-type Frequency = "WEEKLY" | "MONTHLY" | "DAILY"
-type EndType = "count" | "until" | "never"
-
-type RecurrenceState = {
-  rule: string
-  preview: string
-}
+import {
+  buildRecurrence,
+  initialRecurrenceInput,
+  type RecurrenceEndType,
+  type RecurrenceFrequency,
+  type RecurrenceInput,
+} from "../domain/recurrence"
 
 type WeekdayOption = {
   label: string
@@ -22,7 +21,10 @@ interface EventFormRecurrenceBuilderProps {
   onChange: (rrule: string) => void
 }
 
-const frequencyOptions: Array<{ value: Frequency; label: string }> = [
+const frequencyOptions: Array<{
+  value: RecurrenceFrequency
+  label: string
+}> = [
   { value: "DAILY", label: "Daglig" },
   { value: "WEEKLY", label: "Ukentlig" },
   { value: "MONTHLY", label: "Månedlig" },
@@ -38,7 +40,7 @@ const weekdayOptions: WeekdayOption[] = [
   { label: "Sø", value: RRule.SU },
 ]
 
-const endTypeOptions: Array<{ value: EndType; label: string }> = [
+const endTypeOptions: Array<{ value: RecurrenceEndType; label: string }> = [
   { value: "count", label: "Etter antall gjentagelser" },
   { value: "until", label: "På en bestemt dato" },
   { value: "never", label: "Aldri" },
@@ -47,146 +49,74 @@ const endTypeOptions: Array<{ value: EndType; label: string }> = [
 export function EventFormRecurrenceBuilder({
   onChange,
 }: EventFormRecurrenceBuilderProps) {
-  const [frequency, setFrequency] = useState<Frequency>("WEEKLY")
-  const [interval, setInterval] = useState(1)
-  const [weekdays, setWeekdays] = useState<number[]>([1])
-  const [endType, setEndType] = useState<EndType>("count")
-  const [count, setCount] = useState(8)
-  const [untilDate, setUntilDate] = useState("")
+  const [input, setInput] = useState(initialRecurrenceInput)
+  const recurrence = buildRecurrence(input)
 
-  const recurrence = buildRecurrence({
-    frequency,
-    interval,
-    weekdays,
-    endType,
-    count,
-    untilDate,
-  })
-
-  useEffect(() => {
-    if (recurrence) {
-      onChange(recurrence.rule)
+  const updateInput = (patch: Partial<RecurrenceInput>) => {
+    const nextInput = { ...input, ...patch }
+    setInput(nextInput)
+    const nextRecurrence = buildRecurrence(nextInput)
+    if (nextRecurrence) {
+      onChange(nextRecurrence.rule)
     }
-  }, [recurrence, onChange])
+  }
 
   return (
     <div className="space-y-5 border-2 border-border bg-secondary/10 p-6">
       <RecurrenceHeader />
       <fieldset className="space-y-2">
-        <legend className="text-sm text-foreground-subtle">Gjentas</legend>
+        <legend className="text-sm text-foreground-muted">Gjentas</legend>
         <SegmentedControl
-          onChange={setFrequency}
+          onChange={frequency => updateInput({ frequency })}
           options={frequencyOptions}
-          value={frequency}
+          value={input.frequency}
         />
       </fieldset>
       <RecurrenceIntervalField
-        frequency={frequency}
-        interval={interval}
-        onIntervalChange={setInterval}
+        frequency={input.frequency}
+        interval={input.interval}
+        onIntervalChange={interval => updateInput({ interval })}
       />
-      {frequency === "WEEKLY" && (
+      {input.frequency === "WEEKLY" && (
         <fieldset className="space-y-2">
-          <legend className="text-sm text-foreground-subtle">Dager</legend>
+          <legend className="text-sm text-foreground-muted">Dager</legend>
           <ToggleGroup
-            onChange={values => setWeekdays(values.map(Number))}
+            onChange={values => updateInput({ weekdays: values.map(Number) })}
             options={weekdayOptions.map((day, i) => ({
               value: String(i),
               label: day.label,
             }))}
             size="sm"
-            value={weekdays.map(String)}
+            value={input.weekdays.map(String)}
           />
         </fieldset>
       )}
       <RecurrenceEndField
-        count={count}
-        endType={endType}
-        onCountChange={setCount}
-        onEndTypeChange={setEndType}
-        onUntilDateChange={setUntilDate}
-        untilDate={untilDate}
+        count={input.count}
+        endType={input.endType}
+        onCountChange={count => updateInput({ count })}
+        onEndTypeChange={endType => updateInput({ endType })}
+        onUntilDateChange={untilDate => updateInput({ untilDate })}
+        untilDate={input.untilDate}
       />
       <RecurrencePreview preview={recurrence?.preview} />{" "}
     </div>
   )
 }
 
-function buildRecurrence({
-  frequency,
-  interval,
-  weekdays,
-  endType,
-  count,
-  untilDate,
-}: {
-  frequency: Frequency
-  interval: number
-  weekdays: number[]
-  endType: EndType
-  count: number
-  untilDate: string
-}): RecurrenceState | null {
-  try {
-    const options: ConstructorParameters<typeof RRule>[0] = {
-      freq: getRRuleFrequency(frequency),
-      interval,
-    }
-
-    if (frequency === "WEEKLY" && weekdays.length > 0) {
-      options.byweekday = weekdays.map(day => weekdayOptions[day].value)
-    }
-
-    if (endType === "count") {
-      options.count = count
-    } else if (endType === "until" && untilDate) {
-      options.until = new Date(untilDate)
-    }
-
-    const rule = new RRule(options)
-
-    return {
-      rule: rule.toString().replace(/^RRULE:/, ""),
-      preview: translateRecurrencePreview(rule.toText()),
-    }
-  } catch {
-    return null
-  }
-}
-
-function getRRuleFrequency(frequency: Frequency) {
-  if (frequency === "DAILY") {
-    return RRule.DAILY
-  }
-
-  if (frequency === "MONTHLY") {
-    return RRule.MONTHLY
-  }
-
-  return RRule.WEEKLY
-}
-
-function translateRecurrencePreview(text: string): string {
-  return text
-    .replace("every", "Hver")
-    .replace("week", "uke")
-    .replace("day", "dag")
-    .replace("month", "måned")
-    .replace("for", "i")
-    .replace("times", "ganger")
-}
-
 function RecurrenceHeader() {
   return (
     <div className="flex items-center gap-3">
       <div className="size-2 rounded-full bg-primary" />
-      <p className="text-eyebrow text-foreground">Gjentagelsesmønster</p>
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+        Gjentagelsesmønster
+      </p>
     </div>
   )
 }
 
 interface RecurrenceIntervalFieldProps {
-  frequency: Frequency
+  frequency: RecurrenceFrequency
   interval: number
   onIntervalChange: (interval: number) => void
 }
@@ -198,7 +128,7 @@ function RecurrenceIntervalField({
 }: RecurrenceIntervalFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="cursor-pointer text-sm text-foreground-subtle">
+      <label className="cursor-pointer text-sm text-foreground-muted">
         Intervall - hver{" "}
         <input
           className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-brutal"
@@ -216,7 +146,7 @@ function RecurrenceIntervalField({
   )
 }
 
-function getFrequencyUnitLabel(frequency: Frequency): string {
+function getFrequencyUnitLabel(frequency: RecurrenceFrequency): string {
   if (frequency === "DAILY") {
     return "dag"
   }
@@ -230,9 +160,9 @@ function getFrequencyUnitLabel(frequency: Frequency): string {
 
 interface RecurrenceEndFieldProps {
   count: number
-  endType: EndType
+  endType: RecurrenceEndType
   onCountChange: (count: number) => void
-  onEndTypeChange: (endType: EndType) => void
+  onEndTypeChange: (endType: RecurrenceEndType) => void
   onUntilDateChange: (untilDate: string) => void
   untilDate: string
 }
@@ -247,7 +177,7 @@ function RecurrenceEndField({
 }: RecurrenceEndFieldProps) {
   return (
     <fieldset className="space-y-3">
-      <legend className="text-sm text-foreground-subtle">Avsluttes</legend>
+      <legend className="text-sm text-foreground-muted">Avsluttes</legend>
       <div className="space-y-2">
         {endTypeOptions.map(option => (
           <label
@@ -269,7 +199,7 @@ function RecurrenceEndField({
 
       {endType === "count" && (
         <div className="pl-6">
-          <label className="text-sm text-foreground-subtle">
+          <label className="text-sm text-foreground-muted">
             <input
               className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center text-sm font-heading text-foreground focus-brutal"
               max={365}
@@ -310,7 +240,7 @@ function RecurrencePreview({ preview }: RecurrencePreviewProps) {
 
   return (
     <div className="border-l-4 border-primary py-1 pl-4">
-      <p className="text-sm text-foreground-subtle">Forhåndsvisning:</p>
+      <p className="text-sm text-foreground-muted">Forhåndsvisning:</p>
       <p className="text-sm font-heading capitalize text-foreground">
         {preview}
       </p>

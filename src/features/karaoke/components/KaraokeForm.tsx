@@ -1,13 +1,12 @@
 "use client"
 
-import { useForm } from "@tanstack/react-form"
+import { useForm, useStore } from "@tanstack/react-form"
 import type { FormEvent } from "react"
 import { useEffect, useId, useState } from "react"
 import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { useFormErrors } from "@/lib/use-form-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -15,6 +14,7 @@ import {
   type OpeningHours,
   slotRangesForDate,
 } from "@/lib/opening-hours"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
@@ -73,12 +73,14 @@ export function KaraokeForm({
       if (!result.ok) throw new Error(result.error)
     },
   })
-
-  const derived = deriveKaraokeState(form.state.values)
-  const validationErrors = getKaraokeValidationErrors(
-    form.state.values,
-    fieldIds,
+  const values = useStore(form.store, state => state.values)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
   )
+
+  const derived = deriveKaraokeState(values)
+  const validationErrors = getKaraokeValidationErrors(values, fieldIds)
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -89,7 +91,6 @@ export function KaraokeForm({
   }, [today])
 
   useEffect(() => {
-    const values = form.state.values
     if (!values.startDate || values.startSlotMin === null) return
     const allowedSlots = slotRangesForDate(
       values.startDate,
@@ -111,12 +112,12 @@ export function KaraokeForm({
     form,
     houseClosedDates,
     operationsManagerHours,
-    form.state.values.duration,
-    form.state.values.startDate,
-    form.state.values.startSlotMin,
+    values.duration,
+    values.startDate,
+    values.startSlotMin,
   ])
 
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return <KaraokeBookingSuccess />
   }
 

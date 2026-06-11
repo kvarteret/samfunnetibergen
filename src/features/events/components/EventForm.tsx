@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm } from "@tanstack/react-form"
+import { useForm, useStore } from "@tanstack/react-form"
 import {
   type ChangeEvent,
   type FormEvent,
@@ -9,18 +9,17 @@ import {
   useId,
   useState,
 } from "react"
-
-import {
-  submitEvent,
-  uploadEventImage,
-} from "@/features/events/actions/submitEvent"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { useFormErrors } from "@/lib/use-form-errors"
+import {
+  submitEvent,
+  uploadEventImage,
+} from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
+import { useFormErrors } from "@/lib/use-form-errors"
 import {
   buildPreviewEvent,
   type FormState,
@@ -102,6 +101,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       if (!result.ok) throw new Error(result.error)
     },
   })
+  const values = useStore(form.store, state => state.values)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
+  )
 
   // Initialize first date with today
   useEffect(() => {
@@ -143,13 +147,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   }))
 
   const previewEvent = buildPreviewEvent(
-    form.state.values,
+    values,
     imagePreviewUrl,
     rooms,
     groups,
     eventTypes,
   )
-  const validationErrors = getEventValidationErrors(form.state.values, fieldIds)
+  const validationErrors = getEventValidationErrors(values, fieldIds)
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -219,7 +223,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     setImageUploadError("")
   }, [])
 
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
         <AlertTitle className="text-xl">Forespørsel sendt inn</AlertTitle>

@@ -1,10 +1,11 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
-import { SelectField } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { SelectField } from "@/components/ui/select-field"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
 import {
@@ -40,7 +41,6 @@ export function KaraokeFormDetailsSection({
   startDateId,
 }: KaraokeFormDetailsSectionProps) {
   const form = useKaraokeForm()
-  const values = form.state.values
   const eventNameErrorId = `${eventNameId}-error`
   const startDateErrorId = `${startDateId}-error`
 
@@ -48,62 +48,83 @@ export function KaraokeFormDetailsSection({
     <FormSection number="01" title="Detaljer">
       <FieldGroup error={eventNameError} errorId={eventNameErrorId}>
         <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
-        <Input
-          aria-describedby={eventNameError ? eventNameErrorId : undefined}
-          aria-invalid={!!eventNameError}
-          autoComplete="off"
-          id={eventNameId}
-          onChange={event =>
-            form.setFieldValue("eventName", event.target.value)
-          }
-          placeholder="F.eks. Bursdagsfeiring"
-          required
-          value={values.eventName}
-        />
+        <form.Field name="eventName">
+          {(field: AnyFieldApi) => (
+            <Input
+              aria-describedby={eventNameError ? eventNameErrorId : undefined}
+              aria-invalid={!!eventNameError}
+              autoComplete="off"
+              id={eventNameId}
+              onChange={event => field.handleChange(event.target.value)}
+              placeholder="F.eks. Bursdagsfeiring"
+              required
+              value={field.state.value as string}
+            />
+          )}
+        </form.Field>
       </FieldGroup>
 
-      <SelectField
-        id={`${uid}-duration`}
-        label="Varighet"
-        onChange={value => form.setFieldValue("duration", Number(value))}
-        value={String(values.duration)}
-      >
-        {KARAOKE_DURATION_OPTIONS.map(hours => (
-          <option key={hours} value={hours}>
-            {hours} {hours === 1 ? "time" : "timer"}
-          </option>
-        ))}
-      </SelectField>
+      <form.Field name="duration">
+        {(durationField: AnyFieldApi) => (
+          <>
+            <SelectField
+              id={`${uid}-duration`}
+              label="Varighet"
+              onChange={value => durationField.handleChange(Number(value))}
+              value={String(durationField.state.value)}
+            >
+              {KARAOKE_DURATION_OPTIONS.map(hours => (
+                <option key={hours} value={hours}>
+                  {hours} {hours === 1 ? "time" : "timer"}
+                </option>
+              ))}
+            </SelectField>
 
-      {today && (
-        <FieldGroup error={startDateError} errorId={startDateErrorId}>
-          <Label>Dato og tidspunkt *</Label>
-          <KaraokeFormSlotPicker
-            aria-describedby={startDateError ? startDateErrorId : undefined}
-            aria-invalid={!!startDateError}
-            bookings={bookings}
-            duration={values.duration}
-            id={startDateId}
-            selectedDate={values.startDate}
-            selectedSlotMin={values.startSlotMin}
-            today={today}
-            operationsManagerHours={operationsManagerHours}
-            houseClosedDates={houseClosedDates}
-            onDateChange={date => {
-              form.setFieldValue("startDate", date)
-              form.setFieldValue("startSlotMin", null)
-            }}
-            onSlotChange={slotMin =>
-              form.setFieldValue("startSlotMin", slotMin)
-            }
-          />
-          {derived.startTime && (
-            <p className="text-sm text-foreground-subtle font-heading mt-1">
-              {derived.startTime} → {derived.endTime}
-            </p>
-          )}
-        </FieldGroup>
-      )}
+            {today && (
+              <form.Field name="startDate">
+                {(dateField: AnyFieldApi) => (
+                  <form.Field name="startSlotMin">
+                    {(slotField: AnyFieldApi) => (
+                      <FieldGroup
+                        error={startDateError}
+                        errorId={startDateErrorId}
+                      >
+                        <Label>Dato og tidspunkt *</Label>
+                        <KaraokeFormSlotPicker
+                          aria-describedby={
+                            startDateError ? startDateErrorId : undefined
+                          }
+                          aria-invalid={!!startDateError}
+                          bookings={bookings}
+                          duration={durationField.state.value as number}
+                          id={startDateId}
+                          selectedDate={dateField.state.value as string}
+                          selectedSlotMin={
+                            slotField.state.value as number | null
+                          }
+                          today={today}
+                          operationsManagerHours={operationsManagerHours}
+                          houseClosedDates={houseClosedDates}
+                          onDateChange={date => {
+                            dateField.handleChange(date)
+                            slotField.handleChange(null)
+                          }}
+                          onSlotChange={slotField.handleChange}
+                        />
+                        {derived.startTime && (
+                          <p className="text-sm text-foreground-muted font-heading mt-1">
+                            {derived.startTime} → {derived.endTime}
+                          </p>
+                        )}
+                      </FieldGroup>
+                    )}
+                  </form.Field>
+                )}
+              </form.Field>
+            )}
+          </>
+        )}
+      </form.Field>
     </FormSection>
   )
 }

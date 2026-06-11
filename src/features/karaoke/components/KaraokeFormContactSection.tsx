@@ -1,5 +1,6 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -30,54 +31,62 @@ export function KaraokeFormContactSection({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
           <Label htmlFor={contactNameId}>Navn *</Label>
-          <Input
-            aria-describedby={contactNameError ? contactNameErrorId : undefined}
-            aria-invalid={!!contactNameError}
-            autoComplete="name"
-            id={contactNameId}
-            onChange={event =>
-              form.setFieldValue("contactName", event.target.value)
-            }
-            placeholder="Fullt navn"
-            required
-            value={form.state.values.contactName}
-          />
+          <form.Field name="contactName">
+            {(field: AnyFieldApi) => (
+              <Input
+                aria-describedby={
+                  contactNameError ? contactNameErrorId : undefined
+                }
+                aria-invalid={!!contactNameError}
+                autoComplete="name"
+                id={contactNameId}
+                onChange={event => field.handleChange(event.target.value)}
+                placeholder="Fullt navn"
+                required
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
 
         <FieldGroup error={contactEmailError} errorId={contactEmailErrorId}>
           <Label htmlFor={contactEmailId}>E-post *</Label>
-          <Input
-            aria-describedby={
-              contactEmailError ? contactEmailErrorId : undefined
-            }
-            aria-invalid={!!contactEmailError}
-            autoComplete="email"
-            id={contactEmailId}
-            onChange={event =>
-              form.setFieldValue("contactEmail", event.target.value)
-            }
-            placeholder="din@epost.no"
-            required
-            type="email"
-            value={form.state.values.contactEmail}
-          />
+          <form.Field name="contactEmail">
+            {(field: AnyFieldApi) => (
+              <Input
+                aria-describedby={
+                  contactEmailError ? contactEmailErrorId : undefined
+                }
+                aria-invalid={!!contactEmailError}
+                autoComplete="email"
+                id={contactEmailId}
+                onChange={event => field.handleChange(event.target.value)}
+                placeholder="din@epost.no"
+                required
+                type="email"
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
       </div>
 
       <FieldGroup>
         <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
-        <Input
-          className="max-w-48"
-          autoComplete="tel"
-          id={`${uid}-contactPhone`}
-          inputMode="tel"
-          onChange={event =>
-            form.setFieldValue("contactPhone", event.target.value)
-          }
-          placeholder="+47 55 55 55 55"
-          type="tel"
-          value={form.state.values.contactPhone}
-        />
+        <form.Field name="contactPhone">
+          {(field: AnyFieldApi) => (
+            <Input
+              className="max-w-48"
+              autoComplete="tel"
+              id={`${uid}-contactPhone`}
+              inputMode="tel"
+              onChange={event => field.handleChange(event.target.value)}
+              placeholder="+47 55 55 55 55"
+              type="tel"
+              value={field.state.value as string}
+            />
+          )}
+        </form.Field>
       </FieldGroup>
     </FormSection>
   )

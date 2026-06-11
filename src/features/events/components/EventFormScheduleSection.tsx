@@ -1,5 +1,6 @@
 "use client"
 import { Plus, X } from "lucide-react"
+import { useCallback } from "react"
 
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { DateEntry, FormState } from "../domain/formState"
 import { newDate } from "../domain/formState"
+import { defaultRecurrenceRule } from "../domain/recurrence"
 import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder"
 import { useEventForm } from "./eventFormContext"
 
@@ -23,6 +25,19 @@ export function EventFormScheduleSection({
   firstDateId,
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
+  const handleRecurrenceChange = useCallback(
+    (rrule: string) => form.setFieldValue("rrule", rrule),
+    [form],
+  )
+  const handleRecurringToggle = useCallback(
+    (isRecurring: boolean) => {
+      form.setFieldValue("isRecurring", isRecurring)
+      if (isRecurring) {
+        form.setFieldValue("rrule", defaultRecurrenceRule)
+      }
+    },
+    [form],
+  )
 
   const handleAddDate = () => {
     form.setFieldValue("dates", (dates: DateEntry[]) => [...dates, newDate()])
@@ -64,7 +79,7 @@ export function EventFormScheduleSection({
             ))}
 
             <button
-              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground-subtle transition-colors hover:border-primary hover:text-primary focus-brutal"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 text-sm font-heading text-foreground-muted transition-colors hover:border-primary hover:text-primary focus-brutal"
               onClick={handleAddDate}
               type="button"
             >
@@ -81,8 +96,8 @@ export function EventFormScheduleSection({
         {(isRecurring: boolean) => (
           <EventRecurrenceFields
             isRecurring={isRecurring}
-            onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
-            onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
+            onRecurrenceChange={handleRecurrenceChange}
+            onRecurringToggle={handleRecurringToggle}
           />
         )}
       </form.Subscribe>
@@ -116,13 +131,13 @@ function EventDateCard({
   return (
     <div className="space-y-4 panel p-4">
       <div className="flex items-center justify-between">
-        <p className="text-eyebrow-sm">
+        <p className="font-heading text-sm uppercase tracking-widest">
           Dato {totalDates > 1 ? index + 1 : ""}
         </p>
         {totalDates > 1 && (
           <button
             aria-label="Fjern dato"
-            className="text-foreground-faint transition-colors hover:text-destructive focus-brutal"
+            className="text-foreground-muted transition-colors hover:text-destructive focus-brutal"
             onClick={() => removeDate(date.id)}
             type="button"
           >
@@ -150,7 +165,7 @@ function EventDateCard({
         <FieldGroup>
           <Label htmlFor={`${uid}-starttime-${date.id}`}>
             Starttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground-faint">
+            <span className="ml-1 font-sans font-normal text-foreground-muted">
               (anbefalt)
             </span>
           </Label>
@@ -167,7 +182,7 @@ function EventDateCard({
         <FieldGroup>
           <Label htmlFor={`${uid}-endtime-${date.id}`}>
             Sluttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground-faint">
+            <span className="ml-1 font-sans font-normal text-foreground-muted">
               (valgfritt)
             </span>
           </Label>

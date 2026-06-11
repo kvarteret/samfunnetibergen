@@ -1,5 +1,6 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -27,7 +28,7 @@ export function EventFormSubmitterSection({
 
   return (
     <FormSection number="08" title="Kontaktinformasjon">
-      <p className="text-sm leading-6 text-foreground-subtle">
+      <p className="text-sm leading-6 text-foreground-muted">
         Vi trenger en kontaktperson for arrangementet. Informasjonen vises ikke
         offentlig - den brukes bare av Kvarterets PR-gruppe til å følge opp
         innmeldingen.
@@ -36,18 +37,22 @@ export function EventFormSubmitterSection({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup error={submittedByError} errorId={submittedByErrorId}>
           <Label htmlFor={submittedById}>Ditt navn *</Label>
-          <Input
-            aria-describedby={submittedByError ? submittedByErrorId : undefined}
-            aria-invalid={!!submittedByError}
-            autoComplete="name"
-            id={submittedById}
-            onChange={event =>
-              form.setFieldValue("submittedBy", event.target.value)
-            }
-            placeholder="Fullt navn"
-            required
-            value={form.state.values.submittedBy}
-          />
+          <form.Field name="submittedBy">
+            {(field: AnyFieldApi) => (
+              <Input
+                aria-describedby={
+                  submittedByError ? submittedByErrorId : undefined
+                }
+                aria-invalid={!!submittedByError}
+                autoComplete="name"
+                id={submittedById}
+                onChange={event => field.handleChange(event.target.value)}
+                placeholder="Fullt navn"
+                required
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
 
         <FieldGroup
@@ -55,35 +60,39 @@ export function EventFormSubmitterSection({
           errorId={submittedByEmailErrorId}
         >
           <Label htmlFor={submittedByEmailId}>E-postadresse *</Label>
-          <Input
-            aria-describedby={
-              submittedByEmailError ? submittedByEmailErrorId : undefined
-            }
-            aria-invalid={!!submittedByEmailError}
-            autoComplete="email"
-            id={submittedByEmailId}
-            onChange={event =>
-              form.setFieldValue("submittedByEmail", event.target.value)
-            }
-            placeholder="epost@eksempel.no"
-            required
-            type="email"
-            value={form.state.values.submittedByEmail}
-          />
+          <form.Field name="submittedByEmail">
+            {(field: AnyFieldApi) => (
+              <Input
+                aria-describedby={
+                  submittedByEmailError ? submittedByEmailErrorId : undefined
+                }
+                aria-invalid={!!submittedByEmailError}
+                autoComplete="email"
+                id={submittedByEmailId}
+                onChange={event => field.handleChange(event.target.value)}
+                placeholder="epost@eksempel.no"
+                required
+                type="email"
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
       </div>
 
       <FieldGroup>
         <Label htmlFor={`${uid}-org`}>Organisasjon / gruppe</Label>
-        <Input
-          autoComplete="organization"
-          id={`${uid}-org`}
-          onChange={event =>
-            form.setFieldValue("submittedByOrganization", event.target.value)
-          }
-          placeholder="F.eks. Bandet Skumringen, Realfagskollegiet"
-          value={form.state.values.submittedByOrganization}
-        />
+        <form.Field name="submittedByOrganization">
+          {(field: AnyFieldApi) => (
+            <Input
+              autoComplete="organization"
+              id={`${uid}-org`}
+              onChange={event => field.handleChange(event.target.value)}
+              placeholder="F.eks. Bandet Skumringen, Realfagskollegiet"
+              value={field.state.value as string}
+            />
+          )}
+        </form.Field>
       </FieldGroup>
     </FormSection>
   )

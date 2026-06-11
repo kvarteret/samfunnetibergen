@@ -1,5 +1,6 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FieldError } from "@/components/ui/field-error"
 import { SectionHeader } from "@/components/ui/section-header"
@@ -21,8 +22,6 @@ export function KaraokeFormTermsSection({
   studentProofId,
 }: KaraokeFormTermsSectionProps) {
   const form = useKaraokeForm()
-  const values = form.state.values
-  const priceType = values.priceType as PriceType
   const acceptTermsErrorId = `${acceptTermsId}-error`
   const studentProofErrorId = `${studentProofId}-error`
 
@@ -30,51 +29,65 @@ export function KaraokeFormTermsSection({
     <section className="space-y-4">
       <SectionHeader number="04" title="Vilkår" />
       <div className="space-y-2">
-        <CheckboxField
-          aria-describedby={acceptTermsError ? acceptTermsErrorId : undefined}
-          aria-invalid={!!acceptTermsError}
-          checked={values.acceptTerms}
-          id={acceptTermsId}
-          onChange={v => form.setFieldValue("acceptTerms", v)}
-        >
-          <span className="text-body text-foreground-muted">
-            Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
-            forstått og godkjenner{" "}
-            <Link
-              className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
-              href="/vilkar-for-leie-av-karaoke"
+        <form.Field name="acceptTerms">
+          {(field: AnyFieldApi) => (
+            <CheckboxField
+              aria-describedby={
+                acceptTermsError ? acceptTermsErrorId : undefined
+              }
+              aria-invalid={!!acceptTermsError}
+              checked={field.state.value as boolean}
+              id={acceptTermsId}
+              onChange={field.handleChange}
             >
-              bruksvilkårene
-            </Link>
-            .
-          </span>
-        </CheckboxField>
+              <span className="text-body text-foreground-muted">
+                Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
+                forstått og godkjenner{" "}
+                <Link
+                  className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
+                  href="/vilkar-for-leie-av-karaoke"
+                >
+                  bruksvilkårene
+                </Link>
+                .
+              </span>
+            </CheckboxField>
+          )}
+        </form.Field>
         {acceptTermsError && (
           <FieldError id={acceptTermsErrorId}>{acceptTermsError}</FieldError>
         )}
       </div>
-      {priceType === "student" && (
-        <div className="space-y-2">
-          <CheckboxField
-            aria-describedby={
-              studentProofError ? studentProofErrorId : undefined
-            }
-            aria-invalid={!!studentProofError}
-            checked={values.studentProofAccepted}
-            id={studentProofId}
-            onChange={v => form.setFieldValue("studentProofAccepted", v)}
-          >
-            <span className="text-body text-foreground-muted">
-              Jeg lover å ta med studentbevis 🤞
-            </span>
-          </CheckboxField>
-          {studentProofError && (
-            <FieldError id={studentProofErrorId}>
-              {studentProofError}
-            </FieldError>
-          )}
-        </div>
-      )}
+      <form.Field name="priceType">
+        {(priceTypeField: AnyFieldApi) =>
+          (priceTypeField.state.value as PriceType) === "student" ? (
+            <div className="space-y-2">
+              <form.Field name="studentProofAccepted">
+                {(field: AnyFieldApi) => (
+                  <CheckboxField
+                    aria-describedby={
+                      studentProofError ? studentProofErrorId : undefined
+                    }
+                    aria-invalid={!!studentProofError}
+                    checked={field.state.value as boolean}
+                    id={studentProofId}
+                    onChange={field.handleChange}
+                  >
+                    <span className="text-body text-foreground-muted">
+                      Jeg lover å ta med studentbevis 🤞
+                    </span>
+                  </CheckboxField>
+                )}
+              </form.Field>
+              {studentProofError && (
+                <FieldError id={studentProofErrorId}>
+                  {studentProofError}
+                </FieldError>
+              )}
+            </div>
+          ) : null
+        }
+      </form.Field>
     </section>
   )
 }

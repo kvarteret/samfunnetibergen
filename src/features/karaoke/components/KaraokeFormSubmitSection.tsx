@@ -1,5 +1,6 @@
 "use client"
 
+import { useStore } from "@tanstack/react-form"
 import { Loader2, Mic, X } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -8,8 +9,8 @@ import { useKaraokeForm } from "./karaokeFormContext"
 
 export function KaraokeFormSubmitSection() {
   const form = useKaraokeForm()
-  const isPending = form.state.isSubmitting
-  const submitError = form.state.errorMap.onSubmit
+  const isPending = useStore(form.store, state => state.isSubmitting)
+  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">

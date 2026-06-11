@@ -1,5 +1,6 @@
 "use client"
 
+import { useStore } from "@tanstack/react-form"
 import { Loader2, X } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -16,8 +17,8 @@ export function EventFormActions({
   imageUploading,
 }: EventFormActionsProps) {
   const form = useEventForm()
-  const isPending = form.state.isSubmitting
-  const submitError = form.state.errorMap.onSubmit
+  const isPending = useStore(form.store, state => state.isSubmitting)
+  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
 
   const displayError = String(submitError || formError || "")
 
@@ -33,7 +34,7 @@ export function EventFormActions({
         </Alert>
       )}
 
-      <p className="text-sm leading-6 text-foreground-subtle">
+      <p className="text-sm leading-6 text-foreground-muted">
         Arrangementet sendes til godkjenning hos PR-gruppen på Kvarteret. Det
         vil ikke vises på nettsiden før det er godkjent. vi bruker vanligvis 1-3
         virkedager.

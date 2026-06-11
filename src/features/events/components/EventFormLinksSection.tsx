@@ -1,5 +1,6 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -17,32 +18,36 @@ export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
     <FormSection number="07" title="Lenker">
       <FieldGroup>
         <Label htmlFor={`${uid}-ticketUrl`}>Billettlenke</Label>
-        <Input
-          autoComplete="url"
-          id={`${uid}-ticketUrl`}
-          inputMode="url"
-          onChange={event =>
-            form.setFieldValue("ticketUrl", event.target.value)
-          }
-          placeholder="https://ticketmaster.no/..."
-          type="url"
-          value={form.state.values.ticketUrl}
-        />
+        <form.Field name="ticketUrl">
+          {(field: AnyFieldApi) => (
+            <Input
+              autoComplete="url"
+              id={`${uid}-ticketUrl`}
+              inputMode="url"
+              onChange={event => field.handleChange(event.target.value)}
+              placeholder="https://ticketmaster.no/..."
+              type="url"
+              value={field.state.value as string}
+            />
+          )}
+        </form.Field>
       </FieldGroup>
 
       <FieldGroup>
         <Label htmlFor={`${uid}-facebookUrl`}>Facebook-arrangement</Label>
-        <Input
-          autoComplete="url"
-          id={`${uid}-facebookUrl`}
-          inputMode="url"
-          onChange={event =>
-            form.setFieldValue("facebookUrl", event.target.value)
-          }
-          placeholder="https://facebook.com/events/..."
-          type="url"
-          value={form.state.values.facebookUrl}
-        />
+        <form.Field name="facebookUrl">
+          {(field: AnyFieldApi) => (
+            <Input
+              autoComplete="url"
+              id={`${uid}-facebookUrl`}
+              inputMode="url"
+              onChange={event => field.handleChange(event.target.value)}
+              placeholder="https://facebook.com/events/..."
+              type="url"
+              value={field.state.value as string}
+            />
+          )}
+        </form.Field>
       </FieldGroup>
     </FormSection>
   )
