@@ -1,7 +1,4 @@
-import { cva, type VariantProps } from "class-variance-authority"
-import type { ComponentProps } from "react"
-
-import { cn } from "@/lib/utils"
+import { cva } from "class-variance-authority"
 
 export const selectionControlVariants = cva(
   "cursor-pointer border-2 border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
@@ -40,26 +37,3 @@ export const selectionControlVariants = cva(
     },
   },
 )
-
-type SelectionControlProps = ComponentProps<"button"> &
-  VariantProps<typeof selectionControlVariants>
-
-export function SelectionControl({
-  appearance,
-  className,
-  selected,
-  size,
-  type = "button",
-  ...props
-}: SelectionControlProps) {
-  return (
-    <button
-      className={cn(
-        selectionControlVariants({ appearance, selected, size }),
-        className,
-      )}
-      type={type}
-      {...props}
-    />
-  )
-}

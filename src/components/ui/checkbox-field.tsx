@@ -1,8 +1,10 @@
 "use client"
 
+import { Checkbox } from "@base-ui/react/checkbox"
 import { Check } from "lucide-react"
 import { type ReactNode } from "react"
 
+import { FieldGroup } from "@/components/ui/field-group"
 import { cn } from "@/lib/utils"
 
 interface CheckboxSquareProps {
@@ -25,41 +27,36 @@ export function CheckboxSquare({
   "aria-invalid": ariaInvalid,
   decorative = false,
 }: CheckboxSquareProps) {
-  const box = (
-    <span
-      aria-hidden={decorative || undefined}
-      className={cn(
-        "flex size-5 items-center justify-center border-2 border-border transition-colors",
-        checked ? "bg-primary" : "bg-card",
-        !disabled && !checked && "group-hover:bg-muted",
-        !decorative &&
-          "peer-focus-visible:ring-3 peer-focus-visible:ring-primary",
-      )}
-    >
-      {checked && (
-        <Check aria-hidden className="size-3 text-primary-foreground" />
-      )}
-    </span>
-  )
-
   if (decorative) {
-    return <span className="relative mt-0.5">{box}</span>
+    return (
+      <span
+        aria-hidden
+        className={cn(
+          "relative mt-0.5 flex size-5 items-center justify-center border-2 border-border",
+          checked ? "bg-primary" : "bg-card",
+        )}
+      >
+        {checked && (
+          <Check aria-hidden className="size-3 text-primary-foreground" />
+        )}
+      </span>
+    )
   }
 
   return (
-    <span className="relative mt-0.5">
-      <input
-        aria-describedby={ariaDescribedBy}
-        aria-invalid={ariaInvalid || undefined}
-        checked={checked}
-        className="peer sr-only"
-        disabled={disabled}
-        id={id}
-        onChange={event => onChange?.(event.target.checked)}
-        type="checkbox"
-      />
-      {box}
-    </span>
+    <Checkbox.Root
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid || undefined}
+      checked={checked}
+      className="relative mt-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center border-2 border-border bg-card outline-none group-hover:bg-muted data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-60 focus-visible:ring-3 focus-visible:ring-primary"
+      disabled={disabled}
+      id={id}
+      onCheckedChange={onChange}
+    >
+      <Checkbox.Indicator>
+        <Check aria-hidden className="size-3 text-primary-foreground" />
+      </Checkbox.Indicator>
+    </Checkbox.Root>
   )
 }
 
@@ -75,6 +72,8 @@ interface CheckboxFieldProps {
   id?: string
   "aria-describedby"?: string
   "aria-invalid"?: boolean
+  error?: string
+  errorId?: string
 }
 
 export function CheckboxField({
@@ -89,40 +88,43 @@ export function CheckboxField({
   id,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
+  error,
+  errorId,
 }: CheckboxFieldProps) {
   return (
-    <label
-      className={cn(
-        "group flex items-start gap-3",
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-        className,
-      )}
-    >
-      <CheckboxSquare
-        aria-describedby={ariaDescribedBy}
-        aria-invalid={ariaInvalid}
-        checked={checked}
-        disabled={disabled}
-        id={id}
-        onChange={onChange}
-      />
-      {children ?? (
-        <span>
-          <span
-            className={cn(
-              "block font-heading  text-foreground",
-              labelClassName,
-            )}
-          >
-            {label}
-          </span>
-          {hint && (
-            <span className="mt-0.5 block text-sm text-foreground-muted">
-              {hint}
+    <FieldGroup className={className} error={error} errorId={errorId}>
+      <label
+        className={cn(
+          "group flex items-start gap-3",
+          disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
+        )}
+      >
+        <CheckboxSquare
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid}
+          checked={checked}
+          disabled={disabled}
+          id={id}
+          onChange={onChange}
+        />
+        {children ?? (
+          <span>
+            <span
+              className={cn(
+                "block font-heading  text-foreground",
+                labelClassName,
+              )}
+            >
+              {label}
             </span>
-          )}
-        </span>
-      )}
-    </label>
+            {hint && (
+              <span className="mt-0.5 block text-sm text-foreground-muted">
+                {hint}
+              </span>
+            )}
+          </span>
+        )}
+      </label>
+    </FieldGroup>
   )
 }

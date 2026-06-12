@@ -1,9 +1,9 @@
 "use client"
 
-import type { ComponentProps, ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
-import { RadioGroup, RadioGroupItem } from "./radio-group"
+import { RadioGroup, RadioGroupItem, type RadioGroupProps } from "./radio-group"
 
 interface SelectableCardProps {
   value: string
@@ -39,9 +39,9 @@ export function SelectableCard({
   )
 }
 
-export function SelectableCardGroup({
+export function SelectableCardGroup<T>({
   className,
   ...props
-}: ComponentProps<typeof RadioGroup>) {
+}: RadioGroupProps<T>) {
   return <RadioGroup className={cn("grid gap-4", className)} {...props} />
 }

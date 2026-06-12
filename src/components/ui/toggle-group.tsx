@@ -1,6 +1,7 @@
 "use client"
 
-import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
+import { Toggle } from "@base-ui/react/toggle"
+import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group"
 
 import { cn } from "@/lib/utils"
 import { selectionControlVariants } from "./selection-control"
@@ -8,7 +9,7 @@ import { selectionControlVariants } from "./selection-control"
 interface ToggleGroupProps<T extends string> {
   options: Array<{ value: T; label: string }>
   value: T[]
-  onChange: (value: T[]) => void
+  onValueChange: (value: T[]) => void
   className?: string
   size?: "default" | "sm"
 }
@@ -16,32 +17,33 @@ interface ToggleGroupProps<T extends string> {
 export function ToggleGroup<T extends string>({
   options,
   value,
-  onChange,
+  onValueChange,
   className,
   size = "default",
 }: ToggleGroupProps<T>) {
   return (
-    <ToggleGroupPrimitive.Root
+    <ToggleGroupPrimitive
       className={cn("flex flex-wrap gap-2", className)}
-      onValueChange={nextValue => onChange(nextValue as T[])}
-      type="multiple"
+      multiple
+      onValueChange={onValueChange}
       value={value}
     >
       {options.map(option => (
-        <ToggleGroupPrimitive.Item
-          className={cn(
-            selectionControlVariants({
-              selected: false,
-              size: size === "sm" ? "square" : "default",
-            }),
-            "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
-          )}
+        <Toggle
+          className={({ pressed }) =>
+            cn(
+              selectionControlVariants({
+                selected: pressed,
+                size: size === "sm" ? "square" : "default",
+              }),
+            )
+          }
           key={option.value}
           value={option.value}
         >
           {option.label}
-        </ToggleGroupPrimitive.Item>
+        </Toggle>
       ))}
-    </ToggleGroupPrimitive.Root>
+    </ToggleGroupPrimitive>
   )
 }

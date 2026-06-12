@@ -20,9 +20,7 @@
     "check": "biome check --write ."
   },
   "dependencies": {
-    "@radix-ui/react-label": "^2.1.8",
-    "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@radix-ui/react-slot": "^1.2.4",
+    "@base-ui/react": "^1.5.0",
     "@sanity/orderable-document-list": "^1.5.1",
     "@sanity/vision": "^5.23.0",
     "@supabase/ssr": "^0.9.0",
@@ -40,7 +38,6 @@
     "next-sanity": "^12.4.0",
     "posthog-js": "^1.366.2",
     "posthog-node": "^5.29.2",
-    "radix-ui": "^1.4.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",

@@ -1,43 +1,47 @@
 "use client"
 
-import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
-import type { ComponentProps } from "react"
+import { Radio } from "@base-ui/react/radio"
+import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group"
 
 import { cn } from "@/lib/utils"
 import { selectionControlVariants } from "./selection-control"
 
-export function RadioGroup({
-  className,
-  ...props
-}: ComponentProps<typeof RadioGroupPrimitive.Root>) {
+export type RadioGroupProps<T> = Omit<
+  RadioGroupPrimitive.Props<T>,
+  "className"
+> & {
+  className?: string
+}
+
+export function RadioGroup<T>({ className, ...props }: RadioGroupProps<T>) {
   return (
-    <RadioGroupPrimitive.Root
+    <RadioGroupPrimitive
       className={cn("flex flex-wrap gap-2", className)}
       {...props}
     />
   )
 }
 
-type RadioGroupItemProps = ComponentProps<typeof RadioGroupPrimitive.Item> & {
+type RadioGroupItemProps<T> = Omit<Radio.Root.Props<T>, "className"> & {
+  className?: string
   appearance?: "solid" | "soft"
   size?: "none" | "default" | "square" | "fill"
 }
 
-export function RadioGroupItem({
+export function RadioGroupItem<T>({
   appearance = "solid",
   className,
   size = "default",
   ...props
-}: RadioGroupItemProps) {
+}: RadioGroupItemProps<T>) {
   return (
-    <RadioGroupPrimitive.Item
-      className={cn(
-        selectionControlVariants({ appearance, selected: false, size }),
-        appearance === "solid"
-          ? "data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-          : "data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 data-[state=checked]:text-foreground",
-        className,
-      )}
+    <Radio.Root
+      className={({ checked }) =>
+        cn(
+          selectionControlVariants({ appearance, selected: checked, size }),
+          className,
+        )
+      }
       {...props}
     />
   )

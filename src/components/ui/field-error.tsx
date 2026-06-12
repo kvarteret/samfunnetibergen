@@ -1,3 +1,4 @@
+import { Field } from "@base-ui/react/field"
 import type { ReactNode } from "react"
 
 interface FieldErrorProps {
@@ -7,11 +8,12 @@ interface FieldErrorProps {
 
 export function FieldError({ id, children }: FieldErrorProps) {
   return (
-    <p
+    <Field.Error
       className="border-l-4 border-destructive pl-3 font-heading text-destructive"
       id={id}
+      match
     >
       {children}
-    </p>
+    </Field.Error>
   )
 }

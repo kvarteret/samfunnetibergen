@@ -13,16 +13,16 @@ export interface SlotOption {
 
 interface SlotGridProps {
   slots: SlotOption[]
-  selectedValue: string | null
-  onChange: (value: string) => void
+  value: string | null
+  onValueChange: (value: string) => void
   label?: string
   className?: string
 }
 
 export function SlotGrid({
   slots,
-  selectedValue,
-  onChange,
+  value,
+  onValueChange,
   label = "Velg starttidspunkt",
   className,
 }: SlotGridProps) {
@@ -33,8 +33,8 @@ export function SlotGrid({
       </p>
       <RadioGroup
         className="grid grid-cols-4 gap-2 sm:grid-cols-5"
-        onValueChange={onChange}
-        value={selectedValue ?? ""}
+        onValueChange={onValueChange}
+        value={value ?? ""}
       >
         {slots.map(slot => {
           return (

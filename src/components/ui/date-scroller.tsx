@@ -10,7 +10,7 @@ interface DateScrollerProps {
   selectedDate: string
   today: string
   getDateAvailability: (date: string) => DateAvailability
-  onChange: (date: string) => void
+  onValueChange: (date: string) => void
   id?: string
   "aria-describedby"?: string
   "aria-invalid"?: boolean
@@ -21,7 +21,7 @@ export function DateScroller({
   selectedDate,
   today,
   getDateAvailability,
-  onChange,
+  onValueChange,
   id,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
@@ -36,7 +36,7 @@ export function DateScroller({
     >
       <RadioGroup
         className="flex min-w-max gap-1.5 pb-1"
-        onValueChange={onChange}
+        onValueChange={onValueChange}
         value={selectedDate}
       >
         {dates.map(date => {

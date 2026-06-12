@@ -1,8 +1,8 @@
 "use client"
 
 import { FieldGroup } from "@/components/ui/field-group"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NumberField } from "@/components/ui/number-field"
 
 interface PriceInputProps {
   id: string
@@ -16,19 +16,19 @@ export function PriceInput({ id, label, value, onChange }: PriceInputProps) {
     <FieldGroup>
       <Label htmlFor={id}>{label}</Label>
       <div className="relative max-w-28">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted">
+        <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-foreground-muted">
           kr
         </span>
-        <Input
-          className="pl-9"
+        <NumberField
           id={id}
-          inputMode="numeric"
+          inputClassName="pl-9"
           min={0}
-          onChange={event => onChange(event.target.value)}
+          onValueChange={nextValue =>
+            onChange(nextValue === null ? "" : String(nextValue))
+          }
           placeholder="0"
-          step={1}
-          type="number"
-          value={value}
+          showControls={false}
+          value={value === "" ? null : Number(value)}
         />
       </div>
     </FieldGroup>

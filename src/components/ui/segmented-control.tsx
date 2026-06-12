@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "./radio-group"
 interface SegmentedControlProps<T extends string> {
   options: Array<{ value: T; label: string }>
   value: T
-  onChange: (value: T) => void
+  onValueChange: (value: T) => void
   className?: string
   variant?: "pills" | "squares" | "fill"
 }
@@ -32,14 +32,14 @@ const containerVariants = cva("flex flex-wrap", {
 export function SegmentedControl<T extends string>({
   options,
   value,
-  onChange,
+  onValueChange,
   className,
   variant = "pills",
 }: SegmentedControlProps<T>) {
   return (
     <RadioGroup
       className={cn(containerVariants({ variant }), className)}
-      onValueChange={nextValue => onChange(nextValue as T)}
+      onValueChange={onValueChange}
       value={value}
     >
       {options.map(option => (

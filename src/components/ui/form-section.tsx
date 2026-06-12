@@ -4,7 +4,7 @@ import { SectionHeader } from "@/components/ui/section-header"
 import { cn } from "@/lib/utils"
 
 interface FormSectionProps {
-  number: string
+  number?: string
   title: string
   children: ReactNode
   className?: string
