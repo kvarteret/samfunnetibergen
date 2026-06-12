@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server"
-import {
-  createClient,
-  createConfig,
-} from "@/lib/integrations/kvarteret-personal-api/client"
-import { createPublicVolunteerProspect } from "@/lib/integrations/kvarteret-personal-api/sdk.gen"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
-
-const personalClient = createClient(
-  createConfig({ baseUrl: PERSONAL_APP_BASE_URL }),
-)
 
 interface VolunteerProspectBody {
   full_name: string
@@ -110,20 +101,27 @@ export async function POST(request: Request) {
       ),
     }
 
-    const result = await createPublicVolunteerProspect({
-      client: personalClient,
-      body: requestBody,
-    })
+    const response = await fetch(
+      `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(10_000),
+      },
+    )
 
-    if (result.error) {
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null)
       return NextResponse.json(
-        { detail: extractErrorDetail(result.error) },
+        { detail: extractErrorDetail(errorBody) },
         { status: 422 },
       )
     }
 
+    const data = await response.json()
     return NextResponse.json(
-      { registrationId: result.data?.registrationId },
+      { registrationId: (data as { registrationId?: string }).registrationId },
       { status: 201 },
     )
   } catch (error) {

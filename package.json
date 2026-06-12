@@ -13,8 +13,6 @@
     "studio:seed": "sanity exec scripts/seed-sanity-content.mjs --with-user-token",
     "sanity:schema": "sanity schema extract --enforce-required-fields --path .sanity/schema.json",
     "sanity:typegen": "npm run sanity:schema && sanity typegen generate --config-path sanity-typegen.frontend.json && sanity typegen generate --config-path src/studio/sanity-typegen.json && biome format --write src/lib/sanity/sanity.types.ts src/studio/sanity.types.ts",
-    "api:generate": "node scripts/generate-kvarteret-personal-client.mjs",
-    "api:sync": "make -C ../kvarteret-personal openapi && node scripts/generate-kvarteret-personal-client.mjs",
     "lint": "eslint",
     "format": "biome format --write .",
     "check": "biome check --write ."
@@ -51,7 +49,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
-    "@hey-api/openapi-ts": "^0.96.1",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20",
