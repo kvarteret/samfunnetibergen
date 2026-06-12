@@ -230,6 +230,17 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         heading1={homeT("grupperBannerHeading1")}
         heading2={homeT("grupperBannerHeading2")}
       />
+
+      <section>
+        <Image
+          alt=""
+          className="h-auto w-full"
+          height={288}
+          priority={false}
+          src="/images/studentersamfunnet-illustration.webp"
+          width={866}
+        />
+      </section>
     </div>
   );
 }
@@ -253,7 +264,7 @@ function HomeHero({
     <section className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14">
       <div className="flex flex-col gap-6">
         {homePage?.title && (
-          <h1 className="font-heading text-3xl leading-tight sm:text-4xl">
+          <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
             {homePage.title}
           </h1>
         )}
@@ -268,11 +279,15 @@ function HomeHero({
         <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
           {ctaHref && homePage?.primaryCta?.label ? (
             <>
-              <Button asChild size="lg" className="shrink-0">
-                <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
+              <Button
+                className="shrink-0"
+                render={<Link href={ctaHref} />}
+                size="lg"
+              >
+                {homePage.primaryCta.label}
               </Button>
               <Link
-                className="group inline-flex items-center gap-1.5 font-heading uppercase tracking-widest underline-offset-4 hover:underline focus-brutal"
+                className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
                 href={`/${locale}/arrangementer`}
               >
                 Se hva som skjer
@@ -280,11 +295,13 @@ function HomeHero({
               </Link>
             </>
           ) : (
-            <Button asChild size="lg" className="group shrink-0">
-              <Link href={`/${locale}/arrangementer`}>
-                Se hva som skjer
-                <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-              </Link>
+            <Button
+              className="group shrink-0"
+              render={<Link href={`/${locale}/arrangementer`} />}
+              size="lg"
+            >
+              Se hva som skjer
+              <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
             </Button>
           )}
         </div>
@@ -315,12 +332,12 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading uppercase tracking-widest text-foreground-muted">
+      <div className="flex items-center justify-between pb-2">
+        <p className="font-heading text-xl text-foreground-muted">
           Arrangementer
         </p>
         <Link
-          className="group inline-flex items-center gap-1.5 font-heading uppercase tracking-widest underline underline-offset-4 focus-brutal"
+          className="group inline-flex items-center gap-1.5 font-heading underline underline-offset-4 focus-brutal"
           href={`/${locale}/arrangementer`}
         >
           Se alle

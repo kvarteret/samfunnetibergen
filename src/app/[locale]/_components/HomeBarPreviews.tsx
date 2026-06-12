@@ -95,8 +95,8 @@ export function HomeBarPreviews({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading uppercase tracking-widest text-foreground-muted">
+      <div className="flex items-center justify-between pb-2">
+        <p className="font-heading text-xl text-foreground-muted">
           Barer
         </p>
       </div>
