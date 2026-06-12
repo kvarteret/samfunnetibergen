@@ -1,5 +1,5 @@
-import type { RoomBookingPayload } from "../actions/submit-room-booking"
 import type { BookerType } from "@/lib/integrations/crescat/room-booking"
+import type { RoomBookingPayload } from "../actions/submit-room-booking"
 import type { BookingRoom } from "../types"
 
 export type { BookerType }

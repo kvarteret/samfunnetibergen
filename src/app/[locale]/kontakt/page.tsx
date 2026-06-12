@@ -1,6 +1,5 @@
 import { Mail, Phone } from "lucide-react"
-import Image from "next/image"
-import { Surface } from "@/components/ui/surface"
+import { Avatar } from "@/components/ui/avatar"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -37,12 +36,8 @@ function AddressBlock({
   if (!value) return null
   return (
     <div className="space-y-2">
-      <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
-        {label}
-      </p>
-      <p className="text-sm leading-6 text-foreground whitespace-pre-line">
-        {value}
-      </p>
+      <p className="font-heading uppercase tracking-widest">{label}</p>
+      <p className=" leading-6 text-foreground whitespace-pre-line">{value}</p>
     </div>
   )
 }
@@ -50,27 +45,21 @@ function AddressBlock({
 function PersonCard({ person }: { person: ContactPerson }) {
   return (
     <div className="flex gap-4 py-4 border-t border-border first:border-t-0">
-      {person.imageUrl && (
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-full bg-muted">
-          <Image
-            alt={person.name ?? "Kontaktperson"}
-            className="object-cover"
-            fill
-            sizes="56px"
-            src={person.imageUrl}
-          />
-        </div>
-      )}
+      <Avatar
+        alt={person.name ?? "Kontaktperson"}
+        name={person.name}
+        src={person.imageUrl}
+      />
       <div className="min-w-0 space-y-1">
-        <p className="font-heading text-sm leading-snug text-foreground">
+        <p className="font-heading leading-snug text-foreground">
           {person.name}
         </p>
         {person.rolle && (
-          <p className="text-xs text-foreground/60">{person.rolle}</p>
+          <p className="text-sm text-foreground-muted">{person.rolle}</p>
         )}
         {person.email && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-foreground-muted hover:text-foreground transition-colors"
             href={`mailto:${person.email}`}
           >
             <Mail className="size-3.5 shrink-0" aria-hidden />
@@ -79,7 +68,7 @@ function PersonCard({ person }: { person: ContactPerson }) {
         )}
         {person.phone && (
           <a
-            className="flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-foreground-muted hover:text-foreground transition-colors"
             href={`tel:${person.phone.replace(/\s/g, "")}`}
           >
             <Phone className="size-3.5 shrink-0" aria-hidden />
@@ -109,11 +98,11 @@ export default async function KontaktPage({
         </h1>
       </header>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-10 lg:grid-two-one">
         <div className="space-y-10">
           {(page?.contactGroups ?? []).map((group: ContactGroup) => (
             <section key={group._key}>
-              <h2 className="font-heading text-lg uppercase tracking-[0.12em] text-foreground mb-2">
+              <h2 className="font-heading uppercase tracking-widest text-foreground mb-2">
                 {group.title}
               </h2>
               <div>
@@ -125,25 +114,25 @@ export default async function KontaktPage({
           ))}
         </div>
 
-        <Surface as="aside" className="space-y-6 self-start">
+        <aside className="space-y-6 self-start panel">
           <AddressBlock label="Besøksadresse" value={page?.visitAddress} />
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
             <div className="space-y-2">
-              <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
+              <p className="font-heading uppercase tracking-widest">
                 Generell kontakt
               </p>
-              <p className="text-sm leading-6 text-foreground whitespace-pre-line">
+              <p className=" leading-6 text-foreground whitespace-pre-line">
                 {page.generalContact}
               </p>
             </div>
           )}
           {page?.pressContact && (
             <div className="space-y-2">
-              <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/60">
+              <p className="font-heading uppercase tracking-widest">
                 Pressekontakt
               </p>
-              <p className="text-sm leading-6 text-foreground whitespace-pre-line">
+              <p className=" leading-6 text-foreground whitespace-pre-line">
                 {page.pressContact}
               </p>
             </div>
@@ -165,7 +154,7 @@ export default async function KontaktPage({
               )}
             </div>
           )}
-        </Surface>
+        </aside>
       </div>
     </article>
   )

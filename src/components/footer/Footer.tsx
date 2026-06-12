@@ -1,8 +1,7 @@
 import Link from "next/link"
-
+import { OpenStatus } from "@/features/bars"
 import { formatWeekdays } from "@/lib/opening-hours"
 import type { fetchFooter } from "@/lib/sanity/fetch"
-import { BarOpenStatus } from "@/features/bars"
 
 // ─── App store links ──────────────────────────────────────────────────────────
 
@@ -39,7 +38,7 @@ function AppColumn() {
       <ul className="space-y-2">
         <li>
           <Link
-            className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
             href="/appen"
           >
             <IconApple />
@@ -48,7 +47,7 @@ function AppColumn() {
         </li>
         <li>
           <Link
-            className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
             href="/appen"
           >
             <IconAndroid />
@@ -133,7 +132,7 @@ const PLATFORM_ICONS: Record<string, () => React.ReactElement> = {
 
 function ColumnHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50 mb-3">
+    <p className="font-heading uppercase tracking-widest text-foreground-muted mb-3">
       {children}
     </p>
   )
@@ -150,7 +149,7 @@ function SocialColumn({ links }: { links: SocialLink[] }) {
           return (
             <li key={link._key}>
               <a
-                className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground transition-colors"
+                className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors focus-brutal"
                 href={link.url ?? "#"}
                 rel="noreferrer"
                 target="_blank"
@@ -224,7 +223,7 @@ function LinkedContactText({ text }: { text: string }) {
             <a
               key={keyForSegment(seg, i)}
               href={`tel:${digits}`}
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
+              className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
             >
               {seg.value}
             </a>
@@ -235,7 +234,7 @@ function LinkedContactText({ text }: { text: string }) {
             <a
               key={keyForSegment(seg, i)}
               href={`mailto:${seg.value}`}
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
+              className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
             >
               {seg.value}
             </a>
@@ -252,7 +251,7 @@ function ContactColumn({ generalContact }: { generalContact?: string | null }) {
   return (
     <div>
       <ColumnHeading>Kontakt oss</ColumnHeading>
-      <p className="text-sm text-foreground/80 whitespace-pre-line leading-relaxed">
+      <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         <LinkedContactText text={generalContact} />
       </p>
     </div>
@@ -264,7 +263,7 @@ function AddressColumn({ address }: { address?: string | null }) {
   return (
     <div>
       <ColumnHeading>Besøk oss</ColumnHeading>
-      <p className="text-sm text-foreground/80 whitespace-pre-line leading-relaxed">
+      <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         {address}
       </p>
     </div>
@@ -277,10 +276,10 @@ function HoursRow({ row }: { row: HoursRow }) {
 
   const time = formatOpeningTimeLabel(row)
   return (
-    <div className="flex justify-between gap-4 text-sm">
-      <dt className="text-foreground/80">{dayLabel}</dt>
+    <div className="flex justify-between gap-4">
+      <dt className="text-foreground-muted">{dayLabel}</dt>
       {time && (
-        <dd className="text-foreground/60 shrink-0 tabular-nums">{time}</dd>
+        <dd className="text-foreground-muted shrink-0 tabular-nums">{time}</dd>
       )}
     </div>
   )
@@ -310,11 +309,11 @@ function OpeningHoursColumn({
         {roomsWithHours.map(room => (
           <div key={room.slug}>
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
-              <p className="text-xs font-medium text-foreground/50 uppercase tracking-wide">
+              <p className="text-sm font-medium text-foreground-muted uppercase tracking-wide">
                 {room.title}
               </p>
-              <BarOpenStatus
-                hours={room.hours}
+              <OpenStatus
+                rooms={[{ openingHours: room.hours }]}
                 houseClosedDates={houseClosedDates}
               />
             </div>
@@ -344,7 +343,7 @@ export function Footer({ data, locale }: FooterProps) {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 lg:px-14">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_auto]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-auto-side">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <SocialColumn links={socialLinks} />
             <AppColumn />
@@ -359,7 +358,7 @@ export function Footer({ data, locale }: FooterProps) {
 
         <div className="mt-8 border-t border-border pt-5">
           <Link
-            className="text-xs text-foreground hover:text-foreground/70 transition-colors"
+            className="text-sm text-foreground hover:text-foreground-muted transition-colors focus-brutal"
             href={`/${locale}/grupper/e-tjenesten`}
           >
             Med 💛 fra E-tjenesten

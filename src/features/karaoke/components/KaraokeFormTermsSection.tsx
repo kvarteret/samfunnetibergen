@@ -1,46 +1,86 @@
 "use client"
 
-import { CheckboxSquare, SectionHeader } from "@/components/ui/form-fields"
+import type { AnyFieldApi } from "@tanstack/react-form"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { SectionHeader } from "@/components/ui/section-header"
 import { Link } from "@/i18n/navigation"
 import type { PriceType } from "../types"
 import { useKaraokeForm } from "./karaokeFormContext"
 
-export function KaraokeFormTermsSection() {
+interface KaraokeFormTermsSectionProps {
+  acceptTermsError?: string
+  acceptTermsId: string
+  studentProofError?: string
+  studentProofId: string
+}
+
+export function KaraokeFormTermsSection({
+  acceptTermsError,
+  acceptTermsId,
+  studentProofError,
+  studentProofId,
+}: KaraokeFormTermsSectionProps) {
   const form = useKaraokeForm()
-  const values = form.state.values
-  const priceType = values.priceType as PriceType
+  const acceptTermsErrorId = `${acceptTermsId}-error`
+  const studentProofErrorId = `${studentProofId}-error`
 
   return (
     <section className="space-y-4">
       <SectionHeader number="04" title="Vilkår" />
-      <label className="group flex cursor-pointer items-start gap-3">
-        <CheckboxSquare
-          checked={values.acceptTerms}
-          onChange={v => form.setFieldValue("acceptTerms", v)}
-        />
-        <span className="text-sm leading-6 text-foreground/80">
-          Ved å krysse av denne boksen aksepterer jeg at jeg har lest, forstått
-          og godkjenner{" "}
-          <Link
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-            href="/vilkar-for-leie-av-karaoke"
-          >
-            bruksvilkårene
-          </Link>
-          .
-        </span>
-      </label>
-      {priceType === "student" && (
-        <label className="group flex cursor-pointer items-start gap-3">
-          <CheckboxSquare
-            checked={values.studentProofAccepted}
-            onChange={v => form.setFieldValue("studentProofAccepted", v)}
-          />
-          <span className="text-sm leading-6 text-foreground/80">
-            Jeg lover å ta med studentbevis 🤞
-          </span>
-        </label>
-      )}
+      <div className="space-y-2">
+        <form.Field name="acceptTerms">
+          {(field: AnyFieldApi) => (
+            <CheckboxField
+              aria-describedby={
+                acceptTermsError ? acceptTermsErrorId : undefined
+              }
+              aria-invalid={!!acceptTermsError}
+              checked={field.state.value as boolean}
+              error={acceptTermsError}
+              errorId={acceptTermsErrorId}
+              id={acceptTermsId}
+              onChange={field.handleChange}
+            >
+              <span>
+                Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
+                forstått og godkjenner{" "}
+                <Link
+                  className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
+                  href="/vilkar-for-leie-av-karaoke"
+                >
+                  bruksvilkårene
+                </Link>
+                .
+              </span>
+            </CheckboxField>
+          )}
+        </form.Field>
+      </div>
+      <form.Field name="priceType">
+        {(priceTypeField: AnyFieldApi) =>
+          (priceTypeField.state.value as PriceType) === "student" ? (
+            <div className="space-y-2">
+              <form.Field name="studentProofAccepted">
+                {(field: AnyFieldApi) => (
+                  <CheckboxField
+                    aria-describedby={
+                      studentProofError ? studentProofErrorId : undefined
+                    }
+                    aria-invalid={!!studentProofError}
+                    checked={field.state.value as boolean}
+                    error={studentProofError}
+                    errorId={studentProofErrorId}
+                    id={studentProofId}
+                    onChange={field.handleChange}
+                  >
+                    <span>Jeg lover å ta med studentbevis 🤞</span>
+                  </CheckboxField>
+                )}
+              </form.Field>
+            </div>
+          ) : null
+        }
+      </form.Field>
     </section>
   )
 }

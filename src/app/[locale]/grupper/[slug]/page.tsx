@@ -1,7 +1,10 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { Surface } from "@/components/ui/surface"
+import type { ReactNode } from "react"
+import { Avatar } from "@/components/ui/avatar"
+import { Tag } from "@/components/ui/tag"
+import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -12,6 +15,7 @@ import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
+import nbMessages from "@/messages/nb.json"
 
 export const revalidate = 300
 
@@ -58,36 +62,24 @@ export default async function GroupPage({ params }: GroupPageProps) {
     ? (CATEGORY_LABELS[group.category] ?? null)
     : null
 
+  const institutionOptions = nbMessages.InstitutionOptions as Array<{
+    value: string
+    label: string
+  }>
+
   return (
     <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-8">
-        <header className="space-y-5">
-          {categoryLabel && (
-            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
-              {categoryLabel}
-            </p>
-          )}
-          <div className="flex items-start gap-4">
-            {group.logoUrl ? (
-              <div className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
-                <Image
-                  alt={`${group.name} logo`}
-                  className="object-contain p-1.5"
-                  fill
-                  src={group.logoUrl}
-                />
-              </div>
-            ) : null}
-            <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-              {group.name}
-            </h1>
-          </div>
-          <p className="text-xl leading-8 text-foreground">{group.summary}</p>
-        </header>
+        <GroupMasthead
+          categoryLabel={categoryLabel}
+          logoUrl={group.logoUrl}
+          name={group.name}
+          summary={group.summary}
+        />
 
         {group.image?.assetUrl ? (
           <figure className="space-y-2">
-            <div className="relative aspect-[16/9] w-full overflow-hidden border-2 border-border bg-muted">
+            <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
               <Image
                 alt={group.image.alt ?? group.name ?? ""}
                 className="object-cover"
@@ -97,7 +89,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
               />
             </div>
             {group.image.caption ? (
-              <figcaption className="text-sm text-muted-foreground">
+              <figcaption className="text-lg italic text-foreground-muted">
                 {group.image.caption}
               </figcaption>
             ) : null}
@@ -105,76 +97,135 @@ export default async function GroupPage({ params }: GroupPageProps) {
         ) : null}
 
         {group.body && group.body.length > 0 && (
-          <div className="text-lg leading-8 text-foreground">
-            <PortableTextContent value={group.body} />
-          </div>
+          <PortableTextContent value={group.body} />
         )}
       </div>
 
       <aside className="space-y-6">
         {(group.email || group.website) && (
-          <Surface as="section" className="space-y-3">
-            <h2 className="font-heading text-xl text-foreground">Kontakt</h2>
+          <AsideSection title="Kontakt">
             {group.email && (
               <a
-                className="flex items-center gap-2 underline underline-offset-4"
+                className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
                 href={`mailto:${group.email}`}
               >
-                <Mail aria-hidden className="size-4" />
+                <Mail aria-hidden className="size-4 shrink-0" />
                 {group.email}
               </a>
             )}
             {group.website && (
               <a
-                className="flex items-center gap-2 underline underline-offset-4"
+                className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
                 href={group.website}
                 rel="noreferrer"
                 target="_blank"
               >
-                <Globe aria-hidden className="size-4" />
+                <Globe aria-hidden className="size-4 shrink-0" />
                 Nettside
-                <ExternalLink aria-hidden className="size-3" />
+                <ExternalLink aria-hidden className="size-3 shrink-0" />
               </a>
             )}
-          </Surface>
+          </AsideSection>
         )}
 
         {group.parentGroup && (
-          <Surface as="section" className="space-y-2">
-            <h2 className="font-heading text-xl text-foreground">Del av</h2>
+          <AsideSection title="Del av">
             {group.parentGroup.slug ? (
               <a
-                className="text-base text-foreground underline underline-offset-4"
+                className="text-foreground underline underline-offset-4 hover:text-primary focus-brutal"
                 href={`/${locale}/grupper/${group.parentGroup.slug}`}
               >
                 {group.parentGroup.name}
               </a>
             ) : (
-              <p className="text-base text-foreground">
-                {group.parentGroup.name}
-              </p>
+              <p className="text-foreground">{group.parentGroup.name}</p>
             )}
-          </Surface>
+          </AsideSection>
         )}
 
         {group.subGroups?.length ? (
-          <Surface as="section" className="space-y-3">
-            <h2 className="font-heading text-xl text-foreground">
-              Undergrupper
-            </h2>
+          <AsideSection title="Undergrupper">
             <ul className="flex flex-wrap gap-2">
               {group.subGroups.map(subGroup => (
                 <li
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
+                  className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
                   key={subGroup.slug ?? subGroup.name}
                 >
                   {subGroup.name}
                 </li>
               ))}
             </ul>
-          </Surface>
+          </AsideSection>
         ) : null}
+
+        {group.slug && (
+          <section className="panel">
+            <GroupVolunteerForm
+              groupSlug={group.slug}
+              groupName={group.name ?? group.slug}
+              institutionOptions={institutionOptions}
+              subGroups={
+                group.subGroups?.flatMap(sg =>
+                  sg.slug && sg.name ? [{ slug: sg.slug, name: sg.name }] : [],
+                ) ?? []
+              }
+            />
+          </section>
+        )}
       </aside>
     </article>
+  )
+}
+
+interface GroupMastheadProps {
+  categoryLabel: string | null
+  logoUrl?: string | null
+  name?: string | null
+  summary?: string | null
+}
+
+function GroupMasthead({
+  categoryLabel,
+  logoUrl,
+  name,
+  summary,
+}: GroupMastheadProps) {
+  return (
+    <header className="space-y-5 border-b-2 border-border pb-8">
+      <div className="flex flex-wrap items-center gap-3">
+        <Avatar
+          alt={`${name ?? ""} logo`}
+          className="size-9 bg-card"
+          imageClassName="object-contain p-1"
+          name={name}
+          src={logoUrl}
+        />
+        {categoryLabel ? <Tag variant="warning">{categoryLabel}</Tag> : null}
+      </div>
+      <h1 className="wrap-break-word font-heading text-5xl leading-[0.95] text-foreground sm:text-6xl">
+        {name}
+      </h1>
+      {summary ? (
+        <p className="max-w-2xl text-2xl leading-snug text-foreground sm:text-3xl">
+          {summary}
+        </p>
+      ) : null}
+    </header>
+  )
+}
+
+interface AsideSectionProps {
+  title: string
+  children: ReactNode
+}
+
+function AsideSection({ title, children }: AsideSectionProps) {
+  return (
+    <section className="border-2 border-border bg-card">
+      <h2 className="border-b-2 border-border bg-background px-4 py-2 font-heading text-sm uppercase tracking-widest text-foreground">
+        {title}
+      </h2>
+      <div className="space-y-3 p-4 text-foreground">{children}</div>
+    </section>
   )
 }

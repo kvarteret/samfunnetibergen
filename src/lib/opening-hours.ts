@@ -46,6 +46,18 @@ export function isoDate(date: Date): string {
   return format(date, "yyyy-MM-dd")
 }
 
+/**
+ * Generate `count` consecutive ISO date strings starting from `today`.
+ * Used by the booking form (7-day window) and karaoke form (60-day window).
+ */
+export function buildDateSequence(today: string, count: number): string[] {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(today)
+    date.setDate(date.getDate() + index)
+    return isoDate(date)
+  })
+}
+
 export function isoWeekday(dateStr: string): number {
   return getISODay(parseISO(dateStr))
 }

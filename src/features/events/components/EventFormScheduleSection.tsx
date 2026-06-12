@@ -1,28 +1,44 @@
 "use client"
-
 import { Plus, X } from "lucide-react"
+import { useCallback } from "react"
 
-import {
-  CheckboxSquare,
-  FieldGroup,
-  SectionHeader,
-} from "@/components/ui/form-fields"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FieldGroup } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { DateEntry } from "../domain/formState"
+import { Tooltip } from "@/components/ui/tooltip"
+import type { DateEntry, FormState } from "../domain/formState"
 import { newDate } from "../domain/formState"
+import { defaultRecurrenceRule } from "../domain/recurrence"
 import { EventFormRecurrenceBuilder } from "./EventFormRecurrenceBuilder"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormScheduleSectionProps {
   uid: string
+  firstDateError?: string
+  firstDateId: string
 }
 
 export function EventFormScheduleSection({
   uid,
+  firstDateError,
+  firstDateId,
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
-  const values = form.state.values
+  const handleRecurrenceChange = useCallback(
+    (rrule: string) => form.setFieldValue("rrule", rrule),
+    [form],
+  )
+  const handleRecurringToggle = useCallback(
+    (isRecurring: boolean) => {
+      form.setFieldValue("isRecurring", isRecurring)
+      if (isRecurring) {
+        form.setFieldValue("rrule", defaultRecurrenceRule)
+      }
+    },
+    [form],
+  )
 
   const handleAddDate = () => {
     form.setFieldValue("dates", (dates: DateEntry[]) => [...dates, newDate()])
@@ -45,44 +61,56 @@ export function EventFormScheduleSection({
   }
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="03" title="Dato og tid" />
+    <FormSection number="03" title="Dato og tid">
+      <form.Subscribe selector={(s: { values: FormState }) => s.values.dates}>
+        {(dates: DateEntry[]) => (
+          <div className="space-y-4">
+            {dates.map((date, index) => (
+              <EventDateCard
+                date={date}
+                index={index}
+                key={date.id}
+                totalDates={dates.length}
+                uid={uid}
+                dateError={index === 0 ? firstDateError : undefined}
+                dateId={index === 0 ? firstDateId : `${uid}-date-${date.id}`}
+                removeDate={handleRemoveDate}
+                updateDate={handleUpdateDate}
+              />
+            ))}
 
-      <div className="space-y-4">
-        {values.dates.map((date: DateEntry, index: number) => (
-          <EventDateCard
-            date={date}
-            index={index}
-            key={date.id}
-            totalDates={values.dates.length}
-            uid={uid}
-            removeDate={handleRemoveDate}
-            updateDate={handleUpdateDate}
+            <button
+              className="flex w-full cursor-pointer items-center justify-center gap-2 border-2 border-dashed border-border bg-card px-4 py-2.5 font-heading text-foreground-muted transition-colors hover:border-primary hover:text-primary focus-brutal"
+              onClick={handleAddDate}
+              type="button"
+            >
+              <Plus aria-hidden className="size-4" />
+              Legg til dato
+            </button>
+          </div>
+        )}
+      </form.Subscribe>
+
+      <form.Subscribe
+        selector={(s: { values: FormState }) => s.values.isRecurring}
+      >
+        {(isRecurring: boolean) => (
+          <EventRecurrenceFields
+            isRecurring={isRecurring}
+            onRecurrenceChange={handleRecurrenceChange}
+            onRecurringToggle={handleRecurringToggle}
           />
-        ))}
-
-        <button
-          className="flex w-full items-center justify-center gap-2 border-2 border-dashed border-border px-4 py-2.5 text-sm font-heading text-foreground/60 transition-colors hover:border-primary hover:text-primary"
-          onClick={handleAddDate}
-          type="button"
-        >
-          <Plus aria-hidden className="size-4" />
-          Legg til dato
-        </button>
-      </div>
-
-      <EventRecurrenceFields
-        isRecurring={values.isRecurring}
-        onRecurrenceChange={rrule => form.setFieldValue("rrule", rrule)}
-        onRecurringToggle={v => form.setFieldValue("isRecurring", v)}
-      />
-    </section>
+        )}
+      </form.Subscribe>
+    </FormSection>
   )
 }
 
 interface EventDateCardProps {
   uid: string
   date: DateEntry
+  dateError?: string
+  dateId: string
   index: number
   totalDates: number
   removeDate: (id: string) => void
@@ -92,34 +120,42 @@ interface EventDateCardProps {
 function EventDateCard({
   uid,
   date,
+  dateError,
+  dateId,
   index,
   totalDates,
   removeDate,
   updateDate,
 }: EventDateCardProps) {
+  const dateErrorId = `${dateId}-error`
+
   return (
-    <div className="space-y-4 border-2 border-border bg-card p-4">
+    <div className="space-y-4 panel p-4">
       <div className="flex items-center justify-between">
-        <p className="font-heading text-sm uppercase tracking-[0.12em] text-foreground/60">
+        <p className="font-heading uppercase tracking-widest">
           Dato {totalDates > 1 ? index + 1 : ""}
         </p>
         {totalDates > 1 && (
-          <button
-            aria-label="Fjern dato"
-            className="text-foreground/40 transition-colors hover:text-destructive"
-            onClick={() => removeDate(date.id)}
-            type="button"
-          >
-            <X aria-hidden className="size-4" />
-          </button>
+          <Tooltip content="Fjern dato">
+            <button
+              aria-label="Fjern dato"
+              className="cursor-pointer text-foreground-muted hover:text-destructive focus-brutal"
+              onClick={() => removeDate(date.id)}
+              type="button"
+            >
+              <X aria-hidden className="size-4" />
+            </button>
+          </Tooltip>
         )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <FieldGroup>
-          <Label htmlFor={`${uid}-date-${date.id}`}>Dato *</Label>
+        <FieldGroup error={dateError} errorId={dateErrorId}>
+          <Label htmlFor={dateId}>Dato *</Label>
           <Input
-            id={`${uid}-date-${date.id}`}
+            aria-describedby={dateError ? dateErrorId : undefined}
+            aria-invalid={!!dateError}
+            id={dateId}
             onChange={event =>
               updateDate(date.id, "startDate", event.target.value)
             }
@@ -131,8 +167,8 @@ function EventDateCard({
 
         <FieldGroup>
           <Label htmlFor={`${uid}-starttime-${date.id}`}>
-            Starttid
-            <span className="ml-1 font-sans font-normal text-foreground/40">
+            Starttid{" "}
+            <span className="ml-1 font-sans font-normal text-foreground-muted">
               (anbefalt)
             </span>
           </Label>
@@ -148,8 +184,8 @@ function EventDateCard({
 
         <FieldGroup>
           <Label htmlFor={`${uid}-endtime-${date.id}`}>
-            Sluttid
-            <span className="ml-1 font-sans font-normal text-foreground/40">
+            Sluttid{" "}
+            <span className="ml-1 font-sans font-normal text-foreground-muted">
               (valgfritt)
             </span>
           </Label>
@@ -180,18 +216,12 @@ function EventRecurrenceFields({
 }: EventRecurrenceFieldsProps) {
   return (
     <div className="space-y-4">
-      <label className="group flex cursor-pointer items-start gap-3">
-        <CheckboxSquare checked={isRecurring} onChange={onRecurringToggle} />
-        <span>
-          <span className="block font-heading text-sm text-foreground">
-            Gjentagende arrangement
-          </span>
-          <span className="mt-0.5 block text-xs text-foreground/55">
-            Arrangementet gjentas etter et fast mønster (f.eks. ukentlig quiz,
-            månedlig konsert)
-          </span>
-        </span>
-      </label>
+      <CheckboxField
+        checked={isRecurring}
+        hint="Arrangementet gjentas etter et fast mønster (f.eks. ukentlig quiz, månedlig konsert)"
+        label="Gjentagende arrangement"
+        onChange={onRecurringToggle}
+      />
 
       {isRecurring && (
         <EventFormRecurrenceBuilder onChange={onRecurrenceChange} />

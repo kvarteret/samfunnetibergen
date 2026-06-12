@@ -1,11 +1,19 @@
+import { ArrowRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
-import { HomeOpenStatus } from "@/features/bars"
-
-import { HomeBarPreviews } from "./_components/HomeBarPreviews"
-import { EventCard, type EventSummary } from "@/features/events"
+import {
+  EventCard,
+  type EventDateEntry,
+  type EventSummary,
+} from "@/features/events"
+import {
+  computeAllDates,
+  formatPrimaryDate,
+  getRecurringLabel,
+} from "@/features/events/domain/dates"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -18,6 +26,10 @@ import {
   fetchPublishedEvents,
   fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
+import { HomeBarPreviews } from "./_components/HomeBarPreviews"
+import { HomeBookingBanner } from "./_components/HomeBookingBanner"
+import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
+import { SlackFeedback } from "./_components/SlackFeedback"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -69,19 +81,64 @@ function localizeHref(href: string | null | undefined, locale: AppLocale) {
   return href === "/" ? `/${locale}` : `/${locale}${href}`
 }
 
-function toEventSummary(event: SanityEvent): EventSummary {
+type EventCardLabels = {
+  today: string
+  tomorrow: string
+  inNDays: (n: number) => string
+  recurringDaily: string
+  recurringWeekly: string
+  recurringMonthly: string
+  recurringGeneric: string
+}
+
+function toEventSummary(
+  event: SanityEvent,
+  labels?: EventCardLabels,
+): EventSummary {
+  const dates: EventDateEntry[] = (event.dates ?? []).map(
+    (d: SanityEventDate) => ({
+      _key: d._key,
+      startDate: d.startDate,
+      startTime: d.startTime ?? null,
+      endTime: d.endTime ?? null,
+    }),
+  )
+
+  const todayStr = new Date().toISOString().split("T")[0]!
+  const resolvedDates = computeAllDates(dates, event.rrule, todayStr)
+
+  const primaryDateLabels = labels
+    ? {
+        today: labels.today,
+        tomorrow: labels.tomorrow,
+        inNDays: labels.inNDays,
+      }
+    : undefined
+  const primaryDate = resolvedDates[0]
+  const primaryDateLabel =
+    primaryDate && primaryDateLabels
+      ? formatPrimaryDate(primaryDate, primaryDateLabels)
+      : null
+  const recurringLabel =
+    labels && event.isRecurring
+      ? getRecurringLabel(event.rrule, {
+          daily: labels.recurringDaily,
+          weekly: labels.recurringWeekly,
+          monthly: labels.recurringMonthly,
+          generic: labels.recurringGeneric,
+        })
+      : null
+
   return {
     _id: event._id,
     title: event.title,
     slug: event.slug,
     isRecurring: event.isRecurring ?? undefined,
     rrule: event.rrule ?? null,
-    dates: (event.dates ?? []).map((d: SanityEventDate) => ({
-      _key: d._key,
-      startDate: d.startDate,
-      startTime: d.startTime ?? null,
-      endTime: d.endTime ?? null,
-    })),
+    dates,
+    resolvedDates,
+    recurringLabel,
+    primaryDateLabel,
     isFree: event.isFree ?? undefined,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
@@ -127,22 +184,73 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
 
-  const [homePage, events, barPreviews] = await Promise.all([
+  const [homePage, events, barPreviews, t, homeT] = await Promise.all([
     fetchHomePageContent(locale),
     fetchPublishedEvents(),
     fetchBarPreviews(),
+    getTranslations({ locale, namespace: "EventCard" }),
+    getTranslations({ locale, namespace: "HomePage" }),
   ])
-  const visibleEvents = (events ?? []).slice(0, 4)
+  const visibleEvents = (events ?? []).slice(0, 3)
+
+  const eventCardLabels: EventCardLabels = {
+    today: t("today"),
+    tomorrow: t("tomorrow"),
+    inNDays: (n: number) => t("inNDays", { n }),
+    recurringDaily: t("recurringDaily"),
+    recurringWeekly: t("recurringWeekly"),
+    recurringMonthly: t("recurringMonthly"),
+    recurringGeneric: t("recurringGeneric"),
+  }
 
   return (
     <div className="flex flex-col gap-12 pb-12">
-      <HomeHero barPreviews={barPreviews} homePage={homePage} locale={locale} />
-      <HomeEvents events={visibleEvents} locale={locale} />
+      <HomeHero homePage={homePage} locale={locale} />
+      <HomeEvents
+        events={visibleEvents}
+        labels={eventCardLabels}
+        locale={locale}
+      />
+      <HomeBookingBanner
+        body={homeT("bookingBannerBody")}
+        cta={homeT("bookingBannerCta")}
+        eyebrow={homeT("bookingBannerEyebrow")}
+        heading1={homeT("bookingBannerHeading1")}
+        heading2={homeT("bookingBannerHeading2")}
+        sticker={homeT("bookingBannerSticker")}
+      />
       <HomeBarPreviews
         houseClosedDates={barPreviews?.houseClosedDates}
         locale={locale}
         rooms={barPreviews?.rooms ?? []}
       />
+      <HomeGrupperBanner
+        body={homeT("grupperBannerBody")}
+        cta={homeT("grupperBannerCta")}
+        eyebrow={homeT("grupperBannerEyebrow")}
+        heading1={homeT("grupperBannerHeading1")}
+        heading2={homeT("grupperBannerHeading2")}
+      />
+
+      <section>
+        <Image
+          alt=""
+          className="hidden h-auto w-full md:block"
+          height={288}
+          priority={false}
+          src="/images/studentersamfunnet-illustration.webp"
+          width={866}
+        />
+        <Image
+          alt=""
+          className="mx-auto h-auto w-full md:hidden"
+          height={500}
+          priority={false}
+          src="/images/studentersamfunnet-illustration-mobile.webp"
+          width={500}
+        />
+      </section>
+      <SlackFeedback />
     </div>
   )
 }
@@ -150,57 +258,70 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 // ─── HomeHero ─────────────────────────────────────────────────────────────────
 
 type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
-type BarPreviews = Awaited<ReturnType<typeof fetchBarPreviews>>
 
 function HomeHero({
   homePage,
   locale,
-  barPreviews,
 }: {
   homePage: HomePage
   locale: AppLocale
-  barPreviews: BarPreviews
 }) {
   const ctaHref = homePage?.primaryCta?.href
     ? localizeHref(homePage.primaryCta.href, locale)
     : null
 
   return (
-    <section className="grid items-center gap-8 pb-10 pt-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)] lg:gap-12">
-      <div>
+    <section className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14">
+      <div className="flex flex-col gap-6">
         {homePage?.title && (
-          <div className="mb-8">
-            <h1 className="font-heading text-3xl leading-tight sm:text-4xl">
-              {homePage.title}
-            </h1>
-            <HomeOpenStatus
-              houseClosedDates={barPreviews?.houseClosedDates}
-              rooms={barPreviews?.rooms ?? []}
-            />
-          </div>
+          <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
+            {homePage.title}
+          </h1>
         )}
-        <div className="flex flex-col gap-6">
-          {homePage?.description?.split(/\n{2,}/).map(paragraph => (
-            <p
-              className="max-w-2xl text-base leading-relaxed text-foreground/75"
-              key={paragraph}
+        {homePage?.description?.split(/\n{2,}/).map(paragraph => (
+          <p
+            className="max-w-2xl leading-relaxed text-foreground-muted"
+            key={paragraph}
+          >
+            {paragraph}
+          </p>
+        ))}
+        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+          {ctaHref && homePage?.primaryCta?.label ? (
+            <>
+              <Button
+                className="shrink-0"
+                render={<Link href={ctaHref} />}
+                size="lg"
+              >
+                {homePage.primaryCta.label}
+              </Button>
+              <Link
+                className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
+                href={`/${locale}/arrangementer`}
+              >
+                Se hva som skjer
+                <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
+              </Link>
+            </>
+          ) : (
+            <Button
+              className="group shrink-0"
+              render={<Link href={`/${locale}/arrangementer`} />}
+              size="lg"
             >
-              {paragraph}
-            </p>
-          ))}
-          {ctaHref && homePage?.primaryCta?.label && (
-            <Button asChild size="lg" className="self-start shrink-0">
-              <Link href={ctaHref}>{homePage.primaryCta.label}</Link>
+              Se hva som skjer
+              <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
             </Button>
           )}
         </div>
       </div>
       <Image
         alt="Illustrasjon av Det Akademiske Kvarter"
-        className="order-first mx-auto h-auto w-full max-w-[26rem] lg:order-none lg:mr-0 lg:max-w-[30rem]"
+        className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none"
         height={986}
         priority
-        sizes="(min-width: 1024px) 50vw, 100vw"
+        sizes="(min-width: 1024px) 45vw, 100vw"
         src="/kvarteret-logo.svg"
         width={1595}
       />
@@ -212,29 +333,31 @@ function HomeHero({
 
 interface HomeEventsProps {
   events: SanityEvent[]
+  labels: EventCardLabels
   locale: AppLocale
 }
 
-function HomeEvents({ events, locale }: HomeEventsProps) {
+function HomeEvents({ events, labels, locale }: HomeEventsProps) {
   if (!events.length) return null
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
+      <div className="flex items-center justify-between pb-2">
+        <p className="font-heading text-xl text-foreground-muted">
           Arrangementer
         </p>
         <Link
-          className="text-xs uppercase tracking-[0.18em] underline underline-offset-4"
+          className="group inline-flex items-center gap-1.5 font-heading underline underline-offset-4 focus-brutal"
           href={`/${locale}/arrangementer`}
         >
           Se alle
+          <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {events.map(event => (
           <EventCard
-            event={toEventSummary(event)}
+            event={toEventSummary(event, labels)}
             facebookLabel="Facebook"
             key={event._id}
             showActions={false}

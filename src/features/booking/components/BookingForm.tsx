@@ -2,12 +2,13 @@
 
 import { useForm } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
-import { type FormEvent, useEffect, useMemo, useState } from "react"
-
-import { BookingFormContext } from "./bookingFormContext"
-import { fetchRoomAvailability } from "../actions/room-availability"
-import { submitRoomBooking } from "../actions/submit-room-booking"
+import { type FormEvent, useEffect, useId, useState } from "react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import {
+  ErrorSummary,
+  type ErrorSummaryItem,
+} from "@/components/ui/error-summary"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -18,6 +19,9 @@ import {
   isSlotAllowedForCombinedHours,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import { useFormErrors } from "@/lib/use-form-errors"
+import { fetchRoomAvailability } from "../actions/room-availability"
+import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
   durationHoursBetween,
   isRoomOccupied,
@@ -26,19 +30,20 @@ import {
 } from "../domain/availability"
 import {
   buildBookingPayload,
-  canSubmitBooking,
   initialBookingState,
+  isExternalBooker,
 } from "../domain/formState"
 import type { BookingRoom } from "../types"
-import { BookingFormOrderSummary } from "./BookingFormOrderSummary"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
 import { BookingFormEventDetailsSection } from "./BookingFormEventDetailsSection"
 import { BookingFormNeedsSection } from "./BookingFormNeedsSection"
+import { BookingFormOrderSummary } from "./BookingFormOrderSummary"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormTermsSection } from "./BookingFormTermsSection"
 import { BookingFormTicketSection } from "./BookingFormTicketSection"
+import { BookingFormContext } from "./bookingFormContext"
 
 // TODO: resolve form type when @tanstack/react-form stabilizes
 export type BookingFormValues = typeof initialBookingState & {
@@ -58,8 +63,20 @@ export function BookingForm({
   openingHours,
   closedDates,
 }: BookingFormProps) {
+  const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const today = useMemo(() => isoDate(new Date()), [])
+  const today = isoDate(new Date())
+  const fieldIds = {
+    studentOrgName: `${uid}-studentOrg`,
+    startDate: `${uid}-startDate`,
+    eventName: `${uid}-eventName`,
+    audienceCount: `${uid}-audience`,
+    furniture: `${uid}-furniture`,
+    contactName: `${uid}-contactName`,
+    contactEmail: `${uid}-contactEmail`,
+    invoiceAddress: `${uid}-invoiceAddress`,
+    acceptTerms: `${uid}-acceptTerms`,
+  }
 
   const form = useForm({
     defaultValues: {
@@ -76,13 +93,9 @@ export function BookingForm({
 
   const values = form.state.values
 
-  const selectedRoom = useMemo(
-    () => rooms.find(room => room.slug === values.roomSlug),
-    [rooms, values.roomSlug],
-  )
+  const selectedRoom = rooms.find(room => room.slug === values.roomSlug)
 
   useEffect(() => {
-    if (!today) return
     let active = true
     fetchRoomAvailability(today, addDaysDateOnly(today, DATE_COUNT)).then(
       result => {
@@ -92,61 +105,46 @@ export function BookingForm({
     return () => {
       active = false
     }
-  }, [today])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const roomBookings = useMemo(
-    () =>
-      selectedRoom
-        ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
-        : [],
-    [bookings, selectedRoom],
-  )
+  const roomBookings = selectedRoom
+    ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
+    : []
 
-  const selectedDateRoomBookings = useMemo(() => {
-    if (!values.startDate) return []
-    const [dayStartMs, dayEndMs] = slotRangeMs(
-      values.startDate,
-      "00:00",
-      "00:00",
+  const selectedDateRoomBookings = values.startDate
+    ? roomBookings.filter(booking =>
+        overlaps(...slotRangeMs(values.startDate, "00:00", "00:00"), booking),
+      )
+    : []
+
+  const hasConflict =
+    !!values.startDate &&
+    selectedDateRoomBookings.length > 0 &&
+    selectedDateRoomBookings.some(b =>
+      overlaps(
+        ...slotRangeMs(values.startDate, values.startTime, values.endTime),
+        b,
+      ),
     )
-    return roomBookings.filter(booking =>
-      overlaps(dayStartMs, dayEndMs, booking),
-    )
-  }, [roomBookings, values.startDate])
 
-  const hasConflict = useMemo(() => {
-    if (!values.startDate || selectedDateRoomBookings.length === 0) return false
-    const [startMs, endMs] = slotRangeMs(
-      values.startDate,
-      values.startTime,
-      values.endTime,
-    )
-    return selectedDateRoomBookings.some(b => overlaps(startMs, endMs, b))
-  }, [
-    values.startDate,
-    values.startTime,
-    values.endTime,
-    selectedDateRoomBookings,
-  ])
+  const occupiedSlugs = values.startDate
+    ? new Set(
+        rooms
+          .filter(room =>
+            isRoomOccupied(
+              bookings,
+              room.crescatRoomId,
+              values.startDate,
+              values.startTime,
+              values.endTime,
+            ),
+          )
+          .map(room => room.slug),
+      )
+    : new Set<string>()
 
-  const occupiedSlugs = useMemo(() => {
-    if (!values.startDate) return new Set<string>()
-    return new Set(
-      rooms
-        .filter(room =>
-          isRoomOccupied(
-            bookings,
-            room.crescatRoomId,
-            values.startDate,
-            values.startTime,
-            values.endTime,
-          ),
-        )
-        .map(room => room.slug),
-    )
-  }, [rooms, bookings, values.startDate, values.startTime, values.endTime])
-
-  const slotWithinHours = useMemo(() => {
+  const slotWithinHours = (() => {
     const hasConfiguredHours =
       hasOpeningHoursRows(openingHours) ||
       hasOpeningHoursRows(selectedRoom?.openingHours ?? null)
@@ -166,36 +164,33 @@ export function BookingForm({
       selectedRoom?.openingHours ?? null,
       closedDates,
     )
-  }, [
-    openingHours,
-    selectedRoom,
-    closedDates,
-    values.startDate,
-    values.startTime,
-    values.endTime,
-  ])
+  })()
 
-  const canSubmit =
-    canSubmitBooking(values, Boolean(selectedRoom), hasConflict) &&
-    slotWithinHours
+  const validationErrors = getBookingValidationErrors({
+    values,
+    fieldIds,
+    roomSelected: !!selectedRoom,
+    hasConflict,
+    slotWithinHours,
+  })
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   if (form.state.isSubmitSuccessful) {
     return (
-      <div className="max-w-2xl space-y-4 border-2 border-primary bg-primary/5 p-8">
-        <p className="font-heading text-xl text-foreground">
-          Forespørsel mottatt!
-        </p>
-        <p className="text-sm leading-6 text-foreground/70">
+      <Alert className="max-w-2xl p-8" variant="success">
+        <AlertTitle>Forespørsel mottatt!</AlertTitle>
+        <AlertDescription>
           Takk for din bookingforespørsel. Vi behandler den så fort vi kan og
           tar kontakt på e-post.
-        </p>
+        </AlertDescription>
         <Link
-          className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-primary"
+          className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
         >
           Tilbake til rom
         </Link>
-      </div>
+      </Alert>
     )
   }
 
@@ -209,53 +204,82 @@ export function BookingForm({
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
+            markSubmitAttempt()
+            if (validationErrors.length > 0) return
             form.handleSubmit()
           }}
         >
-          <BookingFormBookerTypeSection />
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
+          <BookingFormBookerTypeSection
+            studentOrgNameError={errorFor(fieldIds.studentOrgName)}
+            studentOrgNameId={fieldIds.studentOrgName}
+          />
           <BookingFormScheduleSection
             rooms={rooms}
             selectedRoom={selectedRoom}
+            selectedRoomTitle={selectedRoom?.title ?? undefined}
             roomBookings={roomBookings}
             selectedDateRoomBookings={selectedDateRoomBookings}
             occupiedSlugs={occupiedSlugs}
             openingHours={openingHours}
             closedDates={closedDates}
             hasConflict={hasConflict}
+            startDateError={
+              errorFor(fieldIds.startDate) ??
+              errorFor(`${fieldIds.startDate}-time`)
+            }
+            startDateId={fieldIds.startDate}
           />
-          <BookingFormEventDetailsSection />
-          <BookingFormNeedsSection />
+          <BookingFormEventDetailsSection
+            audienceCountError={errorFor(fieldIds.audienceCount)}
+            audienceCountId={fieldIds.audienceCount}
+            eventNameError={errorFor(fieldIds.eventName)}
+            eventNameId={fieldIds.eventName}
+          />
+          <BookingFormNeedsSection
+            furnitureError={errorFor(fieldIds.furniture)}
+            furnitureId={fieldIds.furniture}
+          />
           <BookingFormCateringBarSection />
           <BookingFormTicketSection />
-          <BookingFormContactSection />
-          <BookingFormTermsSection />
+          <BookingFormContactSection
+            contactEmailError={errorFor(fieldIds.contactEmail)}
+            contactEmailId={fieldIds.contactEmail}
+            contactNameError={errorFor(fieldIds.contactName)}
+            contactNameId={fieldIds.contactName}
+            invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
+            invoiceAddressId={fieldIds.invoiceAddress}
+          />
+          <BookingFormTermsSection
+            acceptTermsError={errorFor(fieldIds.acceptTerms)}
+            acceptTermsId={fieldIds.acceptTerms}
+          />
 
           <section className="space-y-4 border-t-2 border-border pt-8">
             {!slotWithinHours && values.startDate && (
-              <p className="max-w-3xl text-sm text-destructive">
-                Valgt start- eller sluttid er utenfor husets åpningstider for
-                denne dagen.
-              </p>
+              <Alert className="max-w-3xl" variant="destructive">
+                <AlertTitle>Utenfor åpningstid</AlertTitle>
+                <AlertDescription>
+                  Valgt start- eller sluttid er utenfor husets åpningstider for
+                  denne dagen.
+                </AlertDescription>
+              </Alert>
             )}
             {submitError && (
-              <div className="flex max-w-3xl items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
+              <Alert className="max-w-3xl" variant="destructive">
                 <X
                   aria-hidden
                   className="mt-0.5 size-4 shrink-0 text-destructive"
                 />
-                <div>
-                  <p className="text-sm font-heading text-destructive">
-                    Det oppstod en feil
-                  </p>
-                  <p className="mt-0.5 text-sm text-foreground/70">
-                    {String(submitError)}
-                  </p>
-                </div>
-              </div>
+                <AlertTitle>Det oppstod en feil</AlertTitle>
+                <AlertDescription>{String(submitError)}</AlertDescription>
+              </Alert>
             )}
             <Button
               className="w-full sm:w-auto"
-              disabled={form.state.isSubmitting || !canSubmit}
+              disabled={form.state.isSubmitting}
               size="lg"
               type="submit"
             >
@@ -287,4 +311,109 @@ export function BookingForm({
       </div>
     </BookingFormContext.Provider>
   )
+}
+
+interface BookingValidationOptions {
+  values: BookingFormValues
+  fieldIds: Record<
+    | "studentOrgName"
+    | "startDate"
+    | "eventName"
+    | "audienceCount"
+    | "furniture"
+    | "contactName"
+    | "contactEmail"
+    | "invoiceAddress"
+    | "acceptTerms",
+    string
+  >
+  roomSelected: boolean
+  hasConflict: boolean
+  slotWithinHours: boolean
+}
+
+function getBookingValidationErrors({
+  values,
+  fieldIds,
+  roomSelected,
+  hasConflict,
+  slotWithinHours,
+}: BookingValidationOptions): ErrorSummaryItem[] {
+  const errors: ErrorSummaryItem[] = []
+  const isExternal = isExternalBooker(values.bookerType)
+
+  if (!roomSelected) {
+    errors.push({
+      fieldId: fieldIds.startDate,
+      message: "Velg et rom.",
+    })
+  }
+  if (values.bookerType === "studentorg" && !values.studentOrgName.trim()) {
+    errors.push({
+      fieldId: fieldIds.studentOrgName,
+      message: "Skriv inn navn på studentorganisasjonen.",
+    })
+  }
+  if (!values.startDate) {
+    errors.push({
+      fieldId: fieldIds.startDate,
+      message: "Velg dato.",
+    })
+  }
+  if (hasConflict) {
+    errors.push({
+      fieldId: `${fieldIds.startDate}-time`,
+      message: "Velg et tidsrom som ikke overlapper en eksisterende booking.",
+    })
+  }
+  if (!slotWithinHours && values.startDate) {
+    errors.push({
+      fieldId: `${fieldIds.startDate}-time`,
+      message: "Velg et tidsrom innenfor åpningstiden.",
+    })
+  }
+  if (!values.eventName.trim()) {
+    errors.push({
+      fieldId: fieldIds.eventName,
+      message: "Skriv inn navn på arrangementet.",
+    })
+  }
+  if (!values.audienceCount.trim()) {
+    errors.push({
+      fieldId: fieldIds.audienceCount,
+      message: "Skriv inn estimert antall publikum.",
+    })
+  }
+  if (!values.furniture.trim()) {
+    errors.push({
+      fieldId: fieldIds.furniture,
+      message: "Skriv inn ønsket møblement.",
+    })
+  }
+  if (!values.contactName.trim()) {
+    errors.push({
+      fieldId: fieldIds.contactName,
+      message: "Skriv inn navn på kontaktperson.",
+    })
+  }
+  if (!values.contactEmail.trim()) {
+    errors.push({
+      fieldId: fieldIds.contactEmail,
+      message: "Skriv inn e-postadresse.",
+    })
+  }
+  if (isExternal && !values.invoiceAddress.trim()) {
+    errors.push({
+      fieldId: fieldIds.invoiceAddress,
+      message: "Skriv inn fakturaadresse.",
+    })
+  }
+  if (!values.acceptTerms) {
+    errors.push({
+      fieldId: fieldIds.acceptTerms,
+      message: "Bekreft at du har lest og godtar bookingvilkårene.",
+    })
+  }
+
+  return errors
 }

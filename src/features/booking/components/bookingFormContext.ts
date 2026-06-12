@@ -1,7 +1,10 @@
 import { createContext, useContext } from "react"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const BookingFormContext = createContext<any>(null)
+import type { AppFormApi } from "@/lib/form-api"
+import type { BookingFormValues } from "./BookingForm"
+
+export const BookingFormContext =
+  createContext<AppFormApi<BookingFormValues> | null>(null)
 
 export function useBookingForm() {
   const form = useContext(BookingFormContext)

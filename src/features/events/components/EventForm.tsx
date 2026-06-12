@@ -1,41 +1,44 @@
 "use client"
 
+import { useForm, useStore } from "@tanstack/react-form"
 import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useState,
 } from "react"
-
-import { useForm } from "@tanstack/react-form"
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  ErrorSummary,
+  type ErrorSummaryItem,
+} from "@/components/ui/error-summary"
 import {
   submitEvent,
   uploadEventImage,
 } from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
+import { useFormErrors } from "@/lib/use-form-errors"
 import {
   buildPreviewEvent,
-  initialState,
   type FormState,
+  initialState,
 } from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
+import { EventFormActions } from "./EventFormActions"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
 import { EventFormLinksSection } from "./EventFormLinksSection"
-import { EventFormPreview } from "./EventFormPreview"
 import { EventFormOrganizerSection } from "./EventFormOrganizerSection"
 import { EventFormPlaceSection } from "./EventFormPlaceSection"
+import { EventFormPreview } from "./EventFormPreview"
 import { EventFormPriceSection } from "./EventFormPriceSection"
 import { EventFormScheduleSection } from "./EventFormScheduleSection"
-import { EventFormActions } from "./EventFormActions"
 import { EventFormSubmitterSection } from "./EventFormSubmitterSection"
 import { EventFormContext } from "./eventFormContext"
 
@@ -51,6 +54,12 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const [imageAssetId, setImageAssetId] = useState<string | null>(null)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUploadError, setImageUploadError] = useState("")
+  const fieldIds = {
+    title: `${uid}-title`,
+    firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
+    submittedBy: `${uid}-submittedBy`,
+    submittedByEmail: `${uid}-submittedByEmail`,
+  }
 
   const form = useForm({
     defaultValues: initialState as FormState,
@@ -92,6 +101,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       if (!result.ok) throw new Error(result.error)
     },
   })
+  const values = useStore(form.store, state => state.values)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
+  )
 
   // Initialize first date with today
   useEffect(() => {
@@ -115,38 +129,33 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     }
   }, [imagePreviewUrl])
 
-  const eventTypeOptions = useMemo(
-    () =>
-      eventTypes.map(eventType => ({
-        value: eventType._id,
-        label: eventType.taxonomyGroup
-          ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
-          : eventType.name,
-      })),
-    [eventTypes],
-  )
+  const eventTypeOptions = eventTypes.map(eventType => ({
+    value: eventType._id,
+    label: eventType.taxonomyGroup
+      ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
+      : eventType.name,
+  }))
 
-  const roomOptions = useMemo(
-    () => rooms.map(room => ({ value: room._id, label: room.title })),
-    [rooms],
-  )
+  const roomOptions = rooms.map(room => ({
+    value: room._id,
+    label: room.title,
+  }))
 
-  const groupOptions = useMemo(
-    () => groups.map(group => ({ value: group._id, label: group.name })),
-    [groups],
-  )
+  const groupOptions = groups.map(group => ({
+    value: group._id,
+    label: group.name,
+  }))
 
-  const previewEvent = useMemo(
-    () =>
-      buildPreviewEvent(
-        form.state.values,
-        imagePreviewUrl,
-        rooms,
-        groups,
-        eventTypes,
-      ),
-    [form.state.values, imagePreviewUrl, rooms, groups, eventTypes],
+  const previewEvent = buildPreviewEvent(
+    values,
+    imagePreviewUrl,
+    rooms,
+    groups,
+    eventTypes,
   )
+  const validationErrors = getEventValidationErrors(values, fieldIds)
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   const handleImageChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -214,11 +223,12 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     setImageUploadError("")
   }, [])
 
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return (
-      <p className="font-heading text-green-600">
-        Din forespørsel er sendt inn
-      </p>
+      <Alert className="max-w-2xl p-8" variant="success">
+        <AlertTitle className="text-xl">Forespørsel sendt inn</AlertTitle>
+        <AlertDescription>Din forespørsel er sendt inn.</AlertDescription>
+      </Alert>
     )
   }
 
@@ -230,17 +240,21 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            if (
-              form.state.values.dates.every(date => !date.startDate) ||
-              imageUploading
-            ) {
+            markSubmitAttempt()
+            if (validationErrors.length > 0) return
+            if (imageUploading) {
               return
             }
             form.handleSubmit()
           }}
         >
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
           <EventFormDetailsSection
             eventTypeOptions={eventTypeOptions}
+            titleError={errorFor(fieldIds.title)}
+            titleId={fieldIds.title}
             uid={uid}
           />
           <EventFormImageSection
@@ -251,17 +265,69 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             onImageChange={handleImageChange}
             onRemoveImage={handleRemoveImage}
           />
-          <EventFormScheduleSection uid={uid} />
+          <EventFormScheduleSection
+            firstDateError={errorFor(fieldIds.firstDate)}
+            firstDateId={fieldIds.firstDate}
+            uid={uid}
+          />
           <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
           <EventFormOrganizerSection groupOptions={groupOptions} uid={uid} />
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
-          <EventFormSubmitterSection uid={uid} />
-          <EventFormActions imageUploading={imageUploading} />
+          <EventFormSubmitterSection
+            submittedByEmailError={errorFor(fieldIds.submittedByEmail)}
+            submittedByEmailId={fieldIds.submittedByEmail}
+            submittedByError={errorFor(fieldIds.submittedBy)}
+            submittedById={fieldIds.submittedBy}
+            uid={uid}
+          />
+          <EventFormActions formError="" imageUploading={imageUploading} />
         </form>
 
         <EventFormPreview event={previewEvent} />
       </div>
     </EventFormContext.Provider>
   )
+}
+
+type EventFieldIds = Record<
+  "title" | "firstDate" | "submittedBy" | "submittedByEmail",
+  string
+>
+
+function getEventValidationErrors(
+  values: FormState,
+  fieldIds: EventFieldIds,
+): ErrorSummaryItem[] {
+  const errors: ErrorSummaryItem[] = []
+
+  if (!values.title.trim()) {
+    errors.push({
+      fieldId: fieldIds.title,
+      message: "Skriv inn tittel.",
+    })
+  }
+  if (values.dates.every(date => !date.startDate)) {
+    errors.push({
+      fieldId: fieldIds.firstDate,
+      message: "Fyll ut minst én dato.",
+    })
+  }
+  if (!values.submittedBy.trim()) {
+    errors.push({
+      fieldId: fieldIds.submittedBy,
+      message: "Skriv inn navn på kontaktperson.",
+    })
+  }
+  if (
+    !values.submittedByEmail.trim() ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.submittedByEmail)
+  ) {
+    errors.push({
+      fieldId: fieldIds.submittedByEmail,
+      message: "Skriv inn en gyldig e-postadresse.",
+    })
+  }
+
+  return errors
 }

@@ -3,6 +3,7 @@
 import { ExternalLink, Mic } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Link } from "@/i18n/navigation"
 import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
@@ -15,24 +16,15 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
-      <div className="aspect-video w-full bg-muted overflow-hidden border-2 border-border/50">
-        {firstImage?.assetUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={firstImage.assetUrl}
-            alt={firstImage.alt ?? room.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Mic className="size-10 text-foreground/20" aria-hidden />
-          </div>
-        )}
-      </div>
+      <ImageWithFallback
+        alt={firstImage?.alt ?? room.title}
+        className="border-2 border-border/50"
+        fallback={<Mic className="size-10 text-foreground-muted" aria-hidden />}
+        src={firstImage?.assetUrl}
+      />
       <div className="space-y-1">
         <Link
-          className="group flex items-center gap-1.5 font-heading text-base text-foreground hover:text-primary transition-colors"
+          className="group flex items-center gap-1.5 font-heading text-foreground hover:text-primary transition-colors focus-brutal"
           href={`/rom/${room.slug}`}
         >
           {room.title}
@@ -42,11 +34,9 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
           />
         </Link>
       </div>
-      {room.summary && (
-        <p className="text-sm leading-6 text-foreground/70">{room.summary}</p>
-      )}
+      {room.summary && <p>{room.summary}</p>}
       {(room.capacitySeated || room.capacityStanding) && (
-        <div className="border-t border-border pt-4 flex gap-6 text-sm">
+        <div className="border-t border-border pt-4 flex gap-6">
           {room.capacitySeated && (
             <KaraokeRoomCapacity
               label="Sitteplasser"
@@ -74,7 +64,7 @@ function KaraokeRoomCapacity({
 }) {
   return (
     <div>
-      <p className="font-heading text-xs uppercase tracking-[0.12em] text-foreground/50 mb-0.5">
+      <p className="font-heading uppercase tracking-widest text-foreground-muted mb-0.5">
         {label}
       </p>
       <p className="font-heading">{value}</p>

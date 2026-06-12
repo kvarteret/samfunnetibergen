@@ -1,15 +1,14 @@
 "use client"
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { useId } from "react"
-import {
-  FieldGroup,
-  SectionHeader,
-  SelectField,
-} from "@/components/ui/form-fields"
+import { FieldGroup } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { BookingTextarea } from "./BookingFormPrimitives"
+import { NumberField } from "@/components/ui/number-field"
+import { SelectField } from "@/components/ui/select-field"
+import { Textarea } from "@/components/ui/textarea"
 import { useBookingForm } from "./bookingFormContext"
 
 const OPEN_CLOSED_OPTIONS = [
@@ -17,23 +16,40 @@ const OPEN_CLOSED_OPTIONS = [
   { value: "Lukket", label: "Lukket arrangement" },
 ]
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Props {}
+interface BookingFormEventDetailsSectionProps {
+  audienceCountError?: string
+  audienceCountId: string
+  eventNameError?: string
+  eventNameId: string
+}
 
-export function BookingFormEventDetailsSection({}: Props) {
+export function BookingFormEventDetailsSection({
+  audienceCountError,
+  audienceCountId,
+  eventNameError,
+  eventNameId,
+}: BookingFormEventDetailsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const audienceCountErrorId = `${audienceCountId}-error`
+  const eventNameErrorId = `${eventNameId}-error`
+
   return (
-    <section className="space-y-6">
-      <SectionHeader number="03" title="Arrangement" />
+    <FormSection number="03" title="Arrangement">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldGroup className="sm:col-span-2">
-          <Label htmlFor={`${uid}-eventName`}>Navn på arrangement *</Label>
+        <FieldGroup
+          className="sm:col-span-2"
+          error={eventNameError}
+          errorId={eventNameErrorId}
+        >
+          <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
           <form.Field name="eventName">
-            {(field: any) => (
+            {(field: AnyFieldApi) => (
               <Input
                 autoComplete="off"
-                id={`${uid}-eventName`}
+                aria-describedby={eventNameError ? eventNameErrorId : undefined}
+                aria-invalid={!!eventNameError}
+                id={eventNameId}
                 onChange={e => field.handleChange(e.target.value)}
                 placeholder="F.eks. konsert, møte, foredrag"
                 value={field.state.value as string}
@@ -41,23 +57,33 @@ export function BookingFormEventDetailsSection({}: Props) {
             )}
           </form.Field>
         </FieldGroup>
-        <FieldGroup>
-          <Label htmlFor={`${uid}-audience`}>Estimert antall publikum *</Label>
+        <FieldGroup error={audienceCountError} errorId={audienceCountErrorId}>
+          <Label htmlFor={audienceCountId}>Estimert antall publikum *</Label>
           <form.Field name="audienceCount">
-            {(field: any) => (
-              <Input
-                id={`${uid}-audience`}
+            {(field: AnyFieldApi) => (
+              <NumberField
+                aria-describedby={
+                  audienceCountError ? audienceCountErrorId : undefined
+                }
+                aria-invalid={!!audienceCountError}
+                className="w-32"
+                id={audienceCountId}
                 min={0}
-                onChange={e => field.handleChange(e.target.value)}
+                onValueChange={value =>
+                  field.handleChange(value === null ? "" : String(value))
+                }
                 placeholder="F.eks. 50"
-                type="number"
-                value={field.state.value as string}
+                value={
+                  field.state.value === ""
+                    ? null
+                    : Number(field.state.value as string)
+                }
               />
             )}
           </form.Field>
         </FieldGroup>
         <form.Field name="openOrClosed">
-          {(field: any) => (
+          {(field: AnyFieldApi) => (
             <SelectField
               id={`${uid}-openClosed`}
               label="Åpent / lukket *"
@@ -69,14 +95,20 @@ export function BookingFormEventDetailsSection({}: Props) {
         </form.Field>
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
-          <BookingTextarea
-            id={`${uid}-description`}
-            onChange={v => form.setFieldValue("description", v)}
-            placeholder="Fortell oss kort om arrangementet ditt..."
-            value={form.state.values.description}
-          />
+          <form.Field name="description">
+            {(field: AnyFieldApi) => (
+              <Textarea
+                className="resize-y"
+                id={`${uid}-description`}
+                onChange={e => field.handleChange(e.target.value)}
+                placeholder="Fortell oss kort om arrangementet ditt..."
+                rows={4}
+                value={field.state.value as string}
+              />
+            )}
+          </form.Field>
         </FieldGroup>
       </div>
-    </section>
+    </FormSection>
   )
 }

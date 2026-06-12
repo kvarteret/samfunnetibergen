@@ -1,38 +1,42 @@
 "use client"
 
+import { useStore } from "@tanstack/react-form"
 import { Loader2, X } from "lucide-react"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormActionsProps {
+  formError: string
   imageUploading: boolean
 }
 
-export function EventFormActions({ imageUploading }: EventFormActionsProps) {
+export function EventFormActions({
+  formError,
+  imageUploading,
+}: EventFormActionsProps) {
   const form = useEventForm()
-  const isPending = form.state.isSubmitting
-  const submitError = form.state.errorMap.onSubmit
+  const isPending = useStore(form.store, state => state.isSubmitting)
+  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
+
+  const displayError = String(submitError || formError || "")
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">
-      {submitError && (
-        <div className="flex items-start gap-3 border-2 border-destructive bg-destructive/10 px-4 py-3">
-          <X aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
-          <div>
-            <p className="text-sm font-heading text-destructive">
-              Det oppstod en feil
-            </p>
-            <p className="mt-0.5 text-sm text-foreground/70">
-              {submitError.message}
-            </p>
-          </div>
-        </div>
+      {displayError && (
+        <Alert variant="destructive">
+          <X aria-hidden className="text-destructive" />
+          <AlertTitle className="text-destructive">
+            Det oppstod en feil
+          </AlertTitle>
+          <AlertDescription>{displayError}</AlertDescription>
+        </Alert>
       )}
 
-      <p className="text-sm leading-6 text-foreground/60">
+      <p className=" leading-6 text-foreground-muted">
         Arrangementet sendes til godkjenning hos PR-gruppen på Kvarteret. Det
-        vil ikke vises på nettsiden før det er godkjent. Vi tar vanligvis 1-3
+        vil ikke vises på nettsiden før det er godkjent. vi bruker vanligvis 1-3
         virkedager.
       </p>
 

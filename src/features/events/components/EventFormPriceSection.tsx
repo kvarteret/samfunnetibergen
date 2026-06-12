@@ -1,11 +1,9 @@
 "use client"
 
-import {
-  CheckboxSquare,
-  FieldHint,
-  PriceInput,
-  SectionHeader,
-} from "@/components/ui/form-fields"
+import type { AnyFieldApi } from "@tanstack/react-form"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FormSection } from "@/components/ui/form-section"
+import { PriceInput } from "@/components/ui/price-input"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormPriceSectionProps {
@@ -14,49 +12,69 @@ interface EventFormPriceSectionProps {
 
 export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
   const form = useEventForm()
-  const values = form.state.values
 
   return (
-    <section className="space-y-6">
-      <SectionHeader number="06" title="Pris" />
+    <FormSection number="06" title="Pris">
+      <form.Field name="isFree">
+        {(field: AnyFieldApi) => (
+          <>
+            <CheckboxField
+              checked={field.state.value as boolean}
+              label="Gratis inngang"
+              onChange={field.handleChange}
+            />
+            {!field.state.value && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <EventPriceField
+                  id={`${uid}-priceOrdinar`}
+                  label="Ordinær"
+                  name="priceOrdinar"
+                />
+                <EventPriceField
+                  id={`${uid}-priceStudent`}
+                  label="Student"
+                  name="priceStudent"
+                />
+                <EventPriceField
+                  id={`${uid}-priceMedlem`}
+                  label="Medlem"
+                  name="priceMedlem"
+                />
+              </div>
+            )}
+          </>
+        )}
+      </form.Field>
 
-      <label className="group flex cursor-pointer items-center gap-3">
-        <CheckboxSquare
-          checked={values.isFree}
-          onChange={v => form.setFieldValue("isFree", v)}
-        />
-        <span className="font-heading text-sm text-foreground">
-          Gratis inngang
-        </span>
-      </label>
-
-      {!values.isFree && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <PriceInput
-            id={`${uid}-priceOrdinar`}
-            label="Ordinær"
-            onChange={v => form.setFieldValue("priceOrdinar", v)}
-            value={values.priceOrdinar}
-          />
-          <PriceInput
-            id={`${uid}-priceStudent`}
-            label="Student"
-            onChange={v => form.setFieldValue("priceStudent", v)}
-            value={values.priceStudent}
-          />
-          <PriceInput
-            id={`${uid}-priceMedlem`}
-            label="Medlem"
-            onChange={v => form.setFieldValue("priceMedlem", v)}
-            value={values.priceMedlem}
-          />
-        </div>
-      )}
-
-      <FieldHint>
+      <p className="text-sm text-foreground-muted">
         Alle prisfelt er valgfrie. La dem stå tomme om du er usikker - vi tar
         gjerne kontakt for avklaring.
-      </FieldHint>
-    </section>
+      </p>
+    </FormSection>
+  )
+}
+
+function EventPriceField({
+  id,
+  label,
+  name,
+}: {
+  id: string
+  label: string
+  name: "priceOrdinar" | "priceStudent" | "priceMedlem"
+}) {
+  const form = useEventForm()
+
+  return (
+    <form.Field name={name}>
+      {(field: AnyFieldApi) => (
+        <PriceInput
+          id={id}
+          label={label}
+          onChange={field.handleChange}
+          value={field.state.value as string}
+        />
+      )}
+    </form.Field>
   )
 }

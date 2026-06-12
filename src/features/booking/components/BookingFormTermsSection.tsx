@@ -1,16 +1,26 @@
 "use client"
 
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { type UIEvent, useState } from "react"
-import { CheckboxSquare, SectionHeader } from "@/components/ui/form-fields"
-import { cn } from "@/lib/utils"
+import { CheckboxField } from "@/components/ui/checkbox-field"
+import { FormSection } from "@/components/ui/form-section"
 import { useBookingForm } from "./bookingFormContext"
 
 const TERMS_URL = "https://kvarteret.no/leie-av-lokaler/"
 const CANCELLATION_URL = "https://kvarteret.no/avbestillingsvilkar/"
 
-export function BookingFormTermsSection() {
+interface BookingFormTermsSectionProps {
+  acceptTermsError?: string
+  acceptTermsId: string
+}
+
+export function BookingFormTermsSection({
+  acceptTermsError,
+  acceptTermsId,
+}: BookingFormTermsSectionProps) {
   const form = useBookingForm()
   const [hasRead, setHasRead] = useState(false)
+  const acceptTermsErrorId = `${acceptTermsId}-error`
 
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const el = event.currentTarget
@@ -18,10 +28,9 @@ export function BookingFormTermsSection() {
   }
 
   return (
-    <section className="space-y-4">
-      <SectionHeader number="08" title="Vilkår" />
+    <FormSection number="08" title="Vilkår">
       <div
-        className="max-w-3xl space-y-3 overflow-y-auto border-2 border-border bg-card p-4 text-sm leading-6 text-foreground/75"
+        className="max-w-3xl space-y-3 overflow-y-auto panel p-4"
         onScroll={handleScroll}
         style={{ maxHeight: "12rem" }}
       >
@@ -41,7 +50,7 @@ export function BookingFormTermsSection() {
         </p>
         <p className="flex flex-wrap gap-4">
           <a
-            className="font-heading underline underline-offset-4"
+            className="font-heading underline underline-offset-4 focus-brutal"
             href={TERMS_URL}
             rel="noreferrer"
             target="_blank"
@@ -49,7 +58,7 @@ export function BookingFormTermsSection() {
             Vilkår for leie
           </a>
           <a
-            className="font-heading underline underline-offset-4"
+            className="font-heading underline underline-offset-4 focus-brutal"
             href={CANCELLATION_URL}
             rel="noreferrer"
             target="_blank"
@@ -57,27 +66,27 @@ export function BookingFormTermsSection() {
             Avbestillingsvilkår
           </a>
         </p>
-        <p className="text-xs text-foreground/45">
+        <p className="text-sm text-foreground-muted">
           Bla til bunnen for å bekrefte.
         </p>
       </div>
-      <label
-        className={cn(
-          "group flex max-w-3xl items-start gap-3",
-          hasRead ? "cursor-pointer" : "cursor-not-allowed opacity-60",
+      <form.Field name="acceptTerms">
+        {(field: AnyFieldApi) => (
+          <CheckboxField
+            aria-describedby={acceptTermsError ? acceptTermsErrorId : undefined}
+            aria-invalid={!!acceptTermsError}
+            checked={field.state.value as boolean}
+            className="max-w-3xl"
+            disabled={!hasRead}
+            error={acceptTermsError}
+            errorId={acceptTermsErrorId}
+            id={acceptTermsId}
+            label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
+            labelClassName="font-sans font-base text-foreground-muted"
+            onChange={value => hasRead && field.handleChange(value)}
+          />
         )}
-      >
-        <CheckboxSquare
-          checked={form.state.values.acceptTerms}
-          onChange={value =>
-            hasRead && form.setFieldValue("acceptTerms", value)
-          }
-        />
-        <span className="text-sm leading-6 text-foreground/80">
-          Jeg har lest, forstått og godkjenner Det Akademiske Kvarters
-          bookingvilkår.
-        </span>
-      </label>
-    </section>
+      </form.Field>
+    </FormSection>
   )
 }

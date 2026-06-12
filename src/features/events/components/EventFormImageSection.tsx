@@ -1,13 +1,12 @@
 "use client"
 
-import { Check, Loader2, Trash2, Upload } from "lucide-react"
+import { Check, Loader2, Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
-import {
-  FieldGroup,
-  FieldHint,
-  SectionHeader,
-} from "@/components/ui/form-fields"
+import { FieldError } from "@/components/ui/field-error"
+import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { FormSection } from "@/components/ui/form-section"
+import { ImageDropzone } from "@/components/ui/image-dropzone"
 import { formatEventImageMaxSize } from "../domain/imageUpload"
 
 interface EventFormImageSectionProps {
@@ -28,9 +27,7 @@ export function EventFormImageSection({
   onRemoveImage,
 }: EventFormImageSectionProps) {
   return (
-    <section className="space-y-6">
-      <SectionHeader number="02" title="Bilde" />
-
+    <FormSection number="02" title="Bilde">
       <FieldGroup>
         <FieldHint>
           JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
@@ -46,10 +43,10 @@ export function EventFormImageSection({
             onRemoveImage={onRemoveImage}
           />
         ) : (
-          <ImageUploadDropzone onImageChange={onImageChange} />
+          <ImageDropzone onImageChange={onImageChange} />
         )}
       </FieldGroup>
-    </section>
+    </FormSection>
   )
 }
 
@@ -70,7 +67,7 @@ function UploadedImagePreview({
 }: UploadedImagePreviewProps) {
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[16/9] w-full overflow-hidden border-2 border-border">
+      <div className="relative aspect-video w-full overflow-hidden border-2 border-border">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           alt="Forhåndsvisning av opplastet bilde"
@@ -83,17 +80,19 @@ function UploadedImagePreview({
           </div>
         )}
         {imageAssetId && !imageUploading && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-xs text-foreground/70">
+          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-sm text-foreground-muted">
             <Check aria-hidden className="size-3 text-primary" />
             Lastet opp
           </div>
         )}
       </div>
       {imageUploadError && (
-        <p className="text-xs text-destructive">{imageUploadError}</p>
+        <FieldError id="event-image-upload-error">
+          {imageUploadError}
+        </FieldError>
       )}
       <button
-        className="flex items-center gap-1.5 text-xs text-foreground/50 transition-colors hover:text-destructive"
+        className="flex items-center gap-1.5 text-sm text-foreground-muted transition-colors hover:text-destructive"
         onClick={onRemoveImage}
         type="button"
       >
@@ -101,26 +100,5 @@ function UploadedImagePreview({
         Fjern bilde
       </button>
     </div>
-  )
-}
-
-interface ImageUploadDropzoneProps {
-  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
-}
-
-function ImageUploadDropzone({ onImageChange }: ImageUploadDropzoneProps) {
-  return (
-    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40">
-      <input
-        accept="image/jpeg,image/png,image/webp"
-        className="sr-only"
-        onChange={onImageChange}
-        type="file"
-      />
-      <Upload aria-hidden className="size-7 text-foreground/30" />
-      <span className="text-sm text-foreground/50">
-        Klikk for å velge bilde
-      </span>
-    </label>
   )
 }

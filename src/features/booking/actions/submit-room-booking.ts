@@ -12,6 +12,7 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
   second: "2-digit",
   hour12: false,
 })
+
 import {
   fetchVenueCalendar,
   VENUE_CALENDAR_SLUG,

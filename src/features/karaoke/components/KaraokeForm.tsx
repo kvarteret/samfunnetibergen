@@ -1,11 +1,12 @@
 "use client"
 
-import { useForm } from "@tanstack/react-form"
+import { useForm, useStore } from "@tanstack/react-form"
 import type { FormEvent } from "react"
-import { useEffect, useId, useMemo, useState } from "react"
-
-import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
-import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
+import { useEffect, useId, useState } from "react"
+import {
+  ErrorSummary,
+  type ErrorSummaryItem,
+} from "@/components/ui/error-summary"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -13,29 +14,31 @@ import {
   type OpeningHours,
   slotRangesForDate,
 } from "@/lib/opening-hours"
+import { useFormErrors } from "@/lib/use-form-errors"
+import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
+import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
 } from "../domain/availability"
 import {
   buildKaraokePayload,
-  canSubmitKaraokeBooking,
   deriveKaraokeState,
   initialKaraokeState,
   type KaraokeFormState,
 } from "../domain/formState"
 import type { KaraokeRoom } from "../types"
-import { KaraokeFormContext } from "./karaokeFormContext"
-import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
-import { KaraokeFormPackageSection } from "./KaraokeFormPackageSection"
 import { KaraokeFormContactSection } from "./KaraokeFormContactSection"
-import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
-import {
-  KaraokeFormSubmitSection,
-  KaraokeBookingSuccess,
-} from "./KaraokeFormSubmitSection"
+import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
 import { KaraokeOrderPreview } from "./KaraokeFormOrderSummary"
+import { KaraokeFormPackageSection } from "./KaraokeFormPackageSection"
 import { KaraokeFormRoomCard } from "./KaraokeFormRoomCard"
+import {
+  KaraokeBookingSuccess,
+  KaraokeFormSubmitSection,
+} from "./KaraokeFormSubmitSection"
+import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
+import { KaraokeFormContext } from "./karaokeFormContext"
 
 interface KaraokeFormProps {
   room: KaraokeRoom
@@ -50,7 +53,15 @@ export function KaraokeForm({
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const today = useMemo(() => isoDate(new Date()), [])
+  const today = isoDate(new Date())
+  const fieldIds = {
+    eventName: `${uid}-eventName`,
+    startDate: `${uid}-startDate`,
+    contactName: `${uid}-contactName`,
+    contactEmail: `${uid}-contactEmail`,
+    acceptTerms: `${uid}-acceptTerms`,
+    studentProof: `${uid}-studentProof`,
+  }
 
   const form = useForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
@@ -62,11 +73,16 @@ export function KaraokeForm({
       if (!result.ok) throw new Error(result.error)
     },
   })
-
-  const derived = useMemo(
-    () => deriveKaraokeState(form.state.values),
-    [form.state.values],
+  const values = useStore(form.store, state => state.values)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
   )
+
+  const derived = deriveKaraokeState(values)
+  const validationErrors = getKaraokeValidationErrors(values, fieldIds)
+  const { visibleErrors, markSubmitAttempt, errorFor } =
+    useFormErrors(validationErrors)
 
   useEffect(() => {
     const end = new Date(today)
@@ -75,7 +91,6 @@ export function KaraokeForm({
   }, [today])
 
   useEffect(() => {
-    const values = form.state.values
     if (!values.startDate || values.startSlotMin === null) return
     const allowedSlots = slotRangesForDate(
       values.startDate,
@@ -97,27 +112,31 @@ export function KaraokeForm({
     form,
     houseClosedDates,
     operationsManagerHours,
-    form.state.values.duration,
-    form.state.values.startDate,
-    form.state.values.startSlotMin,
+    values.duration,
+    values.startDate,
+    values.startSlotMin,
   ])
 
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return <KaraokeBookingSuccess />
   }
 
   return (
     <KaraokeFormContext.Provider value={form}>
-      <div className="grid gap-12 items-start lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-12 items-start lg:grid-two-one">
         <form
           className="min-w-0 space-y-14"
           noValidate
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
-            if (!canSubmitKaraokeBooking(form.state.values)) return
+            markSubmitAttempt()
+            if (validationErrors.length > 0) return
             form.handleSubmit()
           }}
         >
+          {visibleErrors.length > 0 && (
+            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+          )}
           <KaraokeFormDetailsSection
             derived={derived}
             uid={uid}
@@ -125,10 +144,25 @@ export function KaraokeForm({
             bookings={bookings}
             houseClosedDates={houseClosedDates}
             operationsManagerHours={operationsManagerHours}
+            eventNameError={errorFor(fieldIds.eventName)}
+            eventNameId={fieldIds.eventName}
+            startDateError={errorFor(fieldIds.startDate)}
+            startDateId={fieldIds.startDate}
           />
           <KaraokeFormPackageSection uid={uid} derived={derived} />
-          <KaraokeFormContactSection uid={uid} />
-          <KaraokeFormTermsSection />
+          <KaraokeFormContactSection
+            contactEmailError={errorFor(fieldIds.contactEmail)}
+            contactEmailId={fieldIds.contactEmail}
+            contactNameError={errorFor(fieldIds.contactName)}
+            contactNameId={fieldIds.contactName}
+            uid={uid}
+          />
+          <KaraokeFormTermsSection
+            acceptTermsError={errorFor(fieldIds.acceptTerms)}
+            acceptTermsId={fieldIds.acceptTerms}
+            studentProofError={errorFor(fieldIds.studentProof)}
+            studentProofId={fieldIds.studentProof}
+          />
           <KaraokeFormSubmitSection />
         </form>
 
@@ -139,4 +173,60 @@ export function KaraokeForm({
       </div>
     </KaraokeFormContext.Provider>
   )
+}
+
+type KaraokeFieldIds = Record<
+  | "eventName"
+  | "startDate"
+  | "contactName"
+  | "contactEmail"
+  | "acceptTerms"
+  | "studentProof",
+  string
+>
+
+function getKaraokeValidationErrors(
+  values: KaraokeFormState,
+  fieldIds: KaraokeFieldIds,
+): ErrorSummaryItem[] {
+  const errors: ErrorSummaryItem[] = []
+
+  if (!values.eventName.trim()) {
+    errors.push({
+      fieldId: fieldIds.eventName,
+      message: "Skriv inn navn på arrangementet.",
+    })
+  }
+  if (!values.startDate || values.startSlotMin === null) {
+    errors.push({
+      fieldId: fieldIds.startDate,
+      message: "Velg dato og starttidspunkt.",
+    })
+  }
+  if (!values.contactName.trim()) {
+    errors.push({
+      fieldId: fieldIds.contactName,
+      message: "Skriv inn navn på kontaktperson.",
+    })
+  }
+  if (!values.contactEmail.trim()) {
+    errors.push({
+      fieldId: fieldIds.contactEmail,
+      message: "Skriv inn e-postadresse.",
+    })
+  }
+  if (!values.acceptTerms) {
+    errors.push({
+      fieldId: fieldIds.acceptTerms,
+      message: "Bekreft at du godtar bruksvilkårene.",
+    })
+  }
+  if (values.priceType === "student" && !values.studentProofAccepted) {
+    errors.push({
+      fieldId: fieldIds.studentProof,
+      message: "Bekreft at du tar med studentbevis.",
+    })
+  }
+
+  return errors
 }

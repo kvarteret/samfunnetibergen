@@ -1,6 +1,5 @@
 import { ExternalLink } from "lucide-react"
 import Image from "next/image"
-import { Surface } from "@/components/ui/surface"
 
 import {
   activateRequestLocale,
@@ -44,7 +43,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
     <div className="space-y-12">
       <header className="space-y-5">
         {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
             {content.eyebrow}
           </p>
         ) : null}
@@ -61,9 +60,8 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
       {sponsors.length ? (
         <section className="grid gap-6 md:grid-cols-2">
           {sponsors.map(sponsor => (
-            <Surface
-              as="article"
-              className="flex min-h-full flex-col gap-5 shadow-shadow"
+            <article
+              className="flex min-h-full flex-col gap-5 panel shadow-shadow"
               key={sponsor._key}
             >
               {sponsor.logoUrl ? (
@@ -85,7 +83,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
               </div>
               {sponsor.website ? (
                 <a
-                  className="mt-auto inline-flex w-fit items-center gap-2 font-heading text-sm text-foreground underline underline-offset-4"
+                  className="mt-auto inline-flex w-fit items-center gap-2 font-heading text-foreground underline underline-offset-4"
                   href={sponsor.website}
                   rel="noreferrer"
                   target="_blank"
@@ -94,7 +92,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
                   <ExternalLink aria-hidden className="size-4" />
                 </a>
               ) : null}
-            </Surface>
+            </article>
           ))}
         </section>
       ) : null}

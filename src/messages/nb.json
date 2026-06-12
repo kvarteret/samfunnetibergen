@@ -12,7 +12,28 @@
     "groupPageDescription": "Les mer om {group} og velg gruppen i frivilligskjemaet."
   },
   "HomePage": {
-    "footer": "Med 💛 fra E-tjenesten"
+    "footer": "Med 💛 fra E-tjenesten",
+    "bookingBannerEyebrow": " ",
+    "bookingBannerHeading1": "TRENGER DU",
+    "bookingBannerHeading2": "LITT SPACE?",
+    "bookingBannerBody": "Vi har rom til de fleste anledninger. Du kan perle, rocke, og alt i mellom.",
+    "bookingBannerCta": "Slipp meg inn",
+    "bookingBannerSticker": "GRATIS FOR STUDENTGRUPPER",
+    "grupperBannerEyebrow": "kom igjen da, ",
+    "grupperBannerHeading1": "BLI",
+    "grupperBannerHeading2": "FRIVILLIG",
+    "grupperBannerBody": "Vi er drevet av studenter. Er ikke du en dreven student?",
+    "grupperBannerCta": "Jeg er en dreven student",
+    "grupperBannerLink": "Meld interesse"
+  },
+  "EventCard": {
+    "today": "I dag",
+    "tomorrow": "I morgen",
+    "inNDays": "Om {n} dager",
+    "recurringDaily": "Hver dag",
+    "recurringWeekly": "Hver uke",
+    "recurringMonthly": "Hver måned",
+    "recurringGeneric": "Gjentagende"
   },
   "EventsPage": {
     "back": "Tilbake til forsiden",
@@ -99,6 +120,8 @@
     "title": "Bli frivillig",
     "selectSubGroup": "Velg hvilken undergruppe du vil søke til:",
     "applyingTo": "Du søker til: {group}",
+    "secondChoiceLabel": "Andrevalg (valgfritt)",
+    "secondChoicePlaceholder": "Ingen andrevalg",
     "firstNameLabel": "Fornavn",
     "lastNameLabel": "Etternavn",
     "emailLabel": "E-postadresse",
@@ -115,6 +138,8 @@
     "friendEmailPlaceholder": "venn@example.no",
     "addFriend": "+ Legg til venn",
     "removeFriend": "Fjern venn",
+    "friendEmailInvalid": "Skriv inn en gyldig e-postadresse.",
+    "friendEmailDuplicate": "E-postadressene må være ulike.",
     "submitIdle": "Bli frivillig",
     "submitPending": "Sender...",
     "successTitle": "Registrering sendt",

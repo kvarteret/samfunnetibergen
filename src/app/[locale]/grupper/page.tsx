@@ -1,3 +1,9 @@
+import {
+  Accordion,
+  AccordionItem,
+  AccordionPanel,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { GroupsFilter } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -87,7 +93,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
     <div className="space-y-12">
       <header className="space-y-5">
         {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
             {content.eyebrow}
           </p>
         ) : null}
@@ -108,25 +114,22 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
           <h2 className="font-heading text-4xl leading-none text-foreground">
             Ofte stilte spørsmål
           </h2>
-          <div className="grid gap-4">
+          <Accordion>
             {content.faq.map(
               (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
-                <details
-                  className="border-2 border-border bg-card p-5"
-                  key={item._key}
-                >
-                  <summary className="cursor-pointer font-heading text-xl text-foreground">
-                    {item.question}
-                  </summary>
-                  <div className="mt-3 space-y-3 text-base leading-7 text-foreground">
-                    {item.answer?.map((paragraph: string) => (
-                      <p key={paragraph}>{paragraph}</p>
-                    ))}
-                  </div>
-                </details>
+                <AccordionItem key={item._key} value={item._key}>
+                  <AccordionTrigger>{item.question}</AccordionTrigger>
+                  <AccordionPanel>
+                    <div className="paper-prose text-foreground">
+                      {item.answer?.map((paragraph: string) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </AccordionPanel>
+                </AccordionItem>
               ),
             )}
-          </div>
+          </Accordion>
         </section>
       ) : null}
     </div>

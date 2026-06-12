@@ -45,6 +45,20 @@
     --red-900: oklch(20% 0.110 25);
     --red-950: oklch(14% 0.077 25);
 
+    /* ── Green ── */
+    /* Green ramp — amber primary hue-rotated by 120° */
+    --green-50: oklch(97% 0.027 176);
+    --green-100: oklch(94% 0.045 176);
+    --green-200: oklch(88% 0.072 176);
+    --green-300: oklch(80% 0.117 176);
+    --green-400: oklch(70% 0.153 176);
+    --green-500: oklch(60% 0.180 176);
+    --green-600: oklch(50% 0.171 176);
+    --green-700: oklch(40% 0.153 176);
+    --green-800: oklch(30% 0.126 176);
+    --green-900: oklch(20% 0.090 176);
+    --green-950: oklch(14% 0.063 176);
+
     /* ── Navy ── */
     --navy-50: oklch(97% 0.015 258);
     --navy-100: oklch(94% 0.025 258);
@@ -82,6 +96,8 @@
     --accent-foreground: var(--navy-950);
     --destructive: var(--red-500);
     --destructive-foreground: var(--cream-100);
+    --success: var(--green-500);
+    --success-foreground: var(--navy-950);
     --muted: var(--cream-400);
     --muted-foreground: var(--navy-600);
     --card: var(--cream-100);
@@ -96,10 +112,11 @@
     /* ── Extended semantic tokens ── */
     --main: var(--primary);
     --main-foreground: var(--primary-foreground);
-    --secondary-background: var(--cream-200);
 
     /* ── Shadow ── */
+    --shadow-hard-sm-value: 2px 2px 0 0 var(--border);
     --shadow: 4px 4px 0 0 var(--border);
+    --shadow-hard-lg-value: 6px 6px 0 0 var(--border);
 
     /* ── Motion ── */
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -108,16 +125,52 @@
     --duration-fast: 80ms;
     --duration-base: 150ms;
     --duration-slow: 300ms;
+
+    /* ── Paper ── */
+    --paper-line: color-mix(in srgb, var(--foreground) 3.5%, transparent);
+    --paper-dot: color-mix(in srgb, var(--foreground) 6.5%, transparent);
+    --paper-pattern: linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    --paper-size: 20px 20px;
+    --paper-position: 0 0;
+    --paper-writing-line: 2rem;
+  }
+
+  :root[data-paper="dots"] {
+    --paper-pattern: radial-gradient(
+      circle,
+      var(--paper-dot) 1px,
+      transparent 1.2px
+    );
+    --paper-size: 20px 20px;
+  }
+
+  :root[data-paper="ruled"] {
+    --paper-pattern: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) var(--paper-writing-line)
+    );
+    --paper-size: 100% var(--paper-writing-line);
+    --paper-position: 0 0.6rem;
+  }
+
+  /* No paper — plain background, no pattern. */
+  :root[data-paper="none"] {
+    --paper-pattern: none;
+    --paper-size: 0;
+    --paper-position: 0 0;
   }
 }
 
 @theme inline {
   --font-sans:  var(--font-hegval-display);
-  --font-mono:  var(--font-dm-mono);
-  --font-serif: var(--font-instrument-serif);
 
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
+  --color-foreground-muted:     color-mix(in oklab, var(--foreground) 75%, transparent);
   --color-primary:              var(--primary);
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
@@ -126,6 +179,8 @@
   --color-accent-foreground:    var(--accent-foreground);
   --color-destructive:          var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success:              var(--success);
+  --color-success-foreground:   var(--success-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
   --color-card:                 var(--card);
@@ -137,9 +192,10 @@
   --color-ring:                 var(--ring);
   --color-main:                 var(--main);
   --color-main-foreground:      var(--main-foreground);
-  --color-secondary-background: var(--secondary-background);
 
+  --shadow-hard-sm: var(--shadow-hard-sm-value);
   --shadow-shadow: var(--shadow);
+  --shadow-hard-lg: var(--shadow-hard-lg-value);
 
   --radius-base: var(--radius);
 
@@ -160,23 +216,166 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+  h1 {
+    @apply text-3xl sm:text-4xl;
+  }
+  h2 {
+    @apply text-2xl sm:text-3xl;
+  }
+  h3 {
+    @apply text-xl;
+  }
+  h4 {
+    @apply text-lg;
+  }
+}
+
+.paper-canvas {
+  background-color: var(--background);
+}
+
+.paper-surface {
+  background-color: var(--background);
+  background-image: var(--paper-pattern);
+  background-position: var(--paper-position);
+  background-size: var(--paper-size);
+}
+
+.paper-prose {
+  background-color: var(--card);
+  padding: var(--paper-writing-line);
+  line-height: var(--paper-writing-line);
+  color: var(--color-foreground);
+}
+
+.paper-prose :where(p, li) {
+  line-height: var(--paper-writing-line);
+}
+
+.paper-prose :where(p) {
+  margin-top: 0;
+  margin-bottom: var(--paper-writing-line);
+}
+
+.paper-prose :where(p:last-child) {
+  margin-bottom: 0;
+}
+
+.bg-paper {
+  background-color: var(--background);
+}
+
+.paper-swatch-grid {
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.paper-swatch-dots {
+  background-image: radial-gradient(
+    circle,
+    var(--paper-dot) 1px,
+    transparent 1.2px
+  );
+  background-size: 8px 8px;
+}
+
+.paper-swatch-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 7px,
+    var(--paper-line) 7px,
+    var(--paper-line) 8px
+  );
+}
+
+/* ── Accessibility: motion ── */
+/* Global safeguard: reduce all animation/transition durations for users
+   who prefer reduced motion. One rule covers every current and future
+   transition/animation in the codebase. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* House focus state: cream interior -> 2px black border -> 3px amber ring,
+   with zero offset so no page background shows between border and ring. */
+@utility focus-brutal {
+  &:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
+}
+
+@utility focus-within-brutal {
+  &:focus-within {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
 }
 
 @utility btn-brutal {
   border: 2px solid var(--color-border);
   box-shadow: 4px 4px 0 var(--color-border);
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
 
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--color-border);
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--color-border);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--color-border);
+    }
   }
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--color-border);
+}
+
+/* Generalized interactive motion: the hover-lift / press-in choreography
+   that btn-brutal, selectable cards, and toggle options all share.
+   Apply as @apply interactive-brutal to any component that should feel
+   physical. Motion is wrapped in prefers-reduced-motion: no-preference. */
+@utility interactive-brutal {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--color-border);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--color-border);
+    }
   }
+}
+
+@utility panel {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-card);
+  padding: 1.25rem;
+}
+
+@utility grid-auto-side {
+  grid-template-columns: 1fr auto;
+}
+
+@utility grid-two-one {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
 /* P3 boost for supported displays */

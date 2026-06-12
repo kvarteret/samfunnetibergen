@@ -6,11 +6,9 @@ import {
   Users,
   UtensilsCrossed,
 } from "lucide-react"
-import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
-import { Surface } from "@/components/ui/surface"
-
-import { Button } from "@/components/ui/button"
+import { BookingButton } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
@@ -63,7 +61,7 @@ function InlineContentLink({ link }: { link: ContentLink }) {
   if (!link.href) return null
 
   const className =
-    "inline-flex items-center gap-2 font-heading text-sm underline underline-offset-4"
+    "inline-flex items-center gap-2 font-heading  underline underline-offset-4"
 
   return isExternalHref(link.href) ? (
     <a className={className} href={link.href} rel="noreferrer" target="_blank">
@@ -77,17 +75,6 @@ function InlineContentLink({ link }: { link: ContentLink }) {
   )
 }
 
-function BookingButton({ label }: { label?: string | null }) {
-  return (
-    <Button asChild className="w-fit lg:justify-self-end" size="lg">
-      <Link href="/rom/book">
-        <ArrowRight aria-hidden="true" />
-        {label ?? "Book rom her"}
-      </Link>
-    </Button>
-  )
-}
-
 function RoomImage({
   image,
   title,
@@ -97,24 +84,18 @@ function RoomImage({
 }) {
   const src = imageUrl(image)
 
-  if (!src) {
-    return (
-      <div className="flex aspect-[16/10] items-center justify-center bg-muted p-6 text-center font-heading text-2xl text-foreground/50">
-        {title}
-      </div>
-    )
-  }
-
   return (
-    <div className="relative aspect-[16/10] overflow-hidden">
-      <Image
-        alt={image?.alt || title}
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 50vw"
-        src={src}
-      />
-    </div>
+    <ImageWithFallback
+      alt={image?.alt || title}
+      aspectRatio="16/10"
+      fallback={
+        <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
+          {title}
+        </span>
+      }
+      sizes="(max-width: 768px) 100vw, 50vw"
+      src={src}
+    />
   )
 }
 
@@ -154,18 +135,16 @@ function ServicesSection() {
       <div className="grid gap-4 sm:grid-cols-3">
         {SERVICES.map(({ icon: Icon, title, description, href }) => (
           <Link
-            className="group flex flex-col gap-4 border-2 border-border bg-card p-5 shadow-shadow transition-transform hover:-translate-y-1"
+            className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
             href={href}
             key={href}
           >
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
               <h3 className="font-heading text-xl text-foreground">{title}</h3>
-              <p className="text-sm leading-6 text-foreground/70">
-                {description}
-              </p>
+              <p>{description}</p>
             </div>
-            <span className="mt-auto inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
+            <span className="mt-auto inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">
               Les mer
               <ArrowRight aria-hidden className="size-4" />
             </span>
@@ -188,10 +167,10 @@ function HowToSection({ section }: { section: EditorialSection }) {
             className="flex gap-4 border-l-2 border-border pl-4"
             key={paragraph}
           >
-            <span className="mt-0.5 shrink-0 font-heading text-sm text-foreground/40">
+            <span className="mt-0.5 shrink-0 font-heading text-foreground-muted">
               {i + 1}
             </span>
-            <p className="text-sm leading-6 text-foreground">{paragraph}</p>
+            <p className=" leading-6 text-foreground">{paragraph}</p>
           </li>
         ))}
       </ol>
@@ -216,7 +195,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
         <div className="space-y-5">
           {content?.eyebrow ? (
-            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-sm text-primary-foreground">
+            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
               {content.eyebrow}
             </p>
           ) : null}
@@ -229,7 +208,11 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             </p>
           ) : null}
         </div>
-        <BookingButton label={content?.bookingLink?.label} />
+        <BookingButton
+          className="lg:justify-self-end"
+          label={content?.bookingLink?.label}
+          locale={locale}
+        />
       </header>
 
       {howToSection ? <HowToSection section={howToSection} /> : null}
@@ -246,7 +229,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
           return (
             <Link
-              className="group flex min-h-full flex-col overflow-hidden border-2 border-border bg-card shadow-shadow transition-transform hover:-translate-y-1"
+              className="group flex min-h-full flex-col overflow-hidden panel p-0 shadow-shadow transition-transform hover:-translate-y-1"
               href={`/rom/${room.slug}`}
               key={room.slug}
             >
@@ -257,12 +240,12 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     {title}
                   </h2>
                   {room.summary ? (
-                    <p className="line-clamp-3 text-base leading-7 text-foreground">
+                    <p className="line-clamp-3 leading-7 text-foreground">
                       {room.summary}
                     </p>
                   ) : null}
                 </div>
-                <dl className="mt-auto grid gap-3 text-sm text-foreground">
+                <dl className="mt-auto grid gap-3 text-foreground">
                   {room.capacityStanding != null ||
                   room.capacitySeated != null ? (
                     <div className="flex items-center gap-2">
@@ -287,7 +270,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     </div>
                   ) : null}
                 </dl>
-                <span className="inline-flex items-center gap-2 font-heading text-sm text-foreground group-hover:underline group-hover:underline-offset-4">
+                <span className="inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">
                   Les mer
                   <ArrowRight aria-hidden="true" className="size-4" />
                 </span>
@@ -300,13 +283,13 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       {infoSections.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {infoSections.map((section: EditorialSection) => (
-            <Surface className="space-y-3" key={section._key}>
+            <div className="space-y-3 panel" key={section._key}>
               {section.title ? (
                 <h2 className="font-heading text-xl leading-tight text-foreground">
                   {section.title}
                 </h2>
               ) : null}
-              <div className="space-y-2 text-sm leading-6 text-foreground/80">
+              <div className="space-y-2">
                 {section.paragraphs?.map((paragraph: string) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
@@ -320,7 +303,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                   )}
                 </div>
               ) : null}
-            </Surface>
+            </div>
           ))}
         </div>
       ) : null}

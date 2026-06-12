@@ -55,7 +55,7 @@ export default async function BookRoomPage({
     <article className="flex w-full flex-col gap-10">
       <header className="space-y-4">
         <Link
-          className="inline-flex text-sm uppercase tracking-[0.18em] underline underline-offset-4 text-foreground/60 hover:text-foreground transition-colors"
+          className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
           href="/rom"
         >
           ← Rom
@@ -68,14 +68,12 @@ export default async function BookRoomPage({
               aria-hidden
             />
           </div>
-          <p className="font-heading text-sm uppercase tracking-[0.18em] text-foreground/60">
-            Booking
-          </p>
+          <p className="font-heading uppercase tracking-widest">Booking</p>
         </div>
         <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
           Book rom
         </h1>
-        <p className="max-w-xl text-lg leading-7 text-foreground/70">
+        <p className="max-w-xl text-lg leading-7 text-foreground-muted">
           Fyll ut skjemaet under, så behandler vi forespørselen din så fort vi
           ser den. En booking er en forespørsel og bekreftes av oss på e-post.
         </p>

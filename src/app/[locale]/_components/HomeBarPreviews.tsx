@@ -1,9 +1,9 @@
 "use client"
 
 import { Music2 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
@@ -95,10 +95,8 @@ export function HomeBarPreviews({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between border-b-2 border-border pb-2">
-        <p className="font-heading text-xs uppercase tracking-[0.18em] text-foreground/50">
-          Barer
-        </p>
+      <div className="flex items-center justify-between pb-2">
+        <p className="font-heading text-xl text-foreground-muted">Barer</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
@@ -137,23 +135,20 @@ function HomeBarPreviewCard({
   return (
     <Link
       aria-label={`Gå til ${room.title ?? "bar"}`}
-      className="grid min-h-[15rem] grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden border-2 border-border bg-card transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden panel p-0 transition-colors hover:border-primary focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">
-        {imageUrl ? (
-          <Image
-            alt={room.image?.alt ?? room.title ?? "Bar"}
-            className="object-cover"
-            fill
-            sizes="(min-width: 1024px) 25vw, 50vw"
-            src={imageUrl}
-          />
-        ) : (
-          <div className="flex h-full min-h-[15rem] items-center justify-center">
-            <Music2 aria-hidden className="size-10 text-foreground/20" />
-          </div>
-        )}
+        <ImageWithFallback
+          alt={room.image?.alt ?? room.title ?? "Bar"}
+          aspectRatio=""
+          className="min-h-full"
+          fallback={
+            <Music2 aria-hidden className="size-10 text-foreground-muted" />
+          }
+          sizes="(min-width: 1024px) 25vw, 50vw"
+          src={imageUrl}
+        />
       </div>
       <div className="flex min-w-0 flex-col justify-between gap-5 p-5">
         <div className="space-y-3">
@@ -162,7 +157,7 @@ function HomeBarPreviewCard({
               {room.bar || room.title}
             </p>
             {isOpen ? (
-              <p className="mt-1 font-heading text-xs uppercase tracking-[0.14em] text-primary">
+              <p className="mt-1 font-heading uppercase tracking-widest text-primary">
                 Åpen
               </p>
             ) : null}
@@ -183,7 +178,7 @@ function HomeBarPreviewCard({
 
               return (
                 <div
-                  className="text-xs text-foreground/60"
+                  className="text-sm text-foreground-muted"
                   key={row?._key ?? label}
                 >
                   {label}
@@ -209,14 +204,14 @@ function BarPreviewBody({
   if (spotifyTrack && nowPlaying) {
     return (
       <div className="space-y-1 border-l-2 border-primary pl-3">
-        <p className="text-xs font-heading uppercase tracking-[0.14em] text-primary">
+        <p className="font-heading uppercase tracking-widest text-primary">
           Spotify
         </p>
-        <p className="line-clamp-1 font-heading text-sm text-foreground">
+        <p className="line-clamp-1 font-heading text-foreground">
           {nowPlaying.name ?? "Spiller nå"}
         </p>
         {nowPlaying.artists && (
-          <p className="line-clamp-1 text-sm text-foreground/65">
+          <p className="line-clamp-1 text-foreground-muted">
             {nowPlaying.artists}
           </p>
         )}
@@ -224,11 +219,7 @@ function BarPreviewBody({
     )
   }
   if (summary) {
-    return (
-      <p className="line-clamp-3 text-sm leading-6 text-foreground/70">
-        {summary}
-      </p>
-    )
+    return <p className="line-clamp-3">{summary}</p>
   }
   return null
 }

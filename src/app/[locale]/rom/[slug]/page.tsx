@@ -1,9 +1,14 @@
-import { ArrowRight, Check, Clock, FileText, Users, X } from "lucide-react"
+import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { type CarouselSlide, ImageCarousel } from "@/features/rooms"
+import { DetailRow } from "@/components/ui/detail-row"
+import {
+  BookingButton,
+  BoolSpec,
+  type CarouselSlide,
+  ImageCarousel,
+} from "@/features/rooms"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -29,11 +34,6 @@ export async function generateStaticParams() {
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
-
-function localizeHref(href: string, locale: string) {
-  if (!href.startsWith("/")) return href
-  return href === "/" ? `/${locale}` : `/${locale}${href}`
-}
 
 export async function generateMetadata({ params }: RoomPageProps) {
   const { slug, locale: localeParam } = await params
@@ -107,7 +107,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
       <div className="mt-8 space-y-10">
         <header className="space-y-3">
           <Link
-            className="font-heading text-xs uppercase tracking-widest text-foreground/50 hover:text-foreground"
+            className="font-heading text-sm uppercase tracking-widest text-foreground-muted hover:text-foreground"
             href={`/${locale}/rom`}
           >
             Rom
@@ -116,7 +116,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             {title}
           </h1>
           {room.summary && (
-            <p className="max-w-2xl text-lg leading-7 text-foreground/80">
+            <p className="max-w-2xl text-lg leading-7 text-foreground-muted">
               {room.summary}
             </p>
           )}
@@ -131,26 +131,9 @@ export default async function RoomPage({ params }: RoomPageProps) {
         <RoomSpecs room={room} />
         <RoomFloorPlan room={room} />
         <RoomOpeningHours room={room} />
-        <RoomBookingButton label={room.bookingLink?.label} locale={locale} />
+        <BookingButton label={room.bookingLink?.label} locale={locale} />
       </div>
     </article>
-  )
-}
-
-function RoomBookingButton({
-  label,
-  locale,
-}: {
-  label?: string | null
-  locale: string
-}) {
-  return (
-    <Button asChild className="w-fit" size="lg">
-      <Link href={localizeHref("/rom/book", locale)}>
-        <ArrowRight aria-hidden />
-        {label ?? "Book rom her"}
-      </Link>
-    </Button>
   )
 }
 
@@ -179,39 +162,35 @@ function RoomSpecs({ room }: RoomSpecsProps) {
       <hr className="border-border" />
       <dl className="max-w-md divide-y divide-border">
         {room.floor != null && (
-          <SpecRow label="Etasje">
-            <dd className="text-sm text-foreground">{room.floor}. etasje</dd>
-          </SpecRow>
+          <DetailRow label="Etasje" layout="labelColumn">
+            {room.floor}. etasje
+          </DetailRow>
         )}
         {room.capacityStanding != null && (
-          <SpecRow label="Stående">
-            <dd className="flex items-center gap-1.5 text-sm text-foreground">
-              <Users aria-hidden className="size-3.5 text-foreground/40" />
+          <DetailRow label="Stående" layout="labelColumn">
+            <span className="flex items-center gap-1.5">
+              <Users aria-hidden className="size-3.5 text-foreground-muted" />
               {room.capacityStanding} personer
-            </dd>
-          </SpecRow>
+            </span>
+          </DetailRow>
         )}
         {room.capacitySeated != null && (
-          <SpecRow label="Sittende">
-            <dd className="flex items-center gap-1.5 text-sm text-foreground">
-              <Users aria-hidden className="size-3.5 text-foreground/40" />
+          <DetailRow label="Sittende" layout="labelColumn">
+            <span className="flex items-center gap-1.5">
+              <Users aria-hidden className="size-3.5 text-foreground-muted" />
               {room.capacitySeated} personer
-            </dd>
-          </SpecRow>
+            </span>
+          </DetailRow>
         )}
         {room.suitedPurposes?.length ? (
-          <SpecRow label="Passer til">
-            <dd className="text-sm text-foreground">
-              {room.suitedPurposes.join(", ")}
-            </dd>
-          </SpecRow>
+          <DetailRow label="Passer til" layout="labelColumn">
+            {room.suitedPurposes.join(", ")}
+          </DetailRow>
         ) : null}
         {room.bar != null && (
-          <SpecRow label="Bar">
-            <dd className="text-sm text-foreground">
-              {room.bar ? room.bar : "Nei"}
-            </dd>
-          </SpecRow>
+          <DetailRow label="Bar" layout="labelColumn">
+            {room.bar ? room.bar : "Nei"}
+          </DetailRow>
         )}
         {room.hasSound != null && (
           <BoolSpec
@@ -234,7 +213,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
       {room.specsUrl && (
         <a
-          className="inline-flex items-center gap-2 border-2 border-border bg-card px-4 py-2.5 font-heading text-sm text-foreground shadow-shadow transition-shadow hover:shadow-none"
+          className="inline-flex items-center gap-2 panel px-4 py-2.5 font-heading text-foreground shadow-shadow transition-shadow hover:shadow-none"
           href={room.specsUrl}
           rel="noreferrer"
           target="_blank"
@@ -244,58 +223,6 @@ function RoomSpecs({ room }: RoomSpecsProps) {
         </a>
       )}
     </section>
-  )
-}
-
-interface SpecRowProps {
-  children: React.ReactNode
-  label: string
-}
-
-function SpecRow({ children, label }: SpecRowProps) {
-  return (
-    <div className="flex gap-8 py-3">
-      <dt className="w-36 shrink-0 font-heading text-sm font-medium text-foreground">
-        {label}
-      </dt>
-      {children}
-    </div>
-  )
-}
-
-interface BoolSpecProps {
-  details?: string | null
-  label: string
-  value: boolean
-}
-
-function BoolSpec({ details, label, value }: BoolSpecProps) {
-  return (
-    <SpecRow label={label}>
-      <dd className="text-sm text-foreground">
-        {value ? (
-          <span className="space-y-1">
-            <span className="inline-flex items-center gap-1.5 text-foreground">
-              <Check
-                aria-hidden
-                className="size-4 text-green-700 dark:text-green-400"
-              />
-              Ja
-            </span>
-            {details ? (
-              <span className="block max-w-xs text-foreground/70">
-                {details}
-              </span>
-            ) : null}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-foreground/40">
-            <X aria-hidden className="size-4" />
-            Nei
-          </span>
-        )}
-      </dd>
-    </SpecRow>
   )
 }
 
@@ -351,16 +278,16 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
 
             return (
               <div
-                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2 text-sm"
+                className="grid grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)] gap-4 py-2"
                 key={row._key}
               >
                 <dt className="font-heading text-foreground">{dayLabel}</dt>
-                <dd className="text-foreground/70">
+                <dd className="text-foreground-muted">
                   {row.status === "closed"
                     ? "Stengt"
                     : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
                   {row.note && (
-                    <span className="mt-1 block text-foreground/60">
+                    <span className="mt-1 block text-foreground-muted">
                       {row.note}
                     </span>
                   )}

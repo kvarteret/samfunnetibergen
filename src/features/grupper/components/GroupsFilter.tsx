@@ -3,10 +3,9 @@
 import { ArrowRight, Mail } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
-
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Link } from "@/i18n/navigation"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"
-import { cn } from "@/lib/utils"
 
 type GroupSection = {
   title: string
@@ -33,35 +32,16 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
   return (
     <div className="space-y-12">
       {allLabels.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            className={cn(
-              "border-2 border-border px-3 py-1.5 font-heading text-sm transition-colors",
-              !activeLabel
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-foreground hover:bg-secondary-background",
-            )}
-            onClick={() => setActiveLabel(null)}
-          >
-            Alle
-          </button>
-          {allLabels.map(label => (
-            <button
-              className={cn(
-                "border-2 border-border px-3 py-1.5 font-heading text-sm transition-colors",
-                activeLabel === label
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-foreground hover:bg-secondary-background",
-              )}
-              key={label}
-              onClick={() =>
-                setActiveLabel(activeLabel === label ? null : label)
-              }
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          onValueChange={value =>
+            setActiveLabel(value === "all" ? null : value)
+          }
+          options={[
+            { value: "all", label: "Alle" },
+            ...allLabels.map(label => ({ value: label, label })),
+          ]}
+          value={activeLabel ?? "all"}
+        />
       )}
 
       {filteredSections.map(section => (
@@ -83,7 +63,7 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
 function GroupCard({ group }: { group: StudentGroupSummary }) {
   return (
     <Link
-      className="group flex min-h-full flex-col gap-4 border-2 border-border bg-card p-5 shadow-shadow transition-transform hover:-translate-y-1"
+      className="group flex min-h-full flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
       href={`/grupper/${group.slug}`}
     >
       <div className="space-y-3">
@@ -102,16 +82,16 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             {group.name}
           </h3>
         </div>
-        <p className="line-clamp-4 text-base leading-7 text-foreground">
+        <p className="line-clamp-4 leading-7 text-foreground">
           {group.summary}
         </p>
       </div>
-      <div className="mt-auto flex flex-col gap-3 text-sm text-foreground">
+      <div className="mt-auto flex flex-col gap-3 text-foreground">
         {group.labels?.length ? (
           <div className="flex flex-wrap gap-2">
             {group.labels.map((label: string) => (
               <span
-                className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
+                className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
                 key={label}
               >
                 {label}
@@ -124,7 +104,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             {group.subGroups.map(
               (subGroup: { name: string | null; slug: string | null }) => (
                 <span
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-xs text-foreground"
+                  className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
                   key={subGroup.slug ?? subGroup.name}
                 >
                   {subGroup.name}
