@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { RRule } from "rrule"
+import { NumberField } from "@/components/ui/number-field"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 import {
@@ -67,7 +68,7 @@ export function EventFormRecurrenceBuilder({
       <fieldset className="space-y-2">
         <legend className=" text-foreground-muted">Gjentas</legend>
         <SegmentedControl
-          onChange={frequency => updateInput({ frequency })}
+          onValueChange={frequency => updateInput({ frequency })}
           options={frequencyOptions}
           value={input.frequency}
         />
@@ -81,7 +82,9 @@ export function EventFormRecurrenceBuilder({
         <fieldset className="space-y-2">
           <legend className=" text-foreground-muted">Dager</legend>
           <ToggleGroup
-            onChange={values => updateInput({ weekdays: values.map(Number) })}
+            onValueChange={values =>
+              updateInput({ weekdays: values.map(Number) })
+            }
             options={weekdayOptions.map((day, i) => ({
               value: String(i),
               label: day.label,
@@ -127,21 +130,16 @@ function RecurrenceIntervalField({
   onIntervalChange,
 }: RecurrenceIntervalFieldProps) {
   return (
-    <div className="space-y-2">
-      <label className="cursor-pointer text-foreground-muted">
-        Intervall - hver{" "}
-        <input
-          className="mx-1 w-14 border-2 border-border bg-background px-2 py-0.5 text-center font-heading text-foreground focus-brutal"
-          max={52}
-          min={1}
-          onChange={event =>
-            onIntervalChange(Math.max(1, Number(event.target.value)))
-          }
-          type="number"
-          value={interval}
-        />
-        {getFrequencyUnitLabel(frequency)}
-      </label>
+    <div className="flex items-center gap-2 text-foreground-muted">
+      <span>Intervall - hver</span>
+      <NumberField
+        className="w-32"
+        max={52}
+        min={1}
+        onValueChange={value => onIntervalChange(value ?? 1)}
+        value={interval}
+      />
+      <span>{getFrequencyUnitLabel(frequency)}</span>
     </div>
   )
 }
@@ -198,20 +196,15 @@ function RecurrenceEndField({
       </div>
 
       {endType === "count" && (
-        <div className="pl-6">
-          <label className=" text-foreground-muted">
-            <input
-              className="mr-2 w-16 border-2 border-border bg-background px-2 py-0.5 text-center font-heading text-foreground focus-brutal"
-              max={365}
-              min={1}
-              onChange={event =>
-                onCountChange(Math.max(1, Number(event.target.value)))
-              }
-              type="number"
-              value={count}
-            />{" "}
-            ganger
-          </label>
+        <div className="flex items-center gap-2 pl-6 text-foreground-muted">
+          <NumberField
+            className="w-32"
+            max={365}
+            min={1}
+            onValueChange={value => onCountChange(value ?? 1)}
+            value={count}
+          />
+          <span>ganger</span>
         </div>
       )}
 

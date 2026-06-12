@@ -1,4 +1,3 @@
-import { FieldHint } from "@/components/ui/field-group"
 import { SelectField } from "@/components/ui/select-field"
 import {
   type ClosedDate,
@@ -73,11 +72,17 @@ export function BookingFormTimeSlotPicker({
   onDoorsChange,
 }: BookingFormTimeSlotPickerProps) {
   if (!date) {
-    return <FieldHint>Velg en dato for å se ledige tidspunkt.</FieldHint>
+    return (
+      <p className="text-sm text-foreground-muted">
+        Velg en dato for å se ledige tidspunkt.
+      </p>
+    )
   }
   if (isHouseClosed(date, closedDates)) {
     return (
-      <FieldHint>Huset er stengt denne dagen. Velg en annen dato.</FieldHint>
+      <p className="text-sm text-foreground-muted">
+        Huset er stengt denne dagen. Velg en annen dato.
+      </p>
     )
   }
 
@@ -87,9 +92,9 @@ export function BookingFormTimeSlotPicker({
 
   if (marks.length === 0 && hasConfiguredHours) {
     return (
-      <FieldHint>
+      <p className="text-sm text-foreground-muted">
         Ingen tilgjengelige tidspunkt for valgt rom denne dagen.
-      </FieldHint>
+      </p>
     )
   }
 

@@ -6,7 +6,6 @@ import { useId } from "react"
 import { Card } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateScroller } from "@/components/ui/date-scroller"
-import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -171,9 +170,9 @@ export function BookingFormScheduleSection({
                   })}
                 </SelectableCardGroup>
               ) : (
-                <FieldHint>
+                <p className="text-sm text-foreground-muted">
                   Ingen rom er tilgjengelige for booking akkurat nå.
-                </FieldHint>
+                </p>
               )}
 
               <div className="max-w-3xl space-y-4">
@@ -199,7 +198,7 @@ export function BookingFormScheduleSection({
                           : "unavailable"
                       }
                       id={startDateId}
-                      onChange={v => form.setFieldValue("startDate", v)}
+                      onValueChange={v => form.setFieldValue("startDate", v)}
                       selectedDate={startDate}
                       today={today}
                     />
@@ -279,10 +278,14 @@ export function BookingFormScheduleSection({
                     </ul>
                   )}
                   {hasConflict && (
-                    <FieldError id={`${startDateId}-time-conflict`}>
+                    <p
+                      className="border-l-4 border-destructive pl-3 font-heading text-destructive"
+                      id={`${startDateId}-time-conflict`}
+                      role="alert"
+                    >
                       Valgt tidsrom overlapper en eksisterende booking. Velg et
                       annet tidspunkt.
-                    </FieldError>
+                    </p>
                   )}
                 </Card>
               )}

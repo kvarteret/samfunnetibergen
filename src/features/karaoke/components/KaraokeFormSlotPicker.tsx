@@ -85,16 +85,14 @@ export function KaraokeFormSlotPicker({
             : "unavailable"
         }
         id={id}
-        onChange={onDateChange}
+        onValueChange={onDateChange}
         selectedDate={selectedDate}
         today={today}
       />
       {selectedDate && slotOptions.length > 0 && (
         <SlotGrid
-          onChange={value => onSlotChange(Number(value))}
-          selectedValue={
-            selectedSlotMin != null ? String(selectedSlotMin) : null
-          }
+          onValueChange={value => onSlotChange(Number(value))}
+          value={selectedSlotMin != null ? String(selectedSlotMin) : null}
           slots={slotOptions}
         />
       )}

@@ -3,7 +3,6 @@
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { type UIEvent, useState } from "react"
 import { CheckboxField } from "@/components/ui/checkbox-field"
-import { FieldError } from "@/components/ui/field-error"
 import { FormSection } from "@/components/ui/form-section"
 import { useBookingForm } from "./bookingFormContext"
 
@@ -73,25 +72,19 @@ export function BookingFormTermsSection({
       </div>
       <form.Field name="acceptTerms">
         {(field: AnyFieldApi) => (
-          <div className="max-w-3xl space-y-2">
-            <CheckboxField
-              aria-describedby={
-                acceptTermsError ? acceptTermsErrorId : undefined
-              }
-              aria-invalid={!!acceptTermsError}
-              checked={field.state.value as boolean}
-              disabled={!hasRead}
-              id={acceptTermsId}
-              label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
-              labelClassName="font-sans font-base text-foreground-muted"
-              onChange={value => hasRead && field.handleChange(value)}
-            />
-            {acceptTermsError && (
-              <FieldError id={acceptTermsErrorId}>
-                {acceptTermsError}
-              </FieldError>
-            )}
-          </div>
+          <CheckboxField
+            aria-describedby={acceptTermsError ? acceptTermsErrorId : undefined}
+            aria-invalid={!!acceptTermsError}
+            checked={field.state.value as boolean}
+            className="max-w-3xl"
+            disabled={!hasRead}
+            error={acceptTermsError}
+            errorId={acceptTermsErrorId}
+            id={acceptTermsId}
+            label="Jeg har lest, forstått og godkjenner Det Akademiske Kvarters bookingvilkår."
+            labelClassName="font-sans font-base text-foreground-muted"
+            onChange={value => hasRead && field.handleChange(value)}
+          />
         )}
       </form.Field>
     </FormSection>

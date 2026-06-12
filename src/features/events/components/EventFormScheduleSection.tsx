@@ -7,6 +7,7 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Tooltip } from "@/components/ui/tooltip"
 import type { DateEntry, FormState } from "../domain/formState"
 import { newDate } from "../domain/formState"
 import { defaultRecurrenceRule } from "../domain/recurrence"
@@ -135,14 +136,16 @@ function EventDateCard({
           Dato {totalDates > 1 ? index + 1 : ""}
         </p>
         {totalDates > 1 && (
-          <button
-            aria-label="Fjern dato"
-            className="text-foreground-muted transition-colors hover:text-destructive focus-brutal"
-            onClick={() => removeDate(date.id)}
-            type="button"
-          >
-            <X aria-hidden className="size-4" />
-          </button>
+          <Tooltip content="Fjern dato">
+            <button
+              aria-label="Fjern dato"
+              className="cursor-pointer text-foreground-muted hover:text-destructive focus-brutal"
+              onClick={() => removeDate(date.id)}
+              type="button"
+            >
+              <X aria-hidden className="size-4" />
+            </button>
+          </Tooltip>
         )}
       </div>
 

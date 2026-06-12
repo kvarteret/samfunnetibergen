@@ -1,11 +1,12 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { ComboboxField } from "@/components/ui/combobox-field"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SelectField, type SelectOption } from "@/components/ui/select-field"
+import type { SelectOption } from "@/components/ui/select-field"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormOrganizerSectionProps {
@@ -23,7 +24,7 @@ export function EventFormOrganizerSection({
     <FormSection number="05" title="Arrangør">
       <form.Field name="organizerGroup">
         {(field: AnyFieldApi) => (
-          <SelectField
+          <ComboboxField
             hint="Om din gruppe er registrert på Kvarteret, velg den her."
             id={`${uid}-organizerGroup`}
             label="Gruppe på Kvarteret"

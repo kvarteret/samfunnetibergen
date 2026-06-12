@@ -2,7 +2,6 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { CheckboxField } from "@/components/ui/checkbox-field"
-import { FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { PriceInput } from "@/components/ui/price-input"
 import { useEventForm } from "./eventFormContext"
@@ -47,10 +46,10 @@ export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
         )}
       </form.Field>
 
-      <FieldHint>
+      <p className="text-sm text-foreground-muted">
         Alle prisfelt er valgfrie. La dem stå tomme om du er usikker - vi tar
         gjerne kontakt for avklaring.
-      </FieldHint>
+      </p>
     </FormSection>
   )
 }

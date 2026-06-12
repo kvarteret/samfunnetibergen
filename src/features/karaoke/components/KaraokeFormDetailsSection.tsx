@@ -71,14 +71,12 @@ export function KaraokeFormDetailsSection({
               id={`${uid}-duration`}
               label="Varighet"
               onChange={value => durationField.handleChange(Number(value))}
+              options={KARAOKE_DURATION_OPTIONS.map(hours => ({
+                value: String(hours),
+                label: `${hours} ${hours === 1 ? "time" : "timer"}`,
+              }))}
               value={String(durationField.state.value)}
-            >
-              {KARAOKE_DURATION_OPTIONS.map(hours => (
-                <option key={hours} value={hours}>
-                  {hours} {hours === 1 ? "time" : "timer"}
-                </option>
-              ))}
-            </SelectField>
+            />
 
             {today && (
               <form.Field name="startDate">

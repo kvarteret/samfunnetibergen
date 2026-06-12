@@ -6,6 +6,7 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NumberField } from "@/components/ui/number-field"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { useBookingForm } from "./bookingFormContext"
@@ -60,19 +61,23 @@ export function BookingFormEventDetailsSection({
           <Label htmlFor={audienceCountId}>Estimert antall publikum *</Label>
           <form.Field name="audienceCount">
             {(field: AnyFieldApi) => (
-              <Input
+              <NumberField
                 aria-describedby={
                   audienceCountError ? audienceCountErrorId : undefined
                 }
                 aria-invalid={!!audienceCountError}
-                className="max-w-20"
+                className="w-32"
                 id={audienceCountId}
-                inputMode="numeric"
                 min={0}
-                onChange={e => field.handleChange(e.target.value)}
+                onValueChange={value =>
+                  field.handleChange(value === null ? "" : String(value))
+                }
                 placeholder="F.eks. 50"
-                type="number"
-                value={field.state.value as string}
+                value={
+                  field.state.value === ""
+                    ? null
+                    : Number(field.state.value as string)
+                }
               />
             )}
           </form.Field>

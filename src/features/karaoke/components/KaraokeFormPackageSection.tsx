@@ -29,7 +29,7 @@ export function KaraokeFormPackageSection({
           return (
             <>
               <SegmentedControl
-                onChange={field.handleChange}
+                onValueChange={field.handleChange}
                 options={(["ordinær", "student", "frivillig"] as const).map(
                   type => ({
                     value: type,
@@ -102,14 +102,14 @@ function KaraokePeopleField({
           id={`${uid}-people`}
           label="Antall personer *"
           onChange={field.handleChange}
+          options={Array.from({ length: 25 }, (_, index) => index + 1).map(
+            count => ({
+              value: String(count),
+              label: `${count} ${count === 1 ? "person" : "personer"}`,
+            }),
+          )}
           value={field.state.value as string}
-        >
-          {Array.from({ length: 25 }, (_, index) => index + 1).map(count => (
-            <option key={count} value={count}>
-              {count} {count === 1 ? "person" : "personer"}
-            </option>
-          ))}
-        </SelectField>
+        />
       )}
     </form.Field>
   )

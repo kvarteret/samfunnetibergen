@@ -7,6 +7,7 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NumberField } from "@/components/ui/number-field"
 import { ToggleOption } from "@/components/ui/toggle-option"
 import { useBookingForm } from "./bookingFormContext"
 
@@ -54,24 +55,22 @@ export function BookingFormNeedsSection({
               onChange={field.handleChange}
             >
               {(field.state.value as boolean) && (
-                <div className="mt-3 flex items-center gap-3">
+                <FieldGroup className="mt-3 flex items-center gap-3">
                   <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
                   <form.Field name="micQuantity">
                     {(qtyField: AnyFieldApi) => (
-                      <Input
-                        className="max-w-20"
+                      <NumberField
+                        className="w-32"
                         id={`${uid}-micQuantity`}
-                        inputMode="numeric"
                         min={1}
-                        onChange={e =>
-                          qtyField.handleChange(Number(e.target.value) || 1)
+                        onValueChange={value =>
+                          qtyField.handleChange(value ?? 1)
                         }
-                        type="number"
                         value={qtyField.state.value as number}
                       />
                     )}
                   </form.Field>
-                </div>
+                </FieldGroup>
               )}
             </ToggleOption>
           )}

@@ -2,7 +2,6 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { CheckboxField } from "@/components/ui/checkbox-field"
-import { FieldError } from "@/components/ui/field-error"
 import { SectionHeader } from "@/components/ui/section-header"
 import { Link } from "@/i18n/navigation"
 import type { PriceType } from "../types"
@@ -37,6 +36,8 @@ export function KaraokeFormTermsSection({
               }
               aria-invalid={!!acceptTermsError}
               checked={field.state.value as boolean}
+              error={acceptTermsError}
+              errorId={acceptTermsErrorId}
               id={acceptTermsId}
               onChange={field.handleChange}
             >
@@ -54,9 +55,6 @@ export function KaraokeFormTermsSection({
             </CheckboxField>
           )}
         </form.Field>
-        {acceptTermsError && (
-          <FieldError id={acceptTermsErrorId}>{acceptTermsError}</FieldError>
-        )}
       </div>
       <form.Field name="priceType">
         {(priceTypeField: AnyFieldApi) =>
@@ -70,6 +68,8 @@ export function KaraokeFormTermsSection({
                     }
                     aria-invalid={!!studentProofError}
                     checked={field.state.value as boolean}
+                    error={studentProofError}
+                    errorId={studentProofErrorId}
                     id={studentProofId}
                     onChange={field.handleChange}
                   >
@@ -77,11 +77,6 @@ export function KaraokeFormTermsSection({
                   </CheckboxField>
                 )}
               </form.Field>
-              {studentProofError && (
-                <FieldError id={studentProofErrorId}>
-                  {studentProofError}
-                </FieldError>
-              )}
             </div>
           ) : null
         }
