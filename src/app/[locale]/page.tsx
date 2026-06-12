@@ -29,6 +29,7 @@ import {
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
 import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
+import { SlackFeedback } from "./_components/SlackFeedback"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -249,6 +250,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           width={500}
         />
       </section>
+      <SlackFeedback />
     </div>
   )
 }
