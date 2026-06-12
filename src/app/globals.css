@@ -167,8 +167,6 @@
 
 @theme inline {
   --font-sans:  var(--font-hegval-display);
-  --font-mono:  var(--font-dm-mono);
-  --font-serif: var(--font-instrument-serif);
 
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
