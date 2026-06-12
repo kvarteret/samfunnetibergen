@@ -4,51 +4,64 @@ import { sourcedImageProjection } from "../fragments/images"
 
 export const studentGroupsQuery =
   defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
-    name,
-    "slug": slug.current,
-    summary,
+    "name": coalesce(name, "[Mangler gruppenavn]"),
+    "slug": coalesce(slug.current, ""),
+    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
+    seoTitle,
+    seoDescription,
+    canonicalUrl,
+    "noIndex": coalesce(noIndex, false),
+    "noFollow": coalesce(noFollow, false),
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    openGraphImageAlt,
     email,
     website,
-    category,
-    labels,
+    "category": coalesce(category, "arbeidsgruppe"),
+    "labels": coalesce(labels, []),
     "logoUrl": logo.asset->url,
     "image": image ${sourcedImageProjection},
-    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
-        name,
-        "slug": slug.current
-    }
+    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
+        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "slug": coalesce(slug.current, "")
+    }, [])
 }`)
 
 export const studentGroupSlugsQuery =
-  defineQuery(`*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {
-    "slug": slug.current
-}`)
-
-export const allStudentGroupSlugsQuery =
-  defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
+  defineQuery(`*[_type == "studentGroup" && defined(slug.current) && noIndex != true] {
     "slug": slug.current
 }`)
 
 export const studentGroupBySlugQuery =
-  defineQuery(`*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {
-    name,
-    "slug": slug.current,
-    summary,
-    body,
+  defineQuery(`*[_type == "studentGroup" && slug.current == $slug][0] {
+    "name": coalesce(name, "[Mangler gruppenavn]"),
+    "slug": coalesce(slug.current, ""),
+    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
+    seoTitle,
+    seoDescription,
+    canonicalUrl,
+    "noIndex": coalesce(noIndex, false),
+    "noFollow": coalesce(noFollow, false),
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    openGraphImageAlt,
+    "body": coalesce(body, []),
     email,
     website,
-    category,
+    "category": coalesce(category, "arbeidsgruppe"),
     "logoUrl": logo.asset->url,
     "parentGroup": parentGroup-> {
-        name,
-        "slug": slug.current
+        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "slug": coalesce(slug.current, "")
     },
-    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
-        name,
-        "slug": slug.current,
-        summary,
-        category,
+    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
+        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "slug": coalesce(slug.current, ""),
+        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
+        "category": coalesce(category, "arbeidsgruppe"),
         "image": image ${sourcedImageProjection}
-    },
+    }, []),
     "image": image ${sourcedImageProjection}
 }`)

@@ -14,6 +14,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import {
   fetchEventsPageContent,
   fetchPublishedEvents,
@@ -35,20 +36,22 @@ export async function generateMetadata({
     fetchEventsPageContent(locale, { stega: false }),
     fetchSiteMetadata(locale, { stega: false }),
   ])
-  const title = eventsPage?.seoTitle ?? t("eventsTitle")
   const description = eventsPage?.seoDescription ?? t("eventsDescription")
-  const openGraphTitle = eventsPage?.openGraphTitle ?? title
-  const openGraphDescription = eventsPage?.openGraphDescription ?? description
   const openGraphImage =
     eventsPage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
 
+  const metadata = buildPageMetadata({
+    content: eventsPage,
+    canonicalPath: `/${locale}/arrangementer`,
+    fallbackTitle: t("eventsTitle"),
+    fallbackDescription: description,
+    fallbackImageUrl: openGraphImage,
+  })
+
   return {
-    title,
-    description,
+    ...metadata,
     openGraph: {
-      title: openGraphTitle,
-      description: openGraphDescription,
-      images: openGraphImage ? [{ url: openGraphImage }] : undefined,
+      ...metadata.openGraph,
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
     },
   }

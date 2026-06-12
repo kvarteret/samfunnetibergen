@@ -15,6 +15,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import type {
   EditorialSection,
   RoomSummary,
@@ -33,16 +34,16 @@ type RoomsPageProps = {
 }
 
 export async function generateMetadata({ params }: RoomsPageProps) {
-  await resolvePageLocale(params)
+  const locale = await resolvePageLocale(params)
   const content = await fetchRoomsPageContent({ stega: false })
 
-  return {
-    title: `${content?.seoTitle ?? content?.title ?? "Booking"} | Samfunnet i Bergen`,
-    description:
-      content?.seoDescription ??
-      content?.description ??
-      "Se rommene på Det Akademiske Kvarter.",
-  }
+  return buildPageMetadata({
+    content,
+    canonicalPath: `/${locale}/rom`,
+    fallbackTitle: content?.title ?? "Booking",
+    fallbackDescription:
+      content?.description ?? "Se rommene på Det Akademiske Kvarter.",
+  })
 }
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl

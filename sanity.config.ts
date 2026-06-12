@@ -1,21 +1,24 @@
-import "./src/studio/i18n/patchRRuleNorwegian"
+import { assist } from "@sanity/assist"
 import { visionTool } from "@sanity/vision"
 import { defineConfig } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
-import { recurringDates } from "sanity-plugin-recurring-dates"
 import { dataset, projectId } from "./src/lib/sanity/env"
 import {
   ApproveAction,
+  PauseAction,
   RejectAction,
+  ResumeAction,
 } from "./src/studio/actions/approvalActions"
+import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
   resolve,
   resolvePresentationInitialUrl,
+  resolvePresentationOrigins,
 } from "./src/studio/presentation/resolve"
 import { schemaTypes } from "./src/studio/schemaTypes"
-import { singletonTypeNames, structure } from "./src/studio/structure"
+import { structure } from "./src/studio/structure"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -26,15 +29,20 @@ export default defineConfig({
   title: "Samfunnet i Bergen",
   plugins: [
     structureTool({ structure }),
-    recurringDates(),
     presentationTool({
       resolve,
+      allowOrigins: resolvePresentationOrigins(),
       previewUrl: {
         initial: resolvePresentationInitialUrl(),
+        previewMode: {
+          enable: "/api/draft-mode/enable",
+          disable: "/api/draft-mode/disable",
+        },
       },
     }),
     visionTool(),
     markdownSchema(),
+    assist(),
   ],
   document: {
     newDocumentOptions: (prev, { creationContext }) => {
@@ -50,7 +58,7 @@ export default defineConfig({
         const core = prev.filter(
           action => !["duplicate", "unpublish"].includes(action.action ?? ""),
         )
-        return [ApproveAction, RejectAction, ...core]
+        return [ApproveAction, RejectAction, PauseAction, ResumeAction, ...core]
       }
       if (!singletonTypes.has(schemaType)) {
         return prev

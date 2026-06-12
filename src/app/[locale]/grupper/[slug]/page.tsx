@@ -10,6 +10,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import {
   fetchStudentGroupBySlug,
@@ -42,10 +43,13 @@ export async function generateMetadata({ params }: GroupPageProps) {
   const group = await fetchStudentGroupBySlug(slug, { stega: false })
   if (!group) return {}
 
-  return {
-    title: `${group.name} | Grupper | Samfunnet i Bergen`,
-    description: group.summary,
-  }
+  return buildPageMetadata({
+    content: group,
+    canonicalPath: `/${localeParam}/grupper/${slug}`,
+    fallbackTitle: `${group.name} | Grupper`,
+    fallbackDescription: group.summary,
+    fallbackImageUrl: group.image?.assetUrl,
+  })
 }
 
 export default async function GroupPage({ params }: GroupPageProps) {

@@ -16,9 +16,11 @@ export type GroupsPageContent = NonNullable<
   ClientReturn<typeof groupsPageQuery>
 >
 
-export type StudentGroupSummary = ClientReturn<
-  typeof studentGroupsQuery
->[number]
+type StudentGroupSummaryRaw = ClientReturn<typeof studentGroupsQuery>[number]
+
+export type StudentGroupSummary = Omit<StudentGroupSummaryRaw, "labels"> & {
+  labels: string[]
+}
 
 export type StudentGroupDetail = NonNullable<
   ClientReturn<typeof studentGroupBySlugQuery>
@@ -29,7 +31,6 @@ export async function fetchGroupsPageContent(
 ): Promise<GroupsPageContent | null> {
   const { data } = await sanityFetch({
     query: groupsPageQuery,
-    tags: ["groupsPage"],
     stega: options.stega,
   })
   return data
@@ -38,10 +39,10 @@ export async function fetchGroupsPageContent(
 export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
   const { data: groups } = await sanityFetch({
     query: studentGroupsQuery,
-    tags: ["studentGroups"],
   })
   return withRequiredKeys(groups, "slug").map(group => ({
     ...group,
+    labels: group.labels as string[],
     slug: stegaClean(group.slug),
   }))
 }
@@ -50,7 +51,10 @@ export async function fetchStudentGroupSlugs(): Promise<string[]> {
   const groups = await sanityClient.fetch(
     studentGroupSlugsQuery,
     {},
-    { next: { revalidate: 300, tags: ["studentGroups"] } },
+    {
+      perspective: "published",
+      stega: false,
+    },
   )
   return compact(groups.map(group => group.slug))
 }
@@ -62,7 +66,6 @@ export async function fetchStudentGroupBySlug(
   const { data } = await sanityFetch({
     query: studentGroupBySlugQuery,
     params: { slug },
-    tags: ["studentGroups"],
     stega: options.stega,
   })
   return data

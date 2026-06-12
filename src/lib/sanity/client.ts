@@ -7,5 +7,8 @@ export const sanityClient = createClient({
   dataset,
   apiVersion,
   useCdn: true,
-  stega: false,
+  perspective: "published",
+  stega: {
+    studioUrl: "/studio",
+  },
 })

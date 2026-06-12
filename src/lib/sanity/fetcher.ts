@@ -1,30 +1,10 @@
-import "server-only"
-
-import type { ClientReturn, QueryParams } from "@sanity/client"
+import { defineLive } from "next-sanity/live"
 import { sanityClient } from "./client"
 
-type SanityFetchOptions<QueryString extends string> = {
-  query: QueryString
-  params?: QueryParams | Promise<QueryParams>
-  tags?: string[]
-  stega?: boolean
-  revalidate?: number | false
-}
+const token = process.env.SANITY_API_READ_TOKEN
 
-export async function sanityFetch<const QueryString extends string>({
-  query,
-  params = {},
-  tags = [],
-  stega = false,
-  revalidate = 300,
-}: SanityFetchOptions<QueryString>): Promise<{
-  data: ClientReturn<QueryString>
-}> {
-  const data = await sanityClient.fetch(query, await params, {
-    next: { revalidate, tags },
-    perspective: "published",
-    stega,
-  })
-
-  return { data }
-}
+export const { sanityFetch, SanityLive } = defineLive({
+  client: sanityClient,
+  serverToken: token,
+  browserToken: token,
+})

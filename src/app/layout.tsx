@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
-
 import localFont from "next/font/local"
+import { draftMode } from "next/headers"
 import Script from "next/script"
+import { VisualEditing } from "next-sanity/visual-editing"
 import { paperPreferenceScript } from "@/lib/paper-preference"
 import { fetchSiteMetadata } from "@/lib/sanity/fetch"
+import { SanityLive } from "@/lib/sanity/fetcher"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 import "./globals.css"
@@ -58,6 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { isEnabled: isDraftMode } = await draftMode()
+
   return (
     <html
       data-paper="grid"
@@ -70,6 +74,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {paperPreferenceScript}
         </Script>
         {children}
+        <SanityLive />
+        {isDraftMode && <VisualEditing />}
       </body>
     </html>
   )

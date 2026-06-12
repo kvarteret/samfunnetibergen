@@ -6,6 +6,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchSponsorsPageContent } from "@/lib/sanity/fetch"
 
@@ -20,16 +21,16 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: SponsorsPageProps) {
-  await resolvePageLocale(params)
+  const locale = await resolvePageLocale(params)
   const content = await fetchSponsorsPageContent({ stega: false })
 
-  return {
-    title: `${content?.seoTitle ?? content?.title ?? "Sponsorer"} | Samfunnet i Bergen`,
-    description:
-      content?.seoDescription ??
-      content?.description ??
-      "Se sponsorer for Samfunnet i Bergen.",
-  }
+  return buildPageMetadata({
+    content,
+    canonicalPath: `/${locale}/sponsorer`,
+    fallbackTitle: content?.title ?? "Sponsorer",
+    fallbackDescription:
+      content?.description ?? "Se sponsorer for Samfunnet i Bergen.",
+  })
 }
 
 export default async function SponsorsPage({ params }: SponsorsPageProps) {
