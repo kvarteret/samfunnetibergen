@@ -234,11 +234,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       <section>
         <Image
           alt=""
-          className="h-auto w-full"
+          className="hidden h-auto w-full md:block"
           height={288}
           priority={false}
           src="/images/studentersamfunnet-illustration.webp"
           width={866}
+        />
+        <Image
+          alt=""
+          className="mx-auto h-auto w-full md:hidden"
+          height={500}
+          priority={false}
+          src="/images/studentersamfunnet-illustration-mobile.webp"
+          width={500}
         />
       </section>
     </div>
