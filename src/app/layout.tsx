@@ -30,7 +30,6 @@ const hegvalDisplay = localFont({
   ],
 })
 
-
 export async function generateMetadata(): Promise<Metadata> {
   const siteMetadata = await fetchSiteMetadata("nb", { stega: false })
   const title =

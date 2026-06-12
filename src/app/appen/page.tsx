@@ -44,9 +44,7 @@ export default async function AppenPage() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 bg-background">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-3xl">Last ned appen</h1>
-        <p className="text-foreground-muted">
-          Tilgjengelig for iOS og Android
-        </p>
+        <p className="text-foreground-muted">Tilgjengelig for iOS og Android</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">

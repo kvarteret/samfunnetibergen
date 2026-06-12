@@ -96,9 +96,7 @@ export function HomeBarPreviews({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
-          Barer
-        </p>
+        <p className="font-heading text-xl text-foreground-muted">Barer</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
