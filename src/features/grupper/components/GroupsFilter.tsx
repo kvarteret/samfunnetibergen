@@ -33,7 +33,9 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
     <div className="space-y-12">
       {allLabels.length > 0 && (
         <SegmentedControl
-          onChange={value => setActiveLabel(value === "all" ? null : value)}
+          onValueChange={value =>
+            setActiveLabel(value === "all" ? null : value)
+          }
           options={[
             { value: "all", label: "Alle" },
             ...allLabels.map(label => ({ value: label, label })),

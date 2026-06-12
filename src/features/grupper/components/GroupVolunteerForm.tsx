@@ -10,10 +10,10 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
@@ -217,7 +217,7 @@ export function GroupVolunteerForm({
 
   if (isSubmitSuccessful) {
     return (
-      <FormSection number="00" title={t("title")}>
+      <FormSection title={t("title")}>
         <Alert variant="success">
           <AlertTitle>{t("successTitle")}</AlertTitle>
           <AlertDescription>{t("submittedMessage")}</AlertDescription>
@@ -227,12 +227,12 @@ export function GroupVolunteerForm({
   }
 
   return (
-    <FormSection number="00" title={t("title")}>
+    <FormSection title={t("title")}>
       {hasSubGroups && (
         <FieldGroup>
           <p className=" text-foreground-muted">{t("selectSubGroup")}</p>
           <SegmentedControl
-            onChange={selectFirstChoice}
+            onValueChange={selectFirstChoice}
             options={subGroups!.map(sub => ({
               value: sub.slug,
               label: sub.name,
@@ -290,12 +290,9 @@ export function GroupVolunteerForm({
               errorId={`${fieldIds.firstName}-error`}
             >
               <div className="flex items-center gap-1">
-                <label
-                  className=" font-heading text-foreground"
-                  htmlFor={fieldIds.firstName}
-                >
+                <Label htmlFor={fieldIds.firstName}>
                   {t("firstNameLabel")}
-                </label>
+                </Label>
                 <span className="text-destructive">*</span>
               </div>
               <form.Field name="firstName">
@@ -310,11 +307,6 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {errorFor(fieldIds.firstName) && (
-                <FieldError id={`${fieldIds.firstName}-error`}>
-                  {errorFor(fieldIds.firstName)}
-                </FieldError>
-              )}
             </FieldGroup>
 
             <FieldGroup
@@ -322,12 +314,7 @@ export function GroupVolunteerForm({
               errorId={`${fieldIds.lastName}-error`}
             >
               <div className="flex items-center gap-1">
-                <label
-                  className=" font-heading text-foreground"
-                  htmlFor={fieldIds.lastName}
-                >
-                  {t("lastNameLabel")}
-                </label>
+                <Label htmlFor={fieldIds.lastName}>{t("lastNameLabel")}</Label>
                 <span className="text-destructive">*</span>
               </div>
               <form.Field name="lastName">
@@ -342,11 +329,6 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {errorFor(fieldIds.lastName) && (
-                <FieldError id={`${fieldIds.lastName}-error`}>
-                  {errorFor(fieldIds.lastName)}
-                </FieldError>
-              )}
             </FieldGroup>
 
             <FieldGroup
@@ -354,12 +336,7 @@ export function GroupVolunteerForm({
               errorId={`${fieldIds.email}-error`}
             >
               <div className="flex items-center gap-1">
-                <label
-                  className=" font-heading text-foreground"
-                  htmlFor={fieldIds.email}
-                >
-                  {t("emailLabel")}
-                </label>
+                <Label htmlFor={fieldIds.email}>{t("emailLabel")}</Label>
                 <span className="text-destructive">*</span>
               </div>
               <form.Field name="email">
@@ -376,11 +353,6 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {errorFor(fieldIds.email) && (
-                <FieldError id={`${fieldIds.email}-error`}>
-                  {errorFor(fieldIds.email)}
-                </FieldError>
-              )}
             </FieldGroup>
 
             <FieldGroup
@@ -388,12 +360,7 @@ export function GroupVolunteerForm({
               errorId={`${fieldIds.phone}-error`}
             >
               <div className="flex items-center gap-1">
-                <label
-                  className=" font-heading text-foreground"
-                  htmlFor={fieldIds.phone}
-                >
-                  {t("phoneLabel")}
-                </label>
+                <Label htmlFor={fieldIds.phone}>{t("phoneLabel")}</Label>
                 <span className="text-destructive">*</span>
               </div>
               <form.Field name="phone">
@@ -412,11 +379,6 @@ export function GroupVolunteerForm({
                   />
                 )}
               </form.Field>
-              {errorFor(fieldIds.phone) && (
-                <FieldError id={`${fieldIds.phone}-error`}>
-                  {errorFor(fieldIds.phone)}
-                </FieldError>
-              )}
             </FieldGroup>
           </div>
 
@@ -428,27 +390,19 @@ export function GroupVolunteerForm({
                 id={fieldIds.studyInstitution}
                 label={`${t("studyInstitutionLabel")}`}
                 onChange={v => field.handleChange(v)}
+                options={institutionOptions}
+                placeholder={t("studyInstitutionPlaceholder")}
                 value={field.state.value as string}
-              >
-                <option value="">{t("studyInstitutionPlaceholder")}</option>
-                {institutionOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </SelectField>
+              />
             )}
           </form.Field>
 
           <form.Field name="backgroundDetails">
             {(field: AnyFieldApi) => (
               <FieldGroup>
-                <label
-                  className=" font-heading text-foreground"
-                  htmlFor={fieldIds.backgroundDetails}
-                >
+                <Label htmlFor={fieldIds.backgroundDetails}>
                   {t("backgroundDetailsLabel")}
-                </label>
+                </Label>
                 <Textarea
                   id={fieldIds.backgroundDetails}
                   onChange={e => field.handleChange(e.target.value)}
@@ -482,13 +436,14 @@ export function GroupVolunteerForm({
                     return (
                       <div className="space-y-2" key={fieldId}>
                         <div className="flex items-end gap-2">
-                          <FieldGroup className="min-w-0 flex-1">
-                            <label
-                              className=" font-heading text-foreground"
-                              htmlFor={fieldId}
-                            >
+                          <FieldGroup
+                            className="min-w-0 flex-1"
+                            error={error}
+                            errorId={`${fieldId}-error`}
+                          >
+                            <Label htmlFor={fieldId}>
                               {t("friendEmailLabel", { number: index + 1 })}
-                            </label>
+                            </Label>
                             <Input
                               aria-describedby={
                                 error ? `${fieldId}-error` : undefined
@@ -524,11 +479,6 @@ export function GroupVolunteerForm({
                             {t("removeFriend")}
                           </Button>
                         </div>
-                        {error && (
-                          <FieldError id={`${fieldId}-error`}>
-                            {error}
-                          </FieldError>
-                        )}
                       </div>
                     )
                   })}

@@ -1,4 +1,9 @@
-import { Disclosure } from "@/components/ui/disclosure"
+import {
+  Accordion,
+  AccordionItem,
+  AccordionPanel,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { GroupsFilter } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -109,19 +114,22 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
           <h2 className="font-heading text-4xl leading-none text-foreground">
             Ofte stilte spørsmål
           </h2>
-          <div className="grid gap-4">
+          <Accordion>
             {content.faq.map(
               (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
-                <Disclosure key={item._key} summary={item.question}>
-                  <div className="paper-prose text-foreground">
-                    {item.answer?.map((paragraph: string) => (
-                      <p key={paragraph}>{paragraph}</p>
-                    ))}
-                  </div>
-                </Disclosure>
+                <AccordionItem key={item._key} value={item._key}>
+                  <AccordionTrigger>{item.question}</AccordionTrigger>
+                  <AccordionPanel>
+                    <div className="paper-prose text-foreground">
+                      {item.answer?.map((paragraph: string) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </AccordionPanel>
+                </AccordionItem>
               ),
             )}
-          </div>
+          </Accordion>
         </section>
       ) : null}
     </div>
