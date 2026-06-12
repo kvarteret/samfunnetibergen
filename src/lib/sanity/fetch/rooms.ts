@@ -44,7 +44,6 @@ export async function fetchRoomsPageContent(
 ): Promise<RoomsPageContent | null> {
   const { data } = await sanityFetch({
     query: roomsPageQuery,
-    tags: ["roomsPage"],
     stega: options.stega,
   })
   return data
@@ -53,7 +52,6 @@ export async function fetchRoomsPageContent(
 export async function fetchRooms(): Promise<RoomSummary[]> {
   const { data: rooms } = await sanityFetch({
     query: roomsQuery,
-    tags: ["rooms"],
   })
   return withRequiredKeys(rooms, "slug").map(room => ({
     ...room,
@@ -64,7 +62,6 @@ export async function fetchRooms(): Promise<RoomSummary[]> {
 export async function fetchBookableRooms(): Promise<BookableRoom[]> {
   const { data: rooms } = await sanityFetch({
     query: bookableRoomsQuery,
-    tags: ["rooms"],
   })
   return withRequiredKeys(rooms, "slug", "crescatRoomId").map(room => ({
     ...room,
@@ -75,7 +72,6 @@ export async function fetchBookableRooms(): Promise<BookableRoom[]> {
 export async function fetchBarPreviews(): Promise<BarPreviewsContent | null> {
   const { data } = await sanityFetch({
     query: barPreviewsQuery,
-    tags: ["rooms", "siteMetadata"],
   })
   return data
 }
@@ -84,7 +80,10 @@ export async function fetchRoomSlugs(): Promise<string[]> {
   const rooms = await sanityClient.fetch(
     roomSlugsQuery,
     {},
-    { next: { revalidate: 300, tags: ["rooms"] } },
+    {
+      perspective: "published",
+      stega: false,
+    },
   )
   return compact(rooms.map(room => room.slug))
 }
@@ -96,7 +95,6 @@ export async function fetchRoomBySlug(
   const { data } = await sanityFetch({
     query: roomBySlugQuery,
     params: { slug },
-    tags: ["rooms"],
     stega: options.stega,
   })
   return data

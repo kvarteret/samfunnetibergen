@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "dist/**",
     "storybook-static/**",
     "src/lib/integrations/kvarteret-personal-api/**",
     "next-env.d.ts",

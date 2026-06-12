@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol
 
 // Source: .sanity/schema.json
+export type SanityImageAssetReference = {
+  _ref: string
+  _type: "reference"
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset"
+}
+
 export type LinkInBio = {
   _id: string
   _type: "linkInBio"
@@ -26,9 +33,32 @@ export type LinkInBio = {
   links?: Array<{
     link: SourceLink
     emoji?: string
+    emojiImage?: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: "image"
+    }
     highlight?: boolean
     _key: string
   }>
+}
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop"
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot"
+  x: number
+  y: number
+  height: number
+  width: number
 }
 
 export type HomePageReference = {
@@ -104,7 +134,7 @@ export type StudentGroupReference = {
 export type SourceLink = {
   _type: "sourceLink"
   label: string
-  linkType: "internalPage" | "internalPath" | "external"
+  linkType: string
   internalPage?:
     | HomePageReference
     | EventsPageReference
@@ -120,11 +150,34 @@ export type SourceLink = {
   externalUrl?: string
 }
 
-export type SanityImageAssetReference = {
+export type InternbevisBenefitReference = {
   _ref: string
   _type: "reference"
   _weak?: boolean
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset"
+  [internalGroqTypeReferenceTo]?: "internbevisBenefit"
+}
+
+export type InternbevisPage = {
+  _id: string
+  _type: "internbevisPage"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  trinn1Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
+  trinn2Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
+  trinn3Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
 }
 
 export type SiteMetadata = {
@@ -152,31 +205,6 @@ export type SiteMetadata = {
   }
   defaultOpenGraphTitle?: string
   defaultOpenGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-}
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop"
-  top: number
-  bottom: number
-  left: number
-  right: number
-}
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot"
-  x: number
-  y: number
-  height: number
-  width: number
 }
 
 export type OpeningHours = {
@@ -199,6 +227,17 @@ export type Footer = {
       _key: string
     } & FooterSocialLink
   >
+}
+
+export type InternbevisBenefit = {
+  _id: string
+  _type: "internbevisBenefit"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name: string
+  description?: string
+  minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
 export type Navbar = {
@@ -233,17 +272,6 @@ export type FooterSocialLink = {
     | "other"
   label: string
   url: string
-}
-
-export type InternbevisBenefit = {
-  _id: string
-  _type: "internbevisBenefit"
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  name: string
-  description: string
-  minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
 export type ContactGroup = {
@@ -484,6 +512,9 @@ export type Arrangement = {
   facebookUrl?: string
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -491,18 +522,10 @@ export type Arrangement = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  approvalStatus?: "pending" | "approved" | "rejected" | "archived"
+  approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
@@ -540,6 +563,21 @@ export type StudentGroup = {
   }
   labels?: Array<string>
   image?: SourcedImage
+  seoTitle?: string
+  seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
   orderRank?: string
 }
 
@@ -581,6 +619,21 @@ export type Room = {
       _key: string
     } & SourcedImage
   >
+  seoTitle?: string
+  seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type EventTaxonomyGroupReference = {
@@ -627,6 +680,19 @@ export type Page = {
   content?: Markdown
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type Markdown = string
@@ -651,6 +717,19 @@ export type KontaktPage = {
   >
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type SponsorsPage = {
@@ -678,6 +757,19 @@ export type SponsorsPage = {
   }>
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type GroupsPage = {
@@ -696,6 +788,19 @@ export type GroupsPage = {
   >
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
   faq?: Array<{
     question: string
     answer: Array<string>
@@ -739,6 +844,19 @@ export type RoomsPage = {
   }>
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type EventsPage = {
@@ -752,6 +870,9 @@ export type EventsPage = {
   description?: string
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -759,17 +880,9 @@ export type EventsPage = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
 }
 
 export type HomePage = {
@@ -784,6 +897,9 @@ export type HomePage = {
   primaryCta?: SourceLink
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -791,25 +907,146 @@ export type HomePage = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
 }
 
-export type RecurringDates = {
-  _type: "recurringDates"
-  startDate: string
-  endDate?: string
-  recurs?: boolean
-  rrule?: string
+export type SanityAssistInstructionTask = {
+  _type: "sanity.assist.instructionTask"
+  path?: string
+  instructionKey?: string
+  started?: string
+  updated?: string
+  info?: string
+}
+
+export type SanityAssistTaskStatus = {
+  _type: "sanity.assist.task.status"
+  tasks?: Array<
+    {
+      _key: string
+    } & SanityAssistInstructionTask
+  >
+}
+
+export type SanityAssistSchemaTypeAnnotations = {
+  _type: "sanity.assist.schemaType.annotations"
+  title?: string
+  fields?: Array<
+    {
+      _key: string
+    } & SanityAssistSchemaTypeField
+  >
+}
+
+export type SanityAssistOutputType = {
+  _type: "sanity.assist.output.type"
+  type?: string
+}
+
+export type SanityAssistOutputField = {
+  _type: "sanity.assist.output.field"
+  path?: string
+}
+
+export type AssistInstructionContextReference = {
+  _ref: string
+  _type: "reference"
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: "assist.instruction.context"
+}
+
+export type SanityAssistInstructionContext = {
+  _type: "sanity.assist.instruction.context"
+  reference: AssistInstructionContextReference
+}
+
+export type AssistInstructionContext = {
+  _id: string
+  _type: "assist.instruction.context"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title?: string
+  context?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: "span"
+      _key: string
+    }>
+    style?: "normal"
+    listItem?: never
+    markDefs?: null
+    level?: number
+    _type: "block"
+    _key: string
+  }>
+}
+
+export type SanityAssistInstructionUserInput = {
+  _type: "sanity.assist.instruction.userInput"
+  message: string
+  description?: string
+}
+
+export type SanityAssistInstructionPrompt = Array<{
+  children?: Array<
+    | {
+        marks?: Array<string>
+        text?: string
+        _type: "span"
+        _key: string
+      }
+    | ({
+        _key: string
+      } & SanityAssistInstructionFieldRef)
+    | ({
+        _key: string
+      } & SanityAssistInstructionContext)
+    | ({
+        _key: string
+      } & SanityAssistInstructionUserInput)
+  >
+  style?: "normal"
+  listItem?: never
+  markDefs?: null
+  level?: number
+  _type: "block"
+  _key: string
+}>
+
+export type SanityAssistInstructionFieldRef = {
+  _type: "sanity.assist.instruction.fieldRef"
+  path?: string
+}
+
+export type SanityAssistInstruction = {
+  _type: "sanity.assist.instruction"
+  prompt?: SanityAssistInstructionPrompt
+  icon?: string
+  title?: string
+  userId?: string
+  createdById?: string
+  output?: Array<
+    | ({
+        _key: string
+      } & SanityAssistOutputField)
+    | ({
+        _key: string
+      } & SanityAssistOutputType)
+  >
+}
+
+export type SanityAssistSchemaTypeField = {
+  _type: "sanity.assist.schemaType.field"
+  path?: string
+  instructions?: Array<
+    {
+      _key: string
+    } & SanityAssistInstruction
+  >
 }
 
 export type SanityImagePaletteSwatch = {
@@ -910,7 +1147,10 @@ export type Geopoint = {
 }
 
 export type AllSanitySchemaTypes =
+  | SanityImageAssetReference
   | LinkInBio
+  | SanityImageCrop
+  | SanityImageHotspot
   | HomePageReference
   | EventsPageReference
   | RoomsPageReference
@@ -922,16 +1162,15 @@ export type AllSanitySchemaTypes =
   | RoomReference
   | StudentGroupReference
   | SourceLink
-  | SanityImageAssetReference
+  | InternbevisBenefitReference
+  | InternbevisPage
   | SiteMetadata
-  | SanityImageCrop
-  | SanityImageHotspot
   | OpeningHours
   | Footer
+  | InternbevisBenefit
   | Navbar
   | ArrangementDate
   | FooterSocialLink
-  | InternbevisBenefit
   | ContactGroup
   | ContactPerson
   | Menu
@@ -961,7 +1200,19 @@ export type AllSanitySchemaTypes =
   | RoomsPage
   | EventsPage
   | HomePage
-  | RecurringDates
+  | SanityAssistInstructionTask
+  | SanityAssistTaskStatus
+  | SanityAssistSchemaTypeAnnotations
+  | SanityAssistOutputType
+  | SanityAssistOutputField
+  | AssistInstructionContextReference
+  | SanityAssistInstructionContext
+  | AssistInstructionContext
+  | SanityAssistInstructionUserInput
+  | SanityAssistInstructionPrompt
+  | SanityAssistInstructionFieldRef
+  | SanityAssistInstruction
+  | SanityAssistSchemaTypeField
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -973,19 +1224,20 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/sanity/queries/events.ts
 // Variable: eventsPageContentNbQuery
-// Query: *[_type == "eventsPage" && _id == "eventsPage"][0] {    "eyebrow": coalesce(eyebrow, eyebrowNb),    "title": coalesce(title, titleNb),    "description": coalesce(description, descriptionNb),    seoTitle,    seoDescription,    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    oembedTitle,    oembedDescription,    "oembedImageUrl": oembedImage.asset->url}
+// Query: *[_type == "eventsPage" && _id == "eventsPage"][0] {    "eyebrow": coalesce(eyebrow, eyebrowNb),    "title": coalesce(title, titleNb, "[Mangler tittel]"),    "description": coalesce(description, descriptionNb),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt}
 export type EventsPageContentNbQueryResult = {
   eyebrow: string | null
-  title: string | null
+  title: string | "[Mangler tittel]"
   description: string | null
   seoTitle: string | null
   seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
   openGraphTitle: string | null
   openGraphDescription: string | null
   openGraphImageUrl: string | null
-  oembedTitle: string | null
-  oembedDescription: string | null
-  oembedImageUrl: string | null
+  openGraphImageAlt: string | null
 } | null
 
 // Source: src/lib/sanity/queries/events.ts
@@ -1022,13 +1274,13 @@ export type EventGroupsQueryResult = Array<{
 
 // Source: src/lib/sanity/queries/events.ts
 // Variable: publishedEventsQuery
-// Query: *[_type == "arrangement" && approvalStatus == "approved" && (        count(dates[startDate >= $today]) > 0        || (isRecurring == true && defined(rrule) && count(dates) > 0)    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, ""),    approvalStatus,    isRecurring,    rrule,    "dates": dates | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    oembedTitle,    oembedDescription,    "oembedImageUrl": oembedImage.asset->url,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}}
+// Query: *[_type == "arrangement" && approvalStatus == "approved" && (        count(dates[startDate >= $today]) > 0        || (isRecurring == true && defined(rrule) && count(dates) > 0)    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "title": coalesce(title, "[Mangler arrangementstittel]"),    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isRecurring": coalesce(isRecurring, false),    rrule,    "dates": coalesce(dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    }, []),    "isFree": coalesce(isFree, false),    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    "description": coalesce(description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}
 export type PublishedEventsQueryResult = Array<{
   _id: string
   title: string
   slug: string
-  approvalStatus: "approved" | "archived" | "pending" | "rejected" | null
-  isRecurring: boolean | null
+  approvalStatus: "approved" | "archived" | "paused" | "pending" | "rejected"
+  isRecurring: boolean | false
   rrule: string | null
   dates: Array<{
     _key: string
@@ -1036,18 +1288,19 @@ export type PublishedEventsQueryResult = Array<{
     startTime: string | null
     endTime: string | null
   }>
-  isFree: boolean | null
+  isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null
   priceMedlem: number | null
   seoTitle: string | null
   seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
   openGraphTitle: string | null
   openGraphDescription: string | null
   openGraphImageUrl: string | null
-  oembedTitle: string | null
-  oembedDescription: string | null
-  oembedImageUrl: string | null
+  openGraphImageAlt: string | null
   ticketUrl: string | null
   facebookUrl: string | null
   imageUrl: string | null
@@ -1076,50 +1329,59 @@ export type PublishedEventsQueryResult = Array<{
       slug: string
     }
   } | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
+}>
+
+// Source: src/lib/sanity/queries/events.ts
+// Variable: publishedEventSlugsQuery
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && noIndex != true        && defined(slug.current)        && (            count(dates[startDate >= $today]) > 0            || (isRecurring == true && defined(rrule) && count(dates) > 0)        )    ] {        "slug": slug.current    }
+export type PublishedEventSlugsQueryResult = Array<{
+  slug: string
 }>
 
 // Source: src/lib/sanity/queries/events.ts
 // Variable: eventBySlugQuery
-// Query: *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (        count(dates[startDate >= $today]) > 0        || (isRecurring == true && defined(rrule) && count(dates) > 0)    )][0] {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, ""),    approvalStatus,    isRecurring,    rrule,    "dates": dates | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    oembedTitle,    oembedDescription,    "oembedImageUrl": oembedImage.asset->url,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}}
+// Query: *[_type == "arrangement" && slug.current == $slug && (        $preview == true        || (            approvalStatus == "approved"            && (                count(dates[startDate >= $today]) > 0                || (isRecurring == true && defined(rrule) && count(dates) > 0)            )        )    )][0] {    _id,    "title": coalesce(title, "[Mangler arrangementstittel]"),    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isRecurring": coalesce(isRecurring, false),    rrule,    "dates": coalesce(dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    }, []),    "isFree": coalesce(isFree, false),    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    "description": coalesce(description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}
 export type EventBySlugQueryResult = {
   _id: string
   title: string
   slug: string
-  approvalStatus: "approved" | "archived" | "pending" | "rejected" | null
-  isRecurring: boolean | null
+  approvalStatus: "approved" | "archived" | "paused" | "pending" | "rejected"
+  isRecurring: boolean | false
   rrule: string | null
   dates: Array<{
     _key: string
@@ -1127,18 +1389,19 @@ export type EventBySlugQueryResult = {
     startTime: string | null
     endTime: string | null
   }>
-  isFree: boolean | null
+  isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null
   priceMedlem: number | null
   seoTitle: string | null
   seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
   openGraphTitle: string | null
   openGraphDescription: string | null
   openGraphImageUrl: string | null
-  oembedTitle: string | null
-  oembedDescription: string | null
-  oembedImageUrl: string | null
+  openGraphImageAlt: string | null
   ticketUrl: string | null
   facebookUrl: string | null
   imageUrl: string | null
@@ -1167,59 +1430,52 @@ export type EventBySlugQueryResult = {
       slug: string
     }
   } | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
 } | null
 
 // Source: src/lib/sanity/queries/events.ts
-// Variable: eventTaxonomyGroupsQuery
-// Query: *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    "slug": coalesce(slug.current, "")}
-export type EventTaxonomyGroupsQueryResult = Array<{
-  _id: string
-  name: string
-  slug: string
-}>
-
-// Source: src/lib/sanity/queries/events.ts
 // Variable: feedEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isInternalEvent != true        && (            count(dates[startDate >= $today]) > 0            || (isRecurring == true && defined(rrule) && count(dates) > 0)        )    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {        _id,        _updatedAt,        "title": coalesce(title, ""),        "slug": coalesce(slug.current, ""),        isRecurring,        rrule,        "dates": dates | order(startDate asc) {            _key,            "startDate": coalesce(startDate, ""),            startTime,            endTime        },        isFree,        priceOrdinar,        priceStudent,        ticketUrl,        "imageUrl": image.asset->url,        "room": room-> { "title": coalesce(title, "") },        roomText,        "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },        organizerText,        "eventType": eventType-> { "name": coalesce(name, "") },        description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}    }
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isInternalEvent != true        && (            count(dates[startDate >= $today]) > 0            || (isRecurring == true && defined(rrule) && count(dates) > 0)        )    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {        _id,        _updatedAt,        "title": coalesce(title, "[Mangler arrangementstittel]"),        "slug": coalesce(slug.current, ""),        "isRecurring": coalesce(isRecurring, false),        rrule,        "dates": coalesce(dates[] | order(startDate asc) {            _key,            "startDate": coalesce(startDate, ""),            startTime,            endTime        }, []),        "isFree": coalesce(isFree, false),        priceOrdinar,        priceStudent,        ticketUrl,        "imageUrl": image.asset->url,        "room": room-> { "title": coalesce(title, "") },        roomText,        "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },        organizerText,        "eventType": eventType-> { "name": coalesce(name, "") },        "description": coalesce(description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])    }
 export type FeedEventsQueryResult = Array<{
   _id: string
   _updatedAt: string
   title: string
   slug: string
-  isRecurring: boolean | null
+  isRecurring: boolean | false
   rrule: string | null
   dates: Array<{
     _key: string
@@ -1227,7 +1483,7 @@ export type FeedEventsQueryResult = Array<{
     startTime: string | null
     endTime: string | null
   }>
-  isFree: boolean | null
+  isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null
   ticketUrl: string | null
@@ -1243,52 +1499,63 @@ export type FeedEventsQueryResult = Array<{
   eventType: {
     name: string
   } | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
 }>
 
 // Source: src/lib/sanity/queries/groups.ts
 // Variable: studentGroupsQuery
-// Query: *[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {    name,    "slug": slug.current,    summary,    email,    website,    category,    labels,    "logoUrl": logo.asset->url,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current    }}
+// Query: *[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {    "name": coalesce(name, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    email,    website,    "category": coalesce(category, "arbeidsgruppe"),    "labels": coalesce(labels, []),    "logoUrl": logo.asset->url,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    }, [])}
 export type StudentGroupsQueryResult = Array<{
   name: string
   slug: string
   summary: string
+  seoTitle: string | null
+  seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
   email: string | null
   website: string | null
   category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
-  labels: Array<string> | null
+  labels: Array<string> | Array<never>
   logoUrl: string | null
   image: {
     _key: null
@@ -1304,26 +1571,28 @@ export type StudentGroupsQueryResult = Array<{
 
 // Source: src/lib/sanity/queries/groups.ts
 // Variable: studentGroupSlugsQuery
-// Query: *[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {    "slug": slug.current}
+// Query: *[_type == "studentGroup" && defined(slug.current) && noIndex != true] {    "slug": slug.current}
 export type StudentGroupSlugsQueryResult = Array<{
   slug: string
 }>
 
 // Source: src/lib/sanity/queries/groups.ts
-// Variable: allStudentGroupSlugsQuery
-// Query: *[_type == "studentGroup" && defined(slug.current)] {    "slug": slug.current}
-export type AllStudentGroupSlugsQueryResult = Array<{
-  slug: string
-}>
-
-// Source: src/lib/sanity/queries/groups.ts
 // Variable: studentGroupBySlugQuery
-// Query: *[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {    name,    "slug": slug.current,    summary,    body,    email,    website,    category,    "logoUrl": logo.asset->url,    "parentGroup": parentGroup-> {        name,        "slug": slug.current    },    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        name,        "slug": slug.current,        summary,        category,        "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}    },    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    "name": coalesce(name, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    "body": coalesce(body, []),    email,    website,    "category": coalesce(category, "arbeidsgruppe"),    "logoUrl": logo.asset->url,    "parentGroup": parentGroup-> {        "name": coalesce(name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    },    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),        "category": coalesce(category, "arbeidsgruppe"),        "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }, []),    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
 export type StudentGroupBySlugQueryResult = {
   name: string
   slug: string
   summary: string
-  body: PortableTextContent | null
+  seoTitle: string | null
+  seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
+  body: Array<never> | PortableTextContent
   email: string | null
   website: string | null
   category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
@@ -1354,28 +1623,32 @@ export type StudentGroupBySlugQueryResult = {
 
 // Source: src/lib/sanity/queries/navigation.ts
 // Variable: footerQuery
-// Query: {    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        platform,        label,        url    },    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        date,        note    },    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(title, ""),        "slug": slug.current,        "hours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }}
+// Query: {    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        "platform": coalesce(platform, "website"),        "label": coalesce(label, "[Mangler navn]"),        "url": coalesce(url, "#")    }, []),    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(title, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "hours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }, [])}
 export type FooterQueryResult = {
-  socialLinks: Array<{
-    _key: string
-    platform:
-      | "facebook"
-      | "flickr"
-      | "instagram"
-      | "other"
-      | "snapchat"
-      | "tiktok"
-      | "youtube"
-    label: string
-    url: string
-  }> | null
+  socialLinks:
+    | Array<{
+        _key: string
+        platform:
+          | "facebook"
+          | "flickr"
+          | "instagram"
+          | "other"
+          | "snapchat"
+          | "tiktok"
+          | "youtube"
+        label: string
+        url: string
+      }>
+    | Array<never>
   visitAddress: string | null
   generalContact: string | null
-  houseClosedDates: Array<{
-    _key: string
-    date: string
-    note: string | null
-  }> | null
+  houseClosedDates:
+    | Array<{
+        _key: string
+        date: string
+        note: string | null
+      }>
+    | Array<never>
   roomHours: Array<{
     title: string
     slug: string
@@ -1396,29 +1669,31 @@ export type FooterQueryResult = {
 
 // Source: src/lib/sanity/queries/navigation.ts
 // Variable: navbarQuery
-// Query: *[_type == "navbar" && _id == "navbar"][0] {    items[] {        _key,        label,        href,        externalUrl,        children[] {            _key,            groupLabel,            items[] {                _key,                label,                href,                externalUrl            }        }    }}
+// Query: *[_type == "navbar" && _id == "navbar"][0] {    "items": coalesce(items[] {        _key,        "label": coalesce(label, "[Mangler navn]"),        href,        externalUrl,        "children": coalesce(children[] {            _key,            groupLabel,            "items": coalesce(items[] {                _key,                "label": coalesce(label, "[Mangler navn]"),                href,                externalUrl            }, [])        }, [])    }, [])}
 export type NavbarQueryResult = {
   items: Array<{
     _key: string
     label: string
     href: string | null
     externalUrl: string | null
-    children: Array<{
-      _key: string
-      groupLabel: string | null
-      items: Array<{
-        _key: string
-        label: string
-        href: string | null
-        externalUrl: string | null
-      }>
-    }> | null
+    children:
+      | Array<{
+          _key: string
+          groupLabel: string | null
+          items: Array<{
+            _key: string
+            label: string
+            href: string | null
+            externalUrl: string | null
+          }>
+        }>
+      | Array<never>
   }>
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: siteMetadataNbQuery
-// Query: *[_type == "siteMetadata" && _id == "siteMetadata"][0] {    "siteName": coalesce(siteName, "Samfunnet i Bergen"),    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),    defaultOpenGraphTitle,    defaultOpenGraphDescription,    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url,    oembedTitle,    oembedDescription,    "oembedImageUrl": oembedImage.asset->url}
+// Query: *[_type == "siteMetadata" && _id == "siteMetadata"][0] {    "siteName": coalesce(siteName, "Samfunnet i Bergen"),    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),    defaultOpenGraphTitle,    defaultOpenGraphDescription,    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url}
 export type SiteMetadataNbQueryResult = {
   siteName: string | "Samfunnet i Bergen"
   defaultSeoTitle: string | null
@@ -1426,14 +1701,11 @@ export type SiteMetadataNbQueryResult = {
   defaultOpenGraphTitle: string | null
   defaultOpenGraphDescription: string | null
   defaultOpenGraphImageUrl: string | null
-  oembedTitle: string | null
-  oembedDescription: string | null
-  oembedImageUrl: string | null
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: houseHoursQuery
-// Query: *[_type == "siteMetadata" && _id == "siteMetadata"][0] {    "operationsManagerHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "houseClosedDates": houseClosedDates[] {        _key,        date,        note    }}
+// Query: *[_type == "siteMetadata" && _id == "siteMetadata"][0] {    "operationsManagerHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "houseClosedDates": coalesce(houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, [])}
 export type HouseHoursQueryResult = {
   operationsManagerHours: {
     rows: Array<{
@@ -1447,16 +1719,18 @@ export type HouseHoursQueryResult = {
       } | null
     }> | null
   } | null
-  houseClosedDates: Array<{
-    _key: string
-    date: string
-    note: string | null
-  }> | null
+  houseClosedDates:
+    | Array<{
+        _key: string
+        date: string
+        note: string | null
+      }>
+    | Array<never>
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: homePageNbQuery
-// Query: *[_type == "homePage" && _id == "homePage"][0] {    eyebrow,    title,    description,    primaryCta {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},    seoTitle,    seoDescription,    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    oembedTitle,    oembedDescription,    "oembedImageUrl": oembedImage.asset->url}
+// Query: *[_type == "homePage" && _id == "homePage"][0] {    eyebrow,    "title": coalesce(title, "[Mangler tittel]"),    description,    primaryCta {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt}
 export type HomePageNbQueryResult = {
   eyebrow: string | null
   title: string
@@ -1464,7 +1738,7 @@ export type HomePageNbQueryResult = {
   primaryCta: {
     _key: null
     label: string
-    linkType: "external" | "internalPage" | "internalPath"
+    kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
       | "/"
@@ -1477,46 +1751,58 @@ export type HomePageNbQueryResult = {
   } | null
   seoTitle: string | null
   seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
   openGraphTitle: string | null
   openGraphDescription: string | null
   openGraphImageUrl: string | null
-  oembedTitle: string | null
-  oembedDescription: string | null
-  oembedImageUrl: string | null
+  openGraphImageAlt: string | null
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: roomsPageQuery
-// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}},    bookingLink {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    eyebrow,    "title": coalesce(title, "[Mangler tittel]"),    description,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    "sections": coalesce(sections[] {    _key,    title,    "paragraphs": coalesce(paragraphs, []),    "links": coalesce(links[] {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}, [])}, []),    bookingLink {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
 export type RoomsPageQueryResult = {
   eyebrow: string | null
   title: string
   description: string | null
   seoTitle: string | null
   seoDescription: string | null
-  sections: Array<{
-    _key: string
-    title: string | null
-    paragraphs: Array<string>
-    links: Array<{
-      _key: string
-      label: string
-      linkType: "external" | "internalPage" | "internalPath"
-      href:
-        | string
-        | "/"
-        | "/arrangementer"
-        | "/grupper"
-        | "/kontakt"
-        | "/rom"
-        | "/sponsorer"
-        | null
-    }> | null
-  }> | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
+  sections:
+    | Array<{
+        _key: string
+        title: string | null
+        paragraphs: Array<string>
+        links:
+          | Array<{
+              _key: string
+              label: string
+              kind: "external" | "internalDocument" | "internalPath"
+              href:
+                | string
+                | "/"
+                | "/arrangementer"
+                | "/grupper"
+                | "/kontakt"
+                | "/rom"
+                | "/sponsorer"
+                | null
+            }>
+          | Array<never>
+      }>
+    | Array<never>
   bookingLink: {
     _key: null
     label: string
-    linkType: "external" | "internalPage" | "internalPath"
+    kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
       | "/"
@@ -1531,112 +1817,141 @@ export type RoomsPageQueryResult = {
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: sponsorsPageQuery
-// Query: *[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    sponsors[] {        _key,        title,        website,        "logoUrl": logo.asset->url,        "logoAlt": coalesce(logo.alt, title),        description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}    }}
+// Query: *[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {    eyebrow,    "title": coalesce(title, "[Mangler tittel]"),    description,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    "sponsors": coalesce(sponsors[] {        _key,        "title": coalesce(title, "[Mangler sponsornavn]"),        website,        "logoUrl": logo.asset->url,        "logoAlt": coalesce(logo.alt, title),        description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}    }, [])}
 export type SponsorsPageQueryResult = {
   eyebrow: string | null
   title: string
   description: string | null
   seoTitle: string | null
   seoDescription: string | null
-  sponsors: Array<{
-    _key: string
-    title: string
-    website: string | null
-    logoUrl: string | null
-    logoAlt: string
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
-  }> | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
+  sponsors:
+    | Array<{
+        _key: string
+        title: string
+        website: string | null
+        logoUrl: string | null
+        logoAlt: string
+        description: Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        > | null
+      }>
+    | Array<never>
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: groupsPageQuery
-// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    eyebrow,    title,    description,    seoTitle,    seoDescription,    "sections": sections[] {    _key,    title,    paragraphs,    links[] {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}},    faq[] {        _key,        question,        answer    }}
+// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    eyebrow,    "title": coalesce(title, "[Mangler tittel]"),    description,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    "sections": coalesce(sections[] {    _key,    title,    "paragraphs": coalesce(paragraphs, []),    "links": coalesce(links[] {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}, [])}, []),    "faq": coalesce(faq[] {        _key,        "question": coalesce(question, "[Mangler spørsmål]"),        "answer": coalesce(answer, [])    }, [])}
 export type GroupsPageQueryResult = {
   eyebrow: string | null
   title: string
   description: string | null
   seoTitle: string | null
   seoDescription: string | null
-  sections: Array<{
-    _key: string
-    title: string | null
-    paragraphs: Array<string>
-    links: Array<{
-      _key: string
-      label: string
-      linkType: "external" | "internalPage" | "internalPath"
-      href:
-        | string
-        | "/"
-        | "/arrangementer"
-        | "/grupper"
-        | "/kontakt"
-        | "/rom"
-        | "/sponsorer"
-        | null
-    }> | null
-  }> | null
-  faq: Array<{
-    _key: string
-    question: string
-    answer: Array<string>
-  }> | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
+  sections:
+    | Array<{
+        _key: string
+        title: string | null
+        paragraphs: Array<string>
+        links:
+          | Array<{
+              _key: string
+              label: string
+              kind: "external" | "internalDocument" | "internalPath"
+              href:
+                | string
+                | "/"
+                | "/arrangementer"
+                | "/grupper"
+                | "/kontakt"
+                | "/rom"
+                | "/sponsorer"
+                | null
+            }>
+          | Array<never>
+      }>
+    | Array<never>
+  faq:
+    | Array<{
+        _key: string
+        question: string
+        answer: Array<string>
+      }>
+    | Array<never>
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: pageSlugsQuery
-// Query: *[_type == "page" && defined(slug.current)] {    "slug": slug.current}
+// Query: *[    _type == "page"    && defined(slug.current)    && noIndex != true    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ] {    "slug": slug.current}
 export type PageSlugsQueryResult = Array<{
   slug: string
 }>
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: pageBySlugQuery
-// Query: *[_type == "page" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    seoTitle,    seoDescription,    content}
+// Query: *[    _type == "page"    && slug.current == $slug    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ][0] {    _id,    "title": coalesce(title, "[Mangler tittel]"),    "slug": coalesce(slug.current, ""),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    content}
 export type PageBySlugQueryResult = {
   _id: string
   title: string
   slug: string
   seoTitle: string | null
   seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
   content: Markdown | null
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: kontaktPageQuery
-// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    seoTitle,    seoDescription,    "contactGroups": contactGroups[] {        _key,        title,        "persons": persons[] {            _key,            name,            rolle,            email,            phone,            "imageUrl": image.asset->url        }    }}
+// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    "contactGroups": coalesce(contactGroups[] {        _key,        "title": coalesce(title, "[Mangler gruppenavn]"),        "persons": coalesce(persons[] {            _key,            "name": coalesce(name, "[Mangler navn]"),            rolle,            email,            phone,            "imageUrl": image.asset->url        }, [])    }, [])}
 export type KontaktPageQueryResult = {
   visitAddress: string | null
   postAddress: string | null
@@ -1647,64 +1962,87 @@ export type KontaktPageQueryResult = {
   pressContact: string | null
   seoTitle: string | null
   seoDescription: string | null
-  contactGroups: Array<{
-    _key: string
-    title: string
-    persons: Array<{
-      _key: string
-      name: string
-      rolle: string | null
-      email: string | null
-      phone: string | null
-      imageUrl: string | null
-    }> | null
-  }> | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
+  contactGroups:
+    | Array<{
+        _key: string
+        title: string
+        persons:
+          | Array<{
+              _key: string
+              name: string
+              rolle: string | null
+              email: string | null
+              phone: string | null
+              imageUrl: string | null
+            }>
+          | Array<never>
+      }>
+    | Array<never>
 } | null
 
 // Source: src/lib/sanity/queries/pages.ts
 // Variable: linkInBioQuery
-// Query: *[_type == "linkInBio"][0] {    heading,    bio,    links[] {        _key,        link {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},        emoji,        highlight    }}
+// Query: *[_type == "linkInBio" && _id == "linkInBio"][0] {    "heading": coalesce(heading, "[Mangler overskrift]"),    bio,    "links": coalesce(links[] {        _key,        link {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},        emoji,        "emojiImageUrl": emojiImage.asset->url,        "highlight": coalesce(highlight, false)    }, [])}
 export type LinkInBioQueryResult = {
   heading: string
   bio: string | null
-  links: Array<{
-    _key: string
-    link: {
-      _key: null
-      label: string
-      linkType: "external" | "internalPage" | "internalPath"
-      href:
-        | string
-        | "/"
-        | "/arrangementer"
-        | "/grupper"
-        | "/kontakt"
-        | "/rom"
-        | "/sponsorer"
-        | null
-    }
-    emoji: string | null
-    highlight: boolean | null
-  }> | null
+  links:
+    | Array<{
+        _key: string
+        link: {
+          _key: null
+          label: string
+          kind: "external" | "internalDocument" | "internalPath"
+          href:
+            | string
+            | "/"
+            | "/arrangementer"
+            | "/grupper"
+            | "/kontakt"
+            | "/rom"
+            | "/sponsorer"
+            | null
+        }
+        emoji: string | null
+        emojiImageUrl: string | null
+        highlight: boolean | false
+      }>
+    | Array<never>
 } | null
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: roomsQuery
-// Query: *[_type == "room"] | order(orderRank asc) {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    hasSound,    soundDetails,    hasLighting,    lightingDetails,    hasAV,    avDetails,    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "room"] | order(orderRank asc) {    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(suitedPurposes, []),    floor,    bar,    "hasSound": coalesce(hasSound, false),    soundDetails,    "hasLighting": coalesce(hasLighting, false),    lightingDetails,    "hasAV": coalesce(hasAV, false),    avDetails,    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
 export type RoomsQueryResult = Array<{
   title: string
   slug: string
   summary: string
+  seoTitle: string | null
+  seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
   capacityStanding: number | null
   capacitySeated: number | null
-  suitedPurposes: Array<string> | null
+  suitedPurposes: Array<string> | Array<never>
   floor: number | null
   bar: string | null
-  hasSound: boolean | null
+  hasSound: boolean | false
   soundDetails: string | null
-  hasLighting: boolean | null
+  hasLighting: boolean | false
   lightingDetails: string | null
-  hasAV: boolean | null
+  hasAV: boolean | false
   avDetails: string | null
   image: {
     _key: string
@@ -1716,13 +2054,15 @@ export type RoomsQueryResult = Array<{
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: barPreviewsQuery
-// Query: {    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        date,        note    },    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {        "title": coalesce(title, ""),        "slug": slug.current,        summary,        bar,        "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},        "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }}
+// Query: {    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {        "title": coalesce(title, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),        bar,        "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},        "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }, [])}
 export type BarPreviewsQueryResult = {
-  houseClosedDates: Array<{
-    _key: string
-    date: string
-    note: string | null
-  }> | null
+  houseClosedDates:
+    | Array<{
+        _key: string
+        date: string
+        note: string | null
+      }>
+    | Array<never>
   rooms: Array<{
     title: string
     slug: string
@@ -1751,14 +2091,14 @@ export type BarPreviewsQueryResult = {
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: roomSlugsQuery
-// Query: *[_type == "room" && defined(slug.current)] {    "slug": slug.current}
+// Query: *[_type == "room" && defined(slug.current) && noIndex != true] {    "slug": slug.current}
 export type RoomSlugsQueryResult = Array<{
   slug: string
 }>
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: bookableRoomsQuery
-// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    crescatRoomId,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    crescatRoomId,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
 export type BookableRoomsQueryResult = Array<{
   title: string
   slug: string
@@ -1788,22 +2128,31 @@ export type BookableRoomsQueryResult = Array<{
 
 // Source: src/lib/sanity/queries/rooms.ts
 // Variable: roomBySlugQuery
-// Query: *[_type == "room" && slug.current == $slug][0] {    title,    "slug": slug.current,    summary,    capacityStanding,    capacitySeated,    suitedPurposes,    floor,    bar,    panoramaUrl,    hasSound,    soundDetails,    hasLighting,    lightingDetails,    hasAV,    avDetails,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "images": images[] {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        floor,        title,        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    },    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    label,    linkType,    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+// Query: *[_type == "room" && slug.current == $slug][0] {    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(suitedPurposes, []),    floor,    bar,    panoramaUrl,    "hasSound": coalesce(hasSound, false),    soundDetails,    "hasLighting": coalesce(hasLighting, false),    lightingDetails,    "hasAV": coalesce(hasAV, false),    avDetails,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "body": coalesce(body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, []),    "images": coalesce(images[] {    _key,    "assetUrl": image.asset->url,    alt,    caption}, []),    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        "floor": coalesce(floor, 0),        "title": coalesce(title, "[Mangler tittel]"),        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    }, []),    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
 export type RoomBySlugQueryResult = {
   title: string
   slug: string
   summary: string
+  seoTitle: string | null
+  seoDescription: string | null
+  canonicalUrl: string | null
+  noIndex: boolean | false
+  noFollow: boolean | false
+  openGraphTitle: string | null
+  openGraphDescription: string | null
+  openGraphImageUrl: string | null
+  openGraphImageAlt: string | null
   capacityStanding: number | null
   capacitySeated: number | null
-  suitedPurposes: Array<string> | null
+  suitedPurposes: Array<string> | Array<never>
   floor: number | null
   bar: string | null
   panoramaUrl: string | null
-  hasSound: boolean | null
+  hasSound: boolean | false
   soundDetails: string | null
-  hasLighting: boolean | null
+  hasLighting: boolean | false
   lightingDetails: string | null
-  hasAV: boolean | null
+  hasAV: boolean | false
   avDetails: string | null
   specsUrl: string | null
   openingHours: {
@@ -1818,57 +2167,63 @@ export type RoomBySlugQueryResult = {
       } | null
     }> | null
   } | null
-  body: Array<
-    | {
+  body:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
+  images:
+    | Array<{
         _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
+        assetUrl: string | null
+        alt: string | null
         caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
-  images: Array<{
-    _key: string
-    assetUrl: string | null
-    alt: string | null
-    caption: string | null
-  }> | null
-  floorPlans: Array<{
-    _key: string
-    floor: number
-    title: string | null
-    assetUrl: string | null
-    mimeType: string | null
-    originalFilename: string | null
-  }> | null
+      }>
+    | Array<never>
+  floorPlans:
+    | Array<{
+        _key: string
+        floor: number
+        title: string | "[Mangler tittel]"
+        assetUrl: string | null
+        mimeType: string | null
+        originalFilename: string | null
+      }>
+    | Array<never>
   bookingLink: {
     _key: null
     label: string
-    linkType: "external" | "internalPage" | "internalPath"
+    kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
       | "/"
@@ -1885,34 +2240,33 @@ export type RoomBySlugQueryResult = {
 import "@sanity/client"
 declare module "@sanity/client" {
   interface SanityQueries {
-    '*[_type == "eventsPage" && _id == "eventsPage"][0] {\n    "eyebrow": coalesce(eyebrow, eyebrowNb),\n    "title": coalesce(title, titleNb),\n    "description": coalesce(description, descriptionNb),\n    seoTitle,\n    seoDescription,\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': EventsPageContentNbQueryResult
+    '*[_type == "eventsPage" && _id == "eventsPage"][0] {\n    "eyebrow": coalesce(eyebrow, eyebrowNb),\n    "title": coalesce(title, titleNb, "[Mangler tittel]"),\n    "description": coalesce(description, descriptionNb),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt\n}': EventsPageContentNbQueryResult
     '\n    *[_type == "room"] | order(orderRank asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, "")\n}': EventRoomsQueryResult
     '\n    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "slug": coalesce(slug.current, ""),\n    "taxonomyGroup": taxonomyGroup-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, "")\n    }\n}': EventTypesQueryResult
     '\n    *[_type == "studentGroup"] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "category": coalesce(category, "")\n}': EventGroupsQueryResult
-    '\n    *[_type == "arrangement" && approvalStatus == "approved" && (\n        count(dates[startDate >= $today]) > 0\n        || (isRecurring == true && defined(rrule) && count(dates) > 0)\n    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    isRecurring,\n    rrule,\n    "dates": dates | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    seoTitle,\n    seoDescription,\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}\n}': PublishedEventsQueryResult
-    '\n    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (\n        count(dates[startDate >= $today]) > 0\n        || (isRecurring == true && defined(rrule) && count(dates) > 0)\n    )][0] {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, ""),\n    approvalStatus,\n    isRecurring,\n    rrule,\n    "dates": dates | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    seoTitle,\n    seoDescription,\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}\n}': EventBySlugQueryResult
-    '\n    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "slug": coalesce(slug.current, "")\n}': EventTaxonomyGroupsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isInternalEvent != true\n        && (\n            count(dates[startDate >= $today]) > 0\n            || (isRecurring == true && defined(rrule) && count(dates) > 0)\n        )\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n        _id,\n        _updatedAt,\n        "title": coalesce(title, ""),\n        "slug": coalesce(slug.current, ""),\n        isRecurring,\n        rrule,\n        "dates": dates | order(startDate asc) {\n            _key,\n            "startDate": coalesce(startDate, ""),\n            startTime,\n            endTime\n        },\n        isFree,\n        priceOrdinar,\n        priceStudent,\n        ticketUrl,\n        "imageUrl": image.asset->url,\n        "room": room-> { "title": coalesce(title, "") },\n        roomText,\n        "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },\n        organizerText,\n        "eventType": eventType-> { "name": coalesce(name, "") },\n        description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}\n    }': FeedEventsQueryResult
-    '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    name,\n    "slug": slug.current,\n    summary,\n    email,\n    website,\n    category,\n    labels,\n    "logoUrl": logo.asset->url,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current\n    }\n}': StudentGroupsQueryResult
-    '*[_type == "studentGroup" && defined(slug.current) && !defined(parentGroup)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
-    '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': AllStudentGroupSlugsQueryResult
-    '*[_type == "studentGroup" && slug.current == $slug && !defined(parentGroup)][0] {\n    name,\n    "slug": slug.current,\n    summary,\n    body,\n    email,\n    website,\n    category,\n    "logoUrl": logo.asset->url,\n    "parentGroup": parentGroup-> {\n        name,\n        "slug": slug.current\n    },\n    "subGroups": *[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        name,\n        "slug": slug.current,\n        summary,\n        category,\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    },\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
-    '{\n    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        platform,\n        label,\n        url\n    },\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        date,\n        note\n    },\n    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        "hours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }\n}': FooterQueryResult
-    '*[_type == "navbar" && _id == "navbar"][0] {\n    items[] {\n        _key,\n        label,\n        href,\n        externalUrl,\n        children[] {\n            _key,\n            groupLabel,\n            items[] {\n                _key,\n                label,\n                href,\n                externalUrl\n            }\n        }\n    }\n}': NavbarQueryResult
-    '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "siteName": coalesce(siteName, "Samfunnet i Bergen"),\n    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),\n    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),\n    defaultOpenGraphTitle,\n    defaultOpenGraphDescription,\n    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': SiteMetadataNbQueryResult
-    '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "operationsManagerHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "houseClosedDates": houseClosedDates[] {\n        _key,\n        date,\n        note\n    }\n}': HouseHoursQueryResult
-    '*[_type == "homePage" && _id == "homePage"][0] {\n    eyebrow,\n    title,\n    description,\n    primaryCta {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n    seoTitle,\n    seoDescription,\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    oembedTitle,\n    oembedDescription,\n    "oembedImageUrl": oembedImage.asset->url\n}': HomePageNbQueryResult
-    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n},\n    bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomsPageQueryResult
-    '*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    sponsors[] {\n        _key,\n        title,\n        website,\n        "logoUrl": logo.asset->url,\n        "logoAlt": coalesce(logo.alt, title),\n        description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}\n    }\n}': SponsorsPageQueryResult
-    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    eyebrow,\n    title,\n    description,\n    seoTitle,\n    seoDescription,\n    "sections": sections[] {\n    _key,\n    title,\n    paragraphs,\n    links[] {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n},\n    faq[] {\n        _key,\n        question,\n        answer\n    }\n}': GroupsPageQueryResult
-    '*[_type == "page" && defined(slug.current)] {\n    "slug": slug.current\n}': PageSlugsQueryResult
-    '*[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    seoTitle,\n    seoDescription,\n    content\n}': PageBySlugQueryResult
-    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    seoTitle,\n    seoDescription,\n    "contactGroups": contactGroups[] {\n        _key,\n        title,\n        "persons": persons[] {\n            _key,\n            name,\n            rolle,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }\n    }\n}': KontaktPageQueryResult
-    '*[_type == "linkInBio"][0] {\n    heading,\n    bio,\n    links[] {\n        _key,\n        link {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n        emoji,\n        highlight\n    }\n}': LinkInBioQueryResult
-    '*[_type == "room"] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult
-    '{\n    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        date,\n        note\n    },\n    "rooms": *[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(title, ""),\n        "slug": slug.current,\n        summary,\n        bar,\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }\n}': BarPreviewsQueryResult
-    '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
-    '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': BookableRoomsQueryResult
-    '*[_type == "room" && slug.current == $slug][0] {\n    title,\n    "slug": slug.current,\n    summary,\n    capacityStanding,\n    capacitySeated,\n    suitedPurposes,\n    floor,\n    bar,\n    panoramaUrl,\n    hasSound,\n    soundDetails,\n    hasLighting,\n    lightingDetails,\n    hasAV,\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "images": images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "floorPlans": *[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        floor,\n        title,\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    },\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    label,\n    linkType,\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
+    '\n    *[_type == "arrangement" && approvalStatus == "approved" && (\n        count(dates[startDate >= $today]) > 0\n        || (isRecurring == true && defined(rrule) && count(dates) > 0)\n    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "title": coalesce(title, "[Mangler arrangementstittel]"),\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "dates": coalesce(dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    }, []),\n    "isFree": coalesce(isFree, false),\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    "description": coalesce(description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}': PublishedEventsQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && noIndex != true\n        && defined(slug.current)\n        && (\n            count(dates[startDate >= $today]) > 0\n            || (isRecurring == true && defined(rrule) && count(dates) > 0)\n        )\n    ] {\n        "slug": slug.current\n    }': PublishedEventSlugsQueryResult
+    '\n    *[_type == "arrangement" && slug.current == $slug && (\n        $preview == true\n        || (\n            approvalStatus == "approved"\n            && (\n                count(dates[startDate >= $today]) > 0\n                || (isRecurring == true && defined(rrule) && count(dates) > 0)\n            )\n        )\n    )][0] {\n    _id,\n    "title": coalesce(title, "[Mangler arrangementstittel]"),\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "dates": coalesce(dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n    }, []),\n    "isFree": coalesce(isFree, false),\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    ticketUrl,\n    facebookUrl,\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "slug": coalesce(slug.current, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }\n    },\n    "description": coalesce(description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}': EventBySlugQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isInternalEvent != true\n        && (\n            count(dates[startDate >= $today]) > 0\n            || (isRecurring == true && defined(rrule) && count(dates) > 0)\n        )\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n        _id,\n        _updatedAt,\n        "title": coalesce(title, "[Mangler arrangementstittel]"),\n        "slug": coalesce(slug.current, ""),\n        "isRecurring": coalesce(isRecurring, false),\n        rrule,\n        "dates": coalesce(dates[] | order(startDate asc) {\n            _key,\n            "startDate": coalesce(startDate, ""),\n            startTime,\n            endTime\n        }, []),\n        "isFree": coalesce(isFree, false),\n        priceOrdinar,\n        priceStudent,\n        ticketUrl,\n        "imageUrl": image.asset->url,\n        "room": room-> { "title": coalesce(title, "") },\n        roomText,\n        "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },\n        organizerText,\n        "eventType": eventType-> { "name": coalesce(name, "") },\n        "description": coalesce(description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n    }': FeedEventsQueryResult
+    '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    "name": coalesce(name, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    email,\n    website,\n    "category": coalesce(category, "arbeidsgruppe"),\n    "labels": coalesce(labels, []),\n    "logoUrl": logo.asset->url,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    }, [])\n}': StudentGroupsQueryResult
+    '*[_type == "studentGroup" && defined(slug.current) && noIndex != true] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
+    '*[_type == "studentGroup" && slug.current == $slug][0] {\n    "name": coalesce(name, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    "body": coalesce(body, []),\n    email,\n    website,\n    "category": coalesce(category, "arbeidsgruppe"),\n    "logoUrl": logo.asset->url,\n    "parentGroup": parentGroup-> {\n        "name": coalesce(name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    },\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n        "category": coalesce(category, "arbeidsgruppe"),\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }, []),\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
+    '{\n    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        "platform": coalesce(platform, "website"),\n        "label": coalesce(label, "[Mangler navn]"),\n        "url": coalesce(url, "#")\n    }, []),\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "hours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }, [])\n}': FooterQueryResult
+    '*[_type == "navbar" && _id == "navbar"][0] {\n    "items": coalesce(items[] {\n        _key,\n        "label": coalesce(label, "[Mangler navn]"),\n        href,\n        externalUrl,\n        "children": coalesce(children[] {\n            _key,\n            groupLabel,\n            "items": coalesce(items[] {\n                _key,\n                "label": coalesce(label, "[Mangler navn]"),\n                href,\n                externalUrl\n            }, [])\n        }, [])\n    }, [])\n}': NavbarQueryResult
+    '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "siteName": coalesce(siteName, "Samfunnet i Bergen"),\n    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),\n    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),\n    defaultOpenGraphTitle,\n    defaultOpenGraphDescription,\n    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url\n}': SiteMetadataNbQueryResult
+    '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "operationsManagerHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "houseClosedDates": coalesce(houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, [])\n}': HouseHoursQueryResult
+    '*[_type == "homePage" && _id == "homePage"][0] {\n    eyebrow,\n    "title": coalesce(title, "[Mangler tittel]"),\n    description,\n    primaryCta {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt\n}': HomePageNbQueryResult
+    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    eyebrow,\n    "title": coalesce(title, "[Mangler tittel]"),\n    description,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    "sections": coalesce(sections[] {\n    _key,\n    title,\n    "paragraphs": coalesce(paragraphs, []),\n    "links": coalesce(links[] {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}, [])\n}, []),\n    bookingLink {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomsPageQueryResult
+    '*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {\n    eyebrow,\n    "title": coalesce(title, "[Mangler tittel]"),\n    description,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    "sponsors": coalesce(sponsors[] {\n        _key,\n        "title": coalesce(title, "[Mangler sponsornavn]"),\n        website,\n        "logoUrl": logo.asset->url,\n        "logoAlt": coalesce(logo.alt, title),\n        description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}\n    }, [])\n}': SponsorsPageQueryResult
+    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    eyebrow,\n    "title": coalesce(title, "[Mangler tittel]"),\n    description,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    "sections": coalesce(sections[] {\n    _key,\n    title,\n    "paragraphs": coalesce(paragraphs, []),\n    "links": coalesce(links[] {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}, [])\n}, []),\n    "faq": coalesce(faq[] {\n        _key,\n        "question": coalesce(question, "[Mangler sp\xF8rsm\xE5l]"),\n        "answer": coalesce(answer, [])\n    }, [])\n}': GroupsPageQueryResult
+    '*[\n    _type == "page"\n    && defined(slug.current)\n    && noIndex != true\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ] {\n    "slug": slug.current\n}': PageSlugsQueryResult
+    '*[\n    _type == "page"\n    && slug.current == $slug\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ][0] {\n    _id,\n    "title": coalesce(title, "[Mangler tittel]"),\n    "slug": coalesce(slug.current, ""),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    content\n}': PageBySlugQueryResult
+    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    "contactGroups": coalesce(contactGroups[] {\n        _key,\n        "title": coalesce(title, "[Mangler gruppenavn]"),\n        "persons": coalesce(persons[] {\n            _key,\n            "name": coalesce(name, "[Mangler navn]"),\n            rolle,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }, [])\n    }, [])\n}': KontaktPageQueryResult
+    '*[_type == "linkInBio" && _id == "linkInBio"][0] {\n    "heading": coalesce(heading, "[Mangler overskrift]"),\n    bio,\n    "links": coalesce(links[] {\n        _key,\n        link {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n        emoji,\n        "emojiImageUrl": emojiImage.asset->url,\n        "highlight": coalesce(highlight, false)\n    }, [])\n}': LinkInBioQueryResult
+    '*[_type == "room"] | order(orderRank asc) {\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(suitedPurposes, []),\n    floor,\n    bar,\n    "hasSound": coalesce(hasSound, false),\n    soundDetails,\n    "hasLighting": coalesce(hasLighting, false),\n    lightingDetails,\n    "hasAV": coalesce(hasAV, false),\n    avDetails,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult
+    '{\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(title, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n        bar,\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }, [])\n}': BarPreviewsQueryResult
+    '*[_type == "room" && defined(slug.current) && noIndex != true] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
+    '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': BookableRoomsQueryResult
+    '*[_type == "room" && slug.current == $slug][0] {\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    seoTitle,\n    seoDescription,\n    canonicalUrl,\n    "noIndex": coalesce(noIndex, false),\n    "noFollow": coalesce(noFollow, false),\n    openGraphTitle,\n    openGraphDescription,\n    "openGraphImageUrl": openGraphImage.asset->url,\n    openGraphImageAlt,\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(suitedPurposes, []),\n    floor,\n    bar,\n    panoramaUrl,\n    "hasSound": coalesce(hasSound, false),\n    soundDetails,\n    "hasLighting": coalesce(hasLighting, false),\n    lightingDetails,\n    "hasAV": coalesce(hasAV, false),\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "body": coalesce(body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, []),\n    "images": coalesce(images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}, []),\n    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        "floor": coalesce(floor, 0),\n        "title": coalesce(title, "[Mangler tittel]"),\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    }, []),\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
   }
 }

@@ -10,6 +10,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
 
@@ -59,16 +60,15 @@ type GroupsPageProps = {
 }
 
 export async function generateMetadata({ params }: GroupsPageProps) {
-  await resolvePageLocale(params)
+  const locale = await resolvePageLocale(params)
   const content = await fetchGroupsPageContent({ stega: false })
 
-  return {
-    title: `${content?.seoTitle ?? content?.title ?? "Grupper"} | Samfunnet i Bergen`,
-    description:
-      content?.seoDescription ??
-      content?.description ??
-      "Se gruppene i Samfunnet.",
-  }
+  return buildPageMetadata({
+    content,
+    canonicalPath: `/${locale}/grupper`,
+    fallbackTitle: content?.title ?? "Grupper",
+    fallbackDescription: content?.description ?? "Se gruppene i Samfunnet.",
+  })
 }
 
 export default async function GroupsPage({ params }: GroupsPageProps) {

@@ -4,11 +4,21 @@ import {
   type PresentationPluginOptions,
 } from "sanity/presentation"
 
+import { documentLocation } from "./routing"
+
 const defaultLocale = "nb"
-const defaultPreviewPath = `/${defaultLocale}`
+
+export {
+  resolvePresentationInitialUrl,
+  resolvePresentationOrigins,
+} from "./routing"
 
 export const resolve: PresentationPluginOptions["resolve"] = {
   mainDocuments: defineDocuments([
+    {
+      route: "/linkibio",
+      filter: `_id == "linkInBio"`,
+    },
     {
       route: "/:locale",
       filter: `_id == "homePage"`,
@@ -47,7 +57,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     },
     {
       route: "/:locale/:slug",
-      filter: `_type == "page" && slug.current == $slug`,
+      filter: `_type == "page" && slug.current == $slug && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])`,
     },
   ]),
   locations: {
@@ -61,10 +71,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: { title: "title", slug: "slug.current" },
       resolve: doc => ({
         locations: [
-          {
-            title: doc?.title ?? "Ukjent rom",
-            href: `/${defaultLocale}/rom/${doc?.slug}`,
-          },
+          ...documentLocation(doc?.title, doc?.slug, "rom", "Ukjent rom"),
           { title: "Alle rom", href: `/${defaultLocale}/rom` },
         ],
       }),
@@ -74,10 +81,12 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: { title: "name", slug: "slug.current" },
       resolve: doc => ({
         locations: [
-          {
-            title: doc?.title ?? "Ukjent gruppe",
-            href: `/${defaultLocale}/grupper/${doc?.slug}`,
-          },
+          ...documentLocation(
+            doc?.title,
+            doc?.slug,
+            "grupper",
+            "Ukjent gruppe",
+          ),
           { title: "Alle grupper", href: `/${defaultLocale}/grupper` },
         ],
       }),
@@ -86,12 +95,14 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     page: defineLocations({
       select: { title: "title", slug: "slug.current" },
       resolve: doc => ({
-        locations: [
-          {
-            title: doc?.title ?? "Ukjent side",
-            href: `/${defaultLocale}/${doc?.slug}`,
-          },
-        ],
+        locations: doc?.slug
+          ? [
+              {
+                title: doc.title ?? "Ukjent side",
+                href: `/${defaultLocale}/${doc.slug}`,
+              },
+            ]
+          : [],
       }),
     }),
 
@@ -131,10 +142,12 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: { title: "title", slug: "slug.current" },
       resolve: doc => ({
         locations: [
-          {
-            title: doc?.title ?? "Ukjent arrangement",
-            href: `/${defaultLocale}/arrangementer/${doc?.slug}`,
-          },
+          ...documentLocation(
+            doc?.title,
+            doc?.slug,
+            "arrangementer",
+            "Ukjent arrangement",
+          ),
           {
             title: "Alle arrangementer",
             href: `/${defaultLocale}/arrangementer`,
@@ -146,18 +159,16 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     navbar: defineLocations({
       select: {},
       resolve: () => ({
-        locations: [
-          { title: "Alle sider (navigasjon)", href: `/${defaultLocale}` },
-        ],
+        message: "Navigasjonen vises på alle offentlige sider.",
+        tone: "positive",
       }),
     }),
 
     footer: defineLocations({
       select: {},
       resolve: () => ({
-        locations: [
-          { title: "Alle sider (footer)", href: `/${defaultLocale}` },
-        ],
+        message: "Footeren vises på alle offentlige sider.",
+        tone: "positive",
       }),
     }),
 
@@ -171,7 +182,9 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     siteMetadata: defineLocations({
       select: {},
       resolve: () => ({
-        locations: [{ title: "Forside", href: `/${defaultLocale}` }],
+        message:
+          "Metadata brukes på tvers av nettstedet og har ingen enkelt visningsside.",
+        tone: "positive",
       }),
     }),
 
@@ -182,14 +195,4 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       }),
     }),
   },
-}
-
-export function resolvePresentationInitialUrl() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-
-  if (!siteUrl) {
-    return defaultPreviewPath
-  }
-
-  return new URL(defaultPreviewPath, siteUrl).toString()
 }

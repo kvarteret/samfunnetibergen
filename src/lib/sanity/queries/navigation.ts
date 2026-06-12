@@ -4,42 +4,42 @@ import { openingHoursProjection } from "../fragments/rooms"
 
 // Anonymous object: always returns data regardless of whether the footer doc exists.
 export const footerQuery = defineQuery(`{
-    "socialLinks": *[_type == "footer" && _id == "footer"][0].socialLinks[] {
+    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {
         _key,
-        platform,
-        label,
-        url
-    },
+        "platform": coalesce(platform, "website"),
+        "label": coalesce(label, "[Mangler navn]"),
+        "url": coalesce(url, "#")
+    }, []),
     "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,
     "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,
-    "houseClosedDates": *[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {
+    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {
         _key,
-        date,
+        "date": coalesce(date, ""),
         note
-    },
-    "roomHours": *[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
-        "title": coalesce(title, ""),
-        "slug": slug.current,
+    }, []),
+    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
+        "title": coalesce(title, "[Mangler romnavn]"),
+        "slug": coalesce(slug.current, ""),
         "hours": openingHours ${openingHoursProjection}
-    }
+    }, [])
 }`)
 
 export const navbarQuery =
   defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {
-    items[] {
+    "items": coalesce(items[] {
         _key,
-        label,
+        "label": coalesce(label, "[Mangler navn]"),
         href,
         externalUrl,
-        children[] {
+        "children": coalesce(children[] {
             _key,
             groupLabel,
-            items[] {
+            "items": coalesce(items[] {
                 _key,
-                label,
+                "label": coalesce(label, "[Mangler navn]"),
                 href,
                 externalUrl
-            }
-        }
-    }
+            }, [])
+        }, [])
+    }, [])
 }`)

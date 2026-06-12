@@ -2,12 +2,13 @@ import {
   CalendarIcon,
   CogIcon,
   ComponentIcon,
-  ComposeIcon,
   DocumentIcon,
+  EarthGlobeIcon,
   EnvelopeIcon,
   LinkIcon,
-  LockIcon,
   MenuIcon,
+  MobileDeviceIcon,
+  PauseIcon,
   StarIcon,
   TagIcon,
   TextIcon,
@@ -16,18 +17,20 @@ import {
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
-export const singletonTypeNames = [
-  "siteMetadata",
-  "footer",
-  "homePage",
-  "eventsPage",
-  "roomsPage",
-  "groupsPage",
-  "sponsorsPage",
-  "kontaktPage",
-  "navbar",
-  "linkInBio",
-] as const
+export { singletonTypeNames } from "./documentTypes"
+
+const STRUCTURE_API_VERSION = "2025-02-19"
+const SERVICE_PAGE_SLUGS = ["catering", "silent-disco"]
+const POLICY_PAGE_SLUGS = [
+  "aldersgrense",
+  "avbestillingsvilkar",
+  "krav-promo",
+  "leievilkaar",
+  "sporsmal-booking",
+  "vergeordningen",
+  "vilkar-for-leie-av-karaoke",
+]
+const INFORMATION_PAGE_SLUGS = ["om-kvarteret"]
 
 function singletonListItem(
   S: StructureBuilder,
@@ -41,110 +44,145 @@ function singletonListItem(
     .child(S.document().schemaType(typeName).documentId(typeName).title(title))
 }
 
+function pageListItem(
+  S: StructureBuilder,
+  id: string,
+  title: string,
+  slugs: string[],
+) {
+  return S.listItem()
+    .id(id)
+    .title(title)
+    .icon(DocumentIcon)
+    .child(
+      S.documentList()
+        .apiVersion(STRUCTURE_API_VERSION)
+        .title(title)
+        .schemaType("page")
+        .filter("_type == 'page' && slug.current in $slugs")
+        .params({ slugs })
+        .defaultOrdering([{ field: "title", direction: "asc" }]),
+    )
+}
+
+function seoAuditItems(S: StructureBuilder) {
+  const pageLikeTypes =
+    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
+
+  return [
+    S.listItem()
+      .id("seo-hidden-pages")
+      .title("Skjult fra søkemotorer")
+      .child(
+        S.documentList()
+          .apiVersion(STRUCTURE_API_VERSION)
+          .title("Skjult fra søkemotorer")
+          .filter(`_type in ${pageLikeTypes} && noIndex == true`),
+      ),
+  ]
+}
+
 export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Samfunnet i Bergen")
     .items([
-      // — Innstillinger —
-      S.listItem()
-        .title("Innstillinger")
-        .icon(CogIcon)
-        .child(
-          S.list()
-            .title("Innstillinger")
-            .items([
-              singletonListItem(S, "siteMetadata", "Nettstedsinfo", CogIcon),
-              singletonListItem(S, "navbar", "Navigasjon", MenuIcon),
-              singletonListItem(S, "footer", "Bunntekst", TextIcon),
-            ]),
-        ),
+      singletonListItem(S, "homePage", "Hovedside", DocumentIcon),
 
       S.divider(),
 
-      // — Sider —
       S.listItem()
-        .title("Sider")
-        .icon(DocumentIcon)
-        .child(
-          S.list()
-            .title("Sider")
-            .items([
-              // Faste sider: singletons that map 1-to-1 to fixed URLs.
-              // Each has its own schema tailored to its content.
-              // These cannot be created or deleted — only edited.
-              S.listItem()
-                .title("Faste sider")
-                .icon(LockIcon)
-                .child(
-                  S.list()
-                    .title("Faste sider")
-                    .items([
-                      singletonListItem(
-                        S,
-                        "homePage",
-                        "Hovedside",
-                        DocumentIcon,
-                      ),
-                      singletonListItem(
-                        S,
-                        "eventsPage",
-                        "Arrangementer",
-                        DocumentIcon,
-                      ),
-                      singletonListItem(S, "roomsPage", "Rom", ComponentIcon),
-                      singletonListItem(S, "groupsPage", "Grupper", UsersIcon),
-                      singletonListItem(
-                        S,
-                        "sponsorsPage",
-                        "Sponsorer",
-                        StarIcon,
-                      ),
-                      singletonListItem(
-                        S,
-                        "kontaktPage",
-                        "Kontakt",
-                        EnvelopeIcon,
-                      ),
-                      singletonListItem(S, "linkInBio", "Link-i-bio", LinkIcon),
-                    ]),
-                ),
-
-              S.divider(),
-
-              // Egendefinerte sider: generiske sider med valgfri URL og
-              // fritekstinnhold. Opprett nye sider her for innhold som ikke
-              // passer i noen av de faste sidene ovenfor.
-              S.listItem()
-                .title("Egendefinerte sider")
-                .icon(ComposeIcon)
-                .child(S.documentTypeList("page").title("Egendefinerte sider")),
-            ]),
-        ),
-
-      S.divider(),
-
-      // — Arrangementer —
-      S.listItem()
-        .title("Arrangementer")
+        .title("Program")
         .icon(CalendarIcon)
         .child(
           S.list()
-            .title("Arrangementer")
+            .title("Program")
             .items([
-              S.documentTypeListItem("arrangement")
-                .title("Alle arrangementer")
-                .icon(CalendarIcon),
+              singletonListItem(
+                S,
+                "eventsPage",
+                "Innhold på arrangementsiden",
+                DocumentIcon,
+              ),
+              S.divider(),
               S.listItem()
                 .id("arrangement-pending")
                 .title("Venter på godkjenning")
                 .icon(CalendarIcon)
                 .child(
                   S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
                     .title("Venter på godkjenning")
                     .filter(
                       '_type == "arrangement" && approvalStatus == "pending"',
                     ),
                 ),
+              S.listItem()
+                .id("arrangement-upcoming")
+                .title("Kommende")
+                .icon(CalendarIcon)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Kommende arrangementer")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "approved" && count(dates[startDate >= string::split(now(), "T")[0]]) > 0',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "asc" },
+                    ]),
+                ),
+              S.listItem()
+                .id("arrangement-paused")
+                .title("Satt på pause")
+                .icon(PauseIcon)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Arrangementer satt på pause")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "paused"',
+                    ),
+                ),
+              S.listItem()
+                .id("arrangement-past")
+                .title("Tidligere")
+                .icon(CalendarIcon)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Tidligere arrangementer")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "approved" && count(dates[startDate >= string::split(now(), "T")[0]]) == 0',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "desc" },
+                    ]),
+                ),
+              S.listItem()
+                .id("arrangement-rejected")
+                .title("Avvist")
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Avviste arrangementer")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "rejected"',
+                    ),
+                ),
+              S.listItem()
+                .id("arrangement-archived")
+                .title("Arkivert")
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Arkiverte arrangementer")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "archived"',
+                    ),
+                ),
+              S.documentTypeListItem("arrangement")
+                .title("Alle arrangementer")
+                .icon(CalendarIcon),
               S.divider(),
               orderableDocumentListDeskItem({
                 S,
@@ -165,19 +203,6 @@ export const structure: StructureResolver = (S, context) =>
             ]),
         ),
 
-      S.divider(),
-
-      // — Frivilligfordeler —
-      S.listItem()
-        .title("Frivilligfordeler")
-        .icon(StarIcon)
-        .child(
-          S.documentTypeList("internbevisBenefit").title("Frivilligfordeler"),
-        ),
-
-      S.divider(),
-
-      // — Rom —
       S.listItem()
         .title("Rom")
         .icon(ComponentIcon)
@@ -185,90 +210,150 @@ export const structure: StructureResolver = (S, context) =>
           S.list()
             .title("Rom")
             .items([
-              orderableDocumentListDeskItem({
+              singletonListItem(
                 S,
-                context,
-                type: "room",
-                id: "orderable-room-floor-1",
-                title: "1. etasje",
-                filter: '_type == "room" && (floor == "1" || floor == 1)',
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "room",
-                id: "orderable-room-floor-2",
-                title: "2. etasje",
-                filter: '_type == "room" && (floor == "2" || floor == 2)',
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "room",
-                id: "orderable-room-floor-3",
-                title: "3. etasje",
-                filter: '_type == "room" && (floor == "3" || floor == 3)',
-              }),
-              S.divider(),
+                "roomsPage",
+                "Innhold på romsiden",
+                DocumentIcon,
+              ),
               orderableDocumentListDeskItem({
                 S,
                 context,
                 type: "room",
                 id: "orderable-room-all",
-                title: "Alle rom",
+                title: "Rom",
               }),
+              pageListItem(
+                S,
+                "room-service-pages",
+                "Tjenester",
+                SERVICE_PAGE_SLUGS,
+              ),
+              pageListItem(
+                S,
+                "room-policy-pages",
+                "Retningslinjer og vilkår",
+                POLICY_PAGE_SLUGS,
+              ),
+              singletonListItem(
+                S,
+                "siteMetadata",
+                "Åpningstider og stengte dager",
+                CogIcon,
+              ),
             ]),
         ),
 
-      // — Grupper —
       S.listItem()
-        .title("Grupper")
+        .title("Grupper og frivillighet")
         .icon(UsersIcon)
         .child(
           S.list()
-            .title("Grupper")
+            .title("Grupper og frivillighet")
             .items([
-              orderableDocumentListDeskItem({
+              singletonListItem(
                 S,
-                context,
-                type: "studentGroup",
-                id: "orderable-student-group-arbeidsgruppe",
-                title: "Arbeidsgrupper (Arg)",
-                filter:
-                  '_type == "studentGroup" && category == "arbeidsgruppe"',
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "studentGroup",
-                id: "orderable-student-group-komitee",
-                title: "Komiteer (Arg)",
-                filter: '_type == "studentGroup" && category == "komitee"',
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "studentGroup",
-                id: "orderable-student-group-dorg",
-                title: "Faste samarbeidspartnere (Dorg)",
-                filter: '_type == "studentGroup" && category == "dorg"',
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "studentGroup",
-                id: "orderable-student-group-borg",
-                title: "Brukerorganisasjoner (Borg)",
-                filter: '_type == "studentGroup" && category == "borg"',
-              }),
-              S.divider(),
+                "groupsPage",
+                "Innhold på gruppesiden",
+                DocumentIcon,
+              ),
               orderableDocumentListDeskItem({
                 S,
                 context,
                 type: "studentGroup",
                 id: "orderable-student-group-all",
-                title: "Alle grupper",
+                title: "Grupper",
+                filter: '_type == "studentGroup" && !defined(parentGroup)',
               }),
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "studentGroup",
+                id: "orderable-student-subgroup-all",
+                title: "Undergrupper",
+                filter: '_type == "studentGroup" && defined(parentGroup)',
+              }),
+            ]),
+        ),
+
+      S.listItem()
+        .title("Sider")
+        .icon(DocumentIcon)
+        .child(
+          S.list()
+            .title("Sider")
+            .items([
+              pageListItem(
+                S,
+                "information-pages",
+                "Om og informasjon",
+                INFORMATION_PAGE_SLUGS,
+              ),
+              pageListItem(S, "service-pages", "Tjenester", SERVICE_PAGE_SLUGS),
+              pageListItem(
+                S,
+                "policy-pages",
+                "Retningslinjer og vilkår",
+                POLICY_PAGE_SLUGS,
+              ),
+              singletonListItem(S, "sponsorsPage", "Sponsorer", StarIcon),
+              singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
+              S.divider(),
+              S.documentTypeListItem("page")
+                .title("Alle sider")
+                .icon(DocumentIcon),
+            ]),
+        ),
+
+      S.listItem()
+        .title("Navigasjon og kanaler")
+        .icon(MenuIcon)
+        .child(
+          S.list()
+            .title("Navigasjon og kanaler")
+            .items([
+              singletonListItem(S, "navbar", "Hovednavigasjon", MenuIcon),
+              singletonListItem(S, "footer", "Bunntekst", TextIcon),
+              singletonListItem(S, "linkInBio", "Link-i-bio", LinkIcon),
+            ]),
+        ),
+
+      S.listItem()
+        .title("App og internt innhold")
+        .icon(MobileDeviceIcon)
+        .child(
+          S.list()
+            .title("App og internt innhold")
+            .items([
+              singletonListItem(
+                S,
+                "internbevisPage",
+                "Internbevis",
+                MobileDeviceIcon,
+              ),
+              S.documentTypeListItem("internbevisBenefit")
+                .title("Frivilligfordeler")
+                .icon(StarIcon),
+            ]),
+        ),
+
+      S.divider(),
+
+      S.listItem()
+        .title("Nettstedsinnstillinger")
+        .icon(CogIcon)
+        .child(
+          S.list()
+            .title("Nettstedsinnstillinger")
+            .items([
+              singletonListItem(
+                S,
+                "siteMetadata",
+                "Identitet, SEO og deling",
+                EarthGlobeIcon,
+              ),
+              S.divider(),
+              ...seoAuditItems(S),
             ]),
         ),
     ])

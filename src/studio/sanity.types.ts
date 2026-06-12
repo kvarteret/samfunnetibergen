@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol
 
 // Source: .sanity/schema.json
+export type SanityImageAssetReference = {
+  _ref: string
+  _type: "reference"
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset"
+}
+
 export type LinkInBio = {
   _id: string
   _type: "linkInBio"
@@ -26,9 +33,32 @@ export type LinkInBio = {
   links?: Array<{
     link: SourceLink
     emoji?: string
+    emojiImage?: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      _type: "image"
+    }
     highlight?: boolean
     _key: string
   }>
+}
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop"
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot"
+  x: number
+  y: number
+  height: number
+  width: number
 }
 
 export type HomePageReference = {
@@ -104,7 +134,7 @@ export type StudentGroupReference = {
 export type SourceLink = {
   _type: "sourceLink"
   label: string
-  linkType: "internalPage" | "internalPath" | "external"
+  linkType: string
   internalPage?:
     | HomePageReference
     | EventsPageReference
@@ -120,11 +150,34 @@ export type SourceLink = {
   externalUrl?: string
 }
 
-export type SanityImageAssetReference = {
+export type InternbevisBenefitReference = {
   _ref: string
   _type: "reference"
   _weak?: boolean
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset"
+  [internalGroqTypeReferenceTo]?: "internbevisBenefit"
+}
+
+export type InternbevisPage = {
+  _id: string
+  _type: "internbevisPage"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  trinn1Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
+  trinn2Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
+  trinn3Benefits?: Array<
+    {
+      _key: string
+    } & InternbevisBenefitReference
+  >
 }
 
 export type SiteMetadata = {
@@ -152,31 +205,6 @@ export type SiteMetadata = {
   }
   defaultOpenGraphTitle?: string
   defaultOpenGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-}
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop"
-  top: number
-  bottom: number
-  left: number
-  right: number
-}
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot"
-  x: number
-  y: number
-  height: number
-  width: number
 }
 
 export type OpeningHours = {
@@ -199,6 +227,17 @@ export type Footer = {
       _key: string
     } & FooterSocialLink
   >
+}
+
+export type InternbevisBenefit = {
+  _id: string
+  _type: "internbevisBenefit"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name: string
+  description?: string
+  minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
 export type Navbar = {
@@ -233,17 +272,6 @@ export type FooterSocialLink = {
     | "other"
   label: string
   url: string
-}
-
-export type InternbevisBenefit = {
-  _id: string
-  _type: "internbevisBenefit"
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  name: string
-  description: string
-  minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
 export type ContactGroup = {
@@ -484,6 +512,9 @@ export type Arrangement = {
   facebookUrl?: string
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -491,18 +522,10 @@ export type Arrangement = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  approvalStatus?: "pending" | "approved" | "rejected" | "archived"
+  approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
@@ -540,6 +563,21 @@ export type StudentGroup = {
   }
   labels?: Array<string>
   image?: SourcedImage
+  seoTitle?: string
+  seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
   orderRank?: string
 }
 
@@ -581,6 +619,21 @@ export type Room = {
       _key: string
     } & SourcedImage
   >
+  seoTitle?: string
+  seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type EventTaxonomyGroupReference = {
@@ -627,6 +680,19 @@ export type Page = {
   content?: Markdown
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type Markdown = string
@@ -651,6 +717,19 @@ export type KontaktPage = {
   >
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type SponsorsPage = {
@@ -678,6 +757,19 @@ export type SponsorsPage = {
   }>
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type GroupsPage = {
@@ -696,6 +788,19 @@ export type GroupsPage = {
   >
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
   faq?: Array<{
     question: string
     answer: Array<string>
@@ -739,6 +844,19 @@ export type RoomsPage = {
   }>
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
 }
 
 export type EventsPage = {
@@ -752,6 +870,9 @@ export type EventsPage = {
   description?: string
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -759,17 +880,9 @@ export type EventsPage = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
 }
 
 export type HomePage = {
@@ -784,6 +897,9 @@ export type HomePage = {
   primaryCta?: SourceLink
   seoTitle?: string
   seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
   openGraphImage?: {
     asset?: SanityImageAssetReference
     media?: unknown
@@ -791,25 +907,146 @@ export type HomePage = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
-  oembedTitle?: string
-  oembedDescription?: string
-  oembedImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
 }
 
-export type RecurringDates = {
-  _type: "recurringDates"
-  startDate: string
-  endDate?: string
-  recurs?: boolean
-  rrule?: string
+export type SanityAssistInstructionTask = {
+  _type: "sanity.assist.instructionTask"
+  path?: string
+  instructionKey?: string
+  started?: string
+  updated?: string
+  info?: string
+}
+
+export type SanityAssistTaskStatus = {
+  _type: "sanity.assist.task.status"
+  tasks?: Array<
+    {
+      _key: string
+    } & SanityAssistInstructionTask
+  >
+}
+
+export type SanityAssistSchemaTypeAnnotations = {
+  _type: "sanity.assist.schemaType.annotations"
+  title?: string
+  fields?: Array<
+    {
+      _key: string
+    } & SanityAssistSchemaTypeField
+  >
+}
+
+export type SanityAssistOutputType = {
+  _type: "sanity.assist.output.type"
+  type?: string
+}
+
+export type SanityAssistOutputField = {
+  _type: "sanity.assist.output.field"
+  path?: string
+}
+
+export type AssistInstructionContextReference = {
+  _ref: string
+  _type: "reference"
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: "assist.instruction.context"
+}
+
+export type SanityAssistInstructionContext = {
+  _type: "sanity.assist.instruction.context"
+  reference: AssistInstructionContextReference
+}
+
+export type AssistInstructionContext = {
+  _id: string
+  _type: "assist.instruction.context"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title?: string
+  context?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: "span"
+      _key: string
+    }>
+    style?: "normal"
+    listItem?: never
+    markDefs?: null
+    level?: number
+    _type: "block"
+    _key: string
+  }>
+}
+
+export type SanityAssistInstructionUserInput = {
+  _type: "sanity.assist.instruction.userInput"
+  message: string
+  description?: string
+}
+
+export type SanityAssistInstructionPrompt = Array<{
+  children?: Array<
+    | {
+        marks?: Array<string>
+        text?: string
+        _type: "span"
+        _key: string
+      }
+    | ({
+        _key: string
+      } & SanityAssistInstructionFieldRef)
+    | ({
+        _key: string
+      } & SanityAssistInstructionContext)
+    | ({
+        _key: string
+      } & SanityAssistInstructionUserInput)
+  >
+  style?: "normal"
+  listItem?: never
+  markDefs?: null
+  level?: number
+  _type: "block"
+  _key: string
+}>
+
+export type SanityAssistInstructionFieldRef = {
+  _type: "sanity.assist.instruction.fieldRef"
+  path?: string
+}
+
+export type SanityAssistInstruction = {
+  _type: "sanity.assist.instruction"
+  prompt?: SanityAssistInstructionPrompt
+  icon?: string
+  title?: string
+  userId?: string
+  createdById?: string
+  output?: Array<
+    | ({
+        _key: string
+      } & SanityAssistOutputField)
+    | ({
+        _key: string
+      } & SanityAssistOutputType)
+  >
+}
+
+export type SanityAssistSchemaTypeField = {
+  _type: "sanity.assist.schemaType.field"
+  path?: string
+  instructions?: Array<
+    {
+      _key: string
+    } & SanityAssistInstruction
+  >
 }
 
 export type SanityImagePaletteSwatch = {
@@ -910,7 +1147,10 @@ export type Geopoint = {
 }
 
 export type AllSanitySchemaTypes =
+  | SanityImageAssetReference
   | LinkInBio
+  | SanityImageCrop
+  | SanityImageHotspot
   | HomePageReference
   | EventsPageReference
   | RoomsPageReference
@@ -922,16 +1162,15 @@ export type AllSanitySchemaTypes =
   | RoomReference
   | StudentGroupReference
   | SourceLink
-  | SanityImageAssetReference
+  | InternbevisBenefitReference
+  | InternbevisPage
   | SiteMetadata
-  | SanityImageCrop
-  | SanityImageHotspot
   | OpeningHours
   | Footer
+  | InternbevisBenefit
   | Navbar
   | ArrangementDate
   | FooterSocialLink
-  | InternbevisBenefit
   | ContactGroup
   | ContactPerson
   | Menu
@@ -961,7 +1200,19 @@ export type AllSanitySchemaTypes =
   | RoomsPage
   | EventsPage
   | HomePage
-  | RecurringDates
+  | SanityAssistInstructionTask
+  | SanityAssistTaskStatus
+  | SanityAssistSchemaTypeAnnotations
+  | SanityAssistOutputType
+  | SanityAssistOutputField
+  | AssistInstructionContextReference
+  | SanityAssistInstructionContext
+  | AssistInstructionContext
+  | SanityAssistInstructionUserInput
+  | SanityAssistInstructionPrompt
+  | SanityAssistInstructionFieldRef
+  | SanityAssistInstruction
+  | SanityAssistSchemaTypeField
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions

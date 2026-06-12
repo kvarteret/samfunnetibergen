@@ -1,62 +1,50 @@
-# ADR 002: Enforce required fields in Sanity TypeGen for published frontend data
+# ADR 002: Enforce required fields with draft-safe frontend projections
 
 **Status:** Accepted  
 **Date:** 2026-05-29  
-**Updated:** 2026-06-01
+**Updated:** 2026-06-12
 
 ## Context
 
-We generate TypeScript types from the Sanity schema and GROQ queries with
-`npm run sanity:typegen`.
+The frontend renders published content publicly and draft content inside
+authenticated Sanity Presentation sessions. Draft documents may temporarily
+omit schema-required values, while published documents must pass Studio
+validation.
 
-The app no longer renders draft content in the frontend. The removed draft path
-included:
-
-- `/api/draft-mode/enable`
-- `/api/draft-mode/disable`
-- `<VisualEditing />`
-- `<SanityLive />`
-- `defineLive` server/browser draft tokens
-
-The frontend now fetches the published perspective only. That changes the type
-tradeoff: `validation: rule => rule.required()` can be trusted for published
-documents, because invalid drafts are no longer rendered by the public app.
+Sanity TypeGen describes raw Content Lake fields. We still want required
+published fields to remain useful in generated types without making draft
+rendering unsafe.
 
 ## Decision
 
-Use `sanity schema extract --enforce-required-fields` in
-`npm run sanity:typegen`.
+Keep `sanity schema extract --enforce-required-fields`.
 
-Generated types are split by ownership:
+Frontend GROQ projections establish the rendering contract:
 
-- `src/lib/sanity/sanity.types.ts` contains frontend schema and query result types.
-- `src/studio/sanity.types.ts` contains Studio schema types.
+- required display values use `coalesce()` with an editor-facing fallback;
+- booleans and state values use `coalesce(field, schemaDefault)`;
+- collections use `coalesce(field, [])`;
+- optional images, URLs, references, and dereferenced documents remain nullable;
+- missing `[0]` document queries remain nullable and are handled at the route
+  boundary.
 
-The root `sanity.types.ts` file is no longer used.
+Raw generated types remain internal to `src/lib/sanity/`. Fetch helpers export
+domain aliases and perform any TypeGen-only normalization that GROQ cannot
+express cleanly.
 
-## Fetch Boundary
+TypeGen is configured under `typegen` in `sanity.cli.ts`. The
+`SANITY_TYPEGEN_TARGET` environment variable selects the frontend or Studio
+output while `npm run sanity:typegen` regenerates both:
 
-The fetch helpers in `src/lib/sanity/fetch/` remain the boundary between Sanity
-and the rest of the app. Keep these concerns there:
-
-- route params;
-- cache tags and revalidation;
-- stega behavior;
-- frontend-friendly return shapes and concise exported aliases.
-
-Components should import domain aliases from `src/lib/sanity/fetch` or
-`src/lib/sanity/types`, not generated `*QueryResult` names directly.
-
-Some nulls still remain in generated query result types. Those are real query
-or schema shapes, for example unmatched `[0]` queries, optional references,
-optional fields, and projected asset URLs. Required-field typegen removes the
-draft-only nullability, not every possible nullable value.
+- `src/lib/sanity/sanity.types.ts`
+- `src/studio/sanity.types.ts`
 
 ## Consequences
 
-- Required published fields are typed more narrowly.
-- Draft live editing is intentionally unavailable in the frontend.
-- Studio route/document mapping remains explicit through
-  `src/studio/presentation/resolve.ts`.
-- Regenerate types with `npm run sanity:typegen` after schema or GROQ changes.
-  Do not hand-edit generated type files.
+- Draft preview is enabled without forcing defensive checks throughout the
+  component tree.
+- Required/defaulted fields are defined in frontend result contracts.
+- Meaningful absence remains a straightforward `null` check.
+- Query fallbacks must be reviewed whenever schema-required or defaulted fields
+  are added.
+- Generated files are never edited manually.

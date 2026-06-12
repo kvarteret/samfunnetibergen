@@ -1,150 +1,62 @@
-# ADR 003: Learnings from `sanity-template-nextjs-clean`
+±# ADR 003: Sanity live editing architecture
 
 **Status:** Accepted  
 **Date:** 2026-06-01
+**Updated:** 2026-06-12
 
 ## Context
 
-We compared this repo's Sanity setup with
+We compared this repository with
 [`sanity-io/sanity-template-nextjs-clean`](https://github.com/sanity-io/sanity-template-nextjs-clean/)
-at commit `c6074cb07b27002dcf09fd43f94f79c4ad5d927a`.
+at commit `4d14b797a3425834d9abd635dc764b31b8088e61`.
 
-The comparison focused on GROQ query shape, Visual Editing, generated types, and
-Studio structure. We decided to remove frontend draft live editing so generated
-types can enforce schema-required fields for published content.
+The repository embeds Studio at `/studio`, keeps editor-owned source under
+`src/studio/`, and keeps frontend queries and fetch helpers under
+`src/lib/sanity/`.
 
-## Current repo baseline
+## Decision
 
-This repo embeds Studio in the Next.js app at `/studio`, but keeps Studio-owned
-source in the top-level `src/studio/` directory.
+Use `defineLive` from `next-sanity/live` as the single frontend synchronization
+boundary.
 
-- `sanity.config.ts` enables `presentationTool`, `structureTool`, Vision, and
-  project-specific plugins.
-- `src/studio/presentation/resolve.ts` already uses `defineDocuments` and
-  `defineLocations` for localized routes, singletons, detail pages, and shared
-  documents such as navigation and footer.
-- `src/lib/sanity/fetcher.ts` exports a published-content `sanityFetch` wrapper; it no
-  longer uses `defineLive`.
-- `src/app/[locale]/layout.tsx` no longer renders `<SanityLive />` or
-  `<VisualEditing />`.
-- `npm run sanity:typegen` extracts the schema with
-  `--enforce-required-fields`.
-- Generated types are split between `src/lib/sanity/sanity.types.ts` for
-  frontend query/data access and `src/studio/sanity.types.ts` for Studio schema
+- `src/lib/sanity/fetcher.ts` exports `sanityFetch` and `SanityLive`.
+- `SANITY_API_READ_TOKEN` is supplied as the server and browser Viewer token.
+- `<SanityLive />` renders globally.
+- `<VisualEditing />` renders only when authenticated Draft Mode is enabled.
+- Presentation enables and disables Draft Mode through
+  `/api/draft-mode/enable` and `/api/draft-mode/disable`.
+- Public requests use the published perspective and explicit `stega: false`
+  where values are used for metadata or routing.
+- Manual cache tags and Sanity webhook invalidation are not maintained in
+  parallel.
+- Cache Components remain disabled; route-level cache migration is separate
   work.
 
-The frontend no longer renders drafts, so required-field typegen is now an
-honest representation of published content.
+Presentation keeps explicit `defineDocuments` and `defineLocations` mappings,
+uses `http://localhost:3187` locally, lists trusted preview and production
+origins, and avoids generating detail URLs for documents without slugs.
 
-## Template improvements worth adopting
+## Content contract
 
-### 1. Required-field typegen is the main source of cleaner types
+Required-field TypeGen remains enabled. Draft-safe query projections supply
+fallbacks for required strings, schema defaults for state, and empty arrays for
+collections. Meaningfully optional media, URLs, and references remain nullable.
 
-The template's frontend and Studio `sanity:typegen` scripts run:
+The `sourceLink` storage model is preserved, but Studio exposes one searchable
+destination input. Frontend projections normalize it to:
 
-```sh
-sanity schema extract --enforce-required-fields
-sanity typegen generate
+```ts
+type LinkDestination =
+  | { kind: "internalDocument"; href: string }
+  | { kind: "internalPath"; href: string }
+  | { kind: "external"; href: string }
 ```
 
-That is why many generated query results have `string` instead of
-`string | null` when the schema marks a field as required. This is the main
-reason the template feels better typed than this repo.
+## Consequences
 
-For this repo, `--enforce-required-fields` is safe because the frontend no
-longer renders draft content.
-
-### 2. The template separates Studio and frontend typegen concerns
-
-The template has a `src/studio/` package and a `frontend/` package. Both consume the
-same extracted `sanity.schema.json`, but each workspace generates the types it
-needs from its own GROQ query surface.
-
-This repo's embedded Studio is still reasonable, but the template's split makes
-the ownership model easier to understand:
-
-- Studio owns schema extraction.
-- Frontend owns frontend query result types.
-- Generated schema JSON is the contract between them.
-
-We keep the single-package app and use that clearer ownership model:
-`src/studio/` owns editor configuration and schema, while `src/lib/sanity/` owns
-frontend queries, fetch wrappers, generated frontend types, and result
-normalization.
-
-### 3. Presentation resolver coverage is a real Studio UX improvement
-
-The template puts `mainDocuments` and `locations` directly in the Presentation
-Tool config. This repo already has the same core pattern in
-`src/studio/presentation/resolve.ts`, and our resolver is more domain-specific
-because it covers localized routes, singletons, event detail pages, rooms,
-groups, navigation, footer, and link-in-bio.
-
-The template still highlights two useful conventions:
-
-- Keep route-to-document mapping explicit with `defineDocuments`.
-- Keep document-to-route mapping explicit with `defineLocations`, including
-  global documents that appear across many pages.
-
-Our current resolver is directionally good. The main improvement is maintenance:
-new routed document types should be added to both resolver sections when they
-are introduced.
-
-### 4. Draft token handling should be removed when preview is removed
-
-The template centralizes `SANITY_API_READ_TOKEN` in `frontend/sanity/lib/token.ts`
-and throws when it is missing. This makes draft preview failures obvious during
-boot instead of becoming harder-to-debug runtime behavior.
-
-This repo removed the browser/server draft token path entirely with the draft
-preview routes.
-
-### 5. Query organization is less important than query boundaries
-
-The template keeps its frontend GROQ in one `frontend/sanity/lib/queries.ts`
-file with `defineQuery`, small string fragments, and unique exported query
-names. This repo already uses `defineQuery` and has a more scalable split across
-`src/lib/sanity/queries/`, `src/lib/sanity/fragments/`, and `src/lib/sanity/fetch/`.
-
-The template reinforces two practices we should preserve:
-
-- All frontend GROQ queries should be named exports wrapped in `defineQuery`.
-- Fetch helpers should be the boundary where route params, tags, stega behavior,
-  and frontend-friendly return shapes are decided.
-
-## Draft preview and null types
-
-The template is not actually an example of "no draft live preview." It still:
-
-- enables `presentationTool` draft mode;
-- defines `/api/draft-mode/enable`;
-- passes read tokens into `defineLive`;
-- renders `<VisualEditing />` in draft mode;
-- renders `<SanityLive />` globally.
-
-So the template's cleaner generated types come from
-`--enforce-required-fields`, not from disabling draft preview.
-
-For this repo, the implemented path was:
-
-1. Stop rendering draft content in the frontend.
-2. Remove the draft-mode preview routes and draft token flow.
-3. Remove `<VisualEditing />` and `<SanityLive />`.
-4. Change `npm run sanity:typegen` to extract with
-   `--enforce-required-fields`.
-5. Split generated types into frontend and Studio outputs.
-6. Re-export concise domain aliases from `src/lib/sanity/fetch` and
-   `src/lib/sanity/types`.
-7. Simplify fetch-boundary null guards only where the regenerated types prove
-   they are no longer needed.
-
-This should be treated as a product/editorial workflow decision, not only a
-TypeScript cleanup. The tradeoff is that editors lose draft live preview in
-exchange for simpler published-content types and less stega/draft-mode
-complexity in the public app.
-
-## Follow-up
-
-Keep generated `*QueryResult` types as implementation detail. New components
-should prefer domain aliases exported from `src/lib/sanity/fetch` or
-`src/lib/sanity/types`.
+- Editors receive click-to-edit and automatic draft updates in Presentation.
+- Public content synchronization uses Sanity Live rather than a project-owned
+  webhook endpoint.
+- Existing references remain stable when target slugs change.
+- New routes must be added to both Presentation document and location
+  resolution.

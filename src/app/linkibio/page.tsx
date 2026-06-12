@@ -1,5 +1,9 @@
+import Image from "next/image"
 import Link from "next/link"
 import { fetchLinkInBio } from "@/lib/sanity/fetch"
+import { resolveSiteUrl } from "@/lib/site-url"
+
+export const revalidate = 300
 
 type LinkInBioLink = {
   _key: string
@@ -8,6 +12,7 @@ type LinkInBioLink = {
     href?: string | null
   } | null
   emoji?: string | null
+  emojiImageUrl?: string | null
   highlight?: boolean | null
 }
 
@@ -22,7 +27,9 @@ export default async function LinkInBioPage() {
     <main className="flex min-h-svh flex-col items-center justify-start gap-0 px-4 pt-16 pb-12 bg-background">
       <LinkInBioProfile heading={data.heading} bio={data.bio} />
       <LinkInBioLinkList links={links} />
-      <p className="mt-10 text-sm text-foreground-muted">samfunnetibergen.no</p>
+      <p className="mt-10 text-sm text-foreground-muted">
+        {new URL(resolveSiteUrl()).hostname}
+      </p>
     </main>
   )
 }
@@ -53,7 +60,18 @@ function LinkInBioLinkList({ links }: { links: LinkInBioLink[] }) {
         const isExternal = !href.startsWith("/")
         const label = (
           <span className="flex items-center gap-2 justify-center">
-            {link.emoji && <span aria-hidden>{link.emoji}</span>}
+            {link.emojiImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden
+                className="size-6 object-contain"
+                height={24}
+                src={link.emojiImageUrl}
+                width={24}
+              />
+            ) : (
+              link.emoji && <span aria-hidden>{link.emoji}</span>
+            )}
             {linkLabel}
           </span>
         )

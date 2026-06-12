@@ -4,17 +4,22 @@ import {
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  getPublishedDocumentId,
+  wouldCreateGroupCycle,
+} from "../../contentPolicies"
+import { createSeoFields, createSharingFields } from "../shared/metadataFields"
 
-export const GRUPPE_CATEGORIES = [
+export const STUDENT_GROUP_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
   { title: "Komité (Arg)", value: "komitee" },
   { title: "Driftsorganisasjon (Dorg)", value: "dorg" },
   { title: "Brukerorganisasjon (Borg)", value: "borg" },
 ]
 
-export type GruppeCategory = "arbeidsgruppe" | "komitee" | "dorg" | "borg"
+export type StudentGroupCategory = "arbeidsgruppe" | "komitee" | "dorg" | "borg"
 
-export const gruppe = defineType({
+export const studentGroup = defineType({
   name: "studentGroup",
   title: "Gruppe",
   type: "document",
@@ -22,8 +27,8 @@ export const gruppe = defineType({
   groups: [
     { name: "identity", title: "Gruppe", default: true },
     { name: "hierarchy", title: "Hierarki" },
-    { name: "recruitment", title: "Rekruttering" },
     { name: "contact", title: "Kontakt" },
+    { name: "seo", title: "SEO og deling" },
   ],
   fields: [
     defineField({
@@ -47,7 +52,7 @@ export const gruppe = defineType({
       type: "string",
       group: "identity",
       options: {
-        list: GRUPPE_CATEGORIES,
+        list: STUDENT_GROUP_CATEGORIES,
         layout: "radio",
       },
       validation: rule => rule.required(),
@@ -61,9 +66,29 @@ export const gruppe = defineType({
       group: "hierarchy",
       to: [{ type: "studentGroup" }],
       options: {
-        filter: "category in ['arbeidsgruppe', 'komitee'] && _id != $id",
-        filterParams: { id: "" },
+        filter: ({ document }) => ({
+          filter: "category in ['arbeidsgruppe', 'komitee'] && _id != $id",
+          params: { id: getPublishedDocumentId(document._id) },
+        }),
       },
+      validation: rule =>
+        rule.custom(async (value, context) => {
+          if (!value?._ref || !context.document?._id) return true
+          const client = context.getClient({ apiVersion: "2025-02-19" })
+          const hasCycle = await wouldCreateGroupCycle(
+            context.document._id,
+            value._ref,
+            async documentId =>
+              client.fetch<string | null>(
+                `coalesce(
+                  *[_id == "drafts." + $id][0].parentGroup._ref,
+                  *[_id == $id][0].parentGroup._ref
+                )`,
+                { id: documentId },
+              ),
+          )
+          return hasCycle ? "En gruppe kan ikke være sin egen forfader." : true
+        }),
     }),
     defineField({
       name: "summary",
@@ -85,7 +110,7 @@ export const gruppe = defineType({
       description:
         "Kort merkelapp som kan brukes av bli frivillig-siden og andre rekrutteringsflater.",
       type: "string",
-      group: "recruitment",
+      hidden: true,
     }),
     defineField({
       name: "recruitmentLead",
@@ -94,7 +119,7 @@ export const gruppe = defineType({
         "Kort tekst for valgkort eller andre rekrutteringsflater. La stå tom for å bruke kort beskrivelse.",
       type: "text",
       rows: 4,
-      group: "recruitment",
+      hidden: true,
     }),
     defineField({
       name: "recruitmentSections",
@@ -102,7 +127,7 @@ export const gruppe = defineType({
       description:
         "Korte, lesbare seksjoner for rekruttering. Undergrupper skal opprettes som egne grupper med overordnet gruppe.",
       type: "array",
-      group: "recruitment",
+      hidden: true,
       of: [
         defineArrayMember({
           name: "recruitmentSection",
@@ -165,6 +190,8 @@ export const gruppe = defineType({
       type: "sourcedImage",
       group: "identity",
     }),
+    ...createSeoFields(),
+    ...createSharingFields({ group: "seo" }),
     orderRankField({ type: "studentGroup" }),
   ],
   orderings: [orderRankOrdering],
