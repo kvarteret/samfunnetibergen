@@ -217,19 +217,30 @@ export function EventCard({
         {showActions && (event.ticketUrl ?? event.facebookUrl) && (
           <div className="mt-auto flex flex-wrap gap-3 pt-2">
             {event.ticketUrl && (
-              <Button asChild size="sm">
-                <a href={event.ticketUrl} rel="noreferrer" target="_blank">
-                  <Ticket aria-hidden />
-                  {ticketsLabel}
-                </a>
+              <Button
+                render={
+                  <a href={event.ticketUrl} rel="noreferrer" target="_blank" />
+                }
+                size="sm"
+              >
+                <Ticket aria-hidden />
+                {ticketsLabel}
               </Button>
             )}
             {event.facebookUrl && (
-              <Button asChild size="sm" variant="neutral">
-                <a href={event.facebookUrl} rel="noreferrer" target="_blank">
-                  <ExternalLink aria-hidden />
-                  {facebookLabel}
-                </a>
+              <Button
+                render={
+                  <a
+                    href={event.facebookUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                }
+                size="sm"
+                variant="neutral"
+              >
+                <ExternalLink aria-hidden />
+                {facebookLabel}
               </Button>
             )}
           </div>

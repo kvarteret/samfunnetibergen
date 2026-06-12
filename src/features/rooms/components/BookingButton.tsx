@@ -12,11 +12,13 @@ interface BookingButtonProps {
 
 export function BookingButton({ label, className }: BookingButtonProps) {
   return (
-    <Button asChild className={cn("w-fit", className)} size="lg">
-      <Link href="/rom/book">
-        <ArrowRight aria-hidden />
-        {label ?? "Book rom her"}
-      </Link>
+    <Button
+      className={cn("w-fit", className)}
+      render={<Link href="/rom/book" />}
+      size="lg"
+    >
+      <ArrowRight aria-hidden />
+      {label ?? "Book rom her"}
     </Button>
   )
 }
