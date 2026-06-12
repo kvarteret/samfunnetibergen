@@ -1,5 +1,5 @@
 import { Mail, Phone } from "lucide-react"
-import Image from "next/image"
+import { Avatar } from "@/components/ui/avatar"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -45,17 +45,11 @@ function AddressBlock({
 function PersonCard({ person }: { person: ContactPerson }) {
   return (
     <div className="flex gap-4 py-4 border-t border-border first:border-t-0">
-      {person.imageUrl && (
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-full bg-muted">
-          <Image
-            alt={person.name ?? "Kontaktperson"}
-            className="object-cover"
-            fill
-            sizes="56px"
-            src={person.imageUrl}
-          />
-        </div>
-      )}
+      <Avatar
+        alt={person.name ?? "Kontaktperson"}
+        name={person.name}
+        src={person.imageUrl}
+      />
       <div className="min-w-0 space-y-1">
         <p className="font-heading leading-snug text-foreground">
           {person.name}

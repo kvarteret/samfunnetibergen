@@ -97,11 +97,15 @@ function EventDetailHero({
           {event.title}
         </h1>
         {event.ticketUrl && (
-          <Button asChild className="w-fit" size="default">
-            <a href={event.ticketUrl} rel="noreferrer" target="_blank">
-              <Ticket aria-hidden="true" />
-              {ticketsLabel}
-            </a>
+          <Button
+            className="w-fit"
+            render={
+              <a href={event.ticketUrl} rel="noreferrer" target="_blank" />
+            }
+            size="default"
+          >
+            <Ticket aria-hidden="true" />
+            {ticketsLabel}
           </Button>
         )}
       </div>
@@ -311,11 +315,14 @@ function EventDetailActions({
   return (
     <div className="space-y-4">
       {event.facebookUrl && (
-        <Button asChild variant="neutral">
-          <a href={event.facebookUrl} rel="noreferrer" target="_blank">
-            <ExternalLink aria-hidden="true" />
-            {t("facebook")}
-          </a>
+        <Button
+          render={
+            <a href={event.facebookUrl} rel="noreferrer" target="_blank" />
+          }
+          variant="neutral"
+        >
+          <ExternalLink aria-hidden="true" />
+          {t("facebook")}
         </Button>
       )}
     </div>

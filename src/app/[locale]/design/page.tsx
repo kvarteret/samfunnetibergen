@@ -5,6 +5,10 @@ import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
+import {
+  CheckboxGroup,
+  CheckboxGroupItem,
+} from "@/components/ui/checkbox-group"
 import { DateScroller } from "@/components/ui/date-scroller"
 import { DetailRow } from "@/components/ui/detail-row"
 import { Disclosure } from "@/components/ui/disclosure"
@@ -33,6 +37,8 @@ export default function DesignGallery({
 }) {
   // Resolve params (Next.js 15+ async params)
   use(params)
+  const [checkboxValues, setCheckboxValues] = useState(["scene"])
+
   return (
     <div className="mx-auto max-w-4xl space-y-16 px-4 py-12">
       <h1 className="font-heading text-4xl">Design System Gallery</h1>
@@ -168,6 +174,16 @@ export default function DesignGallery({
               Her kan du legge til ekstra innhold.
             </p>
           </CheckboxField>
+          <CheckboxGroup
+            aria-label="Utstyrsbehov"
+            className="sm:col-span-2"
+            onValueChange={setCheckboxValues}
+            value={checkboxValues}
+          >
+            <CheckboxGroupItem label="Scene" value="scene" />
+            <CheckboxGroupItem label="Lydanlegg" value="sound" />
+            <CheckboxGroupItem label="Lysrigg" value="lights" />
+          </CheckboxGroup>
         </div>
       </Section>
 
@@ -320,7 +336,7 @@ function SegmentedControlDemo() {
         pills (default)
       </p>
       <SegmentedControl
-        onChange={setFrequency}
+        onValueChange={setFrequency}
         options={[
           { value: "daily", label: "Hver dag" },
           { value: "weekly", label: "Hver uke" },
@@ -342,7 +358,7 @@ function ToggleGroupDemo() {
           default — multi-select
         </p>
         <ToggleGroup
-          onChange={setNeeds}
+          onValueChange={setNeeds}
           options={[
             { value: "scene", label: "Scene" },
             { value: "lyd", label: "Lydanlegg" },
@@ -356,7 +372,7 @@ function ToggleGroupDemo() {
           sm — weekdays
         </p>
         <ToggleGroup
-          onChange={setDays}
+          onValueChange={setDays}
           options={["man", "tir", "ons", "tor", "fre", "lør", "søn"].map(
             day => ({ value: day, label: day }),
           )}
@@ -382,7 +398,7 @@ function DateScrollerDemo() {
       getDateAvailability={date =>
         dates.indexOf(date) % 4 === 3 ? "unavailable" : "available"
       }
-      onChange={setSelected}
+      onValueChange={setSelected}
       selectedDate={selected}
       today={today}
     />
@@ -399,7 +415,7 @@ function SlotGridDemo() {
         time === "18:00" ? ("taken" as const) : ("available" as const),
     }),
   )
-  return <SlotGrid onChange={setSlot} selectedValue={slot} slots={slots} />
+  return <SlotGrid onValueChange={setSlot} slots={slots} value={slot} />
 }
 
 function SelectableCardDemo() {
