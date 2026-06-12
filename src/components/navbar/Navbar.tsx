@@ -104,12 +104,7 @@ export function Navbar({ navbar }: NavbarProps) {
 
 function DesktopNav({ items }: { items: NavItem[] }) {
   return (
-    <NavigationMenu
-      className="hidden lg:flex"
-      delayDuration={0}
-      skipDelayDuration={0}
-      viewport={false}
-    >
+    <NavigationMenu className="hidden lg:flex" closeDelay={0} delay={0}>
       <NavigationMenuList>
         {items.map(item => (
           <DesktopNavItem item={item} key={item._key} />
@@ -129,10 +124,11 @@ function DesktopNavItem({ item }: { item: NavItem }) {
   if (!hasDropdown) {
     return (
       <NavigationMenuItem value={item._key}>
-        <NavigationMenuLink asChild>
-          <NavLink external={external} href={href}>
-            {item.label}
-          </NavLink>
+        <NavigationMenuLink
+          render={<NavLink external={external} href={href} />}
+          variant="top"
+        >
+          {item.label}
         </NavigationMenuLink>
       </NavigationMenuItem>
     )
@@ -165,21 +161,17 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
             const leafHref = resolveHref(leaf)
             const leafExternal = isExternal(leaf)
             return (
-              <NavigationMenuLink asChild key={leaf._key ?? `${gi}-${li}`}>
-                {leafExternal ? (
-                  <a
-                    className="focus-brutal"
-                    href={leafHref}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {leaf.label}
-                  </a>
-                ) : (
-                  <Link className="focus-brutal" href={leafHref}>
-                    {leaf.label}
-                  </Link>
-                )}
+              <NavigationMenuLink
+                key={leaf._key ?? `${gi}-${li}`}
+                render={
+                  leafExternal ? (
+                    <a href={leafHref} rel="noreferrer" target="_blank" />
+                  ) : (
+                    <Link href={leafHref} />
+                  )
+                }
+              >
+                {leaf.label}
               </NavigationMenuLink>
             )
           })}
@@ -195,21 +187,25 @@ function NavLink({
   href,
   external,
   children,
+  className,
   ...props
 }: {
   href: string
   external?: boolean
-  children: React.ReactNode
-} & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
-  const cls =
-    "relative flex cursor-pointer items-center border-2 border-transparent px-3 py-2.5 font-heading  text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-
+  children?: React.ReactNode
+} & React.ComponentPropsWithRef<"a">) {
   return external ? (
-    <a className={cls} href={href} rel="noreferrer" target="_blank" {...props}>
+    <a
+      className={className}
+      href={href}
+      rel="noreferrer"
+      target="_blank"
+      {...props}
+    >
       {children}
     </a>
   ) : (
-    <Link className={cls} href={href} {...props}>
+    <Link className={className} href={href} {...props}>
       {children}
     </Link>
   )

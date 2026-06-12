@@ -1,8 +1,11 @@
 "use client"
 
-import { Check, ChevronDown } from "lucide-react"
+import { Collapsible } from "@base-ui/react/collapsible"
+import { NavigationMenu } from "@base-ui/react/navigation-menu"
+import { Check, ChevronDown, ChevronRight } from "lucide-react"
 import { useSyncExternalStore } from "react"
 
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   isPaperStyle,
   PAPER_STORAGE_KEY,
@@ -35,60 +38,106 @@ function setPaperStyle(paper: PaperStyle) {
 }
 
 export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
-  const paper = useSyncExternalStore(subscribe, getSnapshot, () => "grid")
+  const paper = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    (): PaperStyle => "grid",
+  )
+
+  if (!mobile) {
+    return <DesktopPaperMenu paper={paper} />
+  }
 
   return (
-    <details className="group/paper border-t-2 border-border/30">
-      <summary
-        className={cn(
-          "flex cursor-pointer list-none items-center justify-between font-heading text-foreground focus-brutal",
-          mobile ? "px-10 py-4 " : "px-2 py-2 ",
-        )}
-      >
+    <Collapsible.Root className="border-t-2 border-border/30">
+      <Collapsible.Trigger className="group flex w-full cursor-pointer items-center justify-between px-10 py-4 font-heading text-foreground focus-brutal">
         Enda mer
         <ChevronDown
           aria-hidden
-          className="size-[1em] group-open/paper:rotate-180"
+          className="size-[1em] group-data-panel-open:rotate-180"
           strokeWidth={1.75}
         />
-      </summary>
-      <fieldset
-        className={cn(
-          "space-y-2 border-t-2 border-border/30",
-          mobile ? "px-10 py-4" : "px-2 py-3",
-        )}
+      </Collapsible.Trigger>
+      <Collapsible.Panel>
+        <PaperChoices
+          className="border-t-2 border-border/30 px-10 py-4"
+          paper={paper}
+        />
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  )
+}
+
+function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
+  return (
+    <NavigationMenu.Root closeDelay={100} delay={0} orientation="vertical">
+      <NavigationMenu.List className="list-none border-t-2 border-border/30 p-3">
+        <NavigationMenu.Item value="paper">
+          <NavigationMenu.Trigger className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:bg-accent focus-brutal data-popup-open:bg-accent">
+            Enda mer
+            <ChevronRight
+              aria-hidden
+              className="size-[1em] transition-transform group-data-popup-open:translate-x-0.5"
+              strokeWidth={1.75}
+            />
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content className="w-72 p-3">
+            <PaperChoices paper={paper} />
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+
+      <NavigationMenu.Portal>
+        <NavigationMenu.Positioner
+          align="start"
+          alignOffset={-12}
+          className="z-50 outline-none before:absolute before:top-0 before:right-full before:h-full before:w-3 before:content-[''] data-side-left:before:right-auto data-side-left:before:left-full"
+          collisionPadding={12}
+          side="right"
+          sideOffset={24}
+        >
+          <NavigationMenu.Popup className="relative border-2 border-border bg-card shadow-shadow outline-none">
+            <NavigationMenu.Viewport className="relative h-[var(--popup-height)] w-[var(--popup-width)] overflow-hidden" />
+          </NavigationMenu.Popup>
+        </NavigationMenu.Positioner>
+      </NavigationMenu.Portal>
+    </NavigationMenu.Root>
+  )
+}
+
+function PaperChoices({
+  className,
+  paper,
+}: {
+  className?: string
+  paper: PaperStyle
+}) {
+  return (
+    <fieldset className={cn("space-y-2", className)}>
+      <legend className="sr-only">Velg papir</legend>
+      <p className="font-heading uppercase tracking-widest">Velg papir</p>
+      <RadioGroup<PaperStyle>
+        className="grid grid-cols-3 gap-2"
+        name="paper"
+        onValueChange={setPaperStyle}
+        value={paper}
       >
-        <legend className="sr-only">Velg papir</legend>
-        <p className="font-heading uppercase tracking-widest text-foreground-muted">
-          Velg papir
-        </p>
-        <div className="grid grid-cols-3 gap-2">
-          {paperOptions.map(option => (
-            <label
-              className={cn(
-                "relative flex cursor-pointer flex-col items-center gap-2 border-2 border-border bg-background p-2 text-center font-heading text-sm focus-within-brutal",
-                paper === option.value && "bg-primary text-primary-foreground",
-              )}
-              key={option.value}
-            >
-              <input
-                checked={paper === option.value}
-                className="sr-only"
-                name={mobile ? "mobile-paper" : "desktop-paper"}
-                onChange={() => setPaperStyle(option.value)}
-                type="radio"
-                value={option.value}
-              />
-              <PaperSwatch paper={option.value} />
-              <span>{option.label}</span>
-              {paper === option.value && (
-                <Check aria-hidden className="absolute top-1 right-1 size-3" />
-              )}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-    </details>
+        {paperOptions.map(option => (
+          <RadioGroupItem
+            className="relative flex cursor-pointer flex-col items-center gap-2 p-2 text-center font-heading text-sm"
+            key={option.value}
+            size="none"
+            value={option.value}
+          >
+            <PaperSwatch paper={option.value} />
+            <span>{option.label}</span>
+            {paper === option.value && (
+              <Check aria-hidden className="absolute top-1 right-1 size-3" />
+            )}
+          </RadioGroupItem>
+        ))}
+      </RadioGroup>
+    </fieldset>
   )
 }
 

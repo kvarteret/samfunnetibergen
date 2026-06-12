@@ -1,9 +1,9 @@
 "use client"
 
+import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, Menu, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { Dialog as DialogPrimitive } from "radix-ui"
 import { useState } from "react"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
@@ -23,25 +23,17 @@ export function MobileMenu({ items }: MobileMenuProps) {
   const close = () => setOpen(false)
 
   return (
-    <DialogPrimitive.Root onOpenChange={setOpen} open={open}>
-      <DialogPrimitive.Trigger asChild>
-        <button
-          aria-label="Åpne meny"
-          className="p-3 text-foreground focus-brutal lg:hidden"
-          type="button"
-        >
-          <Menu aria-hidden className="size-6" />
-        </button>
-      </DialogPrimitive.Trigger>
+    <Dialog.Root onOpenChange={setOpen} open={open}>
+      <Dialog.Trigger
+        aria-label="Åpne meny"
+        className="p-3 text-foreground focus-brutal lg:hidden"
+      >
+        <Menu aria-hidden className="size-6" />
+      </Dialog.Trigger>
 
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Content
-          aria-describedby={undefined}
-          className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden"
-        >
-          <DialogPrimitive.Title className="sr-only">
-            Hovedmeny
-          </DialogPrimitive.Title>
+      <Dialog.Portal>
+        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden">
+          <Dialog.Title className="sr-only">Hovedmeny</Dialog.Title>
 
           <div className="shrink-0 border-b-2 border-border">
             <div className={navShellClass}>
@@ -60,15 +52,12 @@ export function MobileMenu({ items }: MobileMenuProps) {
                   width={100}
                 />
               </Link>
-              <DialogPrimitive.Close asChild>
-                <button
-                  aria-label="Lukk meny"
-                  className="p-3 text-foreground focus-brutal"
-                  type="button"
-                >
-                  <X aria-hidden className="size-6" />
-                </button>
-              </DialogPrimitive.Close>
+              <Dialog.Close
+                aria-label="Lukk meny"
+                className="p-3 text-foreground focus-brutal"
+              >
+                <X aria-hidden className="size-6" />
+              </Dialog.Close>
             </div>
           </div>
 
@@ -80,9 +69,9 @@ export function MobileMenu({ items }: MobileMenuProps) {
               <MobileNavItem item={item} key={item._key} onClose={close} />
             ))}
           </nav>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
