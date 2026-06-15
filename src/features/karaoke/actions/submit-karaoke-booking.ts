@@ -7,12 +7,39 @@ import {
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
-import type { Result } from "@/lib/result"
+import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
+import { KARAOKE_PRICING } from "../domain/formState"
+import type { PriceType } from "../types"
+
+export interface KaraokeBookingResult {
+  statusCode: number
+  totalPrice: number
+  priceType: PriceType
+  bookerLabel: string
+}
+
+function bookerLabel(priceType: PriceType): string {
+  switch (priceType) {
+    case "frivillig": return "Intern frivillig"
+    case "ordinær":  return "Ekstern"
+    case "student":  return "Ekstern (student)"
+  }
+}
+
+function calcPrice(
+  priceType: PriceType,
+  people: number,
+  durationHours: number,
+): number {
+  if (people <= 0 || priceType === "frivillig") return 0
+  const price = KARAOKE_PRICING[priceType]
+  return Math.max(price.perPerson * people, price.minPerHour) * durationHours
+}
 
 export async function submitKaraokeBooking(
   payload: KaraokeBookingPayload,
-): Promise<Result<number>> {
+): Promise<Result<KaraokeBookingResult>> {
   const houseHours = await fetchHouseHours()
   const slotAllowed = isSlotAllowed(
     payload.startDate,
@@ -23,11 +50,14 @@ export async function submitKaraokeBooking(
   )
 
   if (!slotAllowed) {
-    return {
-      ok: false,
-      error: "Valgt tidspunkt er ikke tilgjengelig for booking.",
-    }
+    return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
   }
+
+  const totalPrice = calcPrice(
+    payload.priceType,
+    payload.numberOfPeople,
+    payload.duration,
+  )
 
   const body = buildKaraokeRequest({
     eventName: payload.eventName,
@@ -42,5 +72,14 @@ export async function submitKaraokeBooking(
     priceType: payload.priceType,
   })
 
-  return postEventRequest(KARAOKE_SLUG, body)
+  const result = await postEventRequest(KARAOKE_SLUG, body)
+
+  if (!result.ok) return result
+
+  return ok({
+    statusCode: result.value,
+    totalPrice,
+    priceType: payload.priceType,
+    bookerLabel: bookerLabel(payload.priceType),
+  })
 }
