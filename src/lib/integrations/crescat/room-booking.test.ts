@@ -206,6 +206,27 @@ describe("buildInternalBooking", () => {
       expect(ids).not.toContain(4382234)
     }
   })
+
+  test("recurringDates section emits provided dates", () => {
+    const body = buildInternalBooking({
+      ...BASE_INPUT,
+      recurringDates: ["2030-01-21", "2030-01-28"],
+    })
+    const rd = body.sections.find(s => s.type === "recurringDates")
+    expect(rd).toBeDefined()
+    if (rd && "content" in rd) {
+      expect(rd.content).toEqual(["2030-01-21", "2030-01-28"])
+    }
+  })
+
+  test("recurringDates defaults to null when not set", () => {
+    const body = buildInternalBooking(BASE_INPUT)
+    const rd = body.sections.find(s => s.type === "recurringDates")
+    expect(rd).toBeDefined()
+    if (rd && "content" in rd) {
+      expect(rd.content).toBeNull()
+    }
+  })
 })
 
 describe("buildRoomBooking", () => {

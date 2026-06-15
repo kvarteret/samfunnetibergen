@@ -67,6 +67,7 @@ const payloadSchema = z.object({
   barSelf: z.boolean().optional(),
   barKvarteret: z.boolean().optional(),
   alternativeDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  recurringDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
   roomIds: z.array(z.number().int().positive()).optional(),
   keyContacts: z
     .array(
