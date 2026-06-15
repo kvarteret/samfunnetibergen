@@ -38,8 +38,8 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         cateringWishes: "Buffet for 30 personer, 2 retter",
         freeOrPaid: "Betalt",
         ticketTypes: "Ordinær: 200 kr, Student: 150 kr, VIP: 400 kr",
-        contactName: "Automatisk Test",
-        contactEmail: "autotest@samfunnetibergen.no",
+        contactName: "E-Tjenesten",
+        contactEmail: "e@samfunnetibergen.no",
         contactPhone: "00000000",
         needsAmphi: true,           // Tivoli
         barSelf: false,
@@ -53,9 +53,9 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         orgNumber: 999999999,
         keyContacts: [
           {
-            name: "Automatisk Test",
+            name: "E-Tjenesten",
             role: "Arrangør",
-            email: "autotest@samfunnetibergen.no",
+            email: "e@samfunnetibergen.no",
             phone: "00000000",
             country_code: "+47",
           },
@@ -95,16 +95,17 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         cateringWishes: "Enkel bevertning — kaffe og kanelsnurrer",
         freeOrPaid: "Gratis",
         ticketTypes: "",
-        contactName: "Automatisk Test",
-        contactEmail: "autotest@samfunnetibergen.no",
+        contactName: "E-Tjenesten",
+        contactEmail: "e@samfunnetibergen.no",
         contactPhone: "00000000",
         needsAmphi: false,
         roomIds: [95, 23, 117],     // Tivoli + Storelogen + Støy
+        recurringDates: ["2030-01-21", "2030-01-28", "2030-02-04"],
         keyContacts: [
           {
-            name: "Automatisk Test",
+            name: "E-Tjenesten",
             role: "Arrangør",
-            email: "autotest@samfunnetibergen.no",
+            email: "e@samfunnetibergen.no",
             phone: "00000000",
             country_code: "+47",
           },
@@ -140,13 +141,19 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         startDate: "2030-01-25",
         startTime: "21:00",
         durationHours: 2,
-        description:
-          "Dette er en automatisk integrasjonstest. Ingen handling kreves.",
-        contactName: "Automatisk Test",
-        contactEmail: "autotest@samfunnetibergen.no",
-        contactPhone: "00000000",
         numberOfPeople: 23,
         priceType: "ordinær",
+        description:
+          "Dette er en automatisk integrasjonstest. Ingen handling kreves.\n\n" +
+          "EKSTRA, FRA BOOKING:\n" +
+          "TYPE: Ekstern\n" +
+          "PRIS: 3634 kr\n" +
+          "PRISUTREGNING: 79 kr/pers × 23 pers (min 395 kr/t) × 2t = 3634 kr\n" +
+          "LOVER FREMVISE STUDENTBEVIS?: nei\n" +
+          "GODTATT BETINGELSER?: nei",
+        contactName: "E-Tjenesten",
+        contactEmail: "e@samfunnetibergen.no",
+        contactPhone: "00000000",
       })
 
       const result = await postEventRequest(KARAOKE_SLUG, body)

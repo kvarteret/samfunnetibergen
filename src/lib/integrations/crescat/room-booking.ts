@@ -83,6 +83,7 @@ export interface RoomBookingInput {
   barSelf?: boolean
   barKvarteret?: boolean
   alternativeDates?: string[]
+  recurringDates?: string[]
   roomIds?: number[]
   keyContacts?: KeyContact[]
   contactRole?: string
@@ -297,7 +298,7 @@ export function buildInternalBooking(
         description:
           "Hvis arrangementet skal gjentas flere ganger over tid kan du velge det her",
         type: "recurringDates",
-        content: null,
+        content: input.recurringDates ?? null,
       },
       {
         title: "Kontaktpersoner",
