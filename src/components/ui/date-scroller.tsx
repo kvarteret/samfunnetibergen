@@ -55,7 +55,7 @@ export function DateScroller({
               className={cn(
                 "flex min-h-11 min-w-13 shrink-0 flex-col items-center gap-0.5 px-2.5 py-2",
                 availability === "unavailable" &&
-                  "border-border/30 text-foreground-muted",
+                  "cursor-not-allowed border-destructive/40 text-foreground-muted opacity-60",
                 availability === "available" &&
                   !selected &&
                   date === today &&
@@ -69,10 +69,18 @@ export function DateScroller({
               <span className="text-sm uppercase tracking-widest">
                 {weekday}
               </span>
-              <span className=" font-heading leading-none">
+              <span
+                className={cn(
+                  "font-heading leading-none",
+                  availability === "unavailable" &&
+                    "line-through decoration-destructive/50 decoration-2",
+                )}
+              >
                 {parsedDate.getDate()}
               </span>
-              <span className="text-sm">{month}</span>
+              <span className="text-sm">
+                {availability === "unavailable" ? "Opptatt" : month}
+              </span>
             </RadioGroupItem>
           )
         })}
