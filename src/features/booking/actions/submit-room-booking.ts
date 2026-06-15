@@ -62,6 +62,24 @@ const payloadSchema = z.object({
   studentOrgName: z.string().trim().optional(),
   invoiceAddress: z.string().trim().optional(),
   orgNumber: z.number().int().nullable().optional(),
+  // New Crescat fields (2026-06-15 drift reconciliation)
+  needsAmphi: z.boolean().optional(),
+  barSelf: z.boolean().optional(),
+  barKvarteret: z.boolean().optional(),
+  alternativeDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  roomIds: z.array(z.number().int().positive()).optional(),
+  keyContacts: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        role: z.string().trim().default(""),
+        email: z.string().trim().email(),
+        phone: z.string().trim().default(""),
+        country_code: z.string().trim().default("+47"),
+      }),
+    )
+    .optional(),
+  contactRole: z.string().trim().optional(),
 })
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>

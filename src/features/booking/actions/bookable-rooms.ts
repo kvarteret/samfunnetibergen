@@ -30,20 +30,31 @@ export async function fetchBookableRoomsForBooker(
     return sanityRooms.map(room => toSanityBookingRoom(room))
   }
 
-  return resources.map(resource => {
-    const sanityRoom = sanityById.get(resource.id)
-    if (sanityRoom) return toSanityBookingRoom(sanityRoom)
-    return {
-      crescatRoomId: resource.id,
-      title: resource.title,
-      slug: null,
-      summary: null,
-      capacityStanding: null,
-      capacitySeated: null,
-      openingHours: null,
-      image: null,
-      source: "crescat",
-    }
+  return sortSanityFirst(
+    resources.map(resource => {
+      const sanityRoom = sanityById.get(resource.id)
+      if (sanityRoom) return toSanityBookingRoom(sanityRoom)
+      return {
+        crescatRoomId: resource.id,
+        title: resource.title,
+        slug: null,
+        summary: null,
+        capacityStanding: null,
+        capacitySeated: null,
+        openingHours: null,
+        image: null,
+        source: "crescat",
+      }
+    }),
+  )
+}
+
+// Put Sanity-enriched rooms first, Crescat-only rooms last. Preserve the
+// original /resources order within each group via stable sort.
+function sortSanityFirst(rooms: BookingRoom[]): BookingRoom[] {
+  return rooms.toSorted((a, b) => {
+    if (a.source === b.source) return 0
+    return a.source === "sanity" ? -1 : 1
   })
 }
 

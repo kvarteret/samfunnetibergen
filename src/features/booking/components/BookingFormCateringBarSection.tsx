@@ -42,12 +42,22 @@ export function BookingFormCateringBarSection() {
             </ToggleOption>
           )}
         </form.Field>
-        <form.Field name="bar">
+        <form.Field name="barSelf">
           {(field: AnyFieldApi) => (
             <ToggleOption
               checked={field.state.value as boolean}
               icon={UtensilsCrossed}
-              label="Kvarteret stiller i bar"
+              label="Jeg står i bar selv"
+              onChange={field.handleChange}
+            />
+          )}
+        </form.Field>
+        <form.Field name="barKvarteret">
+          {(field: AnyFieldApi) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={UtensilsCrossed}
+              label="Kvarteret står i bar"
               onChange={field.handleChange}
             >
               <p className="text-sm text-foreground-muted">

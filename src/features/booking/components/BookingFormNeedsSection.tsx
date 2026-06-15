@@ -1,7 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { Music, Projector, Volume2, Wand2 } from "lucide-react"
+import { Music, Projector, Volume2, Wand2, Armchair } from "lucide-react"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -14,11 +14,13 @@ import { useBookingForm } from "./bookingFormContext"
 interface BookingFormNeedsSectionProps {
   furnitureError?: string
   furnitureId: string
+  selectedRoomCrescatId: number
 }
 
 export function BookingFormNeedsSection({
   furnitureError,
   furnitureId,
+  selectedRoomCrescatId,
 }: BookingFormNeedsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
@@ -127,6 +129,18 @@ export function BookingFormNeedsSection({
             </ToggleOption>
           )}
         </form.Field>
+        {selectedRoomCrescatId === 95 && (
+          <form.Field name="needsAmphi">
+            {(field: AnyFieldApi) => (
+              <ToggleOption
+                checked={field.state.value as boolean}
+                icon={Armchair}
+                label="Behov for amfi — kun Tivoli"
+                onChange={field.handleChange}
+              />
+            )}
+          </form.Field>
+        )}
       </div>
     </FormSection>
   )

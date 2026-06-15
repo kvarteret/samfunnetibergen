@@ -1,6 +1,8 @@
 import { resolveEndDateTime, toDateTime } from "./datetime"
 import {
   AUDIENCE_COUNT,
+  BAR_KVARTERET,
+  BAR_SELF,
   CATERING_PARENT_ID,
   CATERING_WISHES,
   FREE_OR_PAID,
@@ -12,6 +14,7 @@ import {
   INVOICE_PARENT_ID,
   INVOICE_PHONE,
   metaField,
+  NEEDS_AMPHI,
   ON_BEHALF_OF_STUDENT_ORG,
   OPEN_OR_CLOSED,
   ORDER_PARENT_ID,
@@ -22,7 +25,7 @@ import {
   TICKET_TYPES,
   TICKETING_PARENT_ID,
 } from "./fields"
-import type { Assignment, EventRequestBody } from "./types"
+import type { Assignment, EventRequestBody, KeyContact } from "./types"
 
 // The two venue forms behind this integration. Both slugs were verified at
 // HTTP 201 from captured HAR traces. See docs/adr/001-crescat-integration.md.
@@ -75,6 +78,14 @@ export interface RoomBookingInput {
   orgNumber?: number | null
   // Ekstern only: flexible on date/room. No Crescat field — appended to description.
   flexibleDates?: boolean
+  // New Crescat fields (2026-06-15 drift reconciliation)
+  needsAmphi?: boolean
+  barSelf?: boolean
+  barKvarteret?: boolean
+  alternativeDates?: string[]
+  roomIds?: number[]
+  keyContacts?: KeyContact[]
+  contactRole?: string
 }
 
 function commonHead(input: RoomBookingInput): { start: string; end: string } {
@@ -120,12 +131,24 @@ function doorsAssignments(input: RoomBookingInput): Assignment[] {
 }
 
 // Ekstern/studentorg may flag flexibility on date/room (no Crescat field).
+// When structured alternative dates are provided, skip the free-text note to
+// avoid duplicate signal.
 function descriptionWithFlexible(input: RoomBookingInput): string {
   if (!input.flexibleDates) return input.description
+  if (input.alternativeDates?.length) return input.description
   const note = "Fleksibel på dato og rom: ja"
   return input.description.trim()
     ? `${input.description.trim()}\n\n${note}`
     : note
+}
+
+function roomBookingsFor(
+  input: RoomBookingInput,
+  start: string,
+  end: string,
+) {
+  const ids = input.roomIds?.length ? input.roomIds : [input.roomId]
+  return ids.map(roomId => ({ title: "", room_id: roomId, start, end }))
 }
 
 export function buildExternalBooking(
@@ -143,7 +166,7 @@ export function buildExternalBooking(
         description: "",
         type: "roomBooking",
         content: {
-          roomBookings: [{ title: "", room_id: input.roomId, start, end }],
+          roomBookings: roomBookingsFor(input, start, end),
           description: input.description,
         },
       },
@@ -168,7 +191,7 @@ export function buildExternalBooking(
         description:
           "Hvis du har alternative datoer som kan passe for ditt arrangement ber vi deg velge dem her.",
         type: "alternativeDates",
-        content: [],
+        content: input.alternativeDates ?? [],
       },
       {
         title: "Bestilling",
@@ -180,6 +203,7 @@ export function buildExternalBooking(
             metaField(FURNITURE, input.furniture.trim()),
             metaField(TECH_EQUIPMENT, input.techEquipment.trim()),
             metaField(AUDIENCE_COUNT, input.audienceCount),
+            metaField(NEEDS_AMPHI, Boolean(input.needsAmphi)),
             metaField(OPEN_OR_CLOSED, input.openOrClosed),
           ],
           parent_id: ORDER_PARENT_ID,
@@ -196,12 +220,16 @@ export function buildExternalBooking(
         },
       },
       {
-        title: "Bar og catering",
+        title: "Mat og drikke",
         description:
           "Det Akademiske Kvarter tilbyr et bredt utvalg av god mat og drikke. Trenger du mat, snacks, drikke osv. kan du forespørre det her. Medbragt mat og drikke er ikke tillatt.",
         type: "metaData",
         content: {
-          fields: [metaField(CATERING_WISHES, cateringOrNo(input))],
+          fields: [
+            metaField(CATERING_WISHES, cateringOrNo(input)),
+            metaField(BAR_SELF, Boolean(input.barSelf)),
+            metaField(BAR_KVARTERET, Boolean(input.barKvarteret)),
+          ],
           parent_id: CATERING_PARENT_ID,
         },
       },
@@ -275,22 +303,28 @@ export function buildInternalBooking(
         title: "Kontaktpersoner",
         description: "Fyll ut kontaktpersoner for arrangementet her.",
         type: "keyContacts",
-        content: [
-          {
-            name: input.contactName,
-            role: "",
-            email: input.contactEmail,
-            phone: input.contactPhone,
-            country_code: "+47",
-          },
-        ],
+        content:
+          input.keyContacts?.length
+            ? input.keyContacts.map(k => ({
+                ...k,
+                country_code: k.country_code || "+47",
+              }))
+            : [
+                {
+                  name: input.contactName,
+                  role: input.contactRole ?? "",
+                  email: input.contactEmail,
+                  phone: input.contactPhone,
+                  country_code: "+47",
+                },
+              ],
       },
       {
         title: "Lokaler",
         description: "Lokaler som skal brukes i forbindelse med arrangementet.",
         type: "roomBooking",
         content: {
-          roomBookings: [{ title: "", room_id: input.roomId, start, end }],
+          roomBookings: roomBookingsFor(input, start, end),
           description: input.description,
         },
       },
@@ -310,6 +344,7 @@ export function buildInternalBooking(
             metaField(FURNITURE, input.furniture.trim()),
             metaField(TECH_EQUIPMENT, input.techEquipment.trim()),
             metaField(AUDIENCE_COUNT, input.audienceCount),
+            metaField(NEEDS_AMPHI, Boolean(input.needsAmphi)),
             metaField(OPEN_OR_CLOSED, input.openOrClosed),
           ],
           parent_id: ORDER_PARENT_ID,

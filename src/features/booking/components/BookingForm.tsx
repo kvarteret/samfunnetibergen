@@ -274,6 +274,7 @@ export function BookingForm({
           <BookingFormNeedsSection
             furnitureError={errorFor(fieldIds.furniture)}
             furnitureId={fieldIds.furniture}
+            selectedRoomCrescatId={selectedRoom?.crescatRoomId ?? 0}
           />
           <BookingFormCateringBarSection />
           <BookingFormTicketSection />

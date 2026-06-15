@@ -119,37 +119,40 @@ export function BookingFormScheduleSection({
                     const selected = selectedRoomId === room.crescatRoomId
                     const occupied = occupiedRoomIds.has(room.crescatRoomId)
                     const roomName = room.title ?? String(room.crescatRoomId)
+                    const isCrescatOnly = room.source === "crescat"
                     return (
                       <SelectableCard
                         className="hover:border-primary"
                         disabled={occupied}
                         image={
-                          <div className="relative aspect-video bg-muted">
-                            <ImageWithFallback
-                              alt={room.image?.alt ?? roomName}
-                              fallback={
-                                <Building2
-                                  aria-hidden
-                                  className="size-8 text-foreground-muted"
-                                />
-                              }
-                              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
-                              src={room.image?.assetUrl}
-                            />
-                            {selected && !occupied && (
-                              <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
-                                <Check aria-hidden className="size-4" />
-                              </span>
-                            )}
-                            {occupied && (
-                              <Tag
-                                className="absolute left-3 top-3"
-                                variant="destructive"
-                              >
-                                Opptatt
-                              </Tag>
-                            )}
-                          </div>
+                          isCrescatOnly ? undefined : (
+                            <div className="relative aspect-video bg-muted">
+                              <ImageWithFallback
+                                alt={room.image?.alt ?? roomName}
+                                fallback={
+                                  <Building2
+                                    aria-hidden
+                                    className="size-8 text-foreground-muted"
+                                  />
+                                }
+                                sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+                                src={room.image?.assetUrl}
+                              />
+                              {selected && !occupied && (
+                                <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
+                                  <Check aria-hidden className="size-4" />
+                                </span>
+                              )}
+                              {occupied && (
+                                <Tag
+                                  className="absolute left-3 top-3"
+                                  variant="destructive"
+                                >
+                                  Opptatt
+                                </Tag>
+                              )}
+                            </div>
+                          )
                         }
                         key={room.crescatRoomId}
                         value={String(room.crescatRoomId)}
@@ -157,19 +160,20 @@ export function BookingFormScheduleSection({
                         <p className="font-heading text-lg text-foreground">
                           {roomName}
                         </p>
-                        {room.summary && (
+                        {!isCrescatOnly && room.summary && (
                           <p className="line-clamp-2 leading-5 text-foreground-muted">
                             {room.summary}
                           </p>
                         )}
-                        {(room.capacityStanding || room.capacitySeated) && (
-                          <p className="text-sm text-foreground-muted">
-                            <RoomCapacity
-                              seated={room.capacitySeated}
-                              standing={room.capacityStanding}
-                            />
-                          </p>
-                        )}
+                        {!isCrescatOnly &&
+                          (room.capacityStanding || room.capacitySeated) && (
+                            <p className="text-sm text-foreground-muted">
+                              <RoomCapacity
+                                seated={room.capacitySeated}
+                                standing={room.capacityStanding}
+                              />
+                            </p>
+                          )}
                       </SelectableCard>
                     )
                   })}
