@@ -1,8 +1,9 @@
 "use client"
 
-import { HelpCircle, Mail } from "lucide-react"
+import { HelpCircle } from "lucide-react"
 import posthog from "posthog-js"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export function ValgomatenInfobox() {
   const [clicked, setClicked] = useState(false)
@@ -14,30 +15,22 @@ export function ValgomatenInfobox() {
   }
 
   return (
-    <aside
-      className="panel space-y-4 border-2 border-primary/40 bg-primary/5"
-    >
+    <aside className="panel space-y-4 border-2 border-primary/40 bg-primary/5">
       {!clicked ? (
-        <button
-          className="w-full text-left space-y-3 cursor-pointer hover:bg-primary/5 transition-colors rounded-lg p-1 -m-1 group"
-          onClick={handleClick}
-          type="button"
-        >
+        <>
           <div className="flex items-start gap-3">
             <HelpCircle
               aria-hidden="true"
               className="mt-0.5 size-5 shrink-0 text-primary"
             />
-            <div className="space-y-2">
-              <p className="font-heading text-lg leading-tight text-foreground group-hover:text-primary transition-colors">
-                Usikker på hva du bør velge?
-              </p>
-              <p className="inline-flex items-center gap-2 font-heading text-sm uppercase tracking-widest text-primary underline underline-offset-4">
-                Ta Valgomaten
-              </p>
-            </div>
+            <p className="font-heading text-lg leading-tight text-foreground">
+              Vil du bli frivillig, men er usikker på hva gruppe du bør velge?
+            </p>
           </div>
-        </button>
+          <Button onClick={handleClick} type="button" variant="default">
+            Ta Valgomaten
+          </Button>
+        </>
       ) : (
         <div className="space-y-3">
           <p className="font-heading text-lg leading-tight text-foreground">
@@ -56,5 +49,5 @@ export function ValgomatenInfobox() {
         </div>
       )}
     </aside>
-  )
+  );
 }
