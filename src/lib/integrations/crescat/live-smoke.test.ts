@@ -145,7 +145,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         contactName: "Automatisk Test",
         contactEmail: "autotest@samfunnetibergen.no",
         contactPhone: "00000000",
-        peopleCount: 30,
+        numberOfPeople: 23,
       })
 
       const result = await postEventRequest(KARAOKE_SLUG, body)
