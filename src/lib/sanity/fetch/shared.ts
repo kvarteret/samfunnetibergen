@@ -9,9 +9,8 @@ const osloDateFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
 })
 
-// Fetch helpers are the Sanity boundary. Keep route params, cache tags, stega
-// behavior, and frontend-friendly return shapes here so view components do not
-// re-parse raw Content Lake responses.
+// Fetch helpers are the Sanity boundary. Keep route params, stega behavior, and
+// frontend-friendly return shapes here so views do not re-parse raw responses.
 
 /** Drop nullish entries, narrowing `(T | null | undefined)[]` to `T[]`. */
 export function compact<T>(items: readonly (T | null | undefined)[]): T[] {

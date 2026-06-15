@@ -1,6 +1,7 @@
 import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
+import { draftMode } from "next/headers"
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
@@ -10,9 +11,10 @@ import {
   eventRoomsQuery,
   eventsPageContentNbQuery,
   eventTypesQuery,
+  publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "../queries"
-import { type FetchOptions, getOsloDateString } from "./shared"
+import { compact, type FetchOptions, getOsloDateString } from "./shared"
 
 export type EventsPageContent = NonNullable<
   ClientReturn<typeof eventsPageContentNbQuery>
@@ -34,7 +36,6 @@ export async function fetchEventsPageContent(
 ): Promise<EventsPageContent | null> {
   const { data } = await sanityFetch({
     query: eventsPageContentNbQuery,
-    tags: ["eventsPage"],
     stega: options.stega,
   })
   return data
@@ -44,42 +45,46 @@ export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({
     query: publishedEventsQuery,
     params: { today: getOsloDateString() },
-    tags: ["events"],
   })
   return data
 }
 
+export async function fetchPublishedEventSlugs(): Promise<string[]> {
+  const events = await sanityClient.fetch(
+    publishedEventSlugsQuery,
+    { today: getOsloDateString() },
+    {
+      perspective: "published",
+      stega: false,
+    },
+  )
+  return compact(events.map(event => event.slug))
+}
+
 export async function fetchEventBySlug(
   slug: string,
+  options: FetchOptions = {},
 ): Promise<EventDetail | null> {
+  const { isEnabled: preview } = await draftMode()
   const { data } = await sanityFetch({
     query: eventBySlugQuery,
-    params: { slug, today: getOsloDateString() },
-    tags: ["events"],
+    params: { preview, slug, today: getOsloDateString() },
+    stega: options.stega,
   })
   return data
 }
 
 export async function fetchEventRooms(): Promise<EventRoom[]> {
-  return sanityClient.fetch(
-    eventRoomsQuery,
-    {},
-    { next: { revalidate: 300, tags: ["rooms"] } },
-  )
+  const { data } = await sanityFetch({ query: eventRoomsQuery })
+  return data
 }
 
 export async function fetchEventTypes(): Promise<EventType[]> {
-  return sanityClient.fetch(
-    eventTypesQuery,
-    {},
-    { next: { revalidate: 300, tags: ["eventTypes"] } },
-  )
+  const { data } = await sanityFetch({ query: eventTypesQuery })
+  return data
 }
 
 export async function fetchEventGroups(): Promise<EventGroup[]> {
-  return sanityClient.fetch(
-    eventGroupsQuery,
-    {},
-    { next: { revalidate: 300, tags: ["studentGroups"] } },
-  )
+  const { data } = await sanityFetch({ query: eventGroupsQuery })
+  return data
 }

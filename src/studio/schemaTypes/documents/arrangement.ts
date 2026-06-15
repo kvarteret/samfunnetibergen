@@ -1,9 +1,12 @@
 import { CalendarIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
+import { createSeoFields, createSharingFields } from "../shared/metadataFields"
+
 const APPROVAL_STATUS_OPTIONS = [
   { title: "Venter på godkjenning", value: "pending" },
   { title: "Godkjent", value: "approved" },
+  { title: "Satt på pause", value: "paused" },
   { title: "Avvist", value: "rejected" },
   { title: "Arkivert", value: "archived" },
 ]
@@ -21,7 +24,7 @@ export const arrangement = defineType({
     { name: "organizer", title: "Arrangør" },
     { name: "links", title: "Lenker" },
     { name: "media", title: "Bilde" },
-    { name: "sharing", title: "Deling og oEmbed" },
+    { name: "sharing", title: "Deling" },
     { name: "admin", title: "Administrasjon" },
   ],
   fields: [
@@ -192,63 +195,13 @@ export const arrangement = defineType({
     }),
 
     // ─── Sharing / embeds ─────────────────────────────────────
-    defineField({
-      name: "seoTitle",
-      title: "SEO-tittel",
-      description: "Overstyrer arrangementtittelen i søkemotorer.",
-      type: "string",
+    ...createSeoFields({
       group: "sharing",
+      titleDescription: "Overstyrer arrangementtittelen i søkemotorer.",
     }),
-    defineField({
-      name: "seoDescription",
-      title: "SEO-beskrivelse",
-      type: "text",
-      rows: 3,
+    ...createSharingFields({
       group: "sharing",
-      validation: rule =>
-        rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
-    }),
-    defineField({
-      name: "openGraphImage",
-      title: "Open Graph-bilde",
-      description: "La stå tom for å bruke hovedbildet.",
-      type: "image",
-      group: "sharing",
-      options: { hotspot: true },
-    }),
-    defineField({
-      name: "openGraphTitle",
-      title: "Open Graph-tittel",
-      type: "string",
-      group: "sharing",
-    }),
-    defineField({
-      name: "openGraphDescription",
-      title: "Open Graph-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "sharing",
-      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
-    }),
-    defineField({
-      name: "oembedTitle",
-      title: "oEmbed-tittel",
-      type: "string",
-      group: "sharing",
-    }),
-    defineField({
-      name: "oembedDescription",
-      title: "oEmbed-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "sharing",
-    }),
-    defineField({
-      name: "oembedImage",
-      title: "oEmbed-bilde",
-      type: "image",
-      group: "sharing",
-      options: { hotspot: true },
+      openGraphImageDescription: "La stå tom for å bruke hovedbildet.",
     }),
 
     // ─── Admin / approval ──────────────────────────────────────
@@ -301,6 +254,7 @@ export const arrangement = defineType({
       const statusLabel: Record<string, string> = {
         pending: "⏳ Venter",
         approved: "✅ Godkjent",
+        paused: "⏸ Satt på pause",
         rejected: "❌ Avvist",
         archived: "📦 Arkivert",
       }

@@ -7,6 +7,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import type { SourcedImage } from "@/lib/sanity/fetch"
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
@@ -49,7 +50,7 @@ export default async function KaraokePage({
         summary: roomData.summary ?? null,
         capacitySeated: roomData.capacitySeated ?? null,
         capacityStanding: roomData.capacityStanding ?? null,
-        images: (roomData.images ?? []).map(img => ({
+        images: (roomData.images ?? []).map((img: SourcedImage) => ({
           _key: img._key ?? null,
           assetUrl: img.assetUrl ?? null,
           alt: img.alt ?? null,

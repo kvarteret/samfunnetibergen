@@ -1,16 +1,19 @@
 import { DocumentIcon } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
+import { isReservedPageSlug } from "../../contentPolicies"
+import { createSeoFields, createSharingFields } from "../shared/metadataFields"
 
 export const page = defineType({
   name: "page",
   title: "Egendefinert side",
   description:
-    "Generisk side med valgfri URL og fritekstinnhold. Bruk dette for innhold som ikke tilhører noen fast side (Arrangementer, Rom, Grupper osv.). Faste sider redigeres i «Faste sider» og kan ikke opprettes eller slettes herfra.",
+    "Selvstendig informasjonsside. Innhold for arrangementer, rom, grupper og andre egne områder redigeres i de tilhørende Studio-seksjonene.",
   type: "document",
   icon: DocumentIcon,
   groups: [
     { name: "content", title: "Innhold", default: true },
     { name: "seo", title: "SEO" },
+    { name: "sharing", title: "Deling" },
   ],
   fields: [
     defineField({
@@ -26,7 +29,14 @@ export const page = defineType({
       type: "slug",
       group: "content",
       options: { source: "title" },
-      validation: rule => rule.required(),
+      validation: rule =>
+        rule
+          .required()
+          .custom(value =>
+            isReservedPageSlug(value?.current)
+              ? "Denne URL-en eies av en fast nettsiderute."
+              : true,
+          ),
     }),
     defineField({
       name: "content",
@@ -34,23 +44,8 @@ export const page = defineType({
       type: "markdown",
       group: "content",
     }),
-    defineField({
-      name: "seoTitle",
-      title: "SEO-tittel",
-      description:
-        "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
-      type: "string",
-      group: "seo",
-    }),
-    defineField({
-      name: "seoDescription",
-      title: "SEO-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "seo",
-      validation: rule =>
-        rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
-    }),
+    ...createSeoFields(),
+    ...createSharingFields(),
   ],
   preview: {
     select: { title: "title", slug: "slug.current" },

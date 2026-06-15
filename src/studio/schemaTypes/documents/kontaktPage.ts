@@ -1,6 +1,8 @@
 import { EnvelopeIcon } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
+import { createSeoFields, createSharingFields } from "../shared/metadataFields"
+
 const contactPerson = defineType({
   name: "contactPerson",
   title: "Kontaktperson",
@@ -131,23 +133,8 @@ export const kontaktPage = defineType({
       of: [defineArrayMember({ type: "contactGroup" })],
       group: "page",
     }),
-    defineField({
-      name: "seoTitle",
-      title: "SEO-tittel",
-      description:
-        "Overstyrer tittelen i søkemotorer. La stå tom for å bruke sidetittelen.",
-      type: "string",
-      group: "seo",
-    }),
-    defineField({
-      name: "seoDescription",
-      title: "SEO-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "seo",
-      validation: rule =>
-        rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
-    }),
+    ...createSeoFields(),
+    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     prepare() {

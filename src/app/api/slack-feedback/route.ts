@@ -13,7 +13,9 @@ export async function POST(request: Request) {
   }
 
   const message =
-    typeof body === "object" && body !== null && typeof (body as Record<string, unknown>).message === "string"
+    typeof body === "object" &&
+    body !== null &&
+    typeof (body as Record<string, unknown>).message === "string"
       ? (body as { message: string }).message.trim()
       : null
 

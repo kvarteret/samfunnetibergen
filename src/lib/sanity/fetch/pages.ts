@@ -48,7 +48,6 @@ export async function fetchSiteMetadata(
 ): Promise<SiteMetadataContent | null> {
   const { data } = await sanityFetch({
     query: siteMetadataNbQuery,
-    tags: ["siteMetadata"],
     stega: options.stega,
   })
   return data
@@ -60,14 +59,13 @@ export async function fetchHomePageContent(
 ): Promise<HomePageContent | null> {
   const { data } = await sanityFetch({
     query: homePageNbQuery,
-    tags: ["homePage"],
     stega: options.stega,
   })
   return data
 }
 
 export async function fetchNavbar(): Promise<NavbarContent | null> {
-  const { data } = await sanityFetch({ query: navbarQuery, tags: ["navbar"] })
+  const { data } = await sanityFetch({ query: navbarQuery })
   return data
 }
 
@@ -76,7 +74,6 @@ export async function fetchSponsorsPageContent(
 ): Promise<SponsorsPageContent | null> {
   const { data } = await sanityFetch({
     query: sponsorsPageQuery,
-    tags: ["sponsorsPage"],
     stega: options.stega,
   })
   return data
@@ -86,7 +83,10 @@ export async function fetchPageSlugs(): Promise<string[]> {
   const pages = await sanityClient.fetch(
     pageSlugsQuery,
     {},
-    { next: { revalidate: 300, tags: ["pages"] } },
+    {
+      perspective: "published",
+      stega: false,
+    },
   )
   return compact(pages.map(p => p.slug))
 }
@@ -98,7 +98,6 @@ export async function fetchPageBySlug(
   const { data } = await sanityFetch({
     query: pageBySlugQuery,
     params: { slug },
-    tags: ["pages"],
     stega: options.stega,
   })
   return data
@@ -107,20 +106,18 @@ export async function fetchPageBySlug(
 export async function fetchKontaktPage() {
   const { data } = await sanityFetch({
     query: kontaktPageQuery,
-    tags: ["kontaktPage"],
   })
   return data
 }
 
 export async function fetchFooter() {
-  const { data } = await sanityFetch({ query: footerQuery, tags: ["footer"] })
+  const { data } = await sanityFetch({ query: footerQuery })
   return data
 }
 
 export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
   const { data } = await sanityFetch({
     query: houseHoursQuery,
-    tags: ["siteMetadata"],
   })
   return data
 }
@@ -128,7 +125,6 @@ export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
 export async function fetchLinkInBio() {
   const { data } = await sanityFetch({
     query: linkInBioQuery,
-    tags: ["linkInBio"],
   })
   return data
 }

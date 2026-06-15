@@ -38,7 +38,7 @@ Arrangement submission writes Sanity:
   room, organizer, prices, ticket URL, Facebook URL, and submitter contact.
 - `src/features/events/actions/submitEvent.ts` creates a pending Sanity `arrangement` with
   `approvalStatus: "pending"`.
-- `src/studio/schemaTypes/documents/event.ts` defines public event fields including dates, room,
+- `src/studio/schemaTypes/documents/arrangement.ts` defines public event fields including dates, room,
   organizer, prices, ticket URL, Facebook URL, image, SEO, and approval status.
 
 Room booking writes Crescat:

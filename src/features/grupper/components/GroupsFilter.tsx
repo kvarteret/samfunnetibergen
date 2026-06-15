@@ -32,16 +32,19 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
   return (
     <div className="space-y-12">
       {allLabels.length > 0 && (
-        <SegmentedControl
-          onValueChange={value =>
-            setActiveLabel(value === "all" ? null : value)
-          }
-          options={[
-            { value: "all", label: "Alle" },
-            ...allLabels.map(label => ({ value: label, label })),
-          ]}
-          value={activeLabel ?? "all"}
-        />
+        <div className="overflow-x-auto pb-2">
+          <SegmentedControl
+            className="flex-nowrap"
+            onValueChange={value =>
+              setActiveLabel(value === "all" ? null : value)
+            }
+            options={[
+              { value: "all", label: "Alle" },
+              ...allLabels.map(label => ({ value: label, label })),
+            ]}
+            value={activeLabel ?? "all"}
+          />
+        </div>
       )}
 
       {filteredSections.map(section => (
@@ -67,7 +70,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
       href={`/grupper/${group.slug}`}
     >
       <div className="space-y-3">
-        <div className="flex items-start gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           {group.logoUrl ? (
             <div className="relative size-12 shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
               <Image
@@ -78,7 +81,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
               />
             </div>
           ) : null}
-          <h3 className="wrap-break-word font-heading text-3xl leading-none text-foreground">
+          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground">
             {group.name}
           </h3>
         </div>
@@ -114,8 +117,8 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
           </div>
         ) : null}
         {group.email ? (
-          <span className="inline-flex items-center gap-2">
-            <Mail aria-hidden="true" className="size-4" />
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <Mail aria-hidden="true" className="size-4 shrink-0" />
             {group.email}
           </span>
         ) : null}

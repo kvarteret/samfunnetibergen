@@ -15,6 +15,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { formatWeekdays } from "@/lib/opening-hours"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { SourcedImage } from "@/lib/sanity/fetch"
 import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch"
@@ -44,15 +45,13 @@ export async function generateMetadata({ params }: RoomPageProps) {
   const title = room.title ?? slug
   const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
 
-  return {
-    title: `${title} | Rom | Samfunnet i Bergen`,
-    description: room.summary ?? undefined,
-    openGraph: {
-      title,
-      description: room.summary ?? undefined,
-      images: firstImageUrl ? [{ url: firstImageUrl }] : undefined,
-    },
-  }
+  return buildPageMetadata({
+    content: room,
+    canonicalPath: `/${localeParam}/rom/${slug}`,
+    fallbackTitle: `${title} | Rom`,
+    fallbackDescription: room.summary,
+    fallbackImageUrl: firstImageUrl,
+  })
 }
 
 export default async function RoomPage({ params }: RoomPageProps) {

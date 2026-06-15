@@ -5,16 +5,17 @@ import { portableTextProjection } from "../fragments/portableText"
 export const eventsPageContentNbQuery =
   defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
     "eyebrow": coalesce(eyebrow, eyebrowNb),
-    "title": coalesce(title, titleNb),
+    "title": coalesce(title, titleNb, "[Mangler tittel]"),
     "description": coalesce(description, descriptionNb),
     seoTitle,
     seoDescription,
+    canonicalUrl,
+    "noIndex": coalesce(noIndex, false),
+    "noFollow": coalesce(noFollow, false),
     openGraphTitle,
     openGraphDescription,
     "openGraphImageUrl": openGraphImage.asset->url,
-    oembedTitle,
-    oembedDescription,
-    "oembedImageUrl": oembedImage.asset->url
+    openGraphImageAlt
 }`)
 
 export const eventRoomsQuery = defineQuery(`
@@ -45,29 +46,30 @@ export const eventGroupsQuery = defineQuery(`
 
 const eventProjection = `{
     _id,
-    "title": coalesce(title, ""),
+    "title": coalesce(title, "[Mangler arrangementstittel]"),
     "slug": coalesce(slug.current, ""),
-    approvalStatus,
-    isRecurring,
+    "approvalStatus": coalesce(approvalStatus, "pending"),
+    "isRecurring": coalesce(isRecurring, false),
     rrule,
-    "dates": dates | order(startDate asc) {
+    "dates": coalesce(dates[] | order(startDate asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
         endTime
-    },
-    isFree,
+    }, []),
+    "isFree": coalesce(isFree, false),
     priceOrdinar,
     priceStudent,
     priceMedlem,
     seoTitle,
     seoDescription,
+    canonicalUrl,
+    "noIndex": coalesce(noIndex, false),
+    "noFollow": coalesce(noFollow, false),
     openGraphTitle,
     openGraphDescription,
     "openGraphImageUrl": openGraphImage.asset->url,
-    oembedTitle,
-    oembedDescription,
-    "oembedImageUrl": oembedImage.asset->url,
+    openGraphImageAlt,
     ticketUrl,
     facebookUrl,
     "imageUrl": image.asset->url,
@@ -82,7 +84,7 @@ const eventProjection = `{
         "slug": coalesce(slug.current, ""),
         "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }
     },
-    description[] ${portableTextProjection}
+    "description": coalesce(description[] ${portableTextProjection}, [])
 }`
 
 export const publishedEventsQuery = defineQuery(`
@@ -91,18 +93,31 @@ export const publishedEventsQuery = defineQuery(`
         || (isRecurring == true && defined(rrule) && count(dates) > 0)
     )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
-export const eventBySlugQuery = defineQuery(`
-    *[_type == "arrangement" && slug.current == $slug && approvalStatus == "approved" && (
-        count(dates[startDate >= $today]) > 0
-        || (isRecurring == true && defined(rrule) && count(dates) > 0)
-    )][0] ${eventProjection}`)
+export const publishedEventSlugsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && noIndex != true
+        && defined(slug.current)
+        && (
+            count(dates[startDate >= $today]) > 0
+            || (isRecurring == true && defined(rrule) && count(dates) > 0)
+        )
+    ] {
+        "slug": slug.current
+    }`)
 
-export const eventTaxonomyGroupsQuery = defineQuery(`
-    *[_type == "eventTaxonomyGroup" && isActive != false] | order(orderRank asc, name asc) {
-    _id,
-    "name": coalesce(name, ""),
-    "slug": coalesce(slug.current, "")
-}`)
+export const eventBySlugQuery = defineQuery(`
+    *[_type == "arrangement" && slug.current == $slug && (
+        $preview == true
+        || (
+            approvalStatus == "approved"
+            && (
+                count(dates[startDate >= $today]) > 0
+                || (isRecurring == true && defined(rrule) && count(dates) > 0)
+            )
+        )
+    )][0] ${eventProjection}`)
 
 export const feedEventsQuery = defineQuery(`
     *[
@@ -116,17 +131,17 @@ export const feedEventsQuery = defineQuery(`
     ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {
         _id,
         _updatedAt,
-        "title": coalesce(title, ""),
+        "title": coalesce(title, "[Mangler arrangementstittel]"),
         "slug": coalesce(slug.current, ""),
-        isRecurring,
+        "isRecurring": coalesce(isRecurring, false),
         rrule,
-        "dates": dates | order(startDate asc) {
+        "dates": coalesce(dates[] | order(startDate asc) {
             _key,
             "startDate": coalesce(startDate, ""),
             startTime,
             endTime
-        },
-        isFree,
+        }, []),
+        "isFree": coalesce(isFree, false),
         priceOrdinar,
         priceStudent,
         ticketUrl,
@@ -136,5 +151,5 @@ export const feedEventsQuery = defineQuery(`
         "organizerGroup": organizerGroup-> { "name": coalesce(name, "") },
         organizerText,
         "eventType": eventType-> { "name": coalesce(name, "") },
-        description[] ${portableTextProjection}
+        "description": coalesce(description[] ${portableTextProjection}, [])
     }`)

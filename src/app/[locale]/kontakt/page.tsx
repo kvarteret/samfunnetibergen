@@ -5,6 +5,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { fetchKontaktPage } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
@@ -13,13 +14,17 @@ export function generateStaticParams() {
   return getLocaleStaticParams()
 }
 
-export async function generateMetadata() {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/kontakt">) {
+  const locale = await resolvePageLocale(params)
   const page = await fetchKontaktPage()
-  return {
-    title: page?.seoTitle ?? "Kontakt | Samfunnet i Bergen",
-    description:
-      page?.seoDescription ?? "Kontaktinformasjon for Samfunnet i Bergen.",
-  }
+  return buildPageMetadata({
+    content: page,
+    canonicalPath: `/${locale}/kontakt`,
+    fallbackTitle: "Kontakt",
+    fallbackDescription: "Kontaktinformasjon for Samfunnet i Bergen.",
+  })
 }
 
 type KontaktPage = NonNullable<Awaited<ReturnType<typeof fetchKontaktPage>>>

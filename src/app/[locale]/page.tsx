@@ -63,10 +63,24 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   return {
     title,
     description,
+    alternates: {
+      canonical: homePage?.canonicalUrl ?? `/${locale}`,
+    },
+    robots: {
+      index: !homePage?.noIndex,
+      follow: !homePage?.noFollow,
+    },
     openGraph: {
       title: openGraphTitle,
       description: openGraphDescription,
-      images: openGraphImage ? [{ url: openGraphImage }] : undefined,
+      images: openGraphImage
+        ? [
+            {
+              url: openGraphImage,
+              alt: homePage?.openGraphImageAlt ?? undefined,
+            },
+          ]
+        : undefined,
       siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
     },
   }
@@ -217,7 +231,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         eyebrow={homeT("bookingBannerEyebrow")}
         heading1={homeT("bookingBannerHeading1")}
         heading2={homeT("bookingBannerHeading2")}
-        sticker={homeT("bookingBannerSticker")}
       />
       <HomeBarPreviews
         houseClosedDates={barPreviews?.houseClosedDates}

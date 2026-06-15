@@ -1,35 +1,71 @@
-import { CheckmarkIcon, CloseIcon } from "@sanity/icons"
+import { CheckmarkIcon, CloseIcon, PauseIcon, PlayIcon } from "@sanity/icons"
 import type { DocumentActionProps } from "sanity"
-import { useClient } from "sanity"
+import { useDocumentOperation } from "sanity"
+
+import type { ApprovalStatus } from "./approvalStatus"
 
 const getStatus = ({ published, draft }: DocumentActionProps) =>
   (draft as Record<string, unknown> | null)?.approvalStatus ??
   (published as Record<string, unknown> | null)?.approvalStatus
 
-export function ApproveAction(props: DocumentActionProps) {
-  const client = useClient({ apiVersion: "2024-01-01" })
-  if (getStatus(props) !== "pending") return null
-  return {
-    label: "Godkjenn",
-    icon: CheckmarkIcon,
-    tone: "positive" as const,
-    onHandle: async () => {
-      await client.patch(props.id).set({ approvalStatus: "approved" }).commit()
-      props.onComplete()
-    },
+function createStatusAction({
+  currentStatus,
+  icon,
+  label,
+  nextStatus,
+  tone,
+}: {
+  currentStatus: ApprovalStatus
+  icon: React.ComponentType
+  label: string
+  nextStatus: ApprovalStatus
+  tone: "positive" | "critical" | "caution"
+}) {
+  return function StatusAction(props: DocumentActionProps) {
+    const operations = useDocumentOperation(props.id, props.type)
+    if (getStatus(props) !== currentStatus) return null
+
+    return {
+      label,
+      icon,
+      tone,
+      disabled: Boolean(operations.patch.disabled),
+      onHandle: () => {
+        operations.patch.execute([{ set: { approvalStatus: nextStatus } }])
+        props.onComplete()
+      },
+    }
   }
 }
 
-export function RejectAction(props: DocumentActionProps) {
-  const client = useClient({ apiVersion: "2024-01-01" })
-  if (getStatus(props) !== "pending") return null
-  return {
-    label: "Avvis",
-    icon: CloseIcon,
-    tone: "critical" as const,
-    onHandle: async () => {
-      await client.patch(props.id).set({ approvalStatus: "rejected" }).commit()
-      props.onComplete()
-    },
-  }
-}
+export const ApproveAction = createStatusAction({
+  currentStatus: "pending",
+  icon: CheckmarkIcon,
+  label: "Godkjenn",
+  nextStatus: "approved",
+  tone: "positive",
+})
+
+export const RejectAction = createStatusAction({
+  currentStatus: "pending",
+  icon: CloseIcon,
+  label: "Avvis",
+  nextStatus: "rejected",
+  tone: "critical",
+})
+
+export const PauseAction = createStatusAction({
+  currentStatus: "approved",
+  icon: PauseIcon,
+  label: "Sett på pause",
+  nextStatus: "paused",
+  tone: "caution",
+})
+
+export const ResumeAction = createStatusAction({
+  currentStatus: "paused",
+  icon: PlayIcon,
+  label: "Gjenoppta",
+  nextStatus: "approved",
+  tone: "positive",
+})

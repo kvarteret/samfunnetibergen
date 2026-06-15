@@ -7,6 +7,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { fetchPageBySlug, fetchPageSlugs } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
@@ -27,10 +28,11 @@ export async function generateMetadata({ params }: PageProps) {
   const page = await fetchPageBySlug(slug, { stega: false })
   if (!page) return {}
 
-  return {
-    title: `${page.seoTitle ?? page.title} | Samfunnet i Bergen`,
-    description: page.seoDescription ?? undefined,
-  }
+  return buildPageMetadata({
+    content: page,
+    canonicalPath: `/${localeParam}/${slug}`,
+    fallbackTitle: page.title,
+  })
 }
 
 export default async function DynamicPage({ params }: PageProps) {
