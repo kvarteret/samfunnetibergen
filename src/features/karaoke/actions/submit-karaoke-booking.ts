@@ -7,7 +7,7 @@ import {
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
-import { err, ok, type Result } from "@/lib/result"
+import { err, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import { KARAOKE_PRICING } from "../domain/formState"
 import type { PriceType } from "../types"
