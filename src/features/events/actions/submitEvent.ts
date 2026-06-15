@@ -4,16 +4,27 @@ import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
 
 import { getPostHogClient } from "@/lib/posthog-server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
+import { getEventValidationIssues } from "../domain/validation"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
 const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
+
+// User-facing copy. Internal error detail never crosses to the client; it is
+// kept in the PostHog captures below for debugging.
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
+const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
+
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
+const UPLOAD_LIMIT = 12
 
 function getWriteClient() {
   if (!WRITE_TOKEN) {
@@ -56,6 +67,8 @@ export type SubmitEventInput = {
   submittedBy: string
   submittedByEmail: string
   submittedByOrganization?: string
+  // Hidden anti-bot field; must stay empty for real submissions.
+  honeypot?: string
 }
 
 export type UploadImageResult = Result<string>
@@ -63,6 +76,18 @@ export type UploadImageResult = Result<string>
 export async function uploadEventImage(
   formData: FormData,
 ): Promise<UploadImageResult> {
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "uploadEventImage",
+      ip,
+      limit: UPLOAD_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return err(RATE_LIMIT_ERROR)
+  }
+
   try {
     const file = formData.get("image")
     if (!(file instanceof File) || !file.size) {
@@ -83,7 +108,12 @@ export async function uploadEventImage(
     return ok(asset._id)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
-    return err(message)
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "event_image_upload_failed",
+      properties: { error: message },
+    })
+    return err(GENERIC_ERROR)
   }
 }
 
@@ -109,37 +139,36 @@ function sanitizeUrl(url: string | undefined): string | undefined {
   return trimmed
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function isValidDateString(dateStr: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false
-  const d = new Date(`${dateStr}T00:00:00Z`)
-  return !isNaN(d.getTime())
-}
-
-function validateEventInput(input: SubmitEventInput): string | null {
-  if (!input.title?.trim()) return "Tittel er påkrevd"
-  if (!input.submittedBy?.trim()) return "Navn er påkrevd"
-  if (!input.submittedByEmail?.trim()) return "E-post er påkrevd"
-  if (!EMAIL_RE.test(input.submittedByEmail.trim())) return "Ugyldig e-post"
-
-  const validDates = (input.dates ?? []).filter(
-    d => d.startDate && isValidDateString(d.startDate),
-  )
-  if (validDates.length === 0) return "Minst én gyldig dato er påkrevd"
-
-  if (input.isRecurring && !input.rrule?.trim()) {
-    return "RRule er påkrevd for gjentagende arrangementer"
-  }
-
-  return null
-}
-
 export async function submitEvent(
   input: SubmitEventInput,
 ): Promise<SubmitEventResult> {
-  const validationError = validateEventInput(input)
-  if (validationError) return err(validationError)
+  // Silently accept honeypot hits so bots get a success response and never
+  // learn the field is a trap; nothing is written to Sanity.
+  if (input.honeypot?.trim()) {
+    return ok("ignored")
+  }
+
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "submitEvent",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return err(RATE_LIMIT_ERROR)
+  }
+
+  const issues = getEventValidationIssues({
+    title: input.title ?? "",
+    dates: input.dates ?? [],
+    submittedBy: input.submittedBy ?? "",
+    submittedByEmail: input.submittedByEmail ?? "",
+    isRecurring: Boolean(input.isRecurring),
+    rrule: input.rrule ?? "",
+  })
+  if (issues.length > 0) return err(issues[0].message)
 
   try {
     const doc = buildEventDocument(input)
@@ -166,7 +195,7 @@ export async function submitEvent(
       event: "event_submission_submit_failed",
       properties: { error: message },
     })
-    return err(message)
+    return err(GENERIC_ERROR)
   }
 }
 

@@ -53,9 +53,9 @@ interface EventFormProps {
 export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const uid = useId()
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
-  const [imageAssetId, setImageAssetId] = useState<string | null>(null)
-  const [imageUploading, setImageUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageUploadError, setImageUploadError] = useState("")
+  const [honeypot, setHoneypot] = useState("")
   const fieldIds = {
     title: `${uid}-title`,
     firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
@@ -66,6 +66,17 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const form = useForm({
     defaultValues: initialState as FormState,
     onSubmit: async ({ value }) => {
+      // Upload the image only now, as part of submit, so abandoned forms never
+      // leave orphaned assets in Sanity.
+      let imageAssetId: string | undefined
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append("image", imageFile)
+        const uploadResult = await uploadEventImage(formData)
+        if (!uploadResult.ok) throw new Error(uploadResult.error)
+        imageAssetId = uploadResult.value
+      }
+
       const result = await submitEvent({
         title: value.title,
         description: value.description || undefined,
@@ -98,6 +109,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         facebookUrl: value.facebookUrl || undefined,
         submittedBy: value.submittedBy,
         submittedByEmail: value.submittedByEmail,
+        honeypot,
       })
 
       if (!result.ok) throw new Error(result.error)
