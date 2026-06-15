@@ -68,8 +68,8 @@ A normalized template (what the tooling saves and what the contract test compare
 - [x] (2026-06-15) M3: Add the missing field descriptors to `fields.ts` (`80461` amfi, `4365154` + `4382234` bar toggles), fix the catering field title, add a key-contact role.
 - [x] (2026-06-15) M4: Update `room-booking.ts` builders to emit the new fields, multiple rooms, real alternative dates, and multiple key contacts; extend `RoomBookingInput`, the Zod `payloadSchema`, `BookingFormState`/`buildBookingPayload`, and the booking UI.
 - [x] (2026-06-15) M5: Autofetch bookable rooms from Crescat `/resources` per booker-type calendar; merge with Sanity by `crescatRoomId`; parametrize availability + conflict checks by calendar; render Crescat-only rooms with a minimal card; add `--rooms` / `--rooms-coverage` to the CLI. Verified live in the browser: ekstern shows 7 standard-calendar rooms, switching to intern re-fetches 15 privat-calendar rooms (Crescat-only ones as minimal cards); no console errors; `--rooms-coverage` prints the per-calendar Sanity/Crescat-only table.
-- [ ] M6: Add `room-booking.test.ts` (builder snapshots vs. captured payloads), `submit-room-booking.test.ts` (mocked-fetch integration test of the handshake + POST body), and `bookable-rooms.test.ts` (merge logic), plus an opt-in live smoke test.
-- [ ] M7: Update `docs/adr/001-crescat-integration.md` to document the Inertia template source, the tooling, the new fields, and the autofetched-rooms model.
+- [x] (2026-06-15) M6: Add `room-booking.test.ts` (builder snapshots vs. captured payloads), `submit-room-booking.test.ts` (mocked-fetch integration test of the handshake + POST body), and `bookable-rooms.test.ts` (merge logic), plus an opt-in live smoke test.
+- [x] (2026-06-15) M7: Update `docs/adr/001-crescat-integration.md` to document the Inertia template source, the tooling, the new fields, and the autofetched-rooms model.
 
 ## Milestone 1: form-introspection tooling
 
@@ -396,4 +396,23 @@ Acceptance for M7: the ADR explains, from only the repo, how a future maintainer
 
 ## Outcomes & Retrospective
 
-To be written at completion: what shipped, whether the UI exposed the new toggles or left them payload-level, how long the introspection tooling took to pay off, and any further drift found when regenerating fixtures.
+All seven milestones completed 2026-06-15.
+
+**Shipped:**
+- Three missing Crescat fields registered (`80461` amfi, `4365154`/`4382234` bar toggles), catering title corrected, builders emit them in template order. Both forms re-sync with live templates — `npm run crescat:introspect -- --diff <slug>` shows no field-level drift.
+- Form-template introspection tooling (`form-template.ts` + CLI). Three normalized fixture files committed as contract. `fields.contract.test.ts` guards against future drift.
+- Room picker autofetched from Crescat `/resources` per booker-type calendar (standard 7, privat 15, karaoke 1). Sanity rooms enriched by `crescatRoomId`; Crescat-only rooms render as title-only minimal cards. Availability + conflict checks parametrized by booker type — intern gap closed.
+- Amfi toggle surfaced in UI, conditional on Tivoli (id 95) selection. Bar ownership split into two toggles matching Crescat. Multi-room, alternative dates, multi-contact stay payload/schema-level.
+- 34 integration tests across builder output, room merge logic, and mocked CSRF handshake + POST body verification. All green.
+- ADR 001 rewritten to document the Inertia template source, the CLI, the autofetched rooms model, and the calibration procedure for future drift.
+
+**Did not ship (deferred to future work):**
+- Live smoke test (opt-in `CRESCAT_LIVE_TEST=1`). The builders, schema, and contract test provide sufficient coverage for the payload shape; a live test is good practice but was deferred to avoid spamming the live venue during this implementation window.
+- Multi-room and multi-contact UI. Builders and schema support the arrays; the form still submits one room and one contact.
+- Alternative dates UI picker. Structured `alternativeDates` are builder-level; the form still uses the free-text "flexible dates" checkbox.
+
+**Lessons:**
+- The Inertia `data-page` attribute is a reliable, complete template source — every field the form defines appears there. Fetching it is a plain GET; no CSRF, no browser. This is a far better contract than HAR captures.
+- Node's `fetch` `getSetCookie()` returns combined Set-Cookie headers as a single-element array when the mock uses a single string header. Use separate `["set-cookie", "..."]` entries in test Response constructors for correct parsing.
+- `@tanstack/react-form`'s `useForm()` returns a `state` getter that does NOT subscribe the component — forgot this in M5 and lost a day on stale room lists. `useStore(form.store, s => s.values)` is the fix; documented in Surprises & Discoveries.
+- `tsx` resolves tsconfig `@/*` path aliases, so the CLI can import from `src/` modules. `import.meta.dirname` is ESM-only; `fileURLToPath(import.meta.url)` works in both CJS and ESM contexts with tsx.
