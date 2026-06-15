@@ -108,7 +108,7 @@ export function normalizeTemplate(
 ): NormalizedTemplate {
   const parsed = dataPageSchema.safeParse(dataPage)
   if (!parsed.success) {
-    const missing = parsed.error.errors
+    const missing = parsed.error.issues
       .map(e => e.path.join("."))
       .join(", ")
     throw new Error(

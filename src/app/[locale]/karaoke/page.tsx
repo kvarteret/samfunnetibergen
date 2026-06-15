@@ -1,4 +1,4 @@
-import { Mic, Phone } from "lucide-react"
+import { Mic } from "lucide-react"
 
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 import { Link } from "@/i18n/navigation"
@@ -9,6 +9,7 @@ import {
 } from "@/lib/app-locale"
 import type { SourcedImage } from "@/lib/sanity/fetch"
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
+import { KaraokePhoneLink } from "./KaraokePhoneLink"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -129,13 +130,7 @@ function SameDayKaraokeNotice() {
           må du bestille på telefon:
         </li>
       </ul>
-      <a
-        className="flex items-center gap-2 font-heading text-primary hover:underline underline-offset-4 transition-colors focus-brutal"
-        href="tel:40626601"
-      >
-        <Phone className="size-4 shrink-0" aria-hidden />
-        406 26 601
-      </a>
+      <KaraokePhoneLink />
     </div>
   )
 }

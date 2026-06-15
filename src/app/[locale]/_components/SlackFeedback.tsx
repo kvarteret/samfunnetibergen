@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2, Send } from "lucide-react"
+import posthog from "posthog-js"
 import { type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -27,6 +28,7 @@ export function SlackFeedback() {
         body: JSON.stringify({ message: message.trim() }),
       })
       if (!res.ok) throw new Error("Failed")
+      posthog.capture("slack_feedback_submitted")
       setStatus("sent")
       setMessage("")
     } catch {

@@ -7,6 +7,7 @@ import {
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { err, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import { KARAOKE_PRICING } from "../domain/formState"
@@ -14,9 +15,12 @@ import type { PriceType } from "../types"
 
 function priceTypeLabel(pt: PriceType): string {
   switch (pt) {
-    case "frivillig": return "Intern frivillig"
-    case "ordinær":  return "Ekstern"
-    case "student":  return "Ekstern (student)"
+    case "frivillig":
+      return "Intern frivillig"
+    case "ordinær":
+      return "Ekstern"
+    case "student":
+      return "Ekstern (student)"
   }
 }
 
@@ -91,5 +95,33 @@ export async function submitKaraokeBooking(
     priceType: payload.priceType,
   })
 
-  return postEventRequest(KARAOKE_SLUG, body)
+  const result = await postEventRequest(KARAOKE_SLUG, body)
+
+  const posthog = getPostHogClient()
+  if (result.ok) {
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "karaoke_booking_submitted",
+      properties: {
+        price_type: payload.priceType,
+        number_of_people: payload.numberOfPeople,
+        duration_hours: payload.duration,
+        total_price: totalPrice,
+        start_date: payload.startDate,
+        crescat_event_id: result.value,
+      },
+    })
+  } else {
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "karaoke_booking_submit_failed",
+      properties: {
+        price_type: payload.priceType,
+        start_date: payload.startDate,
+        error: result.error,
+      },
+    })
+  }
+
+  return result
 }

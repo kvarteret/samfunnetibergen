@@ -45,7 +45,7 @@ export interface RecurringDatesSection {
   title: string
   description: string
   type: "recurringDates"
-  content: null
+  content: string[] | null
 }
 
 export interface KeyContact {

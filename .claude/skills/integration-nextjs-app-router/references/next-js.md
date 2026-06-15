@@ -64,7 +64,7 @@ Add your environment variables to your `.env.local` file and to your hosting pro
 PostHog AI
 
 ```shell
-NEXT_PUBLIC_POSTHOG_TOKEN=<ph_project_token>
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<ph_project_token>
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
@@ -80,7 +80,7 @@ PostHog AI
 
 ```javascript
 import posthog from 'posthog-js'
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_TOKEN, {
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   defaults: '2026-01-30'
 });
@@ -90,7 +90,7 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_TOKEN, {
 
 ```typescript
 import posthog from 'posthog-js'
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_TOKEN!, {
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
   api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   defaults: '2026-01-30'
 });
@@ -148,14 +148,12 @@ JavaScript
 PostHog AI
 
 ```javascript
-'use client'
-import posthog from 'posthog-js'
+"use client";
+import posthog from "posthog-js";
 export default function Home() {
   return (
     <div>
-      <button onClick={() => posthog.capture('test_event')}>
-        Click me for an event
-      </button>
+      <button onClick={() => posthog.capture("test_event")}>Click me for an event</button>
     </div>
   );
 }
@@ -170,11 +168,11 @@ JavaScript
 PostHog AI
 
 ```javascript
-'use client'
-import { useFeatureFlagEnabled } from 'posthog-js/react'
+"use client";
+import { useFeatureFlagEnabled } from "@posthog/react";
 export default function FeatureComponent() {
-  const showNewFeature = useFeatureFlagEnabled('new-feature')
-  return showNewFeature ? <NewFeature /> : <OldFeature />
+  const showNewFeature = useFeatureFlagEnabled("new-feature");
+  return showNewFeature ? <NewFeature /> : <OldFeature />;
 }
 ```
 
@@ -235,7 +233,7 @@ PostHog AI
 // app/posthog.js
 import { PostHog } from 'posthog-node'
 export default function PostHogClient() {
-  const posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_TOKEN, {
+  const posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
     host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     flushAt: 1,
     flushInterval: 0
@@ -315,7 +313,7 @@ export async function getServerSideProps(ctx) {
   let flags = null
   if (session) {
     const client = new PostHog(
-      process.env.NEXT_PUBLIC_POSTHOG_TOKEN,
+      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
       {
         host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
       }
@@ -354,7 +352,7 @@ TSX
 PostHog AI
 
 ```jsx
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_TOKEN, {
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
   // ... your configuration
   fetch_options: {
     cache: 'force-cache', // Use Next.js cache

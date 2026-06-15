@@ -31,6 +31,7 @@ import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { err, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 
@@ -173,5 +174,39 @@ export async function submitRoomBooking(
 
   const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
 
-  return postEventRequest(slugForBookerType(parsed.data.bookerType), body)
+  const result = await postEventRequest(
+    slugForBookerType(parsed.data.bookerType),
+    body,
+  )
+
+  const posthog = getPostHogClient()
+  if (result.ok) {
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "room_booking_submitted",
+      properties: {
+        booker_type: parsed.data.bookerType,
+        room_id: parsed.data.roomId,
+        start_date: parsed.data.startDate,
+        start_time: parsed.data.startTime,
+        end_time: parsed.data.endTime,
+        free_or_paid: parsed.data.freeOrPaid,
+        open_or_closed: parsed.data.openOrClosed,
+        crescat_event_id: result.value,
+      },
+    })
+  } else {
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "room_booking_submit_failed",
+      properties: {
+        booker_type: parsed.data.bookerType,
+        room_id: parsed.data.roomId,
+        start_date: parsed.data.startDate,
+        error: result.error,
+      },
+    })
+  }
+
+  return result
 }

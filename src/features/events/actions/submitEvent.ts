@@ -3,6 +3,7 @@
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
 
+import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
@@ -143,9 +144,28 @@ export async function submitEvent(
   try {
     const doc = buildEventDocument(input)
     const created = await getWriteClient().create(doc)
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "event_submission_submitted",
+      properties: {
+        title: input.title,
+        is_recurring: Boolean(input.isRecurring),
+        is_internal: Boolean(input.isInternalEvent),
+        is_free: Boolean(input.isFree),
+        has_ticket_url: Boolean(input.ticketUrl),
+        has_facebook_url: Boolean(input.facebookUrl),
+        date_count: input.dates.length,
+        sanity_document_id: created._id,
+      },
+    })
     return ok(created._id)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "event_submission_submit_failed",
+      properties: { error: message },
+    })
     return err(message)
   }
 }
