@@ -1,0 +1,241 @@
+{
+  "slug": "studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne",
+  "title": "Bookingskjema - DORGer, BORGer og interne",
+  "sections": [
+    {
+      "type": "recurringDates",
+      "title": "Gjentagende arrangement",
+      "parentId": null,
+      "fields": []
+    },
+    {
+      "type": "keyContacts",
+      "title": "Kontaktpersoner",
+      "parentId": null,
+      "fields": []
+    },
+    {
+      "type": "roomBooking",
+      "title": "Lokaler",
+      "parentId": null,
+      "fields": []
+    },
+    {
+      "type": "assignments",
+      "title": "Dagsplan",
+      "parentId": null,
+      "fields": []
+    },
+    {
+      "type": "metaData",
+      "title": "Bestilling",
+      "parentId": 7896,
+      "fields": [
+        {
+          "id": 57056,
+          "title": "Ønsket møblement",
+          "component": "field-text",
+          "required": true,
+          "class": "col-md-6",
+          "options": null
+        },
+        {
+          "id": 57057,
+          "title": "Nødvendig teknisk utstyr",
+          "component": "field-text",
+          "required": true,
+          "class": "col-md-6",
+          "options": null
+        },
+        {
+          "id": 57058,
+          "title": "Estimert antall publikum",
+          "component": "field-number",
+          "required": true,
+          "class": "col-md-3",
+          "options": null
+        },
+        {
+          "id": 80461,
+          "title": "Behov for amfi? NB: gjelder KUN Tivoli",
+          "component": "field-toggle",
+          "required": false,
+          "class": "col-md-3",
+          "options": null
+        },
+        {
+          "id": 1329447,
+          "title": "Åpent / lukket arrangement",
+          "component": "field-list",
+          "required": true,
+          "class": "col-md-3",
+          "options": [
+            "Åpent",
+            "Lukket"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "metaData",
+      "title": "Billettsalg",
+      "parentId": 4989,
+      "fields": [
+        {
+          "id": 1443270,
+          "title": "Gratis/betalt arrangement",
+          "component": "field-list",
+          "required": true,
+          "class": "col-md-3",
+          "options": [
+            "Gratis",
+            "Betalt"
+          ]
+        },
+        {
+          "id": 1244809,
+          "title": "Billettyper og priser",
+          "component": "field-text",
+          "required": true,
+          "class": "col-md-6",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "metaData",
+      "title": "Catering/bar",
+      "parentId": 11068,
+      "fields": [
+        {
+          "id": 80447,
+          "title": "Skriv litt om hva du ønsker å spise og drikke",
+          "component": "field-text",
+          "required": true,
+          "class": "col-md-6",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "termsOfUse",
+      "title": "Avbestillingsvilkår",
+      "parentId": null,
+      "fields": []
+    }
+  ],
+  "rooms": [
+    {
+      "id": 97,
+      "name": "Teglverket"
+    },
+    {
+      "id": 95,
+      "name": "Tivoli"
+    },
+    {
+      "id": 23,
+      "name": "Storelogen"
+    },
+    {
+      "id": 96,
+      "name": "Speilsalen"
+    },
+    {
+      "id": 98,
+      "name": "Maos Lille Røde"
+    },
+    {
+      "id": 117,
+      "name": "Støy"
+    },
+    {
+      "id": 118,
+      "name": "Stillhet"
+    },
+    {
+      "id": 119,
+      "name": "Stjernesalen"
+    },
+    {
+      "id": 120,
+      "name": "Grøndahls"
+    },
+    {
+      "id": 121,
+      "name": "Halvtimen"
+    },
+    {
+      "id": 287,
+      "name": "Bakgården"
+    },
+    {
+      "id": 122,
+      "name": "Lobby 1. Etg (Bermuda)"
+    },
+    {
+      "id": 123,
+      "name": "Lobby 2. Etg"
+    },
+    {
+      "id": 124,
+      "name": "Lobbyrinten"
+    },
+    {
+      "id": 125,
+      "name": "Garderobe"
+    },
+    {
+      "id": 128,
+      "name": "Parkeringsplass 2"
+    },
+    {
+      "id": 129,
+      "name": "Parkering Bakgården"
+    },
+    {
+      "id": 5305,
+      "name": "Akvariet 1. etg (Villaen)"
+    },
+    {
+      "id": 5306,
+      "name": "Blackbox 1. etg (Villaen)"
+    },
+    {
+      "id": 5307,
+      "name": "Engen 1. etg (Villaen)"
+    },
+    {
+      "id": 5308,
+      "name": "Festplassen 2. etg (Villaen)"
+    },
+    {
+      "id": 5309,
+      "name": "Korrommet 1. etg. (Villaen)"
+    },
+    {
+      "id": 5310,
+      "name": "Marken 2. etg (Villaen)"
+    },
+    {
+      "id": 5311,
+      "name": "Nøstet 1. etg (Villaen)"
+    },
+    {
+      "id": 5312,
+      "name": "Skansen 2. etg (Villaen)"
+    },
+    {
+      "id": 5313,
+      "name": "Togallmenningen 2. etg (Villaen)"
+    },
+    {
+      "id": 5314,
+      "name": "Ælsket Kontor 2. etg (Villaen)"
+    },
+    {
+      "id": 5447,
+      "name": "Gamle UiB-kantinen (3. etg)"
+    }
+  ]
+}

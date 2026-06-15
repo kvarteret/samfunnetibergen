@@ -54,6 +54,13 @@ export const AUDIENCE_COUNT = {
   class: "col-md-3",
   required: true,
 } satisfies FieldDef
+export const NEEDS_AMPHI = {
+  id: 80461,
+  title: "Behov for amfi? NB: gjelder KUN Tivoli",
+  component: "field-toggle",
+  class: "col-md-3",
+  required: false,
+} satisfies FieldDef
 export const OPEN_OR_CLOSED = {
   id: 1329447,
   title: "Åpent / lukket arrangement",
@@ -85,7 +92,7 @@ export const TICKET_TYPES = {
 export const CATERING_PARENT_ID = 11068
 export const CATERING_WISHES = {
   id: 80447,
-  title: "Skriv litt om hva du ønsker",
+  title: "Skriv litt om hva du ønsker å spise og drikke",
   component: "field-text",
   class: "col-md-6",
   required: false,
@@ -142,6 +149,22 @@ export const INVOICE_ORG_NUMBER = {
   id: 1494616,
   title: "Org.nr.",
   component: "field-number",
+  class: "col-md-3",
+  required: false,
+} satisfies FieldDef
+
+// — parent 11068 toggles (ekstern only) —
+export const BAR_SELF = {
+  id: 4365154,
+  title: "Jeg står i bar selv",
+  component: "field-toggle",
+  class: "col-md-3",
+  required: false,
+} satisfies FieldDef
+export const BAR_KVARTERET = {
+  id: 4382234,
+  title: "Kvarteret står i bar",
+  component: "field-toggle",
   class: "col-md-3",
   required: false,
 } satisfies FieldDef

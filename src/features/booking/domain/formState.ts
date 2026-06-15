@@ -7,7 +7,7 @@ export type { BookerType }
 export interface BookingFormState {
   bookerType: BookerType
   studentOrgName: string
-  roomSlug: string
+  selectedRoomId: number
   eventName: string
   startDate: string
   startTime: string
@@ -23,9 +23,11 @@ export interface BookingFormState {
   music: boolean
   soundTech: boolean
   lightTech: boolean
+  needsAmphi: boolean
   cateringCustom: boolean
   cateringText: string
-  bar: boolean
+  barSelf: boolean
+  barKvarteret: boolean
   freeOrPaid: "Gratis" | "Betalt"
   ticketTypes: string
   invoiceAddress: string
@@ -40,7 +42,7 @@ export interface BookingFormState {
 export const initialBookingState: BookingFormState = {
   bookerType: "ekstern",
   studentOrgName: "",
-  roomSlug: "",
+  selectedRoomId: 0,
   eventName: "",
   startDate: "",
   startTime: "19:00",
@@ -56,9 +58,11 @@ export const initialBookingState: BookingFormState = {
   music: false,
   soundTech: false,
   lightTech: false,
+  needsAmphi: false,
   cateringCustom: false,
   cateringText: "",
-  bar: false,
+  barSelf: false,
+  barKvarteret: false,
   freeOrPaid: "Gratis",
   ticketTypes: "",
   invoiceAddress: "",
@@ -90,9 +94,6 @@ export function composeCatering(state: BookingFormState): string {
   if (state.cateringCustom) {
     parts.push(state.cateringText.trim() || "Ønsker skreddersydd meny")
   }
-  if (state.bar) {
-    parts.push("Bar: ønsker at Kvarteret stiller i bar (2000 kr eks. mva)")
-  }
   return parts.join("\n")
 }
 
@@ -122,6 +123,9 @@ export function buildBookingPayload(
     contactPhone: state.contactPhone,
     acceptTerms: true,
     flexibleDates: isExternal ? state.flexibleDates : undefined,
+    needsAmphi: state.needsAmphi,
+    barSelf: state.barSelf,
+    barKvarteret: state.barKvarteret,
     studentOrgName:
       state.bookerType === "studentorg" ? state.studentOrgName : undefined,
     invoiceAddress: isExternal ? state.invoiceAddress : undefined,

@@ -96,31 +96,39 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
     )
   }
 
+  const isCrescatOnly = room.source === "crescat"
+  const roomName = room.title ?? String(room.crescatRoomId)
+
   return (
     <div>
-      <ImageWithFallback
-        alt={room.image?.alt ?? room.title ?? room.slug}
-        fallback={
-          <span className="flex items-center gap-2 text-foreground-muted">
-            <MapPin aria-hidden className="size-4" />
-            Velg et rom
-          </span>
-        }
-        sizes="(min-width: 1024px) 360px, 100vw"
-        src={room.image?.assetUrl}
-      />
+      {!isCrescatOnly && (
+        <ImageWithFallback
+          alt={room.image?.alt ?? roomName}
+          fallback={
+            <span className="flex items-center gap-2 text-foreground-muted">
+              <MapPin aria-hidden className="size-4" />
+              Velg et rom
+            </span>
+          }
+          sizes="(min-width: 1024px) 360px, 100vw"
+          src={room.image?.assetUrl}
+        />
+      )}
       <div className="border-b-2 border-border p-5">
         <p className="font-heading text-xl leading-tight text-foreground">
-          {room.title ?? room.slug}
+          {roomName}
         </p>
-        <p className="mt-1 text-sm text-foreground-muted">
-          {[
-            room.capacityStanding && `${room.capacityStanding} stående`,
-            room.capacitySeated && `${room.capacitySeated} sittende`,
-          ]
-            .filter(Boolean)
-            .join(" / ")}
-        </p>
+        {!isCrescatOnly &&
+          (room.capacityStanding || room.capacitySeated) && (
+            <p className="mt-1 text-sm text-foreground-muted">
+              {[
+                room.capacityStanding && `${room.capacityStanding} stående`,
+                room.capacitySeated && `${room.capacitySeated} sittende`,
+              ]
+                .filter(Boolean)
+                .join(" / ")}
+            </p>
+          )}
       </div>
     </div>
   )

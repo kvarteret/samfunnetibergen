@@ -14,8 +14,8 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
 })
 
 import {
+  calendarSlugForBookerType,
   fetchVenueCalendar,
-  VENUE_CALENDAR_SLUG,
 } from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import {
@@ -62,6 +62,24 @@ const payloadSchema = z.object({
   studentOrgName: z.string().trim().optional(),
   invoiceAddress: z.string().trim().optional(),
   orgNumber: z.number().int().nullable().optional(),
+  // New Crescat fields (2026-06-15 drift reconciliation)
+  needsAmphi: z.boolean().optional(),
+  barSelf: z.boolean().optional(),
+  barKvarteret: z.boolean().optional(),
+  alternativeDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  roomIds: z.array(z.number().int().positive()).optional(),
+  keyContacts: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        role: z.string().trim().default(""),
+        email: z.string().trim().email(),
+        phone: z.string().trim().default(""),
+        country_code: z.string().trim().default("+47"),
+      }),
+    )
+    .optional(),
+  contactRole: z.string().trim().optional(),
 })
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
@@ -77,7 +95,7 @@ async function hasVenueCalendarConflict(
   payload: z.output<typeof payloadSchema>,
 ): Promise<boolean> {
   const bookings = await fetchVenueCalendar(
-    VENUE_CALENDAR_SLUG,
+    calendarSlugForBookerType(payload.bookerType),
     payload.startDate,
     addDaysDateOnly(payload.startDate, 1),
   )
@@ -112,13 +130,14 @@ async function isAllowedByOpeningHours(
     fetchHouseHours(),
     fetchBookableRooms(),
   ])
+  // A Crescat-only room (not in Sanity) has no room-specific hours; validate it
+  // against the house hours alone rather than rejecting it.
   const room = rooms.find(
     candidate => candidate.crescatRoomId === payload.roomId,
   )
-  if (!room) return false
 
   const baseHours = houseHours?.operationsManagerHours ?? null
-  const roomHours = room.openingHours ?? null
+  const roomHours = room?.openingHours ?? null
   const hasConfiguredHours =
     hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)
   if (!hasConfiguredHours) return true

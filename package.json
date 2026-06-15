@@ -20,6 +20,7 @@
     "sanity:migrate:repair-content": "sanity exec scripts/repair-sanity-content.ts --with-user-token",
     "sanity:migrate:repair-content:write": "SANITY_MIGRATION_WRITE=1 sanity exec scripts/repair-sanity-content.ts --with-user-token",
     "sanity:audit": "sanity exec scripts/audit-sanity-content.ts --with-user-token",
+    "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "test": "vitest run --coverage",
     "lint": "eslint",
     "format": "biome format --write .",
