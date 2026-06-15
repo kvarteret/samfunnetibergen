@@ -54,6 +54,8 @@ export function KaraokeForm({
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
+  const [honeypot, setHoneypot] = useState("")
+  const honeypotId = `${uid}-hp`
   const today = isoDate(new Date())
   const fieldIds = {
     eventName: `${uid}-eventName`,
@@ -68,9 +70,10 @@ export function KaraokeForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
     onSubmit: async ({ value }) => {
       const derived = deriveKaraokeState(value)
-      const result = await submitKaraokeBooking(
-        buildKaraokePayload(value, derived),
-      )
+      const result = await submitKaraokeBooking({
+        ...buildKaraokePayload(value, derived),
+        honeypot,
+      })
       if (!result.ok) throw new Error(result.error)
     },
   })
@@ -171,6 +174,18 @@ export function KaraokeForm({
             acceptTermsId={fieldIds.acceptTerms}
             studentProofError={errorFor(fieldIds.studentProof)}
             studentProofId={fieldIds.studentProof}
+          />
+          {/* Honeypot — invisible to humans, filled by bots. */}
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            className="absolute opacity-0 pointer-events-none h-0 w-0"
+            id={honeypotId}
+            name="honeypot"
+            onChange={e => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            type="text"
+            value={honeypot}
           />
           <KaraokeFormSubmitSection />
         </form>

@@ -32,8 +32,14 @@ import {
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { err, type Result } from "@/lib/result"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
+
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
+const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
@@ -155,8 +161,23 @@ async function isAllowedByOpeningHours(
 }
 
 export async function submitRoomBooking(
-  payload: RoomBookingPayload,
+  payload: RoomBookingPayload & { honeypot?: string },
 ): Promise<Result<number>> {
+  // Silently accept honeypot hits — nothing is forwarded to Crescat.
+  if (payload.honeypot?.trim()) return ok(-1)
+
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "submitRoomBooking",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return err(RATE_LIMIT_ERROR)
+  }
+
   const parsed = payloadSchema.safeParse(payload)
   if (!parsed.success) {
     return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
@@ -195,18 +216,19 @@ export async function submitRoomBooking(
         crescat_event_id: result.value,
       },
     })
-  } else {
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "room_booking_submit_failed",
-      properties: {
-        booker_type: parsed.data.bookerType,
-        room_id: parsed.data.roomId,
-        start_date: parsed.data.startDate,
-        error: result.error,
-      },
-    })
+    return result
   }
 
-  return result
+  // Keep internal error detail in PostHog; return generic message to client.
+  posthog.capture({
+    distinctId: "anonymous",
+    event: "room_booking_submit_failed",
+    properties: {
+      booker_type: parsed.data.bookerType,
+      room_id: parsed.data.roomId,
+      start_date: parsed.data.startDate,
+      error: result.error,
+    },
+  })
+  return err(GENERIC_ERROR)
 }

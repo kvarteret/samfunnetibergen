@@ -8,10 +8,16 @@ import {
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { err, type Result } from "@/lib/result"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import { KARAOKE_PRICING } from "../domain/formState"
 import type { PriceType } from "../types"
+
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
+const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
 
 function priceTypeLabel(pt: PriceType): string {
   switch (pt) {
@@ -65,8 +71,23 @@ function enrichDescription(
 }
 
 export async function submitKaraokeBooking(
-  payload: KaraokeBookingPayload,
+  payload: KaraokeBookingPayload & { honeypot?: string },
 ): Promise<Result<number>> {
+  // Silently accept honeypot hits — nothing is forwarded to Crescat.
+  if (payload.honeypot?.trim()) return ok(-1)
+
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "submitKaraokeBooking",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return err(RATE_LIMIT_ERROR)
+  }
+
   const houseHours = await fetchHouseHours()
   const slotAllowed = isSlotAllowed(
     payload.startDate,
@@ -111,17 +132,18 @@ export async function submitKaraokeBooking(
         crescat_event_id: result.value,
       },
     })
-  } else {
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "karaoke_booking_submit_failed",
-      properties: {
-        price_type: payload.priceType,
-        start_date: payload.startDate,
-        error: result.error,
-      },
-    })
+    return result
   }
 
-  return result
+  // Keep internal error detail in PostHog; return generic message to client.
+  posthog.capture({
+    distinctId: "anonymous",
+    event: "karaoke_booking_submit_failed",
+    properties: {
+      price_type: payload.priceType,
+      start_date: payload.startDate,
+      error: result.error,
+    },
+  })
+  return err(GENERIC_ERROR)
 }

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server"
 import { getPostHogClient } from "@/lib/posthog-server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
+
+const GENERIC_ERROR = "Kunne ikke registrere frivillig."
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
 
 interface VolunteerProspectBody {
   full_name: string
@@ -79,8 +84,34 @@ function extractErrorDetail(err: unknown): string {
 }
 
 export async function POST(request: Request) {
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "volunteer-prospects",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return NextResponse.json(
+      { detail: "For mange forsøk. Vent litt og prøv igjen." },
+      { status: 429 },
+    )
+  }
+
   try {
     const body = await request.json().catch(() => null)
+
+    // Silently accept honeypot hits.
+    if (
+      body &&
+      typeof body === "object" &&
+      (body as Record<string, unknown>).honeypot &&
+      String((body as Record<string, unknown>).honeypot).trim() !== ""
+    ) {
+      return NextResponse.json({ registrationId: "ignored" }, { status: 201 })
+    }
+
     if (!validate(body)) {
       return NextResponse.json(
         { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
@@ -143,6 +174,11 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
-    return NextResponse.json({ detail: message }, { status: 500 })
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "volunteer_application_submit_failed",
+      properties: { error: message },
+    })
+    return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }
 }

@@ -67,6 +67,8 @@ export function BookingForm({
 }: BookingFormProps) {
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
+  const [honeypot, setHoneypot] = useState("")
+  const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(new Date())
   const fieldIds = {
@@ -89,7 +91,10 @@ export function BookingForm({
     onSubmit: async ({ value }) => {
       const room = rooms.find(r => r.crescatRoomId === value.selectedRoomId)
       if (!room) throw new Error("Ingen rom valgt")
-      const result = await submitRoomBooking(buildBookingPayload(value, room))
+      const result = await submitRoomBooking({
+        ...buildBookingPayload(value, room),
+        honeypot,
+      })
       if (!result.ok) throw new Error(result.error)
     },
   })
@@ -300,6 +305,19 @@ export function BookingForm({
           <BookingFormTermsSection
             acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
+          />
+
+          {/* Honeypot — invisible to humans, filled by bots. */}
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            className="absolute opacity-0 pointer-events-none h-0 w-0"
+            id={honeypotId}
+            name="honeypot"
+            onChange={e => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            type="text"
+            value={honeypot}
           />
 
           <section className="space-y-4 border-t-2 border-border pt-8">

@@ -1,4 +1,24 @@
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
+
 export async function POST(request: Request) {
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "slack-feedback",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return Response.json(
+      { detail: "For mange forsøk. Vent litt og prøv igjen." },
+      { status: 429 },
+    )
+  }
+
   const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK
 
   if (!webhookUrl) {
@@ -10,6 +30,16 @@ export async function POST(request: Request) {
     body = await request.json()
   } catch {
     return Response.json({ detail: "Invalid body" }, { status: 400 })
+  }
+
+  // Silently accept honeypot hits.
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    (body as Record<string, unknown>).honeypot &&
+    String((body as Record<string, unknown>).honeypot).trim() !== ""
+  ) {
+    return Response.json({ ok: true }, { status: 200 })
   }
 
   const message =

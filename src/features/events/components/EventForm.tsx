@@ -172,14 +172,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     useFormErrors(validationErrors)
 
   const handleImageChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
 
       if (!file) {
         return
       }
 
-      setImageAssetId(null)
       setImageUploadError("")
       event.target.value = ""
 
@@ -202,26 +201,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         }
         return previewUrl
       })
-      setImageUploading(true)
-
-      const formData = new FormData()
-      formData.append("image", file)
-
-      try {
-        const result = await uploadEventImage(formData)
-
-        if (result.ok) {
-          setImageAssetId(result.value)
-        } else {
-          setImageUploadError(result.error)
-        }
-      } catch {
-        setImageUploadError(
-          "Kunne ikke laste opp bildet. Prøv igjen med et bilde under 10 MB.",
-        )
-      } finally {
-        setImageUploading(false)
-      }
+      setImageFile(file)
     },
     [],
   )
@@ -233,7 +213,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       }
       return null
     })
-    setImageAssetId(null)
+    setImageFile(null)
     setImageUploadError("")
   }, [])
 
