@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getPostHogClient } from "@/lib/posthog-server"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
@@ -113,13 +114,29 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => null)
-      return NextResponse.json(
-        { detail: extractErrorDetail(errorBody) },
-        { status: 422 },
-      )
+      const detail = extractErrorDetail(errorBody)
+      getPostHogClient().capture({
+        distinctId: "anonymous",
+        event: "volunteer_application_submit_failed",
+        properties: {
+          first_choice_group_slug: requestBody.first_choice_group_slug,
+          has_second_choice: Boolean(requestBody.second_choice_group_slug),
+          error: detail,
+        },
+      })
+      return NextResponse.json({ detail }, { status: 422 })
     }
 
     const data = await response.json()
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "volunteer_application_submitted",
+      properties: {
+        first_choice_group_slug: requestBody.first_choice_group_slug,
+        has_second_choice: Boolean(requestBody.second_choice_group_slug),
+        has_friend_referrals: (requestBody.friend_emails?.length ?? 0) > 0,
+      },
+    })
     return NextResponse.json(
       { registrationId: (data as { registrationId?: string }).registrationId },
       { status: 201 },

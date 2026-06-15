@@ -1,3 +1,5 @@
+import { getPostHogClient } from "@/lib/posthog-server"
+
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
@@ -50,6 +52,17 @@ export async function POST(request: Request) {
       { status: 502 },
     )
   }
+
+  const page = typeof raw.page === "string" ? raw.page : "ukjent"
+  getPostHogClient().capture({
+    distinctId: "anonymous",
+    event: "feedback_submitted",
+    properties: {
+      feedback_type: feedbackType,
+      page,
+      contact_allowed: Boolean(contactEmail),
+    },
+  })
 
   return Response.json({ ok: true }, { status: 200 })
 }

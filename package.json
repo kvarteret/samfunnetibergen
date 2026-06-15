@@ -28,6 +28,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.219.0",
+    "@opentelemetry/resources": "^2.8.0",
+    "@opentelemetry/sdk-logs": "^0.219.0",
     "@sanity/assist": "^6.1.1",
     "@sanity/orderable-document-list": "^1.5.1",
     "@sanity/vision": "^5.23.0",
@@ -44,6 +47,8 @@
     "next": "16.2.9",
     "next-intl": "^4.9.0",
     "next-sanity": "^13.1.0",
+    "posthog-js": "^1.386.8",
+    "posthog-node": "^5.37.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",

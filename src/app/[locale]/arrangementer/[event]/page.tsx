@@ -1,16 +1,15 @@
-import { ExternalLink, Ticket } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
-import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
+import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   dateStyle: "long",
@@ -39,9 +38,17 @@ export default async function EventPage({ params }: EventPageProps) {
 
   return (
     <article className="flex w-full flex-col gap-8">
-      <EventDetailHero event={eventData} ticketsLabel={t("tickets")} />
+      <EventDetailHero
+        event={eventData}
+        eventSlug={resolvedParams.event}
+        ticketsLabel={t("tickets")}
+      />
       <EventDetailScheduleAndMeta event={eventData} t={t} />
-      <EventDetailDescription event={eventData} t={t} />
+      <EventDetailDescription
+        event={eventData}
+        eventSlug={resolvedParams.event}
+        t={t}
+      />
     </article>
   )
 }
@@ -84,9 +91,11 @@ export async function generateMetadata({ params }: EventPageProps) {
 
 function EventDetailHero({
   event,
+  eventSlug,
   ticketsLabel,
 }: {
   event: EventDetail
+  eventSlug: string
   ticketsLabel: string
 }) {
   return (
@@ -101,16 +110,12 @@ function EventDetailHero({
           {event.title}
         </h1>
         {event.ticketUrl && (
-          <Button
-            className="w-fit"
-            render={
-              <a href={event.ticketUrl} rel="noreferrer" target="_blank" />
-            }
-            size="default"
-          >
-            <Ticket aria-hidden="true" />
-            {ticketsLabel}
-          </Button>
+          <EventTicketButton
+            ticketUrl={event.ticketUrl}
+            label={ticketsLabel}
+            eventTitle={event.title}
+            eventSlug={eventSlug}
+          />
         )}
       </div>
 
@@ -290,14 +295,16 @@ function EventDetailRoomLink({
 
 function EventDetailDescription({
   event,
+  eventSlug,
   t,
 }: {
   event: EventDetail
+  eventSlug: string
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
-      <EventDetailActions event={event} t={t} />
+      <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
       <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (
           <PortableTextContent value={event.description} />
@@ -311,23 +318,22 @@ function EventDetailDescription({
 
 function EventDetailActions({
   event,
+  eventSlug,
   t,
 }: {
   event: EventDetail
+  eventSlug: string
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
     <div className="space-y-4">
       {event.facebookUrl && (
-        <Button
-          render={
-            <a href={event.facebookUrl} rel="noreferrer" target="_blank" />
-          }
-          variant="neutral"
-        >
-          <ExternalLink aria-hidden="true" />
-          {t("facebook")}
-        </Button>
+        <EventFacebookButton
+          facebookUrl={event.facebookUrl}
+          label={t("facebook")}
+          eventTitle={event.title}
+          eventSlug={eventSlug}
+        />
       )}
     </div>
   )
