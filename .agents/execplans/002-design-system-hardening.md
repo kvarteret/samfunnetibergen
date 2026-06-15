@@ -33,6 +33,15 @@ M1 — split `form-fields.tsx`, kill the cycle:
 - [x] (2026-06-11 08:09Z) Verified `form-fields.tsx` is deleted and `rg -n "@/components/ui/form-fields|components/ui/form-fields|form-fields" src` returns no source hits.
 - [x] (2026-06-11 08:09Z) `npm run build` green after M1/M2 source state; build completed with the existing Portable Text warning during static generation.
 
+M14 — complete Storybook catalog:
+
+- [x] (2026-06-14 12:45Z) Installed Storybook 10.4.4 with the Next.js Vite framework, Vitest browser integration, accessibility/docs/MCP addons, MSW, shared global CSS, and the real React Query provider.
+- [x] (2026-06-14 12:45Z) Replaced the generated demo stories with initial stories for Button, Card, Alert, Tag, SegmentedControl, DateBadges, and RoomCapacity; 24 Storybook browser tests and the static Storybook build pass.
+- [x] (2026-06-14 13:05Z) Audited every visual module in `src/components/ui/` against `/[locale]/design` and real source call sites. Storybook currently covers 5 of 34 visual UI modules; `selection-control.tsx` is a style helper rather than a rendered component.
+- [x] (2026-06-14 12:54Z) Added colocated stories for every uncovered visual module in `src/components/ui/`, including representative variants plus meaningful disabled, error, portal, and interactive states.
+- [x] (2026-06-14 12:54Z) Stabilized Vitest browser dependency optimization, fixed Tooltip's missing `role="tooltip"`, and passed the complete Storybook project: 36 files and 99 tests.
+- [x] (2026-06-14 12:56Z) Verified Biome, ESLint, the static Storybook build, 36 story files / 99 browser tests, exactly one `CssCheck`, zero `needs-work` tags, and exact 34-module / 34-story coverage for rendered `src/components/ui` modules.
+
 M2 — dead code, Surface removal, API fixes:
 
 - [x] (2026-06-11 08:09Z) Re-verified zero canonical importers, then deleted `ui/{accordion,popover,tooltip,checkbox,select}.tsx`; removed direct `@radix-ui/react-accordion` and `@radix-ui/react-checkbox` dependencies. They remain only as transitive dependencies of the `radix-ui` package.
@@ -199,6 +208,15 @@ M13 (optional, gated) — shadcn registry:
 - Observation: `ExpandableText`, still listed in `.agents/design-system.md`, no longer exists in `src/`. The surviving disclosure pattern is a raw `<details>` in the groups FAQ (`grupper/page.tsx:114`).
   Evidence: `grep -rn "ExpandableText" src` returns nothing.
 
+- Observation: `/[locale]/design` demonstrates 20 design-system surfaces, while `src/components/ui/` now contains 34 visual modules. Newer primitives such as Accordion, Avatar, Carousel, ComboboxField, NumberField, RadioGroup, NavigationMenu, Tooltip, and ImageWithFallback are absent from the route.
+  Evidence: the imports in `src/app/[locale]/design/page.tsx` cover 20 surfaces; the source inventory under `src/components/ui/*.tsx` contains 34 rendered modules plus the helper-only `selection-control.tsx`.
+
+- Observation: Vitest's browser project reloads and invalidates suites when Vite discovers many Base UI entry points during the first exhaustive run.
+  Evidence: the first 36-file run reported repeated "optimized dependencies changed. reloading" messages and 29 failed suites; adding the reported packages to `optimizeDeps.include` reduced the next full run to real story failures only.
+
+- Observation: Base UI's Tooltip popup did not expose a tooltip role by default in this wrapper.
+  Evidence: the portal rendered visibly with `data-open` but `findByRole("tooltip")` failed until `role="tooltip"` was added to `src/components/ui/tooltip.tsx`.
+
 ## Decision Log
 
 - Decision: Keep the hand-rolled `CheckboxSquare`/`SelectField` as canonical and delete the unused Radix `checkbox.tsx`/`select.tsx`, rather than migrating onto Radix.
@@ -237,6 +255,10 @@ M13 (optional, gated) — shadcn registry:
   Rationale: Recorded in earlier revisions; unchanged.
   Date/Author: 2026-06-11 kluvin
 
+- Decision: Storybook becomes the canonical exhaustive component catalog, while `/design` remains a curated in-application gallery.
+  Rationale: A route is useful for checking tokens inside the real application shell, but it has drifted behind the component directory and cannot provide isolated controls, interaction tests, accessibility checks, or static visual-review artifacts. Completeness is therefore measured against every rendered module in `src/components/ui/`; helper-only modules are covered through their public consumers.
+  Date/Author: 2026-06-14 Codex
+
 - Decision: `Disclosure` is built on native `<details>/<summary>`, not the shadcn/Radix Accordion.
   Rationale: The Radix accordion rebuilds collapse semantics in JS and would force the FAQ page (a server component) to ship and hydrate client JS. Native `<details>` gives keyboard support, semantics, and find-in-page auto-expansion for zero JS; the two classic reasons to want Radix are native now too — exclusive-open groups via the `name` attribute on `<details>`, and open/close animation via `::details-content` with `interpolate-size`. Radix's only remaining advantage is React-controlled open state, which nothing here needs. Owning a native-element primitive is squarely within shadcn's own you-own-the-source model.
   Date/Author: 2026-06-11 kluvin
@@ -272,6 +294,7 @@ M13 (optional, gated) — shadcn registry:
 - M4 implementation mostly completed on 2026-06-11. The focus utilities, primitive classes, nav/footer/text-link classes, radiogroup semantics, disabled checkbox behavior, and 44px primitive touch targets are in source and `npm run build` is green. The visual keyboard/400% zoom pass remains open because the available Browser wrapper could focus elements but did not trigger `:focus-visible`, making computed outline checks inconclusive.
 - M5 completed on 2026-06-11. The exact source greps for `text-foreground/NN`, `tracking-[…]`, and markup `text-[…]` are clean; layout/aspect/grid/blur raw values were converted to stock utilities or named `globals.css` utilities; the only remaining bracketed classes are documented selector variants; `npm run build` remains green.
 - M6 completed on 2026-06-11. Success/green tokens, shadow scale, Tag variants, and `interactive-brutal` are in source. `OpenStatus` renders `Tag` status labels, booking room occupancy uses `Tag variant="destructive"`, `SelectableCard` and karaoke room cards use shared interaction physics, and `npm run build` remains green. Browser smoke verified status tags on `/nb` and interactive card counts on `/nb/rom/book` and `/nb/karaoke`.
+- M14 completed on 2026-06-14. Storybook is now the exhaustive design-system catalog: every rendered module in `src/components/ui/` has a colocated story, while the helper-only `selection-control.tsx` is exercised through its public consumers. The catalog includes static variants, disabled/error states, portal-based controls, and focused interaction checks. Vitest browser verification passes 99 tests across 36 files; ESLint and the production Storybook build pass; a live browser smoke confirmed the 34-module sidebar, complex carousel rendering, and no console errors. The work also fixed Tooltip's missing `role="tooltip"` and stabilized Vite dependency optimization for the expanded browser suite.
 
 ## Context and Orientation
 
@@ -591,6 +614,8 @@ Feature barrels gain: `bars` → OpenStatus, OpenStatusRoom; `rooms` → RoomCap
 Revision note (2026-06-11): rewritten to fold in the design-direction RFC and the site-lift brief — user-specified focus layering (amber→black→cream, gapless), Oatly added to inspirations, conditional-question house rule, tailored-inputs pass, EventCard server-component rework, front-page booking/grupper banners, text-emphasis and eyebrow token consolidation, typed TanStack fields, and the GroupVolunteerForm stack convergence. Earlier M-numbering (M1–M7) is superseded by phases A–D / M1–M13.
 
 Revision note (2026-06-11, later): per user direction — `Surface` is deleted rather than fixed (Tailwind-primitives preference; see Decision Log); two house policies added (prefer stock Tailwind utilities; no arbitrary values in markup) with an M5 conversion table for the existing census; the Disclosure-vs-shadcn-Accordion rationale is recorded in the Decision Log; the direction RFC's touch-target baking (→ M4) and default heading scale (→ M5) — which had dropped out of the previous revision — are restored; and the Progress section now carries granular per-milestone todo checklists.
+
+Revision note (2026-06-14): added and completed M14, making Storybook the exhaustive component catalog while retaining `/design` as the curated application gallery. Recorded the Vite browser-test optimization requirement, Tooltip accessibility fix, complete coverage audit, and final verification evidence.
 
 Revision note (2026-06-11 08:09Z): M1 was verified from current source and M2 was implemented. The plan now records the source-backed `Surface` call-site count (12 instead of the stale 8), the successful `npm install`, successful `npm run build`, and the browser smoke routes used to verify the inlined panel treatment.
 
