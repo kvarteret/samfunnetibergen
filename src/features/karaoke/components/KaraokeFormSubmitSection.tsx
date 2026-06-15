@@ -5,7 +5,6 @@ import { Loader2, Mic, X } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import type { KaraokeBookingResult } from "../actions/submit-karaoke-booking"
 import { useKaraokeForm } from "./karaokeFormContext"
 
 export function KaraokeFormSubmitSection() {
@@ -46,37 +45,13 @@ export function KaraokeFormSubmitSection() {
   )
 }
 
-export function KaraokeBookingSuccess({ result }: { result: KaraokeBookingResult | null }) {
+export function KaraokeBookingSuccess() {
   return (
     <Alert className="max-w-2xl p-8" variant="success">
       <AlertTitle className="text-xl">Forespørsel mottatt!</AlertTitle>
-      <AlertDescription className="space-y-3">
-        <p>
-          Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar
-          kontakt på e-post.
-        </p>
-        {result && (
-          <div className="border-t border-success-foreground/20 pt-3 mt-3 space-y-1">
-            <p>
-              <span className="font-heading text-foreground">Bookertype:</span>{" "}
-              {result.bookerLabel}
-            </p>
-            {result.priceType !== "frivillig" && (
-              <p>
-                <span className="font-heading text-foreground">
-                  Prisestimat:
-                </span>{" "}
-                {result.totalPrice.toLocaleString("nb-NO")} kr
-              </p>
-            )}
-            {result.priceType === "frivillig" && (
-              <p className="text-sm text-foreground-muted">
-                Som intern frivillig booker du gratis, men eksterne bookinger
-                har prioritet og kan overta rommet med 12 timers varsel.
-              </p>
-            )}
-          </div>
-        )}
+      <AlertDescription>
+        Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar
+        kontakt på e-post.
       </AlertDescription>
     </Alert>
   )

@@ -16,10 +16,7 @@ import {
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
-import {
-  type KaraokeBookingResult,
-  submitKaraokeBooking,
-} from "../actions/submit-karaoke-booking"
+import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
@@ -56,7 +53,6 @@ export function KaraokeForm({
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const [bookingResult, setBookingResult] = useState<KaraokeBookingResult | null>(null)
   const today = isoDate(new Date())
   const fieldIds = {
     eventName: `${uid}-eventName`,
@@ -75,7 +71,6 @@ export function KaraokeForm({
         buildKaraokePayload(value, derived),
       )
       if (!result.ok) throw new Error(result.error)
-      setBookingResult(result.value)
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -123,7 +118,7 @@ export function KaraokeForm({
   ])
 
   if (isSubmitSuccessful) {
-    return <KaraokeBookingSuccess result={bookingResult} />
+    return <KaraokeBookingSuccess />
   }
 
   return (

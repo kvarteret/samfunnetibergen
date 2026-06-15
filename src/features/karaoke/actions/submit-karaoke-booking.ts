@@ -12,34 +12,57 @@ import { fetchHouseHours } from "@/lib/sanity/fetch"
 import { KARAOKE_PRICING } from "../domain/formState"
 import type { PriceType } from "../types"
 
-export interface KaraokeBookingResult {
-  statusCode: number
-  totalPrice: number
-  priceType: PriceType
-  bookerLabel: string
-}
-
-function bookerLabel(priceType: PriceType): string {
-  switch (priceType) {
+function priceTypeLabel(pt: PriceType): string {
+  switch (pt) {
     case "frivillig": return "Intern frivillig"
     case "ordinær":  return "Ekstern"
     case "student":  return "Ekstern (student)"
   }
 }
 
-function calcPrice(
+function priceCalcDescription(
   priceType: PriceType,
   people: number,
   durationHours: number,
-): number {
-  if (people <= 0 || priceType === "frivillig") return 0
-  const price = KARAOKE_PRICING[priceType]
-  return Math.max(price.perPerson * people, price.minPerHour) * durationHours
+  totalPrice: number,
+): string {
+  if (people <= 0 || priceType === "frivillig") {
+    return "Frivillig — gratis"
+  }
+  const p = KARAOKE_PRICING[priceType]
+  return (
+    `${p.perPerson} kr/pers × ${people} pers` +
+    ` (min ${p.minPerHour} kr/t) × ${durationHours}t = ${totalPrice} kr`
+  )
+}
+
+function enrichDescription(
+  payload: KaraokeBookingPayload,
+  totalPrice: number,
+): string {
+  const priceCalc = priceCalcDescription(
+    payload.priceType,
+    payload.numberOfPeople,
+    payload.duration,
+    totalPrice,
+  )
+  const userText = payload.description.trim()
+    ? `${payload.description.trim()}\n\n`
+    : ""
+
+  return (
+    `${userText}EKSTRA, FRA BOOKING:\n` +
+    `TYPE: ${priceTypeLabel(payload.priceType)}\n` +
+    `PRIS: ${totalPrice} kr\n` +
+    `PRISUTREGNING: ${priceCalc}\n` +
+    `LOVER FREMVISE STUDENTBEVIS?: ${payload.studentProofAccepted ? "ja" : "nei"}\n` +
+    `GODTATT BETINGELSER?: ${payload.acceptTerms ? "ja" : "nei"}`
+  )
 }
 
 export async function submitKaraokeBooking(
   payload: KaraokeBookingPayload,
-): Promise<Result<KaraokeBookingResult>> {
+): Promise<Result<number>> {
   const houseHours = await fetchHouseHours()
   const slotAllowed = isSlotAllowed(
     payload.startDate,
@@ -53,18 +76,14 @@ export async function submitKaraokeBooking(
     return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
   }
 
-  const totalPrice = calcPrice(
-    payload.priceType,
-    payload.numberOfPeople,
-    payload.duration,
-  )
+  const totalPrice = payload.totalPrice
 
   const body = buildKaraokeRequest({
     eventName: payload.eventName,
     startDate: payload.startDate,
     startTime: payload.startTime,
     durationHours: payload.duration,
-    description: payload.description,
+    description: enrichDescription(payload, totalPrice),
     contactName: payload.contactName,
     contactEmail: payload.contactEmail,
     contactPhone: payload.contactPhone,
@@ -72,14 +91,5 @@ export async function submitKaraokeBooking(
     priceType: payload.priceType,
   })
 
-  const result = await postEventRequest(KARAOKE_SLUG, body)
-
-  if (!result.ok) return result
-
-  return ok({
-    statusCode: result.value,
-    totalPrice,
-    priceType: payload.priceType,
-    bookerLabel: bookerLabel(payload.priceType),
-  })
+  return postEventRequest(KARAOKE_SLUG, body)
 }

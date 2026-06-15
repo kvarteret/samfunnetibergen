@@ -102,6 +102,8 @@ export function buildKaraokePayload(
     priceType: state.priceType,
     numberOfPeople: derived.people,
     totalPrice: derived.totalPrice,
+    studentProofAccepted: state.studentProofAccepted,
+    acceptTerms: state.acceptTerms,
   }
 }
 

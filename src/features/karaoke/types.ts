@@ -13,6 +13,8 @@ export type KaraokeBookingPayload = {
   priceType: PriceType
   numberOfPeople: number
   totalPrice: number
+  studentProofAccepted: boolean
+  acceptTerms: boolean
 }
 
 export interface KaraokeRoomImage {
