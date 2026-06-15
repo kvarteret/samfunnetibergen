@@ -2,7 +2,8 @@
 
 import { type AnyFieldApi, useForm, useStore } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
-import { type FormEvent, useState } from "react"
+import posthog from "posthog-js"
+import { type FormEvent, useRef, useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -149,6 +150,15 @@ export function GroupVolunteerForm({
     if (slug === secondChoiceSlug) setSecondChoiceSlug("")
   }
 
+  const hasStartedRef = useRef(false)
+  const markStarted = () => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+    posthog.capture("volunteer_application_started", {
+      first_choice_group_slug: selectedSlug || undefined,
+    })
+  }
+
   const form = useForm({
     defaultValues,
     onSubmit: async ({ value }) => {
@@ -268,6 +278,7 @@ export function GroupVolunteerForm({
         <form
           className="space-y-6"
           noValidate
+          onFocusCapture={markStarted}
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()

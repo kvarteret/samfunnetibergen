@@ -1,12 +1,14 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import posthog from "posthog-js"
 import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
   useEffect,
   useId,
+  useRef,
   useState,
 } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -223,6 +225,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     setImageUploadError("")
   }, [])
 
+  const hasStartedRef = useRef(false)
+  const markStarted = () => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+    posthog.capture("event_submission_started")
+  }
+
   if (isSubmitSuccessful) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
@@ -238,6 +247,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         <form
           className="min-w-0 space-y-14"
           noValidate
+          onFocusCapture={markStarted}
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()

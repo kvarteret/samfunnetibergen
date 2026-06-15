@@ -1,8 +1,9 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import posthog from "posthog-js"
 import type { FormEvent } from "react"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import {
   ErrorSummary,
   type ErrorSummaryItem,
@@ -117,6 +118,13 @@ export function KaraokeForm({
     values.startSlotMin,
   ])
 
+  const hasStartedRef = useRef(false)
+  const markStarted = () => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+    posthog.capture("karaoke_booking_started")
+  }
+
   if (isSubmitSuccessful) {
     return <KaraokeBookingSuccess />
   }
@@ -127,6 +135,7 @@ export function KaraokeForm({
         <form
           className="min-w-0 space-y-14"
           noValidate
+          onFocusCapture={markStarted}
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()

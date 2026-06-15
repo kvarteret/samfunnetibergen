@@ -46,6 +46,47 @@ interface ImageCarouselProps {
   slides?: CarouselSlide[]
 }
 
+function PanoramaEmbed({
+  src,
+  loading,
+}: {
+  src: string
+  loading: "eager" | "lazy"
+}) {
+  const [active, setActive] = useState(false)
+
+  return (
+    <div
+      className="relative h-full w-full"
+      onMouseLeave={() => setActive(false)}
+    >
+      <iframe
+        allowFullScreen
+        className="h-full w-full border-0"
+        loading={loading}
+        referrerPolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin"
+        src={src}
+        style={{ pointerEvents: active ? "auto" : "none" }}
+      />
+      {!active && (
+        <div
+          aria-label="Klikk for å interagere med 360°-visningen"
+          className="absolute inset-0 cursor-pointer"
+          onClick={() => setActive(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => e.key === "Enter" && setActive(true)}
+        >
+          <span className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-background/80 px-3 py-1.5 font-heading text-xs text-foreground backdrop-blur-sm select-none">
+            Klikk for å bevege kamera
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ImageCarousel({ images, slides }: ImageCarouselProps) {
   const allSlides: CarouselSlide[] = slides ?? normalise(images ?? [])
   const [api, setApi] = useState<CarouselApi>()
@@ -82,14 +123,9 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
             <CarouselItem key={slide._key} className="pl-0">
               <div className="relative aspect-video w-full">
                 {slide.type === "panorama" ? (
-                  <iframe
-                    allowFullScreen
-                    className="h-full w-full border-0"
+                  <PanoramaEmbed
                     loading={i === 0 ? "eager" : "lazy"}
-                    referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin"
                     src={slide.iframeSrc}
-                    title="360° visning"
                   />
                 ) : (
                   <Image

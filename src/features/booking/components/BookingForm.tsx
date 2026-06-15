@@ -2,7 +2,8 @@
 
 import { useForm, useStore } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
-import { type FormEvent, useEffect, useId, useState } from "react"
+import posthog from "posthog-js"
+import { type FormEvent, useEffect, useId, useRef, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -209,6 +210,15 @@ export function BookingForm({
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
+  const hasStartedRef = useRef(false)
+  const markStarted = () => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+    posthog.capture("room_booking_started", {
+      room_id: values.selectedRoomId || undefined,
+    })
+  }
+
   if (form.state.isSubmitSuccessful) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
@@ -235,6 +245,7 @@ export function BookingForm({
         <form
           className="min-w-0 space-y-14"
           noValidate
+          onFocusCapture={markStarted}
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
