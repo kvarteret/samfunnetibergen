@@ -1,7 +1,7 @@
 # ADR 001: Crescat event-request integration
 
 **Status:** Accepted
-**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking)
+**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking), updated 2026-06-15 (drift reconciliation + autofetched rooms)
 
 ## Context
 
@@ -27,8 +27,10 @@ the venue's event-request forms. It lives in `src/lib/integrations/crescat/`.
 | `types.ts` | `EventRequestBody` and the full `EventRequestSection` union. |
 | `datetime.ts` | Shared `toDateTime`, `addHoursToDateTime`, `resolveEndDateTime` (midnight-crossing aware). |
 | `fields.ts` | Venue-global metadata field/parent-ID registry + `metaField()` helper. |
+| `form-template.ts` | Extract + normalize the Inertia form template from a Crescat page. |
 | `karaoke.ts` | `buildKaraokeRequest` — karaoke booking payload. |
 | `room-booking.ts` | `buildExternalBooking` / `buildInternalBooking` + `ROOM_BOOKING_SLUGS`. |
+| `calendar.ts` | Public read-only calendar + resources endpoints, per-booker-type calendar mapping. |
 
 ### Request flow (generic)
 
@@ -64,8 +66,43 @@ from its HAR. Section types observed across the venue's forms:
 
 Crescat metadata field IDs and `metaData.parent_id`s are **venue-global**: the same IDs appear
 across the venue's different forms (e.g. the "Bestilling" block parent `7896` with fields
-`57056`/`57057`/`57058`/`1329447` is identical in the standard and internal room forms). They are
+`57056`/`57057`/`57058`/`80461`/`1329447` is identical in the standard and internal room forms). They are
 captured once in `fields.ts` and reused by every builder. `room_id`s are per-room, not per-form.
+
+The catering block (`parent_id 11068`) has different fields per form: the standard (ekstern) form uses
+title "Mat og drikke" with fields `80447`, `4365154` ("Jeg står i bar selv"), `4382234` ("Kvarteret
+står i bar"); the intern form uses title "Catering/bar" with only `80447`. Both forms share the
+"Bestilling" amfi toggle (`80461`, "Behov for amfi? NB: gjelder KUN Tivoli").
+
+### Form template introspection (the de-facto spec)
+
+Crescat publishes no API specification. The form pages are server-rendered Inertia.js apps: the
+complete form definition is embedded in the page HTML as a `data-page` attribute on the application
+root element, HTML-entity-encoded. Decoding that attribute yields a JSON object; under
+`props.eventRequestTemplate` is the ordered section list with every field's id, title, component,
+required flag, CSS class, and options — the "API spec" Crescat never published.
+
+**`form-template.ts`** exports pure functions (`extractDataPage`, `normalizeTemplate`,
+`diffTemplateAgainstRegistry`) and a network wrapper (`fetchNormalizedTemplate`). No headless browser
+is needed — a `fetch` and an HTML-entity decode suffice.
+
+**CLI** (`npm run crescat:introspect`):
+
+```
+npm run crescat:introspect -- <slug>          # print normalized template as JSON
+npm run crescat:introspect -- --diff <slug>   # compare live template vs fields.ts, print drift, exit 1 if any
+npm run crescat:introspect -- --save <slug>   # write fixture file
+npm run crescat:introspect -- --save-all      # refresh all known-slug fixtures
+npm run crescat:introspect -- --rooms <cal>   # print /resources for a calendar
+npm run crescat:introspect -- --rooms-coverage# list rooms vs Sanity coverage per calendar
+```
+
+**Fixtures.** Three normalized templates are committed under
+`src/lib/integrations/crescat/__fixtures__/forms/` for the standard, intern, and karaoke forms.
+These are the contract: the automated `fields.contract.test.ts` (vitest) diffs each fixture against
+the registry in `fields.ts` and fails when any registry-field is missing from a fixture. Run
+`--save-all` after a form change to regenerate fixtures, then fix `fields.ts` until the contract
+test passes.
 
 ### Room booking: intern vs. ekstern
 
@@ -103,18 +140,40 @@ fields by the builders:
 - **Tech needs** → `Nødvendig teknisk utstyr` (57057): the selected chips joined, e.g.
   `"Mikrofon 4x, Projektor + lerret, Musikkavspilling, Dedikert lydtekniker"`. (`Ønsket møblement`
   57056 remains its own input.)
-- **Catering + bar** → catering field (80447): the skreddersydd-meny text plus, when bar is requested,
-  a line `"Bar: ønsker at Kvarteret stiller i bar (2000 kr eks. mva)"` (Crescat has no bar field).
+- **Catering + bar** → catering section (`parent_id 11068`): the skreddersydd-meny text in field
+  `80447`, plus on the standard form two boolean toggles `4365154` ("Jeg står i bar selv") and
+  `4382234` ("Kvarteret står i bar"). The intern form has no bar toggles — only `80447`.
 - **Doors** → the `assignments` section: a 0-minute `Doors` entry (`start == end`) at the doors time;
   event `start`/`end` stay as the show times on the top level + `roomBooking`.
 - **Flexible dates** (ekstern/studentorg) → appended to the top-level `description`
-  (`"Fleksibel på dato og rom: ja"`); `alternativeDates` stays `[]`.
+  (`"Fleksibel på dato og rom: ja"`) only when no structured `alternativeDates` are provided;
+  when structured alternative dates are given, the `alternativeDates` section carries the array
+  and the description note is skipped to avoid duplicate signal.
 
 ### Room → Crescat room ID
 
-Rooms carry an optional `crescatRoomId` (number) field in Sanity. Only rooms with this ID are
-offered in the booking-page room picker (`bookableRoomsQuery` / `fetchBookableRooms`). The selected
-room's `crescatRoomId` is sent as `roomBookings[].room_id`.
+The booking room picker is autofetched from Crescat's `/resources` for the form's calendar, then
+enriched with Sanity content matched by `crescatRoomId`. Rooms that exist only in Crescat (no Sanity
+document) are still bookable — they render as title-only minimal cards and use house opening hours
+for validation. Rooms with a Sanity document render the full card (image, summary, capacities,
+room-specific opening hours). Sanity rooms sort first, Crescat-only rooms sort last; within each
+group the `/resources` order is preserved.
+
+The `/resources` endpoint is per calendar and returns the curated, public, bookable room set:
+
+| Calendar slug | Rooms | Used by |
+|---|---|---|
+| `...bookingkalender` | 7 (23,95,96,97,98,117,118) | ekstern, studentorg |
+| `...bookingkalender-privat` | 15 (std 7 + 119-125,128) | intern |
+| `...bookinkalender-karaoke` | 1 (98, Maos) | karaoke |
+
+The form page's `props.rooms` attribute is the same 28-room full venue inventory on every form and
+is intentionally **not** used for the picker. If a room (e.g. 287 Bakgården) appears in the
+captured intern submission but not in the privat `/resources`, it won't appear in the autofetched
+picker — the venue must add it to the privat calendar in Crescat.
+
+If `/resources` returns empty (Crescat unreachable), the picker falls back to the Sanity bookable
+rooms so it is never blank.
 
 ### Availability calendars and resources (read-only)
 
@@ -130,24 +189,21 @@ Both are plain GETs (no CSRF/session needed). `calendar.ts` wraps them as `fetch
 timestamps, and a `title`; `CresatResource` is `{ id, room_title, title }`. Calendar is cached 5 min,
 resources 1 h.
 
-Two calendars are in use:
+Booker types map to calendars via `calendarSlugForBookerType`:
 
-| Calendar slug | Covers |
-|---|---|
-| `studentersamfunnet-i-bergen-bookinkalender-karaoke` | Karaoke room (Maos) — karaoke slot picker. |
-| `studentersamfunnet-i-bergen-bookingkalender` | Standard venue rooms — room-booking availability. |
+| Booker type | Calendar slug | Rooms |
+|---|---|---|
+| ekstern / studentorg | `studentersamfunnet-i-bergen-bookingkalender` | 7 |
+| intern | `studentersamfunnet-i-bergen-bookingkalender-privat` | 15 |
+| karaoke | `studentersamfunnet-i-bergen-bookinkalender-karaoke` | 1 |
 
-On the room-booking page, the standard venue calendar is fetched for the selected date and bookings
-are matched to the chosen room by `resourceId == crescatRoomId`; overlapping intervals are shown and
-block submission.
+On the room-booking page, the calendar is fetched per booker type and bookings are matched to the
+chosen room by `resourceId == crescatRoomId`; overlapping intervals are shown and block submission.
+Conflict checks use the booker type's calendar, so intern bookings are validated against the privat
+calendar, closing the intern-availability gap previously recorded here.
 
-**Gap — intern form coverage.** The standard venue calendar only covers the rooms exposed by that
-calendar. The intern (dørger/borger/interne) form books rooms (e.g. Bakgården, room 287) that are
-**not** on this calendar, and we do not yet have the calendar/resources endpoints for the intern
-form. Until those are obtained, availability and any live room-list auto-fetch are incomplete for
-intern bookings — the room picker still relies on the `crescatRoomId` values stored in Sanity, and
-intern-only rooms show no availability. Capturing the intern form's calendar/resources slugs is
-required for a full view.
+Crescat-only rooms (no Sanity document) are validated against house hours alone — no room-specific
+opening hours restriction applies.
 
 ## Known risks and edge cases
 
@@ -196,9 +252,14 @@ update to `fields.ts` / `room-booking.ts` / `karaoke.ts` will be required.
   upload link sent when the room coordinator confirms the booking). This needs infra we don't have: a
   persisted booking record, a Crescat booking-confirmation signal (likely manual/polled — there is no
   webhook), an email service, and a hosted upload portal. Deferred to its own phase/issue.
-- **Per-form calendar/resources for intern.** As noted above, the standard venue calendar does not
-  cover intern-only rooms; the intern form's own calendar/resources endpoints are still needed for full
-  availability + live room-list there.
+- **Multi-room and multi-contact UI.** The builders and payload schema support `roomIds` (multiple
+  rooms) and `keyContacts` (multiple named contacts with roles), but the booking form UI still submits
+  one room and one contact. The intern form's "Kontaktpersoner" section has separate name/role per
+  contact; exposing this in the UI is deferred.
+- **Crescat-only room caveat.** A room that appears in a form's 28-room `props.rooms` inventory but
+  not on that form's calendar `/resources` (e.g. room 287 Bakgården in a captured intern submission)
+  will not appear in the autofetched picker. The venue must add it to the relevant calendar in
+  Crescat's admin panel for it to become bookable from the website.
 
 ## Consequences
 
