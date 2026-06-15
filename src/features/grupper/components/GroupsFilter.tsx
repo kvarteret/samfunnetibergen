@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import { SegmentedControl } from "@/components/ui/segmented-control"
@@ -122,10 +122,6 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
             {group.email}
           </span>
         ) : null}
-        <span className="inline-flex items-center gap-2 font-heading group-hover:underline group-hover:underline-offset-4">
-          Les mer
-          <ArrowRight aria-hidden="true" className="size-4" />
-        </span>
       </div>
     </Link>
   )

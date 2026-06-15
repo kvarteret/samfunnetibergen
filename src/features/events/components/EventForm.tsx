@@ -244,9 +244,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             e.preventDefault()
             markSubmitAttempt()
             if (validationErrors.length > 0) return
-            if (imageUploading) {
-              return
-            }
             form.handleSubmit()
           }}
         >
@@ -260,10 +257,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             uid={uid}
           />
           <EventFormImageSection
-            imageAssetId={imageAssetId}
             imagePreviewUrl={imagePreviewUrl}
             imageUploadError={imageUploadError}
-            imageUploading={imageUploading}
             onImageChange={handleImageChange}
             onRemoveImage={handleRemoveImage}
           />
@@ -283,7 +278,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             submittedById={fieldIds.submittedBy}
             uid={uid}
           />
-          <EventFormActions formError="" imageUploading={imageUploading} />
+          <EventFormActions formError="" />
         </form>
 
         <EventFormPreview event={previewEvent} />

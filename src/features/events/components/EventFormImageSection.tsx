@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Loader2, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
 import { FieldError } from "@/components/ui/field-error"
@@ -10,18 +10,14 @@ import { ImageDropzone } from "@/components/ui/image-dropzone"
 import { formatEventImageMaxSize } from "../domain/imageUpload"
 
 interface EventFormImageSectionProps {
-  imageAssetId: string | null
   imagePreviewUrl: string | null
-  imageUploading: boolean
   imageUploadError: string
   onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
   onRemoveImage: () => void
 }
 
 export function EventFormImageSection({
-  imageAssetId,
   imagePreviewUrl,
-  imageUploading,
   imageUploadError,
   onImageChange,
   onRemoveImage,
@@ -31,14 +27,13 @@ export function EventFormImageSection({
       <FieldGroup>
         <FieldHint>
           JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
-          listinga og på arrangementssiden.
+          listinga og på arrangementssiden. Bildet lastes opp når du sender inn
+          skjemaet.
         </FieldHint>
 
         {imagePreviewUrl ? (
           <UploadedImagePreview
-            imageAssetId={imageAssetId}
             imagePreviewUrl={imagePreviewUrl}
-            imageUploading={imageUploading}
             imageUploadError={imageUploadError}
             onRemoveImage={onRemoveImage}
           />
@@ -51,17 +46,13 @@ export function EventFormImageSection({
 }
 
 interface UploadedImagePreviewProps {
-  imageAssetId: string | null
   imagePreviewUrl: string
-  imageUploading: boolean
   imageUploadError: string
   onRemoveImage: () => void
 }
 
 function UploadedImagePreview({
-  imageAssetId,
   imagePreviewUrl,
-  imageUploading,
   imageUploadError,
   onRemoveImage,
 }: UploadedImagePreviewProps) {
@@ -74,17 +65,6 @@ function UploadedImagePreview({
           className="h-full w-full object-cover"
           src={imagePreviewUrl}
         />
-        {imageUploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-            <Loader2 className="size-6 animate-spin text-primary" />
-          </div>
-        )}
-        {imageAssetId && !imageUploading && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-background/90 px-2 py-1 text-sm text-foreground-muted">
-            <Check aria-hidden className="size-3 text-primary" />
-            Lastet opp
-          </div>
-        )}
       </div>
       {imageUploadError && (
         <FieldError id="event-image-upload-error">

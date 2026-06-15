@@ -3,7 +3,7 @@
 import { type AnyFieldApi, useForm, useStore } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
-import { type FormEvent, useRef, useState } from "react"
+import { type FormEvent, useId, useRef, useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -137,6 +137,7 @@ export function GroupVolunteerForm({
   subGroups,
   institutionOptions,
 }: GroupVolunteerFormProps) {
+  const uid = useId()
   const t = useTranslations("GroupVolunteerForm")
   const hasSubGroups = Boolean(subGroups?.length)
   const [selectedSlug, setSelectedSlug] = useState<string>(
