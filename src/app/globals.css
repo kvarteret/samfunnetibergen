@@ -230,10 +230,6 @@
   }
 }
 
-html {
-  overflow-wrap: anywhere;
-}
-
 .paper-canvas {
   background-color: var(--background);
 }
