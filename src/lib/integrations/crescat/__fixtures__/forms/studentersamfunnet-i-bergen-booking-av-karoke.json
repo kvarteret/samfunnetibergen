@@ -1,0 +1,147 @@
+{
+  "slug": "studentersamfunnet-i-bergen-booking-av-karoke",
+  "title": "BOOKING AV KAROKE",
+  "sections": [
+    {
+      "type": "roomBooking",
+      "title": "Velg et rom!",
+      "parentId": null,
+      "fields": []
+    },
+    {
+      "type": "metaData",
+      "title": "Valg av karaokepakke",
+      "parentId": 192383,
+      "fields": [
+        {
+          "id": 1439211,
+          "title": "Antall personer",
+          "component": "field-number",
+          "required": false,
+          "class": "col-md-3",
+          "options": null
+        }
+      ]
+    },
+    {
+      "type": "termsOfUse",
+      "title": "Akseptering av bruksvilkår",
+      "parentId": null,
+      "fields": []
+    }
+  ],
+  "rooms": [
+    {
+      "id": 97,
+      "name": "Teglverket"
+    },
+    {
+      "id": 95,
+      "name": "Tivoli"
+    },
+    {
+      "id": 23,
+      "name": "Storelogen"
+    },
+    {
+      "id": 96,
+      "name": "Speilsalen"
+    },
+    {
+      "id": 98,
+      "name": "Maos Lille Røde"
+    },
+    {
+      "id": 117,
+      "name": "Støy"
+    },
+    {
+      "id": 118,
+      "name": "Stillhet"
+    },
+    {
+      "id": 119,
+      "name": "Stjernesalen"
+    },
+    {
+      "id": 120,
+      "name": "Grøndahls"
+    },
+    {
+      "id": 121,
+      "name": "Halvtimen"
+    },
+    {
+      "id": 287,
+      "name": "Bakgården"
+    },
+    {
+      "id": 122,
+      "name": "Lobby 1. Etg (Bermuda)"
+    },
+    {
+      "id": 123,
+      "name": "Lobby 2. Etg"
+    },
+    {
+      "id": 124,
+      "name": "Lobbyrinten"
+    },
+    {
+      "id": 125,
+      "name": "Garderobe"
+    },
+    {
+      "id": 128,
+      "name": "Parkeringsplass 2"
+    },
+    {
+      "id": 129,
+      "name": "Parkering Bakgården"
+    },
+    {
+      "id": 5305,
+      "name": "Akvariet 1. etg (Villaen)"
+    },
+    {
+      "id": 5306,
+      "name": "Blackbox 1. etg (Villaen)"
+    },
+    {
+      "id": 5307,
+      "name": "Engen 1. etg (Villaen)"
+    },
+    {
+      "id": 5308,
+      "name": "Festplassen 2. etg (Villaen)"
+    },
+    {
+      "id": 5309,
+      "name": "Korrommet 1. etg. (Villaen)"
+    },
+    {
+      "id": 5310,
+      "name": "Marken 2. etg (Villaen)"
+    },
+    {
+      "id": 5311,
+      "name": "Nøstet 1. etg (Villaen)"
+    },
+    {
+      "id": 5312,
+      "name": "Skansen 2. etg (Villaen)"
+    },
+    {
+      "id": 5313,
+      "name": "Togallmenningen 2. etg (Villaen)"
+    },
+    {
+      "id": 5314,
+      "name": "Ælsket Kontor 2. etg (Villaen)"
+    },
+    {
+      "id": 5447,
+      "name": "Gamle UiB-kantinen (3. etg)"
+    }
+  ]
+}

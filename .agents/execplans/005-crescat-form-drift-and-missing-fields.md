@@ -61,12 +61,12 @@ A normalized template (what the tooling saves and what the contract test compare
 ## Progress
 
 - [x] (2026-06-15) Investigated current integration, captured all three live form templates, identified exact drift. (See Surprises & Discoveries.)
-- [ ] M1: Add `src/lib/integrations/crescat/form-template.ts` (pure extract+normalize) with unit tests over saved HTML.
-- [ ] M1: Add `scripts/crescat-form-introspect.ts` CLI and `crescat:introspect` npm script (snapshot + `--diff`).
-- [ ] M2: Save normalized fixtures for the standard, intern, and karaoke forms under `src/lib/integrations/crescat/__fixtures__/forms/`.
-- [ ] M2: Add `fields.contract.test.ts` asserting `fields.ts` descriptors match the saved fixtures.
-- [ ] M3: Add the missing field descriptors to `fields.ts` (`80461` amfi, `4365154` + `4382234` bar toggles), fix the catering field title, add a key-contact role.
-- [ ] M4: Update `room-booking.ts` builders to emit the new fields, multiple rooms, real alternative dates, and multiple key contacts; extend `RoomBookingInput`, the Zod `payloadSchema`, `BookingFormState`/`buildBookingPayload`, and the booking UI minimally.
+- [x] (2026-06-15) M1: Add `src/lib/integrations/crescat/form-template.ts` (pure extract+normalize) with unit tests over saved HTML.
+- [x] (2026-06-15) M1: Add `scripts/crescat-form-introspect.ts` CLI and `crescat:introspect` npm script (snapshot + `--diff`).
+- [x] (2026-06-15) M2: Save normalized fixtures for the standard, intern, and karaoke forms under `src/lib/integrations/crescat/__fixtures__/forms/`.
+- [x] (2026-06-15) M2: Add `fields.contract.test.ts` asserting `fields.ts` descriptors match the saved fixtures.
+- [x] (2026-06-15) M3: Add the missing field descriptors to `fields.ts` (`80461` amfi, `4365154` + `4382234` bar toggles), fix the catering field title, add a key-contact role.
+- [x] (2026-06-15) M4: Update `room-booking.ts` builders to emit the new fields, multiple rooms, real alternative dates, and multiple key contacts; extend `RoomBookingInput`, the Zod `payloadSchema`, `BookingFormState`/`buildBookingPayload`, and the booking UI.
 - [x] (2026-06-15) M5: Autofetch bookable rooms from Crescat `/resources` per booker-type calendar; merge with Sanity by `crescatRoomId`; parametrize availability + conflict checks by calendar; render Crescat-only rooms with a minimal card; add `--rooms` / `--rooms-coverage` to the CLI. Verified live in the browser: ekstern shows 7 standard-calendar rooms, switching to intern re-fetches 15 privat-calendar rooms (Crescat-only ones as minimal cards); no console errors; `--rooms-coverage` prints the per-calendar Sanity/Crescat-only table.
 - [ ] M6: Add `room-booking.test.ts` (builder snapshots vs. captured payloads), `submit-room-booking.test.ts` (mocked-fetch integration test of the handshake + POST body), and `bookable-rooms.test.ts` (merge logic), plus an opt-in live smoke test.
 - [ ] M7: Update `docs/adr/001-crescat-integration.md` to document the Inertia template source, the tooling, the new fields, and the autofetched-rooms model.
@@ -197,6 +197,23 @@ Acceptance for M3: with the registry expectations from M2 including these ids, t
 ## Milestone 4: faithful builders, multi-room, alternative dates, multi-contact
 
 Goal: the actual POST payloads regain the missing fields and can express the richer shapes seen in the captured submissions. This is the milestone that fixes the user-visible bug ("we were missing some fields").
+
+### M4 task list
+
+This list reflects the post-M5 state of the code (the booking form now selects a single room by `selectedRoomId`; `roomSlug` is gone; the parent subscribes to the form store via `useStore`). M4 folds in the trivial M3 field-registry additions because the builders cannot compile without them.
+
+- [ ] T1 (M3 fields): in `src/lib/integrations/crescat/fields.ts`, add `NEEDS_AMPHI` (id 80461, field-toggle, col-md-3, required false) to the parent-7896 group; add `BAR_SELF` (id 4365154) and `BAR_KVARTERET` (id 4382234) toggles to the parent-11068 group; correct `CATERING_WISHES.title` to "Skriv litt om hva du ønsker å spise og drikke".
+- [ ] T2: extend `RoomBookingInput` in `room-booking.ts` with optional `roomIds?: number[]`, `needsAmphi?: boolean`, `barSelf?: boolean`, `barKvarteret?: boolean`, `alternativeDates?: string[]`, `keyContacts?: KeyContact[]`, `contactRole?: string` (import `KeyContact` from `./types`). All optional with today's behavior as the default.
+- [ ] T3: add a private `roomBookingsFor(input, start, end)` helper that maps `input.roomIds ?? [input.roomId]` to `{ title: "", room_id, start, end }[]`; use it in both builders.
+- [ ] T4: `buildExternalBooking` — insert `metaField(NEEDS_AMPHI, Boolean(input.needsAmphi))` into "Bestilling" between `AUDIENCE_COUNT` and `OPEN_OR_CLOSED`; rename the catering section title from "Bar og catering" to "Mat og drikke" and append `metaField(BAR_SELF, …)` then `metaField(BAR_KVARTERET, …)` after the catering free-text field; set the `alternativeDates` section content to `input.alternativeDates ?? []`.
+- [ ] T5: `buildInternalBooking` — insert `metaField(NEEDS_AMPHI, …)` into "Bestilling" in the same position; keep "Catering/bar" with only the free-text field (no bar toggles — confirmed against the live intern template); emit `keyContacts` from `input.keyContacts` when present, else the single derived contact using `input.contactRole ?? ""` as the role.
+- [ ] T6: keep the `descriptionWithFlexible` note only as a fallback when `alternativeDates` is empty; when structured alternative dates are provided do not also append the flexible note (avoid duplicate signal).
+- [ ] T7: extend `payloadSchema` in `submit-room-booking.ts` with `needsAmphi`, `barSelf`, `barKvarteret` (`z.boolean().optional()`), `roomIds` (`z.array(z.number().int().positive()).optional()`), `alternativeDates` (`z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional()`), `contactRole` (`z.string().trim().optional()`); pass them into `buildRoomBooking`. Conflict + opening-hours checks stay single-room (the form selects one room); multi-room is a payload/builder capability for tests and a future UI. (Note in Decision Log.)
+- [ ] T8: in `formState.ts` add `needsAmphi: boolean` and `barSelf: boolean` to `BookingFormState`/`initialBookingState`; in `buildBookingPayload` set `needsAmphi: state.needsAmphi`, `barSelf: state.barSelf`, `barKvarteret: state.bar` (the existing "Kvarteret står i bar" toggle); remove the free-text bar line from `composeCatering` so the toggle is the single source of truth for bar.
+- [ ] T9: surface the new toggles in the UI — add an amfi `ToggleOption` ("Behov for amfi — kun Tivoli") to `BookingFormNeedsSection`, bound to `needsAmphi`; in `BookingFormCateringBarSection` rename the existing `bar` toggle label to "Kvarteret står i bar" and add a `barSelf` `ToggleOption` "Jeg står i bar selv".
+- [ ] T10: verify — `npx tsc --noEmit` clean; the builders emit the new fields (assert by a quick node/tsx check or by the M6 tests); in the browser, toggling amfi / bar options and submitting reaches the success state with no console errors. (Cross-check with `--diff` once M1 lands.)
+
+### M4 implementation notes
 
 Extend `RoomBookingInput` in `src/lib/integrations/crescat/room-booking.ts`. Keep `roomId: number` working for the common single-room case but add an optional `roomIds?: number[]`; the builders should reserve every id in `roomIds ?? [roomId]`, each as its own entry in the `roomBookings` array with the same `start`/`end`. Add `needsAmphi?: boolean` (defaults false). Add `barSelf?: boolean` and `barKvarteret?: boolean` for the standard form's two toggles (defaults false). Add `alternativeDates?: string[]` (array of `YYYY-MM-DD`; defaults `[]`). Add `keyContacts?: KeyContact[]` for the intern form's multiple contacts; when absent, fall back to the single derived contact the builder already constructs, but with the contact's role taken from a new optional `contactRole?: string` (default empty string, preserving today's behavior).
 
@@ -375,6 +392,7 @@ Acceptance for M7: the ADR explains, from only the repo, how a future maintainer
   Rationale: `useForm` does not subscribe the component (see Surprises); without this the booker-type re-fetch effect never fires and parent-derived values are stale. Date/Author: 2026-06-15 / implementation.
 
 - Decision (to confirm during M4): whether the booking UI exposes the bar toggles / amfi / alternative-dates inputs now, or whether those stay payload-level with sensible defaults. Recommendation recorded above: surface amfi and the bar-ownership choice (mapping the existing `bar` boolean to `barKvarteret`), keep multi-room and multi-contact payload-level for this plan, and add a minimal alternative-dates input if cheap. Finalize and record the actual choice here when implementing.
+- Decision (M4, 2026-06-15): surfaced the amfi toggle and both bar-ownership toggles (`barSelf` + `barKvarteret`) in the UI. Multi-room (`roomIds`), alternative dates, multiple key contacts, and `contactRole` stay payload/schema-level — the builders and Zod schema support them but the form UI still submits one room, one contact, and no alternative dates through the picker. Bar free-text line removed from `composeCatering` — toggles are now the single source of truth for bar. Rationale: the form already had a bar toggle; splitting it into the two Crescat fields matches the live form exactly and avoids duplicating the signal in free-text. Surfacing amfi is trivial (one toggle). Multi-room/multi-contact UI is a larger UX change best deferred. Date/Author: 2026-06-15 / implementation.
 
 ## Outcomes & Retrospective
 
