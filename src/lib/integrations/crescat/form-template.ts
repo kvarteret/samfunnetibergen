@@ -68,13 +68,14 @@ const dataPageSchema = z.object({
 
 // ── Pure extraction ─────────────────────────────────────────────────────────
 
-const HTML_ENTITY_RE = /&(?:quot|amp|lt|gt|#39);/g
+const HTML_ENTITY_RE = /&(?:quot|amp|lt|gt|#39|apos);/g
 const HTML_ENTITY_MAP: Record<string, string> = {
   "&quot;": '"',
   "&amp;": "&",
   "&lt;": "<",
   "&gt;": ">",
   "&#39;": "'",
+  "&apos;": "'",
 }
 
 function decodeHtmlEntities(value: string): string {
@@ -105,8 +106,17 @@ export function normalizeTemplate(
   slug: string,
   dataPage: unknown,
 ): NormalizedTemplate {
-  const parsed = dataPageSchema.parse(dataPage)
-  const template = parsed.props.eventRequestTemplate
+  const parsed = dataPageSchema.safeParse(dataPage)
+  if (!parsed.success) {
+    const missing = parsed.error.errors
+      .map(e => e.path.join("."))
+      .join(", ")
+    throw new Error(
+      `The decoded data-page JSON does not match the expected Crescat form shape (missing: ${missing}). ` +
+        `The page at slug "${slug}" may not be an event-request form, or its structure changed.`,
+    )
+  }
+  const template = parsed.data.props.eventRequestTemplate
 
   const sections: TemplateSection[] = template.sections.map(sec => {
     const fields: TemplateField[] = (sec.content?.fields ?? []).map(f => ({
@@ -125,7 +135,7 @@ export function normalizeTemplate(
     }
   })
 
-  const rooms = parsed.props.rooms.map(r => ({ id: r.id, name: r.name }))
+  const rooms = parsed.data.props.rooms.map(r => ({ id: r.id, name: r.name }))
 
   return { slug, title: template.title, sections, rooms }
 }

@@ -196,9 +196,152 @@ async function runCoverage(): Promise<void> {
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
+const USAGE = `crescat:introspect — inspect Crescat form/room state
+
+USAGE
+  npm run crescat:introspect -- <slug>
+  npm run crescat:introspect -- [mode] [arg…]
+
+MODES
+  <slug>                   Print normalized form template as JSON.
+                           Known slugs:
+                             ${KNOWN_SLUGS.join("\n                             ")}
+
+  --diff <slug>            Compare live template against our fields.ts registry.
+                           Prints drift lines to stderr. Exit 1 on differences.
+                           Section-title mismatches are expected between forms
+                           (e.g. intern uses "Billettsalg" vs ekstern "Billettsalg
+                           / inngangspriser"); field-level drift is the real
+                           concern.
+
+  --save <slug>            Fetch live template and save as a fixture file under
+                           src/lib/integrations/crescat/__fixtures__/forms/.
+
+  --save-all               Refresh all known-slug fixtures in one pass.
+
+  --rooms <calendarSlug>   Print a calendar's /resources as JSON (id → name).
+                           Known calendars:
+                             ${Object.entries(ROOM_CALENDARS).map(([k,v]) => `${k.padEnd(10)} ${v}`).join("\n                             ")}
+
+  --rooms-coverage         For every calendar, list each Crescat room and whether
+                           a Sanity room exists with that crescatRoomId.
+
+  --completion <shell>     Print shell completion script for the given shell.
+                           Supported: bash, zsh, fish.
+
+  --help, -h               Print this help.
+
+EXAMPLES
+  npm run crescat:introspect -- studentersamfunnet-i-bergen-bookingskjema-standard
+  npm run crescat:introspect -- --diff studentersamfunnet-i-bergen-bookingskjema-standard
+  npm run crescat:introspect -- --rooms studentersamfunnet-i-bergen-bookingkalender-privat
+  npm run crescat:introspect -- --save-all
+  npm run crescat:introspect -- --rooms-coverage
+
+  # Install shell autocomplete:
+  source <(npm run crescat:introspect --silent -- --completion bash)   # bash
+  source <(npm run crescat:introspect --silent -- --completion zsh)    # zsh
+  npm run crescat:introspect --silent -- --completion fish | source    # fish
+`
+
+function printHelp(): void {
+  process.stdout.write(`${USAGE}\n`)
+}
+
+function printCompletion(shell: string): void {
+  if (shell === "bash") {
+    process.stdout.write(`${BASH_COMPLETION}\n`)
+  } else if (shell === "zsh") {
+    process.stdout.write(`${ZSH_COMPLETION}\n`)
+  } else if (shell === "fish") {
+    process.stdout.write(`${FISH_COMPLETION}\n`)
+  } else {
+    process.stderr.write(`Unknown shell: ${shell}. Supported: bash, zsh, fish\n`)
+    process.exit(1)
+  }
+}
+
+const BASH_COMPLETION = `# Crescat introspection autocomplete for bash.
+# Usage: source <(npm run crescat:introspect --silent -- --completion bash)
+_crescat_introspect() {
+  local cur prev words cword
+  _init_completion -s || return
+  local modes="--diff --save --save-all --rooms --rooms-coverage --completion --help -h"
+  local slugs="${KNOWN_SLUGS.join(" ")}"
+  local calendars="${Object.values(ROOM_CALENDARS).join(" ")}"
+  if [[ $cword -eq 1 ]]; then
+    COMPREPLY=($(compgen -W "$modes $slugs" -- "$cur"))
+  elif [[ $cword -gt 1 ]]; then
+    case "$prev" in
+      --diff|--save) COMPREPLY=($(compgen -W "$slugs" -- "$cur")) ;;
+      --rooms)       COMPREPLY=($(compgen -W "$calendars" -- "$cur")) ;;
+      --completion)  COMPREPLY=($(compgen -W "bash zsh" -- "$cur")) ;;
+      *)             COMPREPLY=() ;;
+    esac
+  fi
+}
+complete -F _crescat_introspect npm run crescat:introspect --
+`
+
+const ZSH_COMPLETION = `# Crescat introspection autocomplete for zsh.
+# Usage: source <(npm run crescat:introspect --silent -- --completion zsh)
+# _crescat_introspect() {
+  local -a modes slugs calendars
+  modes=("--diff" "--save" "--save-all" "--rooms" "--rooms-coverage" "--completion" "--help" "-h")
+  slugs=(${KNOWN_SLUGS.map(s => `"${s}"`).join(" ")})
+  calendars=(${Object.values(ROOM_CALENDARS).map(c => `"${c}"`).join(" ")})
+
+  _arguments \\
+    "1: :->first" \\
+    "*:: :->rest"
+
+  case "$state" in
+    first)
+      _describe 'mode' modes
+      _describe 'slug' slugs
+      ;;
+    rest)
+      case "$words[1]" in
+        --diff|--save) _describe 'slug' slugs ;;
+        --rooms)       _describe 'calendar' calendars ;;
+        --completion)  _values 'shell' 'bash' 'zsh' ;;
+      esac
+      ;;
+  esac
+}
+compdef _crescat_introspect 'npm run crescat:introspect'
+`
+
+const FISH_COMPLETION = `# Crescat introspection autocomplete for fish.
+# Usage: npm run crescat:introspect --silent -- --completion fish | source
+function _crescat_slugs
+  echo ${KNOWN_SLUGS.join(" ")}
+end
+function _crescat_calendars
+  echo ${Object.values(ROOM_CALENDARS).join(" ")}
+end
+complete -c npm -n "__fish_seen_subcommand_from run crescat:introspect --; and test (count (commandline -opc)) -eq 4" -a "_crescat_slugs --diff --save --save-all --rooms --rooms-coverage --completion --help"
+complete -c npm -n "__fish_seen_subcommand_from run crescat:introspect --; and test (count (commandline -opc)) -gt 4; and string match -q -- '--diff --save' (commandline -opc)[4]" -a "(_crescat_slugs)"
+complete -c npm -n "__fish_seen_subcommand_from run crescat:introspect --; and test (count (commandline -opc)) -gt 4; and string match -q '--rooms' (commandline -opc)[4]" -a "(_crescat_calendars)"
+complete -c npm -n "__fish_seen_subcommand_from run crescat:introspect --; and test (count (commandline -opc)) -gt 4; and string match -q '--completion' (commandline -opc)[4]" -a "bash zsh fish"
+`
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
   const mode = args[0]
+
+  if (mode === "--help" || mode === "-h") {
+    printHelp()
+    return
+  }
+
+  if (mode === "--completion") {
+    const shell = args[1] ?? ""
+    printCompletion(shell)
+    return
+  }
 
   if (mode === "--rooms") {
     const slug = args[1]
@@ -245,15 +388,7 @@ async function main(): Promise<void> {
     return
   }
 
-  process.stderr.write(
-    "Usage:\n" +
-      "  <slug>                     print normalized template as JSON\n" +
-      "  --save <slug>              write fixture file\n" +
-      "  --diff <slug>              compare live template vs registry, exit 1 on drift\n" +
-      "  --save-all                 refresh all known fixtures\n" +
-      "  --rooms <calendarSlug>     print a calendar's /resources as JSON\n" +
-      "  --rooms-coverage           list Crescat rooms vs Sanity coverage\n",
-  )
+  printHelp()
   process.exit(1)
 }
 
