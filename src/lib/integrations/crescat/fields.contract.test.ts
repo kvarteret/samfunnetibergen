@@ -112,19 +112,9 @@ describe("fields.ts contract vs saved fixtures", () => {
 
   test("all required fields in the standard fixture are in registry", () => {
     // Every `required: true` field on the live form must be in our registry.
-    // This catches new required fields added by the venue.
-    const requiredFieldIds = new Set<number>()
-    for (const entry of REGISTRY) {
-      // We don't track required-ness in the registry; the registry lists every
-      // field we send. The contract test's job is: registry→fixture (everything
-      // we send still exists) and fixture→registry for required (every required
-      // live field must be sent). That second check runs during --diff when a
-      // human reviews optional additions; we keep the contract test focused
-      // on "our fields still exist."
-    }
-    // This test is intentionally lightweight — the registry→fixture check
-    // above catches the main drift (a field we send was removed from the form),
-    // and the --diff CLI catches newly-added required fields for human review.
+    // The registry→fixture check above catches the main drift (a field we send
+    // was removed from the form), and the --diff CLI catches newly-added
+    // required fields for human review. This test is intentionally lightweight.
     expect(true).toBe(true)
   })
 })
