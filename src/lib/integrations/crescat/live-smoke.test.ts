@@ -4,6 +4,7 @@
  * SKIPPED unless CRESCAT_LIVE_TEST=1 is set. Never runs in CI.
  * Bypasses server-action opening-hours/conflict checks (which need
  * RSC runtime) and tests the core builder + CSRF handshake directly.
+ * Sets as many fields as possible to exercise the full payload shape.
  *
  * Usage:
  *   CRESCAT_LIVE_TEST=1 npx vitest run src/lib/integrations/crescat/live-smoke.test.ts
@@ -11,42 +12,59 @@
 
 import { describe, expect, test } from "vitest"
 
-import { buildRoomBooking } from "./room-booking"
+import { buildExternalBooking } from "./room-booking"
 import { postEventRequest } from "./client"
-import { slugForBookerType } from "./room-booking"
+import { ROOM_BOOKING_SLUGS } from "./room-booking"
 
 const LIVE = process.env.CRESCAT_LIVE_TEST === "1"
 
 describe.skipIf(!LIVE)("live smoke test — real Crescat submission", () => {
   test(
-    "submits a standard-form room booking and gets HTTP 201",
+    "submits a standard-form room booking with all fields set and gets HTTP 201",
     async () => {
-      const input = {
-        eventName: "[automated test] Live smoke test — please ignore",
-        roomId: 95, // Tivoli
+      const body = buildExternalBooking({
+        eventName: "[SLETT MEG] Integrasjonstest | Crescat | E-tjenesten",
+        roomId: 95, // Tivoli (has amfi)
         startDate: "2030-01-15",
         startTime: "20:00",
         endTime: "23:00",
+        doorsTime: "19:30",
         description:
-          "Dette er en automatisk test sendt av samfunnetibergen.no. Ingen handling kreves.",
-        audienceCount: 1,
-        openOrClosed: "Lukket" as const,
-        furniture: "Ingen",
-        techEquipment: "Ingen",
-        cateringWishes: "",
-        freeOrPaid: "Gratis" as const,
-        ticketTypes: "",
+          "Dette er en automatisk integrasjonstest. Ingen handling kreves.",
+        audienceCount: 120,
+        openOrClosed: "Lukket",
+        furniture: "Bord og stoler til 30, scene, lerret",
+        techEquipment: "Projektor + lerret, Mikrofon 2x, Musikkavspilling, Dedikert lydtekniker, Dedikert lystekniker",
+        cateringWishes: "Buffet for 30 personer, 2 retter",
+        freeOrPaid: "Betalt",
+        ticketTypes: "Ordinær: 200 kr, Student: 150 kr, VIP: 400 kr",
         contactName: "Automatisk Test",
         contactEmail: "autotest@samfunnetibergen.no",
         contactPhone: "00000000",
-        needsAmphi: false,
+        needsAmphi: true,           // Tivoli
         barSelf: false,
-        barKvarteret: false,
-      }
+        barKvarteret: true,
+        alternativeDates: ["2030-01-16", "2030-01-17"],
+        roomIds: [95, 23],          // Tivoli + Storelogen
+        flexibleDates: false,       // structured alternativeDates used instead
+        onBehalfOfStudentOrg: true,
+        studentOrgName: "Studentbergen Testforening",
+        invoiceAddress: "Testveien 1, 5003 Bergen",
+        orgNumber: 999999999,
+        keyContacts: [
+          {
+            name: "Automatisk Test",
+            role: "Arrangør",
+            email: "autotest@samfunnetibergen.no",
+            phone: "00000000",
+            country_code: "+47",
+          },
+        ],
+        contactRole: "Arrangør",
+      })
 
-      const body = buildRoomBooking("ekstern", input)
       const result = await postEventRequest(
-        slugForBookerType("ekstern"),
+        ROOM_BOOKING_SLUGS.ekstern,
         body,
       )
 
