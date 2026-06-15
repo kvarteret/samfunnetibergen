@@ -7,7 +7,7 @@ export type { BookerType }
 export interface BookingFormState {
   bookerType: BookerType
   studentOrgName: string
-  roomSlug: string
+  selectedRoomId: number
   eventName: string
   startDate: string
   startTime: string
@@ -40,7 +40,7 @@ export interface BookingFormState {
 export const initialBookingState: BookingFormState = {
   bookerType: "ekstern",
   studentOrgName: "",
-  roomSlug: "",
+  selectedRoomId: 0,
   eventName: "",
   startDate: "",
   startTime: "19:00",

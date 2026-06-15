@@ -14,8 +14,8 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
 })
 
 import {
+  calendarSlugForBookerType,
   fetchVenueCalendar,
-  VENUE_CALENDAR_SLUG,
 } from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import {
@@ -77,7 +77,7 @@ async function hasVenueCalendarConflict(
   payload: z.output<typeof payloadSchema>,
 ): Promise<boolean> {
   const bookings = await fetchVenueCalendar(
-    VENUE_CALENDAR_SLUG,
+    calendarSlugForBookerType(payload.bookerType),
     payload.startDate,
     addDaysDateOnly(payload.startDate, 1),
   )
@@ -112,13 +112,14 @@ async function isAllowedByOpeningHours(
     fetchHouseHours(),
     fetchBookableRooms(),
   ])
+  // A Crescat-only room (not in Sanity) has no room-specific hours; validate it
+  // against the house hours alone rather than rejecting it.
   const room = rooms.find(
     candidate => candidate.crescatRoomId === payload.roomId,
   )
-  if (!room) return false
 
   const baseHours = houseHours?.operationsManagerHours ?? null
-  const roomHours = room.openingHours ?? null
+  const roomHours = room?.openingHours ?? null
   const hasConfiguredHours =
     hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)
   if (!hasConfiguredHours) return true

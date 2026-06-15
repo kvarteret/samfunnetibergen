@@ -99,7 +99,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
   return (
     <div>
       <ImageWithFallback
-        alt={room.image?.alt ?? room.title ?? room.slug}
+        alt={room.image?.alt ?? room.title ?? String(room.crescatRoomId)}
         fallback={
           <span className="flex items-center gap-2 text-foreground-muted">
             <MapPin aria-hidden className="size-4" />
@@ -111,7 +111,7 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
       />
       <div className="border-b-2 border-border p-5">
         <p className="font-heading text-xl leading-tight text-foreground">
-          {room.title ?? room.slug}
+          {room.title ?? String(room.crescatRoomId)}
         </p>
         <p className="mt-1 text-sm text-foreground-muted">
           {[

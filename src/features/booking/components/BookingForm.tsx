@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm } from "@tanstack/react-form"
+import { useForm, useStore } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
 import { type FormEvent, useEffect, useId, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -20,6 +20,7 @@ import {
   type OpeningHours,
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
@@ -46,24 +47,25 @@ import { BookingFormTicketSection } from "./BookingFormTicketSection"
 import { BookingFormContext } from "./bookingFormContext"
 
 // TODO: resolve form type when @tanstack/react-form stabilizes
-export type BookingFormValues = typeof initialBookingState & {
-  roomSlug: string
-}
+export type BookingFormValues = typeof initialBookingState
 
 const DATE_COUNT = 7
 
 interface BookingFormProps {
-  rooms: BookingRoom[]
+  // Rooms for the default (ekstern) booker, fetched on the server for SSR. The
+  // form re-fetches the list from Crescat when the booker type changes.
+  initialRooms: BookingRoom[]
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
 }
 
 export function BookingForm({
-  rooms,
+  initialRooms,
   openingHours,
   closedDates,
 }: BookingFormProps) {
   const uid = useId()
+  const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(new Date())
   const fieldIds = {
@@ -81,32 +83,63 @@ export function BookingForm({
   const form = useForm({
     defaultValues: {
       ...initialBookingState,
-      roomSlug: rooms[0]?.slug ?? "",
+      selectedRoomId: initialRooms[0]?.crescatRoomId ?? 0,
     } as BookingFormValues,
     onSubmit: async ({ value }) => {
-      const room = rooms.find(r => r.slug === value.roomSlug)
+      const room = rooms.find(r => r.crescatRoomId === value.selectedRoomId)
       if (!room) throw new Error("Ingen rom valgt")
       const result = await submitRoomBooking(buildBookingPayload(value, room))
       if (!result.ok) throw new Error(result.error)
     },
   })
 
-  const values = form.state.values
+  // Subscribe the component to the form store so parent-level derived values
+  // (selected room, availability conflicts, the booker-type-driven room/calendar
+  // re-fetch effects below) recompute when fields change. `form.state` is a live
+  // getter that does not register a React subscription on its own.
+  const values = useStore(form.store, state => state.values)
+  const bookerType = values.bookerType
 
-  const selectedRoom = rooms.find(room => room.slug === values.roomSlug)
+  const selectedRoom = rooms.find(
+    room => room.crescatRoomId === values.selectedRoomId,
+  )
 
+  // The bookable-room list and availability calendar both depend on booker type
+  // (ekstern/studentorg → standard calendar, intern → privat). Re-fetch both
+  // whenever the booker type changes, and drop a selection that is no longer
+  // offered.
   useEffect(() => {
     let active = true
-    fetchRoomAvailability(today, addDaysDateOnly(today, DATE_COUNT)).then(
-      result => {
-        if (active) setBookings(result)
-      },
-    )
+    fetchBookableRoomsForBooker(bookerType).then(next => {
+      if (!active) return
+      setRooms(next)
+      const stillOffered = next.some(
+        room => room.crescatRoomId === form.state.values.selectedRoomId,
+      )
+      if (!stillOffered) {
+        form.setFieldValue("selectedRoomId", next[0]?.crescatRoomId ?? 0)
+      }
+    })
     return () => {
       active = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [bookerType])
+
+  useEffect(() => {
+    let active = true
+    fetchRoomAvailability(
+      bookerType,
+      today,
+      addDaysDateOnly(today, DATE_COUNT),
+    ).then(result => {
+      if (active) setBookings(result)
+    })
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookerType])
 
   const roomBookings = selectedRoom
     ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
@@ -128,7 +161,7 @@ export function BookingForm({
       ),
     )
 
-  const occupiedSlugs = values.startDate
+  const occupiedRoomIds = values.startDate
     ? new Set(
         rooms
           .filter(room =>
@@ -140,9 +173,9 @@ export function BookingForm({
               values.endTime,
             ),
           )
-          .map(room => room.slug),
+          .map(room => room.crescatRoomId),
       )
-    : new Set<string>()
+    : new Set<number>()
 
   const slotWithinHours = (() => {
     const hasConfiguredHours =
@@ -222,7 +255,7 @@ export function BookingForm({
             selectedRoomTitle={selectedRoom?.title ?? undefined}
             roomBookings={roomBookings}
             selectedDateRoomBookings={selectedDateRoomBookings}
-            occupiedSlugs={occupiedSlugs}
+            occupiedRoomIds={occupiedRoomIds}
             openingHours={openingHours}
             closedDates={closedDates}
             hasConflict={hasConflict}

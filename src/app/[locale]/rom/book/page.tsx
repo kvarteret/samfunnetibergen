@@ -1,13 +1,14 @@
 import { CalendarCheck } from "lucide-react"
 
-import { BookingForm, type BookingRoom } from "@/features/booking"
+import { BookingForm } from "@/features/booking"
+import { fetchBookableRoomsForBooker } from "@/features/booking/actions/bookable-rooms"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
-import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
+import { fetchHouseHours } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -31,25 +32,10 @@ export default async function BookRoomPage({
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
 
-  const [bookableRooms, houseHours] = await Promise.all([
-    fetchBookableRooms(),
+  const [initialRooms, houseHours] = await Promise.all([
+    fetchBookableRoomsForBooker("ekstern"),
     fetchHouseHours(),
   ])
-  const rooms: BookingRoom[] = bookableRooms.map(room => ({
-    title: room.title,
-    slug: room.slug,
-    summary: room.summary,
-    capacityStanding: room.capacityStanding,
-    capacitySeated: room.capacitySeated,
-    crescatRoomId: room.crescatRoomId,
-    openingHours: room.openingHours ?? null,
-    image: room.image
-      ? {
-          assetUrl: room.image.assetUrl,
-          alt: room.image.alt,
-        }
-      : null,
-  }))
 
   return (
     <article className="flex w-full flex-col gap-10">
@@ -81,8 +67,8 @@ export default async function BookRoomPage({
 
       <BookingForm
         closedDates={houseHours?.houseClosedDates ?? []}
+        initialRooms={initialRooms}
         openingHours={houseHours?.operationsManagerHours ?? null}
-        rooms={rooms}
       />
     </article>
   )

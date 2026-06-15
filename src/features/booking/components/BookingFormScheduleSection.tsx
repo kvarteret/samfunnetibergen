@@ -43,7 +43,7 @@ const MINUTES_IN_DAY = 24 * 60
 
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
-  occupiedSlugs: Set<string>
+  occupiedRoomIds: Set<number>
   roomBookings: CresatBooking[]
   selectedDateRoomBookings: CresatBooking[]
   hasConflict: boolean
@@ -57,7 +57,7 @@ interface BookingFormScheduleSectionProps {
 
 export function BookingFormScheduleSection({
   rooms,
-  occupiedSlugs,
+  occupiedRoomIds,
   roomBookings,
   selectedDateRoomBookings,
   hasConflict,
@@ -79,7 +79,7 @@ export function BookingFormScheduleSection({
     <FormSection number="02" title="Rom og tidspunkt">
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => ({
-          roomSlug: s.values.roomSlug,
+          selectedRoomId: s.values.selectedRoomId,
           startDate: s.values.startDate,
           startTime: s.values.startTime,
           endTime: s.values.endTime,
@@ -88,14 +88,14 @@ export function BookingFormScheduleSection({
         })}
       >
         {({
-          roomSlug,
+          selectedRoomId,
           startDate,
           startTime,
           endTime,
           doorsTime,
           bookerType,
         }: {
-          roomSlug: string
+          selectedRoomId: number
           startDate: string
           startTime: string
           endTime: string
@@ -110,12 +110,15 @@ export function BookingFormScheduleSection({
               {rooms.length > 0 ? (
                 <SelectableCardGroup
                   className="md:grid-cols-2 xl:grid-cols-3"
-                  onValueChange={value => form.setFieldValue("roomSlug", value)}
-                  value={roomSlug}
+                  onValueChange={value =>
+                    form.setFieldValue("selectedRoomId", Number(value))
+                  }
+                  value={String(selectedRoomId)}
                 >
                   {rooms.map(room => {
-                    const selected = roomSlug === room.slug
-                    const occupied = occupiedSlugs.has(room.slug)
+                    const selected = selectedRoomId === room.crescatRoomId
+                    const occupied = occupiedRoomIds.has(room.crescatRoomId)
+                    const roomName = room.title ?? String(room.crescatRoomId)
                     return (
                       <SelectableCard
                         className="hover:border-primary"
@@ -123,7 +126,7 @@ export function BookingFormScheduleSection({
                         image={
                           <div className="relative aspect-video bg-muted">
                             <ImageWithFallback
-                              alt={room.image?.alt ?? room.title ?? room.slug}
+                              alt={room.image?.alt ?? roomName}
                               fallback={
                                 <Building2
                                   aria-hidden
@@ -148,23 +151,25 @@ export function BookingFormScheduleSection({
                             )}
                           </div>
                         }
-                        key={room.slug}
-                        value={room.slug}
+                        key={room.crescatRoomId}
+                        value={String(room.crescatRoomId)}
                       >
                         <p className="font-heading text-lg text-foreground">
-                          {room.title ?? room.slug}
+                          {roomName}
                         </p>
                         {room.summary && (
                           <p className="line-clamp-2 leading-5 text-foreground-muted">
                             {room.summary}
                           </p>
                         )}
-                        <p className="text-sm text-foreground-muted">
-                          <RoomCapacity
-                            seated={room.capacitySeated}
-                            standing={room.capacityStanding}
-                          />
-                        </p>
+                        {(room.capacityStanding || room.capacitySeated) && (
+                          <p className="text-sm text-foreground-muted">
+                            <RoomCapacity
+                              seated={room.capacitySeated}
+                              standing={room.capacityStanding}
+                            />
+                          </p>
+                        )}
                       </SelectableCard>
                     )
                   })}

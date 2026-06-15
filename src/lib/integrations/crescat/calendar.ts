@@ -8,9 +8,26 @@ const USER_AGENT =
   "Mozilla/5.0 (compatible; SamfunnetBot/1.0; +https://samfunnetibergen.no)"
 
 // Slug of the standard venue booking calendar (covers the rooms bookable
-// through the standard/ekstern form). The intern (dørger/borger/interne) form
-// has its own calendar that is not yet exposed — see docs/adr/001.
+// through the standard/ekstern form).
 export const VENUE_CALENDAR_SLUG = "studentersamfunnet-i-bergen-bookingkalender"
+
+// Each room-booking form maps to a venue calendar. The calendar's /resources
+// is the curated bookable-room set for that form, and /calendar returns its
+// bookings (availability) keyed by the same resourceId. ekstern + studentorg
+// book through the standard calendar; intern (dørger/borger/interne) books the
+// privat calendar, which covers rooms the standard calendar does not list.
+export const ROOM_CALENDAR_SLUGS = {
+  standard: VENUE_CALENDAR_SLUG,
+  privat: "studentersamfunnet-i-bergen-bookingkalender-privat",
+} as const
+
+export function calendarSlugForBookerType(
+  bookerType: "ekstern" | "studentorg" | "intern",
+): string {
+  return bookerType === "intern"
+    ? ROOM_CALENDAR_SLUGS.privat
+    : ROOM_CALENDAR_SLUGS.standard
+}
 
 export interface CresatBooking {
   id: number
