@@ -48,8 +48,36 @@ const moreItem: NavItem = {
   ],
 }
 
+const bookingItem: NavItem = {
+  _key: "static-booking",
+  label: "Booking",
+  href: null,
+  externalUrl: null,
+  children: [
+    {
+      _key: "static-booking-links",
+      groupLabel: null,
+      items: [
+        {
+          _key: "static-book-room",
+          label: "Book rom",
+          href: "/rom/book",
+          externalUrl: null,
+        },
+        {
+          _key: "static-karaoke",
+          label: "Karaoke",
+          href: "/karaoke",
+          externalUrl: null,
+        },
+      ],
+    },
+  ],
+}
+
 function withMoreMenu(items: NavItem[]) {
-  return [...items.filter(item => item._key !== moreItem._key), moreItem]
+  const filtered = items.filter(item => item._key !== moreItem._key && item._key !== bookingItem._key)
+  return [bookingItem, ...filtered, moreItem]
 }
 
 function resolveHref(item: {
@@ -136,7 +164,7 @@ function DesktopNavItem({ item }: { item: NavItem }) {
 
   return (
     <NavigationMenuItem value={item._key}>
-      <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
+      <NavigationMenuTrigger hideArrow={item._key === bookingItem._key}>{item.label}</NavigationMenuTrigger>
       <NavigationMenuContent>
         <DropdownGroups groups={item.children ?? []} />
         {item._key === moreItem._key && <PaperMenuSection />}
