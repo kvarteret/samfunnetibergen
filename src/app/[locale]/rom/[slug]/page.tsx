@@ -249,7 +249,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
 function RoomFloorPlan({ room }: RoomSpecsProps) {
   const floorPlan = room.floorPlans?.find(
-    plan => plan.floor === room.floor && plan.assetUrl,
+    (plan: NonNullable<typeof room.floorPlans>[number]) => plan.floor === room.floor && plan.assetUrl,
   )
 
   if (!floorPlan?.assetUrl) {
