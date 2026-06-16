@@ -79,7 +79,7 @@ export function SelectField({
 
         <Select.Portal>
           <Select.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Select.Popup className="min-w-[var(--anchor-width)] rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
+            <Select.Popup className="rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
               <Select.ScrollUpArrow className="flex h-7 cursor-default items-center justify-center bg-card">
                 <ChevronUp aria-hidden className="size-4" />
               </Select.ScrollUpArrow>

@@ -79,7 +79,7 @@ export function ComboboxField({
 
         <Combobox.Portal>
           <Combobox.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Combobox.Popup className="w-[var(--anchor-width)] rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
+            <Combobox.Popup className="rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
               <Combobox.Empty className="px-3 py-4 text-sm text-foreground-muted">
                 Ingen treff
               </Combobox.Empty>
