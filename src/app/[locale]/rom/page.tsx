@@ -2,13 +2,11 @@ import {
   ArrowRight,
   ExternalLink,
   Headphones,
-  Music2,
   Users,
   UtensilsCrossed,
 } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
-import { BookingButton } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
@@ -102,13 +100,6 @@ function RoomImage({
 
 const SERVICES = [
   {
-    icon: Music2,
-    title: "Karaoke",
-    description:
-      "Privat rom med mikrofoner, storskjerm og tusenvis av låter. Leies per time.",
-    href: "/karaoke",
-  },
-  {
     icon: Headphones,
     title: "Silent Disco",
     description:
@@ -133,7 +124,7 @@ function ServicesSection() {
       >
         Tillegg og tjenester
       </h2>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {SERVICES.map(({ icon: Icon, title, description, href }) => (
           <Link
             className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
@@ -189,7 +180,13 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
   ])
 
   const sections = content?.sections ?? []
-  const [howToSection, ...infoSections] = sections
+  const [howToSection, ...restSections] = sections
+  const leietiderSection = restSections.find(
+    (s) => s.title === "Leietider",
+  )
+  const infoSections = restSections.filter(
+    (s) => s._key !== leietiderSection?._key,
+  )
 
   return (
     <div className="space-y-16">
@@ -209,16 +206,21 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             </p>
           ) : null}
         </div>
-        <BookingButton
-          className="lg:justify-self-end"
-          label={content?.bookingLink?.label}
-          locale={locale}
-        />
+        {leietiderSection && (
+          <section className="lg:justify-self-end space-y-3 panel max-w-xs">
+            <h2 className="font-heading text-xl leading-tight text-foreground">
+              {leietiderSection.title}
+            </h2>
+            <div className="space-y-2">
+              {leietiderSection.paragraphs?.map((paragraph: string) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        )}
       </header>
 
       {howToSection ? <HowToSection section={howToSection} /> : null}
-
-      <ServicesSection />
 
       <section
         aria-label="Tilgjengelige rom"
@@ -271,10 +273,6 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     </div>
                   ) : null}
                 </dl>
-                <span className="inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">
-                  Les mer
-                  <ArrowRight aria-hidden="true" className="size-4" />
-                </span>
               </div>
             </Link>
           )
@@ -308,6 +306,8 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
           ))}
         </div>
       ) : null}
+
+      <ServicesSection />
     </div>
   )
 }

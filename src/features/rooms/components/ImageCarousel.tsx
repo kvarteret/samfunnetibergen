@@ -46,7 +46,7 @@ interface ImageCarouselProps {
   slides?: CarouselSlide[]
 }
 
-function PanoramaEmbed({
+export function PanoramaEmbed({
   src,
   loading,
 }: {
