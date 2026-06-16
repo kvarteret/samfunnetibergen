@@ -3,7 +3,6 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import type { ReactNode } from "react"
 import { Avatar } from "@/components/ui/avatar"
-import { Tag } from "@/components/ui/tag"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -19,13 +18,6 @@ import {
 import nbMessages from "@/messages/nb.json"
 
 export const revalidate = 300
-
-const CATEGORY_LABELS: Record<string, string> = {
-  arbeidsgruppe: "Arbeidsgruppe",
-  komitee: "Komité",
-  dorg: "Driftsorganisasjon",
-  borg: "Brukerorganisasjon",
-}
 
 type GroupPageProps = {
   params: Promise<{ locale: string; slug: string }>
@@ -62,10 +54,6 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const group = await fetchStudentGroupBySlug(slug)
   if (!group) notFound()
 
-  const categoryLabel = group.category
-    ? (CATEGORY_LABELS[group.category] ?? null)
-    : null
-
   const institutionOptions = nbMessages.InstitutionOptions as Array<{
     value: string
     label: string
@@ -75,7 +63,6 @@ export default async function GroupPage({ params }: GroupPageProps) {
     <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-8">
         <GroupMasthead
-          categoryLabel={categoryLabel}
           logoUrl={group.logoUrl}
           name={group.name}
           summary={group.summary}
@@ -182,14 +169,12 @@ export default async function GroupPage({ params }: GroupPageProps) {
 }
 
 interface GroupMastheadProps {
-  categoryLabel: string | null
   logoUrl?: string | null
   name?: string | null
   summary?: string | null
 }
 
 function GroupMasthead({
-  categoryLabel,
   logoUrl,
   name,
   summary,
@@ -204,7 +189,6 @@ function GroupMasthead({
           name={name}
           src={logoUrl}
         />
-        {categoryLabel ? <Tag variant="warning">{categoryLabel}</Tag> : null}
       </div>
       <h1 className="wrap-break-word font-heading text-5xl leading-[0.95] text-foreground sm:text-6xl">
         {name}
