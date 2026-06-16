@@ -66,27 +66,33 @@ function NavigationMenuItem({
 function NavigationMenuTrigger({
   className,
   children,
+  hideArrow,
   ...props
-}: NavigationMenuPrimitive.Trigger.Props) {
+}: NavigationMenuPrimitive.Trigger.Props & { hideArrow?: boolean }) {
   return (
     <NavigationMenuPrimitive.Trigger
       className={cn(
         "group relative flex cursor-pointer items-center gap-1 border-2 border-transparent px-3 py-2.5 font-heading text-foreground",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
         "data-popup-open:border-border data-popup-open:bg-primary data-popup-open:text-primary-foreground data-popup-open:shadow-hard-sm",
+        // HS: underline on hover/open instead of a filled box.
+        "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:underline hs:hover:underline-offset-4 hs:hover:shadow-none",
+        "hs:data-popup-open:border-transparent hs:data-popup-open:bg-transparent hs:data-popup-open:text-foreground hs:data-popup-open:underline hs:data-popup-open:underline-offset-4 hs:data-popup-open:shadow-none",
         "focus-brutal",
         className,
       )}
       {...props}
     >
       {children}
-      <NavigationMenuPrimitive.Icon>
-        <ChevronDown
-          aria-hidden
-          className="size-[1em] shrink-0 text-current group-data-popup-open:rotate-180"
-          strokeWidth={1.75}
-        />
-      </NavigationMenuPrimitive.Icon>
+      {!hideArrow && (
+        <NavigationMenuPrimitive.Icon>
+          <ChevronDown
+            aria-hidden
+            className="size-[1em] shrink-0 text-current group-data-popup-open:rotate-180"
+            strokeWidth={1.75}
+          />
+        </NavigationMenuPrimitive.Icon>
+      )}
     </NavigationMenuPrimitive.Trigger>
   )
 }
@@ -120,6 +126,9 @@ function NavigationMenuLink({
         variant === "top" &&
           "relative flex items-center px-3 py-2.5 font-heading",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
+        // HS: top-level links underline on hover instead of a filled box.
+        variant === "top" &&
+          "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:underline hs:hover:underline-offset-4 hs:hover:shadow-none",
         className,
       )}
       closeOnClick

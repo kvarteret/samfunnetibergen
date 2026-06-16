@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Lora, Source_Serif_4 } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
@@ -7,8 +8,22 @@ import { paperPreferenceScript } from "@/lib/paper-preference"
 import { fetchSiteMetadata } from "@/lib/sanity/fetch"
 import { SanityLive } from "@/lib/sanity/fetcher"
 import { resolveSiteUrl } from "@/lib/site-url"
+import { themePreferenceScript } from "@/lib/theme-preference"
 
 import "./globals.css"
+
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["700", "900"],
+  variable: "--font-source-serif",
+  display: "swap",
+})
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+})
 
 const hegvalDisplay = localFont({
   variable: "--font-hegval-display",
@@ -65,13 +80,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       data-paper="grid"
+      data-theme="hs"
       lang="no"
-      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} h-full antialiased`}
+      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full">
         <Script id="paper-preference" strategy="beforeInteractive">
           {paperPreferenceScript}
+        </Script>
+        <Script id="theme-preference" strategy="beforeInteractive">
+          {themePreferenceScript}
         </Script>
         {children}
         <SanityLive />

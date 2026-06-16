@@ -32,16 +32,26 @@ import {
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { err, type Result } from "@/lib/result"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
+
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
+const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 5
 
 const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const payloadSchema = z.object({
   bookerType: z.enum(["intern", "ekstern", "studentorg"]),
   eventName: z.string().trim().min(1),
-  roomId: z.number().int().positive(),
+  roomId: z.number().int().positive().optional(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   startTime: z.string().regex(timeRegex),
   endTime: z.string().regex(timeRegex),
   doorsTime: z.string().regex(timeRegex).optional(),
@@ -69,7 +79,7 @@ const payloadSchema = z.object({
   barKvarteret: z.boolean().optional(),
   alternativeDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
   recurringDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
-  roomIds: z.array(z.number().int().positive()).optional(),
+  roomIds: z.array(z.number().int().positive()).min(1),
   keyContacts: z
     .array(
       z.object({
@@ -96,19 +106,16 @@ function formatOsloDateTime(value: string): string {
 async function hasVenueCalendarConflict(
   payload: z.output<typeof payloadSchema>,
 ): Promise<boolean> {
+  const endDate = payload.endDate ?? payload.startDate
   const bookings = await fetchVenueCalendar(
     calendarSlugForBookerType(payload.bookerType),
     payload.startDate,
-    addDaysDateOnly(payload.startDate, 1),
+    addDaysDateOnly(endDate, 1),
   )
   const start = toDateTime(payload.startDate, payload.startTime)
-  const end = resolveEndDateTime(
-    payload.startDate,
-    payload.startTime,
-    payload.endTime,
-  )
+  const end = resolveEndDateTime(endDate, payload.startTime, payload.endTime)
   return bookings.some(booking => {
-    if (booking.resourceId !== payload.roomId) return false
+    if (!payload.roomIds.includes(booking.resourceId)) return false
     return (
       start < formatOsloDateTime(booking.end) &&
       end > formatOsloDateTime(booking.start)
@@ -134,8 +141,8 @@ async function isAllowedByOpeningHours(
   ])
   // A Crescat-only room (not in Sanity) has no room-specific hours; validate it
   // against the house hours alone rather than rejecting it.
-  const room = rooms.find(
-    candidate => candidate.crescatRoomId === payload.roomId,
+  const room = rooms.find(candidate =>
+    payload.roomIds.includes(candidate.crescatRoomId),
   )
 
   const baseHours = houseHours?.operationsManagerHours ?? null
@@ -155,8 +162,23 @@ async function isAllowedByOpeningHours(
 }
 
 export async function submitRoomBooking(
-  payload: RoomBookingPayload,
+  payload: RoomBookingPayload & { honeypot?: string },
 ): Promise<Result<number>> {
+  // Silently accept honeypot hits — nothing is forwarded to Crescat.
+  if (payload.honeypot?.trim()) return ok(-1)
+
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "submitRoomBooking",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return err(RATE_LIMIT_ERROR)
+  }
+
   const parsed = payloadSchema.safeParse(payload)
   if (!parsed.success) {
     return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
@@ -186,7 +208,7 @@ export async function submitRoomBooking(
       event: "room_booking_submitted",
       properties: {
         booker_type: parsed.data.bookerType,
-        room_id: parsed.data.roomId,
+        room_id: parsed.data.roomIds[0],
         start_date: parsed.data.startDate,
         start_time: parsed.data.startTime,
         end_time: parsed.data.endTime,
@@ -195,18 +217,19 @@ export async function submitRoomBooking(
         crescat_event_id: result.value,
       },
     })
-  } else {
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "room_booking_submit_failed",
-      properties: {
-        booker_type: parsed.data.bookerType,
-        room_id: parsed.data.roomId,
-        start_date: parsed.data.startDate,
-        error: result.error,
-      },
-    })
+    return result
   }
 
-  return result
+  // Keep internal error detail in PostHog; return generic message to client.
+  posthog.capture({
+    distinctId: "anonymous",
+    event: "room_booking_submit_failed",
+    properties: {
+      booker_type: parsed.data.bookerType,
+      room_id: parsed.data.roomIds[0],
+      start_date: parsed.data.startDate,
+      error: result.error,
+    },
+  })
+  return err(GENERIC_ERROR)
 }

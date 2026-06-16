@@ -9,12 +9,10 @@ import { useEventForm } from "./eventFormContext"
 
 interface EventFormActionsProps {
   formError: string
-  imageUploading: boolean
 }
 
 export function EventFormActions({
   formError,
-  imageUploading,
 }: EventFormActionsProps) {
   const form = useEventForm()
   const isPending = useStore(form.store, state => state.isSubmitting)
@@ -42,24 +40,15 @@ export function EventFormActions({
 
       <Button
         className="w-full sm:w-auto"
-        disabled={isPending || imageUploading}
+        disabled={isPending}
         size="lg"
         type="submit"
       >
-        {(isPending || imageUploading) && (
-          <Loader2 aria-hidden className="animate-spin" />
-        )}
-        {submitButtonLabel(isPending, imageUploading)}
+        {isPending && <Loader2 aria-hidden className="animate-spin" />}
+        {isPending ? "Sender inn..." : "Send inn arrangement"}
       </Button>
     </section>
   )
 }
 
-function submitButtonLabel(
-  isPending: boolean,
-  imageUploading: boolean,
-): string {
-  if (isPending) return "Sender inn..."
-  if (imageUploading) return "Laster opp bilde..."
-  return "Send inn arrangement"
-}
+

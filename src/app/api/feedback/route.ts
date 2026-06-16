@@ -1,11 +1,30 @@
 import { getPostHogClient } from "@/lib/posthog-server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
 const ALLOWED_TYPES = new Set(["bug", "feature", "improvement"])
 
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const SUBMIT_LIMIT = 10
+
 export async function POST(request: Request) {
+  const ip = await getClientIp()
+  if (
+    !checkRateLimit({
+      name: "feedback",
+      ip,
+      limit: SUBMIT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    })
+  ) {
+    return Response.json(
+      { detail: "For mange forsøk. Vent litt og prøv igjen." },
+      { status: 429 },
+    )
+  }
+
   let body: unknown
 
   try {
@@ -24,6 +43,12 @@ export async function POST(request: Request) {
   }
 
   const raw = body as Record<string, unknown>
+
+  // Silently accept honeypot hits.
+  if (raw.honeypot && String(raw.honeypot).trim() !== "") {
+    return Response.json({ ok: true }, { status: 200 })
+  }
+
   const feedbackType = ALLOWED_TYPES.has(String(raw.type))
     ? String(raw.type)
     : "improvement"

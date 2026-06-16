@@ -26,6 +26,7 @@ interface SelectFieldProps {
   errorId?: string
   disabled?: boolean
   required?: boolean
+  hideArrow?: boolean
 }
 
 export function SelectField({
@@ -41,6 +42,7 @@ export function SelectField({
   errorId,
   disabled,
   required,
+  hideArrow,
 }: SelectFieldProps) {
   const items = placeholder
     ? [{ value: "", label: placeholder }, ...options]
@@ -62,7 +64,7 @@ export function SelectField({
           aria-describedby={error && errorId ? errorId : undefined}
           aria-invalid={!!error}
           className={cn(
-            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
+            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-base border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
             className,
           )}
         >
@@ -71,13 +73,13 @@ export function SelectField({
             placeholder={placeholder}
           />
           <Select.Icon>
-            <ChevronDown aria-hidden className="size-4" />
+            {!hideArrow && <ChevronDown aria-hidden className="size-4" />}
           </Select.Icon>
         </Select.Trigger>
 
         <Select.Portal>
           <Select.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Select.Popup className="min-w-[var(--anchor-width)] border-2 border-border bg-card text-foreground shadow-shadow outline-none">
+            <Select.Popup className="min-w-[var(--anchor-width)] rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
               <Select.ScrollUpArrow className="flex h-7 cursor-default items-center justify-center bg-card">
                 <ChevronUp aria-hidden className="size-4" />
               </Select.ScrollUpArrow>

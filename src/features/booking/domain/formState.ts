@@ -7,9 +7,10 @@ export type { BookerType }
 export interface BookingFormState {
   bookerType: BookerType
   studentOrgName: string
-  selectedRoomId: number
+  selectedRoomIds: number[]
   eventName: string
   startDate: string
+  endDate: string
   startTime: string
   endTime: string
   doorsTime: string
@@ -42,9 +43,10 @@ export interface BookingFormState {
 export const initialBookingState: BookingFormState = {
   bookerType: "ekstern",
   studentOrgName: "",
-  selectedRoomId: 0,
+  selectedRoomIds: [],
   eventName: "",
   startDate: "",
+  endDate: "",
   startTime: "19:00",
   endTime: "23:00",
   doorsTime: "",
@@ -99,14 +101,15 @@ export function composeCatering(state: BookingFormState): string {
 
 export function buildBookingPayload(
   state: BookingFormState,
-  room: BookingRoom,
+  rooms: BookingRoom[],
 ): RoomBookingPayload {
   const isExternal = isExternalBooker(state.bookerType)
   return {
     bookerType: state.bookerType,
     eventName: state.eventName,
-    roomId: room.crescatRoomId,
+    roomIds: rooms.map(r => r.crescatRoomId),
     startDate: state.startDate,
+    endDate: state.endDate || undefined,
     startTime: state.startTime,
     endTime: state.endTime,
     doorsTime: state.doorsTime || undefined,
@@ -142,8 +145,9 @@ export function canSubmitBooking(
   hasConflict: boolean,
 ): boolean {
   const isExternal = isExternalBooker(state.bookerType)
+  const hasRooms = state.selectedRoomIds.length > 0
   return (
-    roomSelected &&
+    hasRooms &&
     !hasConflict &&
     state.eventName.trim() !== "" &&
     state.startDate !== "" &&

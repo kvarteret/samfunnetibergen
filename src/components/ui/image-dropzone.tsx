@@ -13,7 +13,7 @@ export function ImageDropzone({
   label = "Klikk for å velge bilde",
 }: ImageDropzoneProps) {
   return (
-    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border bg-card px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40 focus-within-brutal">
+    <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-base border-2 border-dashed border-border bg-card px-4 py-10 transition-colors hover:border-primary hover:bg-muted/40 focus-within-brutal">
       <input
         accept={accept}
         className="sr-only"

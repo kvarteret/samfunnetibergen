@@ -53,9 +53,9 @@ interface EventFormProps {
 export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const uid = useId()
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
-  const [imageAssetId, setImageAssetId] = useState<string | null>(null)
-  const [imageUploading, setImageUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageUploadError, setImageUploadError] = useState("")
+  const [honeypot, setHoneypot] = useState("")
   const fieldIds = {
     title: `${uid}-title`,
     firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
@@ -66,6 +66,17 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const form = useForm({
     defaultValues: initialState as FormState,
     onSubmit: async ({ value }) => {
+      // Upload the image only now, as part of submit, so abandoned forms never
+      // leave orphaned assets in Sanity.
+      let imageAssetId: string | undefined
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append("image", imageFile)
+        const uploadResult = await uploadEventImage(formData)
+        if (!uploadResult.ok) throw new Error(uploadResult.error)
+        imageAssetId = uploadResult.value
+      }
+
       const result = await submitEvent({
         title: value.title,
         description: value.description || undefined,
@@ -98,6 +109,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         facebookUrl: value.facebookUrl || undefined,
         submittedBy: value.submittedBy,
         submittedByEmail: value.submittedByEmail,
+        honeypot,
       })
 
       if (!result.ok) throw new Error(result.error)
@@ -160,14 +172,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     useFormErrors(validationErrors)
 
   const handleImageChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
 
       if (!file) {
         return
       }
 
-      setImageAssetId(null)
       setImageUploadError("")
       event.target.value = ""
 
@@ -190,26 +201,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         }
         return previewUrl
       })
-      setImageUploading(true)
-
-      const formData = new FormData()
-      formData.append("image", file)
-
-      try {
-        const result = await uploadEventImage(formData)
-
-        if (result.ok) {
-          setImageAssetId(result.value)
-        } else {
-          setImageUploadError(result.error)
-        }
-      } catch {
-        setImageUploadError(
-          "Kunne ikke laste opp bildet. Prøv igjen med et bilde under 10 MB.",
-        )
-      } finally {
-        setImageUploading(false)
-      }
+      setImageFile(file)
     },
     [],
   )
@@ -221,7 +213,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       }
       return null
     })
-    setImageAssetId(null)
+    setImageFile(null)
     setImageUploadError("")
   }, [])
 
@@ -252,9 +244,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             e.preventDefault()
             markSubmitAttempt()
             if (validationErrors.length > 0) return
-            if (imageUploading) {
-              return
-            }
             form.handleSubmit()
           }}
         >
@@ -268,10 +257,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             uid={uid}
           />
           <EventFormImageSection
-            imageAssetId={imageAssetId}
             imagePreviewUrl={imagePreviewUrl}
             imageUploadError={imageUploadError}
-            imageUploading={imageUploading}
             onImageChange={handleImageChange}
             onRemoveImage={handleRemoveImage}
           />
@@ -291,7 +278,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             submittedById={fieldIds.submittedBy}
             uid={uid}
           />
-          <EventFormActions formError="" imageUploading={imageUploading} />
+          <EventFormActions formError="" />
         </form>
 
         <EventFormPreview event={previewEvent} />

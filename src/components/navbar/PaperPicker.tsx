@@ -13,6 +13,7 @@ import {
   paperOptions,
 } from "@/lib/paper-preference"
 import { cn } from "@/lib/utils"
+import { ThemeChoices } from "./ThemePicker"
 
 function subscribe(onStoreChange: () => void) {
   window.addEventListener("paper-preference-change", onStoreChange)
@@ -59,6 +60,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
         />
       </Collapsible.Trigger>
       <Collapsible.Panel>
+        <ThemeChoices className="border-t-2 border-border/30 px-10 py-4" />
         <PaperChoices
           className="border-t-2 border-border/30 px-10 py-4"
           paper={paper}
@@ -81,8 +83,12 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
               strokeWidth={1.75}
             />
           </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="w-72 p-3">
-            <PaperChoices paper={paper} />
+          <NavigationMenu.Content className="w-72 space-y-4 p-3">
+            <ThemeChoices />
+            <PaperChoices
+              className="border-t-2 border-border/30 pt-4"
+              paper={paper}
+            />
           </NavigationMenu.Content>
         </NavigationMenu.Item>
       </NavigationMenu.List>

@@ -2,13 +2,16 @@ import { Clock, FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
 import {
-  BookingButton,
   BoolSpec,
-  type CarouselSlide,
-  ImageCarousel,
 } from "@/features/rooms"
+import {
+  ImageCarousel,
+  PanoramaEmbed,
+  type CarouselSlide,
+} from "@/features/rooms/components/ImageCarousel"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -95,11 +98,14 @@ export default async function RoomPage({ params }: RoomPageProps) {
       ]
     : imageSlides
 
+  const imageOnlySlides = carouselSlides.filter(s => s.type === "image")
+  const panoramaSlide = carouselSlides.find(s => s.type === "panorama")
+
   return (
     <article>
-      {carouselSlides.length > 0 && (
-        <div className="-mx-6 sm:-mx-10 lg:-mx-14">
-          <ImageCarousel slides={carouselSlides} />
+      {imageOnlySlides.length > 0 && (
+        <div>
+          <ImageCarousel slides={imageOnlySlides} />
         </div>
       )}
 
@@ -127,10 +133,26 @@ export default async function RoomPage({ params }: RoomPageProps) {
           </section>
         )}
 
-        <RoomSpecs room={room} />
+        <section className="grid gap-8 lg:grid-cols-2 lg:items-start">
+          <RoomSpecs room={room} />
+          {panoramaSlide && "iframeSrc" in panoramaSlide && (
+            <div className="aspect-video w-full">
+              <PanoramaEmbed
+                loading="lazy"
+                src={panoramaSlide.iframeSrc}
+              />
+            </div>
+          )}
+        </section>
         <RoomFloorPlan room={room} />
         <RoomOpeningHours room={room} />
-        <BookingButton label={room.bookingLink?.label} locale={locale} />
+        <Button
+          className="w-fit"
+          render={<Link href={`/rom/book?room=${room.crescatRoomId}`} />}
+          size="lg"
+        >
+          Book {room.title ?? slug} her
+        </Button>
       </div>
     </article>
   )

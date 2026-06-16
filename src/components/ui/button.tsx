@@ -11,6 +11,12 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground btn-brutal",
         neutral: "bg-background text-foreground btn-brutal",
+        // Red fill with a contrasting light border — for use on red surfaces
+        // (e.g. the HS footer) where the default border would disappear.
+        inverse:
+          "bg-primary text-primary-foreground btn-brutal border-background",
+        // No border/shadow — for embedded UI like calendar day cells
+        plain: "bg-transparent text-foreground",
       },
       size: {
         default: "h-10 px-4 py-2",

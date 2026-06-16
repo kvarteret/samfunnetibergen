@@ -3,7 +3,7 @@
 import { type AnyFieldApi, useForm, useStore } from "@tanstack/react-form"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
-import { type FormEvent, useRef, useState } from "react"
+import { type FormEvent, useId, useRef, useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -137,12 +137,14 @@ export function GroupVolunteerForm({
   subGroups,
   institutionOptions,
 }: GroupVolunteerFormProps) {
+  const uid = useId()
   const t = useTranslations("GroupVolunteerForm")
   const hasSubGroups = Boolean(subGroups?.length)
   const [selectedSlug, setSelectedSlug] = useState<string>(
     hasSubGroups ? "" : groupSlug,
   )
   const [secondChoiceSlug, setSecondChoiceSlug] = useState("")
+  const [honeypot, setHoneypot] = useState("")
   const slugSelected = !hasSubGroups || selectedSlug !== ""
 
   const selectFirstChoice = (slug: string) => {
@@ -179,7 +181,7 @@ export function GroupVolunteerForm({
       const response = await fetch("/api/volunteer-prospects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, honeypot }),
       })
 
       const data = await response.json().catch(() => null)
@@ -508,6 +510,19 @@ export function GroupVolunteerForm({
               )
             }}
           </form.Field>
+
+          {/* Honeypot — invisible to humans, filled by bots. */}
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            className="absolute opacity-0 pointer-events-none h-0 w-0"
+            id={`${uid}-hp`}
+            name="honeypot"
+            onChange={e => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            type="text"
+            value={honeypot}
+          />
 
           <Button className="w-full" disabled={isSubmitting} type="submit">
             {isSubmitting ? t("submitPending") : t("submitIdle")}

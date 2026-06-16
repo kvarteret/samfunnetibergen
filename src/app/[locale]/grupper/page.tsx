@@ -4,7 +4,7 @@ import {
   AccordionPanel,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { GroupsFilter } from "@/features/grupper"
+import { GroupsFilter, ValgomatenInfobox } from "@/features/grupper"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -91,21 +91,24 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
 
   return (
     <div className="space-y-12">
-      <header className="space-y-5">
-        {content?.eyebrow ? (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
-            {content.eyebrow}
-          </p>
-        ) : null}
-        <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-          {content?.title ?? "Grupper"}
-        </h1>
-        {content?.description ? (
-          <p className="max-w-3xl text-xl leading-8 text-foreground">
-            {content.description}
-          </p>
-        ) : null}
-      </header>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <header className="space-y-5">
+          {content?.eyebrow ? (
+            <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
+              {content.eyebrow}
+            </p>
+          ) : null}
+          <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
+            {content?.title ?? "Grupper"}
+          </h1>
+          {content?.description ? (
+            <p className="max-w-3xl text-xl leading-8 text-foreground">
+              {content.description}
+            </p>
+          ) : null}
+        </header>
+        <ValgomatenInfobox />
+      </div>
 
       <GroupsFilter allLabels={allLabels} sections={sections} />
 

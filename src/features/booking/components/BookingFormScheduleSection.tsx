@@ -5,50 +5,30 @@ import { Building2, CalendarClock, Check } from "lucide-react"
 import { useId } from "react"
 import { Card } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
-import { DateScroller } from "@/components/ui/date-scroller"
-import { FieldGroup, FieldHint } from "@/components/ui/field-group"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
-import {
-  SelectableCard,
-  SelectableCardGroup,
-} from "@/components/ui/selectable-card"
 import { Tag } from "@/components/ui/tag"
 import { RoomCapacity } from "@/features/rooms"
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
-  buildDateSequence,
   type ClosedDate,
-  combinedSlotRangesForDate,
-  hasOpeningHoursRows,
   isoDate,
   type OpeningHours,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
-import {
-  durationHoursBetween,
-  formatBookingTime,
-  overlaps,
-} from "../domain/availability"
 import type { BookerType } from "../domain/formState"
 import { isExternalBooker } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import type { BookingFormValues } from "./BookingForm"
-import { BookingFormTimeSlotPicker } from "./BookingFormTimeSlotPicker"
 import { useBookingForm } from "./bookingFormContext"
-
-const DATE_COUNT = 7
-const MINUTES_IN_DAY = 24 * 60
 
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
-  occupiedRoomIds: Set<number>
-  roomBookings: CresatBooking[]
-  selectedDateRoomBookings: CresatBooking[]
+  roomOccupancy: Map<number, string>
+  selectedRoomIds: number[]
   hasConflict: boolean
-  selectedRoomTitle?: string
-  selectedRoom?: BookingRoom
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
   startDateError?: string
@@ -57,12 +37,9 @@ interface BookingFormScheduleSectionProps {
 
 export function BookingFormScheduleSection({
   rooms,
-  occupiedRoomIds,
-  roomBookings,
-  selectedDateRoomBookings,
+  roomOccupancy,
+  selectedRoomIds,
   hasConflict,
-  selectedRoomTitle,
-  selectedRoom,
   openingHours,
   closedDates,
   startDateError,
@@ -73,14 +50,15 @@ export function BookingFormScheduleSection({
   const startDateErrorId = `${startDateId}-error`
 
   const today = isoDate(new Date())
-  const dates = buildDateSequence(today, DATE_COUNT)
+  const firstRoom = rooms.find(r => selectedRoomIds.includes(r.crescatRoomId))
 
   return (
     <FormSection number="02" title="Rom og tidspunkt">
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => ({
-          selectedRoomId: s.values.selectedRoomId,
+          selectedRoomIds: s.values.selectedRoomIds as number[],
           startDate: s.values.startDate,
+          endDate: s.values.endDate,
           startTime: s.values.startTime,
           endTime: s.values.endTime,
           doorsTime: s.values.doorsTime,
@@ -88,44 +66,85 @@ export function BookingFormScheduleSection({
         })}
       >
         {({
-          selectedRoomId,
+          selectedRoomIds,
           startDate,
+          endDate,
           startTime,
           endTime,
           doorsTime,
           bookerType,
         }: {
-          selectedRoomId: number
+          selectedRoomIds: number[]
           startDate: string
+          endDate: string
           startTime: string
           endTime: string
           doorsTime: string
           bookerType: BookerType
         }) => {
-          const durationHours =
-            startTime && endTime ? durationHoursBetween(startTime, endTime) : 1
-
           return (
             <>
-              {rooms.length > 0 ? (
-                <SelectableCardGroup
-                  className="md:grid-cols-2 xl:grid-cols-3"
-                  onValueChange={value =>
-                    form.setFieldValue("selectedRoomId", Number(value))
-                  }
-                  value={String(selectedRoomId)}
-                >
-                  {rooms.map(room => {
-                    const selected = selectedRoomId === room.crescatRoomId
-                    const occupied = occupiedRoomIds.has(room.crescatRoomId)
-                    const roomName = room.title ?? String(room.crescatRoomId)
-                    const isCrescatOnly = room.source === "crescat"
-                    return (
-                      <SelectableCard
-                        className="hover:border-primary"
-                        disabled={occupied}
-                        image={
-                          isCrescatOnly ? undefined : (
+              <FieldGroup error={startDateError} errorId={startDateErrorId}>
+                <Label>Dato og tidspunkt *</Label>
+                <DateTimePicker
+                  closedDates={closedDates}
+                  doorsTime={doorsTime}
+                  endDate={endDate}
+                  endTime={endTime}
+                  onDoorsChange={v => form.setFieldValue("doorsTime", v)}
+                  onEndChange={v => form.setFieldValue("endTime", v)}
+                  onEndDateChange={v => form.setFieldValue("endDate", v)}
+                  onStartChange={v => form.setFieldValue("startTime", v)}
+                  onStartDateChange={v => form.setFieldValue("startDate", v)}
+                  openingHours={openingHours}
+                  roomOpeningHours={firstRoom?.openingHours ?? null}
+                  startDate={startDate}
+                  startTime={startTime}
+                  today={today}
+                  uid={uid}
+                />
+              </FieldGroup>
+
+              {startDate && startTime && endTime ? (
+                rooms.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {rooms.map(room => {
+                      const selected = selectedRoomIds.includes(
+                        room.crescatRoomId,
+                      )
+                      const occupied = roomOccupancy.has(room.crescatRoomId)
+                      const conflictRange = roomOccupancy.get(
+                        room.crescatRoomId,
+                      )
+                      const roomName = room.title ?? String(room.crescatRoomId)
+                      const isCrescatOnly = room.source === "crescat"
+
+                      const toggleRoom = (roomId: number) => {
+                        const next = selectedRoomIds.includes(roomId)
+                          ? selectedRoomIds.filter(id => id !== roomId)
+                          : [...selectedRoomIds, roomId]
+                        form.setFieldValue("selectedRoomIds", next)
+                      }
+
+                      return (
+                        <label
+                          className={cn(
+                            "group flex cursor-pointer flex-col overflow-hidden border-2 transition-colors",
+                            selected
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-card hover:border-primary",
+                            occupied && "cursor-not-allowed opacity-60",
+                          )}
+                          key={room.crescatRoomId}
+                        >
+                          <input
+                            checked={selected}
+                            className="sr-only"
+                            disabled={occupied}
+                            onChange={() => toggleRoom(room.crescatRoomId)}
+                            type="checkbox"
+                          />
+                          {!isCrescatOnly && (
                             <div className="relative aspect-video bg-muted">
                               <ImageWithFallback
                                 alt={room.image?.alt ?? roomName}
@@ -148,93 +167,42 @@ export function BookingFormScheduleSection({
                                   className="absolute left-3 top-3"
                                   variant="destructive"
                                 >
-                                  Opptatt
+                                  {conflictRange
+                                    ? `Opptatt mellom ${conflictRange}`
+                                    : "Opptatt"}
                                 </Tag>
                               )}
                             </div>
-                          )
-                        }
-                        key={room.crescatRoomId}
-                        value={String(room.crescatRoomId)}
-                      >
-                        <p className="font-heading text-lg text-foreground">
-                          {roomName}
-                        </p>
-                        {!isCrescatOnly && room.summary && (
-                          <p className="line-clamp-2 leading-5 text-foreground-muted">
-                            {room.summary}
-                          </p>
-                        )}
-                        {!isCrescatOnly &&
-                          (room.capacityStanding || room.capacitySeated) && (
-                            <p className="text-sm text-foreground-muted">
-                              <RoomCapacity
-                                seated={room.capacitySeated}
-                                standing={room.capacityStanding}
-                              />
-                            </p>
                           )}
-                      </SelectableCard>
-                    )
-                  })}
-                </SelectableCardGroup>
+                          <div className="flex flex-1 flex-col gap-2 p-4">
+                            <p className="font-heading text-lg text-foreground">
+                              {roomName}
+                            </p>
+                            {!isCrescatOnly &&
+                              (room.capacityStanding ||
+                                room.capacitySeated) && (
+                                <p className="text-sm text-foreground-muted">
+                                  <RoomCapacity
+                                    seated={room.capacitySeated}
+                                    standing={room.capacityStanding}
+                                  />
+                                </p>
+                              )}
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground-muted">
+                    Ingen rom er tilgjengelige for booking akkurat nå.
+                  </p>
+                )
               ) : (
                 <p className="text-sm text-foreground-muted">
-                  Ingen rom er tilgjengelige for booking akkurat nå.
+                  Velg dato og tid for å se ledige rom.
                 </p>
               )}
-
-              <div className="max-w-3xl space-y-4">
-                <FieldGroup error={startDateError} errorId={startDateErrorId}>
-                  <Label>Dato *</Label>
-                  {selectedRoom ? (
-                    <DateScroller
-                      aria-describedby={
-                        startDateError ? startDateErrorId : undefined
-                      }
-                      aria-invalid={!!startDateError}
-                      dates={dates}
-                      getDateAvailability={date =>
-                        dateHasAvailableRoomSlot(
-                          date,
-                          durationHours,
-                          roomBookings,
-                          openingHours,
-                          selectedRoom.openingHours,
-                          closedDates,
-                        )
-                          ? "available"
-                          : "unavailable"
-                      }
-                      id={startDateId}
-                      onValueChange={v => form.setFieldValue("startDate", v)}
-                      selectedDate={startDate}
-                      today={today}
-                    />
-                  ) : (
-                    <FieldHint>Velg et rom for å se ledige dager.</FieldHint>
-                  )}
-                </FieldGroup>
-                <div
-                  className="focus-brutal"
-                  id={`${startDateId}-time`}
-                  tabIndex={-1}
-                >
-                  <BookingFormTimeSlotPicker
-                    closedDates={closedDates}
-                    date={startDate}
-                    doorsTime={doorsTime}
-                    endTime={endTime}
-                    onDoorsChange={v => form.setFieldValue("doorsTime", v)}
-                    onEndChange={v => form.setFieldValue("endTime", v)}
-                    onStartChange={v => form.setFieldValue("startTime", v)}
-                    openingHours={openingHours}
-                    roomOpeningHours={selectedRoom?.openingHours ?? null}
-                    startTime={startTime}
-                    uid={uid}
-                  />
-                </div>
-              </div>
 
               {isExternalBooker(bookerType) && (
                 <form.Field name="flexibleDates">
@@ -250,52 +218,17 @@ export function BookingFormScheduleSection({
                 </form.Field>
               )}
 
-              {selectedRoomTitle && startDate && (
-                <Card
-                  className={cn(
-                    "max-w-3xl gap-2 p-4",
-                    hasConflict && "border-destructive bg-destructive/10",
-                  )}
-                >
-                  <p className="flex items-center gap-2 font-heading text-foreground">
-                    <CalendarClock
-                      aria-hidden
-                      className="size-4 text-primary"
-                    />
-                    {selectedRoomTitle} – opptatt denne dagen
+              {hasConflict && (
+                <Card className="max-w-3xl gap-2 p-4 border-destructive bg-destructive/10">
+                  <p
+                    className="flex items-center gap-2 border-l-4 border-destructive pl-3 font-heading text-destructive"
+                    id={`${startDateId}-time-conflict`}
+                    role="alert"
+                  >
+                    <CalendarClock aria-hidden className="size-4 shrink-0" />
+                    Valgt tidsrom overlapper en eksisterende booking. Velg et
+                    annet tidspunkt.
                   </p>
-                  {selectedDateRoomBookings.length === 0 ? (
-                    <p className=" text-foreground-muted">
-                      Ingen registrerte bookinger denne dagen.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {selectedDateRoomBookings.map(booking => (
-                        <li
-                          key={booking.id}
-                          className="flex justify-between gap-4"
-                        >
-                          <span className="font-heading">
-                            {formatBookingTime(booking.start)}–
-                            {formatBookingTime(booking.end)}
-                          </span>
-                          <span className="truncate text-foreground-muted">
-                            {booking.title}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {hasConflict && (
-                    <p
-                      className="border-l-4 border-destructive pl-3 font-heading text-destructive"
-                      id={`${startDateId}-time-conflict`}
-                      role="alert"
-                    >
-                      Valgt tidsrom overlapper en eksisterende booking. Velg et
-                      annet tidspunkt.
-                    </p>
-                  )}
                 </Card>
               )}
             </>
@@ -304,38 +237,4 @@ export function BookingFormScheduleSection({
       </form.Subscribe>
     </FormSection>
   )
-}
-
-function dateHasAvailableRoomSlot(
-  date: string,
-  durationHours: number,
-  bookings: CresatBooking[],
-  openingHours: OpeningHours | null,
-  roomOpeningHours: OpeningHours | null,
-  closedDates: ClosedDate[],
-): boolean {
-  const slotStarts = combinedSlotRangesForDate(
-    date,
-    durationHours,
-    openingHours,
-    roomOpeningHours,
-    closedDates,
-    30,
-  )
-  const hasHours =
-    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
-  const sameDaySlotStarts = slotStarts.filter(
-    slotStartMin => slotStartMin < MINUTES_IN_DAY,
-  )
-  const candidateStarts =
-    slotStarts.length > 0 || hasHours
-      ? sameDaySlotStarts
-      : Array.from({ length: 48 }, (_, index) => index * 30)
-
-  return candidateStarts.some(slotStartMin => {
-    const startMs =
-      new Date(`${date}T00:00:00`).getTime() + slotStartMin * 60_000
-    const endMs = startMs + durationHours * 60 * 60_000
-    return !bookings.some(booking => overlaps(startMs, endMs, booking))
-  })
 }

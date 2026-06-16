@@ -26,7 +26,7 @@ import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
   durationHoursBetween,
-  isRoomOccupied,
+  findRoomConflict,
   overlaps,
   slotRangeMs,
 } from "../domain/availability"
@@ -51,22 +51,25 @@ import { BookingFormContext } from "./bookingFormContext"
 export type BookingFormValues = typeof initialBookingState
 
 const DATE_COUNT = 7
+const TIVOLI_CRESCAT_ROOM_ID = 95
 
 interface BookingFormProps {
-  // Rooms for the default (ekstern) booker, fetched on the server for SSR. The
-  // form re-fetches the list from Crescat when the booker type changes.
   initialRooms: BookingRoom[]
+  initialRoomId?: number
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
 }
 
 export function BookingForm({
   initialRooms,
+  initialRoomId,
   openingHours,
   closedDates,
 }: BookingFormProps) {
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
+  const [honeypot, setHoneypot] = useState("")
+  const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(new Date())
   const fieldIds = {
@@ -84,42 +87,45 @@ export function BookingForm({
   const form = useForm({
     defaultValues: {
       ...initialBookingState,
-      selectedRoomId: initialRooms[0]?.crescatRoomId ?? 0,
+      selectedRoomIds:
+        initialRoomId != null &&
+        initialRooms.some(r => r.crescatRoomId === initialRoomId)
+          ? [initialRoomId]
+          : [],
     } as BookingFormValues,
     onSubmit: async ({ value }) => {
-      const room = rooms.find(r => r.crescatRoomId === value.selectedRoomId)
-      if (!room) throw new Error("Ingen rom valgt")
-      const result = await submitRoomBooking(buildBookingPayload(value, room))
+      const selectedRooms = rooms.filter(r =>
+        value.selectedRoomIds.includes(r.crescatRoomId),
+      )
+      if (!selectedRooms.length) throw new Error("Ingen rom valgt")
+      const result = await submitRoomBooking({
+        ...buildBookingPayload(value, selectedRooms),
+        honeypot,
+      })
       if (!result.ok) throw new Error(result.error)
     },
   })
 
-  // Subscribe the component to the form store so parent-level derived values
-  // (selected room, availability conflicts, the booker-type-driven room/calendar
-  // re-fetch effects below) recompute when fields change. `form.state` is a live
-  // getter that does not register a React subscription on its own.
   const values = useStore(form.store, state => state.values)
   const bookerType = values.bookerType
 
-  const selectedRoom = rooms.find(
-    room => room.crescatRoomId === values.selectedRoomId,
+  const selectedRooms = rooms.filter(room =>
+    values.selectedRoomIds.includes(room.crescatRoomId),
   )
 
-  // The bookable-room list and availability calendar both depend on booker type
-  // (ekstern/studentorg → standard calendar, intern → privat). Re-fetch both
-  // whenever the booker type changes, and drop a selection that is no longer
-  // offered.
   useEffect(() => {
     let active = true
     fetchBookableRoomsForBooker(bookerType).then(next => {
       if (!active) return
       setRooms(next)
-      const stillOffered = next.some(
-        room => room.crescatRoomId === form.state.values.selectedRoomId,
+      const nextIds = new Set(next.map(r => r.crescatRoomId))
+      const stillOffered = form.state.values.selectedRoomIds.filter(id =>
+        nextIds.has(id),
       )
-      if (!stillOffered) {
-        form.setFieldValue("selectedRoomId", next[0]?.crescatRoomId ?? 0)
-      }
+      form.setFieldValue(
+        "selectedRoomIds",
+        stillOffered.length ? stillOffered : [],
+      )
     })
     return () => {
       active = false
@@ -142,8 +148,11 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType])
 
-  const roomBookings = selectedRoom
-    ? bookings.filter(b => b.resourceId === selectedRoom.crescatRoomId)
+  const selectedRoomIds = values.selectedRoomIds
+  const primaryRoom = selectedRooms[0]
+
+  const roomBookings = primaryRoom
+    ? bookings.filter(b => b.resourceId === primaryRoom.crescatRoomId)
     : []
 
   const selectedDateRoomBookings = values.startDate
@@ -162,26 +171,24 @@ export function BookingForm({
       ),
     )
 
-  const occupiedRoomIds = values.startDate
-    ? new Set(
-        rooms
-          .filter(room =>
-            isRoomOccupied(
-              bookings,
-              room.crescatRoomId,
-              values.startDate,
-              values.startTime,
-              values.endTime,
-            ),
-          )
-          .map(room => room.crescatRoomId),
+  const roomOccupancy = new Map<number, string>()
+  if (values.startDate && values.startTime && values.endTime) {
+    for (const room of rooms) {
+      const conflict = findRoomConflict(
+        bookings,
+        room.crescatRoomId,
+        values.startDate,
+        values.startTime,
+        values.endTime,
       )
-    : new Set<number>()
+      if (conflict) roomOccupancy.set(room.crescatRoomId, conflict)
+    }
+  }
 
   const slotWithinHours = (() => {
     const hasConfiguredHours =
       hasOpeningHoursRows(openingHours) ||
-      hasOpeningHoursRows(selectedRoom?.openingHours ?? null)
+      hasOpeningHoursRows(primaryRoom?.openingHours ?? null)
     if (
       !hasConfiguredHours ||
       !values.startDate ||
@@ -195,7 +202,7 @@ export function BookingForm({
       values.startTime,
       durationHoursBetween(values.startTime, values.endTime),
       openingHours,
-      selectedRoom?.openingHours ?? null,
+      primaryRoom?.openingHours ?? null,
       closedDates,
     )
   })()
@@ -203,7 +210,7 @@ export function BookingForm({
   const validationErrors = getBookingValidationErrors({
     values,
     fieldIds,
-    roomSelected: !!selectedRoom,
+    roomsSelected: selectedRoomIds.length > 0,
     hasConflict,
     slotWithinHours,
   })
@@ -215,7 +222,7 @@ export function BookingForm({
     if (hasStartedRef.current) return
     hasStartedRef.current = true
     posthog.capture("room_booking_started", {
-      room_id: values.selectedRoomId || undefined,
+      room_ids: selectedRoomIds,
     })
   }
 
@@ -238,6 +245,7 @@ export function BookingForm({
   }
 
   const submitError = form.state.errorMap.onSubmit
+  const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
 
   return (
     <BookingFormContext.Provider value={form}>
@@ -262,11 +270,8 @@ export function BookingForm({
           />
           <BookingFormScheduleSection
             rooms={rooms}
-            selectedRoom={selectedRoom}
-            selectedRoomTitle={selectedRoom?.title ?? undefined}
-            roomBookings={roomBookings}
-            selectedDateRoomBookings={selectedDateRoomBookings}
-            occupiedRoomIds={occupiedRoomIds}
+            selectedRoomIds={selectedRoomIds}
+            roomOccupancy={roomOccupancy}
             openingHours={openingHours}
             closedDates={closedDates}
             hasConflict={hasConflict}
@@ -282,12 +287,6 @@ export function BookingForm({
             eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
           />
-          <BookingFormNeedsSection
-            furnitureError={errorFor(fieldIds.furniture)}
-            furnitureId={fieldIds.furniture}
-            selectedRoomCrescatId={selectedRoom?.crescatRoomId ?? 0}
-          />
-          <BookingFormCateringBarSection />
           <BookingFormTicketSection />
           <BookingFormContactSection
             contactEmailError={errorFor(fieldIds.contactEmail)}
@@ -297,9 +296,28 @@ export function BookingForm({
             invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
             invoiceAddressId={fieldIds.invoiceAddress}
           />
+          <BookingFormNeedsSection
+            furnitureError={errorFor(fieldIds.furniture)}
+            furnitureId={fieldIds.furniture}
+            selectedRoomCrescatId={hasTivoli ? 95 : (selectedRoomIds[0] ?? 0)}
+          />
+          <BookingFormCateringBarSection />
           <BookingFormTermsSection
             acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
+          />
+
+          {/* Honeypot */}
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            className="absolute opacity-0 pointer-events-none h-0 w-0"
+            id={honeypotId}
+            name="honeypot"
+            onChange={e => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            type="text"
+            value={honeypot}
           />
 
           <section className="space-y-4 border-t-2 border-border pt-8">
@@ -347,7 +365,8 @@ export function BookingForm({
           <form.Subscribe selector={s => s.values}>
             {values => (
               <BookingFormOrderSummary
-                selectedRoom={selectedRoom}
+                rooms={rooms}
+                selectedRoomIds={values.selectedRoomIds}
                 state={values}
               />
             )}
@@ -372,7 +391,7 @@ interface BookingValidationOptions {
     | "acceptTerms",
     string
   >
-  roomSelected: boolean
+  roomsSelected: boolean
   hasConflict: boolean
   slotWithinHours: boolean
 }
@@ -380,17 +399,17 @@ interface BookingValidationOptions {
 function getBookingValidationErrors({
   values,
   fieldIds,
-  roomSelected,
+  roomsSelected,
   hasConflict,
   slotWithinHours,
 }: BookingValidationOptions): ErrorSummaryItem[] {
   const errors: ErrorSummaryItem[] = []
   const isExternal = isExternalBooker(values.bookerType)
 
-  if (!roomSelected) {
+  if (!roomsSelected) {
     errors.push({
       fieldId: fieldIds.startDate,
-      message: "Velg et rom.",
+      message: "Velg minst ett rom.",
     })
   }
   if (values.bookerType === "studentorg" && !values.studentOrgName.trim()) {

@@ -71,3 +71,21 @@ export function isRoomOccupied(
     overlaps(startMs, endMs, booking),
   )
 }
+
+// Formatted conflict range like "19:00 — 22:00" for a room at the chosen
+// slot. Returns null when no booking overlaps.
+export function findRoomConflict(
+  bookings: CresatBooking[],
+  crescatRoomId: number,
+  date: string,
+  startTime: string,
+  endTime: string,
+): string | null {
+  if (!date) return null
+  const [startMs, endMs] = slotRangeMs(date, startTime, endTime)
+  const conflict = bookingsForRoom(bookings, crescatRoomId).find(booking =>
+    overlaps(startMs, endMs, booking),
+  )
+  if (!conflict) return null
+  return `${formatBookingTime(conflict.start)} — ${formatBookingTime(conflict.end)}`
+}

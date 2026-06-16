@@ -26,10 +26,14 @@ export async function generateMetadata() {
 
 export default async function BookRoomPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ room?: string }>
 }) {
   const locale = await resolvePageLocale(params)
+  const { room: roomParam } = await searchParams
+  const preselectedRoomId = roomParam ? Number(roomParam) : undefined
   activateRequestLocale(locale)
 
   const [initialRooms, houseHours] = await Promise.all([
@@ -67,6 +71,7 @@ export default async function BookRoomPage({
 
       <BookingForm
         closedDates={houseHours?.houseClosedDates ?? []}
+        initialRoomId={preselectedRoomId}
         initialRooms={initialRooms}
         openingHours={houseHours?.operationsManagerHours ?? null}
       />

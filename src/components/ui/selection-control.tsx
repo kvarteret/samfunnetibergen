@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority"
 
 export const selectionControlVariants = cva(
-  "cursor-pointer border-2 border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
+  "cursor-pointer rounded-base border-2 border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
   {
     variants: {
       selected: {

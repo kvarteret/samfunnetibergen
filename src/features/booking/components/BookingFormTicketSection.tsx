@@ -19,7 +19,7 @@ export function BookingFormTicketSection() {
   const uid = useId()
   const form = useBookingForm()
   return (
-    <FormSection number="06" title="Billett">
+    <FormSection number="04" title="Billett">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <form.Field name="freeOrPaid">
           {(field: AnyFieldApi) => (
