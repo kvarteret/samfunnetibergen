@@ -86,7 +86,7 @@ export function ComboboxField({
               <Combobox.List className="max-h-[min(22.5rem,var(--available-height))] overflow-y-auto p-1 outline-none">
                 {(option: SelectOption) => (
                   <Combobox.Item
-                    className="grid cursor-pointer grid-cols-[1rem_1fr] items-center gap-2 px-3 py-2 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-primary data-highlighted:text-primary-foreground"
+                    className="flex cursor-pointer items-center gap-2 px-3 py-2 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-primary data-highlighted:text-primary-foreground"
                     disabled={option.disabled}
                     key={option.value}
                     value={option}
