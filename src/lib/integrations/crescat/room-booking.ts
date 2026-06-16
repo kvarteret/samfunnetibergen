@@ -54,8 +54,9 @@ export function slugForBookerType(bookerType: BookerType): string {
 
 export interface RoomBookingInput {
   eventName: string
-  roomId: number
+  roomId?: number
   startDate: string
+  endDate?: string
   startTime: string
   endTime: string
   description: string
@@ -84,7 +85,7 @@ export interface RoomBookingInput {
   barKvarteret?: boolean
   alternativeDates?: string[]
   recurringDates?: string[]
-  roomIds?: number[]
+  roomIds: number[]
   keyContacts?: KeyContact[]
   contactRole?: string
 }
@@ -92,7 +93,11 @@ export interface RoomBookingInput {
 function commonHead(input: RoomBookingInput): { start: string; end: string } {
   return {
     start: toDateTime(input.startDate, input.startTime),
-    end: resolveEndDateTime(input.startDate, input.startTime, input.endTime),
+    end: resolveEndDateTime(
+      input.endDate ?? input.startDate,
+      input.startTime,
+      input.endTime,
+    ),
   }
 }
 
@@ -143,12 +148,14 @@ function descriptionWithFlexible(input: RoomBookingInput): string {
     : note
 }
 
-function roomBookingsFor(
-  input: RoomBookingInput,
-  start: string,
-  end: string,
-) {
-  const ids = input.roomIds?.length ? input.roomIds : [input.roomId]
+function roomBookingsFor(input: RoomBookingInput, start: string, end: string) {
+  const ids = input.roomIds.length
+    ? input.roomIds
+    : input.roomId
+      ? [input.roomId]
+      : []
+  if (ids.length === 0)
+    throw new Error("roomBookingsFor: at least one room ID is required")
   return ids.map(roomId => ({ title: "", room_id: roomId, start, end }))
 }
 
@@ -304,21 +311,20 @@ export function buildInternalBooking(
         title: "Kontaktpersoner",
         description: "Fyll ut kontaktpersoner for arrangementet her.",
         type: "keyContacts",
-        content:
-          input.keyContacts?.length
-            ? input.keyContacts.map(k => ({
-                ...k,
-                country_code: k.country_code || "+47",
-              }))
-            : [
-                {
-                  name: input.contactName,
-                  role: input.contactRole ?? "",
-                  email: input.contactEmail,
-                  phone: input.contactPhone,
-                  country_code: "+47",
-                },
-              ],
+        content: input.keyContacts?.length
+          ? input.keyContacts.map(k => ({
+              ...k,
+              country_code: k.country_code || "+47",
+            }))
+          : [
+              {
+                name: input.contactName,
+                role: input.contactRole ?? "",
+                email: input.contactEmail,
+                phone: input.contactPhone,
+                country_code: "+47",
+              },
+            ],
       },
       {
         title: "Lokaler",

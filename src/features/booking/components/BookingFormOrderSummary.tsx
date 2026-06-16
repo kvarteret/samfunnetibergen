@@ -1,4 +1,4 @@
-import { CalendarClock, DoorOpen, MapPin, Users } from "lucide-react"
+import { CalendarClock, DoorOpen, MapPin, Users, X } from "lucide-react"
 import { DetailRow } from "@/components/ui/detail-row"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
@@ -9,6 +9,7 @@ import {
   composeTechEquipment,
 } from "../domain/formState"
 import type { BookingRoom } from "../types"
+import { useBookingForm } from "./bookingFormContext"
 
 const BOOKER_LABELS: Record<BookerType, string> = {
   ekstern: "Ekstern / privat",
@@ -18,23 +19,51 @@ const BOOKER_LABELS: Record<BookerType, string> = {
 
 interface BookingOrderSummaryProps {
   state: BookingFormState
-  selectedRoom?: BookingRoom
+  rooms: BookingRoom[]
+  selectedRoomIds: number[]
 }
 
 export function BookingFormOrderSummary({
   state,
-  selectedRoom,
+  rooms,
+  selectedRoomIds,
 }: BookingOrderSummaryProps) {
+  const form = useBookingForm()
   const tech = composeTechEquipment(state)
   const catering = composeCatering(state)
   const time = state.startDate
     ? `${state.startDate} · ${state.startTime}–${state.endTime}`
     : "Ikke valgt"
 
+  const selectedRooms = rooms.filter(r =>
+    selectedRoomIds.includes(r.crescatRoomId),
+  )
+
+  const removeRoom = (roomId: number) => {
+    const next = selectedRoomIds.filter(id => id !== roomId)
+    form.setFieldValue("selectedRoomIds", next)
+  }
+
   return (
     <aside>
       <div className="panel p-0">
-        <SelectedRoomCard room={selectedRoom} />
+        {selectedRooms.length > 0 ? (
+          <div>
+            {selectedRooms.map((room, i) => (
+              <SelectedRoomCard
+                compact={i > 0}
+                key={room.crescatRoomId}
+                onRemove={() => removeRoom(room.crescatRoomId)}
+                room={room}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex aspect-video items-center justify-center bg-muted text-foreground-muted">
+            <MapPin aria-hidden className="mr-2 size-4" />
+            Velg rom
+          </div>
+        )}
 
         <div className="space-y-3 p-5">
           <p className="font-heading uppercase tracking-widest">
@@ -86,28 +115,67 @@ export function BookingFormOrderSummary({
   )
 }
 
-function SelectedRoomCard({ room }: { room?: BookingRoom }) {
-  if (!room) {
+function SelectedRoomCard({
+  room,
+  compact,
+  onRemove,
+}: {
+  room: BookingRoom
+  compact?: boolean
+  onRemove: () => void
+}) {
+  const isCrescatOnly = room.source === "crescat"
+  const roomName = room.title ?? String(room.crescatRoomId)
+  const capacity = [
+    room.capacityStanding && `${room.capacityStanding} stående`,
+    room.capacitySeated && `${room.capacitySeated} sittende`,
+  ]
+    .filter(Boolean)
+    .join(" / ")
+
+  if (compact && !isCrescatOnly) {
     return (
-      <div className="flex aspect-video items-center justify-center bg-muted text-foreground-muted">
-        <MapPin aria-hidden className="mr-2 size-4" />
-        Velg et rom
+      <div className="flex gap-3 border-b-2 border-border p-5">
+        <div className="min-w-0 flex-1">
+          <p className="font-heading text-lg leading-tight text-foreground">
+            {roomName}
+          </p>
+          {capacity && (
+            <p className="mt-1 text-sm text-foreground-muted">{capacity}</p>
+          )}
+        </div>
+        <div className="w-20 shrink-0 overflow-hidden">
+          <ImageWithFallback
+            alt={room.image?.alt ?? roomName}
+            fallback={<MapPin aria-hidden className="size-4 text-foreground-muted" />}
+            sizes="80px"
+            src={room.image?.assetUrl}
+          />
+        </div>
+        <button
+          aria-label={`Fjern ${roomName}`}
+          className="self-start p-1 -mr-1 text-foreground-muted hover:text-destructive focus-brutal"
+          onClick={e => {
+            e.preventDefault()
+            onRemove()
+          }}
+          type="button"
+        >
+          <X aria-hidden className="size-4" />
+        </button>
       </div>
     )
   }
 
-  const isCrescatOnly = room.source === "crescat"
-  const roomName = room.title ?? String(room.crescatRoomId)
-
   return (
-    <div>
+    <div className="relative">
       {!isCrescatOnly && (
         <ImageWithFallback
           alt={room.image?.alt ?? roomName}
           fallback={
             <span className="flex items-center gap-2 text-foreground-muted">
               <MapPin aria-hidden className="size-4" />
-              Velg et rom
+              Rom
             </span>
           }
           sizes="(min-width: 1024px) 360px, 100vw"
@@ -115,19 +183,24 @@ function SelectedRoomCard({ room }: { room?: BookingRoom }) {
         />
       )}
       <div className="border-b-2 border-border p-5">
-        <p className="font-heading text-xl leading-tight text-foreground">
-          {roomName}
-        </p>
-        {!isCrescatOnly &&
-          (room.capacityStanding || room.capacitySeated) && (
-            <p className="mt-1 text-sm text-foreground-muted">
-              {[
-                room.capacityStanding && `${room.capacityStanding} stående`,
-                room.capacitySeated && `${room.capacitySeated} sittende`,
-              ]
-                .filter(Boolean)
-                .join(" / ")}
-            </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-heading text-xl leading-tight text-foreground">
+            {roomName}
+          </p>
+          <button
+            aria-label={`Fjern ${roomName}`}
+            className="shrink-0 p-1 -mr-1 -mt-1 text-foreground-muted hover:text-destructive focus-brutal"
+            onClick={e => {
+              e.preventDefault()
+              onRemove()
+            }}
+            type="button"
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        </div>
+        {!isCrescatOnly && capacity && (
+            <p className="mt-1 text-sm text-foreground-muted">{capacity}</p>
           )}
       </div>
     </div>

@@ -13,7 +13,7 @@ export function BookingFormCateringBarSection() {
   const form = useBookingForm()
 
   return (
-    <FormSection number="05" title="Mat og bar">
+    <FormSection number="07" title="Mat og bar">
       <div className="max-w-3xl space-y-4">
         <form.Field name="cateringCustom">
           {(field: AnyFieldApi) => (

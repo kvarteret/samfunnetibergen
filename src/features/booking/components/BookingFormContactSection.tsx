@@ -36,7 +36,7 @@ export function BookingFormContactSection({
   const invoiceAddressErrorId = `${invoiceAddressId}-error`
 
   return (
-    <FormSection number="07" title="Kontaktinformasjon">
+    <FormSection number="05" title="Kontaktinformasjon">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
           <Label htmlFor={contactNameId}>Navn *</Label>

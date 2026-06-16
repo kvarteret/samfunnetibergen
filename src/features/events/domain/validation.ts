@@ -46,7 +46,10 @@ export function getEventValidationIssues(
     date => date.startDate && isValidEventDateString(date.startDate),
   )
   if (!hasValidDate) {
-    issues.push({ field: "firstDate", message: "Fyll ut minst én gyldig dato." })
+    issues.push({
+      field: "firstDate",
+      message: "Fyll ut minst én gyldig dato.",
+    })
   }
 
   if (!subject.submittedBy.trim()) {

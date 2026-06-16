@@ -27,7 +27,7 @@ export function BookingFormNeedsSection({
   const furnitureErrorId = `${furnitureId}-error`
 
   return (
-    <FormSection number="04" title="Behov">
+    <FormSection number="06" title="Behov">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup
           className="sm:col-span-2"
