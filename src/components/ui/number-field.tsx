@@ -54,7 +54,7 @@ export function NumberField({
         {showControls && (
           <NumberFieldPrimitive.Decrement
             aria-label="Reduser"
-            className="flex w-10 cursor-pointer items-center justify-center border-2 border-r-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
+            className="flex w-10 cursor-pointer items-center justify-center rounded-base border-2 border-r-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
           >
             <Minus aria-hidden className="size-4" />
           </NumberFieldPrimitive.Decrement>
@@ -63,7 +63,7 @@ export function NumberField({
           aria-describedby={ariaDescribedBy}
           aria-invalid={ariaInvalid || undefined}
           className={cn(
-            "min-w-0 flex-1 border-2 border-border bg-card px-3 py-2 font-base tabular-nums text-foreground outline-none placeholder:text-foreground-muted disabled:cursor-not-allowed disabled:opacity-50 focus-brutal",
+            "min-w-0 flex-1 rounded-base border-2 border-border bg-card px-3 py-2 font-base tabular-nums text-foreground outline-none placeholder:text-foreground-muted disabled:cursor-not-allowed disabled:opacity-50 focus-brutal",
             showControls && "text-center",
             inputClassName,
           )}
@@ -72,7 +72,7 @@ export function NumberField({
         {showControls && (
           <NumberFieldPrimitive.Increment
             aria-label="Øk"
-            className="flex w-10 cursor-pointer items-center justify-center border-2 border-l-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
+            className="flex w-10 cursor-pointer items-center justify-center rounded-base border-2 border-l-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
           >
             <Plus aria-hidden className="size-4" />
           </NumberFieldPrimitive.Increment>

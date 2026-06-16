@@ -52,7 +52,7 @@ export function ComboboxField({
       >
         <Combobox.InputGroup
           className={cn(
-            "relative flex min-h-11 w-full items-center border-2 border-border bg-card focus-within-brutal",
+            "relative flex min-h-11 w-full items-center rounded-base border-2 border-border bg-card focus-within-brutal",
             className,
           )}
         >
@@ -79,7 +79,7 @@ export function ComboboxField({
 
         <Combobox.Portal>
           <Combobox.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Combobox.Popup className="w-[var(--anchor-width)] border-2 border-border bg-card text-foreground shadow-shadow outline-none">
+            <Combobox.Popup className="w-[var(--anchor-width)] rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
               <Combobox.Empty className="px-3 py-4 text-sm text-foreground-muted">
                 Ingen treff
               </Combobox.Empty>

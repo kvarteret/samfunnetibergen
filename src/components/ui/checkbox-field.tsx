@@ -32,7 +32,7 @@ export function CheckboxSquare({
       <span
         aria-hidden
         className={cn(
-          "relative mt-0.5 flex size-5 items-center justify-center border-2 border-border",
+          "relative mt-0.5 flex size-5 items-center justify-center rounded-base border-2 border-border",
           checked ? "bg-primary" : "bg-card",
         )}
       >
@@ -48,7 +48,7 @@ export function CheckboxSquare({
       aria-describedby={ariaDescribedBy}
       aria-invalid={ariaInvalid || undefined}
       checked={checked}
-      className="relative mt-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center border-2 border-border bg-card outline-none group-hover:bg-muted data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-60 focus-visible:ring-3 focus-visible:ring-primary"
+      className="relative mt-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-base border-2 border-border bg-card outline-none group-hover:bg-muted data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-60 focus-visible:ring-3 focus-visible:ring-primary"
       disabled={disabled}
       id={id}
       onCheckedChange={onChange}
