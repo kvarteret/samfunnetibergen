@@ -84,19 +84,16 @@ export function BookingFormEventDetailsSection({
         </FieldGroup>
         <form.Field name="openOrClosed">
           {(field: AnyFieldApi) => (
-            <FieldGroup>
-              <Label>Åpent / lukket *</Label>
-              <RadioGroup<string>
-                onValueChange={field.handleChange}
-                value={field.state.value as string}
-              >
-                {OPEN_CLOSED_OPTIONS.map(opt => (
-                  <RadioGroupItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </RadioGroupItem>
-                ))}
-              </RadioGroup>
-            </FieldGroup>
+            <RadioGroup<string>
+              onValueChange={field.handleChange}
+              value={field.state.value as string}
+            >
+              {OPEN_CLOSED_OPTIONS.map(opt => (
+                <RadioGroupItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </RadioGroupItem>
+              ))}
+            </RadioGroup>
           )}
         </form.Field>
         <FieldGroup className="sm:col-span-2">

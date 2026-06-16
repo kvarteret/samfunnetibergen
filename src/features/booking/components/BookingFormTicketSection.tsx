@@ -23,19 +23,16 @@ export function BookingFormTicketSection() {
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <form.Field name="freeOrPaid">
           {(field: AnyFieldApi) => (
-            <FieldGroup>
-              <Label>Gratis / betalt *</Label>
-              <RadioGroup<string>
-                onValueChange={field.handleChange}
-                value={field.state.value as string}
-              >
-                {FREE_PAID_OPTIONS.map(opt => (
-                  <RadioGroupItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </RadioGroupItem>
-                ))}
-              </RadioGroup>
-            </FieldGroup>
+            <RadioGroup<string>
+              onValueChange={field.handleChange}
+              value={field.state.value as string}
+            >
+              {FREE_PAID_OPTIONS.map(opt => (
+                <RadioGroupItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </RadioGroupItem>
+              ))}
+            </RadioGroup>
           )}
         </form.Field>
         <form.Subscribe
