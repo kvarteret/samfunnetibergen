@@ -149,7 +149,7 @@ function descriptionWithFlexible(input: RoomBookingInput): string {
 }
 
 function roomBookingsFor(input: RoomBookingInput, start: string, end: string) {
-  const ids = input.roomIds.length
+  const ids = input.roomIds?.length
     ? input.roomIds
     : input.roomId
       ? [input.roomId]

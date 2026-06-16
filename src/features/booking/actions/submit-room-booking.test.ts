@@ -1,5 +1,12 @@
 import { describe, expect, test, vi, beforeEach } from "vitest"
 
+// ── Mock rate-limit (Next.js headers() unavailable in vitest) ──────────────
+
+vi.mock("@/lib/rate-limit", () => ({
+  getClientIp: vi.fn().mockResolvedValue("127.0.0.1"),
+  checkRateLimit: vi.fn().mockReturnValue(true),
+}))
+
 // ── Mock network + Sanity ───────────────────────────────────────────────────
 
 const fetchMock = vi.fn()
@@ -30,7 +37,7 @@ function standardPayload(
   return {
     bookerType: "ekstern",
     eventName: "Testarrangement",
-    roomId: 95,
+    roomIds: [95],
     startDate: "2026-12-24",
     startTime: "20:00",
     endTime: "23:00",
