@@ -6,7 +6,7 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SelectField } from "@/components/ui/select-field"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
@@ -23,13 +23,19 @@ export function BookingFormTicketSection() {
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <form.Field name="freeOrPaid">
           {(field: AnyFieldApi) => (
-            <SelectField
-              id={`${uid}-freePaid`}
-              label="Gratis / betalt *"
-              onChange={field.handleChange}
-              options={FREE_PAID_OPTIONS}
-              value={field.state.value as string}
-            />
+            <FieldGroup>
+              <Label>Gratis / betalt *</Label>
+              <RadioGroup<string>
+                onValueChange={field.handleChange}
+                value={field.state.value as string}
+              >
+                {FREE_PAID_OPTIONS.map(opt => (
+                  <RadioGroupItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </RadioGroupItem>
+                ))}
+              </RadioGroup>
+            </FieldGroup>
           )}
         </form.Field>
         <form.Subscribe

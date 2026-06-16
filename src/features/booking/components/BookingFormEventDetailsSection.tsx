@@ -7,7 +7,7 @@ import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NumberField } from "@/components/ui/number-field"
-import { SelectField } from "@/components/ui/select-field"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { useBookingForm } from "./bookingFormContext"
 
@@ -84,13 +84,19 @@ export function BookingFormEventDetailsSection({
         </FieldGroup>
         <form.Field name="openOrClosed">
           {(field: AnyFieldApi) => (
-            <SelectField
-              id={`${uid}-openClosed`}
-              label="Åpent / lukket *"
-              onChange={field.handleChange}
-              options={OPEN_CLOSED_OPTIONS}
-              value={field.state.value as string}
-            />
+            <FieldGroup>
+              <Label>Åpent / lukket *</Label>
+              <RadioGroup<string>
+                onValueChange={field.handleChange}
+                value={field.state.value as string}
+              >
+                {OPEN_CLOSED_OPTIONS.map(opt => (
+                  <RadioGroupItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </RadioGroupItem>
+                ))}
+              </RadioGroup>
+            </FieldGroup>
           )}
         </form.Field>
         <FieldGroup className="sm:col-span-2">
