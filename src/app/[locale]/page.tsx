@@ -220,32 +220,37 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   return (
     <div className="flex flex-col gap-12 pb-12">
       <HomeHero homePage={homePage} locale={locale} />
+      <HomeUpdateNotice locale={locale} />
       <HomeEvents
         events={visibleEvents}
         labels={eventCardLabels}
         locale={locale}
       />
-      <HomeBookingBanner
-        body={homeT("bookingBannerBody")}
-        cta={homeT("bookingBannerCta")}
-        eyebrow={homeT("bookingBannerEyebrow")}
-        heading1={homeT("bookingBannerHeading1")}
-        heading2={homeT("bookingBannerHeading2")}
-      />
+      <div className="hs:hidden">
+        <HomeBookingBanner
+          body={homeT("bookingBannerBody")}
+          cta={homeT("bookingBannerCta")}
+          eyebrow={homeT("bookingBannerEyebrow")}
+          heading1={homeT("bookingBannerHeading1")}
+          heading2={homeT("bookingBannerHeading2")}
+        />
+      </div>
       <HomeBarPreviews
         houseClosedDates={barPreviews?.houseClosedDates}
         locale={locale}
         rooms={barPreviews?.rooms ?? []}
       />
-      <HomeGrupperBanner
-        body={homeT("grupperBannerBody")}
-        cta={homeT("grupperBannerCta")}
-        eyebrow={homeT("grupperBannerEyebrow")}
-        heading1={homeT("grupperBannerHeading1")}
-        heading2={homeT("grupperBannerHeading2")}
-      />
+      <div className="hs:hidden">
+        <HomeGrupperBanner
+          body={homeT("grupperBannerBody")}
+          cta={homeT("grupperBannerCta")}
+          eyebrow={homeT("grupperBannerEyebrow")}
+          heading1={homeT("grupperBannerHeading1")}
+          heading2={homeT("grupperBannerHeading2")}
+        />
+      </div>
 
-      <section>
+      <section className="hs:hidden">
         <Image
           alt=""
           className="hidden h-auto w-full md:block"
@@ -263,7 +268,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           width={500}
         />
       </section>
-      <SlackFeedback />
+      <div className="hs:hidden">
+        <SlackFeedback />
+      </div>
     </div>
   )
 }
@@ -284,60 +291,86 @@ function HomeHero({
     : null
 
   return (
-    <section className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14">
-      <div className="flex flex-col gap-6">
-        {homePage?.title && (
-          <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
-            {homePage.title}
-          </h1>
-        )}
-        {homePage?.description?.split(/\n{2,}/).map(paragraph => (
-          <p
-            className="max-w-2xl leading-relaxed text-foreground-muted"
-            key={paragraph}
-          >
-            {paragraph}
-          </p>
-        ))}
-        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-          {ctaHref && homePage?.primaryCta?.label ? (
-            <>
+    <section className="hs:bg-card hs:w-screen hs:[margin-left:calc(50%_-_50vw)] hs:-mt-10 hs:pt-10 hs:pb-10 lg:hs:pt-16 lg:hs:pb-16">
+      <div className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14 hs:mx-auto hs:w-full hs:max-w-7xl hs:px-6 hs:pt-0 hs:pb-0 hs:sm:px-10 hs:lg:px-14">
+        <div className="flex flex-col gap-6">
+          {homePage?.title && (
+            <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
+              {homePage.title}
+            </h1>
+          )}
+          {homePage?.description?.split(/\n{2,}/).map(paragraph => (
+            <p
+              className="max-w-2xl leading-relaxed text-foreground-muted"
+              key={paragraph}
+            >
+              {paragraph}
+            </p>
+          ))}
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {ctaHref && homePage?.primaryCta?.label ? (
+              <>
+                <Button
+                  className="shrink-0"
+                  render={<Link href={ctaHref} />}
+                  size="lg"
+                >
+                  {homePage.primaryCta.label}
+                </Button>
+                <Link
+                  className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
+                  href={`/${locale}/arrangementer`}
+                >
+                  Se hva som skjer
+                  <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
+                </Link>
+              </>
+            ) : (
               <Button
-                className="shrink-0"
-                render={<Link href={ctaHref} />}
+                className="group shrink-0"
+                render={<Link href={`/${locale}/arrangementer`} />}
                 size="lg"
-              >
-                {homePage.primaryCta.label}
-              </Button>
-              <Link
-                className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
-                href={`/${locale}/arrangementer`}
               >
                 Se hva som skjer
                 <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-              </Link>
-            </>
-          ) : (
-            <Button
-              className="group shrink-0"
-              render={<Link href={`/${locale}/arrangementer`} />}
-              size="lg"
-            >
-              Se hva som skjer
-              <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-            </Button>
-          )}
+              </Button>
+            )}
+          </div>
         </div>
+        <Image
+          alt="Illustrasjon av Det Akademiske Kvarter"
+          className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none"
+          height={986}
+          priority
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          src="/kvarteret-logo.svg"
+          width={1595}
+        />
       </div>
-      <Image
-        alt="Illustrasjon av Det Akademiske Kvarter"
-        className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none"
-        height={986}
-        priority
-        sizes="(min-width: 1024px) 45vw, 100vw"
-        src="/kvarteret-logo.svg"
-        width={1595}
-      />
+    </section>
+  )
+}
+
+// ─── HomeUpdateNotice ─────────────────────────────────────────────────────────
+
+// Temporary maintenance notice shown while the site is being finalized.
+// Norwegian-only by intent; remove once the redesign content is in place.
+function HomeUpdateNotice({ locale }: { locale: AppLocale }) {
+  return (
+    <section
+      aria-label="Statusmelding"
+      className="panel flex flex-col gap-2 rounded-base sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+    >
+      <p className="text-foreground-muted">
+        Vi oppdaterer våre nettsider. Finner du ikke det du leter etter?
+      </p>
+      <Link
+        className="group inline-flex shrink-0 items-center gap-1.5 font-heading text-foreground underline underline-offset-4 focus-brutal"
+        href={`/${locale}/kontakt`}
+      >
+        Kontakt oss
+        <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
+      </Link>
     </section>
   )
 }

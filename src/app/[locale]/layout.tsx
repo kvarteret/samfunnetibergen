@@ -29,7 +29,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <Providers>
-        <div className="paper-canvas min-h-full">
+        <div className="paper-canvas min-h-full [overflow-x:clip]">
           <div className="paper-surface flex min-h-screen flex-col">
             <Navbar navbar={navbar} />
             <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
