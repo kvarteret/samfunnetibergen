@@ -277,12 +277,12 @@ export function TimeRangeSlider({
             {stripeSegments.map((seg, i) => (
               <div
                 key={i}
-                className="pointer-events-none absolute inset-y-0 rounded-full cursor-not-allowed z-10"
+                className="pointer-events-none absolute inset-y-0 rounded-full cursor-not-allowed z-20"
                 style={{
                   left: `${seg.left}%`,
                   width: `${seg.width}%`,
                   background: `repeating-linear-gradient(-45deg, var(--destructive), var(--destructive) 2px, transparent 2px, transparent 6px)`,
-                  opacity: 0.5,
+                  opacity: 0.6,
                 }}
               />
             ))}
