@@ -1,5 +1,4 @@
 import { headers } from "next/headers"
-import Link from "next/link"
 import { redirect } from "next/navigation"
 
 const APP_STORE_URL = "https://apps.apple.com/app/kvarteret/id6578415973"
@@ -78,13 +77,6 @@ export default async function AppenPage() {
           </span>
         </a>
       </div>
-
-      <Link
-        href="/nb"
-        className="text-sm text-foreground-muted hover:text-foreground-muted transition-colors"
-      >
-        ← Tilbake til forsiden
-      </Link>
     </main>
   )
 }
