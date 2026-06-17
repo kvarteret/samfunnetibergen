@@ -1,6 +1,5 @@
 import { CalendarPlus } from "lucide-react"
 import { EventForm } from "@/features/events"
-import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import {
   fetchEventGroups,
@@ -43,13 +42,6 @@ export default async function NyttArrangementPage({
 function SubmitEventPageIntro() {
   return (
     <header className="space-y-6">
-      <Link
-        className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
-        href="/arrangementer"
-      >
-        ← Arrangementer
-      </Link>
-
       <div className="grid gap-6 lg:grid-auto-side">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
