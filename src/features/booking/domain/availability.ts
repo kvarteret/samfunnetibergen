@@ -1,11 +1,7 @@
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import { rangesOverlap, timeToMinutes } from "@/lib/time"
 
 const MINUTES_IN_DAY = 1440
-
-function minutesOf(time: string): number {
-  const [h, m] = time.split(":").map(Number)
-  return h * 60 + m
-}
 
 // Absolute millisecond range for a slot, advancing the end past midnight when
 // the end time is at or before the start time.
@@ -15,11 +11,11 @@ export function slotRangeMs(
   endTime: string,
 ): [number, number] {
   const baseMs = new Date(`${date}T00:00:00`).getTime()
-  const startMs = baseMs + minutesOf(startTime) * 60_000
-  const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime)
+  const startMs = baseMs + timeToMinutes(startTime) * 60_000
+  const crossesMidnight = timeToMinutes(endTime) <= timeToMinutes(startTime)
   const endMs =
     baseMs +
-    (minutesOf(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000
+    (timeToMinutes(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000
   return [startMs, endMs]
 }
 
@@ -28,9 +24,12 @@ export function overlaps(
   endMs: number,
   booking: CresatBooking,
 ): boolean {
-  const bStart = new Date(booking.start).getTime()
-  const bEnd = new Date(booking.end).getTime()
-  return startMs < bEnd && endMs > bStart
+  return rangesOverlap(
+    startMs,
+    endMs,
+    new Date(booking.start).getTime(),
+    new Date(booking.end).getTime(),
+  )
 }
 
 export function formatBookingTime(iso: string): string {
@@ -59,9 +58,9 @@ export function bookingRangeMs(
     return slotRangeMs(startDate, startTime, endTime)
   }
   const startMs =
-    new Date(`${startDate}T00:00:00`).getTime() + minutesOf(startTime) * 60_000
+    new Date(`${startDate}T00:00:00`).getTime() + timeToMinutes(startTime) * 60_000
   const endMs =
-    new Date(`${endDate}T00:00:00`).getTime() + minutesOf(endTime) * 60_000
+    new Date(`${endDate}T00:00:00`).getTime() + timeToMinutes(endTime) * 60_000
   return [startMs, endMs]
 }
 
@@ -82,7 +81,7 @@ export function durationHoursBetween(
   startTime: string,
   endTime: string,
 ): number {
-  const diff = minutesOf(endTime) - minutesOf(startTime)
+  const diff = timeToMinutes(endTime) - timeToMinutes(startTime)
   return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
 }
 
