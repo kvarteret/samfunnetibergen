@@ -1,5 +1,6 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { ExternalLink } from "lucide-react"
 
 const APP_STORE_URL = "https://apps.apple.com/app/kvarteret/id6578415973"
 const GOOGLE_PLAY_URL =
@@ -60,6 +61,7 @@ export default async function AppenPage() {
             </span>{" "}
             App Store
           </span>
+          <ExternalLink aria-hidden="true" className="ml-auto size-4 shrink-0" />
         </a>
 
         <a
@@ -75,6 +77,7 @@ export default async function AppenPage() {
             </span>{" "}
             Google Play
           </span>
+          <ExternalLink aria-hidden="true" className="ml-auto size-4 shrink-0" />
         </a>
       </div>
     </main>

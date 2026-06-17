@@ -1,7 +1,7 @@
 "use client"
 
 import { Dialog } from "@base-ui/react/dialog"
-import { ChevronDown, Menu, X } from "lucide-react"
+import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
@@ -91,16 +91,31 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
       {renderNavItemLabel(item, onClose, linkCls)}
 
       {item.children?.map((group: NavGroup) =>
-        group.items?.map((leaf: NavLeaf) => (
-          <Link
-            className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-            href={leaf.href ?? leaf.externalUrl ?? "#"}
-            key={leaf._key}
-            onClick={onClose}
-          >
-            {leaf.label}
-          </Link>
-        )),
+        group.items?.map((leaf: NavLeaf) => {
+          const isLeafExternal = !leaf.href && Boolean(leaf.externalUrl)
+          return isLeafExternal ? (
+            <a
+              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+              href={leaf.externalUrl!}
+              key={leaf._key}
+              onClick={onClose}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {leaf.label}
+              <ExternalLink aria-hidden="true" className="ml-2 inline size-3.5 shrink-0" />
+            </a>
+          ) : (
+            <Link
+              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+              href={leaf.href ?? leaf.externalUrl ?? "#"}
+              key={leaf._key}
+              onClick={onClose}
+            >
+              {leaf.label}
+            </Link>
+          )
+        }),
       )}
       {item._key === "static-more" && <PaperMenuSection mobile />}
     </div>
@@ -134,6 +149,7 @@ function renderNavItemLabel(
         target="_blank"
       >
         {item.label}
+        <ExternalLink aria-hidden="true" className="ml-2 inline size-[0.7em] shrink-0" />
       </a>
     )
   }

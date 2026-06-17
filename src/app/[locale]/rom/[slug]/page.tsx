@@ -1,4 +1,4 @@
-import { Clock, FileText, Users } from "lucide-react"
+import { Clock, ExternalLink, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -240,7 +240,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
           target="_blank"
         >
           Tekniske spesifikasjoner
-          <FileText aria-hidden className="size-4" />
+          <ExternalLink aria-hidden className="size-4" />
         </a>
       )}
     </section>

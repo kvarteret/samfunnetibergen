@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { ExternalLink } from "lucide-react"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -42,6 +43,13 @@ const moreItem: NavItem = {
           label: "Link i bio",
           href: "/linkibio",
           externalUrl: null,
+        },
+        {
+          _key: "static-offentlige-dokumenter",
+          label: "Offentlige dokumenter",
+          href: null,
+          externalUrl:
+            "https://drive.google.com/drive/folders/0B0B-uQZgv7V3NHY0V0lXQUQ2elU?resourcekey=0-YYvE5cj9cKfVcTP4_p0w0Q",
         },
       ],
     },
@@ -205,6 +213,12 @@ function DropdownGroups({ groups }: { groups: NavGroup[] }) {
                 }
               >
                 {leaf.label}
+                {leafExternal && (
+                  <ExternalLink
+                    aria-hidden="true"
+                    className="ml-1 inline size-3 shrink-0"
+                  />
+                )}
               </NavigationMenuLink>
             )
           })}
@@ -236,6 +250,7 @@ function NavLink({
       {...props}
     >
       {children}
+      <ExternalLink aria-hidden="true" className="ml-1 inline size-3 shrink-0" />
     </a>
   ) : (
     <Link className={className} href={href} {...props}>

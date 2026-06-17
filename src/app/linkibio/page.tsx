@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { fetchLinkInBio } from "@/lib/sanity/fetch"
@@ -92,6 +93,10 @@ function LinkInBioLinkList({ links }: { links: LinkInBioLink[] }) {
                 className={className}
               >
                 {label}
+                <ExternalLink
+                  aria-hidden="true"
+                  className="ml-2 size-4 shrink-0"
+                />
               </a>
             ) : (
               <Link href={href} className={className}>
