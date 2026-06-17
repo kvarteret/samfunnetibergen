@@ -44,6 +44,15 @@ export async function fetchBookableRoomsForBooker(
         openingHours: null,
         image: null,
         source: "crescat",
+        floor: null,
+        suitedPurposes: [],
+        bar: null,
+        hasSound: false,
+        soundDetails: null,
+        hasLighting: false,
+        lightingDetails: null,
+        hasAV: false,
+        avDetails: null,
       }
     }),
   )
@@ -73,5 +82,14 @@ function toSanityBookingRoom(room: SanityBookableRoom): BookingRoom {
       ? { assetUrl: room.image.assetUrl, alt: room.image.alt }
       : null,
     source: "sanity",
+    floor: room.floor,
+    suitedPurposes: room.suitedPurposes,
+    bar: room.bar,
+    hasSound: room.hasSound,
+    soundDetails: room.soundDetails,
+    hasLighting: room.hasLighting,
+    lightingDetails: room.lightingDetails,
+    hasAV: room.hasAV,
+    avDetails: room.avDetails,
   }
 }

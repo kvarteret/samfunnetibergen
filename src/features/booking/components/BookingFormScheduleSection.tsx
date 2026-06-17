@@ -1,8 +1,15 @@
 "use client"
 
+import { PreviewCard } from "@base-ui/react/preview-card"
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { Building2, CalendarClock, Check } from "lucide-react"
-import { useId, useState } from "react"
+import { ArrowRight, Building2, CalendarClock, Check, X } from "lucide-react"
+import {
+  Fragment,
+  type ReactElement,
+  type ReactNode,
+  useId,
+  useState,
+} from "react"
 import { Card } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
@@ -12,6 +19,7 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
 import { Tag } from "@/components/ui/tag"
 import { RoomCapacity } from "@/features/rooms"
+import { Link } from "@/i18n/navigation"
 import {
   type ClosedDate,
   isoDate,
@@ -125,7 +133,7 @@ export function BookingFormScheduleSection({
                         form.setFieldValue("selectedRoomIds", next)
                       }
 
-                      return (
+                      const roomCard = (
                         <label
                           className={cn(
                             "group flex cursor-pointer flex-col overflow-hidden border-2 transition-colors",
@@ -134,7 +142,6 @@ export function BookingFormScheduleSection({
                               : "border-border bg-card hover:border-primary",
                             occupied && "cursor-not-allowed",
                           )}
-                          key={room.crescatRoomId}
                         >
                           <input
                             checked={selected}
@@ -190,6 +197,14 @@ export function BookingFormScheduleSection({
                             )}
                           </div>
                         </label>
+                      )
+
+                      return room.slug ? (
+                        <RoomPreviewCard key={room.crescatRoomId} room={room}>
+                          {roomCard}
+                        </RoomPreviewCard>
+                      ) : (
+                        <Fragment key={room.crescatRoomId}>{roomCard}</Fragment>
                       )
                     })}
                   </div>
@@ -269,5 +284,133 @@ function RoomConflictList({ conflicts }: { conflicts: string[] }) {
         </li>
       )}
     </ul>
+  )
+}
+
+const TECH_SPECS: {
+  label: string
+  hasKey: "hasSound" | "hasLighting" | "hasAV"
+  detailsKey: "soundDetails" | "lightingDetails" | "avDetails"
+}[] = [
+  { label: "Lyd", hasKey: "hasSound", detailsKey: "soundDetails" },
+  { label: "Lys", hasKey: "hasLighting", detailsKey: "lightingDetails" },
+  { label: "A/V", hasKey: "hasAV", detailsKey: "avDetails" },
+]
+
+// Hover/focus preview of a room's full facility list, with a link into the
+// room's own page — the room cards here are selection checkboxes, not links,
+// so this is the only way to see full room details without losing
+// booking-form progress. Uses a dense label/value grid (not the spacious
+// detail-page layout) so a complete facility list still skims in one glance.
+function RoomPreviewCard({
+  room,
+  children,
+}: {
+  room: BookingRoom
+  children: ReactElement
+}) {
+  const hasCapacity =
+    room.capacityStanding != null || room.capacitySeated != null
+
+  return (
+    <PreviewCard.Root>
+      <PreviewCard.Trigger render={children} />
+      <PreviewCard.Portal>
+        <PreviewCard.Positioner sideOffset={12}>
+          <PreviewCard.Popup className="z-50 w-72 space-y-3 panel shadow-shadow">
+            <div className="space-y-1">
+              <p className="font-heading text-lg text-foreground">
+                {room.title}
+              </p>
+              {room.summary && (
+                <p className="text-sm text-foreground-muted">{room.summary}</p>
+              )}
+            </div>
+
+            <dl className="space-y-1.5 text-sm">
+              {hasCapacity && (
+                <PreviewRow label="Kapasitet">
+                  <RoomCapacity
+                    seated={room.capacitySeated}
+                    standing={room.capacityStanding}
+                  />
+                </PreviewRow>
+              )}
+              {room.floor != null && (
+                <PreviewRow label="Etasje">{room.floor}. etasje</PreviewRow>
+              )}
+              {room.suitedPurposes.length > 0 && (
+                <PreviewRow label="Passer til">
+                  {room.suitedPurposes.join(", ")}
+                </PreviewRow>
+              )}
+              {room.bar != null && (
+                <PreviewRow label="Bar">{room.bar || "Nei"}</PreviewRow>
+              )}
+              {TECH_SPECS.map(spec => (
+                <PreviewRow key={spec.label} label={spec.label}>
+                  <TechSpecValue
+                    details={room[spec.detailsKey]}
+                    value={room[spec.hasKey]}
+                  />
+                </PreviewRow>
+              ))}
+            </dl>
+
+            <Link
+              className="inline-flex items-center gap-2 font-heading text-foreground underline underline-offset-4 hover:text-primary"
+              href={`/rom/${room.slug}`}
+            >
+              Se rommet
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          </PreviewCard.Popup>
+        </PreviewCard.Positioner>
+      </PreviewCard.Portal>
+    </PreviewCard.Root>
+  )
+}
+
+function PreviewRow({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-20 shrink-0 font-heading text-xs uppercase tracking-wide text-foreground-muted">
+        {label}
+      </dt>
+      <dd className="text-foreground">{children}</dd>
+    </div>
+  )
+}
+
+function TechSpecValue({
+  value,
+  details,
+}: {
+  value: boolean
+  details: string | null
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-start gap-1.5",
+        !value && "text-foreground-muted",
+      )}
+    >
+      {value ? (
+        <Check
+          aria-hidden
+          className="mt-0.5 size-3.5 shrink-0 text-green-700 dark:text-green-400"
+        />
+      ) : (
+        <X aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+      )}
+      {value ? details || "Ja" : "Nei"}
+    </span>
   )
 }

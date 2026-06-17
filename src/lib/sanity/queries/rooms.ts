@@ -62,8 +62,17 @@ export const bookableRoomsQuery =
     capacityStanding,
     capacitySeated,
     crescatRoomId,
+    floor,
+    "suitedPurposes": coalesce(suitedPurposes, []),
+    bar,
     "openingHours": openingHours ${openingHoursProjection},
-    "image": images[0] ${sourcedImageProjection}
+    "image": images[0] ${sourcedImageProjection},
+    "hasSound": coalesce(hasSound, false),
+    soundDetails,
+    "hasLighting": coalesce(hasLighting, false),
+    lightingDetails,
+    "hasAV": coalesce(hasAV, false),
+    avDetails
 }`)
 
 export const roomBySlugQuery =

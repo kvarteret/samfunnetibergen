@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
-
-import type { CresatResource } from "./calendar"
 import type { BookingRoom } from "@/features/booking/types"
+import type { CresatResource } from "./calendar"
 
 // ── Mock modules ────────────────────────────────────────────────────────────
 
@@ -18,13 +17,18 @@ vi.mock("@/lib/sanity/fetch", () => ({
   fetchBookableRooms: vi.fn(),
 }))
 
-import { calendarSlugForBookerType, fetchVenueResources } from "@/lib/integrations/crescat/calendar"
-import { fetchBookableRooms } from "@/lib/sanity/fetch"
 import { fetchBookableRoomsForBooker } from "@/features/booking/actions/bookable-rooms"
+import {
+  calendarSlugForBookerType,
+  fetchVenueResources,
+} from "@/lib/integrations/crescat/calendar"
+import { fetchBookableRooms } from "@/lib/sanity/fetch"
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function sanityRoom(overrides: Partial<BookingRoom & { crescatRoomId: number }>): BookingRoom & { crescatRoomId: number } {
+function sanityRoom(
+  overrides: Partial<BookingRoom & { crescatRoomId: number }>,
+): BookingRoom & { crescatRoomId: number } {
   return {
     crescatRoomId: overrides.crescatRoomId,
     title: overrides.title ?? `Rom ${overrides.crescatRoomId}`,
@@ -33,8 +37,20 @@ function sanityRoom(overrides: Partial<BookingRoom & { crescatRoomId: number }>)
     capacityStanding: overrides.capacityStanding ?? 100,
     capacitySeated: overrides.capacitySeated ?? 50,
     openingHours: overrides.openingHours ?? null,
-    image: overrides.image ?? { assetUrl: "https://ex.com/img.jpg", alt: "Foto" },
+    image: overrides.image ?? {
+      assetUrl: "https://ex.com/img.jpg",
+      alt: "Foto",
+    },
     source: "sanity",
+    floor: overrides.floor ?? null,
+    suitedPurposes: overrides.suitedPurposes ?? [],
+    bar: overrides.bar ?? null,
+    hasSound: overrides.hasSound ?? false,
+    soundDetails: overrides.soundDetails ?? null,
+    hasLighting: overrides.hasLighting ?? false,
+    lightingDetails: overrides.lightingDetails ?? null,
+    hasAV: overrides.hasAV ?? false,
+    avDetails: overrides.avDetails ?? null,
   }
 }
 
@@ -50,8 +66,12 @@ describe("fetchBookableRoomsForBooker", () => {
   })
 
   test("sanity-enriched room has source sanity", async () => {
-    vi.mocked(fetchVenueResources).mockResolvedValue([crescatResource(95, "Tivoli")])
-    vi.mocked(fetchBookableRooms).mockResolvedValue([sanityRoom({ crescatRoomId: 95 })])
+    vi.mocked(fetchVenueResources).mockResolvedValue([
+      crescatResource(95, "Tivoli"),
+    ])
+    vi.mocked(fetchBookableRooms).mockResolvedValue([
+      sanityRoom({ crescatRoomId: 95 }),
+    ])
 
     const rooms = await fetchBookableRoomsForBooker("ekstern")
     expect(rooms).toHaveLength(1)
@@ -60,7 +80,9 @@ describe("fetchBookableRoomsForBooker", () => {
   })
 
   test("crescat-only room has source crescat", async () => {
-    vi.mocked(fetchVenueResources).mockResolvedValue([crescatResource(125, "Garderobe")])
+    vi.mocked(fetchVenueResources).mockResolvedValue([
+      crescatResource(125, "Garderobe"),
+    ])
     vi.mocked(fetchBookableRooms).mockResolvedValue([])
 
     const rooms = await fetchBookableRoomsForBooker("intern")
