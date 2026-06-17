@@ -346,7 +346,7 @@ function TimeSlots({
   let firstDayEndIdx: number | undefined
   let lastDayStartIdx: number | undefined
   let lastDayEndIdx: number | undefined
-  let stapledSegments: { startIdx: number; endIdx: number }[] = []
+  const stapledSegments: { startIdx: number; endIdx: number }[] = []
 
   if (dayCount > 1) {
     const SLOTS_PER_DAY = 24 // hourly grid: 0, 60, ..., 1380
