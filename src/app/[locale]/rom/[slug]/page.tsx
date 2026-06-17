@@ -1,4 +1,4 @@
-import { Clock, FileText, Users } from "lucide-react"
+import { FileText, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -109,50 +109,55 @@ export default async function RoomPage({ params }: RoomPageProps) {
         </div>
       )}
 
-      <div className="mt-8 space-y-10">
-        <header className="space-y-3">
-          <Link
-            className="font-heading text-sm uppercase tracking-widest text-foreground-muted hover:text-foreground"
-            href={`/${locale}/rom`}
-          >
-            Rom
-          </Link>
-          <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-            {title}
-          </h1>
-          {room.summary && (
-            <p className="max-w-2xl text-lg leading-7 text-foreground-muted">
-              {room.summary}
-            </p>
-          )}
-        </header>
+      <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-10">
+          <header className="space-y-3">
+            <Link
+              className="font-heading text-sm uppercase tracking-widest text-foreground-muted hover:text-foreground"
+              href={`/${locale}/rom`}
+            >
+              Rom
+            </Link>
+            <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
+              {title}
+            </h1>
+            {room.summary && (
+              <p className="max-w-2xl text-lg leading-7 text-foreground-muted">
+                {room.summary}
+              </p>
+            )}
+          </header>
 
-        {room.body && room.body.length > 0 && (
-          <section className="max-w-4xl space-y-8">
-            <PortableTextContent value={room.body} />
+          {room.body && room.body.length > 0 && (
+            <section className="max-w-4xl space-y-8">
+              <PortableTextContent value={room.body} />
+            </section>
+          )}
+
+          <section className="grid gap-8 lg:grid-cols-2 lg:items-start">
+            <RoomSpecs room={room} />
+            {panoramaSlide && "iframeSrc" in panoramaSlide && (
+              <div className="aspect-video w-full">
+                <PanoramaEmbed
+                  loading="lazy"
+                  src={panoramaSlide.iframeSrc}
+                />
+              </div>
+            )}
           </section>
-        )}
+          <RoomFloorPlan room={room} />
+        </div>
 
-        <section className="grid gap-8 lg:grid-cols-2 lg:items-start">
-          <RoomSpecs room={room} />
-          {panoramaSlide && "iframeSrc" in panoramaSlide && (
-            <div className="aspect-video w-full">
-              <PanoramaEmbed
-                loading="lazy"
-                src={panoramaSlide.iframeSrc}
-              />
-            </div>
-          )}
-        </section>
-        <RoomFloorPlan room={room} />
-        <RoomOpeningHours room={room} />
-        <Button
-          className="w-fit"
-          render={<Link href={`/rom/book?room=${room.crescatRoomId}`} />}
-          size="lg"
-        >
-          Book {room.title ?? slug} her
-        </Button>
+        <aside className="space-y-6">
+          <RoomOpeningHours room={room} />
+          <Button
+            className="w-full"
+            render={<Link href={`/rom/book?room=${room.crescatRoomId}`} />}
+            size="lg"
+          >
+            Book {room.title ?? slug} her
+          </Button>
+        </aside>
       </div>
     </article>
   )
@@ -284,12 +289,11 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <h2 className="flex items-center gap-2 font-heading text-lg text-foreground">
-        <Clock aria-hidden className="size-4" />
-        Åpningstider
-      </h2>
-      <dl className="max-w-md divide-y divide-border">
+    <section className="space-y-3">
+      <h3 className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        Kontakt
+      </h3>
+      <dl className="divide-y divide-border border-y-2 border-border">
         {room.openingHours.rows.map(
           (
             row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number],
