@@ -4,6 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant hs (&:is([data-theme="hs"] *));
+@custom-variant skyss (&:is([data-theme="skyss"] *));
 
 @layer base {
   :root {

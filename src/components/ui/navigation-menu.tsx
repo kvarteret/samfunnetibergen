@@ -67,6 +67,7 @@ function NavigationMenuTrigger({
   className,
   children,
   hideArrow,
+  render,
   ...props
 }: NavigationMenuPrimitive.Trigger.Props & { hideArrow?: boolean }) {
   return (
@@ -81,6 +82,8 @@ function NavigationMenuTrigger({
         "focus-brutal",
         className,
       )}
+      nativeButton={render == null}
+      render={render}
       {...props}
     >
       {children}
