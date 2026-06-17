@@ -16,7 +16,8 @@ import {
 import { cn } from "@/lib/utils"
 import { differenceInCalendarDays, parseISO } from "date-fns"
 
-const SLOT_STEP_MIN = 30
+const SLOT_STEP_MIN = 15
+const MULTI_DAY_SLOT_STEP_MIN = 60
 const MINUTES_IN_DAY = 24 * 60
 const MAX_RANGE_DAYS = 7
 
@@ -25,6 +26,7 @@ function slotMarks(
   hours: OpeningHours | null,
   roomHours: OpeningHours | null,
   closed: ClosedDate[],
+  stepMin = SLOT_STEP_MIN,
 ): number[] {
   const marks = new Set<number>()
   for (const range of combineOpeningRangesForDate(
@@ -33,40 +35,26 @@ function slotMarks(
     roomHours,
     closed,
   )) {
-    for (let m = range.startMin; m <= range.endMin; m += SLOT_STEP_MIN)
+    for (let m = range.startMin; m <= range.endMin; m += stepMin)
       marks.add(m)
   }
   return Array.from(marks).toSorted((a, b) => a - b)
 }
 
 /**
- * Gather all 30-min slot marks across a date range.
- * Each day's marks are offset by `dayIndex * 1440` so the slider can treat
- * the whole multi-day span as a single linear timeline.
+ * Full 24‑hour grid for multi-day bookings. Each day contributes hourly
+ * marks across the full 0–1439 range so the slider track has no gaps
+ * between days.  Opening‑hour validation still runs server‑side.
  */
 function multiDayMarks(
   startDate: string,
   endDate: string,
-  hours: OpeningHours | null,
-  roomHours: OpeningHours | null,
-  closed: ClosedDate[],
+  _hours: OpeningHours | null,
+  _roomHours: OpeningHours | null,
+  _closed: ClosedDate[],
 ): number[] {
-  const start = parseISO(startDate)
-  const end = parseISO(endDate || startDate)
-  const dayCount = differenceInCalendarDays(end, start) + 1
-
-  const marks = new Set<number>()
-  for (let d = 0; d < dayCount; d++) {
-    const date = new Date(start)
-    date.setDate(date.getDate() + d)
-    const ds = toDateString(date)
-    const dayMarks = slotMarks(ds, hours, roomHours, closed)
-    const offset = d * MINUTES_IN_DAY
-    for (const m of dayMarks) {
-      marks.add(m + offset)
-    }
-  }
-  return Array.from(marks).toSorted((a, b) => a - b)
+  const dayCount = differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+  return unconstrainedMarks(dayCount, MULTI_DAY_SLOT_STEP_MIN)
 }
 
 function toDateString(d: Date): string {
@@ -202,11 +190,13 @@ export function DateTimePicker({
             day,
             onClick: _dayPickerClick,
             ...props
-          }) => (
+          }) => {
+            const mods = modifiers as Record<string, boolean>
+            return (
             <CalendarDayButton
               className={cn(
                 "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
-                (modifiers as Record<string, boolean>).occupied &&
+                mods.occupied &&
                   "line-through text-destructive/70 !opacity-70",
               )}
               day={day}
@@ -215,13 +205,18 @@ export function DateTimePicker({
               onClick={() =>
                 handleDayClick(
                   day.date,
-                  Boolean((modifiers as Record<string, boolean>).disabled),
+                  Boolean(mods.disabled),
                 )
               }
               variant="plain"
               {...props}
+              style={mods.range_middle ? {
+                backgroundColor: "var(--muted)",
+                backgroundImage: "repeating-linear-gradient(90deg, oklch(from var(--primary) calc(l * 0.9) c h) 0, oklch(from var(--primary) calc(l * 0.9) c h) 24px, transparent 24px, transparent 48px)",
+              } as React.CSSProperties : undefined}
             />
-          ),
+            )
+          },
         }}
         disabled={isDisabled}
         locale={nb}
@@ -344,13 +339,74 @@ function TimeSlots({
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
     : 1
 
+  // Multi-day: constrain thumbs to opening hours of first/last day.
+  // Full 24h hourly grid → index = minute / 60.
+  // Clamp to nearest valid mark from the opening ranges.
+  let firstDayStartIdx: number | undefined
+  let firstDayEndIdx: number | undefined
+  let lastDayStartIdx: number | undefined
+  let lastDayEndIdx: number | undefined
+  let stapledSegments: { startIdx: number; endIdx: number }[] = []
+
+  if (dayCount > 1) {
+    const SLOTS_PER_DAY = 24 // hourly grid: 0, 60, ..., 1380
+    const dayIndices: { start: number; end: number }[] = []
+
+    for (let d = 0; d < dayCount; d++) {
+      const date = new Date(parseISO(startDate))
+      date.setDate(date.getDate() + d)
+      const ranges = combineOpeningRangesForDate(
+        toDateString(date),
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+      )
+      if (ranges.length > 0) {
+        const minStart = Math.min(...ranges.map(r => r.startMin))
+        const maxEnd = Math.max(...ranges.map(r => r.endMin))
+        const offset = d * SLOTS_PER_DAY
+        dayIndices.push({
+          start: offset + Math.ceil(minStart / 60),
+          end: offset + Math.min(Math.floor(maxEnd / 60), SLOTS_PER_DAY - 1),
+        })
+      }
+    }
+
+    // First day constraints
+    if (dayIndices.length > 0) {
+      firstDayStartIdx = dayIndices[0].start
+      firstDayEndIdx = dayIndices[0].end
+    }
+
+    // Last day constraints
+    if (dayIndices.length > 0) {
+      const last = dayIndices[dayIndices.length - 1]
+      lastDayStartIdx = last.start
+      lastDayEndIdx = last.end
+    }
+
+    // Stapled segment: entire span between first day end and last day start.
+    // Makes clear to the user that intermediate days are part of the booking
+    // span but not selectable for start/end.
+    if (dayIndices.length > 1) {
+      const firstEnd = dayIndices[0].end
+      const lastStart = dayIndices[dayIndices.length - 1].start
+      if (firstEnd + 1 <= lastStart - 1) {
+        stapledSegments.push({
+          startIdx: firstEnd + 1,
+          endIdx: lastStart - 1,
+        })
+      }
+    }
+  }
+
   // Compute doorsTime options: all marks at or before the selected start
   const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
   const doorsOptions = marks
     .filter(m => m <= startMinute)
     .map(m => ({
       value: minutesToTime(m),
-      label: m < MINUTES_IN_DAY ? minutesToTime(m) : `${minutesToTime(m)} +${Math.floor(m / MINUTES_IN_DAY)}`,
+      label: minutesToTime(m),
     }))
 
   return (
@@ -361,8 +417,13 @@ function TimeSlots({
           startTime={startTime}
           endTime={endTime}
           dayCount={dayCount}
+          firstDayStartIdx={firstDayStartIdx}
+          firstDayEndIdx={firstDayEndIdx}
+          lastDayStartIdx={lastDayStartIdx}
+          lastDayEndIdx={lastDayEndIdx}
           conflict={hasConflict}
           occupiedRanges={occupiedRanges}
+          stapledSegments={stapledSegments}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
         />
@@ -381,22 +442,22 @@ function TimeSlots({
   )
 }
 
-const FALLBACK_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = String(Math.floor(i / 2)).padStart(2, "0")
-  const m = i % 2 === 0 ? "00" : "30"
+const FALLBACK_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = String(Math.floor(i / 4)).padStart(2, "0")
+  const m = String((i % 4) * 15).padStart(2, "0")
   return { value: `${h}:${m}`, label: `${h}:${m}` }
 })
 
-/** Flat 30-min marks for a single 24h day (0, 30, …, 1410). */
-function unconstrainedMarks(dayCount: number): number[] {
+/** Flat marks for a 24h day. Step defaults to 15-min, 60-min for multi-day. */
+function unconstrainedMarks(dayCount: number, stepMin = SLOT_STEP_MIN): number[] {
   const marks: number[] = []
   for (let d = 0; d < dayCount; d++) {
     const offset = d * MINUTES_IN_DAY
-    for (let m = 0; m < MINUTES_IN_DAY; m += SLOT_STEP_MIN) {
+    for (let m = 0; m < MINUTES_IN_DAY; m += stepMin) {
       marks.push(m + offset)
     }
   }
-  // Remove the very last mark (23:30 on final day) so it can't be selected
+  // Remove the very last mark so it can't be selected
   // as a start time with no remaining slots for end.
   return marks.slice(0, -1)
 }
@@ -431,14 +492,28 @@ function UnconstrainedTimes({
   const dayCount = endDate
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
     : 1
-  const marks = unconstrainedMarks(dayCount)
+  const marks = unconstrainedMarks(dayCount, dayCount > 1 ? MULTI_DAY_SLOT_STEP_MIN : SLOT_STEP_MIN)
+
+  // Multi-day: constrain start thumb to first day, end thumb to last day.
+  // No opening hours configured here — full day boundaries suffice.
+  const firstDayEndIdx =
+    dayCount > 1
+      ? marks.reduce(
+          (last, m, i) => (m < MINUTES_IN_DAY ? i : last),
+          -1,
+        )
+      : undefined
+  const lastDayStartIdx =
+    dayCount > 1
+      ? marks.findIndex((m) => m >= (dayCount - 1) * MINUTES_IN_DAY)
+      : undefined
 
   const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
   const doorsOptions = marks
     .filter(m => m <= startMinute)
     .map(m => ({
       value: minutesToTime(m),
-      label: m < MINUTES_IN_DAY ? minutesToTime(m) : `${minutesToTime(m)} +${Math.floor(m / MINUTES_IN_DAY)}`,
+      label: minutesToTime(m),
     }))
 
   return (
@@ -449,6 +524,8 @@ function UnconstrainedTimes({
           startTime={startTime}
           endTime={endTime}
           dayCount={dayCount}
+          firstDayEndIdx={firstDayEndIdx}
+          lastDayStartIdx={lastDayStartIdx}
           conflict={hasConflict}
           occupiedRanges={occupiedRanges}
           onStartChange={onStartChange}
