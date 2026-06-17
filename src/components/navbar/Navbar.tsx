@@ -51,19 +51,13 @@ const moreItem: NavItem = {
 const bookingItem: NavItem = {
   _key: "static-booking",
   label: "Booking",
-  href: null,
+  href: "/rom/book",
   externalUrl: null,
   children: [
     {
       _key: "static-booking-links",
       groupLabel: null,
       items: [
-        {
-          _key: "static-book-room",
-          label: "Book rom",
-          href: "/rom/book",
-          externalUrl: null,
-        },
         {
           _key: "static-karaoke",
           label: "Karaoke",
@@ -76,7 +70,9 @@ const bookingItem: NavItem = {
 }
 
 function withMoreMenu(items: NavItem[]) {
-  const filtered = items.filter(item => item._key !== moreItem._key && item._key !== bookingItem._key)
+  const filtered = items.filter(
+    item => item._key !== moreItem._key && item._key !== bookingItem._key,
+  )
   return [bookingItem, ...filtered, moreItem]
 }
 
@@ -162,9 +158,18 @@ function DesktopNavItem({ item }: { item: NavItem }) {
     )
   }
 
+  const isBooking = item._key === bookingItem._key
+
   return (
     <NavigationMenuItem value={item._key}>
-      <NavigationMenuTrigger hideArrow={item._key === bookingItem._key}>{item.label}</NavigationMenuTrigger>
+      <NavigationMenuTrigger
+        hideArrow={isBooking}
+        render={
+          isBooking ? <NavLink external={external} href={href} /> : undefined
+        }
+      >
+        {item.label}
+      </NavigationMenuTrigger>
       <NavigationMenuContent>
         <DropdownGroups groups={item.children ?? []} />
         {item._key === moreItem._key && <PaperMenuSection />}
