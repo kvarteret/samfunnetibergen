@@ -24,7 +24,7 @@ import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
-import { durationHoursBetween, findRoomConflicts } from "../domain/availability"
+import { durationHoursBetween, findRoomConflicts, occupiedMinuteRanges } from "../domain/availability"
 import {
   buildBookingPayload,
   initialBookingState,
@@ -170,6 +170,13 @@ export function BookingForm({
   const hasConflict =
     !!values.startDate && selectedRoomIds.some(id => roomOccupancy.has(id))
 
+  const occupiedRanges = occupiedMinuteRanges(
+    bookings,
+    selectedRoomIds,
+    values.startDate,
+    values.endDate,
+  )
+
   const slotWithinHours = (() => {
     const hasConfiguredHours =
       hasOpeningHoursRows(openingHours) ||
@@ -256,6 +263,7 @@ export function BookingForm({
             rooms={rooms}
             selectedRoomIds={selectedRoomIds}
             roomOccupancy={roomOccupancy}
+            occupiedRanges={occupiedRanges}
             openingHours={openingHours}
             closedDates={closedDates}
             hasConflict={hasConflict}

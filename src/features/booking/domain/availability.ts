@@ -108,6 +108,43 @@ export function isRoomOccupied(
   )
 }
 
+/**
+ * Occupied minute intervals for selected rooms within a date range,
+ * expressed as minutes from midnight of `startDate`.
+ * Each entry maps to a segment on the slider track that should be
+ * shown as unavailable (striped).
+ */
+export function occupiedMinuteRanges(
+  bookings: CresatBooking[],
+  selectedRoomIds: number[],
+  startDate: string,
+  endDate: string,
+): { startMin: number; endMin: number }[] {
+  if (!startDate || !selectedRoomIds.length) return []
+
+  const startDateMs = new Date(`${startDate}T00:00:00`).getTime()
+  const endStr = endDate || startDate
+  const endDateMs = new Date(`${endStr}T23:59:59.999`).getTime()
+
+  const selectedSet = new Set(selectedRoomIds)
+
+  return bookings
+    .filter(
+      b =>
+        selectedSet.has(b.resourceId) &&
+        new Date(b.start).getTime() < endDateMs &&
+        new Date(b.end).getTime() > startDateMs,
+    )
+    .map(b => {
+      const startMin =
+        Math.max(0, new Date(b.start).getTime() - startDateMs) / 60_000
+      const endMin =
+        (new Date(b.end).getTime() - startDateMs) / 60_000
+      return { startMin, endMin }
+    })
+    .filter(r => r.endMin > 0)
+}
+
 // Every conflicting booking for a room over the requested range, formatted
 // for display and sorted chronologically. The range may span multiple days
 // when endDate differs from startDate.

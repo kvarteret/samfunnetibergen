@@ -35,6 +35,7 @@ import { useBookingForm } from "./bookingFormContext"
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
   roomOccupancy: Map<number, string[]>
+  occupiedRanges: { startMin: number; endMin: number }[]
   selectedRoomIds: number[]
   hasConflict: boolean
   openingHours: OpeningHours | null
@@ -46,6 +47,7 @@ interface BookingFormScheduleSectionProps {
 export function BookingFormScheduleSection({
   rooms,
   roomOccupancy,
+  occupiedRanges,
   selectedRoomIds,
   hasConflict,
   openingHours,
@@ -99,6 +101,8 @@ export function BookingFormScheduleSection({
                   doorsTime={doorsTime}
                   endDate={endDate}
                   endTime={endTime}
+                  hasConflict={hasConflict}
+                  occupiedRanges={occupiedRanges}
                   onDoorsChange={v => form.setFieldValue("doorsTime", v)}
                   onEndChange={v => form.setFieldValue("endTime", v)}
                   onEndDateChange={v => form.setFieldValue("endDate", v)}
@@ -140,13 +144,11 @@ export function BookingFormScheduleSection({
                             selected
                               ? "border-primary bg-primary/5"
                               : "border-border bg-card hover:border-primary",
-                            occupied && "cursor-not-allowed",
                           )}
                         >
                           <input
                             checked={selected}
                             className="sr-only"
-                            disabled={occupied}
                             onChange={() => toggleRoom(room.crescatRoomId)}
                             type="checkbox"
                           />
@@ -163,7 +165,7 @@ export function BookingFormScheduleSection({
                                 sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
                                 src={room.image?.assetUrl}
                               />
-                              {selected && !occupied && (
+                              {selected && (
                                 <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
                                   <Check aria-hidden className="size-4" />
                                 </span>

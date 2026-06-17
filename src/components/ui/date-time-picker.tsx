@@ -4,6 +4,7 @@ import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { SelectField } from "@/components/ui/select-field"
+import { TimeRangeSlider } from "@/components/ui/time-range-slider"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,
@@ -13,16 +14,11 @@ import {
   type OpeningHours,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
+import { differenceInCalendarDays, parseISO } from "date-fns"
 
 const SLOT_STEP_MIN = 30
 const MINUTES_IN_DAY = 24 * 60
 const MAX_RANGE_DAYS = 7
-
-interface TimeOption {
-  value: string
-  label: string
-  min: number
-}
 
 function slotMarks(
   date: string,
@@ -43,11 +39,35 @@ function slotMarks(
   return Array.from(marks).toSorted((a, b) => a - b)
 }
 
-const toOption = (min: number): TimeOption => ({
-  value: minutesToTime(min),
-  label: minutesToTime(min),
-  min,
-})
+/**
+ * Gather all 30-min slot marks across a date range.
+ * Each day's marks are offset by `dayIndex * 1440` so the slider can treat
+ * the whole multi-day span as a single linear timeline.
+ */
+function multiDayMarks(
+  startDate: string,
+  endDate: string,
+  hours: OpeningHours | null,
+  roomHours: OpeningHours | null,
+  closed: ClosedDate[],
+): number[] {
+  const start = parseISO(startDate)
+  const end = parseISO(endDate || startDate)
+  const dayCount = differenceInCalendarDays(end, start) + 1
+
+  const marks = new Set<number>()
+  for (let d = 0; d < dayCount; d++) {
+    const date = new Date(start)
+    date.setDate(date.getDate() + d)
+    const ds = toDateString(date)
+    const dayMarks = slotMarks(ds, hours, roomHours, closed)
+    const offset = d * MINUTES_IN_DAY
+    for (const m of dayMarks) {
+      marks.add(m + offset)
+    }
+  }
+  return Array.from(marks).toSorted((a, b) => a - b)
+}
 
 function toDateString(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
@@ -61,6 +81,8 @@ interface DateTimePickerProps {
   startTime: string
   endTime: string
   doorsTime: string
+  hasConflict: boolean
+  occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
@@ -79,6 +101,8 @@ export function DateTimePicker({
   startTime,
   endTime,
   doorsTime,
+  hasConflict,
+  occupiedRanges,
   onStartDateChange,
   onEndDateChange,
   onStartChange,
@@ -219,7 +243,10 @@ export function DateTimePicker({
           ) : (
             <TimeSlots
               uid={uid}
-              date={startDate}
+              startDate={startDate}
+              endDate={endDate}
+              hasConflict={hasConflict}
+              occupiedRanges={occupiedRanges}
               openingHours={openingHours}
               roomOpeningHours={roomOpeningHours}
               closedDates={closedDates}
@@ -243,7 +270,10 @@ export function DateTimePicker({
 
 interface TimeSlotsProps {
   uid: string
-  date: string
+  startDate: string
+  endDate: string
+  hasConflict: boolean
+  occupiedRanges: { startMin: number; endMin: number }[]
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
@@ -257,7 +287,10 @@ interface TimeSlotsProps {
 
 function TimeSlots({
   uid,
-  date,
+  startDate,
+  endDate,
+  hasConflict,
+  occupiedRanges,
   openingHours,
   roomOpeningHours,
   closedDates,
@@ -268,12 +301,35 @@ function TimeSlots({
   onEndChange,
   onDoorsChange,
 }: TimeSlotsProps) {
-  const marks = slotMarks(date, openingHours, roomOpeningHours, closedDates)
+  const hasHours =
+    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
 
-  if (marks.length === 0) {
+  // Gather marks across the full date range (startDate → endDate)
+  const marks = endDate
+    ? multiDayMarks(
+        startDate,
+        endDate,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+      )
+    : slotMarks(startDate, openingHours, roomOpeningHours, closedDates)
+
+  if (marks.length === 0 || marks.length < 2) {
+    if (hasHours) {
+      return (
+        <p className="text-sm text-foreground-muted">
+          Ingen tilgjengelige tidspunkt for valgt rom i dette tidsrommet.
+        </p>
+      )
+    }
     return (
       <UnconstrainedTimes
         uid={uid}
+        startDate={startDate}
+        endDate={endDate}
+        hasConflict={hasConflict}
+        occupiedRanges={occupiedRanges}
         startTime={startTime}
         endTime={endTime}
         doorsTime={doorsTime}
@@ -284,41 +340,43 @@ function TimeSlots({
     )
   }
 
-  const options = marks.map(toOption)
-  const startMin =
-    options.find(option => option.value === startTime)?.min ?? marks[0]
-  const startOptions = options
-    .filter(option => option.min < MINUTES_IN_DAY)
-    .slice(0, -1)
-  const endOptions = options.filter(option => option.min > startMin)
-  const doorsOptions = options.filter(option => option.min <= startMin)
+  const dayCount = endDate
+    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+    : 1
+
+  // Compute doorsTime options: all marks at or before the selected start
+  const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
+  const doorsOptions = marks
+    .filter(m => m <= startMinute)
+    .map(m => ({
+      value: minutesToTime(m),
+      label: m < MINUTES_IN_DAY ? minutesToTime(m) : `${minutesToTime(m)} +${Math.floor(m / MINUTES_IN_DAY)}`,
+    }))
 
   return (
-    <div className="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
-      <SelectField
-        id={`${uid}-doorsTime`}
-        label="Dørene åpner"
-        onChange={onDoorsChange}
-        options={doorsOptions}
-        placeholder="Ikke relevant"
-        value={doorsTime}
-      />
-      <SelectField
-        id={`${uid}-startTime`}
-        label="Starter *"
-        onChange={onStartChange}
-        options={startOptions}
-        placeholder="Velg"
-        value={startTime}
-      />
-      <SelectField
-        id={`${uid}-endTime`}
-        label="Slutter *"
-        onChange={onEndChange}
-        options={endOptions}
-        placeholder="Velg"
-        value={endTime}
-      />
+    <div className="space-y-6">
+      <div className="max-w-2xl">
+        <TimeRangeSlider
+          marks={marks}
+          startTime={startTime}
+          endTime={endTime}
+          dayCount={dayCount}
+          conflict={hasConflict}
+          occupiedRanges={occupiedRanges}
+          onStartChange={onStartChange}
+          onEndChange={onEndChange}
+        />
+      </div>
+      <div className="max-w-xs">
+        <SelectField
+          id={`${uid}-doorsTime`}
+          label="Dørene åpner (valgfritt)"
+          onChange={onDoorsChange}
+          options={doorsOptions}
+          placeholder="Samme som start"
+          value={doorsTime}
+        />
+      </div>
     </div>
   )
 }
@@ -329,8 +387,26 @@ const FALLBACK_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return { value: `${h}:${m}`, label: `${h}:${m}` }
 })
 
+/** Flat 30-min marks for a single 24h day (0, 30, …, 1410). */
+function unconstrainedMarks(dayCount: number): number[] {
+  const marks: number[] = []
+  for (let d = 0; d < dayCount; d++) {
+    const offset = d * MINUTES_IN_DAY
+    for (let m = 0; m < MINUTES_IN_DAY; m += SLOT_STEP_MIN) {
+      marks.push(m + offset)
+    }
+  }
+  // Remove the very last mark (23:30 on final day) so it can't be selected
+  // as a start time with no remaining slots for end.
+  return marks.slice(0, -1)
+}
+
 interface UnconstrainedTimesProps {
   uid: string
+  startDate: string
+  endDate: string
+  hasConflict: boolean
+  occupiedRanges: { startMin: number; endMin: number }[]
   startTime: string
   endTime: string
   doorsTime: string
@@ -341,6 +417,10 @@ interface UnconstrainedTimesProps {
 
 function UnconstrainedTimes({
   uid,
+  startDate,
+  endDate,
+  hasConflict,
+  occupiedRanges,
   startTime,
   endTime,
   doorsTime,
@@ -348,30 +428,43 @@ function UnconstrainedTimes({
   onEndChange,
   onDoorsChange,
 }: UnconstrainedTimesProps) {
+  const dayCount = endDate
+    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+    : 1
+  const marks = unconstrainedMarks(dayCount)
+
+  const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
+  const doorsOptions = marks
+    .filter(m => m <= startMinute)
+    .map(m => ({
+      value: minutesToTime(m),
+      label: m < MINUTES_IN_DAY ? minutesToTime(m) : `${minutesToTime(m)} +${Math.floor(m / MINUTES_IN_DAY)}`,
+    }))
+
   return (
-    <div className="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
-      <SelectField
-        id={`${uid}-doorsTime`}
-        label="Dørene åpner"
-        onChange={onDoorsChange}
-        options={FALLBACK_OPTIONS}
-        placeholder="Ikke relevant"
-        value={doorsTime}
-      />
-      <SelectField
-        id={`${uid}-startTime`}
-        label="Starter *"
-        onChange={onStartChange}
-        options={FALLBACK_OPTIONS}
-        value={startTime}
-      />
-      <SelectField
-        id={`${uid}-endTime`}
-        label="Slutter *"
-        onChange={onEndChange}
-        options={FALLBACK_OPTIONS}
-        value={endTime}
-      />
+    <div className="space-y-6">
+      <div className="max-w-2xl">
+        <TimeRangeSlider
+          marks={marks}
+          startTime={startTime}
+          endTime={endTime}
+          dayCount={dayCount}
+          conflict={hasConflict}
+          occupiedRanges={occupiedRanges}
+          onStartChange={onStartChange}
+          onEndChange={onEndChange}
+        />
+      </div>
+      <div className="max-w-xs">
+        <SelectField
+          id={`${uid}-doorsTime`}
+          label="Dørene åpner (valgfritt)"
+          onChange={onDoorsChange}
+          options={doorsOptions}
+          placeholder="Samme som start"
+          value={doorsTime}
+        />
+      </div>
     </div>
   )
 }
