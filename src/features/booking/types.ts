@@ -20,6 +20,15 @@ export interface BookingRoom {
   openingHours: OpeningHours | null
   image: BookingRoomImage | null
   source: "sanity" | "crescat"
+  floor: number | null
+  suitedPurposes: string[]
+  bar: string | null
+  hasSound: boolean
+  soundDetails: string | null
+  hasLighting: boolean
+  lightingDetails: string | null
+  hasAV: boolean
+  avDetails: string | null
 }
 
 // The plan refers to this merged shape as MergedBookableRoom; it is the same

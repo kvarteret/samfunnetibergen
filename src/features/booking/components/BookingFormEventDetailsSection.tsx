@@ -66,7 +66,7 @@ export function BookingFormEventDetailsSection({
                   audienceCountError ? audienceCountErrorId : undefined
                 }
                 aria-invalid={!!audienceCountError}
-                className="w-32"
+                className="w-40"
                 id={audienceCountId}
                 min={0}
                 onValueChange={value =>

@@ -1,7 +1,6 @@
 import { Mic } from "lucide-react"
 
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
-import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -75,13 +74,6 @@ export default async function KaraokePage({
 function KaraokePageIntro() {
   return (
     <header className="space-y-4">
-      <Link
-        className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 hover:text-foreground transition-colors focus-brutal"
-        href="/rom"
-      >
-        ← Rom
-      </Link>
-
       <div className="flex items-center gap-3">
         <div className="size-10 bg-primary flex items-center justify-center shrink-0">
           <Mic className="size-5 text-primary-foreground" aria-hidden />

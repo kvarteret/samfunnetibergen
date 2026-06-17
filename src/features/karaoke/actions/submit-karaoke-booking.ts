@@ -1,6 +1,9 @@
 "use server"
 
+import { z } from "zod"
+
 import type { KaraokeBookingPayload } from "@/features/karaoke/types"
+import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import {
   buildKaraokeRequest,
@@ -11,13 +14,50 @@ import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
-import { KARAOKE_PRICING } from "../domain/formState"
+import { fetchKaraokeAvailability } from "./karaoke-availability"
+import { slotOverlapsKaraokeBookings } from "../domain/availability"
+import { calcKaraokePrice, KARAOKE_PRICING } from "../domain/formState"
+import { timeToMinutes } from "../domain/time"
 import type { PriceType } from "../types"
 
 const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
 const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const SUBMIT_LIMIT = 5
+
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
+
+const karaokePayloadSchema = z.object({
+  eventName: z.string().trim().min(1),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(timeRegex),
+  duration: z.number().int().min(1).max(4),
+  endTime: z.string().regex(timeRegex),
+  description: z.string().trim().default(""),
+  contactName: z.string().trim().min(1),
+  contactEmail: z.string().trim().email(),
+  contactPhone: z.string().trim().default(""),
+  priceType: z.enum(["ordinær", "student", "frivillig"]),
+  numberOfPeople: z.number().int().min(0),
+  totalPrice: z.number().min(0),
+  studentProofAccepted: z.boolean(),
+  acceptTerms: z.literal(true),
+})
+
+async function hasKaraokeConflict(
+  payload: z.output<typeof karaokePayloadSchema>,
+): Promise<boolean> {
+  const bookings = await fetchKaraokeAvailability(
+    payload.startDate,
+    addDaysDateOnly(payload.startDate, 1),
+  )
+  return slotOverlapsKaraokeBookings(
+    payload.startDate,
+    timeToMinutes(payload.startTime),
+    payload.duration,
+    bookings,
+  )
+}
 
 function priceTypeLabel(pt: PriceType): string {
   switch (pt) {
@@ -47,7 +87,7 @@ function priceCalcDescription(
 }
 
 function enrichDescription(
-  payload: KaraokeBookingPayload,
+  payload: z.output<typeof karaokePayloadSchema>,
   totalPrice: number,
 ): string {
   const priceCalc = priceCalcDescription(
@@ -88,11 +128,16 @@ export async function submitKaraokeBooking(
     return err(RATE_LIMIT_ERROR)
   }
 
+  const parsed = karaokePayloadSchema.safeParse(payload)
+  if (!parsed.success) {
+    return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
+  }
+
   const houseHours = await fetchHouseHours()
   const slotAllowed = isSlotAllowed(
-    payload.startDate,
-    payload.startTime,
-    payload.duration,
+    parsed.data.startDate,
+    parsed.data.startTime,
+    parsed.data.duration,
     houseHours?.operationsManagerHours,
     houseHours?.houseClosedDates,
   )
@@ -101,19 +146,30 @@ export async function submitKaraokeBooking(
     return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
   }
 
-  const totalPrice = payload.totalPrice
+  if (await hasKaraokeConflict(parsed.data)) {
+    return err(
+      "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+    )
+  }
+
+  // Recompute price server-side — never trust the client.
+  const totalPrice = calcKaraokePrice(
+    parsed.data.priceType,
+    parsed.data.numberOfPeople,
+    parsed.data.duration,
+  )
 
   const body = buildKaraokeRequest({
-    eventName: payload.eventName,
-    startDate: payload.startDate,
-    startTime: payload.startTime,
-    durationHours: payload.duration,
-    description: enrichDescription(payload, totalPrice),
-    contactName: payload.contactName,
-    contactEmail: payload.contactEmail,
-    contactPhone: payload.contactPhone,
-    numberOfPeople: payload.numberOfPeople,
-    priceType: payload.priceType,
+    eventName: parsed.data.eventName,
+    startDate: parsed.data.startDate,
+    startTime: parsed.data.startTime,
+    durationHours: parsed.data.duration,
+    description: enrichDescription(parsed.data, totalPrice),
+    contactName: parsed.data.contactName,
+    contactEmail: parsed.data.contactEmail,
+    contactPhone: parsed.data.contactPhone,
+    numberOfPeople: parsed.data.numberOfPeople,
+    priceType: parsed.data.priceType,
   })
 
   const result = await postEventRequest(KARAOKE_SLUG, body)
@@ -124,11 +180,11 @@ export async function submitKaraokeBooking(
       distinctId: "anonymous",
       event: "karaoke_booking_submitted",
       properties: {
-        price_type: payload.priceType,
-        number_of_people: payload.numberOfPeople,
-        duration_hours: payload.duration,
+        price_type: parsed.data.priceType,
+        number_of_people: parsed.data.numberOfPeople,
+        duration_hours: parsed.data.duration,
         total_price: totalPrice,
-        start_date: payload.startDate,
+        start_date: parsed.data.startDate,
         crescat_event_id: result.value,
       },
     })
@@ -140,8 +196,8 @@ export async function submitKaraokeBooking(
     distinctId: "anonymous",
     event: "karaoke_booking_submit_failed",
     properties: {
-      price_type: payload.priceType,
-      start_date: payload.startDate,
+      price_type: parsed.data.priceType,
+      start_date: parsed.data.startDate,
       error: result.error,
     },
   })

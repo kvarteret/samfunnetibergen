@@ -22,8 +22,6 @@ export const siteMetadata = defineType({
     defineField({
       name: "openingHours",
       title: "Driftsleder tilgjengelig",
-      description:
-        "Når driftsleder er tilgjengelig på huset. Brukes også som tidsrom for karaokeforespørsler.",
       type: "openingHours",
       group: "venue",
     }),

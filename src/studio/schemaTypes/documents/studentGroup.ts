@@ -152,10 +152,79 @@ export const studentGroup = defineType({
       ],
     }),
     defineField({
+      name: "links",
+      title: "Lenker",
+      description:
+        "Fyll ut lenker til sosiale medier, nettside, e-post osv. i prioritert rekkefølge.",
+      type: "array",
+      group: "contact",
+      of: [
+        defineArrayMember({
+          name: "groupLink",
+          title: "Lenke",
+          type: "object",
+          fields: [
+            defineField({
+              name: "platform",
+              title: "Plattform",
+              type: "string",
+              options: {
+                list: [
+                  { title: "E-post", value: "email" },
+                  { title: "Hjemmeside", value: "website" },
+                  { title: "Facebook", value: "facebook" },
+                  { title: "Instagram", value: "instagram" },
+                  { title: "TikTok", value: "tiktok" },
+                  { title: "Studentbergen", value: "studentbergen" },
+                  { title: "Annet / egendefinert", value: "other" },
+                ],
+              },
+              validation: rule => rule.required(),
+            }),
+            defineField({
+              name: "url",
+              title: "URL eller e-post",
+              type: "string",
+              validation: rule => rule.required(),
+            }),
+            defineField({
+              name: "customLabel",
+              title: "Egendefinert label (overstyrer plattformnavn)",
+              type: "string",
+            }),
+          ],
+          preview: {
+            select: {
+              platform: "platform",
+              url: "url",
+              customLabel: "customLabel",
+            },
+            prepare({ platform, url, customLabel }) {
+              const platformNames: Record<string, string> = {
+                email: "E-post",
+                website: "Hjemmeside",
+                facebook: "Facebook",
+                instagram: "Instagram",
+                tiktok: "TikTok",
+                studentbergen: "Studentbergen",
+                other: "Annet",
+              }
+              return {
+                title: customLabel || platformNames[platform] || platform,
+                subtitle: url,
+                media: undefined,
+              }
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
       name: "email",
       title: "E-post",
       type: "string",
       group: "contact",
+      hidden: true,
       validation: rule => rule.email(),
     }),
     defineField({
@@ -163,6 +232,7 @@ export const studentGroup = defineType({
       title: "Nettside",
       type: "url",
       group: "contact",
+      hidden: true,
       validation: rule =>
         rule.uri({ scheme: ["http", "https"] }).error("Må være en gyldig URL"),
     }),

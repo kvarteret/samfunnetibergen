@@ -39,8 +39,8 @@ export async function fetchGroupsPageContent(
 export async function fetchStudentGroups(): Promise<StudentGroupSummary[]> {
   const { data: groups } = await sanityFetch({
     query: studentGroupsQuery,
-  })
-  return withRequiredKeys(groups, "slug").map(group => ({
+  }) as { data: readonly StudentGroupSummaryRaw[] | null }
+  return withRequiredKeys(groups ?? [], "slug").map(group => ({
     ...group,
     labels: group.labels as string[],
     slug: stegaClean(group.slug),

@@ -1,11 +1,7 @@
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import { rangesOverlap, timeToMinutes } from "@/lib/time"
 
 const MINUTES_IN_DAY = 1440
-
-function minutesOf(time: string): number {
-  const [h, m] = time.split(":").map(Number)
-  return h * 60 + m
-}
 
 // Absolute millisecond range for a slot, advancing the end past midnight when
 // the end time is at or before the start time.
@@ -15,11 +11,11 @@ export function slotRangeMs(
   endTime: string,
 ): [number, number] {
   const baseMs = new Date(`${date}T00:00:00`).getTime()
-  const startMs = baseMs + minutesOf(startTime) * 60_000
-  const crossesMidnight = minutesOf(endTime) <= minutesOf(startTime)
+  const startMs = baseMs + timeToMinutes(startTime) * 60_000
+  const crossesMidnight = timeToMinutes(endTime) <= timeToMinutes(startTime)
   const endMs =
     baseMs +
-    (minutesOf(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000
+    (timeToMinutes(endTime) + (crossesMidnight ? MINUTES_IN_DAY : 0)) * 60_000
   return [startMs, endMs]
 }
 
@@ -28,9 +24,12 @@ export function overlaps(
   endMs: number,
   booking: CresatBooking,
 ): boolean {
-  const bStart = new Date(booking.start).getTime()
-  const bEnd = new Date(booking.end).getTime()
-  return startMs < bEnd && endMs > bStart
+  return rangesOverlap(
+    startMs,
+    endMs,
+    new Date(booking.start).getTime(),
+    new Date(booking.end).getTime(),
+  )
 }
 
 export function formatBookingTime(iso: string): string {
@@ -40,12 +39,49 @@ export function formatBookingTime(iso: string): string {
   })
 }
 
+function formatBookingDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("nb-NO", {
+    day: "numeric",
+    month: "short",
+  })
+}
+
+// Absolute millisecond range for a booking request, spanning multiple days
+// when endDate differs from startDate (a multi-day rental).
+export function bookingRangeMs(
+  startDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string,
+): [number, number] {
+  if (!endDate || endDate === startDate) {
+    return slotRangeMs(startDate, startTime, endTime)
+  }
+  const startMs =
+    new Date(`${startDate}T00:00:00`).getTime() + timeToMinutes(startTime) * 60_000
+  const endMs =
+    new Date(`${endDate}T00:00:00`).getTime() + timeToMinutes(endTime) * 60_000
+  return [startMs, endMs]
+}
+
+// Human-readable range for a single conflicting booking, e.g.
+// "17. jun 19:00–22:00" or "17. jun 22:00 – 18. jun 02:00" when it crosses
+// midnight.
+function formatConflictRange(booking: CresatBooking): string {
+  const start = new Date(booking.start)
+  const end = new Date(booking.end)
+  const sameDay = start.toDateString() === end.toDateString()
+  return sameDay
+    ? `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)}–${formatBookingTime(booking.end)}`
+    : `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)} – ${formatBookingDate(booking.end)} ${formatBookingTime(booking.end)}`
+}
+
 // Hours between two HH:mm times, wrapping past midnight when end <= start.
 export function durationHoursBetween(
   startTime: string,
   endTime: string,
 ): number {
-  const diff = minutesOf(endTime) - minutesOf(startTime)
+  const diff = timeToMinutes(endTime) - timeToMinutes(startTime)
   return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
 }
 
@@ -72,20 +108,28 @@ export function isRoomOccupied(
   )
 }
 
-// Formatted conflict range like "19:00 — 22:00" for a room at the chosen
-// slot. Returns null when no booking overlaps.
-export function findRoomConflict(
+// Every conflicting booking for a room over the requested range, formatted
+// for display and sorted chronologically. The range may span multiple days
+// when endDate differs from startDate.
+export function findRoomConflicts(
   bookings: CresatBooking[],
   crescatRoomId: number,
-  date: string,
+  startDate: string,
   startTime: string,
+  endDate: string,
   endTime: string,
-): string | null {
-  if (!date) return null
-  const [startMs, endMs] = slotRangeMs(date, startTime, endTime)
-  const conflict = bookingsForRoom(bookings, crescatRoomId).find(booking =>
-    overlaps(startMs, endMs, booking),
+): string[] {
+  if (!startDate) return []
+  const [startMs, endMs] = bookingRangeMs(
+    startDate,
+    startTime,
+    endDate,
+    endTime,
   )
-  if (!conflict) return null
-  return `${formatBookingTime(conflict.start)} — ${formatBookingTime(conflict.end)}`
+  return bookingsForRoom(bookings, crescatRoomId)
+    .filter(booking => overlaps(startMs, endMs, booking))
+    .toSorted(
+      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+    )
+    .map(formatConflictRange)
 }

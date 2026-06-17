@@ -50,7 +50,7 @@ export const initialBookingState: BookingFormState = {
   startTime: "19:00",
   endTime: "23:00",
   doorsTime: "",
-  audienceCount: "",
+  audienceCount: "1",
   openOrClosed: "Åpent",
   description: "",
   furniture: "",

@@ -24,12 +24,7 @@ import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
-import {
-  durationHoursBetween,
-  findRoomConflict,
-  overlaps,
-  slotRangeMs,
-} from "../domain/availability"
+import { durationHoursBetween, findRoomConflicts } from "../domain/availability"
 import {
   buildBookingPayload,
   initialBookingState,
@@ -107,6 +102,12 @@ export function BookingForm({
   })
 
   const values = useStore(form.store, state => state.values)
+  const isSubmitting = useStore(form.store, state => state.isSubmitting)
+  const isSubmitSuccessful = useStore(
+    form.store,
+    state => state.isSubmitSuccessful,
+  )
+  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
   const bookerType = values.bookerType
 
   const selectedRooms = rooms.filter(room =>
@@ -151,39 +152,23 @@ export function BookingForm({
   const selectedRoomIds = values.selectedRoomIds
   const primaryRoom = selectedRooms[0]
 
-  const roomBookings = primaryRoom
-    ? bookings.filter(b => b.resourceId === primaryRoom.crescatRoomId)
-    : []
-
-  const selectedDateRoomBookings = values.startDate
-    ? roomBookings.filter(booking =>
-        overlaps(...slotRangeMs(values.startDate, "00:00", "00:00"), booking),
-      )
-    : []
-
-  const hasConflict =
-    !!values.startDate &&
-    selectedDateRoomBookings.length > 0 &&
-    selectedDateRoomBookings.some(b =>
-      overlaps(
-        ...slotRangeMs(values.startDate, values.startTime, values.endTime),
-        b,
-      ),
-    )
-
-  const roomOccupancy = new Map<number, string>()
+  const roomOccupancy = new Map<number, string[]>()
   if (values.startDate && values.startTime && values.endTime) {
     for (const room of rooms) {
-      const conflict = findRoomConflict(
+      const conflicts = findRoomConflicts(
         bookings,
         room.crescatRoomId,
         values.startDate,
         values.startTime,
+        values.endDate || values.startDate,
         values.endTime,
       )
-      if (conflict) roomOccupancy.set(room.crescatRoomId, conflict)
+      if (conflicts.length > 0) roomOccupancy.set(room.crescatRoomId, conflicts)
     }
   }
+
+  const hasConflict =
+    !!values.startDate && selectedRoomIds.some(id => roomOccupancy.has(id))
 
   const slotWithinHours = (() => {
     const hasConfiguredHours =
@@ -226,7 +211,7 @@ export function BookingForm({
     })
   }
 
-  if (form.state.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
         <AlertTitle>Forespørsel mottatt!</AlertTitle>
@@ -244,7 +229,6 @@ export function BookingForm({
     )
   }
 
-  const submitError = form.state.errorMap.onSubmit
   const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
 
   return (
@@ -342,11 +326,11 @@ export function BookingForm({
             )}
             <Button
               className="w-full sm:w-auto"
-              disabled={form.state.isSubmitting}
+              disabled={isSubmitting}
               size="lg"
               type="submit"
             >
-              {form.state.isSubmitting ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 aria-hidden className="animate-spin" />
                   Sender inn...

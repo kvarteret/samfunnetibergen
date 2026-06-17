@@ -1,7 +1,5 @@
-import { addDays, parseISO } from "date-fns"
-
-import { isoDate } from "@/lib/opening-hours"
 import type { KaraokeBookingPayload, PriceType } from "../types"
+import { addHours, minutesToTimeOfDay, resolveSlotDate } from "./time"
 
 export const KARAOKE_DURATION_OPTIONS = [1, 2, 3, 4] as const
 
@@ -116,7 +114,7 @@ export function formatKaraokeDate(dateStr: string): string {
   })
 }
 
-function calcKaraokePrice(
+export function calcKaraokePrice(
   priceType: PriceType,
   people: number,
   durationHours: number,
@@ -126,19 +124,4 @@ function calcKaraokePrice(
   return Math.max(price.perPerson * people, price.minPerHour) * durationHours
 }
 
-function addHours(time: string, hours: number): string {
-  if (!time) return ""
-  const [hour, minute] = time.split(":").map(Number)
-  const total = hour * 60 + minute + hours * 60
-  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
-}
 
-function resolveSlotDate(dateStr: string, slotStartMin: number): string {
-  return isoDate(
-    addDays(parseISO(dateStr), Math.floor(slotStartMin / (24 * 60))),
-  )
-}
-
-function minutesToTimeOfDay(minutes: number): string {
-  return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`
-}
