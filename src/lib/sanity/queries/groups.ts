@@ -18,6 +18,11 @@ export const studentGroupsQuery =
     openGraphImageAlt,
     email,
     website,
+    "links": coalesce(links[] {
+      platform,
+      url,
+      customLabel
+    }, []),
     "category": coalesce(category, "arbeidsgruppe"),
     "labels": coalesce(labels, []),
     "logoUrl": logo.asset->url,
@@ -50,6 +55,11 @@ export const studentGroupBySlugQuery =
     "body": coalesce(body, []),
     email,
     website,
+    "links": coalesce(links[] {
+      platform,
+      url,
+      customLabel
+    }, []),
     "category": coalesce(category, "arbeidsgruppe"),
     "logoUrl": logo.asset->url,
     "parentGroup": parentGroup-> {

@@ -1,7 +1,7 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import type { ReactNode } from "react"
+import type { ComponentType, ReactNode } from "react"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
@@ -18,6 +18,21 @@ import {
 import nbMessages from "@/messages/nb.json"
 
 export const revalidate = 300
+
+const platformNames: Record<string, string> = {
+  email: "E-post",
+  website: "Hjemmeside",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  studentbergen: "Studentbergen",
+  other: "Annet",
+}
+
+const platformIcons: Record<string, ComponentType<{ className?: string }>> = {
+  email: Mail,
+  website: Globe,
+}
 
 type GroupPageProps = {
   params: Promise<{ locale: string; slug: string }>
@@ -53,6 +68,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   const group = await fetchStudentGroupBySlug(slug)
   if (!group) notFound()
+
+  const hasLinks =
+    "links" in group &&
+    Array.isArray(group.links) &&
+    group.links.length > 0
 
   const institutionOptions = nbMessages.InstitutionOptions as Array<{
     value: string
@@ -93,28 +113,64 @@ export default async function GroupPage({ params }: GroupPageProps) {
       </div>
 
       <aside className="space-y-6">
-        {(group.email || group.website) && (
+        {(hasLinks || group.email || group.website) && (
           <AsideSection title="Kontakt">
-            {group.email && (
-              <a
-                className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
-                href={`mailto:${group.email}`}
-              >
-                <Mail aria-hidden className="size-4 shrink-0" />
-                {group.email}
-              </a>
-            )}
-            {group.website && (
-              <a
-                className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
-                href={group.website}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <Globe aria-hidden className="size-4 shrink-0" />
-                Nettside
-                <ExternalLink aria-hidden className="size-3 shrink-0" />
-              </a>
+            {hasLinks ? (
+              group.links.map(
+                (
+                  link: {
+                    platform: string
+                    url: string
+                    customLabel?: string
+                  },
+                  i: number,
+                ) => {
+                  const platformLabel =
+                    link.customLabel || platformNames[link.platform] || link.platform
+                  const isEmail = link.platform === "email"
+                  const href = isEmail ? `mailto:${link.url}` : link.url
+                  const Icon = platformIcons[link.platform] || ExternalLink
+                  return (
+                    <a
+                      className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
+                      href={href}
+                      key={i}
+                      rel={isEmail ? undefined : "noreferrer"}
+                      target={isEmail ? undefined : "_blank"}
+                    >
+                      <Icon aria-hidden className="size-4 shrink-0" />
+                      {platformLabel}
+                      {!isEmail && (
+                        <ExternalLink aria-hidden className="size-3 shrink-0" />
+                      )}
+                    </a>
+                  )
+                },
+              )
+            ) : (
+              <>
+                {group.email && (
+                  <a
+                    className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
+                    href={`mailto:${group.email}`}
+                  >
+                    <Mail aria-hidden className="size-4 shrink-0" />
+                    {group.email}
+                  </a>
+                )}
+                {group.website && (
+                  <a
+                    className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
+                    href={group.website}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <Globe aria-hidden className="size-4 shrink-0" />
+                    Nettside
+                    <ExternalLink aria-hidden className="size-3 shrink-0" />
+                  </a>
+                )}
+              </>
             )}
           </AsideSection>
         )}
@@ -137,7 +193,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.subGroups?.length ? (
           <AsideSection title="Undergrupper">
             <ul className="flex flex-wrap gap-2">
-              {group.subGroups.map(subGroup => (
+              {group.subGroups.map((subGroup: { name: string; slug: string }) => (
                 <li
                   className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
                   key={subGroup.slug ?? subGroup.name}
@@ -156,7 +212,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
               groupName={group.name ?? group.slug}
               institutionOptions={institutionOptions}
               subGroups={
-                group.subGroups?.flatMap(sg =>
+                group.subGroups?.flatMap((sg: { slug?: string; name?: string }) =>
                   sg.slug && sg.name ? [{ slug: sg.slug, name: sg.name }] : [],
                 ) ?? []
               }
