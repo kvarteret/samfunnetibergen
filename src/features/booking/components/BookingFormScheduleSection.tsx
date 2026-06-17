@@ -2,7 +2,7 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Building2, CalendarClock, Check } from "lucide-react"
-import { useId } from "react"
+import { useId, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
@@ -26,7 +26,7 @@ import { useBookingForm } from "./bookingFormContext"
 
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
-  roomOccupancy: Map<number, string>
+  roomOccupancy: Map<number, string[]>
   selectedRoomIds: number[]
   hasConflict: boolean
   openingHours: OpeningHours | null
@@ -113,9 +113,8 @@ export function BookingFormScheduleSection({
                         room.crescatRoomId,
                       )
                       const occupied = roomOccupancy.has(room.crescatRoomId)
-                      const conflictRange = roomOccupancy.get(
-                        room.crescatRoomId,
-                      )
+                      const conflicts =
+                        roomOccupancy.get(room.crescatRoomId) ?? []
                       const roomName = room.title ?? String(room.crescatRoomId)
                       const isCrescatOnly = room.source === "crescat"
 
@@ -133,7 +132,7 @@ export function BookingFormScheduleSection({
                             selected
                               ? "border-primary bg-primary/5"
                               : "border-border bg-card hover:border-primary",
-                            occupied && "cursor-not-allowed opacity-60",
+                            occupied && "cursor-not-allowed",
                           )}
                           key={room.crescatRoomId}
                         >
@@ -167,9 +166,7 @@ export function BookingFormScheduleSection({
                                   className="absolute left-3 top-3"
                                   variant="destructive"
                                 >
-                                  {conflictRange
-                                    ? `Opptatt mellom ${conflictRange}`
-                                    : "Opptatt"}
+                                  Opptatt
                                 </Tag>
                               )}
                             </div>
@@ -188,6 +185,9 @@ export function BookingFormScheduleSection({
                                   />
                                 </p>
                               )}
+                            {occupied && (
+                              <RoomConflictList conflicts={conflicts} />
+                            )}
                           </div>
                         </label>
                       )
@@ -236,5 +236,38 @@ export function BookingFormScheduleSection({
         }}
       </form.Subscribe>
     </FormSection>
+  )
+}
+
+const CONFLICT_PREVIEW_COUNT = 3
+
+function RoomConflictList({ conflicts }: { conflicts: string[] }) {
+  const [expanded, setExpanded] = useState(false)
+  const visibleConflicts = expanded
+    ? conflicts
+    : conflicts.slice(0, CONFLICT_PREVIEW_COUNT)
+  const hiddenCount = conflicts.length - visibleConflicts.length
+
+  return (
+    <ul className="space-y-0.5 text-sm text-destructive">
+      {visibleConflicts.map(conflict => (
+        <li key={conflict}>{conflict}</li>
+      ))}
+      {hiddenCount > 0 && (
+        <li>
+          <button
+            className="font-heading underline underline-offset-4"
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              setExpanded(true)
+            }}
+            type="button"
+          >
+            Vis {hiddenCount} til
+          </button>
+        </li>
+      )}
+    </ul>
   )
 }
