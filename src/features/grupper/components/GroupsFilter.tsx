@@ -90,18 +90,6 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
         </p>
       </div>
       <div className="mt-auto flex flex-col gap-3 text-foreground">
-        {group.labels?.length ? (
-          <div className="flex flex-wrap gap-2">
-            {group.labels.map((label: string) => (
-              <span
-                className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
-                key={label}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        ) : null}
         {group.subGroups?.length ? (
           <div className="flex flex-wrap gap-2">
             {group.subGroups.map(
