@@ -186,6 +186,7 @@ export function DateTimePicker({
             "relative isolate z-0 rounded-r bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
         }}
         components={{
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           DayButton: ({ modifiers, day, onClick: _onClick, ...props }) => {
             const mods = modifiers as Record<string, boolean>
             return (

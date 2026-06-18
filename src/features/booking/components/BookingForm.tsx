@@ -257,15 +257,17 @@ export function BookingForm({
   const onSameAsBooking = () => {
     const time = bookingStartTime(values)
     promotionForm.setFieldValue("dates", (dates: EventFormState["dates"]) =>
-      dates.map((date, index) =>
-        index === 0
-          ? {
-              ...date,
-              startDate: date.startDate || values.startDate,
-              startTime: time,
-            }
-          : date,
-      ),
+      dates.map((date, index) => {
+        if (index === 0) {
+          return {
+            ...date,
+            startDate: date.startDate || values.startDate,
+            startTime: time,
+            endTime: values.endTime || date.endTime,
+          }
+        }
+        return date
+      }),
     )
   }
 

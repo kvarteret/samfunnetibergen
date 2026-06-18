@@ -14,7 +14,7 @@ export const PROMO_IMAGE_FIELD = "promote-image"
 
 type BookingPrefillSubset = Pick<
   BookingFormState,
-  "eventName" | "startDate" | "startTime" | "doorsTime" | "freeOrPaid"
+  "eventName" | "startDate" | "endDate" | "startTime" | "doorsTime" | "freeOrPaid" | "contactName" | "contactEmail"
 >
 
 // Seeds the embedded event form from what the guest already typed into the
@@ -43,6 +43,8 @@ export function buildPromotionDefaults(
     ...base,
     title: booking.eventName,
     isFree: booking.freeOrPaid === "Gratis",
+    submittedBy: booking.contactName || "",
+    submittedByEmail: booking.contactEmail || "",
     dates,
   }
 }
