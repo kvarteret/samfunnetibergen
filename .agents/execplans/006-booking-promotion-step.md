@@ -288,9 +288,9 @@ To be completed at milestone boundaries and at completion. Compare against the P
 
 ## Progress
 
-- [ ] Milestone 1 — Extract `useEventImage` hook; standalone event form unchanged.
-- [ ] Milestone 2 — Add `allowRecurring` to schedule section and "upload later" props to image section (both opt-in, defaults preserve current behavior).
-- [ ] Milestone 3 — `promotion.ts` pre-fill + validation functions with passing `promotion.test.ts`.
+- [x] (2026-06-18 08:20Z) Milestone 1 — Extract `useEventImage` hook; standalone event form unchanged.
+- [x] (2026-06-18 08:20Z) Milestone 2 — Add `allowRecurring` to schedule section and "upload later" props to image section (both opt-in, defaults preserve current behavior).
+- [x] (2026-06-18 08:27Z) Milestone 3 — `promotion.ts` pre-fill + validation functions with passing `promotion.test.ts` (10 tests pass).
 - [ ] Milestone 4 — `promote` field in booking state; `BookingPromotionSection`; second TanStack form via `EventFormContext`; pre-fill, "Samme som booking", merged validation; page fetches event option data. (No event submitted yet.)
 - [ ] Milestone 5 — Combined submit creates the pending event via `uploadEventImage` + `submitEvent`; partial-failure warning; PostHog telemetry.
 
