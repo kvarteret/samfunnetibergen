@@ -1,6 +1,5 @@
 "use client"
 
-import { Mail } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import { SegmentedControl } from "@/components/ui/segmented-control"
@@ -88,14 +87,6 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
         <p className="line-clamp-4 leading-7 text-foreground">
           {group.summary}
         </p>
-      </div>
-      <div className="mt-auto flex flex-col gap-3 text-foreground">
-        {group.email ? (
-          <span className="inline-flex min-w-0 items-center gap-2">
-            <Mail aria-hidden="true" className="size-4 shrink-0" />
-            {group.email}
-          </span>
-        ) : null}
       </div>
     </Link>
   )
