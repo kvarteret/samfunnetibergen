@@ -19,6 +19,7 @@ interface EventFormScheduleSectionProps {
   firstDateError?: string
   firstDateId: string
   allowRecurring?: boolean
+  number?: string
 }
 
 export function EventFormScheduleSection({
@@ -26,6 +27,7 @@ export function EventFormScheduleSection({
   firstDateError,
   firstDateId,
   allowRecurring = true,
+  number = "03",
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
   const handleRecurrenceChange = useCallback(
@@ -63,7 +65,7 @@ export function EventFormScheduleSection({
   }
 
   return (
-    <FormSection number="03" title="Dato og tid">
+    <FormSection number={number} title="Dato og tid">
       <form.Subscribe selector={(s: { values: FormState }) => s.values.dates}>
         {(dates: DateEntry[]) => (
           <div className="space-y-4">

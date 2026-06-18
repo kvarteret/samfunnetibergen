@@ -11,16 +11,18 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormPlaceSectionProps {
   uid: string
   roomOptions: SelectOption[]
+  number?: string
 }
 
 export function EventFormPlaceSection({
   uid,
   roomOptions,
+  number = "04",
 }: EventFormPlaceSectionProps) {
   const form = useEventForm()
 
   return (
-    <FormSection number="04" title="Sted">
+    <FormSection number={number} title="Sted">
       <form.Field name="room">
         {(field: AnyFieldApi) => (
           <SelectField

@@ -13,6 +13,8 @@ interface EventFormSubmitterSectionProps {
   submittedByEmailId: string
   submittedByError?: string
   submittedById: string
+  number?: string
+  title?: string
 }
 
 export function EventFormSubmitterSection({
@@ -21,13 +23,15 @@ export function EventFormSubmitterSection({
   submittedByEmailId,
   submittedByError,
   submittedById,
+  number = "08",
+  title = "Kontaktinformasjon",
 }: EventFormSubmitterSectionProps) {
   const form = useEventForm()
   const submittedByEmailErrorId = `${submittedByEmailId}-error`
   const submittedByErrorId = `${submittedById}-error`
 
   return (
-    <FormSection number="08" title="Kontaktinformasjon">
+    <FormSection number={number} title={title}>
       <p className=" leading-6 text-foreground-muted">
         Vi trenger en kontaktperson for arrangementet. Informasjonen vises ikke
         offentlig - den brukes bare av Kvarterets PR-gruppe til å følge opp

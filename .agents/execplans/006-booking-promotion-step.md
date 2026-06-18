@@ -256,6 +256,12 @@ All edits are additive or local refactors; re-running the steps is safe. Creatin
 - Observation: The event sections are decoupled from the event form only through `EventFormContext`/`useEventForm`, not through props, which is exactly what makes embedding them in the booking form clean — a second `useForm` provided through the same context drives them with zero section edits (aside from the two opt-in props in Milestone 2).
   Evidence: `src/features/events/components/eventFormContext.ts` and every `EventForm*Section.tsx` calling `useEventForm()`.
 
+- Observation: `SectionHeader` (`src/components/ui/section-header.tsx`) omits the big step number entirely when `number` is falsy, so passing `number=""` to the reused event sections renders them as clean, numberless sub-sections under "09 Promotering" instead of clashing two-digit numbers. This is why each reused section gained an optional `number` prop defaulting to its original literal.
+  Evidence: `{number ? <span>…</span> : null}` in SectionHeader; browser snapshot shows sub-headings "Om arrangementet", "Bilde", "Dato og tid", … with no numbers.
+
+- Observation: The TanStack `form.Subscribe` selector needs an explicit param annotation (`(s: { values: BookingFormValues }) => …`) or `tsc` rejects it (the inferred selector return type collides with the full-state type). The repo's existing booking sections already use this annotation; the project's Biome formatter does not strip it, but a stray editor/Prettier pass did once and reintroduced the error.
+  Evidence: `error TS2322: Type '(s: …) => "" | "ja" | "nei"' is not assignable…` until the annotation was restored.
+
 ## Decision Log
 
 - Decision: One combined submit (booking first, then event) rather than a separate submit button for the promotion.
@@ -284,15 +290,17 @@ All edits are additive or local refactors; re-running the steps is safe. Creatin
 
 ## Outcomes & Retrospective
 
-To be completed at milestone boundaries and at completion. Compare against the Purpose: a guest booking a room can opt into website promotion in the same flow, with shared data pre-filled, producing a pending event in Sanity alongside the Crescat booking, while guests who decline see no change.
+All five milestones are implemented and the UI is verified in the browser preview. The booking form now ends with a required "Promotering" Ja/Nei step; "Ja" reveals an embedded event form (reusing the `arrangementer/ny` sections via a second TanStack form on `EventFormContext`) pre-filled with the booking's event name, start time (doors time, else a "Samme som booking" button), and free/paid; recurrence is hidden; the image is optional behind a "Jeg laster opp bilde senere" acknowledgement; and the single submit creates a pending Sanity `arrangement` after the Crescat booking, with a non-blocking warning if only the promotion fails.
+
+What remains / notes for the next contributor: (1) a live end-to-end submit was intentionally not triggered during implementation because it posts to Crescat and writes a real Sanity draft — exercise it deliberately and confirm a `arrangement` with `approvalStatus == "pending"` appears. (2) The image-or-acknowledge validation message maps to the promote field id for inline display; it always appears in the top `ErrorSummary`, which is the primary surface. (3) Pre-existing `tsc` errors in `bookable-rooms.test.ts` and `room-booking.test.ts` are unrelated to this work (present on the base commit). Compared against the Purpose, the user-visible outcome is achieved: one flow, shared data, a pending event alongside the booking, and no change for guests who decline.
 
 ## Progress
 
 - [x] (2026-06-18 08:20Z) Milestone 1 — Extract `useEventImage` hook; standalone event form unchanged.
 - [x] (2026-06-18 08:20Z) Milestone 2 — Add `allowRecurring` to schedule section and "upload later" props to image section (both opt-in, defaults preserve current behavior).
 - [x] (2026-06-18 08:27Z) Milestone 3 — `promotion.ts` pre-fill + validation functions with passing `promotion.test.ts` (10 tests pass).
-- [ ] Milestone 4 — `promote` field in booking state; `BookingPromotionSection`; second TanStack form via `EventFormContext`; pre-fill, "Samme som booking", merged validation; page fetches event option data. (No event submitted yet.)
-- [ ] Milestone 5 — Combined submit creates the pending event via `uploadEventImage` + `submitEvent`; partial-failure warning; PostHog telemetry.
+- [x] (2026-06-18 08:38Z) Milestone 4 — `promote` field in booking state; `BookingPromotionSection`; second TanStack form via `EventFormContext`; pre-fill, "Samme som booking", merged validation; page fetches event option data. Verified in browser preview: Promotering renders last, Ja reveals the prefilled embedded form (title from event name, recurrence hidden, upload-later checkbox), Nei collapses it.
+- [x] (2026-06-18 08:39Z) Milestone 5 — Combined submit creates the pending event via `uploadEventImage` + `submitEvent` (helper `createPromotionEvent`); partial-failure warning on the success screen; PostHog `room_booking_promotion_opted_in` capture. Type-checked and lint-clean; a live end-to-end submit (which posts to Crescat + writes Sanity) is left for the user to trigger deliberately.
 
 ## Interfaces and Dependencies
 

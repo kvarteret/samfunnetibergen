@@ -12,16 +12,18 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormOrganizerSectionProps {
   uid: string
   groupOptions: SelectOption[]
+  number?: string
 }
 
 export function EventFormOrganizerSection({
   uid,
   groupOptions,
+  number = "05",
 }: EventFormOrganizerSectionProps) {
   const form = useEventForm()
 
   return (
-    <FormSection number="05" title="Arrangør">
+    <FormSection number={number} title="Arrangør">
       <form.Field name="organizerGroup">
         {(field: AnyFieldApi) => (
           <ComboboxField

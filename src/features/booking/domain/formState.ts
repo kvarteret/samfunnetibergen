@@ -38,6 +38,9 @@ export interface BookingFormState {
   contactName: string
   contactEmail: string
   contactPhone: string
+  // Website-only: whether to also publish the booking as a promoted event.
+  // Never sent to Crescat.
+  promote: "" | "ja" | "nei"
 }
 
 export const initialBookingState: BookingFormState = {
@@ -74,6 +77,7 @@ export const initialBookingState: BookingFormState = {
   contactName: "",
   contactEmail: "",
   contactPhone: "",
+  promote: "",
 }
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>

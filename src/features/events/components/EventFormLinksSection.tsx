@@ -9,13 +9,17 @@ import { useEventForm } from "./eventFormContext"
 
 interface EventFormLinksSectionProps {
   uid: string
+  number?: string
 }
 
-export function EventFormLinksSection({ uid }: EventFormLinksSectionProps) {
+export function EventFormLinksSection({
+  uid,
+  number = "07",
+}: EventFormLinksSectionProps) {
   const form = useEventForm()
 
   return (
-    <FormSection number="07" title="Lenker">
+    <FormSection number={number} title="Lenker">
       <FieldGroup>
         <Label htmlFor={`${uid}-ticketUrl`}>Billettlenke</Label>
         <form.Field name="ticketUrl">

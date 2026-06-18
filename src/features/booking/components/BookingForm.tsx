@@ -10,6 +10,15 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
+import {
+  submitEvent,
+  uploadEventImage,
+} from "@/features/events/actions/submitEvent"
+import {
+  type FormState as EventFormState,
+  initialState as eventInitialState,
+} from "@/features/events/domain/formState"
+import { useEventImage } from "@/features/events/domain/useEventImage"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -20,16 +29,32 @@ import {
   isSlotAllowedForCombinedHours,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
-import { durationHoursBetween, findRoomConflicts, occupiedMinuteRanges } from "../domain/availability"
+import {
+  durationHoursBetween,
+  findRoomConflicts,
+  occupiedMinuteRanges,
+} from "../domain/availability"
 import {
   buildBookingPayload,
   initialBookingState,
   isExternalBooker,
 } from "../domain/formState"
+import {
+  bookingStartTime,
+  buildPromotionDefaults,
+  getPromotionValidationMessages,
+  PROMO_FIRST_DATE_FIELD,
+  PROMO_IMAGE_FIELD,
+  PROMO_SUBMITTER_EMAIL_FIELD,
+  PROMO_SUBMITTER_FIELD,
+  PROMO_TITLE_FIELD,
+  PROMOTE_FIELD,
+} from "../domain/promotion"
 import type { BookingRoom } from "../types"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
@@ -40,6 +65,7 @@ import { BookingFormOrderSummary } from "./BookingFormOrderSummary"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormTermsSection } from "./BookingFormTermsSection"
 import { BookingFormTicketSection } from "./BookingFormTicketSection"
+import { BookingPromotionSection } from "./BookingPromotionSection"
 import { BookingFormContext } from "./bookingFormContext"
 
 // TODO: resolve form type when @tanstack/react-form stabilizes
@@ -53,6 +79,9 @@ interface BookingFormProps {
   initialRoomId?: number
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
+  eventRooms: EventRoom[]
+  eventTypes: EventType[]
+  eventGroups: EventGroup[]
 }
 
 export function BookingForm({
@@ -60,6 +89,9 @@ export function BookingForm({
   initialRoomId,
   openingHours,
   closedDates,
+  eventRooms,
+  eventTypes,
+  eventGroups,
 }: BookingFormProps) {
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
@@ -78,6 +110,45 @@ export function BookingForm({
     invoiceAddress: `${uid}-invoiceAddress`,
     acceptTerms: `${uid}-acceptTerms`,
   }
+  const promoteFieldIds = {
+    promote: `${uid}-promote`,
+    title: `${uid}-promote-title`,
+    firstDate: `${uid}-promote-first-date`,
+    submittedBy: `${uid}-promote-submitter`,
+    submittedByEmail: `${uid}-promote-submitter-email`,
+  }
+  const promoFieldByPlaceholder: Record<string, string> = {
+    [PROMOTE_FIELD]: promoteFieldIds.promote,
+    [PROMO_TITLE_FIELD]: promoteFieldIds.title,
+    [PROMO_FIRST_DATE_FIELD]: promoteFieldIds.firstDate,
+    [PROMO_SUBMITTER_FIELD]: promoteFieldIds.submittedBy,
+    [PROMO_SUBMITTER_EMAIL_FIELD]: promoteFieldIds.submittedByEmail,
+    [PROMO_IMAGE_FIELD]: promoteFieldIds.promote,
+  }
+
+  const eventTypeOptions = eventTypes.map(eventType => ({
+    value: eventType._id,
+    label: eventType.taxonomyGroup
+      ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
+      : eventType.name,
+  }))
+  const roomOptions = eventRooms.map(room => ({
+    value: room._id,
+    label: room.title,
+  }))
+  const groupOptions = eventGroups.map(group => ({
+    value: group._id,
+    label: group.name,
+  }))
+
+  const image = useEventImage()
+  const [uploadLater, setUploadLater] = useState(false)
+  const [promotionError, setPromotionError] = useState<string | null>(null)
+
+  const promotionForm = useForm({
+    defaultValues: eventInitialState as EventFormState,
+  })
+  const promotionValues = useStore(promotionForm.store, state => state.values)
 
   const form = useForm({
     defaultValues: {
@@ -98,6 +169,23 @@ export function BookingForm({
         honeypot,
       })
       if (!result.ok) throw new Error(result.error)
+
+      // The booking is the primary action; once it succeeds we never fail the
+      // whole submit because the optional promotion could not be created. A
+      // promotion error becomes a non-blocking warning on the success screen.
+      if (value.promote === "ja") {
+        setPromotionError(null)
+        try {
+          await createPromotionEvent(
+            promotionForm.state.values,
+            image.imageFile,
+          )
+        } catch {
+          setPromotionError(
+            "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@kvarteret.no.",
+          )
+        }
+      }
     },
   })
 
@@ -149,6 +237,37 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType])
 
+  // Seed the embedded event form once, the first time the guest opts in, from
+  // what they already typed into the booking. Seeding once avoids clobbering
+  // edits if they toggle the choice off and on again.
+  const hasSeededPromotionRef = useRef(false)
+  useEffect(() => {
+    if (values.promote !== "ja" || hasSeededPromotionRef.current) return
+    hasSeededPromotionRef.current = true
+    posthog.capture("room_booking_promotion_opted_in")
+    const defaults = buildPromotionDefaults(values, promotionForm.state.values)
+    promotionForm.setFieldValue("title", defaults.title)
+    promotionForm.setFieldValue("isFree", defaults.isFree)
+    promotionForm.setFieldValue("dates", defaults.dates)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.promote])
+
+  const showDoorsHint = Boolean(values.doorsTime)
+  const onSameAsBooking = () => {
+    const time = bookingStartTime(values)
+    promotionForm.setFieldValue("dates", (dates: EventFormState["dates"]) =>
+      dates.map((date, index) =>
+        index === 0
+          ? {
+              ...date,
+              startDate: date.startDate || values.startDate,
+              startTime: time,
+            }
+          : date,
+      ),
+    )
+  }
+
   const selectedRoomIds = values.selectedRoomIds
   const primaryRoom = selectedRooms[0]
 
@@ -199,13 +318,26 @@ export function BookingForm({
     )
   })()
 
-  const validationErrors = getBookingValidationErrors({
+  const bookingValidationErrors = getBookingValidationErrors({
     values,
     fieldIds,
     roomsSelected: selectedRoomIds.length > 0,
     hasConflict,
     slotWithinHours,
   })
+  const promotionValidationErrors = getPromotionValidationMessages({
+    promote: values.promote,
+    event: promotionValues,
+    hasImageFile: Boolean(image.imageFile),
+    uploadLater,
+  }).map(message => ({
+    fieldId: promoFieldByPlaceholder[message.fieldId] ?? message.fieldId,
+    message: message.message,
+  }))
+  const validationErrors = [
+    ...bookingValidationErrors,
+    ...promotionValidationErrors,
+  ]
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -225,7 +357,15 @@ export function BookingForm({
         <AlertDescription>
           Takk for din bookingforespørsel. Vi behandler den så fort vi kan og
           tar kontakt på e-post.
+          {values.promote === "ja" && !promotionError && (
+            <> Arrangementet er sendt til godkjenning hos PR-gruppen.</>
+          )}
         </AlertDescription>
+        {promotionError && (
+          <AlertDescription className="text-destructive">
+            {promotionError}
+          </AlertDescription>
+        )}
         <Link
           className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
@@ -298,6 +438,27 @@ export function BookingForm({
             acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
           />
+          <BookingPromotionSection
+            eventTypeOptions={eventTypeOptions}
+            firstDateError={errorFor(promoteFieldIds.firstDate)}
+            firstDateId={promoteFieldIds.firstDate}
+            groupOptions={groupOptions}
+            image={image}
+            onSameAsBooking={onSameAsBooking}
+            onUploadLaterChange={setUploadLater}
+            promoteError={errorFor(promoteFieldIds.promote)}
+            promoteFieldId={promoteFieldIds.promote}
+            promotionForm={promotionForm}
+            roomOptions={roomOptions}
+            showDoorsHint={showDoorsHint}
+            submittedByEmailError={errorFor(promoteFieldIds.submittedByEmail)}
+            submittedByEmailId={promoteFieldIds.submittedByEmail}
+            submittedByError={errorFor(promoteFieldIds.submittedBy)}
+            submittedById={promoteFieldIds.submittedBy}
+            titleError={errorFor(promoteFieldIds.title)}
+            titleId={promoteFieldIds.title}
+            uploadLater={uploadLater}
+          />
 
           {/* Honeypot */}
           <input
@@ -367,6 +528,53 @@ export function BookingForm({
       </div>
     </BookingFormContext.Provider>
   )
+}
+
+// Creates the pending event when the guest opted into promotion. Mirrors the
+// standalone event form's submit: upload the image (if any) only now, then write
+// the arrangement. Throws on failure so the caller can surface a warning without
+// failing the already-sent booking.
+async function createPromotionEvent(
+  event: EventFormState,
+  imageFile: File | null,
+): Promise<void> {
+  let imageAssetId: string | undefined
+  if (imageFile) {
+    const formData = new FormData()
+    formData.append("image", imageFile)
+    const uploadResult = await uploadEventImage(formData)
+    if (!uploadResult.ok) throw new Error(uploadResult.error)
+    imageAssetId = uploadResult.value
+  }
+
+  const result = await submitEvent({
+    title: event.title,
+    description: event.description || undefined,
+    dates: event.dates
+      .filter(date => date.startDate)
+      .map(date => ({
+        startDate: date.startDate,
+        startTime: date.startTime || undefined,
+        endTime: date.endTime || undefined,
+      })),
+    room: event.room || undefined,
+    roomText: event.roomText || undefined,
+    organizerGroup: event.organizerGroup || undefined,
+    organizerText: event.organizerText || undefined,
+    submittedByOrganization: event.submittedByOrganization || undefined,
+    eventTypeId: event.eventTypeId || undefined,
+    imageAssetId,
+    isInternalEvent: event.isInternalEvent || undefined,
+    isFree: event.isFree,
+    priceOrdinar: event.priceOrdinar ? Number(event.priceOrdinar) : undefined,
+    priceStudent: event.priceStudent ? Number(event.priceStudent) : undefined,
+    priceMedlem: event.priceMedlem ? Number(event.priceMedlem) : undefined,
+    ticketUrl: event.ticketUrl || undefined,
+    facebookUrl: event.facebookUrl || undefined,
+    submittedBy: event.submittedBy,
+    submittedByEmail: event.submittedByEmail,
+  })
+  if (!result.ok) throw new Error(result.error)
 }
 
 interface BookingValidationOptions {

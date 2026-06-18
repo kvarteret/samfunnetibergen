@@ -16,7 +16,13 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import type { EditorialSection } from "@/lib/sanity/fetch"
-import { fetchHouseHours, fetchRoomsPageContent } from "@/lib/sanity/fetch"
+import {
+  fetchEventGroups,
+  fetchEventRooms,
+  fetchEventTypes,
+  fetchHouseHours,
+  fetchRoomsPageContent,
+} from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -170,10 +176,20 @@ export default async function BookRoomPage({
   const preselectedRoomId = roomParam ? Number(roomParam) : undefined
   activateRequestLocale(locale)
 
-  const [initialRooms, houseHours, roomsPageContent] = await Promise.all([
+  const [
+    initialRooms,
+    houseHours,
+    roomsPageContent,
+    eventRooms,
+    eventTypes,
+    eventGroups,
+  ] = await Promise.all([
     fetchBookableRoomsForBooker("ekstern"),
     fetchHouseHours(),
     fetchRoomsPageContent(),
+    fetchEventRooms(),
+    fetchEventTypes(),
+    fetchEventGroups(),
   ])
 
   const howToSection = roomsPageContent?.sections?.find(
@@ -227,6 +243,9 @@ export default async function BookRoomPage({
 
       <BookingForm
         closedDates={houseHours?.houseClosedDates ?? []}
+        eventGroups={eventGroups}
+        eventRooms={eventRooms}
+        eventTypes={eventTypes}
         initialRoomId={preselectedRoomId}
         initialRooms={initialRooms}
         openingHours={houseHours?.operationsManagerHours ?? null}

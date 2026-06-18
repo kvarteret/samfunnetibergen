@@ -40,7 +40,9 @@ describe("buildPromotionDefaults", () => {
   })
 
   it("maps freeOrPaid 'Gratis' to isFree true and 'Betalt' to false", () => {
-    expect(buildPromotionDefaults(booking, eventInitialState).isFree).toBe(false)
+    expect(buildPromotionDefaults(booking, eventInitialState).isFree).toBe(
+      false,
+    )
     expect(
       buildPromotionDefaults(
         { ...booking, freeOrPaid: "Gratis" },

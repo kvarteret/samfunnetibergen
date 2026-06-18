@@ -8,13 +8,17 @@ import { useEventForm } from "./eventFormContext"
 
 interface EventFormPriceSectionProps {
   uid: string
+  number?: string
 }
 
-export function EventFormPriceSection({ uid }: EventFormPriceSectionProps) {
+export function EventFormPriceSection({
+  uid,
+  number = "06",
+}: EventFormPriceSectionProps) {
   const form = useEventForm()
 
   return (
-    <FormSection number="06" title="Pris">
+    <FormSection number={number} title="Pris">
       <form.Field name="isFree">
         {(field: AnyFieldApi) => (
           <>

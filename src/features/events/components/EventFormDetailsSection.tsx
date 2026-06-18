@@ -15,6 +15,7 @@ interface EventFormDetailsSectionProps {
   eventTypeOptions: SelectOption[]
   titleError?: string
   titleId: string
+  number?: string
 }
 
 export function EventFormDetailsSection({
@@ -22,12 +23,13 @@ export function EventFormDetailsSection({
   eventTypeOptions,
   titleError,
   titleId,
+  number = "01",
 }: EventFormDetailsSectionProps) {
   const form = useEventForm()
   const titleErrorId = `${titleId}-error`
 
   return (
-    <FormSection number="01" title="Om arrangementet">
+    <FormSection number={number} title="Om arrangementet">
       <FieldGroup error={titleError} errorId={titleErrorId}>
         <Label htmlFor={titleId}>Tittel *</Label>
         <form.Field name="title">
