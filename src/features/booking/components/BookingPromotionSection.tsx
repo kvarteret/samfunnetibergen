@@ -6,7 +6,6 @@ import { useId } from "react"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { SelectOption } from "@/components/ui/select-field"
 import { EventFormDetailsSection } from "@/features/events/components/EventFormDetailsSection"
 import { EventFormImageSection } from "@/features/events/components/EventFormImageSection"
@@ -20,13 +19,9 @@ import { EventFormContext } from "@/features/events/components/eventFormContext"
 import type { FormState as EventFormState } from "@/features/events/domain/formState"
 import type { EventImageController } from "@/features/events/domain/useEventImage"
 import type { AppFormApi } from "@/lib/form-api"
+import { cn } from "@/lib/utils"
 import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
-
-const PROMOTE_OPTIONS = [
-  { value: "ja", label: "Ja" },
-  { value: "nei", label: "Nei" },
-]
 
 interface BookingPromotionSectionProps {
   promotionForm: AppFormApi<EventFormState>
@@ -84,21 +79,34 @@ export function BookingPromotionSection({
 
       <FieldGroup error={promoteError} errorId={promoteErrorId}>
         <form.Field name="promote">
-          {(field: AnyFieldApi) => (
-            <RadioGroup<string>
-              aria-describedby={promoteError ? promoteErrorId : undefined}
-              aria-invalid={!!promoteError}
-              id={promoteFieldId}
-              onValueChange={field.handleChange}
-              value={field.state.value as string}
-            >
-              {PROMOTE_OPTIONS.map(opt => (
-                <RadioGroupItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </RadioGroupItem>
-              ))}
-            </RadioGroup>
-          )}
+          {(field: AnyFieldApi) => {
+            const value = field.state.value as string
+            return (
+              <div
+                aria-describedby={promoteError ? promoteErrorId : undefined}
+                className="flex flex-wrap gap-3"
+                id={promoteFieldId}
+              >
+                <Button
+                  aria-pressed={value === "ja"}
+                  className={cn(value === "nei" && "opacity-60")}
+                  onClick={() => field.handleChange("ja")}
+                  type="button"
+                  variant="default"
+                >
+                  Ja, promoter arrangementet
+                </Button>
+                <Button
+                  aria-pressed={value === "nei"}
+                  onClick={() => field.handleChange("nei")}
+                  type="button"
+                  variant="neutral"
+                >
+                  Nei takk
+                </Button>
+              </div>
+            )
+          }}
         </form.Field>
       </FieldGroup>
 

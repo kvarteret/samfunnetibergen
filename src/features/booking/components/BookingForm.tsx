@@ -170,6 +170,10 @@ export function BookingForm({
       })
       if (!result.ok) throw new Error(result.error)
 
+      posthog.capture("room_booking_submitted", {
+        promote: value.promote === "ja",
+      })
+
       // The booking is the primary action; once it succeeds we never fail the
       // whole submit because the optional promotion could not be created. A
       // promotion error becomes a non-blocking warning on the success screen.
@@ -180,7 +184,14 @@ export function BookingForm({
             promotionForm.state.values,
             image.imageFile,
           )
-        } catch {
+          posthog.capture("room_booking_promotion_event_created", {
+            has_image: Boolean(image.imageFile),
+            upload_later: uploadLater,
+          })
+        } catch (error) {
+          posthog.capture("room_booking_promotion_event_failed", {
+            error: error instanceof Error ? error.message : "unknown",
+          })
           setPromotionError(
             "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@kvarteret.no.",
           )
