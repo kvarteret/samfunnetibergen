@@ -445,10 +445,6 @@ export function BookingForm({
             selectedRoomCrescatId={hasTivoli ? 95 : (selectedRoomIds[0] ?? 0)}
           />
           <BookingFormCateringBarSection />
-          <BookingFormTermsSection
-            acceptTermsError={errorFor(fieldIds.acceptTerms)}
-            acceptTermsId={fieldIds.acceptTerms}
-          />
           <BookingPromotionSection
             eventTypeOptions={eventTypeOptions}
             firstDateError={errorFor(promoteFieldIds.firstDate)}
@@ -469,6 +465,10 @@ export function BookingForm({
             titleError={errorFor(promoteFieldIds.title)}
             titleId={promoteFieldIds.title}
             uploadLater={uploadLater}
+          />
+          <BookingFormTermsSection
+            acceptTermsError={errorFor(fieldIds.acceptTerms)}
+            acceptTermsId={fieldIds.acceptTerms}
           />
 
           {/* Honeypot */}

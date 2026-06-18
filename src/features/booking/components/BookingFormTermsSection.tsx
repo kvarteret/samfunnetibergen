@@ -29,7 +29,7 @@ export function BookingFormTermsSection({
   }
 
   return (
-    <FormSection number="08" title="Vilkår">
+    <FormSection number="09" title="Vilkår">
       <div
         className="max-w-3xl space-y-3 overflow-y-auto panel p-4"
         onScroll={handleScroll}

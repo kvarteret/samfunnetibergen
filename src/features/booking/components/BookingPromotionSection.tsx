@@ -71,7 +71,7 @@ export function BookingPromotionSection({
   const promoteErrorId = `${promoteFieldId}-error`
 
   return (
-    <FormSection number="09" title="Promotering">
+    <FormSection number="08" title="Promotering">
       <p className="max-w-3xl leading-6 text-foreground-muted">
         Ønsker du at arrangementet promoteres på samfunnetibergen.no og
         eksternt?
