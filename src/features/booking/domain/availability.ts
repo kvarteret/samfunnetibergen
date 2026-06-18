@@ -58,7 +58,8 @@ export function bookingRangeMs(
     return slotRangeMs(startDate, startTime, endTime)
   }
   const startMs =
-    new Date(`${startDate}T00:00:00`).getTime() + timeToMinutes(startTime) * 60_000
+    new Date(`${startDate}T00:00:00`).getTime() +
+    timeToMinutes(startTime) * 60_000
   const endMs =
     new Date(`${endDate}T00:00:00`).getTime() + timeToMinutes(endTime) * 60_000
   return [startMs, endMs]
@@ -138,8 +139,7 @@ export function occupiedMinuteRanges(
     .map(b => {
       const startMin =
         Math.max(0, new Date(b.start).getTime() - startDateMs) / 60_000
-      const endMin =
-        (new Date(b.end).getTime() - startDateMs) / 60_000
+      const endMin = (new Date(b.end).getTime() - startDateMs) / 60_000
       return { startMin, endMin }
     })
     .filter(r => r.endMin > 0)

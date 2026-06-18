@@ -103,7 +103,10 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
               target="_blank"
             >
               {leaf.label}
-              <ExternalLink aria-hidden="true" className="ml-2 inline size-3.5 shrink-0" />
+              <ExternalLink
+                aria-hidden="true"
+                className="ml-2 inline size-3.5 shrink-0"
+              />
             </a>
           ) : (
             <Link
@@ -149,7 +152,10 @@ function renderNavItemLabel(
         target="_blank"
       >
         {item.label}
-        <ExternalLink aria-hidden="true" className="ml-2 inline size-[0.7em] shrink-0" />
+        <ExternalLink
+          aria-hidden="true"
+          className="ml-2 inline size-[0.7em] shrink-0"
+        />
       </a>
     )
   }

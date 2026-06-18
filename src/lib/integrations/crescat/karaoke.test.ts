@@ -17,9 +17,7 @@ describe("buildKaraokeRequest", () => {
       priceType: "ordinær",
     })
 
-    const metaSection = body.sections.find(
-      s => s.type === "metaData",
-    )
+    const metaSection = body.sections.find(s => s.type === "metaData")
     expect(metaSection).toBeDefined()
     if (metaSection && "fields" in metaSection.content) {
       const peopleField = metaSection.content.fields.find(
@@ -47,7 +45,9 @@ describe("buildKaraokeRequest", () => {
     const rb = body.sections.find(s => s.type === "roomBooking")
     expect(rb).toBeDefined()
     if (rb && "roomBookings" in (rb.content as object)) {
-      const content = rb.content as { roomBookings: Array<{ room_id: number }> }
+      const content = rb.content as {
+        roomBookings: Array<{ room_id: number }>
+      }
       expect(content.roomBookings).toHaveLength(1)
       expect(content.roomBookings[0].room_id).toBe(98)
     }

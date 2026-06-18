@@ -61,7 +61,10 @@ export default async function AppenPage() {
             </span>{" "}
             App Store
           </span>
-          <ExternalLink aria-hidden="true" className="ml-auto size-4 shrink-0" />
+          <ExternalLink
+            aria-hidden="true"
+            className="ml-auto size-4 shrink-0"
+          />
         </a>
 
         <a
@@ -77,7 +80,10 @@ export default async function AppenPage() {
             </span>{" "}
             Google Play
           </span>
-          <ExternalLink aria-hidden="true" className="ml-auto size-4 shrink-0" />
+          <ExternalLink
+            aria-hidden="true"
+            className="ml-auto size-4 shrink-0"
+          />
         </a>
       </div>
     </main>

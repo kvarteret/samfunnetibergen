@@ -66,7 +66,7 @@ export function SlackFeedback() {
             aria-invalid={status === "error"}
             id={FIELD_ID}
             onChange={e => setMessage(e.target.value)}
-            placeholder="I dag så var jeg på &apos;the place to be&apos;, og der..."
+            placeholder="I dag så var jeg på 'the place to be', og der..."
             rows={2}
             value={message}
           />

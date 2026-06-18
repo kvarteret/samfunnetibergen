@@ -69,10 +69,7 @@
           "component": "field-list",
           "required": true,
           "class": "col-md-3",
-          "options": [
-            "Åpent",
-            "Lukket"
-          ]
+          "options": ["Åpent", "Lukket"]
         }
       ]
     },
@@ -87,10 +84,7 @@
           "component": "field-list",
           "required": true,
           "class": "col-md-3",
-          "options": [
-            "Gratis",
-            "Betalt"
-          ]
+          "options": ["Gratis", "Betalt"]
         },
         {
           "id": 1244809,

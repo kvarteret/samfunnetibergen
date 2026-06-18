@@ -49,5 +49,5 @@ export function ValgomatenInfobox() {
         </div>
       )}
     </aside>
-  );
+  )
 }

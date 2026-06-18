@@ -250,7 +250,10 @@ function NavLink({
       {...props}
     >
       {children}
-      <ExternalLink aria-hidden="true" className="ml-1 inline size-3 shrink-0" />
+      <ExternalLink
+        aria-hidden="true"
+        className="ml-1 inline size-3 shrink-0"
+      />
     </a>
   ) : (
     <Link className={className} href={href} {...props}>

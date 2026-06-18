@@ -80,10 +80,7 @@
           "component": "field-list",
           "required": true,
           "class": "col-md-3",
-          "options": [
-            "Åpent",
-            "Lukket"
-          ]
+          "options": ["Åpent", "Lukket"]
         }
       ]
     },

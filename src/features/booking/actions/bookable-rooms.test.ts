@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
 import type { BookingRoom } from "@/features/booking/types"
-import type { CresatResource } from "./calendar"
+import type { BookableRoom } from "@/lib/sanity/fetch/rooms"
+import type { CresatResource } from "@/lib/integrations/crescat/calendar"
 
 // ── Mock modules ────────────────────────────────────────────────────────────
 
@@ -28,9 +29,9 @@ import { fetchBookableRooms } from "@/lib/sanity/fetch"
 
 function sanityRoom(
   overrides: Partial<BookingRoom & { crescatRoomId: number }>,
-): BookingRoom & { crescatRoomId: number } {
+): BookableRoom {
   return {
-    crescatRoomId: overrides.crescatRoomId,
+    crescatRoomId: overrides.crescatRoomId ?? 0,
     title: overrides.title ?? `Rom ${overrides.crescatRoomId}`,
     slug: overrides.slug ?? `rom-${overrides.crescatRoomId}`,
     summary: overrides.summary ?? "Et fint rom.",
@@ -51,7 +52,7 @@ function sanityRoom(
     lightingDetails: overrides.lightingDetails ?? null,
     hasAV: overrides.hasAV ?? false,
     avDetails: overrides.avDetails ?? null,
-  }
+  } as unknown as BookableRoom
 }
 
 function crescatResource(id: number, title: string): CresatResource {

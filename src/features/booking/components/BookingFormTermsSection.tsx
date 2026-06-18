@@ -57,7 +57,10 @@ export function BookingFormTermsSection({
             target="_blank"
           >
             Vilkår for leie
-            <ExternalLink aria-hidden="true" className="ml-1 inline size-3 shrink-0 align-baseline" />
+            <ExternalLink
+              aria-hidden="true"
+              className="ml-1 inline size-3 shrink-0 align-baseline"
+            />
           </a>
           <a
             className="font-heading underline underline-offset-4 focus-brutal"
@@ -66,7 +69,10 @@ export function BookingFormTermsSection({
             target="_blank"
           >
             Avbestillingsvilkår
-            <ExternalLink aria-hidden="true" className="ml-1 inline size-3 shrink-0 align-baseline" />
+            <ExternalLink
+              aria-hidden="true"
+              className="ml-1 inline size-3 shrink-0 align-baseline"
+            />
           </a>
         </p>
       </div>

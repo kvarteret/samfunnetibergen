@@ -108,9 +108,7 @@ export function normalizeTemplate(
 ): NormalizedTemplate {
   const parsed = dataPageSchema.safeParse(dataPage)
   if (!parsed.success) {
-    const missing = parsed.error.issues
-      .map(e => e.path.join("."))
-      .join(", ")
+    const missing = parsed.error.issues.map(e => e.path.join(".")).join(", ")
     throw new Error(
       `The decoded data-page JSON does not match the expected Crescat form shape (missing: ${missing}). ` +
         `The page at slug "${slug}" may not be an event-request form, or its structure changed.`,
@@ -135,7 +133,10 @@ export function normalizeTemplate(
     }
   })
 
-  const rooms = parsed.data.props.rooms.map(r => ({ id: r.id, name: r.name }))
+  const rooms = parsed.data.props.rooms.map(r => ({
+    id: r.id,
+    name: r.name,
+  }))
 
   return { slug, title: template.title, sections, rooms }
 }
@@ -213,9 +214,7 @@ export function diffTemplateAgainstRegistry(
         `section ${i} (parent ${sec.parentId}): no registry entry for this parent_id`,
       )
       for (const field of sec.fields) {
-        diffs.push(
-          `  live field ${field.id} "${field.title}"`,
-        )
+        diffs.push(`  live field ${field.id} "${field.title}"`)
       }
     }
   }

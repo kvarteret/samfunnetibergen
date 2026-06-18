@@ -41,7 +41,7 @@ interface EventFormProps {
 export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const uid = useId()
   const image = useEventImage()
-  const [honeypot, setHoneypot] = useState("")
+  const [honeypot] = useState("")
   const fieldIds = {
     title: `${uid}-title`,
     firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,

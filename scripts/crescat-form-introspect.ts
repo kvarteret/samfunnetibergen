@@ -81,8 +81,7 @@ const REGISTRY: RegistryEntry[] = [
   },
   {
     parentId: 419061,
-    sectionTitle:
-      "Er bookingen på vegne av en studentorganisasjon?",
+    sectionTitle: "Er bookingen på vegne av en studentorganisasjon?",
     fieldIds: [3186172, 3186171], // ON_BEHALF_OF_STUDENT_ORG, STUDENT_ORG_NAME
   },
   {
@@ -221,7 +220,9 @@ MODES
 
   --rooms <calendarSlug>   Print a calendar's /resources as JSON (id → name).
                            Known calendars:
-                             ${Object.entries(ROOM_CALENDARS).map(([k,v]) => `${k.padEnd(10)} ${v}`).join("\n                             ")}
+                             ${Object.entries(ROOM_CALENDARS)
+                               .map(([k, v]) => `${k.padEnd(10)} ${v}`)
+                               .join("\n                             ")}
 
   --rooms-coverage         For every calendar, list each Crescat room and whether
                            a Sanity room exists with that crescatRoomId.
@@ -256,7 +257,9 @@ function printCompletion(shell: string): void {
   } else if (shell === "fish") {
     process.stdout.write(`${FISH_COMPLETION}\n`)
   } else {
-    process.stderr.write(`Unknown shell: ${shell}. Supported: bash, zsh, fish\n`)
+    process.stderr.write(
+      `Unknown shell: ${shell}. Supported: bash, zsh, fish\n`,
+    )
     process.exit(1)
   }
 }
@@ -289,7 +292,9 @@ const ZSH_COMPLETION = `# Crescat introspection autocomplete for zsh.
   local -a modes slugs calendars
   modes=("--diff" "--save" "--save-all" "--rooms" "--rooms-coverage" "--completion" "--help" "-h")
   slugs=(${KNOWN_SLUGS.map(s => `"${s}"`).join(" ")})
-  calendars=(${Object.values(ROOM_CALENDARS).map(c => `"${c}"`).join(" ")})
+  calendars=(${Object.values(ROOM_CALENDARS)
+    .map(c => `"${c}"`)
+    .join(" ")})
 
   _arguments \\
     "1: :->first" \\

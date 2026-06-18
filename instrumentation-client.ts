@@ -6,7 +6,10 @@ const isLocalhost =
     window.location.hostname.startsWith("127.") ||
     window.location.hostname === "[::1]")
 
-if (!isLocalhost || process.env.NEXT_PUBLIC_POSTHOG_ENABLE_LOCALHOST === "true") {
+if (
+  !isLocalhost ||
+  process.env.NEXT_PUBLIC_POSTHOG_ENABLE_LOCALHOST === "true"
+) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: "/ingest",
     ui_host: "https://eu.posthog.com",

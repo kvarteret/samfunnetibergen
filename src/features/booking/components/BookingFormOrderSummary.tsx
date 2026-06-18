@@ -147,7 +147,9 @@ function SelectedRoomCard({
         <div className="w-20 shrink-0 overflow-hidden">
           <ImageWithFallback
             alt={room.image?.alt ?? roomName}
-            fallback={<MapPin aria-hidden className="size-4 text-foreground-muted" />}
+            fallback={
+              <MapPin aria-hidden className="size-4 text-foreground-muted" />
+            }
             sizes="80px"
             src={room.image?.assetUrl}
           />
@@ -200,8 +202,8 @@ function SelectedRoomCard({
           </button>
         </div>
         {!isCrescatOnly && capacity && (
-            <p className="mt-1 text-sm text-foreground-muted">{capacity}</p>
-          )}
+          <p className="mt-1 text-sm text-foreground-muted">{capacity}</p>
+        )}
       </div>
     </div>
   )

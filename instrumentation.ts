@@ -1,8 +1,11 @@
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
-import type { Logger } from '@opentelemetry/api-logs'
-import { resourceFromAttributes } from '@opentelemetry/resources'
-import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
-import type { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs'
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
+import type { Logger } from "@opentelemetry/api-logs"
+import { resourceFromAttributes } from "@opentelemetry/resources"
+import {
+  LoggerProvider,
+  SimpleLogRecordProcessor,
+} from "@opentelemetry/sdk-logs"
+import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 
 /** Severity numbers: INFO=9, WARN=13, ERROR=17, FATAL=21 */
 const INFO_SEVERITY = 9
@@ -28,9 +31,9 @@ declare global {
 }
 
 export function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
     const exporter = new OTLPLogExporter({
-      url: 'https://eu.i.posthog.com/otlp/v1/logs',
+      url: "https://eu.i.posthog.com/otlp/v1/logs",
       headers: {
         Authorization: `Bearer ${process.env.POSTHOG_API_KEY}`,
       },
@@ -38,11 +41,13 @@ export function register() {
 
     const loggerProvider = new LoggerProvider({
       resource: resourceFromAttributes({
-        'service.name': 'samfunnetibergen',
+        "service.name": "samfunnetibergen",
       }),
-      processors: [new InfoAndAboveProcessor(new SimpleLogRecordProcessor(exporter))],
+      processors: [
+        new InfoAndAboveProcessor(new SimpleLogRecordProcessor(exporter)),
+      ],
     })
 
-    globalThis.__posthogLogger = loggerProvider.getLogger('samfunnetibergen')
+    globalThis.__posthogLogger = loggerProvider.getLogger("samfunnetibergen")
   }
 }

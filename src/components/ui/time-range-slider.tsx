@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { Slider } from "@base-ui/react/slider";
-import { useCallback, useMemo } from "react";
-import { minutesToTime } from "@/lib/opening-hours";
+import { Slider } from "@base-ui/react/slider"
+import { useCallback, useMemo } from "react"
+import { minutesToTime } from "@/lib/opening-hours"
 
 const MINUTES_IN_DAY = 24 * 60
 
@@ -15,31 +15,31 @@ const MINUTES_IN_DAY = 24 * 60
 
 interface TimeRangeSliderProps {
   /** Sorted minute marks (from midnight of start date). */
-  marks: number[];
+  marks: number[]
   /** Currently selected start time as HH:mm (e.g. "19:00") */
-  startTime: string;
+  startTime: string
   /** Currently selected end time as HH:mm */
-  endTime: string;
+  endTime: string
   /** Number of calendar days spanned by the event (≥ 1). */
-  dayCount: number;
+  dayCount: number
   /** Multi-day: first selectable index in first day's marks (start min). */
-  firstDayStartIdx?: number;
+  firstDayStartIdx?: number
   /** Multi-day: last selectable index in first day's marks (start max). */
-  firstDayEndIdx?: number;
+  firstDayEndIdx?: number
   /** Multi-day: first selectable index in last day's marks (end min). */
-  lastDayStartIdx?: number;
+  lastDayStartIdx?: number
   /** Multi-day: last selectable index in last day's marks (end max). */
-  lastDayEndIdx?: number;
+  lastDayEndIdx?: number
   /** When true, the slider turns red to indicate a booking conflict. */
-  conflict: boolean;
+  conflict: boolean
   /** Minute ranges (relative to start date midnight) that are booked. */
-  occupiedRanges: { startMin: number; endMin: number }[];
+  occupiedRanges: { startMin: number; endMin: number }[]
   /** Index range from end of first day to start of last day (stapled mid-section). */
-  stapledSegments?: { startIdx: number; endIdx: number }[];
+  stapledSegments?: { startIdx: number; endIdx: number }[]
   /** Called with the new start time (HH:mm). */
-  onStartChange: (value: string) => void;
+  onStartChange: (value: string) => void
   /** Called with the new end time (HH:mm). */
-  onEndChange: (value: string) => void;
+  onEndChange: (value: string) => void
 }
 
 export function TimeRangeSlider({
@@ -63,7 +63,7 @@ export function TimeRangeSlider({
   // between 14:00–17:00) never produce invalid intermediate values.
   // ─────────────────────────────────────────────────────────────────────
 
-  const maxIndex = Math.max(0, marks.length - 1);
+  const maxIndex = Math.max(0, marks.length - 1)
 
   // Multi-day: constrain thumbs to their respective day/opening-hour boundaries
   const minStartIdx = firstDayStartIdx ?? 0
@@ -72,32 +72,39 @@ export function TimeRangeSlider({
   const maxEndIdx = lastDayEndIdx ?? maxIndex
 
   const startIndex = useMemo(() => {
-    if (!startTime) return minStartIdx;
+    if (!startTime) return minStartIdx
     // Search within first day's marks for multi-day
     const searchEnd = firstDayEndIdx != null ? firstDayEndIdx + 1 : marks.length
     const searchStart = firstDayStartIdx ?? 0
     const slice = marks.slice(searchStart, searchEnd)
-    const idx = slice.findIndex((m) => minutesToTime(m) === startTime)
+    const idx = slice.findIndex(m => minutesToTime(m) === startTime)
     const clamped = idx >= 0 ? searchStart + idx : minStartIdx
     return Math.min(Math.max(clamped, minStartIdx), maxStartIdx)
-  }, [marks, startTime, minStartIdx, maxStartIdx, firstDayStartIdx, firstDayEndIdx]);
+  }, [
+    marks,
+    startTime,
+    minStartIdx,
+    maxStartIdx,
+    firstDayStartIdx,
+    firstDayEndIdx,
+  ])
 
   const endIndex = useMemo(() => {
-    if (!endTime) return maxEndIdx;
+    if (!endTime) return maxEndIdx
     // Search within last day's marks for multi-day
     const searchStart = lastDayStartIdx ?? 0
     const searchEnd = lastDayEndIdx != null ? lastDayEndIdx + 1 : marks.length
     const slice = marks.slice(searchStart, searchEnd)
-    const idx = slice.findIndex((m) => minutesToTime(m) === endTime)
+    const idx = slice.findIndex(m => minutesToTime(m) === endTime)
     const clamped = idx >= 0 ? searchStart + idx : maxEndIdx
     return Math.min(Math.max(clamped, minEndIdx), maxEndIdx)
-  }, [marks, endTime, minEndIdx, maxEndIdx, maxIndex, lastDayStartIdx, lastDayEndIdx]);
+  }, [marks, endTime, minEndIdx, maxEndIdx, lastDayStartIdx, lastDayEndIdx])
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
   const handleValueChange = useCallback(
     (value: readonly number[]) => {
-      let [sIdx, eIdx] = value as [number, number];
+      let [sIdx, eIdx] = value as [number, number]
       sIdx = Math.min(Math.max(sIdx, minStartIdx), maxStartIdx)
       eIdx = Math.min(Math.max(eIdx, minEndIdx), maxEndIdx)
       if (sIdx >= eIdx) {
@@ -105,18 +112,26 @@ export function TimeRangeSlider({
         sIdx = Math.max(eIdx - 1, minStartIdx)
       }
       if (sIdx >= 0 && sIdx < marks.length) {
-        onStartChange(minutesToTime(marks[sIdx]));
+        onStartChange(minutesToTime(marks[sIdx]))
       }
       if (eIdx >= 0 && eIdx < marks.length) {
-        onEndChange(minutesToTime(marks[eIdx]));
+        onEndChange(minutesToTime(marks[eIdx]))
       }
     },
-    [marks, minStartIdx, maxStartIdx, minEndIdx, maxEndIdx, onStartChange, onEndChange],
-  );
+    [
+      marks,
+      minStartIdx,
+      maxStartIdx,
+      minEndIdx,
+      maxEndIdx,
+      onStartChange,
+      onEndChange,
+    ],
+  )
 
   const handleValueCommit = useCallback(
     (value: readonly number[]) => {
-      let [sIdx, eIdx] = value as [number, number];
+      let [sIdx, eIdx] = value as [number, number]
       sIdx = Math.min(Math.max(sIdx, minStartIdx), maxStartIdx)
       eIdx = Math.min(Math.max(eIdx, minEndIdx), maxEndIdx)
       if (sIdx >= eIdx) {
@@ -124,71 +139,87 @@ export function TimeRangeSlider({
         sIdx = Math.max(eIdx - 1, minStartIdx)
       }
       if (sIdx >= 0 && sIdx < marks.length) {
-        onStartChange(minutesToTime(marks[sIdx]));
+        onStartChange(minutesToTime(marks[sIdx]))
       }
       if (eIdx >= 0 && eIdx < marks.length) {
-        onEndChange(minutesToTime(marks[eIdx]));
+        onEndChange(minutesToTime(marks[eIdx]))
       }
     },
-    [marks, minStartIdx, maxStartIdx, minEndIdx, maxEndIdx, onStartChange, onEndChange],
-  );
+    [
+      marks,
+      minStartIdx,
+      maxStartIdx,
+      minEndIdx,
+      maxEndIdx,
+      onStartChange,
+      onEndChange,
+    ],
+  )
 
   // ── Format helpers ───────────────────────────────────────────────────
 
   const formatLabel = useCallback(
     (index: number) => {
-      const minute = marks[index] ?? 0;
-      const localMinute = minute % MINUTES_IN_DAY;
-      return minutesToTime(localMinute);
+      const minute = marks[index] ?? 0
+      const localMinute = minute % MINUTES_IN_DAY
+      return minutesToTime(localMinute)
     },
-    [marks, dayCount],
-  );
+    [marks],
+  )
 
-  const sliderValue: [number, number] = [startIndex, endIndex];
+  const sliderValue: [number, number] = [startIndex, endIndex]
 
   // Colors: use theme tokens — primary by default, destructive on conflict
-  const trackColor = conflict ? "var(--destructive)" : "var(--primary)";
+  const trackColor = conflict ? "var(--destructive)" : "var(--primary)"
 
   // ── Occupied stripe overlays ─────────────────────────────────────────
   // Convert occupied minute ranges to percentage positions on the track.
-  const minMinute = marks[minStartIdx];
-  const maxMinute = marks[maxIndex];
-  const totalSpan = maxMinute - minMinute || 1;
+  const minMinute = marks[minStartIdx]
+  const maxMinute = marks[maxIndex]
+  const totalSpan = maxMinute - minMinute || 1
 
   // ── Duration badge ─────────────────────────────────────────────────
   const durationLabel = useMemo(() => {
-    const dur = marks[endIndex] - marks[startIndex];
-    if (dur <= 0) return "";
+    const dur = marks[endIndex] - marks[startIndex]
+    if (dur <= 0) return ""
 
     if (dayCount > 1) {
-      const d = Math.floor(dur / MINUTES_IN_DAY);
-      const h = Math.floor((dur % MINUTES_IN_DAY) / 60);
-      if (d === 0) return `${h}t`;
-      if (h === 0) return `${d}d`;
-      return `${d}d ${h}t`;
+      const d = Math.floor(dur / MINUTES_IN_DAY)
+      const h = Math.floor((dur % MINUTES_IN_DAY) / 60)
+      if (d === 0) return `${h}t`
+      if (h === 0) return `${d}d`
+      return `${d}d ${h}t`
     }
 
-    const h = Math.floor(dur / 60);
-    const m = dur % 60;
-    if (h === 0) return `${m}m`;
-    if (m === 0) return `${h}t`;
-    return `${h}t ${m}m`;
-  }, [marks, startIndex, endIndex, dayCount]);
+    const h = Math.floor(dur / 60)
+    const m = dur % 60
+    if (h === 0) return `${m}m`
+    if (m === 0) return `${h}t`
+    return `${h}t ${m}m`
+  }, [marks, startIndex, endIndex, dayCount])
 
   // ── Tick marks ────────────────────────────────────────────────────
   // Multi-day: one tick per day. Single-day: every 2 hours.
   const tickMarks = useMemo(() => {
     const isMulti = dayCount > 1
-    const raw: { index: number; minute: number; pct: number; label: string }[] = []
+    const raw: { index: number; minute: number; pct: number; label: string }[] =
+      []
 
     if (isMulti) {
       // Per-day ticks: one at the start of each day's marks
       for (let d = 0; d < dayCount; d++) {
         const dayStart = d * MINUTES_IN_DAY
-        const idx = marks.findIndex((m) => m >= dayStart && m < dayStart + MINUTES_IN_DAY)
+        const idx = marks.findIndex(
+          m => m >= dayStart && m < dayStart + MINUTES_IN_DAY,
+        )
         if (idx >= 0 && idx >= minStartIdx) {
           const pct = ((marks[idx] - minMinute) / totalSpan) * 100
-          raw.push({ index: idx, minute: marks[idx], pct, label: `Dag ${d + 1}` })
+          raw.push({
+            index: idx,
+            minute: marks[idx],
+            pct,
+            label: `Dag ${d + 1}`,
+          })
         }
       }
     } else {
@@ -203,23 +234,23 @@ export function TimeRangeSlider({
     }
 
     return raw
-  }, [marks, dayCount, minMinute, totalSpan, minStartIdx, formatLabel]);
+  }, [marks, dayCount, minMinute, totalSpan, minStartIdx, formatLabel])
 
   const stripeSegments = useMemo(() => {
-    if (!occupiedRanges.length) return [];
+    if (!occupiedRanges.length) return []
     return occupiedRanges
-      .map((r) => ({
+      .map(r => ({
         start: Math.max(minMinute, r.startMin),
         end: Math.min(maxMinute, r.endMin),
       }))
-      .filter((r) => r.end > r.start)
-      .map((r) => {
-        const left = ((r.start - minMinute) / totalSpan) * 100;
-        const width = ((r.end - r.start) / totalSpan) * 100;
-        return { left, width };
+      .filter(r => r.end > r.start)
+      .map(r => {
+        const left = ((r.start - minMinute) / totalSpan) * 100
+        const width = ((r.end - r.start) / totalSpan) * 100
+        return { left, width }
       })
-      .filter((s) => s.width > 0);
-  }, [occupiedRanges, minMinute, maxMinute, totalSpan]);
+      .filter(s => s.width > 0)
+  }, [occupiedRanges, minMinute, maxMinute, totalSpan])
 
   // If there are fewer than 2 marks, we can't render a meaningful range.
   if (marks.length < 2) {
@@ -227,7 +258,7 @@ export function TimeRangeSlider({
       <p className="text-sm text-foreground-muted">
         Ikke nok tidspunkt for å vise en tidsvelger.
       </p>
-    );
+    )
   }
 
   return (
@@ -261,7 +292,7 @@ export function TimeRangeSlider({
             />
 
             {/* Tick marks on the track */}
-            {tickMarks.map((tick) => (
+            {tickMarks.map(tick => (
               <div
                 key={tick.index}
                 className="pointer-events-none absolute inset-y-0 w-px"
@@ -290,7 +321,9 @@ export function TimeRangeSlider({
             {/* Stapled overlays — non-selectable night gaps between days */}
             {(stapledSegments ?? []).map((seg, i) => {
               const left = ((marks[seg.startIdx] - minMinute) / totalSpan) * 100
-              const width = ((marks[seg.endIdx] - marks[seg.startIdx] + 60) / totalSpan) * 100
+              const width =
+                ((marks[seg.endIdx] - marks[seg.startIdx] + 60) / totalSpan) *
+                100
               return (
                 <div
                   key={`staple-${i}`}
@@ -326,7 +359,7 @@ export function TimeRangeSlider({
 
       {/* Time labels under the track */}
       <div className="relative h-5">
-        {tickMarks.map((tick) => (
+        {tickMarks.map(tick => (
           <span
             key={tick.index}
             className="absolute top-0 -translate-x-1/2 text-xs text-foreground-muted tabular-nums"
@@ -337,5 +370,5 @@ export function TimeRangeSlider({
         ))}
       </div>
     </div>
-  );
+  )
 }

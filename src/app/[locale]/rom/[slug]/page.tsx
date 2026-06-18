@@ -4,9 +4,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
-import {
-  BoolSpec,
-} from "@/features/rooms"
+import { BoolSpec } from "@/features/rooms"
 import {
   ImageCarousel,
   PanoramaEmbed,
@@ -137,10 +135,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
           <RoomSpecs room={room} />
           {panoramaSlide && "iframeSrc" in panoramaSlide && (
             <div className="aspect-video w-full">
-              <PanoramaEmbed
-                loading="lazy"
-                src={panoramaSlide.iframeSrc}
-              />
+              <PanoramaEmbed loading="lazy" src={panoramaSlide.iframeSrc} />
             </div>
           )}
         </section>
@@ -249,7 +244,8 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
 function RoomFloorPlan({ room }: RoomSpecsProps) {
   const floorPlan = room.floorPlans?.find(
-    (plan: NonNullable<typeof room.floorPlans>[number]) => plan.floor === room.floor && plan.assetUrl,
+    (plan: NonNullable<typeof room.floorPlans>[number]) =>
+      plan.floor === room.floor && plan.assetUrl,
   )
 
   if (!floorPlan?.assetUrl) {

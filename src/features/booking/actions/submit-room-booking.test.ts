@@ -102,7 +102,9 @@ describe("submitRoomBooking", () => {
     await submitRoomBooking(standardPayload())
 
     const calls = fetchMock.mock.calls as Array<[string, RequestInit]>
-    expect(calls.some(([url]) => url.includes("bookingskjema-standard"))).toBe(true)
+    expect(calls.some(([url]) => url.includes("bookingskjema-standard"))).toBe(
+      true,
+    )
   })
 
   test("sends x-xsrf-token header on POST", async () => {
@@ -177,7 +179,10 @@ describe("submitRoomBooking", () => {
     // Find NEEDS_AMPHI (80461) in sections
     const metaFields = body.sections
       .filter((s: { type: string }) => s.type === "metaData")
-      .flatMap((s: { content: { fields: Array<{ id: number; value: unknown }> } }) => s.content.fields)
+      .flatMap(
+        (s: { content: { fields: Array<{ id: number; value: unknown }> } }) =>
+          s.content.fields,
+      )
 
     const amphi = metaFields.find((f: { id: number }) => f.id === 80461)
     expect(amphi).toBeDefined()
@@ -187,7 +192,9 @@ describe("submitRoomBooking", () => {
     expect(barSelf).toBeDefined()
     expect(barSelf.value).toBe(false)
 
-    const barKvarteret = metaFields.find((f: { id: number }) => f.id === 4382234)
+    const barKvarteret = metaFields.find(
+      (f: { id: number }) => f.id === 4382234,
+    )
     expect(barKvarteret).toBeDefined()
     expect(barKvarteret.value).toBe(true)
   })

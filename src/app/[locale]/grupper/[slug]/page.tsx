@@ -70,9 +70,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
   if (!group) notFound()
 
   const hasLinks =
-    "links" in group &&
-    Array.isArray(group.links) &&
-    group.links.length > 0
+    "links" in group && Array.isArray(group.links) && group.links.length > 0
 
   const institutionOptions = nbMessages.InstitutionOptions as Array<{
     value: string
@@ -126,7 +124,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
                   i: number,
                 ) => {
                   const platformLabel =
-                    link.customLabel || platformNames[link.platform] || link.platform
+                    link.customLabel ||
+                    platformNames[link.platform] ||
+                    link.platform
                   const isEmail = link.platform === "email"
                   const href = isEmail ? `mailto:${link.url}` : link.url
                   const Icon = platformIcons[link.platform] || ExternalLink
@@ -193,14 +193,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.subGroups?.length ? (
           <AsideSection title="Undergrupper">
             <ul className="flex flex-wrap gap-2">
-              {group.subGroups.map((subGroup: { name: string; slug: string }) => (
-                <li
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
-                  key={subGroup.slug ?? subGroup.name}
-                >
-                  {subGroup.name}
-                </li>
-              ))}
+              {group.subGroups.map(
+                (subGroup: { name: string; slug: string }) => (
+                  <li
+                    className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
+                    key={subGroup.slug ?? subGroup.name}
+                  >
+                    {subGroup.name}
+                  </li>
+                ),
+              )}
             </ul>
           </AsideSection>
         ) : null}
@@ -212,8 +214,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
               groupName={group.name ?? group.slug}
               institutionOptions={institutionOptions}
               subGroups={
-                group.subGroups?.flatMap((sg: { slug?: string; name?: string }) =>
-                  sg.slug && sg.name ? [{ slug: sg.slug, name: sg.name }] : [],
+                group.subGroups?.flatMap(
+                  (sg: { slug?: string; name?: string }) =>
+                    sg.slug && sg.name
+                      ? [{ slug: sg.slug, name: sg.name }]
+                      : [],
                 ) ?? []
               }
             />
@@ -230,11 +235,7 @@ interface GroupMastheadProps {
   summary?: string | null
 }
 
-function GroupMasthead({
-  logoUrl,
-  name,
-  summary,
-}: GroupMastheadProps) {
+function GroupMasthead({ logoUrl, name, summary }: GroupMastheadProps) {
   return (
     <header className="space-y-5 border-b-2 border-border pb-8">
       <div className="flex flex-wrap items-center gap-3">

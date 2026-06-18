@@ -12,6 +12,7 @@ import {
 const BASE_INPUT: RoomBookingInput = {
   eventName: "Testarrangement",
   roomId: 95,
+  roomIds: [],
   startDate: "2026-12-24",
   startTime: "20:00",
   endTime: "23:00",
@@ -30,7 +31,10 @@ const BASE_INPUT: RoomBookingInput = {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function metaFieldById(body: ReturnType<typeof buildExternalBooking>, fieldId: number) {
+function metaFieldById(
+  body: ReturnType<typeof buildExternalBooking>,
+  fieldId: number,
+) {
   for (const sec of body.sections) {
     if (sec.type !== "metaData" || !("fields" in sec.content)) continue
     for (const f of sec.content.fields) {
@@ -40,7 +44,10 @@ function metaFieldById(body: ReturnType<typeof buildExternalBooking>, fieldId: n
   return undefined
 }
 
-function sectionOfType(body: ReturnType<typeof buildExternalBooking>, type: string) {
+function sectionOfType(
+  body: ReturnType<typeof buildExternalBooking>,
+  type: string,
+) {
   return body.sections.find(s => s.type === type)
 }
 
@@ -67,7 +74,10 @@ describe("buildExternalBooking", () => {
   test("renames catering section to Mat og drikke", () => {
     const body = buildExternalBooking(BASE_INPUT)
     const catering = body.sections.find(
-      s => s.type === "metaData" && "parent_id" in s.content && s.content.parent_id === 11068,
+      s =>
+        s.type === "metaData" &&
+        "parent_id" in s.content &&
+        s.content.parent_id === 11068,
     )
     expect(catering).toBeDefined()
     expect(catering!.title).toBe("Mat og drikke")
@@ -127,8 +137,13 @@ describe("buildExternalBooking", () => {
     const body = buildExternalBooking(BASE_INPUT)
     const rb = sectionOfType(body, "roomBooking")
     expect(rb).toBeDefined()
-    if (rb && "roomBookings" in (rb as { content: unknown }).content) {
-      const content = (rb as { content: { roomBookings: Array<{ room_id: number }> } }).content
+    if (
+      rb &&
+      "roomBookings" in (rb as { content: Record<string, unknown> }).content
+    ) {
+      const content = (
+        rb as { content: { roomBookings: Array<{ room_id: number }> } }
+      ).content
       expect(content.roomBookings).toHaveLength(1)
       expect(content.roomBookings[0].room_id).toBe(95)
     }
@@ -140,8 +155,13 @@ describe("buildExternalBooking", () => {
       roomIds: [95, 97, 117],
     })
     const rb = sectionOfType(body, "roomBooking")
-    if (rb && "roomBookings" in (rb as { content: unknown }).content) {
-      const content = (rb as { content: { roomBookings: Array<{ room_id: number }> } }).content
+    if (
+      rb &&
+      "roomBookings" in (rb as { content: Record<string, unknown> }).content
+    ) {
+      const content = (
+        rb as { content: { roomBookings: Array<{ room_id: number }> } }
+      ).content
       expect(content.roomBookings).toHaveLength(3)
       expect(content.roomBookings.map(b => b.room_id)).toEqual([95, 97, 117])
     }
@@ -166,8 +186,20 @@ describe("buildInternalBooking", () => {
     const body = buildInternalBooking({
       ...BASE_INPUT,
       keyContacts: [
-        { name: "Alice", role: "Lyd", email: "alice@ex.com", phone: "111", country_code: "+47" },
-        { name: "Bob", role: "Lys", email: "bob@ex.com", phone: "222", country_code: "+47" },
+        {
+          name: "Alice",
+          role: "Lyd",
+          email: "alice@ex.com",
+          phone: "111",
+          country_code: "+47",
+        },
+        {
+          name: "Bob",
+          role: "Lys",
+          email: "bob@ex.com",
+          phone: "222",
+          country_code: "+47",
+        },
       ],
     })
     const kc = body.sections.find(s => s.type === "keyContacts")
@@ -195,12 +227,19 @@ describe("buildInternalBooking", () => {
   })
 
   test("intern catering has no bar toggles", () => {
-    const body = buildInternalBooking({ ...BASE_INPUT, barSelf: true, barKvarteret: true })
+    const body = buildInternalBooking({
+      ...BASE_INPUT,
+      barSelf: true,
+      barKvarteret: true,
+    })
     const catering = body.sections.find(
-      s => s.type === "metaData" && "parent_id" in s.content && s.content.parent_id === 11068,
+      s =>
+        s.type === "metaData" &&
+        "parent_id" in s.content &&
+        s.content.parent_id === 11068,
     )
     expect(catering).toBeDefined()
-    if (catering && "fields" in catering.content) {
+    if (catering && catering.content && "fields" in catering.content) {
       const ids = catering.content.fields.map((f: { id: number }) => f.id)
       expect(ids).not.toContain(4365154)
       expect(ids).not.toContain(4382234)
@@ -234,7 +273,10 @@ describe("buildRoomBooking", () => {
     const body = buildRoomBooking("ekstern", BASE_INPUT)
     // External builder has "Mat og drikke" section
     const catering = body.sections.find(
-      s => s.type === "metaData" && "parent_id" in s.content && s.content.parent_id === 11068,
+      s =>
+        s.type === "metaData" &&
+        "parent_id" in s.content &&
+        s.content.parent_id === 11068,
     )
     expect(catering?.title).toBe("Mat og drikke")
   })

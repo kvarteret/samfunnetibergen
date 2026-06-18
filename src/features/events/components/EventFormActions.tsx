@@ -11,9 +11,7 @@ interface EventFormActionsProps {
   formError: string
 }
 
-export function EventFormActions({
-  formError,
-}: EventFormActionsProps) {
+export function EventFormActions({ formError }: EventFormActionsProps) {
   const form = useEventForm()
   const isPending = useStore(form.store, state => state.isSubmitting)
   const submitError = useStore(form.store, state => state.errorMap.onSubmit)
@@ -50,5 +48,3 @@ export function EventFormActions({
     </section>
   )
 }
-
-

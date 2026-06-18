@@ -35,8 +35,7 @@ function slotMarks(
     roomHours,
     closed,
   )) {
-    for (let m = range.startMin; m <= range.endMin; m += stepMin)
-      marks.add(m)
+    for (let m = range.startMin; m <= range.endMin; m += stepMin) marks.add(m)
   }
   return Array.from(marks).toSorted((a, b) => a - b)
 }
@@ -46,6 +45,7 @@ function slotMarks(
  * marks across the full 0–1439 range so the slider track has no gaps
  * between days.  Opening‑hour validation still runs server‑side.
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 function multiDayMarks(
   startDate: string,
   endDate: string,
@@ -53,9 +53,11 @@ function multiDayMarks(
   _roomHours: OpeningHours | null,
   _closed: ClosedDate[],
 ): number[] {
-  const dayCount = differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+  const dayCount =
+    differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
   return unconstrainedMarks(dayCount, MULTI_DAY_SLOT_STEP_MIN)
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 function toDateString(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
@@ -184,37 +186,31 @@ export function DateTimePicker({
             "relative isolate z-0 rounded-r bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
         }}
         components={{
-          DayButton: ({
-            className: _cls,
-            modifiers,
-            day,
-            onClick: _dayPickerClick,
-            ...props
-          }) => {
+          DayButton: ({ modifiers, day, ...props }) => {
             const mods = modifiers as Record<string, boolean>
             return (
-            <CalendarDayButton
-              className={cn(
-                "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
-                mods.occupied &&
-                  "line-through text-destructive/70 !opacity-70",
-              )}
-              day={day}
-              locale={nb}
-              modifiers={modifiers}
-              onClick={() =>
-                handleDayClick(
-                  day.date,
-                  Boolean(mods.disabled),
-                )
-              }
-              variant="plain"
-              {...props}
-              style={mods.range_middle ? {
-                backgroundColor: "var(--muted)",
-                backgroundImage: "repeating-linear-gradient(90deg, oklch(from var(--primary) calc(l * 0.9) c h) 0, oklch(from var(--primary) calc(l * 0.9) c h) 24px, transparent 24px, transparent 48px)",
-              } as React.CSSProperties : undefined}
-            />
+              <CalendarDayButton
+                className={cn(
+                  "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
+                  mods.occupied &&
+                    "line-through text-destructive/70 !opacity-70",
+                )}
+                day={day}
+                locale={nb}
+                modifiers={modifiers}
+                onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
+                variant="plain"
+                {...props}
+                style={
+                  mods.range_middle
+                    ? ({
+                        backgroundColor: "var(--muted)",
+                        backgroundImage:
+                          "repeating-linear-gradient(90deg, oklch(from var(--primary) calc(l * 0.9) c h) 0, oklch(from var(--primary) calc(l * 0.9) c h) 24px, transparent 24px, transparent 48px)",
+                      } as React.CSSProperties)
+                    : undefined
+                }
+              />
             )
           },
         }}
@@ -401,7 +397,8 @@ function TimeSlots({
   }
 
   // Compute doorsTime options: all marks at or before the selected start
-  const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
+  const startMinute =
+    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
   const doorsOptions = marks
     .filter(m => m <= startMinute)
     .map(m => ({
@@ -442,14 +439,11 @@ function TimeSlots({
   )
 }
 
-const FALLBACK_OPTIONS = Array.from({ length: 96 }, (_, i) => {
-  const h = String(Math.floor(i / 4)).padStart(2, "0")
-  const m = String((i % 4) * 15).padStart(2, "0")
-  return { value: `${h}:${m}`, label: `${h}:${m}` }
-})
-
 /** Flat marks for a 24h day. Step defaults to 15-min, 60-min for multi-day. */
-function unconstrainedMarks(dayCount: number, stepMin = SLOT_STEP_MIN): number[] {
+function unconstrainedMarks(
+  dayCount: number,
+  stepMin = SLOT_STEP_MIN,
+): number[] {
   const marks: number[] = []
   for (let d = 0; d < dayCount; d++) {
     const offset = d * MINUTES_IN_DAY
@@ -492,23 +486,24 @@ function UnconstrainedTimes({
   const dayCount = endDate
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
     : 1
-  const marks = unconstrainedMarks(dayCount, dayCount > 1 ? MULTI_DAY_SLOT_STEP_MIN : SLOT_STEP_MIN)
+  const marks = unconstrainedMarks(
+    dayCount,
+    dayCount > 1 ? MULTI_DAY_SLOT_STEP_MIN : SLOT_STEP_MIN,
+  )
 
   // Multi-day: constrain start thumb to first day, end thumb to last day.
   // No opening hours configured here — full day boundaries suffice.
   const firstDayEndIdx =
     dayCount > 1
-      ? marks.reduce(
-          (last, m, i) => (m < MINUTES_IN_DAY ? i : last),
-          -1,
-        )
+      ? marks.reduce((last, m, i) => (m < MINUTES_IN_DAY ? i : last), -1)
       : undefined
   const lastDayStartIdx =
     dayCount > 1
-      ? marks.findIndex((m) => m >= (dayCount - 1) * MINUTES_IN_DAY)
+      ? marks.findIndex(m => m >= (dayCount - 1) * MINUTES_IN_DAY)
       : undefined
 
-  const startMinute = marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
+  const startMinute =
+    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
   const doorsOptions = marks
     .filter(m => m <= startMinute)
     .map(m => ({

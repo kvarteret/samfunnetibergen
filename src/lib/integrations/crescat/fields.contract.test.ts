@@ -83,9 +83,7 @@ describe("fields.ts contract vs saved fixtures", () => {
     // field existence — that we send every field the live form expects.
     const diffs = diffTemplateAgainstRegistry(template, REGISTRY)
     const fieldDiffs = diffs.filter(
-      line =>
-        line.includes("not in registry") ||
-        line.includes("no registry"),
+      line => line.includes("not in registry") || line.includes("no registry"),
     )
     expect(
       fieldDiffs,

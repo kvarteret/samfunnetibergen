@@ -123,5 +123,3 @@ export function calcKaraokePrice(
   const price = KARAOKE_PRICING[priceType]
   return Math.max(price.perPerson * people, price.minPerHour) * durationHours
 }
-
-
