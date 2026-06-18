@@ -20,7 +20,12 @@ import {
   initialState,
 } from "../domain/formState"
 import { useEventImage } from "../domain/useEventImage"
+import {
+  getEventValidationIssues,
+  type EventValidationField,
+} from "../domain/validation"
 import { EventFormActions } from "./EventFormActions"
+import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
 import { EventFormLinksSection } from "./EventFormLinksSection"
@@ -121,22 +126,9 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const eventTypeOptions = eventTypes.map(eventType => ({
-    value: eventType._id,
-    label: eventType.taxonomyGroup
-      ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
-      : eventType.name,
-  }))
-
-  const roomOptions = rooms.map(room => ({
-    value: room._id,
-    label: room.title,
-  }))
-
-  const groupOptions = groups.map(group => ({
-    value: group._id,
-    label: group.name,
-  }))
+  const eventTypeSelectOptions = eventTypeOptions(eventTypes)
+  const roomSelectOptions = roomOptions(rooms)
+  const groupSelectOptions = groupOptions(groups)
 
   const previewEvent = buildPreviewEvent(
     values,
@@ -145,7 +137,18 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     groups,
     eventTypes,
   )
-  const validationErrors = getEventValidationErrors(values, fieldIds)
+  const validationFieldToId: Record<EventValidationField, string> = {
+    title: fieldIds.title,
+    firstDate: fieldIds.firstDate,
+    submittedBy: fieldIds.submittedBy,
+    submittedByEmail: fieldIds.submittedByEmail,
+    rrule: "",
+  }
+  const issues = getEventValidationIssues(values)
+  const validationErrors: ErrorSummaryItem[] = issues.map(issue => ({
+    fieldId: validationFieldToId[issue.field] || fieldIds.title,
+    message: issue.message,
+  }))
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -183,7 +186,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
           <EventFormDetailsSection
-            eventTypeOptions={eventTypeOptions}
+            eventTypeOptions={eventTypeSelectOptions}
             titleError={errorFor(fieldIds.title)}
             titleId={fieldIds.title}
             uid={uid}
@@ -199,8 +202,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             firstDateId={fieldIds.firstDate}
             uid={uid}
           />
-          <EventFormPlaceSection roomOptions={roomOptions} uid={uid} />
-          <EventFormOrganizerSection groupOptions={groupOptions} uid={uid} />
+          <EventFormPlaceSection roomOptions={roomSelectOptions} uid={uid} />
+          <EventFormOrganizerSection
+            groupOptions={groupSelectOptions}
+            uid={uid}
+          />
           <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
           <EventFormSubmitterSection
@@ -217,46 +223,4 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       </div>
     </EventFormContext.Provider>
   )
-}
-
-type EventFieldIds = Record<
-  "title" | "firstDate" | "submittedBy" | "submittedByEmail",
-  string
->
-
-function getEventValidationErrors(
-  values: FormState,
-  fieldIds: EventFieldIds,
-): ErrorSummaryItem[] {
-  const errors: ErrorSummaryItem[] = []
-
-  if (!values.title.trim()) {
-    errors.push({
-      fieldId: fieldIds.title,
-      message: "Skriv inn tittel.",
-    })
-  }
-  if (values.dates.every(date => !date.startDate)) {
-    errors.push({
-      fieldId: fieldIds.firstDate,
-      message: "Fyll ut minst én dato.",
-    })
-  }
-  if (!values.submittedBy.trim()) {
-    errors.push({
-      fieldId: fieldIds.submittedBy,
-      message: "Skriv inn navn på kontaktperson.",
-    })
-  }
-  if (
-    !values.submittedByEmail.trim() ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.submittedByEmail)
-  ) {
-    errors.push({
-      fieldId: fieldIds.submittedByEmail,
-      message: "Skriv inn en gyldig e-postadresse.",
-    })
-  }
-
-  return errors
 }

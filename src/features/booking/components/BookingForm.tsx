@@ -10,10 +10,7 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import {
-  submitEvent,
-  uploadEventImage,
-} from "@/features/events/actions/submitEvent"
+import { submitPromotionEvent } from "@/features/events/actions/submitPromotionEvent"
 import {
   type FormState as EventFormState,
   initialState as eventInitialState,
@@ -56,6 +53,11 @@ import {
   PROMOTE_FIELD,
 } from "../domain/promotion"
 import type { BookingRoom } from "../types"
+import {
+  eventTypeOptions,
+  groupOptions,
+  roomOptions,
+} from "@/features/events/domain/options"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
@@ -126,20 +128,9 @@ export function BookingForm({
     [PROMO_IMAGE_FIELD]: promoteFieldIds.promote,
   }
 
-  const eventTypeOptions = eventTypes.map(eventType => ({
-    value: eventType._id,
-    label: eventType.taxonomyGroup
-      ? `${eventType.taxonomyGroup.name} — ${eventType.name}`
-      : eventType.name,
-  }))
-  const roomOptions = eventRooms.map(room => ({
-    value: room._id,
-    label: room.title,
-  }))
-  const groupOptions = eventGroups.map(group => ({
-    value: group._id,
-    label: group.name,
-  }))
+  const eventTypeSelectOptions = eventTypeOptions(eventTypes)
+  const roomSelectOptions = roomOptions(eventRooms)
+  const groupSelectOptions = groupOptions(eventGroups)
 
   const image = useEventImage()
   const [uploadLater, setUploadLater] = useState(false)
@@ -179,22 +170,22 @@ export function BookingForm({
       // promotion error becomes a non-blocking warning on the success screen.
       if (value.promote === "ja") {
         setPromotionError(null)
-        try {
-          await createPromotionEvent(
-            promotionForm.state.values,
-            image.imageFile,
-          )
-          posthog.capture("room_booking_promotion_event_created", {
-            has_image: Boolean(image.imageFile),
-            upload_later: uploadLater,
-          })
-        } catch (error) {
+        const promoResult = await submitPromotionEvent(
+          promotionForm.state.values,
+          image.imageFile,
+        )
+        if (!promoResult.ok) {
           posthog.capture("room_booking_promotion_event_failed", {
-            error: error instanceof Error ? error.message : "unknown",
+            error: promoResult.error,
           })
           setPromotionError(
             "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@kvarteret.no.",
           )
+        } else {
+          posthog.capture("room_booking_promotion_event_created", {
+            has_image: Boolean(image.imageFile),
+            upload_later: uploadLater,
+          })
         }
       }
     },
@@ -446,17 +437,17 @@ export function BookingForm({
           />
           <BookingFormCateringBarSection />
           <BookingPromotionSection
-            eventTypeOptions={eventTypeOptions}
+            eventTypeOptions={eventTypeSelectOptions}
             firstDateError={errorFor(promoteFieldIds.firstDate)}
             firstDateId={promoteFieldIds.firstDate}
-            groupOptions={groupOptions}
+            groupOptions={groupSelectOptions}
             image={image}
             onSameAsBooking={onSameAsBooking}
             onUploadLaterChange={setUploadLater}
             promoteError={errorFor(promoteFieldIds.promote)}
             promoteFieldId={promoteFieldIds.promote}
             promotionForm={promotionForm}
-            roomOptions={roomOptions}
+            roomOptions={roomSelectOptions}
             showDoorsHint={showDoorsHint}
             submittedByEmailError={errorFor(promoteFieldIds.submittedByEmail)}
             submittedByEmailId={promoteFieldIds.submittedByEmail}
@@ -545,49 +536,6 @@ export function BookingForm({
 // standalone event form's submit: upload the image (if any) only now, then write
 // the arrangement. Throws on failure so the caller can surface a warning without
 // failing the already-sent booking.
-async function createPromotionEvent(
-  event: EventFormState,
-  imageFile: File | null,
-): Promise<void> {
-  let imageAssetId: string | undefined
-  if (imageFile) {
-    const formData = new FormData()
-    formData.append("image", imageFile)
-    const uploadResult = await uploadEventImage(formData)
-    if (!uploadResult.ok) throw new Error(uploadResult.error)
-    imageAssetId = uploadResult.value
-  }
-
-  const result = await submitEvent({
-    title: event.title,
-    description: event.description || undefined,
-    dates: event.dates
-      .filter(date => date.startDate)
-      .map(date => ({
-        startDate: date.startDate,
-        startTime: date.startTime || undefined,
-        endTime: date.endTime || undefined,
-      })),
-    room: event.room || undefined,
-    roomText: event.roomText || undefined,
-    organizerGroup: event.organizerGroup || undefined,
-    organizerText: event.organizerText || undefined,
-    submittedByOrganization: event.submittedByOrganization || undefined,
-    eventTypeId: event.eventTypeId || undefined,
-    imageAssetId,
-    isInternalEvent: event.isInternalEvent || undefined,
-    isFree: event.isFree,
-    priceOrdinar: event.priceOrdinar ? Number(event.priceOrdinar) : undefined,
-    priceStudent: event.priceStudent ? Number(event.priceStudent) : undefined,
-    priceMedlem: event.priceMedlem ? Number(event.priceMedlem) : undefined,
-    ticketUrl: event.ticketUrl || undefined,
-    facebookUrl: event.facebookUrl || undefined,
-    submittedBy: event.submittedBy,
-    submittedByEmail: event.submittedByEmail,
-  })
-  if (!result.ok) throw new Error(result.error)
-}
-
 interface BookingValidationOptions {
   values: BookingFormValues
   fieldIds: Record<
