@@ -105,7 +105,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
       if (!result.ok) throw new Error(result.error)
     },
-  })
+    // biome-ignore format: Turbopack/SWC needs semicolon for ASI
+  });
   const values = useStore(form.store, state => state.values)
   const isSubmitSuccessful = useStore(
     form.store,

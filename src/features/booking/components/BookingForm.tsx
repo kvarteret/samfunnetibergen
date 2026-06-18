@@ -189,7 +189,7 @@ export function BookingForm({
         }
       }
     },
-  })
+  });
 
   const values = useStore(form.store, state => state.values)
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
