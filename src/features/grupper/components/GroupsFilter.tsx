@@ -90,20 +90,6 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
         </p>
       </div>
       <div className="mt-auto flex flex-col gap-3 text-foreground">
-        {group.subGroups?.length ? (
-          <div className="flex flex-wrap gap-2">
-            {group.subGroups.map(
-              (subGroup: { name: string | null; slug: string | null }) => (
-                <span
-                  className="border-2 border-border bg-background px-2 py-1 font-heading text-sm text-foreground"
-                  key={subGroup.slug ?? subGroup.name}
-                >
-                  {subGroup.name}
-                </span>
-              ),
-            )}
-          </div>
-        ) : null}
         {group.email ? (
           <span className="inline-flex min-w-0 items-center gap-2">
             <Mail aria-hidden="true" className="size-4 shrink-0" />

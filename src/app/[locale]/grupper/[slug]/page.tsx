@@ -190,23 +190,6 @@ export default async function GroupPage({ params }: GroupPageProps) {
           </AsideSection>
         )}
 
-        {group.subGroups?.length ? (
-          <AsideSection title="Undergrupper">
-            <ul className="flex flex-wrap gap-2">
-              {group.subGroups.map(
-                (subGroup: { name: string; slug: string }) => (
-                  <li
-                    className="border-2 border-border bg-background px-2 py-1 font-heading text-foreground"
-                    key={subGroup.slug ?? subGroup.name}
-                  >
-                    {subGroup.name}
-                  </li>
-                ),
-              )}
-            </ul>
-          </AsideSection>
-        ) : null}
-
         {group.slug && (
           <section className="panel">
             <GroupVolunteerForm
