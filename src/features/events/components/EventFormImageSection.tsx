@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react"
 import type { ChangeEvent } from "react"
 
+import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -14,6 +15,12 @@ interface EventFormImageSectionProps {
   imageUploadError: string
   onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
   onRemoveImage: () => void
+  number?: string
+  // When provided, renders an "upload later" acknowledgement. Used by the
+  // booking promotion step, where an image is optional but its absence must be
+  // explicitly acknowledged since events are not published without one.
+  uploadLater?: boolean
+  onUploadLaterChange?: (value: boolean) => void
 }
 
 export function EventFormImageSection({
@@ -21,9 +28,12 @@ export function EventFormImageSection({
   imageUploadError,
   onImageChange,
   onRemoveImage,
+  number = "02",
+  uploadLater,
+  onUploadLaterChange,
 }: EventFormImageSectionProps) {
   return (
-    <FormSection number="02" title="Bilde">
+    <FormSection number={number} title="Bilde">
       <FieldGroup>
         <FieldHint>
           JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
@@ -39,6 +49,15 @@ export function EventFormImageSection({
           />
         ) : (
           <ImageDropzone onImageChange={onImageChange} />
+        )}
+
+        {onUploadLaterChange && !imagePreviewUrl && (
+          <CheckboxField
+            checked={Boolean(uploadLater)}
+            hint="Arrangementer publiseres ikke før de har et bilde."
+            label="Jeg laster opp bilde senere"
+            onChange={onUploadLaterChange}
+          />
         )}
       </FieldGroup>
     </FormSection>

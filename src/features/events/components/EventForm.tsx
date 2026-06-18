@@ -2,15 +2,7 @@
 
 import { useForm, useStore } from "@tanstack/react-form"
 import posthog from "posthog-js"
-import {
-  type ChangeEvent,
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react"
+import { type FormEvent, useEffect, useId, useRef, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   ErrorSummary,
@@ -27,11 +19,7 @@ import {
   type FormState,
   initialState,
 } from "../domain/formState"
-import {
-  EVENT_IMAGE_MAX_SIZE_BYTES,
-  formatEventImageMaxSize,
-  isAcceptedEventImageType,
-} from "../domain/imageUpload"
+import { useEventImage } from "../domain/useEventImage"
 import { EventFormActions } from "./EventFormActions"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
@@ -52,9 +40,7 @@ interface EventFormProps {
 
 export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const uid = useId()
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imageUploadError, setImageUploadError] = useState("")
+  const image = useEventImage()
   const [honeypot, setHoneypot] = useState("")
   const fieldIds = {
     title: `${uid}-title`,
@@ -69,9 +55,9 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       // Upload the image only now, as part of submit, so abandoned forms never
       // leave orphaned assets in Sanity.
       let imageAssetId: string | undefined
-      if (imageFile) {
+      if (image.imageFile) {
         const formData = new FormData()
-        formData.append("image", imageFile)
+        formData.append("image", image.imageFile)
         const uploadResult = await uploadEventImage(formData)
         if (!uploadResult.ok) throw new Error(uploadResult.error)
         imageAssetId = uploadResult.value
@@ -135,14 +121,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl)
-      }
-    }
-  }, [imagePreviewUrl])
-
   const eventTypeOptions = eventTypes.map(eventType => ({
     value: eventType._id,
     label: eventType.taxonomyGroup
@@ -162,7 +140,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
   const previewEvent = buildPreviewEvent(
     values,
-    imagePreviewUrl,
+    image.imagePreviewUrl,
     rooms,
     groups,
     eventTypes,
@@ -170,52 +148,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const validationErrors = getEventValidationErrors(values, fieldIds)
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
-
-  const handleImageChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-
-      if (!file) {
-        return
-      }
-
-      setImageUploadError("")
-      event.target.value = ""
-
-      if (!isAcceptedEventImageType(file.type)) {
-        setImageUploadError("Bildet må være JPEG, PNG eller WebP")
-        return
-      }
-
-      if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
-        setImageUploadError(
-          `Bildet er for stort (maks ${formatEventImageMaxSize()})`,
-        )
-        return
-      }
-
-      const previewUrl = URL.createObjectURL(file)
-      setImagePreviewUrl(previousUrl => {
-        if (previousUrl) {
-          URL.revokeObjectURL(previousUrl)
-        }
-        return previewUrl
-      })
-      setImageFile(file)
-    },
-    [],
-  )
-
-  const handleRemoveImage = useCallback(() => {
-    setImagePreviewUrl(previousUrl => {
-      if (previousUrl) {
-        URL.revokeObjectURL(previousUrl)
-      }
-      return null
-    })
-    setImageFile(null)
-    setImageUploadError("")
-  }, [])
 
   const hasStartedRef = useRef(false)
   const markStarted = () => {
@@ -257,10 +189,10 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             uid={uid}
           />
           <EventFormImageSection
-            imagePreviewUrl={imagePreviewUrl}
-            imageUploadError={imageUploadError}
-            onImageChange={handleImageChange}
-            onRemoveImage={handleRemoveImage}
+            imagePreviewUrl={image.imagePreviewUrl}
+            imageUploadError={image.imageUploadError}
+            onImageChange={image.onImageChange}
+            onRemoveImage={image.onRemoveImage}
           />
           <EventFormScheduleSection
             firstDateError={errorFor(fieldIds.firstDate)}

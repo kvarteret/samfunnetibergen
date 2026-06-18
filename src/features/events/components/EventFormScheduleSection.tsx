@@ -18,12 +18,14 @@ interface EventFormScheduleSectionProps {
   uid: string
   firstDateError?: string
   firstDateId: string
+  allowRecurring?: boolean
 }
 
 export function EventFormScheduleSection({
   uid,
   firstDateError,
   firstDateId,
+  allowRecurring = true,
 }: EventFormScheduleSectionProps) {
   const form = useEventForm()
   const handleRecurrenceChange = useCallback(
@@ -91,17 +93,19 @@ export function EventFormScheduleSection({
         )}
       </form.Subscribe>
 
-      <form.Subscribe
-        selector={(s: { values: FormState }) => s.values.isRecurring}
-      >
-        {(isRecurring: boolean) => (
-          <EventRecurrenceFields
-            isRecurring={isRecurring}
-            onRecurrenceChange={handleRecurrenceChange}
-            onRecurringToggle={handleRecurringToggle}
-          />
-        )}
-      </form.Subscribe>
+      {allowRecurring && (
+        <form.Subscribe
+          selector={(s: { values: FormState }) => s.values.isRecurring}
+        >
+          {(isRecurring: boolean) => (
+            <EventRecurrenceFields
+              isRecurring={isRecurring}
+              onRecurrenceChange={handleRecurrenceChange}
+              onRecurringToggle={handleRecurringToggle}
+            />
+          )}
+        </form.Subscribe>
+      )}
     </FormSection>
   )
 }
