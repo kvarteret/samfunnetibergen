@@ -6,13 +6,17 @@ import {
   type BookerType,
   type BookingFormState,
   composeCatering,
-  composeTechEquipment,
 } from "../domain/formState"
+import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
 import { useBookingForm } from "./bookingFormContext"
 
+function formatKr(amount: number): string {
+  return `${amount.toLocaleString("nb-NO")} kr`
+}
+
 const BOOKER_LABELS: Record<BookerType, string> = {
-  ekstern: "Ekstern / privat",
+  ekstern: "Privat",
   studentorg: "Studentorganisasjon",
   intern: "Intern",
 }
@@ -29,7 +33,6 @@ export function BookingFormOrderSummary({
   selectedRoomIds,
 }: BookingOrderSummaryProps) {
   const form = useBookingForm()
-  const tech = composeTechEquipment(state)
   const catering = composeCatering(state)
   const time = state.startDate
     ? `${state.startDate} · ${state.startTime}–${state.endTime}`
@@ -38,6 +41,7 @@ export function BookingFormOrderSummary({
   const selectedRooms = rooms.filter(r =>
     selectedRoomIds.includes(r.crescatRoomId),
   )
+  const priceSummary = computePriceSummary(state, selectedRooms)
 
   const removeRoom = (roomId: number) => {
     const next = selectedRoomIds.filter(id => id !== roomId)
@@ -80,14 +84,16 @@ export function BookingFormOrderSummary({
             <DetailRow icon={CalendarClock} label="Tidspunkt" layout="vertical">
               {time}
             </DetailRow>
-            {state.doorsTime && (
+            {state.doorsTimes.some(Boolean) && (
               <DetailRow icon={DoorOpen} label="Dørene åpner" layout="vertical">
-                {state.doorsTime}
-              </DetailRow>
-            )}
-            {state.eventName.trim() && (
-              <DetailRow label="Arrangement" layout="vertical">
-                {state.eventName}
+                {state.doorsTimes.length > 1
+                  ? state.doorsTimes
+                      .map((doorsTime, i) =>
+                        doorsTime ? `Dag ${i + 1}: ${doorsTime}` : null,
+                      )
+                      .filter(Boolean)
+                      .join(", ")
+                  : state.doorsTimes[0]}
               </DetailRow>
             )}
             {state.audienceCount.trim() && (
@@ -95,23 +101,59 @@ export function BookingFormOrderSummary({
                 {state.audienceCount} personer
               </DetailRow>
             )}
-            <DetailRow label="Teknisk" layout="vertical">
-              {tech}
-            </DetailRow>
             {catering && (
               <DetailRow label="Mat og bar" layout="vertical">
                 <span className="whitespace-pre-line">{catering}</span>
               </DetailRow>
             )}
-            <DetailRow label="Billett" layout="vertical">
-              {state.freeOrPaid === "Betalt" && state.ticketTypes.trim()
-                ? `Betalt · ${state.ticketTypes}`
-                : state.freeOrPaid}
-            </DetailRow>
           </dl>
+
+          {priceSummary.lines.length > 0 && (
+            <BookingPriceSummary summary={priceSummary} />
+          )}
         </div>
       </div>
     </aside>
+  )
+}
+
+function BookingPriceSummary({
+  summary,
+}: {
+  summary: ReturnType<typeof computePriceSummary>
+}) {
+  return (
+    <div className="space-y-1.5 border-t-2 border-border pt-3">
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        Estimert pris
+      </p>
+      <dl className="space-y-1 text-sm">
+        {summary.lines.map(line => (
+          <div className="flex justify-between gap-4" key={line.label}>
+            <dt className="text-foreground-muted">{line.label}</dt>
+            <dd className="shrink-0 text-foreground">
+              {formatKr(line.amount)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex justify-between gap-4 border-t border-border pt-1.5 text-sm">
+        <span className="text-foreground-muted">Sum eks. mva</span>
+        <span className="text-foreground">
+          {formatKr(summary.subtotalExVat)}
+        </span>
+      </div>
+      <div className="flex justify-between gap-4 text-sm">
+        <span className="text-foreground-muted">Mva (25 %)</span>
+        <span className="text-foreground">{formatKr(summary.vat)}</span>
+      </div>
+      <div className="flex justify-between gap-4 pt-1">
+        <span className="font-heading text-foreground">Totalt ink. mva</span>
+        <span className="font-heading text-lg text-primary">
+          {formatKr(summary.totalIncVat)}
+        </span>
+      </div>
+    </div>
   )
 }
 

@@ -3,9 +3,11 @@
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { UtensilsCrossed } from "lucide-react"
 import { useId } from "react"
+import { Button } from "@/components/ui/button"
 import { FormSection } from "@/components/ui/form-section"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleOption } from "@/components/ui/toggle-option"
+import { Link } from "@/i18n/navigation"
 import { useBookingForm } from "./bookingFormContext"
 
 export function BookingFormCateringBarSection() {
@@ -20,11 +22,11 @@ export function BookingFormCateringBarSection() {
             <ToggleOption
               checked={field.state.value as boolean}
               icon={UtensilsCrossed}
-              label="Skreddersydd meny"
+              label="Jeg ønsker tilbud om catering"
               onChange={field.handleChange}
             >
               {(field.state.value as boolean) && (
-                <div className="mt-3">
+                <div className="mt-3 space-y-3">
                   <form.Field name="cateringText">
                     {(textField: AnyFieldApi) => (
                       <Textarea
@@ -37,6 +39,13 @@ export function BookingFormCateringBarSection() {
                       />
                     )}
                   </form.Field>
+                  <Button
+                    render={<Link href="/catering" target="_blank" />}
+                    size="sm"
+                    variant="plain"
+                  >
+                    Mer info
+                  </Button>
                 </div>
               )}
             </ToggleOption>

@@ -15,7 +15,7 @@ const booking = {
   eventName: "Vårkonsert",
   startDate: "2026-07-01",
   startTime: "19:00",
-  doorsTime: "18:30",
+  doorsTimes: ["18:30"],
   freeOrPaid: "Betalt" as const,
 }
 
@@ -25,7 +25,7 @@ describe("buildPromotionDefaults", () => {
     expect(result.title).toBe("Vårkonsert")
   })
 
-  it("prefers doorsTime over startTime for the first date start time", () => {
+  it("prefers the first day's doors time over startTime for the first date start time", () => {
     const result = buildPromotionDefaults(booking, eventInitialState)
     expect(result.dates[0].startDate).toBe("2026-07-01")
     expect(result.dates[0].startTime).toBe("18:30")
@@ -33,7 +33,7 @@ describe("buildPromotionDefaults", () => {
 
   it("falls back to booking start time when no doors time is set", () => {
     const result = buildPromotionDefaults(
-      { ...booking, doorsTime: "" },
+      { ...booking, doorsTimes: [] },
       eventInitialState,
     )
     expect(result.dates[0].startTime).toBe("19:00")

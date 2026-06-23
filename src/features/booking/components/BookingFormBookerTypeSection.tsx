@@ -22,7 +22,7 @@ const BOOKER_OPTIONS: Array<{
 }> = [
   {
     type: "ekstern",
-    label: "Ekstern / privat",
+    label: "Privat",
     hint: "Privatpersoner og bedrifter.",
     icon: User,
   },
@@ -67,12 +67,16 @@ export function BookingFormBookerTypeSection({
               value={bookerType}
             >
               {BOOKER_OPTIONS.map(option => (
-                <SelectableCard key={option.type} value={option.type}>
-                  <span className="flex items-center gap-2 font-heading text-foreground">
+                <SelectableCard
+                  className="min-h-20 gap-1 p-3"
+                  key={option.type}
+                  value={option.type}
+                >
+                  <span className="flex items-center gap-1.5 font-heading text-sm text-foreground">
                     <option.icon aria-hidden className="size-4 text-primary" />
                     {option.label}
                   </span>
-                  <span className=" leading-5 text-foreground-muted">
+                  <span className="text-sm leading-5 text-foreground-muted">
                     {option.hint}
                   </span>
                 </SelectableCard>

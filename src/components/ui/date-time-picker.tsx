@@ -1,7 +1,10 @@
 "use client"
 
+import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
+import { useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
+import { Button } from "@/components/ui/button"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
@@ -13,13 +16,16 @@ import {
   minutesToTime,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import { timeToMinutes } from "@/lib/time"
 import { cn } from "@/lib/utils"
-import { differenceInCalendarDays, parseISO } from "date-fns"
 
 const SLOT_STEP_MIN = 15
 const MULTI_DAY_SLOT_STEP_MIN = 60
 const MINUTES_IN_DAY = 24 * 60
 const MAX_RANGE_DAYS = 7
+// Multi-day bookings ride a full 24h hourly grid, so every day contributes
+// exactly this many marks (0, 60, …, 1380). Day d's marks start at d * 24.
+const SLOTS_PER_DAY = 24
 
 function slotMarks(
   date: string,
@@ -40,24 +46,130 @@ function slotMarks(
   return Array.from(marks).toSorted((a, b) => a - b)
 }
 
-/**
- * Full 24‑hour grid for multi-day bookings. Each day contributes hourly
- * marks across the full 0–1439 range so the slider track has no gaps
- * between days.  Opening‑hour validation still runs server‑side.
- */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-function multiDayMarks(
-  startDate: string,
-  endDate: string,
-  _hours: OpeningHours | null,
-  _roomHours: OpeningHours | null,
-  _closed: ClosedDate[],
-): number[] {
-  const dayCount =
-    differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
-  return unconstrainedMarks(dayCount, MULTI_DAY_SLOT_STEP_MIN)
+/** Latest closing minute (from its own midnight) across a day's combined
+ * opening ranges; may exceed 1440 when the room closes after midnight.
+ * 0 when the day has no opening hours (closed or unconfigured). */
+function dayClosingMinute(
+  date: string,
+  openingHours: OpeningHours | null,
+  roomOpeningHours: OpeningHours | null,
+  closedDates: ClosedDate[],
+): number {
+  const ranges = combineOpeningRangesForDate(
+    date,
+    openingHours,
+    roomOpeningHours,
+    closedDates,
+  )
+  return ranges.length === 0 ? 0 : Math.max(...ranges.map(r => r.endMin))
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */
+
+/**
+ * Hourly mark grid for a multi-day booking: every spanned day contributes a
+ * full 24h of marks, and — when the final day closes after midnight — the
+ * trailing post-midnight hours are appended so get-out can reach the room's
+ * real closing time. The uniform `value === index * 60` relationship holds
+ * across the appended marks, which `computeMultiDayConstraints` relies on.
+ */
+export function multiDayMarks(
+  startDate: string,
+  dayCount: number,
+  openingHours: OpeningHours | null,
+  roomOpeningHours: OpeningHours | null,
+  closedDates: ClosedDate[],
+): number[] {
+  const marks = unconstrainedMarks(dayCount, MULTI_DAY_SLOT_STEP_MIN)
+
+  const lastDate = toDateString(addDays(parseISO(startDate), dayCount - 1))
+  const lastClose = dayClosingMinute(
+    lastDate,
+    openingHours,
+    roomOpeningHours,
+    closedDates,
+  )
+  if (lastClose <= MINUTES_IN_DAY) return marks
+
+  const lastDayMidnight = (dayCount - 1) * MINUTES_IN_DAY
+  for (let m = MINUTES_IN_DAY; m <= lastClose; m += MULTI_DAY_SLOT_STEP_MIN) {
+    marks.push(lastDayMidnight + m)
+  }
+  return marks
+}
+
+export interface MultiDayConstraints {
+  firstDayStartIdx?: number
+  firstDayEndIdx?: number
+  lastDayStartIdx?: number
+  lastDayEndIdx?: number
+  stapledSegments: { startIdx: number; endIdx: number }[]
+}
+
+/**
+ * Multi-day bookings ride a full 24h hourly grid, but the get-in/get-out
+ * thumbs must stay inside the first/last day's opening hours. Derive those
+ * clamp indices — plus the inert "stapled" night gap between days — from each
+ * spanned day's opening ranges. Days with no opening hours are skipped, so the
+ * first/last entries are the first/last *open* days. Returns empty constraints
+ * for single-day bookings (thumbs span the whole track).
+ */
+export function computeMultiDayConstraints(
+  startDate: string,
+  dayCount: number,
+  openingHours: OpeningHours | null,
+  roomOpeningHours: OpeningHours | null,
+  closedDates: ClosedDate[],
+): MultiDayConstraints {
+  if (dayCount <= 1) return { stapledSegments: [] }
+
+  const dayIndices: { start: number; end: number }[] = []
+  for (let d = 0; d < dayCount; d++) {
+    const date = new Date(parseISO(startDate))
+    date.setDate(date.getDate() + d)
+    const ranges = combineOpeningRangesForDate(
+      toDateString(date),
+      openingHours,
+      roomOpeningHours,
+      closedDates,
+    )
+    if (ranges.length === 0) continue
+    const minStart = Math.min(...ranges.map(r => r.startMin))
+    const maxEnd = Math.max(...ranges.map(r => r.endMin))
+    const offset = d * SLOTS_PER_DAY
+    // Get-in always stays within its own calendar day (clamped to 23:00). The
+    // final day's get-out may extend past midnight to the room's real close —
+    // those trailing marks are appended by multiDayMarks, so the index runs
+    // into the next day's offset rather than clamping.
+    const isLastDay = d === dayCount - 1
+    const endHour =
+      isLastDay && maxEnd > MINUTES_IN_DAY
+        ? Math.floor(maxEnd / 60)
+        : Math.min(Math.floor(maxEnd / 60), SLOTS_PER_DAY - 1)
+    dayIndices.push({
+      start: offset + Math.ceil(minStart / 60),
+      end: offset + endHour,
+    })
+  }
+
+  if (dayIndices.length === 0) return { stapledSegments: [] }
+
+  const first = dayIndices[0]
+  const last = dayIndices[dayIndices.length - 1]
+
+  // Span between first day's get-out and last day's get-in: intermediate days
+  // are part of the booking but not selectable for start/end.
+  const stapledSegments: { startIdx: number; endIdx: number }[] = []
+  if (dayIndices.length > 1 && first.end + 1 <= last.start - 1) {
+    stapledSegments.push({ startIdx: first.end + 1, endIdx: last.start - 1 })
+  }
+
+  return {
+    firstDayStartIdx: first.start,
+    firstDayEndIdx: first.end,
+    lastDayStartIdx: last.start,
+    lastDayEndIdx: last.end,
+    stapledSegments,
+  }
+}
 
 function toDateString(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
@@ -70,14 +182,14 @@ interface DateTimePickerProps {
   today: string
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   hasConflict: boolean
   occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
@@ -90,7 +202,7 @@ export function DateTimePicker({
   today,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   hasConflict,
   occupiedRanges,
   onStartDateChange,
@@ -129,26 +241,38 @@ export function DateTimePicker({
   const isDisabled = (d: Date): boolean => {
     if (d < todayDate) return true
     if (isOccupied(d)) return true
-    if (isSelectingEnd && selectedRange.from) {
-      const maxEnd = new Date(selectedRange.from)
-      maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
-      if (d > maxEnd) return true
-    }
     return false
+  }
+
+  // True when clicking a date beyond the 7-day max-range window while
+  // selecting an end date — should reset to a fresh first click.
+  const isRangeReset = (d: Date): boolean => {
+    if (!isSelectingEnd || !selectedRange.from) return false
+    if (d < selectedRange.from) return false
+    const maxEnd = new Date(selectedRange.from)
+    maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
+    return d > maxEnd
+  }
+
+  // Dates beyond the 7-day window are dimmed but stay clickable (they reset
+  // the range to a fresh start). Only applies while selecting an end date.
+  const isBeyondRange = (d: Date): boolean => {
+    if (!isSelectingEnd || !selectedRange.from) return false
+    const maxEnd = new Date(selectedRange.from)
+    maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
+    return d > maxEnd
   }
 
   const handleDayClick = (date: Date, disabled: boolean) => {
     if (disabled) return
     if (isSelectingEnd && selectedRange.from) {
-      if (date < selectedRange.from) {
-        // Clicked before start → treat as new start
+      if (date < selectedRange.from || isRangeReset(date)) {
+        // Clicked before start or outside max range → treat as new start
         onStartDateChange(toDateString(date))
         onEndDateChange("")
         return
       }
-      const maxEnd = new Date(selectedRange.from)
-      maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
-      onEndDateChange(toDateString(date > maxEnd ? maxEnd : date))
+      onEndDateChange(toDateString(date))
     } else {
       onStartDateChange(toDateString(date))
       onEndDateChange("")
@@ -195,6 +319,7 @@ export function DateTimePicker({
                   "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
                   mods.occupied &&
                     "line-through text-destructive/70 !opacity-70",
+                  mods.beyond_range && "opacity-40",
                 )}
                 day={day}
                 locale={nb}
@@ -218,7 +343,8 @@ export function DateTimePicker({
         disabled={isDisabled}
         locale={nb}
         mode="range"
-        modifiers={{ occupied: isOccupied }}
+        modifiers={{ occupied: isOccupied, beyond_range: isBeyondRange }}
+        modifiersClassNames={{ beyond_range: "opacity-40" }}
         numberOfMonths={2}
         onSelect={() => {}}
         selected={selectedRange}
@@ -244,7 +370,7 @@ export function DateTimePicker({
               closedDates={closedDates}
               startTime={startTime}
               endTime={endTime}
-              doorsTime={doorsTime}
+              doorsTimes={doorsTimes}
               onStartChange={onStartChange}
               onEndChange={onEndChange}
               onDoorsChange={onDoorsChange}
@@ -271,10 +397,10 @@ interface TimeSlotsProps {
   closedDates: ClosedDate[]
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
 }
 
 function TimeSlots({
@@ -288,7 +414,7 @@ function TimeSlots({
   closedDates,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
@@ -296,11 +422,16 @@ function TimeSlots({
   const hasHours =
     hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
 
-  // Gather marks across the full date range (startDate → endDate)
+  const dayCount = endDate
+    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+    : 1
+
+  // Multi-day rides an hourly grid (extended past midnight on the final day to
+  // its real close); single-day uses the day's actual slots.
   const marks = endDate
     ? multiDayMarks(
         startDate,
-        endDate,
+        dayCount,
         openingHours,
         roomOpeningHours,
         closedDates,
@@ -324,7 +455,7 @@ function TimeSlots({
         occupiedRanges={occupiedRanges}
         startTime={startTime}
         endTime={endTime}
-        doorsTime={doorsTime}
+        doorsTimes={doorsTimes}
         onStartChange={onStartChange}
         onEndChange={onEndChange}
         onDoorsChange={onDoorsChange}
@@ -332,80 +463,19 @@ function TimeSlots({
     )
   }
 
-  const dayCount = endDate
-    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
-    : 1
-
-  // Multi-day: constrain thumbs to opening hours of first/last day.
-  // Full 24h hourly grid → index = minute / 60.
-  // Clamp to nearest valid mark from the opening ranges.
-  let firstDayStartIdx: number | undefined
-  let firstDayEndIdx: number | undefined
-  let lastDayStartIdx: number | undefined
-  let lastDayEndIdx: number | undefined
-  const stapledSegments: { startIdx: number; endIdx: number }[] = []
-
-  if (dayCount > 1) {
-    const SLOTS_PER_DAY = 24 // hourly grid: 0, 60, ..., 1380
-    const dayIndices: { start: number; end: number }[] = []
-
-    for (let d = 0; d < dayCount; d++) {
-      const date = new Date(parseISO(startDate))
-      date.setDate(date.getDate() + d)
-      const ranges = combineOpeningRangesForDate(
-        toDateString(date),
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-      )
-      if (ranges.length > 0) {
-        const minStart = Math.min(...ranges.map(r => r.startMin))
-        const maxEnd = Math.max(...ranges.map(r => r.endMin))
-        const offset = d * SLOTS_PER_DAY
-        dayIndices.push({
-          start: offset + Math.ceil(minStart / 60),
-          end: offset + Math.min(Math.floor(maxEnd / 60), SLOTS_PER_DAY - 1),
-        })
-      }
-    }
-
-    // First day constraints
-    if (dayIndices.length > 0) {
-      firstDayStartIdx = dayIndices[0].start
-      firstDayEndIdx = dayIndices[0].end
-    }
-
-    // Last day constraints
-    if (dayIndices.length > 0) {
-      const last = dayIndices[dayIndices.length - 1]
-      lastDayStartIdx = last.start
-      lastDayEndIdx = last.end
-    }
-
-    // Stapled segment: entire span between first day end and last day start.
-    // Makes clear to the user that intermediate days are part of the booking
-    // span but not selectable for start/end.
-    if (dayIndices.length > 1) {
-      const firstEnd = dayIndices[0].end
-      const lastStart = dayIndices[dayIndices.length - 1].start
-      if (firstEnd + 1 <= lastStart - 1) {
-        stapledSegments.push({
-          startIdx: firstEnd + 1,
-          endIdx: lastStart - 1,
-        })
-      }
-    }
-  }
-
-  // Compute doorsTime options: all marks at or before the selected start
-  const startMinute =
-    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
-  const doorsOptions = marks
-    .filter(m => m <= startMinute)
-    .map(m => ({
-      value: minutesToTime(m),
-      label: minutesToTime(m),
-    }))
+  const {
+    firstDayStartIdx,
+    firstDayEndIdx,
+    lastDayStartIdx,
+    lastDayEndIdx,
+    stapledSegments,
+  } = computeMultiDayConstraints(
+    startDate,
+    dayCount,
+    openingHours,
+    roomOpeningHours,
+    closedDates,
+  )
 
   return (
     <div className="space-y-6">
@@ -424,16 +494,17 @@ function TimeSlots({
           stapledSegments={stapledSegments}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
-        />
-      </div>
-      <div className="max-w-xs">
-        <SelectField
-          id={`${uid}-doorsTime`}
-          label="Dørene åpner (valgfritt)"
-          onChange={onDoorsChange}
-          options={doorsOptions}
-          placeholder="Samme som start"
-          value={doorsTime}
+          doorsSlot={
+            <DoorsBoxes
+              dayCount={dayCount}
+              doorsTimes={doorsTimes}
+              endTime={endTime}
+              marks={marks}
+              onDoorsChange={onDoorsChange}
+              startTime={startTime}
+              uid={uid}
+            />
+          }
         />
       </div>
     </div>
@@ -441,7 +512,7 @@ function TimeSlots({
 }
 
 /** Flat marks for a 24h day. Step defaults to 15-min, 60-min for multi-day. */
-function unconstrainedMarks(
+export function unconstrainedMarks(
   dayCount: number,
   stepMin = SLOT_STEP_MIN,
 ): number[] {
@@ -452,9 +523,12 @@ function unconstrainedMarks(
       marks.push(m + offset)
     }
   }
-  // Remove the very last mark so it can't be selected
-  // as a start time with no remaining slots for end.
-  return marks.slice(0, -1)
+  // Single-day only: drop the very last mark so it can't be selected as a
+  // start time with no remaining slots for end. For multi-day bookings this
+  // mark is the last day's final slot (e.g. 23:00), which is a valid get-out
+  // time and is matched by index math (e.g. lastDayEndIdx) that assumes every
+  // day — including the last — has a full grid of marks.
+  return dayCount > 1 ? marks : marks.slice(0, -1)
 }
 
 interface UnconstrainedTimesProps {
@@ -465,10 +539,10 @@ interface UnconstrainedTimesProps {
   occupiedRanges: { startMin: number; endMin: number }[]
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
 }
 
 function UnconstrainedTimes({
@@ -479,7 +553,7 @@ function UnconstrainedTimes({
   occupiedRanges,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
@@ -503,15 +577,6 @@ function UnconstrainedTimes({
       ? marks.findIndex(m => m >= (dayCount - 1) * MINUTES_IN_DAY)
       : undefined
 
-  const startMinute =
-    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
-  const doorsOptions = marks
-    .filter(m => m <= startMinute)
-    .map(m => ({
-      value: minutesToTime(m),
-      label: minutesToTime(m),
-    }))
-
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
@@ -526,18 +591,137 @@ function UnconstrainedTimes({
           occupiedRanges={occupiedRanges}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
+          doorsSlot={
+            <DoorsBoxes
+              dayCount={dayCount}
+              doorsTimes={doorsTimes}
+              endTime={endTime}
+              marks={marks}
+              onDoorsChange={onDoorsChange}
+              startTime={startTime}
+              uid={uid}
+            />
+          }
         />
       </div>
+    </div>
+  )
+}
+
+// "Dørene åpner" is the optional public-doors time, shown as its own block
+// below the slider. Single-day bookings get one dropdown; multi-day bookings
+// start with day 1 and get two follow-up actions: "samme tid hver dag" fills
+// every day with day 1's value in one click, while "legg til dag N" reveals
+// one more day's box at a time so each day can have its own independent
+// (optional) value. Day 1 offers times up to the booking's start; the last
+// day offers times up to the booking's end; days in between are unconstrained.
+function DoorsBoxes({
+  uid,
+  marks,
+  dayCount,
+  startTime,
+  endTime,
+  doorsTimes,
+  onDoorsChange,
+}: {
+  uid: string
+  marks: number[]
+  dayCount: number
+  startTime: string
+  endTime: string
+  doorsTimes: string[]
+  onDoorsChange: (dayIndex: number, value: string) => void
+}) {
+  const localStartMinute = timeToMinutes(startTime)
+  const localEndMinute = timeToMinutes(endTime)
+  const filledDayCount = doorsTimes.reduce(
+    (max, value, i) => (value ? i + 1 : max),
+    0,
+  )
+  const [visibleDayCount, setVisibleDayCount] = useState(() =>
+    Math.max(1, filledDayCount),
+  )
+  const shownDayCount = Math.min(visibleDayCount, dayCount)
+
+  const optionsForDay = (dayIndex: number) => {
+    const dayStart = dayIndex * MINUTES_IN_DAY
+    return marks
+      .filter(m => {
+        if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
+        const local = m % MINUTES_IN_DAY
+        if (dayIndex === 0) return local <= localStartMinute
+        if (dayIndex === dayCount - 1) return local <= localEndMinute
+        return true
+      })
+      .map(m => {
+        const label = minutesToTime(m % MINUTES_IN_DAY)
+        return { value: label, label }
+      })
+  }
+
+  const applySameEveryDay = () => {
+    const value = doorsTimes[0] ?? ""
+    for (let i = 1; i < dayCount; i++) onDoorsChange(i, value)
+    setVisibleDayCount(dayCount)
+  }
+
+  const addNextDay = () =>
+    setVisibleDayCount(count => Math.min(count + 1, dayCount))
+
+  // Single day: one plain dropdown, no section chrome needed.
+  if (dayCount === 1) {
+    return (
       <div className="max-w-xs">
         <SelectField
-          id={`${uid}-doorsTime`}
+          id={`${uid}-doorsTime-0`}
           label="Dørene åpner (valgfritt)"
-          onChange={onDoorsChange}
-          options={doorsOptions}
+          onChange={value => onDoorsChange(0, value)}
+          options={optionsForDay(0)}
           placeholder="Samme som start"
-          value={doorsTime}
+          value={doorsTimes[0] ?? ""}
         />
       </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+          Dørene åpner
+          <span className="ml-2 normal-case tracking-normal text-foreground-muted">
+            (valgfritt)
+          </span>
+        </p>
+        <Button
+          onClick={applySameEveryDay}
+          size="sm"
+          type="button"
+          variant="neutral"
+        >
+          Samme tid hver dag
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: shownDayCount }, (_, dayIndex) => (
+          <SelectField
+            id={`${uid}-doorsTime-${dayIndex}`}
+            key={dayIndex}
+            label={`Dag ${dayIndex + 1}`}
+            onChange={value => onDoorsChange(dayIndex, value)}
+            options={optionsForDay(dayIndex)}
+            placeholder={dayIndex === 0 ? "Samme som start" : "Ikke satt"}
+            value={doorsTimes[dayIndex] ?? ""}
+          />
+        ))}
+      </div>
+
+      {shownDayCount < dayCount && (
+        <Button onClick={addNextDay} size="sm" type="button" variant="neutral">
+          Legg til dag {shownDayCount + 1}
+        </Button>
+      )}
     </div>
   )
 }

@@ -13,7 +13,9 @@ export interface BookingFormState {
   endDate: string
   startTime: string
   endTime: string
-  doorsTime: string
+  // One entry per day spanned by the booking, indexed from the start date.
+  // Each day's "doors open" time is independent and optional.
+  doorsTimes: string[]
   audienceCount: string
   openOrClosed: "Åpent" | "Lukket"
   description: string
@@ -24,6 +26,8 @@ export interface BookingFormState {
   music: boolean
   soundTech: boolean
   lightTech: boolean
+  riggingSetup: boolean
+  riggingTeardown: boolean
   needsAmphi: boolean
   cateringCustom: boolean
   cateringText: string
@@ -52,7 +56,7 @@ export const initialBookingState: BookingFormState = {
   endDate: "",
   startTime: "19:00",
   endTime: "23:00",
-  doorsTime: "",
+  doorsTimes: [],
   audienceCount: "1",
   openOrClosed: "Åpent",
   description: "",
@@ -63,6 +67,8 @@ export const initialBookingState: BookingFormState = {
   music: false,
   soundTech: false,
   lightTech: false,
+  riggingSetup: false,
+  riggingTeardown: false,
   needsAmphi: false,
   cateringCustom: false,
   cateringText: "",
@@ -92,6 +98,8 @@ export function composeTechEquipment(state: BookingFormState): string {
   if (state.music) parts.push("Musikkavspilling")
   if (state.soundTech) parts.push("Dedikert lydtekniker")
   if (state.lightTech) parts.push("Dedikert lystekniker")
+  if (state.riggingSetup) parts.push("Opprigg og oppsett av møblement")
+  if (state.riggingTeardown) parts.push("Nedrigg og rydding")
   return parts.length > 0 ? parts.join(", ") : "Ingen"
 }
 
@@ -116,7 +124,7 @@ export function buildBookingPayload(
     endDate: state.endDate || undefined,
     startTime: state.startTime,
     endTime: state.endTime,
-    doorsTime: state.doorsTime || undefined,
+    doorsTimes: state.doorsTimes.some(Boolean) ? state.doorsTimes : undefined,
     description: state.description,
     audienceCount: Number(state.audienceCount) || 0,
     openOrClosed: state.openOrClosed,

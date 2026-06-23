@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from "vitest"
+import { beforeEach, describe, expect, test, vi } from "vitest"
 
 // ── Mock rate-limit (Next.js headers() unavailable in vitest) ──────────────
 
@@ -26,8 +26,8 @@ vi.mock("@/lib/sanity/fetch", () => ({
   fetchHouseHours: vi.fn().mockResolvedValue(null),
 }))
 
-import { submitRoomBooking } from "./submit-room-booking"
 import type { RoomBookingPayload } from "./submit-room-booking"
+import { submitRoomBooking } from "./submit-room-booking"
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 

@@ -234,6 +234,7 @@
 
 @theme inline {
   --font-sans:  var(--body-font);
+  --font-mono:  var(--font-dm-mono);
 
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);

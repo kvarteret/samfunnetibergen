@@ -287,3 +287,76 @@ describe("buildRoomBooking", () => {
     expect(recurring).toBeDefined()
   })
 })
+
+describe("doorsAssignments (via buildExternalBooking)", () => {
+  const assignmentsContent = (
+    body: ReturnType<typeof buildExternalBooking>,
+  ) => {
+    const sec = body.sections.find(s => s.type === "assignments")
+    return sec && "content" in sec ? (sec.content as Array<unknown>) : []
+  }
+
+  test("single day with doors time emits one Doors entry", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      doorsTimes: ["19:30"],
+    })
+    const assignments = assignmentsContent(body)
+    expect(assignments).toHaveLength(1)
+    expect(assignments[0]).toMatchObject({
+      title: "Doors",
+      description: null,
+    })
+    const a0 = assignments[0] as { start: string; end: string }
+    expect(a0.start).toBe(a0.end)
+    expect(a0.start).toContain("19:30")
+  })
+
+  test("single day without doors time emits empty assignments", () => {
+    const body = buildExternalBooking(BASE_INPUT)
+    expect(assignmentsContent(body)).toEqual([])
+  })
+
+  test("doorsTimes array with empty strings produces empty assignments", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      doorsTimes: ["", "", ""],
+    })
+    expect(assignmentsContent(body)).toEqual([])
+  })
+
+  test("multi-day: one doors entry per non-empty day, labelled dag N", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-12-24",
+      endDate: "2026-12-26",
+      doorsTimes: ["19:30", "", "20:00"],
+    })
+    const assignments = assignmentsContent(body)
+    expect(assignments).toHaveLength(2)
+
+    expect(assignments[0]).toMatchObject({ title: "Doors dag 1" })
+    const a0 = assignments[0] as { start: string }
+    expect(a0.start).toContain("2026-12-24")
+    expect(a0.start).toContain("19:30")
+
+    expect(assignments[1]).toMatchObject({ title: "Doors dag 3" })
+    const a1 = assignments[1] as { start: string }
+    expect(a1.start).toContain("2026-12-26")
+    expect(a1.start).toContain("20:00")
+  })
+
+  test("multi-day: all days filled with same time", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-12-24",
+      endDate: "2026-12-26",
+      doorsTimes: ["19:00", "19:00", "19:00"],
+    })
+    const assignments = assignmentsContent(body)
+    expect(assignments).toHaveLength(3)
+    expect(assignments[0]).toMatchObject({ title: "Doors dag 1" })
+    expect(assignments[1]).toMatchObject({ title: "Doors dag 2" })
+    expect(assignments[2]).toMatchObject({ title: "Doors dag 3" })
+  })
+})

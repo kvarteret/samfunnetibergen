@@ -54,7 +54,10 @@ const payloadSchema = z.object({
     .optional(),
   startTime: z.string().regex(timeRegex),
   endTime: z.string().regex(timeRegex),
-  doorsTime: z.string().regex(timeRegex).optional(),
+  // One entry per booking day; empty string means no doors time set for that day.
+  doorsTimes: z
+    .array(z.union([z.literal(""), z.string().regex(timeRegex)]))
+    .optional(),
   description: z.string().trim().default(""),
   audienceCount: z.number().int().min(0),
   openOrClosed: z.enum(["Åpent", "Lukket"]),

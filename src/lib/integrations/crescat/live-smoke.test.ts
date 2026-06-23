@@ -11,14 +11,13 @@
  */
 
 import { describe, expect, test } from "vitest"
-
+import { postEventRequest } from "./client"
+import { buildKaraokeRequest, KARAOKE_SLUG } from "./karaoke"
 import {
   buildExternalBooking,
   buildInternalBooking,
   ROOM_BOOKING_SLUGS,
 } from "./room-booking"
-import { buildKaraokeRequest, KARAOKE_SLUG } from "./karaoke"
-import { postEventRequest } from "./client"
 
 const LIVE = process.env.CRESCAT_LIVE_TEST === "1"
 
@@ -30,7 +29,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
       startDate: "2030-01-15",
       startTime: "20:00",
       endTime: "23:00",
-      doorsTime: "19:30",
+      doorsTimes: ["19:30"],
       description:
         "Dette er en automatisk integrasjonstest. Ingen handling kreves.",
       audienceCount: 120,
@@ -86,7 +85,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
       startDate: "2030-01-20",
       startTime: "18:00",
       endTime: "22:00",
-      doorsTime: "17:30",
+      doorsTimes: ["17:30"],
       description:
         "Dette er en automatisk integrasjonstest. Ingen handling kreves.",
       audienceCount: 80,

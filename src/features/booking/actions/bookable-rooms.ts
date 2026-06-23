@@ -41,6 +41,7 @@ export async function fetchBookableRoomsForBooker(
         summary: null,
         capacityStanding: null,
         capacitySeated: null,
+        pricePerHour: null,
         openingHours: null,
         image: null,
         source: "crescat",
@@ -77,6 +78,7 @@ function toSanityBookingRoom(room: SanityBookableRoom): BookingRoom {
     summary: room.summary,
     capacityStanding: room.capacityStanding,
     capacitySeated: room.capacitySeated,
+    pricePerHour: room.pricePerHour,
     openingHours: room.openingHours ?? null,
     image: room.image
       ? { assetUrl: room.image.assetUrl, alt: room.image.alt }

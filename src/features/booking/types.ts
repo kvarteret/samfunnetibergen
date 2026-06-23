@@ -17,6 +17,7 @@ export interface BookingRoom {
   summary: string | null
   capacityStanding: number | null
   capacitySeated: number | null
+  pricePerHour: number | null
   openingHours: OpeningHours | null
   image: BookingRoomImage | null
   source: "sanity" | "crescat"

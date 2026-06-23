@@ -27,17 +27,19 @@ export function ToggleOption({
   return (
     <div
       className={cn(
-        "flex w-full flex-col text-left",
+        "flex w-full cursor-pointer flex-col text-left",
         selectionControlVariants({
           appearance: "soft",
           selected: checked,
           size: "none",
         }),
       )}
+      onClick={() => onChange(!checked)}
     >
       <label
         className="flex cursor-pointer items-center gap-3 p-4"
         htmlFor={id}
+        onClick={e => e.stopPropagation()}
       >
         <CheckboxSquare checked={checked} id={id} onChange={onChange} />
         <span className="flex min-w-0 flex-1 items-center gap-2 font-heading text-foreground">

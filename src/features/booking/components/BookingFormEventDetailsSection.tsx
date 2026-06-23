@@ -82,20 +82,23 @@ export function BookingFormEventDetailsSection({
             )}
           </form.Field>
         </FieldGroup>
-        <form.Field name="openOrClosed">
-          {(field: AnyFieldApi) => (
-            <RadioGroup<string>
-              onValueChange={field.handleChange}
-              value={field.state.value as string}
-            >
-              {OPEN_CLOSED_OPTIONS.map(opt => (
-                <RadioGroupItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </RadioGroupItem>
-              ))}
-            </RadioGroup>
-          )}
-        </form.Field>
+        <FieldGroup>
+          <Label>Type arrangement</Label>
+          <form.Field name="openOrClosed">
+            {(field: AnyFieldApi) => (
+              <RadioGroup<string>
+                onValueChange={field.handleChange}
+                value={field.state.value as string}
+              >
+                {OPEN_CLOSED_OPTIONS.map(opt => (
+                  <RadioGroupItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </RadioGroupItem>
+                ))}
+              </RadioGroup>
+            )}
+          </form.Field>
+        </FieldGroup>
         <FieldGroup className="sm:col-span-2">
           <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
           <form.Field name="description">
