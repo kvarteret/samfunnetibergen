@@ -1,7 +1,7 @@
 # ADR 001: Crescat event-request integration
 
 **Status:** Accepted
-**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking), updated 2026-06-15 (drift reconciliation + autofetched rooms)
+**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking), updated 2026-06-15 (drift reconciliation + autofetched rooms), updated 2026-06-23 (per-day doors times)
 
 ## Context
 
@@ -143,8 +143,17 @@ fields by the builders:
 - **Catering + bar** → catering section (`parent_id 11068`): the skreddersydd-meny text in field
   `80447`, plus on the standard form two boolean toggles `4365154` ("Jeg står i bar selv") and
   `4382234` ("Kvarteret står i bar"). The intern form has no bar toggles — only `80447`.
-- **Doors** → the `assignments` section: a 0-minute `Doors` entry (`start == end`) at the doors time;
-  event `start`/`end` stay as the show times on the top level + `roomBooking`.
+- **Doors** → the `assignments` section: a 0-minute `Doors` entry (`start == end`) per day that has a
+  doors time set; event `start`/`end` stay as the show times on the top level + `roomBooking`. Doors
+  times are modeled as `doorsTimes: string[]`, one optional entry per calendar day spanned by the
+  booking (index 0 = start date), not a single value — multi-day bookings can have a different public
+  doors time on each day (e.g. a festival that opens earlier on day 2). Each non-empty entry becomes
+  its own `Doors` (or `Doors dag N` when there is more than one) assignment dated `startDate + index`
+  days. The booking form only shows day 1's box by default; "Dørene åpner samme tid hver dag" fills
+  every day with day 1's value in one click, and "Legg til dag N" reveals one more day's box at a
+  time, so the common single-value case stays a single click without forcing per-day entry.
+  Promotion prefill (`buildPromotionDefaults`) uses `doorsTimes[0]` — the first day's value — the same
+  way it previously used the single `doorsTime`.
 - **Flexible dates** (ekstern/studentorg) → appended to the top-level `description`
   (`"Fleksibel på dato og rom: ja"`) only when no structured `alternativeDates` are provided;
   when structured alternative dates are given, the `alternativeDates` section carries the array
