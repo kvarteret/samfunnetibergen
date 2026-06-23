@@ -1,7 +1,15 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { Music, Projector, Volume2, Wand2, Armchair } from "lucide-react"
+import {
+  Armchair,
+  Hammer,
+  Music,
+  Projector,
+  Trash2,
+  Volume2,
+  Wand2,
+} from "lucide-react"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -125,6 +133,36 @@ export function BookingFormNeedsSection({
                 Dedikert tekniker koster <strong>3500 kr eks. mva</strong> per
                 tekniker. Avbestilling må skje senest <strong>10 dager</strong>{" "}
                 før arrangementet.
+              </p>
+            </ToggleOption>
+          )}
+        </form.Field>
+        <form.Field name="riggingSetup">
+          {(field: AnyFieldApi) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Hammer}
+              label="Opprigg og oppsett av møblement"
+              onChange={field.handleChange}
+            >
+              <p className=" leading-6 text-foreground-muted">
+                Koster <strong>2000 kr eks. mva</strong>. Husk å beregne tid til
+                opprigg innenfor bookingens start- og sluttid.
+              </p>
+            </ToggleOption>
+          )}
+        </form.Field>
+        <form.Field name="riggingTeardown">
+          {(field: AnyFieldApi) => (
+            <ToggleOption
+              checked={field.state.value as boolean}
+              icon={Trash2}
+              label="Nedrigg og rydding"
+              onChange={field.handleChange}
+            >
+              <p className=" leading-6 text-foreground-muted">
+                Koster <strong>2000 kr eks. mva</strong>. Husk å beregne tid til
+                nedrigg innenfor bookingens start- og sluttid.
               </p>
             </ToggleOption>
           )}

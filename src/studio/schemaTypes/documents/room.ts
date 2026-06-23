@@ -59,6 +59,15 @@ export const room = defineType({
       validation: rule => rule.integer().positive(),
     }),
     defineField({
+      name: "pricePerHour",
+      title: "Timepris (kr, eks. mva)",
+      description:
+        "Romleie per time for eksterne bookere. Stå tomt for rom som ikke leies ut separat. Interne og studentorganisasjoner betaler ikke romleie.",
+      type: "number",
+      group: "info",
+      validation: rule => rule.min(0),
+    }),
+    defineField({
       name: "menu",
       title: "Meny",
       description: "Menyen som serveres i dette rommet / baren",

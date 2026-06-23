@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
 import type { BookingRoom } from "@/features/booking/types"
-import type { BookableRoom } from "@/lib/sanity/fetch/rooms"
 import type { CresatResource } from "@/lib/integrations/crescat/calendar"
+import type { BookableRoom } from "@/lib/sanity/fetch/rooms"
 
 // ── Mock modules ────────────────────────────────────────────────────────────
 

@@ -552,6 +552,20 @@ export type StudentGroup = {
     _type: "recruitmentSection"
     _key: string
   }>
+  links?: Array<{
+    platform:
+      | "email"
+      | "website"
+      | "facebook"
+      | "instagram"
+      | "tiktok"
+      | "studentbergen"
+      | "other"
+    url: string
+    customLabel?: string
+    _type: "groupLink"
+    _key: string
+  }>
   email?: string
   website?: string
   logo?: {
@@ -598,6 +612,7 @@ export type Room = {
   summary: string
   body?: PortableTextContent
   crescatRoomId?: number
+  pricePerHour?: number
   menu?: Menu
   orderRank?: string
   floor?: number

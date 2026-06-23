@@ -24,6 +24,8 @@ export interface BookingFormState {
   music: boolean
   soundTech: boolean
   lightTech: boolean
+  riggingSetup: boolean
+  riggingTeardown: boolean
   needsAmphi: boolean
   cateringCustom: boolean
   cateringText: string
@@ -63,6 +65,8 @@ export const initialBookingState: BookingFormState = {
   music: false,
   soundTech: false,
   lightTech: false,
+  riggingSetup: false,
+  riggingTeardown: false,
   needsAmphi: false,
   cateringCustom: false,
   cateringText: "",
@@ -92,6 +96,8 @@ export function composeTechEquipment(state: BookingFormState): string {
   if (state.music) parts.push("Musikkavspilling")
   if (state.soundTech) parts.push("Dedikert lydtekniker")
   if (state.lightTech) parts.push("Dedikert lystekniker")
+  if (state.riggingSetup) parts.push("Opprigg og oppsett av møblement")
+  if (state.riggingTeardown) parts.push("Nedrigg og rydding")
   return parts.length > 0 ? parts.join(", ") : "Ingen"
 }
 

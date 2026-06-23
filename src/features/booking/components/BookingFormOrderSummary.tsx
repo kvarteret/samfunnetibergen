@@ -8,8 +8,13 @@ import {
   composeCatering,
   composeTechEquipment,
 } from "../domain/formState"
+import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
 import { useBookingForm } from "./bookingFormContext"
+
+function formatKr(amount: number): string {
+  return `${amount.toLocaleString("nb-NO")} kr`
+}
 
 const BOOKER_LABELS: Record<BookerType, string> = {
   ekstern: "Ekstern / privat",
@@ -38,6 +43,7 @@ export function BookingFormOrderSummary({
   const selectedRooms = rooms.filter(r =>
     selectedRoomIds.includes(r.crescatRoomId),
   )
+  const priceSummary = computePriceSummary(state, selectedRooms)
 
   const removeRoom = (roomId: number) => {
     const next = selectedRoomIds.filter(id => id !== roomId)
@@ -109,9 +115,53 @@ export function BookingFormOrderSummary({
                 : state.freeOrPaid}
             </DetailRow>
           </dl>
+
+          {priceSummary.lines.length > 0 && (
+            <BookingPriceSummary summary={priceSummary} />
+          )}
         </div>
       </div>
     </aside>
+  )
+}
+
+function BookingPriceSummary({
+  summary,
+}: {
+  summary: ReturnType<typeof computePriceSummary>
+}) {
+  return (
+    <div className="space-y-1.5 border-t-2 border-border pt-3">
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+        Estimert pris
+      </p>
+      <dl className="space-y-1 text-sm">
+        {summary.lines.map(line => (
+          <div className="flex justify-between gap-4" key={line.label}>
+            <dt className="text-foreground-muted">{line.label}</dt>
+            <dd className="shrink-0 text-foreground">
+              {formatKr(line.amount)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="flex justify-between gap-4 border-t border-border pt-1.5 text-sm">
+        <span className="text-foreground-muted">Sum eks. mva</span>
+        <span className="text-foreground">
+          {formatKr(summary.subtotalExVat)}
+        </span>
+      </div>
+      <div className="flex justify-between gap-4 text-sm">
+        <span className="text-foreground-muted">Mva (25 %)</span>
+        <span className="text-foreground">{formatKr(summary.vat)}</span>
+      </div>
+      <div className="flex justify-between gap-4 pt-1">
+        <span className="font-heading text-foreground">Totalt ink. mva</span>
+        <span className="font-heading text-lg text-primary">
+          {formatKr(summary.totalIncVat)}
+        </span>
+      </div>
+    </div>
   )
 }
 
