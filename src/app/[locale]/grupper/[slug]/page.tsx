@@ -114,39 +114,30 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {(hasLinks || group.email || group.website) && (
           <AsideSection title="Kontakt">
             {hasLinks ? (
-              group.links.map(
-                (
-                  link: {
-                    platform: string
-                    url: string
-                    customLabel?: string
-                  },
-                  i: number,
-                ) => {
-                  const platformLabel =
-                    link.customLabel ||
-                    platformNames[link.platform] ||
-                    link.platform
-                  const isEmail = link.platform === "email"
-                  const href = isEmail ? `mailto:${link.url}` : link.url
-                  const Icon = platformIcons[link.platform] || ExternalLink
-                  return (
-                    <a
-                      className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
-                      href={href}
-                      key={i}
-                      rel={isEmail ? undefined : "noreferrer"}
-                      target={isEmail ? undefined : "_blank"}
-                    >
-                      <Icon aria-hidden className="size-4 shrink-0" />
-                      {platformLabel}
-                      {!isEmail && (
-                        <ExternalLink aria-hidden className="size-3 shrink-0" />
-                      )}
-                    </a>
-                  )
-                },
-              )
+              group.links.map((link, i) => {
+                const platformLabel =
+                  link.customLabel ||
+                  platformNames[link.platform] ||
+                  link.platform
+                const isEmail = link.platform === "email"
+                const href = isEmail ? `mailto:${link.url}` : link.url
+                const Icon = platformIcons[link.platform] || ExternalLink
+                return (
+                  <a
+                    className="flex items-center gap-2 underline underline-offset-4 hover:text-primary focus-brutal"
+                    href={href}
+                    key={i}
+                    rel={isEmail ? undefined : "noreferrer"}
+                    target={isEmail ? undefined : "_blank"}
+                  >
+                    <Icon aria-hidden className="size-4 shrink-0" />
+                    {platformLabel}
+                    {!isEmail && (
+                      <ExternalLink aria-hidden className="size-3 shrink-0" />
+                    )}
+                  </a>
+                )
+              })
             ) : (
               <>
                 {group.email && (
