@@ -60,7 +60,7 @@ export const room = defineType({
     }),
     defineField({
       name: "pricePerHour",
-      title: "Timepris (kr, eks. mva)",
+      title: "Timepris",
       description:
         "Romleie per time for eksterne bookere. Stå tomt for rom som ikke leies ut separat. Interne og studentorganisasjoner betaler ikke romleie.",
       type: "number",
@@ -201,14 +201,19 @@ export const room = defineType({
       title: "title",
       standing: "capacityStanding",
       seated: "capacitySeated",
+      pricePerHour: "pricePerHour",
       media: "images.0.image",
     },
-    prepare({ title, standing, seated, media }) {
-      const cap =
-        standing || seated
-          ? `${standing ?? "?"} stående / ${seated ?? "?"} sittende`
-          : undefined
-      return { title: title ?? "Rom", subtitle: cap, media }
+    prepare({ title, standing, seated, pricePerHour, media }) {
+      const parts: string[] = []
+      if (standing || seated) {
+        parts.push(`${standing ?? "?"} stående / ${seated ?? "?"} sittende`)
+      }
+      if (pricePerHour != null) {
+        parts.push(`${pricePerHour} kr/t`)
+      }
+      const subtitle = parts.join(" · ")
+      return { title: title ?? "Rom", subtitle, media }
     },
   },
 })

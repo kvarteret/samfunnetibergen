@@ -151,7 +151,7 @@ export function BookingFormScheduleSection({
                       return (
                         <div
                           className={cn(
-                            "group relative flex flex-col overflow-hidden border-2 transition-colors",
+                            "relative flex flex-col overflow-hidden border-2 transition-colors",
                             selected
                               ? "border-primary bg-primary/5"
                               : "border-border bg-card",

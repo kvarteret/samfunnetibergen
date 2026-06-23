@@ -34,8 +34,10 @@ The room booking form (`src/features/booking/`, `/rom/book`) had three gaps:
   `bookerType === "ekstern"` — internal bookers and student organizations never pay room rent, but
   everyone pays for opt-in services they select (lydtekniker/lystekniker 3500 kr each, opprigg/nedrigg
   2000 kr each, "Kvarteret står i bar" 2000 kr).
-- Stillhet (room 118) is free when bundled with Teglverket (room 97) — its line is skipped if both
-  are selected, since the venue treats it as included with Teglverket.
+- Stillhet (room 118) and Støy (room 117) are free when bundled with Teglverket (room 97) —
+  the cheapest selected backstage room's line is skipped, since the venue treats one backstage
+  room as included with Teglverket. If both are selected alongside Teglverket, only the cheaper
+  one is free.
 - Eldorado and Lobbyrinten have no Sanity document and no confirmed standalone Crescat resource ID,
   so they are **not** modeled in pricing or auto-add logic — Eldorado is informational only (included
   free with Tivoli), and Lobbyrinten is likewise informational (included with Storelogen/Halvtimen).

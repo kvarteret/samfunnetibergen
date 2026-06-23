@@ -117,7 +117,7 @@ export function TimeRangeSlider({
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
-  const handleValueChange = useCallback(
+  const clampAndEmit = useCallback(
     (value: readonly number[]) => {
       let [sIdx, eIdx] = value as [number, number]
       sIdx = Math.min(Math.max(sIdx, minStartIdx), maxStartIdx)
@@ -144,32 +144,11 @@ export function TimeRangeSlider({
     ],
   )
 
-  const handleValueCommit = useCallback(
-    (value: readonly number[]) => {
-      let [sIdx, eIdx] = value as [number, number]
-      sIdx = Math.min(Math.max(sIdx, minStartIdx), maxStartIdx)
-      eIdx = Math.min(Math.max(eIdx, minEndIdx), maxEndIdx)
-      if (sIdx >= eIdx) {
-        eIdx = Math.min(sIdx + 1, maxEndIdx)
-        sIdx = Math.max(eIdx - 1, minStartIdx)
-      }
-      if (sIdx >= 0 && sIdx < marks.length) {
-        onStartChange(minutesToTime(marks[sIdx]))
-      }
-      if (eIdx >= 0 && eIdx < marks.length) {
-        onEndChange(minutesToTime(marks[eIdx]))
-      }
-    },
-    [
-      marks,
-      minStartIdx,
-      maxStartIdx,
-      minEndIdx,
-      maxEndIdx,
-      onStartChange,
-      onEndChange,
-    ],
-  )
+  // Both onValueChange (drag) and onValueCommitted (release) write through
+  // the same handler so slider thumbs and TimeSlotBoxes never disagree.
+  const handleValueChange = clampAndEmit
+
+  const handleValueCommit = clampAndEmit
 
   // ── Get-in / get-out box options ─────────────────────────────────────
   // Picking a slot from a box reuses the same commit handler as dragging the
