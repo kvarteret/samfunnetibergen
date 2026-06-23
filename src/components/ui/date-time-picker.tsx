@@ -145,6 +145,15 @@ export function DateTimePicker({
     return d > maxEnd
   }
 
+  // Dates beyond the 7-day window are dimmed but stay clickable (they reset
+  // the range to a fresh start). Only applies while selecting an end date.
+  const isBeyondRange = (d: Date): boolean => {
+    if (!isSelectingEnd || !selectedRange.from) return false
+    const maxEnd = new Date(selectedRange.from)
+    maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
+    return d > maxEnd
+  }
+
   const handleDayClick = (date: Date, disabled: boolean) => {
     if (disabled) return
     if (isSelectingEnd && selectedRange.from) {
@@ -201,6 +210,7 @@ export function DateTimePicker({
                   "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
                   mods.occupied &&
                     "line-through text-destructive/70 !opacity-70",
+                  mods.beyond_range && "opacity-40",
                 )}
                 day={day}
                 locale={nb}
@@ -224,7 +234,8 @@ export function DateTimePicker({
         disabled={isDisabled}
         locale={nb}
         mode="range"
-        modifiers={{ occupied: isOccupied }}
+        modifiers={{ occupied: isOccupied, beyond_range: isBeyondRange }}
+        modifiersClassNames={{ beyond_range: "opacity-40" }}
         numberOfMonths={2}
         onSelect={() => {}}
         selected={selectedRange}
@@ -420,7 +431,7 @@ function TimeSlots({
           stapledSegments={stapledSegments}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
-          middleSlot={
+          doorsSlot={
             <DoorsBoxes
               dayCount={dayCount}
               doorsTimes={doorsTimes}
@@ -517,7 +528,7 @@ function UnconstrainedTimes({
           occupiedRanges={occupiedRanges}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
-          middleSlot={
+          doorsSlot={
             <DoorsBoxes
               dayCount={dayCount}
               doorsTimes={doorsTimes}
@@ -534,13 +545,13 @@ function UnconstrainedTimes({
   )
 }
 
-// "Dørene åpner" starts out showing only day 1's box, sitting between the
-// get-in and get-out boxes. Multi-day bookings get two follow-up actions:
-// "samme tid hver dag" fills every day with day 1's value in one click,
-// while "legg til dag N" reveals one more day's box at a time so each day
-// can have its own independent (optional) value. Day 1 offers times up to
-// the booking's start; the last day offers times up to the booking's end;
-// days in between are unconstrained.
+// "Dørene åpner" is the optional public-doors time, shown as its own block
+// below the slider. Single-day bookings get one dropdown; multi-day bookings
+// start with day 1 and get two follow-up actions: "samme tid hver dag" fills
+// every day with day 1's value in one click, while "legg til dag N" reveals
+// one more day's box at a time so each day can have its own independent
+// (optional) value. Day 1 offers times up to the booking's start; the last
+// day offers times up to the booking's end; days in between are unconstrained.
 function DoorsBoxes({
   uid,
   marks,
@@ -594,45 +605,59 @@ function DoorsBoxes({
   const addNextDay = () =>
     setVisibleDayCount(count => Math.min(count + 1, dayCount))
 
+  // Single day: one plain dropdown, no section chrome needed.
+  if (dayCount === 1) {
+    return (
+      <div className="max-w-xs">
+        <SelectField
+          id={`${uid}-doorsTime-0`}
+          label="Dørene åpner (valgfritt)"
+          onChange={value => onDoorsChange(0, value)}
+          options={optionsForDay(0)}
+          placeholder="Samme som start"
+          value={doorsTimes[0] ?? ""}
+        />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-2">
-      {Array.from({ length: shownDayCount }, (_, dayIndex) => (
-        <div className="min-w-44" key={dayIndex}>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+          Dørene åpner
+          <span className="ml-2 normal-case tracking-normal text-foreground-muted">
+            (valgfritt)
+          </span>
+        </p>
+        <Button
+          onClick={applySameEveryDay}
+          size="sm"
+          type="button"
+          variant="neutral"
+        >
+          Samme tid hver dag
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: shownDayCount }, (_, dayIndex) => (
           <SelectField
             id={`${uid}-doorsTime-${dayIndex}`}
-            label={
-              dayCount > 1
-                ? `Dørene åpner – dag ${dayIndex + 1} (valgfritt)`
-                : "Dørene åpner (valgfritt)"
-            }
+            key={dayIndex}
+            label={`Dag ${dayIndex + 1}`}
             onChange={value => onDoorsChange(dayIndex, value)}
             options={optionsForDay(dayIndex)}
             placeholder={dayIndex === 0 ? "Samme som start" : "Ikke satt"}
             value={doorsTimes[dayIndex] ?? ""}
           />
-        </div>
-      ))}
-      {dayCount > 1 && (
-        <div className="flex flex-col gap-2">
-          <Button
-            onClick={applySameEveryDay}
-            size="sm"
-            type="button"
-            variant="neutral"
-          >
-            Dørene åpner samme tid hver dag
-          </Button>
-          {shownDayCount < dayCount && (
-            <Button
-              onClick={addNextDay}
-              size="sm"
-              type="button"
-              variant="neutral"
-            >
-              Legg til dag {shownDayCount + 1}
-            </Button>
-          )}
-        </div>
+        ))}
+      </div>
+
+      {shownDayCount < dayCount && (
+        <Button onClick={addNextDay} size="sm" type="button" variant="neutral">
+          Legg til dag {shownDayCount + 1}
+        </Button>
       )}
     </div>
   )

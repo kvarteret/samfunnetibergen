@@ -43,8 +43,8 @@ interface TimeRangeSliderProps {
   onStartChange: (value: string) => void
   /** Called with the new end time (HH:mm). */
   onEndChange: (value: string) => void
-  /** Rendered between the get-in and get-out boxes (the per-day doors-open boxes). */
-  middleSlot?: ReactNode
+  /** The per-day doors-open config, rendered as its own block below the slider. */
+  doorsSlot?: ReactNode
 }
 
 // A mark is unavailable if it falls inside any existing booking for the
@@ -70,7 +70,7 @@ export function TimeRangeSlider({
   stapledSegments,
   onStartChange,
   onEndChange,
-  middleSlot,
+  doorsSlot,
 }: TimeRangeSliderProps) {
   // ── Index-based mapping ──────────────────────────────────────────────
   // The slider operates on indices into the (sorted) marks array.
@@ -319,7 +319,9 @@ export function TimeRangeSlider({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-1.5">
+      {/* relative z-20: lifts this row (and its portal-less info popover) above
+          the slider, which is a later sibling and would otherwise paint over it. */}
+      <div className="relative z-20 flex items-center gap-1.5">
         <p className="font-heading text-sm uppercase tracking-widest text-foreground">
           Get-in / get-out
         </p>
@@ -331,7 +333,10 @@ export function TimeRangeSlider({
         )}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
+      {/* Get-in and get-out frame the slider as its two posts: get-in sits at
+          the left, get-out at the right, mirroring the labeled thumbs below.
+          relative z-10 keeps their slot pickers above the slider below. */}
+      <div className="relative z-10 flex items-end justify-between gap-3">
         <TimeSlotBox
           className="min-w-28"
           label="Get-in"
@@ -339,7 +344,6 @@ export function TimeRangeSlider({
           options={startOptions}
           value={formatLabel(startIndex)}
         />
-        {middleSlot}
         <TimeSlotBox
           className="min-w-28"
           label="Get-out"
@@ -451,6 +455,10 @@ export function TimeRangeSlider({
           </span>
         ))}
       </div>
+
+      {doorsSlot && (
+        <div className="border-t border-border pt-4">{doorsSlot}</div>
+      )}
     </div>
   )
 }
