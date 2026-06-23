@@ -151,13 +151,14 @@ export function BookingFormScheduleSection({
                       return (
                         <div
                           className={cn(
-                            "relative flex flex-col overflow-hidden border-2 transition-colors",
+                            "relative flex flex-col overflow-hidden border-2 transition-colors cursor-pointer",
                             selected
                               ? "border-primary bg-primary/5"
                               : "border-border bg-card",
                             occupied && "opacity-60 saturate-50",
                           )}
                           key={room.crescatRoomId}
+                          onClick={() => toggleRoom(room.crescatRoomId)}
                         >
                           {!isCrescatOnly && (
                             <div className="relative aspect-video bg-muted">
@@ -189,10 +190,12 @@ export function BookingFormScheduleSection({
                                 selected={selected}
                               />
                               {room.slug && (
-                                <RoomInfoTrigger
+                                <div
                                   className="absolute bottom-3 left-3"
-                                  room={room}
-                                />
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <RoomInfoTrigger room={room} />
+                                </div>
                               )}
                             </div>
                           )}
@@ -315,9 +318,8 @@ const TECH_SPECS: {
   { label: "A/V", hasKey: "hasAV", detailsKey: "avDetails" },
 ]
 
-// Adds or removes a room from the booking. A plain button (not the whole
-// card) so the card itself is free to host an independent info trigger
-// without the two gestures fighting over the same hit target.
+// Adds or removes a room from the booking. The whole card also toggles the
+// room now, so this button stops propagation to avoid double-toggling.
 function AddRoomButton({
   selected,
   onClick,
@@ -329,6 +331,7 @@ function AddRoomButton({
 }) {
   const handleClick = (e: MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     onClick()
   }
 
@@ -364,12 +367,11 @@ function AddRoomButton({
   )
 }
 
-// Small, independent info trigger for a room's full facility list, with a
-// link into the room's own page. Opens on hover (0ms delay, so it's obvious
-// it's interactive) or on tap, since it's a real button rather than relying
-// on hover-only behavior that doesn't work on touch devices. Deliberately a
-// separate hit target from the add-room button and the card itself — making
-// the whole card a hover/click target made both gestures fight each other.
+// Info trigger for a room's full facility list, with a link into the room's
+// own page. Opens on hover (0ms delay, so it's obvious it's interactive) or
+// on tap, since it's a real button rather than relying on hover-only
+// behavior that doesn't work on touch devices. The caller stops propagation
+// so opening it doesn't also toggle the room.
 function RoomInfoTrigger({
   room,
   className,

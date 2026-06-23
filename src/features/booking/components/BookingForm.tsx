@@ -517,7 +517,7 @@ export function BookingForm({
           </section>
         </form>
 
-        <div className="order-first space-y-6 lg:order-none lg:sticky lg:top-24">
+        <div className="space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
           <form.Subscribe selector={s => s.values}>
             {values => (
               <BookingFormOrderSummary

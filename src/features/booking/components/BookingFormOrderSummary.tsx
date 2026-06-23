@@ -6,7 +6,6 @@ import {
   type BookerType,
   type BookingFormState,
   composeCatering,
-  composeTechEquipment,
 } from "../domain/formState"
 import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
@@ -34,7 +33,6 @@ export function BookingFormOrderSummary({
   selectedRoomIds,
 }: BookingOrderSummaryProps) {
   const form = useBookingForm()
-  const tech = composeTechEquipment(state)
   const catering = composeCatering(state)
   const time = state.startDate
     ? `${state.startDate} · ${state.startTime}–${state.endTime}`
@@ -98,29 +96,16 @@ export function BookingFormOrderSummary({
                   : state.doorsTimes[0]}
               </DetailRow>
             )}
-            {state.eventName.trim() && (
-              <DetailRow label="Arrangement" layout="vertical">
-                {state.eventName}
-              </DetailRow>
-            )}
             {state.audienceCount.trim() && (
               <DetailRow label="Publikum" layout="vertical">
                 {state.audienceCount} personer
               </DetailRow>
             )}
-            <DetailRow label="Teknisk" layout="vertical">
-              {tech}
-            </DetailRow>
             {catering && (
               <DetailRow label="Mat og bar" layout="vertical">
                 <span className="whitespace-pre-line">{catering}</span>
               </DetailRow>
             )}
-            <DetailRow label="Billett" layout="vertical">
-              {state.freeOrPaid === "Betalt" && state.ticketTypes.trim()
-                ? `Betalt · ${state.ticketTypes}`
-                : state.freeOrPaid}
-            </DetailRow>
           </dl>
 
           {priceSummary.lines.length > 0 && (
