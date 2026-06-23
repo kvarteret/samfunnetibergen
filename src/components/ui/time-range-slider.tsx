@@ -1,8 +1,11 @@
 "use client"
 
+import { Popover } from "@base-ui/react/popover"
 import { Slider } from "@base-ui/react/slider"
-import { useCallback, useMemo } from "react"
+import { Info } from "lucide-react"
+import { type ReactNode, useCallback, useMemo } from "react"
 import { minutesToTime } from "@/lib/opening-hours"
+import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
 
 const MINUTES_IN_DAY = 24 * 60
 
@@ -40,6 +43,17 @@ interface TimeRangeSliderProps {
   onStartChange: (value: string) => void
   /** Called with the new end time (HH:mm). */
   onEndChange: (value: string) => void
+  /** Rendered between the get-in and get-out boxes (the per-day doors-open boxes). */
+  middleSlot?: ReactNode
+}
+
+// A mark is unavailable if it falls inside any existing booking for the
+// selected room(s) — used to color the get-in/get-out slot options.
+function isMarkOccupied(
+  minute: number,
+  occupiedRanges: { startMin: number; endMin: number }[],
+): boolean {
+  return occupiedRanges.some(r => minute >= r.startMin && minute < r.endMin)
 }
 
 export function TimeRangeSlider({
@@ -56,6 +70,7 @@ export function TimeRangeSlider({
   stapledSegments,
   onStartChange,
   onEndChange,
+  middleSlot,
 }: TimeRangeSliderProps) {
   // ── Index-based mapping ──────────────────────────────────────────────
   // The slider operates on indices into the (sorted) marks array.
@@ -154,6 +169,68 @@ export function TimeRangeSlider({
       onStartChange,
       onEndChange,
     ],
+  )
+
+  // ── Get-in / get-out box options ─────────────────────────────────────
+  // Picking a slot from a box reuses the same commit handler as dragging the
+  // slider, so both stay perfectly in sync and share the same clamping rules.
+
+  const startOptions: TimeSlotBoxOption[] = useMemo(() => {
+    const options: TimeSlotBoxOption[] = []
+    for (let i = minStartIdx; i <= maxStartIdx && i < marks.length; i++) {
+      const label = minutesToTime(marks[i] % MINUTES_IN_DAY)
+      options.push({
+        value: label,
+        label,
+        availability: isMarkOccupied(marks[i], occupiedRanges)
+          ? "unavailable"
+          : "available",
+      })
+    }
+    return options
+  }, [marks, minStartIdx, maxStartIdx, occupiedRanges])
+
+  const endOptions: TimeSlotBoxOption[] = useMemo(() => {
+    const options: TimeSlotBoxOption[] = []
+    for (let i = minEndIdx; i <= maxEndIdx && i < marks.length; i++) {
+      const label = minutesToTime(marks[i] % MINUTES_IN_DAY)
+      options.push({
+        value: label,
+        label,
+        availability: isMarkOccupied(marks[i], occupiedRanges)
+          ? "unavailable"
+          : "available",
+      })
+    }
+    return options
+  }, [marks, minEndIdx, maxEndIdx, occupiedRanges])
+
+  const selectStart = useCallback(
+    (timeValue: string) => {
+      const idx = marks.findIndex(
+        (m, i) =>
+          i >= minStartIdx &&
+          i <= maxStartIdx &&
+          minutesToTime(m % MINUTES_IN_DAY) === timeValue,
+      )
+      if (idx === -1) return
+      handleValueCommit([idx, endIndex])
+    },
+    [marks, minStartIdx, maxStartIdx, endIndex, handleValueCommit],
+  )
+
+  const selectEnd = useCallback(
+    (timeValue: string) => {
+      const idx = marks.findIndex(
+        (m, i) =>
+          i >= minEndIdx &&
+          i <= maxEndIdx &&
+          minutesToTime(m % MINUTES_IN_DAY) === timeValue,
+      )
+      if (idx === -1) return
+      handleValueCommit([startIndex, idx])
+    },
+    [marks, minEndIdx, maxEndIdx, startIndex, handleValueCommit],
   )
 
   // ── Format helpers ───────────────────────────────────────────────────
@@ -263,16 +340,34 @@ export function TimeRangeSlider({
 
   return (
     <div className="space-y-3">
-      {/* Current selection readout */}
-      <div className="flex items-center gap-2 font-heading text-sm text-foreground">
-        <span>
-          {formatLabel(startIndex)} — {formatLabel(endIndex)}
-        </span>
+      <div className="flex items-center gap-1.5">
+        <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+          Get-in / get-out
+        </p>
+        <GetInGetOutInfo />
         {durationLabel && (
-          <span className="tabular-nums text-foreground-muted">
+          <span className="font-heading text-sm tabular-nums text-foreground-muted">
             → {durationLabel}
           </span>
         )}
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <TimeSlotBox
+          className="min-w-28"
+          label="Get-in"
+          onChange={selectStart}
+          options={startOptions}
+          value={formatLabel(startIndex)}
+        />
+        {middleSlot}
+        <TimeSlotBox
+          className="min-w-28"
+          label="Get-out"
+          onChange={selectEnd}
+          options={endOptions}
+          value={formatLabel(endIndex)}
+        />
       </div>
 
       <Slider.Root
@@ -341,18 +436,26 @@ export function TimeRangeSlider({
             {/* Start thumb */}
             <Slider.Thumb
               aria-label="Starttid"
-              className="size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
+              className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
               index={0}
               style={{ borderColor: trackColor }}
-            />
+            >
+              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
+                Get-in
+              </span>
+            </Slider.Thumb>
 
             {/* End thumb */}
             <Slider.Thumb
               aria-label="Sluttid"
-              className="size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
+              className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
               index={1}
               style={{ borderColor: trackColor }}
-            />
+            >
+              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
+                Get-out
+              </span>
+            </Slider.Thumb>
           </Slider.Track>
         </Slider.Control>
       </Slider.Root>
@@ -370,5 +473,44 @@ export function TimeRangeSlider({
         ))}
       </div>
     </div>
+  )
+}
+
+// Explains get-in/get-out for arrangers — for multi-day bookings, get-in is
+// the first day and get-out is the last day; days in between don't change
+// these two times.
+function GetInGetOutInfo() {
+  return (
+    <Popover.Root>
+      <Popover.Trigger
+        aria-label="Hva betyr get-in og get-out?"
+        className="flex size-5 cursor-pointer items-center justify-center text-foreground-muted transition-colors hover:text-foreground focus-brutal"
+        closeDelay={100}
+        delay={0}
+        openOnHover
+      >
+        <Info aria-hidden className="size-4" />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={8}>
+          <Popover.Popup className="z-[100] w-72 space-y-2 panel shadow-shadow text-sm">
+            <p>
+              <strong className="font-heading">Get-in:</strong> som arrangør
+              betyr det at leietaker kommer inn i rommet på avtalt tidspunkt og
+              overtar ansvaret.
+            </p>
+            <p>
+              <strong className="font-heading">Get-out:</strong> betyr at
+              leietaker skal være helt ute av rommet igjen innen avtalt slutt,
+              inkludert rydding og nedrigg.
+            </p>
+            <p className="text-foreground-muted">
+              Er det flere dager er det get-in første dag og get-out siste dag
+              som setter tidene for bookingen.
+            </p>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }

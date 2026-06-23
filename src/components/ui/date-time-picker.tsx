@@ -1,7 +1,10 @@
 "use client"
 
+import { differenceInCalendarDays, parseISO } from "date-fns"
+import { useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
+import { Button } from "@/components/ui/button"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
@@ -13,8 +16,8 @@ import {
   minutesToTime,
   type OpeningHours,
 } from "@/lib/opening-hours"
+import { timeToMinutes } from "@/lib/time"
 import { cn } from "@/lib/utils"
-import { differenceInCalendarDays, parseISO } from "date-fns"
 
 const SLOT_STEP_MIN = 15
 const MULTI_DAY_SLOT_STEP_MIN = 60
@@ -70,14 +73,14 @@ interface DateTimePickerProps {
   today: string
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   hasConflict: boolean
   occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
@@ -90,7 +93,7 @@ export function DateTimePicker({
   today,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   hasConflict,
   occupiedRanges,
   onStartDateChange,
@@ -244,7 +247,7 @@ export function DateTimePicker({
               closedDates={closedDates}
               startTime={startTime}
               endTime={endTime}
-              doorsTime={doorsTime}
+              doorsTimes={doorsTimes}
               onStartChange={onStartChange}
               onEndChange={onEndChange}
               onDoorsChange={onDoorsChange}
@@ -271,10 +274,10 @@ interface TimeSlotsProps {
   closedDates: ClosedDate[]
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
 }
 
 function TimeSlots({
@@ -288,7 +291,7 @@ function TimeSlots({
   closedDates,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
@@ -324,7 +327,7 @@ function TimeSlots({
         occupiedRanges={occupiedRanges}
         startTime={startTime}
         endTime={endTime}
-        doorsTime={doorsTime}
+        doorsTimes={doorsTimes}
         onStartChange={onStartChange}
         onEndChange={onEndChange}
         onDoorsChange={onDoorsChange}
@@ -397,16 +400,6 @@ function TimeSlots({
     }
   }
 
-  // Compute doorsTime options: all marks at or before the selected start
-  const startMinute =
-    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
-  const doorsOptions = marks
-    .filter(m => m <= startMinute)
-    .map(m => ({
-      value: minutesToTime(m),
-      label: minutesToTime(m),
-    }))
-
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
@@ -424,16 +417,17 @@ function TimeSlots({
           stapledSegments={stapledSegments}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
-        />
-      </div>
-      <div className="max-w-xs">
-        <SelectField
-          id={`${uid}-doorsTime`}
-          label="Dørene åpner (valgfritt)"
-          onChange={onDoorsChange}
-          options={doorsOptions}
-          placeholder="Samme som start"
-          value={doorsTime}
+          middleSlot={
+            <DoorsBoxes
+              dayCount={dayCount}
+              doorsTimes={doorsTimes}
+              endTime={endTime}
+              marks={marks}
+              onDoorsChange={onDoorsChange}
+              startTime={startTime}
+              uid={uid}
+            />
+          }
         />
       </div>
     </div>
@@ -441,7 +435,7 @@ function TimeSlots({
 }
 
 /** Flat marks for a 24h day. Step defaults to 15-min, 60-min for multi-day. */
-function unconstrainedMarks(
+export function unconstrainedMarks(
   dayCount: number,
   stepMin = SLOT_STEP_MIN,
 ): number[] {
@@ -452,9 +446,12 @@ function unconstrainedMarks(
       marks.push(m + offset)
     }
   }
-  // Remove the very last mark so it can't be selected
-  // as a start time with no remaining slots for end.
-  return marks.slice(0, -1)
+  // Single-day only: drop the very last mark so it can't be selected as a
+  // start time with no remaining slots for end. For multi-day bookings this
+  // mark is the last day's final slot (e.g. 23:00), which is a valid get-out
+  // time and is matched by index math (e.g. lastDayEndIdx) that assumes every
+  // day — including the last — has a full grid of marks.
+  return dayCount > 1 ? marks : marks.slice(0, -1)
 }
 
 interface UnconstrainedTimesProps {
@@ -465,10 +462,10 @@ interface UnconstrainedTimesProps {
   occupiedRanges: { startMin: number; endMin: number }[]
   startTime: string
   endTime: string
-  doorsTime: string
+  doorsTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (value: string) => void
+  onDoorsChange: (dayIndex: number, value: string) => void
 }
 
 function UnconstrainedTimes({
@@ -479,7 +476,7 @@ function UnconstrainedTimes({
   occupiedRanges,
   startTime,
   endTime,
-  doorsTime,
+  doorsTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
@@ -503,15 +500,6 @@ function UnconstrainedTimes({
       ? marks.findIndex(m => m >= (dayCount - 1) * MINUTES_IN_DAY)
       : undefined
 
-  const startMinute =
-    marks.find(m => minutesToTime(m) === startTime) ?? marks[0]
-  const doorsOptions = marks
-    .filter(m => m <= startMinute)
-    .map(m => ({
-      value: minutesToTime(m),
-      label: minutesToTime(m),
-    }))
-
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
@@ -526,18 +514,123 @@ function UnconstrainedTimes({
           occupiedRanges={occupiedRanges}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
+          middleSlot={
+            <DoorsBoxes
+              dayCount={dayCount}
+              doorsTimes={doorsTimes}
+              endTime={endTime}
+              marks={marks}
+              onDoorsChange={onDoorsChange}
+              startTime={startTime}
+              uid={uid}
+            />
+          }
         />
       </div>
-      <div className="max-w-xs">
-        <SelectField
-          id={`${uid}-doorsTime`}
-          label="Dørene åpner (valgfritt)"
-          onChange={onDoorsChange}
-          options={doorsOptions}
-          placeholder="Samme som start"
-          value={doorsTime}
-        />
-      </div>
+    </div>
+  )
+}
+
+// "Dørene åpner" starts out showing only day 1's box, sitting between the
+// get-in and get-out boxes. Multi-day bookings get two follow-up actions:
+// "samme tid hver dag" fills every day with day 1's value in one click,
+// while "legg til dag N" reveals one more day's box at a time so each day
+// can have its own independent (optional) value. Day 1 offers times up to
+// the booking's start; the last day offers times up to the booking's end;
+// days in between are unconstrained.
+function DoorsBoxes({
+  uid,
+  marks,
+  dayCount,
+  startTime,
+  endTime,
+  doorsTimes,
+  onDoorsChange,
+}: {
+  uid: string
+  marks: number[]
+  dayCount: number
+  startTime: string
+  endTime: string
+  doorsTimes: string[]
+  onDoorsChange: (dayIndex: number, value: string) => void
+}) {
+  const localStartMinute = timeToMinutes(startTime)
+  const localEndMinute = timeToMinutes(endTime)
+  const filledDayCount = doorsTimes.reduce(
+    (max, value, i) => (value ? i + 1 : max),
+    0,
+  )
+  const [visibleDayCount, setVisibleDayCount] = useState(() =>
+    Math.max(1, filledDayCount),
+  )
+  const shownDayCount = Math.min(visibleDayCount, dayCount)
+
+  const optionsForDay = (dayIndex: number) => {
+    const dayStart = dayIndex * MINUTES_IN_DAY
+    return marks
+      .filter(m => {
+        if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
+        const local = m % MINUTES_IN_DAY
+        if (dayIndex === 0) return local <= localStartMinute
+        if (dayIndex === dayCount - 1) return local <= localEndMinute
+        return true
+      })
+      .map(m => {
+        const label = minutesToTime(m % MINUTES_IN_DAY)
+        return { value: label, label }
+      })
+  }
+
+  const applySameEveryDay = () => {
+    const value = doorsTimes[0] ?? ""
+    for (let i = 1; i < dayCount; i++) onDoorsChange(i, value)
+    setVisibleDayCount(dayCount)
+  }
+
+  const addNextDay = () =>
+    setVisibleDayCount(count => Math.min(count + 1, dayCount))
+
+  return (
+    <div className="flex flex-col gap-2">
+      {Array.from({ length: shownDayCount }, (_, dayIndex) => (
+        <div className="min-w-44" key={dayIndex}>
+          <SelectField
+            id={`${uid}-doorsTime-${dayIndex}`}
+            label={
+              dayCount > 1
+                ? `Dørene åpner – dag ${dayIndex + 1} (valgfritt)`
+                : "Dørene åpner (valgfritt)"
+            }
+            onChange={value => onDoorsChange(dayIndex, value)}
+            options={optionsForDay(dayIndex)}
+            placeholder={dayIndex === 0 ? "Samme som start" : "Ikke satt"}
+            value={doorsTimes[dayIndex] ?? ""}
+          />
+        </div>
+      ))}
+      {dayCount > 1 && (
+        <div className="flex flex-col gap-2">
+          <Button
+            onClick={applySameEveryDay}
+            size="sm"
+            type="button"
+            variant="neutral"
+          >
+            Dørene åpner samme tid hver dag
+          </Button>
+          {shownDayCount < dayCount && (
+            <Button
+              onClick={addNextDay}
+              size="sm"
+              type="button"
+              variant="neutral"
+            >
+              Legg til dag {shownDayCount + 1}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

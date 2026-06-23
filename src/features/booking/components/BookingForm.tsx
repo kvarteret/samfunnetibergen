@@ -15,6 +15,11 @@ import {
   type FormState as EventFormState,
   initialState as eventInitialState,
 } from "@/features/events/domain/formState"
+import {
+  eventTypeOptions,
+  groupOptions,
+  roomOptions,
+} from "@/features/events/domain/options"
 import { useEventImage } from "@/features/events/domain/useEventImage"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -53,11 +58,6 @@ import {
   PROMOTE_FIELD,
 } from "../domain/promotion"
 import type { BookingRoom } from "../types"
-import {
-  eventTypeOptions,
-  groupOptions,
-  roomOptions,
-} from "@/features/events/domain/options"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
@@ -189,7 +189,7 @@ export function BookingForm({
         }
       }
     },
-  });
+  })
   const values = useStore(form.store, state => state.values)
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
   const isSubmitSuccessful = useStore(
@@ -253,7 +253,7 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.promote])
 
-  const showDoorsHint = Boolean(values.doorsTime)
+  const showDoorsHint = values.doorsTimes.some(Boolean)
   const onSameAsBooking = () => {
     const time = bookingStartTime(values)
     promotionForm.setFieldValue("dates", (dates: EventFormState["dates"]) =>

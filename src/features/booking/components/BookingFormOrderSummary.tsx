@@ -86,9 +86,16 @@ export function BookingFormOrderSummary({
             <DetailRow icon={CalendarClock} label="Tidspunkt" layout="vertical">
               {time}
             </DetailRow>
-            {state.doorsTime && (
+            {state.doorsTimes.some(Boolean) && (
               <DetailRow icon={DoorOpen} label="Dørene åpner" layout="vertical">
-                {state.doorsTime}
+                {state.doorsTimes.length > 1
+                  ? state.doorsTimes
+                      .map((doorsTime, i) =>
+                        doorsTime ? `Dag ${i + 1}: ${doorsTime}` : null,
+                      )
+                      .filter(Boolean)
+                      .join(", ")
+                  : state.doorsTimes[0]}
               </DetailRow>
             )}
             {state.eventName.trim() && (

@@ -1,4 +1,4 @@
-import { resolveEndDateTime, toDateTime } from "./datetime"
+import { addDaysDateOnly, resolveEndDateTime, toDateTime } from "./datetime"
 import {
   AUDIENCE_COUNT,
   BAR_KVARTERET,
@@ -70,8 +70,9 @@ export interface RoomBookingInput {
   contactName: string
   contactEmail: string
   contactPhone: string
-  // Optional: when doors open (HH:mm). Adds a 0-minute "Doors" timeline entry.
-  doorsTime?: string
+  // Optional: when doors open each day (HH:mm), indexed from startDate. Each
+  // non-empty entry adds a 0-minute "Doors" timeline entry for that day.
+  doorsTimes?: string[]
   // Ekstern only
   onBehalfOfStudentOrg?: boolean
   studentOrgName?: string
@@ -129,11 +130,17 @@ const ticketTypesOrNA = (input: RoomBookingInput) =>
 const cateringOrNo = (input: RoomBookingInput) =>
   input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei"
 
-// A 0-minute "Doors" entry on the day's timeline, when a doors time is given.
+// A 0-minute "Doors" entry on each day's timeline that has a doors time set.
 function doorsAssignments(input: RoomBookingInput): Assignment[] {
-  if (!input.doorsTime) return []
-  const doors = toDateTime(input.startDate, input.doorsTime)
-  return [{ title: "Doors", description: null, start: doors, end: doors }]
+  const times = input.doorsTimes ?? []
+  const isMultiDay = times.length > 1
+  return times.flatMap((time, dayIndex) => {
+    if (!time) return []
+    const date = addDaysDateOnly(input.startDate, dayIndex)
+    const doors = toDateTime(date, time)
+    const title = isMultiDay ? `Doors dag ${dayIndex + 1}` : "Doors"
+    return [{ title, description: null, start: doors, end: doors }]
+  })
 }
 
 // Ekstern/studentorg may flag flexibility on date/room (no Crescat field).

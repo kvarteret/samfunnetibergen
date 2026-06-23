@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Lora, Source_Serif_4 } from "next/font/google"
+import { DM_Mono, Lora, Source_Serif_4 } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
@@ -22,6 +22,13 @@ const sourceSerif4 = Source_Serif_4({
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-lora",
+  display: "swap",
+})
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-mono",
   display: "swap",
 })
 
@@ -82,7 +89,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-paper="grid"
       data-theme="hs"
       lang="no"
-      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} h-full antialiased`}
+      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

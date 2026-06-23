@@ -14,18 +14,26 @@ export const PROMO_IMAGE_FIELD = "promote-image"
 
 type BookingPrefillSubset = Pick<
   BookingFormState,
-  "eventName" | "startDate" | "endDate" | "startTime" | "doorsTime" | "freeOrPaid" | "contactName" | "contactEmail"
+  | "eventName"
+  | "startDate"
+  | "endDate"
+  | "startTime"
+  | "doorsTimes"
+  | "freeOrPaid"
+  | "contactName"
+  | "contactEmail"
 >
 
 // Seeds the embedded event form from what the guest already typed into the
-// booking: title from the event name, start time from "Dører åpner" (doorsTime)
-// when set otherwise the booking start time, the first date from the booking
-// date, and free/paid from the booking. Pure: never mutates its inputs.
+// booking: title from the event name, start time from the first day's "Dører
+// åpner" (doorsTimes[0]) when set otherwise the booking start time, the first
+// date from the booking date, and free/paid from the booking. Pure: never
+// mutates its inputs.
 export function buildPromotionDefaults(
   booking: BookingPrefillSubset,
   base: EventFormState,
 ): EventFormState {
-  const startTime = booking.doorsTime || booking.startTime
+  const startTime = booking.doorsTimes[0] || booking.startTime
   const [firstDate, ...restDates] = base.dates
 
   const dates = firstDate

@@ -72,7 +72,7 @@ export function BookingFormScheduleSection({
           endDate: s.values.endDate,
           startTime: s.values.startTime,
           endTime: s.values.endTime,
-          doorsTime: s.values.doorsTime,
+          doorsTimes: s.values.doorsTimes,
           bookerType: s.values.bookerType,
         })}
       >
@@ -82,7 +82,7 @@ export function BookingFormScheduleSection({
           endDate,
           startTime,
           endTime,
-          doorsTime,
+          doorsTimes,
           bookerType,
         }: {
           selectedRoomIds: number[]
@@ -90,7 +90,7 @@ export function BookingFormScheduleSection({
           endDate: string
           startTime: string
           endTime: string
-          doorsTime: string
+          doorsTimes: string[]
           bookerType: BookerType
         }) => {
           return (
@@ -99,12 +99,18 @@ export function BookingFormScheduleSection({
                 <Label>Dato og tidspunkt *</Label>
                 <DateTimePicker
                   closedDates={closedDates}
-                  doorsTime={doorsTime}
+                  doorsTimes={doorsTimes}
                   endDate={endDate}
                   endTime={endTime}
                   hasConflict={hasConflict}
                   occupiedRanges={occupiedRanges}
-                  onDoorsChange={v => form.setFieldValue("doorsTime", v)}
+                  onDoorsChange={(dayIndex, v) =>
+                    form.setFieldValue("doorsTimes", (arr: string[]) => {
+                      const next = [...arr]
+                      next[dayIndex] = v
+                      return next
+                    })
+                  }
                   onEndChange={v => form.setFieldValue("endTime", v)}
                   onEndDateChange={v => form.setFieldValue("endDate", v)}
                   onStartChange={v => form.setFieldValue("startTime", v)}
@@ -116,6 +122,10 @@ export function BookingFormScheduleSection({
                   today={today}
                   uid={uid}
                 />
+                <p className="text-sm text-foreground-muted">
+                  Husk å beregne tid til opprigg og nedrigg innenfor bookingens
+                  start- og sluttid.
+                </p>
               </FieldGroup>
 
               {startDate && startTime && endTime ? (

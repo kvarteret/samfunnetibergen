@@ -13,7 +13,9 @@ export interface BookingFormState {
   endDate: string
   startTime: string
   endTime: string
-  doorsTime: string
+  // One entry per day spanned by the booking, indexed from the start date.
+  // Each day's "doors open" time is independent and optional.
+  doorsTimes: string[]
   audienceCount: string
   openOrClosed: "Åpent" | "Lukket"
   description: string
@@ -54,7 +56,7 @@ export const initialBookingState: BookingFormState = {
   endDate: "",
   startTime: "19:00",
   endTime: "23:00",
-  doorsTime: "",
+  doorsTimes: [],
   audienceCount: "1",
   openOrClosed: "Åpent",
   description: "",
@@ -122,7 +124,7 @@ export function buildBookingPayload(
     endDate: state.endDate || undefined,
     startTime: state.startTime,
     endTime: state.endTime,
-    doorsTime: state.doorsTime || undefined,
+    doorsTimes: state.doorsTimes.some(Boolean) ? state.doorsTimes : undefined,
     description: state.description,
     audienceCount: Number(state.audienceCount) || 0,
     openOrClosed: state.openOrClosed,
