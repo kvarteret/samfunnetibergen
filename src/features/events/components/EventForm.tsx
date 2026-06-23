@@ -105,7 +105,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
       if (!result.ok) throw new Error(result.error)
     },
-  });
+  })
   const values = useStore(form.store, state => state.values)
   const isSubmitSuccessful = useStore(
     form.store,
