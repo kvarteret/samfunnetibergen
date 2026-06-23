@@ -39,7 +39,7 @@ export const initialKaraokeState: KaraokeFormState = {
   eventName: "",
   startDate: "",
   startSlotMin: null,
-  duration: 2,
+  duration: 1,
   description: "",
   contactName: "",
   contactEmail: "",

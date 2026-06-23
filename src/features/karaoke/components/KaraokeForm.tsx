@@ -190,7 +190,7 @@ export function KaraokeForm({
           <KaraokeFormSubmitSection />
         </form>
 
-        <aside className="space-y-5 lg:sticky lg:top-8">
+        <aside className="space-y-5 lg:sticky lg:top-24">
           <KaraokeOrderPreview derived={derived} />
           <KaraokeFormRoomCard room={room} />
         </aside>
