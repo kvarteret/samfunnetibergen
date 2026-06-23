@@ -1,15 +1,17 @@
 "use client"
 
-import { PreviewCard } from "@base-ui/react/preview-card"
+import { Popover } from "@base-ui/react/popover"
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { ArrowRight, Building2, CalendarClock, Check, X } from "lucide-react"
 import {
-  Fragment,
-  type ReactElement,
-  type ReactNode,
-  useId,
-  useState,
-} from "react"
+  ArrowRight,
+  Building2,
+  CalendarClock,
+  Check,
+  Info,
+  Plus,
+  X,
+} from "lucide-react"
+import { type MouseEvent, type ReactNode, useId, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
@@ -17,7 +19,6 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
-import { Tag } from "@/components/ui/tag"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import {
@@ -137,21 +138,17 @@ export function BookingFormScheduleSection({
                         form.setFieldValue("selectedRoomIds", next)
                       }
 
-                      const roomCard = (
-                        <label
+                      return (
+                        <div
                           className={cn(
-                            "group flex cursor-pointer flex-col overflow-hidden border-2 transition-colors",
+                            "group relative flex flex-col overflow-hidden border-2 transition-colors",
                             selected
                               ? "border-primary bg-primary/5"
-                              : "border-border bg-card hover:border-primary",
+                              : "border-border bg-card",
+                            occupied && "opacity-60 saturate-50",
                           )}
+                          key={room.crescatRoomId}
                         >
-                          <input
-                            checked={selected}
-                            className="sr-only"
-                            onChange={() => toggleRoom(room.crescatRoomId)}
-                            type="checkbox"
-                          />
                           {!isCrescatOnly && (
                             <div className="relative aspect-video bg-muted">
                               <ImageWithFallback
@@ -165,25 +162,42 @@ export function BookingFormScheduleSection({
                                 sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
                                 src={room.image?.assetUrl}
                               />
-                              {selected && (
-                                <span className="absolute right-3 top-3 flex size-7 items-center justify-center bg-primary text-primary-foreground">
-                                  <Check aria-hidden className="size-4" />
-                                </span>
-                              )}
                               {occupied && (
-                                <Tag
-                                  className="absolute left-3 top-3"
-                                  variant="destructive"
-                                >
-                                  Opptatt
-                                </Tag>
+                                <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
+                                  <CalendarClock
+                                    aria-hidden
+                                    className="size-3.5 shrink-0"
+                                  />
+                                  <span className="font-heading text-xs uppercase tracking-widest">
+                                    Opptatt
+                                  </span>
+                                </div>
+                              )}
+                              <AddRoomButton
+                                className="absolute right-3 top-3"
+                                onClick={() => toggleRoom(room.crescatRoomId)}
+                                selected={selected}
+                              />
+                              {room.slug && (
+                                <RoomInfoTrigger
+                                  className="absolute bottom-3 left-3"
+                                  room={room}
+                                />
                               )}
                             </div>
                           )}
                           <div className="flex flex-1 flex-col gap-2 p-4">
-                            <p className="font-heading text-lg text-foreground">
-                              {roomName}
-                            </p>
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="font-heading text-lg text-foreground">
+                                {roomName}
+                              </p>
+                              {isCrescatOnly && (
+                                <AddRoomButton
+                                  onClick={() => toggleRoom(room.crescatRoomId)}
+                                  selected={selected}
+                                />
+                              )}
+                            </div>
                             {!isCrescatOnly &&
                               (room.capacityStanding ||
                                 room.capacitySeated) && (
@@ -198,15 +212,7 @@ export function BookingFormScheduleSection({
                               <RoomConflictList conflicts={conflicts} />
                             )}
                           </div>
-                        </label>
-                      )
-
-                      return room.slug ? (
-                        <RoomPreviewCard key={room.crescatRoomId} room={room}>
-                          {roomCard}
-                        </RoomPreviewCard>
-                      ) : (
-                        <Fragment key={room.crescatRoomId}>{roomCard}</Fragment>
+                        </div>
                       )
                     })}
                   </div>
@@ -299,27 +305,89 @@ const TECH_SPECS: {
   { label: "A/V", hasKey: "hasAV", detailsKey: "avDetails" },
 ]
 
-// Hover/focus preview of a room's full facility list, with a link into the
-// room's own page — the room cards here are selection checkboxes, not links,
-// so this is the only way to see full room details without losing
-// booking-form progress. Uses a dense label/value grid (not the spacious
-// detail-page layout) so a complete facility list still skims in one glance.
-function RoomPreviewCard({
+// Adds or removes a room from the booking. A plain button (not the whole
+// card) so the card itself is free to host an independent info trigger
+// without the two gestures fighting over the same hit target.
+function AddRoomButton({
+  selected,
+  onClick,
+  className,
+}: {
+  selected: boolean
+  onClick: () => void
+  className?: string
+}) {
+  const handleClick = (e: MouseEvent) => {
+    e.preventDefault()
+    onClick()
+  }
+
+  if (selected) {
+    return (
+      <button
+        aria-label="Fjern rom fra bookingen"
+        className={cn(
+          "flex items-center gap-1.5 border-2 border-primary bg-primary px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 focus-brutal",
+          className,
+        )}
+        onClick={handleClick}
+        type="button"
+      >
+        <Check aria-hidden className="size-3.5" />
+        Lagt til
+      </button>
+    )
+  }
+
+  return (
+    <button
+      aria-label="Legg til rom i bookingen"
+      className={cn(
+        "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground focus-brutal",
+        className,
+      )}
+      onClick={handleClick}
+      type="button"
+    >
+      <Plus aria-hidden className="size-4" />
+    </button>
+  )
+}
+
+// Small, independent info trigger for a room's full facility list, with a
+// link into the room's own page. Opens on hover (0ms delay, so it's obvious
+// it's interactive) or on tap, since it's a real button rather than relying
+// on hover-only behavior that doesn't work on touch devices. Deliberately a
+// separate hit target from the add-room button and the card itself — making
+// the whole card a hover/click target made both gestures fight each other.
+function RoomInfoTrigger({
   room,
-  children,
+  className,
 }: {
   room: BookingRoom
-  children: ReactElement
+  className?: string
 }) {
   const hasCapacity =
     room.capacityStanding != null || room.capacitySeated != null
 
   return (
-    <PreviewCard.Root>
-      <PreviewCard.Trigger render={children} />
-      <PreviewCard.Portal>
-        <PreviewCard.Positioner sideOffset={12}>
-          <PreviewCard.Popup className="z-50 w-72 space-y-3 panel shadow-shadow">
+    <Popover.Root>
+      <Popover.Trigger
+        aria-label={`Mer info om ${room.title}`}
+        className={cn(
+          "flex cursor-pointer items-center gap-1.5 border-2 border-border bg-card/90 px-2.5 py-1 font-heading text-xs tracking-widest text-foreground-muted backdrop-blur-sm transition-colors hover:border-primary hover:text-foreground focus-brutal",
+          className,
+        )}
+        closeDelay={100}
+        delay={0}
+        openOnHover
+      >
+        <Info aria-hidden className="size-3.5" />
+        Mer info
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={12}>
+          <Popover.Popup className="z-[100] w-72 space-y-3 panel shadow-shadow">
             <div className="space-y-1">
               <p className="font-heading text-lg text-foreground">
                 {room.title}
@@ -366,10 +434,10 @@ function RoomPreviewCard({
               Se rommet
               <ArrowRight aria-hidden className="size-4" />
             </Link>
-          </PreviewCard.Popup>
-        </PreviewCard.Positioner>
-      </PreviewCard.Portal>
-    </PreviewCard.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }
 
