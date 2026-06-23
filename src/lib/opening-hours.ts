@@ -109,6 +109,32 @@ export function formatOpeningHoursRow(row: OpeningHoursRow): string | null {
   return `${dayLabel}: ${row.duration.start}-${row.duration.end}`
 }
 
+/**
+ * Normalize a set of opening ranges into the canonical form every consumer
+ * relies on: sorted by start, with overlapping or touching ranges merged into
+ * one. Several opening-hours rows can match the same weekday (and intersecting
+ * base/room hours can produce fragments), so without this the same minute can
+ * appear in two ranges — which surfaced as duplicate, out-of-order time slots.
+ */
+function mergeRanges(ranges: SlotRange[]): SlotRange[] {
+  const sorted = [...ranges].sort(
+    (a, b) => a.startMin - b.startMin || a.endMin - b.endMin,
+  )
+  const merged: SlotRange[] = []
+  for (const range of sorted) {
+    const last = merged.at(-1)
+    if (last && range.startMin <= last.endMin) {
+      merged[merged.length - 1] = {
+        startMin: last.startMin,
+        endMin: Math.max(last.endMin, range.endMin),
+      }
+    } else {
+      merged.push({ startMin: range.startMin, endMin: range.endMin })
+    }
+  }
+  return merged
+}
+
 export function openingRangesForDate(
   dateStr: string,
   hours?: OpeningHours | null,
@@ -117,7 +143,7 @@ export function openingRangesForDate(
   if (isHouseClosed(dateStr, closedDates)) return []
 
   const weekday = isoWeekday(dateStr)
-  return (hours?.rows ?? []).flatMap(row => {
+  const rows = (hours?.rows ?? []).flatMap(row => {
     if (!row || row.status === "closed") return []
     if (!row.weekdays?.includes(weekday)) return []
 
@@ -132,6 +158,8 @@ export function openingRangesForDate(
       },
     ]
   })
+
+  return mergeRanges(rows)
 }
 
 export function hasOpeningHoursRows(hours?: OpeningHours | null): boolean {
@@ -156,13 +184,15 @@ export function combineOpeningRangesForDate(
   const baseRanges = openingRangesForDate(dateStr, baseHours, closedDates)
   const roomRanges = openingRangesForDate(dateStr, roomHours, closedDates)
 
-  return baseRanges.flatMap(baseRange =>
+  const intersections = baseRanges.flatMap(baseRange =>
     roomRanges.flatMap(roomRange => {
       const startMin = Math.max(baseRange.startMin, roomRange.startMin)
       const endMin = Math.min(baseRange.endMin, roomRange.endMin)
       return startMin < endMin ? [{ startMin, endMin }] : []
     }),
   )
+
+  return mergeRanges(intersections)
 }
 
 export function isOpenAt(
@@ -186,15 +216,19 @@ export function isOpenAt(
   )
 }
 
-export function slotRangesForDate(
-  dateStr: string,
+/**
+ * Slot start minutes that fit `durationHours` within the given opening ranges.
+ * Ranges are expected to be normalized (sorted, disjoint) by their producers
+ * (`openingRangesForDate` / `combineOpeningRangesForDate`), so the result is
+ * naturally ascending and duplicate-free without any extra bookkeeping here.
+ */
+function slotStartsFromRanges(
+  ranges: SlotRange[],
   durationHours: number,
-  hours?: OpeningHours | null,
-  closedDates?: ClosedDate[] | null,
-  stepMin = 60,
+  stepMin: number,
 ): number[] {
   const durationMin = durationHours * 60
-  return openingRangesForDate(dateStr, hours, closedDates).flatMap(range => {
+  return ranges.flatMap(range => {
     const count =
       Math.floor((range.endMin - range.startMin - durationMin) / stepMin) + 1
     if (count <= 0) return []
@@ -205,6 +239,20 @@ export function slotRangesForDate(
   })
 }
 
+export function slotRangesForDate(
+  dateStr: string,
+  durationHours: number,
+  hours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  stepMin = 60,
+): number[] {
+  return slotStartsFromRanges(
+    openingRangesForDate(dateStr, hours, closedDates),
+    durationHours,
+    stepMin,
+  )
+}
+
 export function combinedSlotRangesForDate(
   dateStr: string,
   durationHours: number,
@@ -213,21 +261,11 @@ export function combinedSlotRangesForDate(
   closedDates?: ClosedDate[] | null,
   stepMin = 60,
 ): number[] {
-  const durationMin = durationHours * 60
-  return combineOpeningRangesForDate(
-    dateStr,
-    baseHours,
-    roomHours,
-    closedDates,
-  ).flatMap(range => {
-    const count =
-      Math.floor((range.endMin - range.startMin - durationMin) / stepMin) + 1
-    if (count <= 0) return []
-    return Array.from(
-      { length: count },
-      (_, index) => range.startMin + index * stepMin,
-    )
-  })
+  return slotStartsFromRanges(
+    combineOpeningRangesForDate(dateStr, baseHours, roomHours, closedDates),
+    durationHours,
+    stepMin,
+  )
 }
 
 export function isSlotAllowed(

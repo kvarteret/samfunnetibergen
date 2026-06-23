@@ -56,6 +56,28 @@ function isMarkOccupied(
   return occupiedRanges.some(r => minute >= r.startMin && minute < r.endMin)
 }
 
+// Slot-box options for one thumb: every mark in [minIdx, maxIdx], labeled by
+// local time-of-day and flagged unavailable when it falls in a booked range.
+function buildSlotOptions(
+  marks: number[],
+  minIdx: number,
+  maxIdx: number,
+  occupiedRanges: { startMin: number; endMin: number }[],
+): TimeSlotBoxOption[] {
+  const options: TimeSlotBoxOption[] = []
+  for (let i = minIdx; i <= maxIdx && i < marks.length; i++) {
+    const label = minutesToTime(marks[i] % MINUTES_IN_DAY)
+    options.push({
+      value: label,
+      label,
+      availability: isMarkOccupied(marks[i], occupiedRanges)
+        ? "unavailable"
+        : "available",
+    })
+  }
+  return options
+}
+
 export function TimeRangeSlider({
   marks,
   startTime,
@@ -154,35 +176,15 @@ export function TimeRangeSlider({
   // Picking a slot from a box reuses the same commit handler as dragging the
   // slider, so both stay perfectly in sync and share the same clamping rules.
 
-  const startOptions: TimeSlotBoxOption[] = useMemo(() => {
-    const options: TimeSlotBoxOption[] = []
-    for (let i = minStartIdx; i <= maxStartIdx && i < marks.length; i++) {
-      const label = minutesToTime(marks[i] % MINUTES_IN_DAY)
-      options.push({
-        value: label,
-        label,
-        availability: isMarkOccupied(marks[i], occupiedRanges)
-          ? "unavailable"
-          : "available",
-      })
-    }
-    return options
-  }, [marks, minStartIdx, maxStartIdx, occupiedRanges])
+  const startOptions = useMemo(
+    () => buildSlotOptions(marks, minStartIdx, maxStartIdx, occupiedRanges),
+    [marks, minStartIdx, maxStartIdx, occupiedRanges],
+  )
 
-  const endOptions: TimeSlotBoxOption[] = useMemo(() => {
-    const options: TimeSlotBoxOption[] = []
-    for (let i = minEndIdx; i <= maxEndIdx && i < marks.length; i++) {
-      const label = minutesToTime(marks[i] % MINUTES_IN_DAY)
-      options.push({
-        value: label,
-        label,
-        availability: isMarkOccupied(marks[i], occupiedRanges)
-          ? "unavailable"
-          : "available",
-      })
-    }
-    return options
-  }, [marks, minEndIdx, maxEndIdx, occupiedRanges])
+  const endOptions = useMemo(
+    () => buildSlotOptions(marks, minEndIdx, maxEndIdx, occupiedRanges),
+    [marks, minEndIdx, maxEndIdx, occupiedRanges],
+  )
 
   const selectStart = useCallback(
     (timeValue: string) => {
