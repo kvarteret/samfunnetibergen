@@ -9,6 +9,14 @@ const BAR_KVARTERET_PRICE = 2000
 
 const TEGLVERKET_CRESCAT_ROOM_ID = 97
 const STILLHET_CRESCAT_ROOM_ID = 118
+const STØY_CRESCAT_ROOM_ID = 117
+
+// Rooms eligible for free backstage when Teglverket is booked.
+// One is free; if both are selected the cheaper one is free.
+const BACKSTAGE_ROOM_IDS = new Set([
+  STILLHET_CRESCAT_ROOM_ID,
+  STØY_CRESCAT_ROOM_ID,
+])
 
 export interface PriceLine {
   label: string
@@ -26,22 +34,31 @@ function formatHours(hours: number): string {
   return hours % 1 === 0 ? String(hours) : hours.toFixed(1)
 }
 
-// Stillhet is bundled free with Teglverket, so its hourly rate is skipped
-// whenever both are selected together.
+// Backstage rooms (Stillhet, Støy) are free when bundled with Teglverket.
+// The cheapest selected backstage room is skipped; if both are selected,
+// only the cheaper one is free.
 function roomRentLines(rooms: BookingRoom[], hours: number): PriceLine[] {
   if (hours <= 0) return []
   const selectedIds = new Set(rooms.map(room => room.crescatRoomId))
   const bundledWithTeglverket = selectedIds.has(TEGLVERKET_CRESCAT_ROOM_ID)
 
+  // Find the cheapest backstage room to skip (free with Teglverket)
+  let freeBackstageRoomId: number | null = null
+  if (bundledWithTeglverket) {
+    const backstageRooms = rooms.filter(
+      r =>
+        BACKSTAGE_ROOM_IDS.has(r.crescatRoomId) &&
+        selectedIds.has(r.crescatRoomId),
+    )
+    const cheapest = backstageRooms.toSorted(
+      (a, b) => (a.pricePerHour ?? 0) - (b.pricePerHour ?? 0),
+    )[0]
+    if (cheapest) freeBackstageRoomId = cheapest.crescatRoomId
+  }
+
   return rooms
     .filter(room => room.pricePerHour != null && room.pricePerHour > 0)
-    .filter(
-      room =>
-        !(
-          bundledWithTeglverket &&
-          room.crescatRoomId === STILLHET_CRESCAT_ROOM_ID
-        ),
-    )
+    .filter(room => room.crescatRoomId !== freeBackstageRoomId)
     .map(room => ({
       label: `${room.title ?? "Rom"} (${formatHours(hours)} t × ${room.pricePerHour} kr)`,
       amount: (room.pricePerHour ?? 0) * hours,

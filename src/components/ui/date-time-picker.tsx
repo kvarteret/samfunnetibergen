@@ -132,26 +132,29 @@ export function DateTimePicker({
   const isDisabled = (d: Date): boolean => {
     if (d < todayDate) return true
     if (isOccupied(d)) return true
-    if (isSelectingEnd && selectedRange.from) {
-      const maxEnd = new Date(selectedRange.from)
-      maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
-      if (d > maxEnd) return true
-    }
     return false
+  }
+
+  // True when clicking a date beyond the 7-day max-range window while
+  // selecting an end date — should reset to a fresh first click.
+  const isRangeReset = (d: Date): boolean => {
+    if (!isSelectingEnd || !selectedRange.from) return false
+    if (d < selectedRange.from) return false
+    const maxEnd = new Date(selectedRange.from)
+    maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
+    return d > maxEnd
   }
 
   const handleDayClick = (date: Date, disabled: boolean) => {
     if (disabled) return
     if (isSelectingEnd && selectedRange.from) {
-      if (date < selectedRange.from) {
-        // Clicked before start → treat as new start
+      if (date < selectedRange.from || isRangeReset(date)) {
+        // Clicked before start or outside max range → treat as new start
         onStartDateChange(toDateString(date))
         onEndDateChange("")
         return
       }
-      const maxEnd = new Date(selectedRange.from)
-      maxEnd.setDate(maxEnd.getDate() + MAX_RANGE_DAYS - 1)
-      onEndDateChange(toDateString(date > maxEnd ? maxEnd : date))
+      onEndDateChange(toDateString(date))
     } else {
       onStartDateChange(toDateString(date))
       onEndDateChange("")

@@ -17,7 +17,7 @@ function formatKr(amount: number): string {
 }
 
 const BOOKER_LABELS: Record<BookerType, string> = {
-  ekstern: "Ekstern / privat",
+  ekstern: "Privat",
   studentorg: "Studentorganisasjon",
   intern: "Intern",
 }

@@ -37,7 +37,12 @@ const teglverket = room({
 const stillhet = room({
   crescatRoomId: 118,
   title: "Stillhet",
-  pricePerHour: 300,
+  pricePerHour: 400,
+})
+const støy = room({
+  crescatRoomId: 117,
+  title: "Støy",
+  pricePerHour: 400,
 })
 const tivoli = room({ crescatRoomId: 95, title: "Tivoli", pricePerHour: 1800 })
 
@@ -76,17 +81,39 @@ describe("computePriceSummary", () => {
     expect(result.lines).toEqual([])
   })
 
-  it("skips Stillhet's price when bundled with Teglverket", () => {
+  it("gives cheapest backstage room free when bundled with Teglverket", () => {
     const result = computePriceSummary(booking, [teglverket, stillhet])
     expect(result.lines).toEqual([
       { label: "Teglverket (4 t × 1800 kr)", amount: 7200 },
     ])
   })
 
+  it("gives one backstage room free even when Støy is selected alone with Teglverket", () => {
+    const result = computePriceSummary(booking, [teglverket, støy])
+    expect(result.lines).toEqual([
+      { label: "Teglverket (4 t × 1800 kr)", amount: 7200 },
+    ])
+  })
+
+  it("charges second backstage room when both Stillhet and Støy selected with Teglverket", () => {
+    const result = computePriceSummary(booking, [teglverket, stillhet, støy])
+    expect(result.lines).toEqual([
+      { label: "Teglverket (4 t × 1800 kr)", amount: 7200 },
+      { label: "Støy (4 t × 400 kr)", amount: 1600 },
+    ])
+  })
+
   it("still charges Stillhet on its own", () => {
     const result = computePriceSummary(booking, [stillhet])
     expect(result.lines).toEqual([
-      { label: "Stillhet (4 t × 300 kr)", amount: 1200 },
+      { label: "Stillhet (4 t × 400 kr)", amount: 1600 },
+    ])
+  })
+
+  it("charges Støy normally when selected on its own", () => {
+    const result = computePriceSummary(booking, [støy])
+    expect(result.lines).toEqual([
+      { label: "Støy (4 t × 400 kr)", amount: 1600 },
     ])
   })
 
