@@ -96,6 +96,16 @@ export function BookingFormOrderSummary({
                   : state.doorsTimes[0]}
               </DetailRow>
             )}
+            {state.estimatedEndTimes?.some(Boolean) && (
+              <DetailRow label="Antatt slutt" layout="vertical">
+                {(state.estimatedEndTimes?.length ?? 0) > 1
+                  ? (state.estimatedEndTimes ?? [])
+                      .map((t, i) => (t ? `Dag ${i + 1}: ${t}` : null))
+                      .filter(Boolean)
+                      .join(", ")
+                  : state.estimatedEndTimes?.[0]}
+              </DetailRow>
+            )}
             {state.audienceCount.trim() && (
               <DetailRow label="Publikum" layout="vertical">
                 {state.audienceCount} personer

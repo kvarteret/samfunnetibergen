@@ -223,12 +223,16 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType])
 
+  const selectedStartDate = values.startDate
+
   useEffect(() => {
     let active = true
+    // Fetch around the selected date when available, otherwise fetch from today.
+    const windowStart = selectedStartDate || today
     fetchRoomAvailability(
       bookerType,
-      today,
-      addDaysDateOnly(today, DATE_COUNT),
+      windowStart,
+      addDaysDateOnly(windowStart, DATE_COUNT),
     ).then(result => {
       if (active) setBookings(result)
     })
@@ -236,7 +240,7 @@ export function BookingForm({
       active = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookerType])
+  }, [bookerType, selectedStartDate])
 
   // Seed the embedded event form once, the first time the guest opts in, from
   // what they already typed into the booking. Seeding once avoids clobbering
@@ -582,6 +586,12 @@ function getBookingValidationErrors({
     errors.push({
       fieldId: fieldIds.startDate,
       message: "Velg dato.",
+    })
+  }
+  if (values.startDate && !values.doorsTimes[0]) {
+    errors.push({
+      fieldId: fieldIds.startDate,
+      message: "Velg tidspunkt for dørene åpner.",
     })
   }
   if (hasConflict) {

@@ -14,8 +14,10 @@ export interface BookingFormState {
   startTime: string
   endTime: string
   // One entry per day spanned by the booking, indexed from the start date.
-  // Each day's "doors open" time is independent and optional.
+  // Each day's "doors open" time is mandatory for day 0, optional for others.
   doorsTimes: string[]
+  // One entry per day. Estimated time the public event ends. Always optional.
+  estimatedEndTimes: string[]
   audienceCount: string
   openOrClosed: "Åpent" | "Lukket"
   description: string
@@ -57,6 +59,7 @@ export const initialBookingState: BookingFormState = {
   startTime: "19:00",
   endTime: "23:00",
   doorsTimes: [],
+  estimatedEndTimes: [],
   audienceCount: "1",
   openOrClosed: "Åpent",
   description: "",
@@ -125,6 +128,9 @@ export function buildBookingPayload(
     startTime: state.startTime,
     endTime: state.endTime,
     doorsTimes: state.doorsTimes.some(Boolean) ? state.doorsTimes : undefined,
+    estimatedEndTimes: state.estimatedEndTimes.some(Boolean)
+      ? state.estimatedEndTimes
+      : undefined,
     description: state.description,
     audienceCount: Number(state.audienceCount) || 0,
     openOrClosed: state.openOrClosed,
@@ -163,6 +169,7 @@ export function canSubmitBooking(
     !hasConflict &&
     state.eventName.trim() !== "" &&
     state.startDate !== "" &&
+    Boolean(state.doorsTimes[0]) &&
     state.audienceCount.trim() !== "" &&
     state.furniture.trim() !== "" &&
     state.contactName.trim() !== "" &&

@@ -73,6 +73,7 @@ export function BookingFormScheduleSection({
           startTime: s.values.startTime,
           endTime: s.values.endTime,
           doorsTimes: s.values.doorsTimes,
+          estimatedEndTimes: s.values.estimatedEndTimes,
           bookerType: s.values.bookerType,
         })}
       >
@@ -83,6 +84,7 @@ export function BookingFormScheduleSection({
           startTime,
           endTime,
           doorsTimes,
+          estimatedEndTimes,
           bookerType,
         }: {
           selectedRoomIds: number[]
@@ -91,6 +93,7 @@ export function BookingFormScheduleSection({
           startTime: string
           endTime: string
           doorsTimes: string[]
+          estimatedEndTimes: string[]
           bookerType: BookerType
         }) => {
           return (
@@ -100,21 +103,33 @@ export function BookingFormScheduleSection({
                 <DateTimePicker
                   closedDates={closedDates}
                   doorsTimes={doorsTimes}
+                  estimatedEndTimes={estimatedEndTimes}
                   endDate={endDate}
                   endTime={endTime}
                   hasConflict={hasConflict}
                   occupiedRanges={occupiedRanges}
-                  onDoorsChange={(dayIndex, v) =>
-                    form.setFieldValue("doorsTimes", (arr: string[]) => {
-                      const next = [...arr]
-                      next[dayIndex] = v
-                      return next
-                    })
-                  }
+                  onDoorsChange={(dayIndex, v) => {
+                    const next = [...doorsTimes]
+                    next[dayIndex] = v
+                    form.setFieldValue("doorsTimes", next)
+                  }}
+                  onEstimatedEndChange={(dayIndex, v) => {
+                    const next = [...estimatedEndTimes]
+                    next[dayIndex] = v
+                    form.setFieldValue("estimatedEndTimes", next)
+                  }}
                   onEndChange={v => form.setFieldValue("endTime", v)}
-                  onEndDateChange={v => form.setFieldValue("endDate", v)}
+                  onEndDateChange={v => {
+                    form.setFieldValue("endDate", v)
+                    form.setFieldValue("doorsTimes", [])
+                    form.setFieldValue("estimatedEndTimes", [])
+                  }}
                   onStartChange={v => form.setFieldValue("startTime", v)}
-                  onStartDateChange={v => form.setFieldValue("startDate", v)}
+                  onStartDateChange={v => {
+                    form.setFieldValue("startDate", v)
+                    form.setFieldValue("doorsTimes", [])
+                    form.setFieldValue("estimatedEndTimes", [])
+                  }}
                   openingHours={openingHours}
                   roomOpeningHours={firstRoom?.openingHours ?? null}
                   startDate={startDate}
@@ -151,14 +166,18 @@ export function BookingFormScheduleSection({
                       return (
                         <div
                           className={cn(
-                            "relative flex flex-col overflow-hidden border-2 transition-colors cursor-pointer",
-                            selected
+                            "relative flex flex-col overflow-hidden border-2 transition-colors",
+                            occupied
+                              ? "border-border bg-card cursor-default"
+                              : "cursor-pointer",
+                            !occupied && selected
                               ? "border-primary bg-primary/5"
-                              : "border-border bg-card",
-                            occupied && "opacity-60 saturate-50",
+                              : !occupied && "border-border bg-card",
                           )}
                           key={room.crescatRoomId}
-                          onClick={() => toggleRoom(room.crescatRoomId)}
+                          onClick={() =>
+                            !occupied && toggleRoom(room.crescatRoomId)
+                          }
                         >
                           {!isCrescatOnly && (
                             <div className="relative aspect-video bg-muted">
@@ -174,21 +193,30 @@ export function BookingFormScheduleSection({
                                 src={room.image?.assetUrl}
                               />
                               {occupied && (
-                                <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
-                                  <CalendarClock
-                                    aria-hidden
-                                    className="size-3.5 shrink-0"
-                                  />
-                                  <span className="font-heading text-xs uppercase tracking-widest">
-                                    Opptatt
-                                  </span>
-                                </div>
+                                <>
+                                  <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
+                                    <CalendarClock
+                                      aria-hidden
+                                      className="size-3.5 shrink-0"
+                                    />
+                                    <span className="font-heading text-xs uppercase tracking-widest">
+                                      Opptatt
+                                    </span>
+                                  </div>
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                    <span className="font-heading text-lg uppercase tracking-widest text-white">
+                                      Opptatt
+                                    </span>
+                                  </div>
+                                </>
                               )}
-                              <AddRoomButton
-                                className="absolute right-3 top-3"
-                                onClick={() => toggleRoom(room.crescatRoomId)}
-                                selected={selected}
-                              />
+                              {!occupied && (
+                                <AddRoomButton
+                                  className="absolute right-3 top-3"
+                                  onClick={() => toggleRoom(room.crescatRoomId)}
+                                  selected={selected}
+                                />
+                              )}
                               {room.slug && (
                                 <div
                                   className="absolute bottom-3 left-3"
@@ -204,11 +232,22 @@ export function BookingFormScheduleSection({
                               <p className="font-heading text-lg text-foreground">
                                 {roomName}
                               </p>
-                              {isCrescatOnly && (
+                              {isCrescatOnly && !occupied && (
                                 <AddRoomButton
                                   onClick={() => toggleRoom(room.crescatRoomId)}
                                   selected={selected}
                                 />
+                              )}
+                              {isCrescatOnly && occupied && (
+                                <div className="flex items-center gap-1 text-destructive">
+                                  <CalendarClock
+                                    aria-hidden
+                                    className="size-3.5 shrink-0"
+                                  />
+                                  <span className="font-heading text-xs uppercase tracking-widest">
+                                    Opptatt
+                                  </span>
+                                </div>
                               )}
                             </div>
                             {!isCrescatOnly &&

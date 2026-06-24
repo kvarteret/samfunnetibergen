@@ -139,15 +139,34 @@ export function TimeRangeSlider({
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
+  // Minimum 1-hour gap between get-in and get-out, expressed in mark indices.
+  // Single-day uses 15-min marks (4 steps = 60 min); multi-day uses 60-min
+  // marks (1 step = 60 min). Derive from the actual marks array to be safe.
+  const minGapIndices = useMemo(() => {
+    if (marks.length < 2) return 1
+    const step = marks[1] - marks[0]
+    return step > 0 ? Math.max(1, Math.round(60 / step)) : 1
+  }, [marks])
+
   const clampAndEmit = useCallback(
     (value: readonly number[]) => {
       let [sIdx, eIdx] = value as [number, number]
       sIdx = Math.min(Math.max(sIdx, minStartIdx), maxStartIdx)
       eIdx = Math.min(Math.max(eIdx, minEndIdx), maxEndIdx)
-      if (sIdx >= eIdx) {
-        eIdx = Math.min(sIdx + 1, maxEndIdx)
-        sIdx = Math.max(eIdx - 1, minStartIdx)
+
+      // SHOVE: if gap < 1 hour, push the thumb that didn't move.
+      if (eIdx - sIdx < minGapIndices) {
+        const endMoved = eIdx !== endIndex
+        if (endMoved) {
+          // End moved toward start — shove start back.
+          sIdx = Math.max(eIdx - minGapIndices, minStartIdx)
+        } else {
+          // Start moved toward end — shove end forward.
+          eIdx = Math.min(sIdx + minGapIndices, maxEndIdx)
+          sIdx = Math.max(eIdx - minGapIndices, minStartIdx)
+        }
       }
+
       if (sIdx >= 0 && sIdx < marks.length) {
         onStartChange(minutesToTime(marks[sIdx]))
       }
@@ -161,6 +180,8 @@ export function TimeRangeSlider({
       maxStartIdx,
       minEndIdx,
       maxEndIdx,
+      minGapIndices,
+      endIndex,
       onStartChange,
       onEndChange,
     ],

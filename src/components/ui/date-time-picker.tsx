@@ -1,7 +1,7 @@
 "use client"
 
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
@@ -183,6 +183,7 @@ interface DateTimePickerProps {
   startTime: string
   endTime: string
   doorsTimes: string[]
+  estimatedEndTimes: string[]
   hasConflict: boolean
   occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
@@ -190,6 +191,7 @@ interface DateTimePickerProps {
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
   onDoorsChange: (dayIndex: number, value: string) => void
+  onEstimatedEndChange: (dayIndex: number, value: string) => void
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
@@ -203,6 +205,7 @@ export function DateTimePicker({
   startTime,
   endTime,
   doorsTimes,
+  estimatedEndTimes,
   hasConflict,
   occupiedRanges,
   onStartDateChange,
@@ -210,6 +213,7 @@ export function DateTimePicker({
   onStartChange,
   onEndChange,
   onDoorsChange,
+  onEstimatedEndChange,
   openingHours,
   roomOpeningHours,
   closedDates,
@@ -371,9 +375,11 @@ export function DateTimePicker({
               startTime={startTime}
               endTime={endTime}
               doorsTimes={doorsTimes}
+              estimatedEndTimes={estimatedEndTimes}
               onStartChange={onStartChange}
               onEndChange={onEndChange}
               onDoorsChange={onDoorsChange}
+              onEstimatedEndChange={onEstimatedEndChange}
             />
           )
         ) : (
@@ -398,9 +404,11 @@ interface TimeSlotsProps {
   startTime: string
   endTime: string
   doorsTimes: string[]
+  estimatedEndTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
   onDoorsChange: (dayIndex: number, value: string) => void
+  onEstimatedEndChange: (dayIndex: number, value: string) => void
 }
 
 function TimeSlots({
@@ -415,9 +423,11 @@ function TimeSlots({
   startTime,
   endTime,
   doorsTimes,
+  estimatedEndTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
+  onEstimatedEndChange,
 }: TimeSlotsProps) {
   const hasHours =
     hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
@@ -456,9 +466,11 @@ function TimeSlots({
         startTime={startTime}
         endTime={endTime}
         doorsTimes={doorsTimes}
+        estimatedEndTimes={estimatedEndTimes}
         onStartChange={onStartChange}
         onEndChange={onEndChange}
         onDoorsChange={onDoorsChange}
+        onEstimatedEndChange={onEstimatedEndChange}
       />
     )
   }
@@ -495,15 +507,26 @@ function TimeSlots({
           onStartChange={onStartChange}
           onEndChange={onEndChange}
           doorsSlot={
-            <DoorsBoxes
-              dayCount={dayCount}
-              doorsTimes={doorsTimes}
-              endTime={endTime}
-              marks={marks}
-              onDoorsChange={onDoorsChange}
-              startTime={startTime}
-              uid={uid}
-            />
+            <div className="space-y-4">
+              <DoorsBoxes
+                dayCount={dayCount}
+                doorsTimes={doorsTimes}
+                endTime={endTime}
+                marks={marks}
+                onDoorsChange={onDoorsChange}
+                startTime={startTime}
+                uid={uid}
+              />
+              <EstimatedEndBoxes
+                dayCount={dayCount}
+                estimatedEndTimes={estimatedEndTimes}
+                endTime={endTime}
+                marks={marks}
+                onEstimatedEndChange={onEstimatedEndChange}
+                startTime={startTime}
+                uid={uid}
+              />
+            </div>
           }
         />
       </div>
@@ -540,9 +563,11 @@ interface UnconstrainedTimesProps {
   startTime: string
   endTime: string
   doorsTimes: string[]
+  estimatedEndTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
   onDoorsChange: (dayIndex: number, value: string) => void
+  onEstimatedEndChange: (dayIndex: number, value: string) => void
 }
 
 function UnconstrainedTimes({
@@ -554,9 +579,11 @@ function UnconstrainedTimes({
   startTime,
   endTime,
   doorsTimes,
+  estimatedEndTimes,
   onStartChange,
   onEndChange,
   onDoorsChange,
+  onEstimatedEndChange,
 }: UnconstrainedTimesProps) {
   const dayCount = endDate
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
@@ -592,15 +619,26 @@ function UnconstrainedTimes({
           onStartChange={onStartChange}
           onEndChange={onEndChange}
           doorsSlot={
-            <DoorsBoxes
-              dayCount={dayCount}
-              doorsTimes={doorsTimes}
-              endTime={endTime}
-              marks={marks}
-              onDoorsChange={onDoorsChange}
-              startTime={startTime}
-              uid={uid}
-            />
+            <div className="space-y-4">
+              <DoorsBoxes
+                dayCount={dayCount}
+                doorsTimes={doorsTimes}
+                endTime={endTime}
+                marks={marks}
+                onDoorsChange={onDoorsChange}
+                startTime={startTime}
+                uid={uid}
+              />
+              <EstimatedEndBoxes
+                dayCount={dayCount}
+                estimatedEndTimes={estimatedEndTimes}
+                endTime={endTime}
+                marks={marks}
+                onEstimatedEndChange={onEstimatedEndChange}
+                startTime={startTime}
+                uid={uid}
+              />
+            </div>
           }
         />
       </div>
@@ -608,13 +646,37 @@ function UnconstrainedTimes({
   )
 }
 
-// "Dørene åpner" is the optional public-doors time, shown as its own block
-// below the slider. Single-day bookings get one dropdown; multi-day bookings
-// start with day 1 and get two follow-up actions: "samme tid hver dag" fills
-// every day with day 1's value in one click, while "legg til dag N" reveals
-// one more day's box at a time so each day can have its own independent
-// (optional) value. Day 1 offers times up to the booking's start; the last
-// day offers times up to the booking's end; days in between are unconstrained.
+// Returns time options for a given day, constrained to the booking window:
+// times must be >= booking start (day 0) and <= booking end (last day).
+function doorsOptionsForDay(
+  marks: number[],
+  dayIndex: number,
+  dayCount: number,
+  localStartMinute: number | null,
+  localEndMinute: number | null,
+): { value: string; label: string }[] {
+  const dayStart = dayIndex * MINUTES_IN_DAY
+  const isFirstDay = dayIndex === 0
+  const isLastDay = dayIndex === dayCount - 1
+  return marks
+    .filter(m => {
+      if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
+      const local = m % MINUTES_IN_DAY
+      if (isFirstDay && localStartMinute !== null && local < localStartMinute)
+        return false
+      if (isLastDay && localEndMinute !== null && local > localEndMinute)
+        return false
+      return true
+    })
+    .map(m => {
+      const label = minutesToTime(m % MINUTES_IN_DAY)
+      return { value: label, label }
+    })
+}
+
+// "Dørene åpner" — mandatory for day 1, optional for other days on multi-day.
+// Times are constrained to the booking window (>= startTime on day 0, <= endTime
+// on last day). Each day is revealed one at a time via "Legg til dag N".
 function DoorsBoxes({
   uid,
   marks,
@@ -641,30 +703,12 @@ function DoorsBoxes({
   const [visibleDayCount, setVisibleDayCount] = useState(() =>
     Math.max(1, filledDayCount),
   )
+
+  useEffect(() => {
+    setVisibleDayCount(1)
+  }, [dayCount])
+
   const shownDayCount = Math.min(visibleDayCount, dayCount)
-
-  const optionsForDay = (dayIndex: number) => {
-    const dayStart = dayIndex * MINUTES_IN_DAY
-    return marks
-      .filter(m => {
-        if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
-        const local = m % MINUTES_IN_DAY
-        if (dayIndex === 0) return local <= localStartMinute
-        if (dayIndex === dayCount - 1) return local <= localEndMinute
-        return true
-      })
-      .map(m => {
-        const label = minutesToTime(m % MINUTES_IN_DAY)
-        return { value: label, label }
-      })
-  }
-
-  const applySameEveryDay = () => {
-    const value = doorsTimes[0] ?? ""
-    for (let i = 1; i < dayCount; i++) onDoorsChange(i, value)
-    setVisibleDayCount(dayCount)
-  }
-
   const addNextDay = () =>
     setVisibleDayCount(count => Math.min(count + 1, dayCount))
 
@@ -674,10 +718,16 @@ function DoorsBoxes({
       <div className="max-w-xs">
         <SelectField
           id={`${uid}-doorsTime-0`}
-          label="Dørene åpner (valgfritt)"
+          label="Dørene åpner *"
           onChange={value => onDoorsChange(0, value)}
-          options={optionsForDay(0)}
-          placeholder="Samme som start"
+          options={doorsOptionsForDay(
+            marks,
+            0,
+            1,
+            localStartMinute,
+            localEndMinute,
+          )}
+          placeholder="Velg tidspunkt"
           value={doorsTimes[0] ?? ""}
         />
       </div>
@@ -686,33 +736,125 @@ function DoorsBoxes({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground">
-          Dørene åpner
-          <span className="ml-2 normal-case tracking-normal text-foreground-muted">
-            (valgfritt)
-          </span>
-        </p>
-        <Button
-          onClick={applySameEveryDay}
-          size="sm"
-          type="button"
-          variant="neutral"
-        >
-          Samme tid hver dag
-        </Button>
-      </div>
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+        Dørene åpner{" "}
+        <span className="normal-case tracking-normal text-foreground-muted">
+          (dag 1 obligatorisk)
+        </span>
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {Array.from({ length: shownDayCount }, (_, dayIndex) => (
           <SelectField
             id={`${uid}-doorsTime-${dayIndex}`}
             key={dayIndex}
-            label={`Dag ${dayIndex + 1}`}
+            label={`Dag ${dayIndex + 1}${dayIndex === 0 ? " *" : ""}`}
             onChange={value => onDoorsChange(dayIndex, value)}
-            options={optionsForDay(dayIndex)}
-            placeholder={dayIndex === 0 ? "Samme som start" : "Ikke satt"}
+            options={doorsOptionsForDay(
+              marks,
+              dayIndex,
+              dayCount,
+              localStartMinute,
+              localEndMinute,
+            )}
+            placeholder="Velg tidspunkt"
             value={doorsTimes[dayIndex] ?? ""}
+          />
+        ))}
+      </div>
+
+      {shownDayCount < dayCount && (
+        <Button onClick={addNextDay} size="sm" type="button" variant="neutral">
+          Legg til dag {shownDayCount + 1}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// "Antatt slutt" — optional estimated public end time per day, sent to crescat
+// as a 0-minute timeline entry alongside "Dørene åpner".
+function EstimatedEndBoxes({
+  uid,
+  marks,
+  dayCount,
+  startTime,
+  endTime,
+  estimatedEndTimes,
+  onEstimatedEndChange,
+}: {
+  uid: string
+  marks: number[]
+  dayCount: number
+  startTime: string
+  endTime: string
+  estimatedEndTimes: string[]
+  onEstimatedEndChange: (dayIndex: number, value: string) => void
+}) {
+  const localStartMinute = timeToMinutes(startTime)
+  const localEndMinute = timeToMinutes(endTime)
+  const filledDayCount = estimatedEndTimes.reduce(
+    (max, value, i) => (value ? i + 1 : max),
+    0,
+  )
+  const [visibleDayCount, setVisibleDayCount] = useState(() =>
+    Math.max(1, filledDayCount),
+  )
+
+  useEffect(() => {
+    setVisibleDayCount(1)
+  }, [dayCount])
+
+  const shownDayCount = Math.min(visibleDayCount, dayCount)
+  const addNextDay = () =>
+    setVisibleDayCount(count => Math.min(count + 1, dayCount))
+
+  if (dayCount === 1) {
+    return (
+      <div className="max-w-xs">
+        <SelectField
+          id={`${uid}-estimatedEnd-0`}
+          label="Antatt slutt (valgfritt)"
+          onChange={value => onEstimatedEndChange(0, value)}
+          options={doorsOptionsForDay(
+            marks,
+            0,
+            1,
+            localStartMinute,
+            localEndMinute,
+          )}
+          placeholder="Velg tidspunkt"
+          value={estimatedEndTimes[0] ?? ""}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="font-heading text-sm uppercase tracking-widest text-foreground">
+        Antatt slutt{" "}
+        <span className="normal-case tracking-normal text-foreground-muted">
+          (valgfritt)
+        </span>
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: shownDayCount }, (_, dayIndex) => (
+          <SelectField
+            id={`${uid}-estimatedEnd-${dayIndex}`}
+            key={dayIndex}
+            label={`Dag ${dayIndex + 1}`}
+            onChange={value => onEstimatedEndChange(dayIndex, value)}
+            options={doorsOptionsForDay(
+              marks,
+              dayIndex,
+              dayCount,
+              localStartMinute,
+              localEndMinute,
+            )}
+            placeholder="Velg tidspunkt"
+            value={estimatedEndTimes[dayIndex] ?? ""}
           />
         ))}
       </div>

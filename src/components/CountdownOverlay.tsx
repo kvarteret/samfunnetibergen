@@ -33,9 +33,6 @@ export function CountdownOverlay() {
     // Check deadline
     if (Date.now() >= DEADLINE_MS) return
 
-    // Lock body scroll
-    document.body.style.overflow = "hidden"
-
     function tick() {
       const t = calcTimeLeft(Date.now())
       if (!t) {
@@ -49,7 +46,6 @@ export function CountdownOverlay() {
     const id = setInterval(tick, 1000)
     return () => {
       clearInterval(id)
-      document.body.style.overflow = ""
     }
   }, [])
 
