@@ -20,7 +20,8 @@ function calcTimeLeft(now: number) {
 }
 
 export function CountdownOverlay() {
-  const [timeLeft, setTimeLeft] = useState<ReturnType<typeof calcTimeLeft>>(null)
+  const [timeLeft, setTimeLeft] =
+    useState<ReturnType<typeof calcTimeLeft>>(null)
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined") return false
     return localStorage.getItem(DISMISS_KEY) === "1"
@@ -81,16 +82,13 @@ export function CountdownOverlay() {
         </p>
         <p className="mt-2 text-3xl font-light tracking-wide sm:text-4xl md:text-5xl">
           {timeLeft.minutter}
-          <span className="ml-2 text-xl sm:text-2xl md:text-3xl">
-            minutter
-          </span>
+          <span className="ml-2 text-xl sm:text-2xl md:text-3xl">minutter</span>
         </p>
         <p className="mt-2 text-3xl font-light tracking-wide sm:text-4xl md:text-5xl">
           {timeLeft.seconds}
           <span className="ml-2 text-xl sm:text-2xl md:text-3xl">sekunder</span>
         </p>
       </div>
-
     </div>
   )
 }
