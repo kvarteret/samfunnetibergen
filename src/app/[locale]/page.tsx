@@ -292,22 +292,22 @@ function HomeHero({
 
   return (
     <section className="hs:bg-card hs:w-screen hs:[margin-left:calc(50%_-_50vw)] hs:-mt-10 hs:pt-10 hs:pb-10 lg:hs:pt-16 lg:hs:pb-16">
-      <div className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14 hs:mx-auto hs:w-full hs:max-w-7xl hs:px-6 hs:pt-0 hs:pb-0 hs:sm:px-10 hs:lg:px-14">
+      <div className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14 hs:mx-auto hs:w-full hs:max-w-7xl hs:px-6 hs:pt-0 hs:pb-0 hs:sm:px-10 hs:lg:px-14 dan:grid-cols-1 dan:text-center">
         <div className="flex flex-col gap-6">
           {homePage?.title && (
-            <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
+            <h1 className="font-heading text-4xl leading-tight sm:text-5xl dan:sm:text-6xl">
               {homePage.title}
             </h1>
           )}
           {homePage?.description?.split(/\n{2,}/).map(paragraph => (
             <p
-              className="max-w-2xl leading-relaxed text-foreground-muted"
+              className="max-w-2xl leading-relaxed text-foreground-muted dan:mx-auto dan:text-center dan:italic"
               key={paragraph}
             >
               {paragraph}
             </p>
           ))}
-          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3 dan:justify-center">
             {ctaHref && homePage?.primaryCta?.label ? (
               <>
                 <Button
@@ -339,7 +339,7 @@ function HomeHero({
         </div>
         <Image
           alt="Illustrasjon av Det Akademiske Kvarter"
-          className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none"
+          className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none dan:hidden"
           height={986}
           priority
           sizes="(min-width: 1024px) 45vw, 100vw"
@@ -388,8 +388,8 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
+      <div className="flex items-center justify-between pb-2 dan:pb-4">
+        <p className="font-heading text-xl text-foreground-muted dan:text-3xl dan:text-foreground dan:sm:text-4xl">
           Arrangementer
         </p>
         <Link

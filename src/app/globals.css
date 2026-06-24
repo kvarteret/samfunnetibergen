@@ -226,40 +226,60 @@
   }
 
   /* ── Theme: Dan ──
-     Botanical editorial. Warm linen ground, forest-green ink and surfaces,
-     muted gold accent, sharp Swiss corners, serif display. Overrides only the
-     semantic tokens; every component re-skins through them. */
+     Warm editorial. Sunlit yellow gradient ground, red serif ink and accents,
+     light rounded surfaces carried by red borders, red footer. Overrides only
+     the semantic tokens; every component re-skins through them. */
   :root[data-theme="dan"] {
-    --background: #f3efe3;
-    --foreground: #14241c;
+    /* Encoded design gradients. The page background flows yellow → cream →
+       amber; section bands use the deeper gold pairing for emphasis. */
+    --dan-gradient-page: linear-gradient(
+      180deg,
+      #fff2a9 0%,
+      #fff3d9 50%,
+      #ffe4a9 100%
+    );
+    --dan-gradient-section: linear-gradient(
+      180deg,
+      #ecc164 0%,
+      #fcf5e5 50%,
+      #eadb4f 100%
+    );
 
-    --primary: #2f6b4f;
-    --primary-foreground: #f7f4ea;
-    --secondary: #1f3d2e;
-    --secondary-foreground: #f0ece0;
-    --accent: #d9b85c;
-    --accent-foreground: #14241c;
+    --background: #fff2a9;
+    --foreground: #b81d1c;
 
-    --muted: #e6e0cf;
-    --muted-foreground: #4a6557;
-    --card: #fbf9f0;
-    --card-foreground: #14241c;
-    --popover: #fbf9f0;
-    --popover-foreground: #14241c;
+    --primary: #d4211f;
+    --primary-foreground: #fff7e4;
+    --secondary: #d4211f;
+    --secondary-foreground: #fff7e4;
+    --accent: #ffe9a8;
+    --accent-foreground: #b81d1c;
 
-    --border: #2f6b4f;
-    --input: #2f6b4f;
-    --ring: #d9b85c;
+    --muted: #ffe9a8;
+    --muted-foreground: #c2562a;
+    --card: #fff7e4;
+    --card-foreground: #b81d1c;
+    --popover: #fff7e4;
+    --popover-foreground: #b81d1c;
 
-    --shadow-color: #1f3d2e;
-    --radius: 0rem;
+    --border: #d4211f;
+    --input: #d4211f;
+    --ring: #d4211f;
 
-    --footer: #1f3d2e;
-    --footer-foreground: #f0ece0;
-    --footer-border: #d9b85c;
+    --shadow-color: #8a1410;
+    --radius: 0.75rem;
+
+    --footer: #d4211f;
+    --footer-foreground: #fff7e4;
+    --footer-border: #fff7e4;
 
     --font-display: var(--font-source-serif);
     --body-font: var(--font-lora);
+  }
+
+  /* Rounded corners globally in Dan, overridable by Tailwind rounded-* utilities */
+  [data-theme="dan"] * {
+    border-radius: var(--radius);
   }
 
   /* Dan footer: links underline on hover */
@@ -275,6 +295,31 @@
 [data-theme="hs"] .footer-surface .text-foreground-muted,
 [data-theme="dan"] .footer-surface .text-foreground-muted {
   color: var(--footer-foreground);
+}
+
+/* Dan page background and section band. Kept unlayered so they beat the
+   unlayered `.paper-surface` / `.paper-canvas` base rules; the encoded page
+   gradient replaces the paper texture and a deeper gold gradient bands the
+   bar section full-bleed, matching the design source. */
+[data-theme="dan"] .paper-canvas {
+  background-color: #fff2a9;
+}
+[data-theme="dan"] .paper-surface {
+  background-color: transparent;
+  background-image: var(--dan-gradient-page);
+  background-size: cover;
+  background-attachment: fixed;
+}
+[data-theme="dan"] .dan-section-band {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-inline: 1.5rem;
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  background-image: var(--dan-gradient-section);
+}
+[data-theme="dan"] .dan-section-band > * {
+  margin-inline: auto;
+  max-width: 80rem;
 }
 
 @theme inline {

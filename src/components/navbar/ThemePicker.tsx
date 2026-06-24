@@ -79,7 +79,7 @@ function ThemeSwatch({ theme }: { theme: ThemeName }) {
         "block h-8 w-full border border-border/40",
         theme === "hs" && "bg-[#eb3b3b]",
         theme === "skyss" && "bg-[#f59e0b]",
-        theme === "dan" && "bg-[#2f6b4f]",
+        theme === "dan" && "bg-[#d4211f]",
       )}
     />
   )
