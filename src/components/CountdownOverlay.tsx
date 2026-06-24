@@ -21,14 +21,13 @@ function calcTimeLeft(now: number) {
 
 export function CountdownOverlay() {
   const [timeLeft, setTimeLeft] = useState<ReturnType<typeof calcTimeLeft>>(null)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem(DISMISS_KEY) === "1"
+  })
 
   useEffect(() => {
-    // Check dismissal
-    if (localStorage.getItem(DISMISS_KEY) === "1") {
-      setDismissed(true)
-      return
-    }
+    if (dismissed) return
 
     // Check deadline
     if (Date.now() >= DEADLINE_MS) return
