@@ -1,6 +1,6 @@
+import { ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -111,7 +111,7 @@ export function Navbar({ navbar }: NavbarProps) {
       >
         <Link
           aria-label="Samfunnet i Bergen"
-          className="block py-2.5 transition-opacity hover:opacity-75 focus-brutal"
+          className="block py-2.5 transition-opacity hover:opacity-75 focus-brutal dan-logo-badge"
           href="/"
         >
           <Image
