@@ -234,8 +234,8 @@
        amber; section bands use the deeper gold pairing for emphasis. */
     --dan-gradient-page: linear-gradient(
       90deg,
-      #fff3d9 0%,
-      #fff2a9 45%,
+      #fff2a9 0%,
+      #fff3d9 50%,
       #ffe4a9 100%
     );
     --dan-gradient-section: linear-gradient(
