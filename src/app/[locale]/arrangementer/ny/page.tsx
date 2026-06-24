@@ -88,9 +88,9 @@ function SubmitEventPageIntro() {
               Vil du endre et arrangement etter innmelding? Send e-post til{" "}
               <a
                 className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
-                href="mailto:pr@kvarteret.no"
+                href="mailto:pr@samfunnetibergen.no"
               >
-                pr@kvarteret.no
+                pr@samfunnetibergen.no
               </a>
             </p>
           </div>

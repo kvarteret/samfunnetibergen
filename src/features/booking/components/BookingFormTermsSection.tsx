@@ -7,8 +7,8 @@ import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FormSection } from "@/components/ui/form-section"
 import { useBookingForm } from "./bookingFormContext"
 
-const TERMS_URL = "https://kvarteret.no/leie-av-lokaler/"
-const CANCELLATION_URL = "https://kvarteret.no/avbestillingsvilkar/"
+const TERMS_URL = "/leie-av-lokaler"
+const CANCELLATION_URL = "/avbestillingsvilkar"
 
 interface BookingFormTermsSectionProps {
   acceptTermsError?: string

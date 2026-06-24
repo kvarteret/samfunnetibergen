@@ -290,7 +290,7 @@ export function buildExternalBooking(
         description: "",
         type: "moreInformation",
         content: {
-          url: "https://kvarteret.no/avbestillingsvilkar/",
+          url: "https://samfunnetibergen.no/avbestillingsvilkar",
           text: "<p></p>",
           title: "Avbestillingsvilkår for Det Akademiske Kvarter (2022)",
         },

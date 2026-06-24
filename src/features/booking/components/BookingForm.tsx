@@ -179,7 +179,7 @@ export function BookingForm({
             error: promoResult.error,
           })
           setPromotionError(
-            "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@kvarteret.no.",
+            "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@samfunnetibergen.no.",
           )
         } else {
           posthog.capture("room_booking_promotion_event_created", {
