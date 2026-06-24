@@ -16,10 +16,13 @@
 # next.js
 /.next/
 /out/
+/.sanity/
 
 # production
 /build
 /storybook-static
+/dist
+/tmp
 
 # misc
 .DS_Store
@@ -42,5 +45,13 @@ yarn-error.log*
 next-env.d.ts
 .env.local
 
-# hey-api generated files
-lib/kvarteret-personal-api/
+# hey-api generated files — committed intentionally (see scripts/)
+
+# HAR captures (may contain session cookies / PII)
+*.har
+
+# SonarQube project config (contains token)
+sonar-project.properties
+.ralph/
+.scannerwork/
+.agents/design-system.md

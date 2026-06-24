@@ -1,0 +1,470 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant hs (&:is([data-theme="hs"] *));
+@custom-variant skyss (&:is([data-theme="skyss"] *));
+
+@layer base {
+  :root {
+    /* ── Amber ── */
+    --amber-50: oklch(97% 0.027 56);
+    --amber-100: oklch(94% 0.045 56);
+    --amber-200: oklch(88% 0.072 56);
+    --amber-300: oklch(80% 0.117 56);
+    --amber-400: oklch(70% 0.153 56);
+    --amber-500: oklch(60% 0.180 56);
+    --amber-600: oklch(50% 0.171 56);
+    --amber-700: oklch(40% 0.153 56);
+    --amber-800: oklch(30% 0.126 56);
+    --amber-900: oklch(20% 0.090 56);
+    --amber-950: oklch(14% 0.063 56);
+
+    /* ── Gold ── */
+    --gold-50: oklch(97% 0.026 65);
+    --gold-100: oklch(94% 0.043 65);
+    --gold-200: oklch(88% 0.068 65);
+    --gold-300: oklch(80% 0.111 65);
+    --gold-400: oklch(70% 0.145 65);
+    --gold-500: oklch(60% 0.170 65);
+    --gold-600: oklch(50% 0.162 65);
+    --gold-700: oklch(40% 0.145 65);
+    --gold-800: oklch(30% 0.119 65);
+    --gold-900: oklch(20% 0.085 65);
+    --gold-950: oklch(14% 0.059 65);
+
+    /* ── Red ── */
+    --red-50: oklch(97% 0.033 25);
+    --red-100: oklch(94% 0.055 25);
+    --red-200: oklch(88% 0.088 25);
+    --red-300: oklch(80% 0.143 25);
+    --red-400: oklch(70% 0.187 25);
+    --red-500: oklch(60% 0.220 25);
+    --red-600: oklch(50% 0.209 25);
+    --red-700: oklch(40% 0.187 25);
+    --red-800: oklch(30% 0.154 25);
+    --red-900: oklch(20% 0.110 25);
+    --red-950: oklch(14% 0.077 25);
+
+    /* ── Green ── */
+    /* Green ramp — amber primary hue-rotated by 120° */
+    --green-50: oklch(97% 0.027 176);
+    --green-100: oklch(94% 0.045 176);
+    --green-200: oklch(88% 0.072 176);
+    --green-300: oklch(80% 0.117 176);
+    --green-400: oklch(70% 0.153 176);
+    --green-500: oklch(60% 0.180 176);
+    --green-600: oklch(50% 0.171 176);
+    --green-700: oklch(40% 0.153 176);
+    --green-800: oklch(30% 0.126 176);
+    --green-900: oklch(20% 0.090 176);
+    --green-950: oklch(14% 0.063 176);
+
+    /* ── Navy ── */
+    --navy-50: oklch(97% 0.015 258);
+    --navy-100: oklch(94% 0.025 258);
+    --navy-200: oklch(88% 0.040 258);
+    --navy-300: oklch(80% 0.065 258);
+    --navy-400: oklch(70% 0.085 258);
+    --navy-500: oklch(60% 0.100 258);
+    --navy-600: oklch(50% 0.095 258);
+    --navy-700: oklch(40% 0.085 258);
+    --navy-800: oklch(30% 0.070 258);
+    --navy-900: oklch(20% 0.050 258);
+    --navy-950: oklch(14% 0.035 258);
+
+    /* ── Cream ── */
+    --cream-50: oklch(99% 0.003 87);
+    --cream-100: oklch(97% 0.005 87);
+    --cream-200: oklch(94% 0.009 87);
+    --cream-300: oklch(92% 0.014 87);
+    --cream-400: oklch(88% 0.019 87);
+    --cream-500: oklch(80% 0.022 87);
+    --cream-600: oklch(70% 0.021 87);
+    --cream-700: oklch(55% 0.019 87);
+    --cream-800: oklch(40% 0.015 87);
+    --cream-900: oklch(25% 0.011 87);
+    --cream-950: oklch(15% 0.008 87);
+
+    /* ── Semantic tokens ── */
+    --background: #fff7e4;
+    --foreground: var(--navy-950);
+    --primary: var(--amber-500);
+    --primary-foreground: var(--navy-950);
+    --secondary: var(--navy-700);
+    --secondary-foreground: var(--cream-200);
+    --accent: var(--gold-400);
+    --accent-foreground: var(--navy-950);
+    --destructive: var(--red-500);
+    --destructive-foreground: var(--cream-100);
+    --success: var(--green-500);
+    --success-foreground: var(--navy-950);
+    --muted: var(--cream-400);
+    --muted-foreground: var(--navy-600);
+    --card: var(--cream-100);
+    --card-foreground: var(--navy-950);
+    --popover: var(--cream-100);
+    --popover-foreground: var(--navy-950);
+    --border: var(--navy-950);
+    --input: var(--navy-950);
+    --ring: var(--amber-500);
+    --radius: 0rem;
+
+    /* ── Extended semantic tokens ── */
+    --main: var(--primary);
+    --main-foreground: var(--primary-foreground);
+
+    /* ── Heading family (themeable) ── */
+    --font-display: var(--font-hegval-display);
+    --body-font: var(--font-hegval-display);
+
+    /* ── Footer surface (themeable) ── */
+    --footer: var(--card);
+    --footer-foreground: var(--navy-950);
+    --footer-border: var(--navy-950);
+
+    /* ── Shadow ── */
+    --shadow-color: var(--border);
+    --shadow-hard-sm-value: 2px 2px 0 0 var(--shadow-color);
+    --shadow: 4px 4px 0 0 var(--shadow-color);
+    --shadow-hard-lg-value: 6px 6px 0 0 var(--shadow-color);
+
+    /* ── Motion ── */
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 80ms;
+    --duration-base: 150ms;
+    --duration-slow: 300ms;
+
+    /* ── Paper ── */
+    --paper-line: color-mix(in srgb, var(--foreground) 3.5%, transparent);
+    --paper-dot: color-mix(in srgb, var(--foreground) 6.5%, transparent);
+    --paper-pattern: linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    --paper-size: 20px 20px;
+    --paper-position: 0 0;
+    --paper-writing-line: 2rem;
+  }
+
+  :root[data-paper="dots"] {
+    --paper-pattern: radial-gradient(
+      circle,
+      var(--paper-dot) 1px,
+      transparent 1.2px
+    );
+    --paper-size: 20px 20px;
+  }
+
+  :root[data-paper="ruled"] {
+    --paper-pattern: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) calc(var(--paper-writing-line) - 1px),
+      var(--paper-line) var(--paper-writing-line)
+    );
+    --paper-size: 100% var(--paper-writing-line);
+    --paper-position: 0 0.6rem;
+  }
+
+  /* No paper — plain background, no pattern. */
+  :root[data-paper="none"] {
+    --paper-pattern: none;
+    --paper-size: 0;
+    --paper-position: 0 0;
+  }
+
+  /* ── Theme: HS ──
+     White background, soft-red surfaces, red primary, dark-red shadows,
+     rounded corners, serif headings. Overrides only the semantic tokens;
+     every component re-skins through them. */
+  :root[data-theme="hs"] {
+    --background: #ffffff;
+    --foreground: #1a1414;
+
+    --primary: #eb3b3b;
+    --primary-foreground: #ffffff;
+    --secondary: #eb3b3b;
+    --secondary-foreground: #ffffff;
+    --accent: #ffe8e8;
+    --accent-foreground: #eb3b3b;
+
+    --muted: #ffe8e8;
+    --muted-foreground: #8a2b2b;
+    --card: #ffe8e8;
+    --card-foreground: #1a1414;
+    --popover: #ffffff;
+    --popover-foreground: #1a1414;
+
+    --border: #eb3b3b;
+    --input: #eb3b3b;
+    --ring: #eb3b3b;
+
+    --shadow-color: #af1010;
+    --radius: 0.375rem;
+
+    --footer: #eb3b3b;
+    --footer-foreground: #ffffff;
+    --footer-border: #ffffff;
+
+    --font-display: var(--font-source-serif);
+    --body-font: var(--font-lora);
+  }
+
+  /* Apply rounded corners globally in HS, overridable by Tailwind rounded-* utilities */
+  [data-theme="hs"] * {
+    border-radius: var(--radius);
+  }
+
+  /* HS footer: links underline on hover */
+  [data-theme="hs"] .footer-surface a:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* @theme inline inlines color-mix() directly into utility classes, so CSS variable
+   overrides inside @layer base have no effect. This rule is outside any layer and
+   therefore beats @layer utilities, forcing muted text to white in the hs footer. */
+[data-theme="hs"] .footer-surface .text-foreground-muted {
+  color: var(--footer-foreground);
+}
+
+@theme inline {
+  --font-sans:  var(--body-font);
+  --font-mono:  var(--font-dm-mono);
+
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-foreground-muted:     color-mix(in oklab, var(--foreground) 75%, transparent);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success:              var(--success);
+  --color-success-foreground:   var(--success-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
+  --color-main:                 var(--main);
+  --color-main-foreground:      var(--main-foreground);
+  --color-footer:               var(--footer);
+  --color-footer-foreground:    var(--footer-foreground);
+
+  --shadow-hard-sm: var(--shadow-hard-sm-value);
+  --shadow-shadow: var(--shadow);
+  --shadow-hard-lg: var(--shadow-hard-lg-value);
+
+  --radius-base: var(--radius);
+
+  --font-weight-base:    500;
+  --font-weight-heading: 800;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply bg-background font-sans;
+  }
+  body {
+    @apply bg-background text-foreground font-sans font-base;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+    font-family: var(--font-display);
+  }
+  h1 {
+    @apply text-3xl sm:text-4xl;
+  }
+  h2 {
+    @apply text-2xl sm:text-3xl;
+  }
+  h3 {
+    @apply text-xl;
+  }
+  h4 {
+    @apply text-lg;
+  }
+}
+
+.paper-canvas {
+  background-color: var(--background);
+}
+
+.paper-surface {
+  background-color: var(--background);
+  background-image: var(--paper-pattern);
+  background-position: var(--paper-position);
+  background-size: var(--paper-size);
+}
+
+.paper-prose {
+  background-color: var(--card);
+  padding: var(--paper-writing-line);
+  line-height: var(--paper-writing-line);
+  color: var(--color-foreground);
+}
+
+.paper-prose :where(p, li) {
+  line-height: var(--paper-writing-line);
+}
+
+.paper-prose :where(p) {
+  margin-top: 0;
+  margin-bottom: var(--paper-writing-line);
+}
+
+.paper-prose :where(p:last-child) {
+  margin-bottom: 0;
+}
+
+.bg-paper {
+  background-color: var(--background);
+}
+
+.paper-swatch-grid {
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.paper-swatch-dots {
+  background-image: radial-gradient(
+    circle,
+    var(--paper-dot) 1px,
+    transparent 1.2px
+  );
+  background-size: 8px 8px;
+}
+
+.paper-swatch-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 7px,
+    var(--paper-line) 7px,
+    var(--paper-line) 8px
+  );
+}
+
+/* ── Accessibility: motion ── */
+/* Global safeguard: reduce all animation/transition durations for users
+   who prefer reduced motion. One rule covers every current and future
+   transition/animation in the codebase. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* House focus state: cream interior -> 2px black border -> 3px amber ring,
+   with zero offset so no page background shows between border and ring. */
+@utility focus-brutal {
+  &:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
+}
+
+@utility focus-within-brutal {
+  &:focus-within {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0px;
+  }
+}
+
+@utility btn-brutal {
+  border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 var(--shadow-color);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--shadow-color);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--shadow-color);
+    }
+  }
+}
+
+/* Generalized interactive motion: the hover-lift / press-in choreography
+   that btn-brutal, selectable cards, and toggle options all share.
+   Apply as @apply interactive-brutal to any component that should feel
+   physical. Motion is wrapped in prefers-reduced-motion: no-preference. */
+@utility interactive-brutal {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--shadow-color);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--shadow-color);
+    }
+  }
+}
+
+/* Footer surface: a self-contained color context. Overriding --foreground and
+   --border re-skins the footer's existing text/border utilities (text-foreground,
+   text-foreground-muted, border-border) without touching the markup. */
+@utility footer-surface {
+  background-color: var(--footer);
+  color: var(--footer-foreground);
+  --foreground: var(--footer-foreground);
+  --border: var(--footer-border);
+}
+
+@utility panel {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-card);
+  padding: 1.25rem;
+}
+
+@utility grid-auto-side {
+  grid-template-columns: 1fr auto;
+}
+
+@utility grid-two-one {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+/* P3 boost for supported displays */
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    --amber-500: color(display-p3 0.88 0.48 0.10);
+    --gold-400: color(display-p3 0.96 0.64 0.12);
+    --red-500: color(display-p3 0.92 0.30 0.28);
+    --navy-700: color(display-p3 0.22 0.29 0.45);
+  }
+}

@@ -1,0 +1,36 @@
+name: Lint & Format
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  checks:
+    name: Lint, Format, Typecheck, Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Biome format check
+        run: npx biome format .
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Generate Next.js route types
+        run: npx next typegen
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
