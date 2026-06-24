@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 @custom-variant hs (&:is([data-theme="hs"] *));
 @custom-variant skyss (&:is([data-theme="skyss"] *));
+@custom-variant dan (&:is([data-theme="dan"] *));
 
 @layer base {
   :root {
@@ -223,12 +224,56 @@
     text-decoration-line: underline;
     text-underline-offset: 3px;
   }
+
+  /* ── Theme: Dan ──
+     Botanical editorial. Warm linen ground, forest-green ink and surfaces,
+     muted gold accent, sharp Swiss corners, serif display. Overrides only the
+     semantic tokens; every component re-skins through them. */
+  :root[data-theme="dan"] {
+    --background: #f3efe3;
+    --foreground: #14241c;
+
+    --primary: #2f6b4f;
+    --primary-foreground: #f7f4ea;
+    --secondary: #1f3d2e;
+    --secondary-foreground: #f0ece0;
+    --accent: #d9b85c;
+    --accent-foreground: #14241c;
+
+    --muted: #e6e0cf;
+    --muted-foreground: #4a6557;
+    --card: #fbf9f0;
+    --card-foreground: #14241c;
+    --popover: #fbf9f0;
+    --popover-foreground: #14241c;
+
+    --border: #2f6b4f;
+    --input: #2f6b4f;
+    --ring: #d9b85c;
+
+    --shadow-color: #1f3d2e;
+    --radius: 0rem;
+
+    --footer: #1f3d2e;
+    --footer-foreground: #f0ece0;
+    --footer-border: #d9b85c;
+
+    --font-display: var(--font-source-serif);
+    --body-font: var(--font-lora);
+  }
+
+  /* Dan footer: links underline on hover */
+  [data-theme="dan"] .footer-surface a:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 /* @theme inline inlines color-mix() directly into utility classes, so CSS variable
    overrides inside @layer base have no effect. This rule is outside any layer and
    therefore beats @layer utilities, forcing muted text to white in the hs footer. */
-[data-theme="hs"] .footer-surface .text-foreground-muted {
+[data-theme="hs"] .footer-surface .text-foreground-muted,
+[data-theme="dan"] .footer-surface .text-foreground-muted {
   color: var(--footer-foreground);
 }
 

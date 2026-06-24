@@ -3,6 +3,7 @@ export const THEME_STORAGE_KEY = "samfunnet-theme"
 export const themeOptions = [
   { value: "hs", label: "HS" },
   { value: "skyss", label: "Skyss" },
+  { value: "dan", label: "Dan" },
 ] as const
 
 export type ThemeName = (typeof themeOptions)[number]["value"]
@@ -37,7 +38,7 @@ export function resolveTheme(sources: {
 export const themePreferenceScript = `
 try {
   var t = localStorage.getItem("${THEME_STORAGE_KEY}");
-  if (t === "hs" || t === "skyss") {
+  if (t === "hs" || t === "skyss" || t === "dan") {
     document.documentElement.dataset.theme = t;
   }
 } catch {}
