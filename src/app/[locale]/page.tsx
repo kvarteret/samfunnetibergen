@@ -388,8 +388,8 @@ function HomeEvents({ events, labels, locale }: HomeEventsProps) {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
+      <div className="flex items-center justify-between pb-2 dan:pb-4">
+        <p className="font-heading text-xl text-foreground-muted dan:text-3xl dan:text-foreground dan:sm:text-4xl">
           Arrangementer
         </p>
         <Link

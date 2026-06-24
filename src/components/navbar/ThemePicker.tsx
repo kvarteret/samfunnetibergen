@@ -47,7 +47,7 @@ export function ThemeChoices({ className }: { className?: string }) {
       <legend className="sr-only">Velg tema</legend>
       <p className="font-heading uppercase tracking-widest">Tema</p>
       <RadioGroup<ThemeName>
-        className="grid grid-cols-2 gap-2"
+        className="grid grid-cols-3 gap-2"
         name="theme"
         onValueChange={setTheme}
         value={theme}
@@ -79,6 +79,7 @@ function ThemeSwatch({ theme }: { theme: ThemeName }) {
         "block h-8 w-full border border-border/40",
         theme === "hs" && "bg-[#eb3b3b]",
         theme === "skyss" && "bg-[#f59e0b]",
+        theme === "dan" && "bg-[#d4211f]",
       )}
     />
   )

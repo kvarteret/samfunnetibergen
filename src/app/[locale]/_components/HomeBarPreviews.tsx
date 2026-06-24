@@ -94,9 +94,11 @@ export function HomeBarPreviews({
   if (!rooms.length) return null
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">Barer</p>
+    <section className="space-y-4 dan-section-band">
+      <div className="flex items-center justify-between pb-2 dan:justify-center dan:pb-4">
+        <p className="font-heading text-xl text-foreground-muted dan:text-3xl dan:text-foreground dan:sm:text-4xl">
+          Barer
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (

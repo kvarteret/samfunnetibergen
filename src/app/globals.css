@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 @custom-variant hs (&:is([data-theme="hs"] *));
 @custom-variant skyss (&:is([data-theme="skyss"] *));
+@custom-variant dan (&:is([data-theme="dan"] *));
 
 @layer base {
   :root {
@@ -223,13 +224,128 @@
     text-decoration-line: underline;
     text-underline-offset: 3px;
   }
+
+  /* ── Theme: Dan ──
+     Warm editorial. Sunlit yellow gradient ground, red serif ink and accents,
+     light rounded surfaces carried by red borders, red footer. Overrides only
+     the semantic tokens; every component re-skins through them. */
+  :root[data-theme="dan"] {
+    /* Encoded design gradients. The page background flows yellow → cream →
+       amber; section bands use the deeper gold pairing for emphasis. */
+    --dan-gradient-page: linear-gradient(
+      90deg,
+      #fff2a9 0%,
+      #fff3d9 50%,
+      #ffe4a9 100%
+    );
+    --dan-gradient-section: linear-gradient(
+      90deg,
+      #ecc164 0%,
+      #fcf5e5 50%,
+      #eadb4f 100%
+    );
+
+    --background: #fff2a9;
+    --foreground: #b81d1c;
+
+    --primary: #d4211f;
+    --primary-foreground: #fff7e4;
+    --secondary: #d4211f;
+    --secondary-foreground: #fff7e4;
+    --accent: #ffe9a8;
+    --accent-foreground: #b81d1c;
+
+    --muted: #ffe9a8;
+    --muted-foreground: #c2562a;
+    --card: #fff7e4;
+    --card-foreground: #b81d1c;
+    --popover: #fff7e4;
+    --popover-foreground: #b81d1c;
+
+    --border: #d4211f;
+    --input: #d4211f;
+    --ring: #d4211f;
+
+    --shadow-color: #8a1410;
+    --radius: 0.75rem;
+
+    --footer: #d4211f;
+    --footer-foreground: #fff7e4;
+    --footer-border: #fff7e4;
+
+    --font-display: var(--font-source-serif);
+    --body-font: var(--font-lora);
+  }
+
+  /* Courgette is Dan's page-title face (design source: "hovedtitle på sider").
+     Scoped to h1 so hero titles get the script while card headings (h2+) keep
+     the readable serif. */
+  [data-theme="dan"] h1 {
+    font-family: var(--font-courgette);
+  }
+
+  /* Rounded corners globally in Dan, overridable by Tailwind rounded-* utilities */
+  [data-theme="dan"] * {
+    border-radius: var(--radius);
+  }
+
+  /* Dan footer: links underline on hover */
+  [data-theme="dan"] .footer-surface a:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 /* @theme inline inlines color-mix() directly into utility classes, so CSS variable
    overrides inside @layer base have no effect. This rule is outside any layer and
    therefore beats @layer utilities, forcing muted text to white in the hs footer. */
-[data-theme="hs"] .footer-surface .text-foreground-muted {
+[data-theme="hs"] .footer-surface .text-foreground-muted,
+[data-theme="dan"] .footer-surface .text-foreground-muted {
   color: var(--footer-foreground);
+}
+
+/* Dan page background and section band. Kept unlayered so they beat the
+   unlayered `.paper-surface` / `.paper-canvas` base rules; the encoded page
+   gradient replaces the paper texture and a deeper gold gradient bands the
+   bar section full-bleed, matching the design source. */
+[data-theme="dan"] .paper-canvas {
+  background-color: #fff2a9;
+}
+[data-theme="dan"] .paper-surface {
+  background-color: transparent;
+  background-image: var(--dan-gradient-page);
+  background-size: cover;
+  background-attachment: fixed;
+}
+[data-theme="dan"] .dan-section-band {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-inline: 1.5rem;
+  padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  background-image: var(--dan-gradient-section);
+}
+[data-theme="dan"] .dan-section-band > * {
+  margin-inline: auto;
+  max-width: 80rem;
+}
+
+/* Dan parallelogram banners: skewed flag shapes for the navbar logo badge and
+   group page titles, per the design source. clip-path leaves the text/logo
+   upright; unlayered so the fill/colour beat Tailwind utilities. */
+[data-theme="dan"] .dan-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--primary);
+  padding: 0.375rem 1.75rem 0.375rem 0.875rem;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 1rem) 100%, 0 100%);
+}
+[data-theme="dan"] .dan-title-banner {
+  display: inline-block;
+  /* Group-accent green from the design source, set against the red/yellow theme. */
+  background-color: #2f8b2f;
+  color: #fff;
+  padding: 0.3em 1.4em;
+  clip-path: polygon(1.25rem 0, 100% 0, calc(100% - 1.25rem) 100%, 0 100%);
 }
 
 @theme inline {
