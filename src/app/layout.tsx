@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { DM_Mono, Lora, Source_Serif_4 } from "next/font/google"
+import { Courgette, DM_Mono, Lora, Source_Serif_4 } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
@@ -30,6 +30,15 @@ const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-dm-mono",
+  display: "swap",
+})
+
+// Courgette ships a single 400 weight; the Dan hero requests semibold on top
+// (faux-bold) for a heavier script title, per the design source.
+const courgette = Courgette({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-courgette",
   display: "swap",
 })
 
@@ -90,7 +99,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-paper="grid"
       data-theme="hs"
       lang="no"
-      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} h-full antialiased`}
+      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} ${courgette.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

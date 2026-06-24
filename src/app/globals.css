@@ -277,6 +277,13 @@
     --body-font: var(--font-lora);
   }
 
+  /* Courgette is Dan's page-title face (design source: "hovedtitle på sider").
+     Scoped to h1 so hero titles get the script while card headings (h2+) keep
+     the readable serif. */
+  [data-theme="dan"] h1 {
+    font-family: var(--font-courgette);
+  }
+
   /* Rounded corners globally in Dan, overridable by Tailwind rounded-* utilities */
   [data-theme="dan"] * {
     border-radius: var(--radius);

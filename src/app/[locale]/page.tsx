@@ -295,7 +295,7 @@ function HomeHero({
       <div className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14 hs:mx-auto hs:w-full hs:max-w-7xl hs:px-6 hs:pt-0 hs:pb-0 hs:sm:px-10 hs:lg:px-14 dan:grid-cols-1 dan:text-center">
         <div className="flex flex-col gap-6">
           {homePage?.title && (
-            <h1 className="font-heading text-4xl leading-tight sm:text-5xl dan:sm:text-6xl">
+            <h1 className="font-heading text-4xl leading-tight sm:text-5xl dan:font-semibold dan:sm:text-6xl">
               {homePage.title}
             </h1>
           )}
