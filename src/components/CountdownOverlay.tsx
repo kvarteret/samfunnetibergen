@@ -63,8 +63,14 @@ export function CountdownOverlay() {
   return (
     <div
       onClick={handleDismiss}
-      className="fixed inset-0 z-[99999] flex select-none flex-col items-center justify-center gap-4 bg-black text-[#FFE4B5]"
+      className="fixed inset-0 z-[99999] flex select-none flex-col items-center justify-center gap-4 bg-black text-white"
     >
+      <h1 className="mb-2 text-center font-hegval-display text-3xl font-light tracking-wide sm:text-4xl md:text-5xl">
+        Studentsamfunnet i Bergen
+      </h1>
+      <p className="mb-8 text-center font-hegval-display text-lg font-light tracking-wide opacity-80 sm:text-xl md:text-2xl">
+        To organisasjoner blir snart til en.
+      </p>
       <div className="text-center">
         <p className="font-hegval-display text-7xl font-light tracking-wide sm:text-8xl md:text-9xl">
           {timeLeft.dager}
