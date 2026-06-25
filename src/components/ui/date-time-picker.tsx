@@ -1,7 +1,7 @@
 "use client"
 
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
@@ -703,10 +703,11 @@ function DoorsBoxes({
   const [visibleDayCount, setVisibleDayCount] = useState(() =>
     Math.max(1, filledDayCount),
   )
-
-  useEffect(() => {
+  const [prevDayCount, setPrevDayCount] = useState(dayCount)
+  if (dayCount !== prevDayCount) {
+    setPrevDayCount(dayCount)
     setVisibleDayCount(1)
-  }, [dayCount])
+  }
 
   const shownDayCount = Math.min(visibleDayCount, dayCount)
   const addNextDay = () =>
@@ -800,10 +801,11 @@ function EstimatedEndBoxes({
   const [visibleDayCount, setVisibleDayCount] = useState(() =>
     Math.max(1, filledDayCount),
   )
-
-  useEffect(() => {
+  const [prevDayCount, setPrevDayCount] = useState(dayCount)
+  if (dayCount !== prevDayCount) {
+    setPrevDayCount(dayCount)
     setVisibleDayCount(1)
-  }, [dayCount])
+  }
 
   const shownDayCount = Math.min(visibleDayCount, dayCount)
   const addNextDay = () =>
