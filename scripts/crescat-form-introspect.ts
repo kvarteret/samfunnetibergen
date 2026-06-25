@@ -89,6 +89,11 @@ const REGISTRY: RegistryEntry[] = [
     sectionTitle: "Fakturainformasjon",
     fieldIds: [54134, 54135, 54136, 54137, 1494616], // INVOICE_CONTACT, INVOICE_ADDRESS, INVOICE_EMAIL, INVOICE_PHONE, INVOICE_ORG_NUMBER
   },
+  {
+    parentId: 192383,
+    sectionTitle: "Valg av karaokepakke",
+    fieldIds: [1439211], // NUMBER_OF_PEOPLE (karaoke-specific)
+  },
 ]
 
 // ── Rooms helpers ───────────────────────────────────────────────────────────

@@ -69,7 +69,10 @@
           "component": "field-list",
           "required": true,
           "class": "col-md-3",
-          "options": ["Åpent", "Lukket"]
+          "options": [
+            "Åpent",
+            "Lukket"
+          ]
         }
       ]
     },
@@ -84,7 +87,10 @@
           "component": "field-list",
           "required": true,
           "class": "col-md-3",
-          "options": ["Gratis", "Betalt"]
+          "options": [
+            "Gratis",
+            "Betalt"
+          ]
         },
         {
           "id": 1244809,
@@ -164,16 +170,8 @@
       "name": "Bakgården"
     },
     {
-      "id": 122,
-      "name": "Lobby 1. Etg (Bermuda)"
-    },
-    {
       "id": 123,
       "name": "Lobby 2. Etg"
-    },
-    {
-      "id": 124,
-      "name": "Lobbyrinten"
     },
     {
       "id": 125,
