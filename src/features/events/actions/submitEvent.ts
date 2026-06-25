@@ -4,6 +4,10 @@ import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
 
 import { getPostHogClient } from "@/lib/posthog-server"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import {
@@ -108,11 +112,20 @@ export async function uploadEventImage(
     return ok(asset._id)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
-    getPostHogClient().capture({
+    const posthog = getPostHogClient()
+    posthog.capture({
       distinctId: "anonymous",
       event: "event_image_upload_failed",
       properties: { error: message },
     })
+    posthog.captureException(
+      toPostHogException(error),
+      "anonymous",
+      getHandledExceptionProperties("event_image_upload", {
+        source: "submit-event-image",
+        failure_branch: "sanity_asset_upload_failed",
+      }),
+    )
     return err(GENERIC_ERROR)
   }
 }
@@ -190,11 +203,26 @@ export async function submitEvent(
     return ok(created._id)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
-    getPostHogClient().capture({
+    const posthog = getPostHogClient()
+    posthog.capture({
       distinctId: "anonymous",
       event: "event_submission_submit_failed",
       properties: { error: message },
     })
+    posthog.captureException(
+      toPostHogException(error),
+      "anonymous",
+      getHandledExceptionProperties("event_submission", {
+        source: "submit-event",
+        failure_branch: "sanity_document_create_failed",
+        is_recurring: Boolean(input.isRecurring),
+        is_internal: Boolean(input.isInternalEvent),
+        is_free: Boolean(input.isFree),
+        has_ticket_url: Boolean(input.ticketUrl),
+        has_facebook_url: Boolean(input.facebookUrl),
+        date_count: input.dates.length,
+      }),
+    )
     return err(GENERIC_ERROR)
   }
 }

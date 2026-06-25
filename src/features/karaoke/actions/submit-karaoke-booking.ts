@@ -11,6 +11,10 @@ import {
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { getPostHogClient } from "@/lib/posthog-server"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
@@ -201,5 +205,15 @@ export async function submitKaraokeBooking(
       error: result.error,
     },
   })
+  posthog.captureException(
+    toPostHogException(result.error),
+    "anonymous",
+    getHandledExceptionProperties("karaoke_booking", {
+      source: "submit-karaoke-booking",
+      failure_branch: "crescat_request_failed",
+      price_type: parsed.data.priceType,
+      start_date: parsed.data.startDate,
+    }),
+  )
   return err(GENERIC_ERROR)
 }

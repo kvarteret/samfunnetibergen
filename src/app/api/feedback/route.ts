@@ -1,4 +1,8 @@
 import { getPostHogClient } from "@/lib/posthog-server"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
@@ -72,6 +76,17 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("[feedback] Failed to forward to personal backend:", error)
+    getPostHogClient().captureException(
+      toPostHogException(error),
+      "anonymous",
+      getHandledExceptionProperties("feedback", {
+        source: "feedback-route",
+        failure_branch: "personal_backend_request_failed",
+        feedback_type: feedbackType,
+        has_page: typeof raw.page === "string" && raw.page.trim() !== "",
+        contact_allowed: Boolean(contactEmail),
+      }),
+    )
     return Response.json(
       { detail: "Failed to submit feedback" },
       { status: 502 },

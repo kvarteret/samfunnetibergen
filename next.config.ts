@@ -1,4 +1,5 @@
 import type { NextConfig } from "next"
+import { withPostHogConfig } from "@posthog/nextjs-config"
 import createNextIntlPlugin from "next-intl/plugin"
 import { networkInterfaces } from "os"
 
@@ -72,4 +73,8 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
 }
 
-export default withNextIntl(nextConfig)
+export default withPostHogConfig(withNextIntl(nextConfig), {
+  personalApiKey: process.env.POSTHOG_CLI_API_KEY,
+  projectId: process.env.POSTHOG_CLI_PROJECT_ID,
+  host: process.env.POSTHOG_CLI_HOST,
+})

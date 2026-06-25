@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server"
 import { getPostHogClient } from "@/lib/posthog-server"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
@@ -146,7 +150,8 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errorBody = await response.json().catch(() => null)
       const detail = extractErrorDetail(errorBody)
-      getPostHogClient().capture({
+      const posthog = getPostHogClient()
+      posthog.capture({
         distinctId: "anonymous",
         event: "volunteer_application_submit_failed",
         properties: {
@@ -155,6 +160,17 @@ export async function POST(request: Request) {
           error: detail,
         },
       })
+      posthog.captureException(
+        new Error(`Volunteer prospect forwarding failed with ${response.status}`),
+        "anonymous",
+        getHandledExceptionProperties("volunteer_application", {
+          source: "volunteer-prospects-route",
+          failure_branch: "personal_backend_rejected",
+          status: response.status,
+          first_choice_group_slug: requestBody.first_choice_group_slug,
+          has_second_choice: Boolean(requestBody.second_choice_group_slug),
+        }),
+      )
       return NextResponse.json({ detail }, { status: 422 })
     }
 
@@ -174,11 +190,20 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ukjent feil"
-    getPostHogClient().capture({
+    const posthog = getPostHogClient()
+    posthog.capture({
       distinctId: "anonymous",
       event: "volunteer_application_submit_failed",
       properties: { error: message },
     })
+    posthog.captureException(
+      toPostHogException(error),
+      "anonymous",
+      getHandledExceptionProperties("volunteer_application", {
+        source: "volunteer-prospects-route",
+        failure_branch: "personal_backend_request_failed",
+      }),
+    )
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }
 }

@@ -32,6 +32,7 @@
     "@opentelemetry/exporter-logs-otlp-http": "^0.219.0",
     "@opentelemetry/resources": "^2.8.0",
     "@opentelemetry/sdk-logs": "^0.219.0",
+    "@posthog/nextjs-config": "^1.9.68",
     "@sanity/assist": "^6.1.1",
     "@sanity/orderable-document-list": "^1.5.1",
     "@sanity/vision": "^5.23.0",
