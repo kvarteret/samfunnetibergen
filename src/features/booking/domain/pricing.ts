@@ -1,3 +1,10 @@
+import {
+  type ClosedDate,
+  combineOpeningRangesForDate,
+  hasOpeningHoursRows,
+  type OpeningHours,
+  timeToMinutes,
+} from "@/lib/opening-hours"
 import type { BookingRoom } from "../types"
 import { durationHoursBetween } from "./availability"
 import type { BookingFormState } from "./formState"
@@ -30,6 +37,42 @@ export interface PriceSummary {
   totalIncVat: number
 }
 
+function billableHoursForRoom(
+  room: BookingRoom,
+  startDate: string,
+  startTime: string,
+  endTime: string,
+  baseHours: OpeningHours | null,
+  closedDates: ClosedDate[],
+): number {
+  const totalHours = durationHoursBetween(startTime, endTime)
+  const hasRoomHours = hasOpeningHoursRows(room.openingHours ?? null)
+  if (!hasRoomHours) return totalHours
+
+  const ranges = combineOpeningRangesForDate(
+    startDate,
+    baseHours,
+    room.openingHours ?? null,
+    closedDates,
+  )
+  if (ranges.length === 0) return totalHours
+
+  const bookStart = timeToMinutes(startTime) ?? 0
+  let bookEnd = timeToMinutes(endTime) ?? 0
+  if (bookEnd <= bookStart) bookEnd += 24 * 60
+
+  let billableMinutes = 0
+  for (const range of ranges) {
+    const overlapStart = Math.max(bookStart, range.startMin)
+    const overlapEnd = Math.min(bookEnd, range.endMin)
+    if (overlapStart < overlapEnd) {
+      billableMinutes += overlapEnd - overlapStart
+    }
+  }
+
+  return billableMinutes / 60
+}
+
 function formatHours(hours: number): string {
   return hours % 1 === 0 ? String(hours) : hours.toFixed(1)
 }
@@ -37,12 +80,13 @@ function formatHours(hours: number): string {
 // Backstage rooms (Stillhet, Støy) are free when bundled with Teglverket.
 // The cheapest selected backstage room is skipped; if both are selected,
 // only the cheaper one is free.
-function roomRentLines(rooms: BookingRoom[], hours: number): PriceLine[] {
-  if (hours <= 0) return []
+function roomRentLines(
+  rooms: BookingRoom[],
+  hoursPerRoom: Map<number, number>,
+): PriceLine[] {
   const selectedIds = new Set(rooms.map(room => room.crescatRoomId))
   const bundledWithTeglverket = selectedIds.has(TEGLVERKET_CRESCAT_ROOM_ID)
 
-  // Find the cheapest backstage room to skip (free with Teglverket)
   let freeBackstageRoomId: number | null = null
   if (bundledWithTeglverket) {
     const backstageRooms = rooms.filter(
@@ -59,10 +103,14 @@ function roomRentLines(rooms: BookingRoom[], hours: number): PriceLine[] {
   return rooms
     .filter(room => room.pricePerHour != null && room.pricePerHour > 0)
     .filter(room => room.crescatRoomId !== freeBackstageRoomId)
-    .map(room => ({
-      label: `${room.title ?? "Rom"} (${formatHours(hours)} t × ${room.pricePerHour} kr)`,
-      amount: (room.pricePerHour ?? 0) * hours,
-    }))
+    .map(room => {
+      const hours = hoursPerRoom.get(room.crescatRoomId) ?? 0
+      return {
+        label: `${room.title ?? "Rom"} (${formatHours(hours)} t × ${room.pricePerHour} kr)`,
+        amount: hours > 0 ? (room.pricePerHour ?? 0) * hours : 0,
+      }
+    })
+    .filter(line => line.amount > 0)
 }
 
 // Estimated price summary shown in the booking order summary. Room rent only
@@ -72,16 +120,30 @@ function roomRentLines(rooms: BookingRoom[], hours: number): PriceLine[] {
 export function computePriceSummary(
   state: BookingFormState,
   rooms: BookingRoom[],
+  baseHours: OpeningHours | null = null,
+  closedDates: ClosedDate[] = [],
 ): PriceSummary {
-  const hours =
-    state.startDate && state.startTime && state.endTime
-      ? durationHoursBetween(state.startTime, state.endTime)
-      : 0
+  const hoursPerRoom = new Map<number, number>()
+  if (state.startDate && state.startTime && state.endTime) {
+    for (const room of rooms) {
+      hoursPerRoom.set(
+        room.crescatRoomId,
+        billableHoursForRoom(
+          room,
+          state.startDate,
+          state.startTime,
+          state.endTime,
+          baseHours,
+          closedDates,
+        ),
+      )
+    }
+  }
 
   const lines: PriceLine[] = []
 
   if (state.bookerType === "ekstern") {
-    lines.push(...roomRentLines(rooms, hours))
+    lines.push(...roomRentLines(rooms, hoursPerRoom))
   }
 
   if (state.soundTech) lines.push({ label: "Lydtekniker", amount: TECH_PRICE })

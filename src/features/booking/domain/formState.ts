@@ -4,6 +4,11 @@ import type { BookingRoom } from "../types"
 
 export type { BookerType }
 
+export interface TicketType {
+  name: string
+  price: string
+}
+
 export interface BookingFormState {
   bookerType: BookerType
   studentOrgName: string
@@ -36,7 +41,7 @@ export interface BookingFormState {
   barSelf: boolean
   barKvarteret: boolean
   freeOrPaid: "Gratis" | "Betalt"
-  ticketTypes: string
+  ticketTypes: TicketType[]
   invoiceAddress: string
   orgNumber: string
   flexibleDates: boolean
@@ -78,7 +83,7 @@ export const initialBookingState: BookingFormState = {
   barSelf: false,
   barKvarteret: false,
   freeOrPaid: "Gratis",
-  ticketTypes: "",
+  ticketTypes: [{ name: "Ordinær", price: "200" }],
   invoiceAddress: "",
   orgNumber: "",
   flexibleDates: false,
@@ -86,7 +91,7 @@ export const initialBookingState: BookingFormState = {
   contactName: "",
   contactEmail: "",
   contactPhone: "",
-  promote: "",
+  promote: "ja",
 }
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
@@ -138,7 +143,10 @@ export function buildBookingPayload(
     techEquipment: composeTechEquipment(state),
     cateringWishes: composeCatering(state),
     freeOrPaid: state.freeOrPaid,
-    ticketTypes: state.ticketTypes,
+    ticketTypes: state.ticketTypes
+      .filter(t => t.name.trim())
+      .map(t => `${t.name} ${t.price} kr`)
+      .join(", "),
     contactName: state.contactName,
     contactEmail: state.contactEmail,
     contactPhone: state.contactPhone,
@@ -169,7 +177,8 @@ export function canSubmitBooking(
     !hasConflict &&
     state.eventName.trim() !== "" &&
     state.startDate !== "" &&
-    Boolean(state.doorsTimes[0]) &&
+    state.doorsTimes.length > 0 &&
+    state.doorsTimes.every(Boolean) &&
     state.audienceCount.trim() !== "" &&
     state.furniture.trim() !== "" &&
     state.contactName.trim() !== "" &&

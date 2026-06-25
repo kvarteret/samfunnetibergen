@@ -1,12 +1,9 @@
-import { CalendarClock, DoorOpen, MapPin, Users, X } from "lucide-react"
+import { MapPin, X } from "lucide-react"
 import { DetailRow } from "@/components/ui/detail-row"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
-import {
-  type BookerType,
-  type BookingFormState,
-  composeCatering,
-} from "../domain/formState"
+import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
+import { type BookingFormState, composeCatering } from "../domain/formState"
 import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
 import { useBookingForm } from "./bookingFormContext"
@@ -15,33 +12,33 @@ function formatKr(amount: number): string {
   return `${amount.toLocaleString("nb-NO")} kr`
 }
 
-const BOOKER_LABELS: Record<BookerType, string> = {
-  ekstern: "Privat",
-  studentorg: "Studentorganisasjon",
-  intern: "Intern",
-}
-
 interface BookingOrderSummaryProps {
   state: BookingFormState
   rooms: BookingRoom[]
   selectedRoomIds: number[]
+  openingHours: OpeningHours | null
+  closedDates: ClosedDate[]
 }
 
 export function BookingFormOrderSummary({
   state,
   rooms,
   selectedRoomIds,
+  openingHours,
+  closedDates,
 }: BookingOrderSummaryProps) {
   const form = useBookingForm()
   const catering = composeCatering(state)
-  const time = state.startDate
-    ? `${state.startDate} · ${state.startTime}–${state.endTime}`
-    : "Ikke valgt"
 
   const selectedRooms = rooms.filter(r =>
     selectedRoomIds.includes(r.crescatRoomId),
   )
-  const priceSummary = computePriceSummary(state, selectedRooms)
+  const priceSummary = computePriceSummary(
+    state,
+    selectedRooms,
+    openingHours,
+    closedDates,
+  )
 
   const removeRoom = (roomId: number) => {
     const next = selectedRoomIds.filter(id => id !== roomId)
@@ -75,42 +72,6 @@ export function BookingFormOrderSummary({
           </p>
 
           <dl className="space-y-2.5">
-            <DetailRow icon={Users} label="Booker" layout="vertical">
-              {BOOKER_LABELS[state.bookerType]}
-              {state.bookerType === "studentorg" && state.studentOrgName
-                ? ` · ${state.studentOrgName}`
-                : ""}
-            </DetailRow>
-            <DetailRow icon={CalendarClock} label="Tidspunkt" layout="vertical">
-              {time}
-            </DetailRow>
-            {state.doorsTimes.some(Boolean) && (
-              <DetailRow icon={DoorOpen} label="Dørene åpner" layout="vertical">
-                {state.doorsTimes.length > 1
-                  ? state.doorsTimes
-                      .map((doorsTime, i) =>
-                        doorsTime ? `Dag ${i + 1}: ${doorsTime}` : null,
-                      )
-                      .filter(Boolean)
-                      .join(", ")
-                  : state.doorsTimes[0]}
-              </DetailRow>
-            )}
-            {state.estimatedEndTimes?.some(Boolean) && (
-              <DetailRow label="Antatt slutt" layout="vertical">
-                {(state.estimatedEndTimes?.length ?? 0) > 1
-                  ? (state.estimatedEndTimes ?? [])
-                      .map((t, i) => (t ? `Dag ${i + 1}: ${t}` : null))
-                      .filter(Boolean)
-                      .join(", ")
-                  : state.estimatedEndTimes?.[0]}
-              </DetailRow>
-            )}
-            {state.audienceCount.trim() && (
-              <DetailRow label="Publikum" layout="vertical">
-                {state.audienceCount} personer
-              </DetailRow>
-            )}
             {catering && (
               <DetailRow label="Mat og bar" layout="vertical">
                 <span className="whitespace-pre-line">{catering}</span>

@@ -47,7 +47,11 @@ export function ToggleOption({
           {label}
         </span>
       </label>
-      {children && <div className="px-4 pb-4">{children}</div>}
+      {children && (
+        <div className="px-4 pb-4" onClick={e => e.stopPropagation()}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }

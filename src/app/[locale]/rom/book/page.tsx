@@ -17,10 +17,8 @@ import {
 } from "@/lib/app-locale"
 import type { EditorialSection } from "@/lib/sanity/fetch"
 import {
-  fetchEventGroups,
-  fetchEventRooms,
-  fetchEventTypes,
   fetchHouseHours,
+  fetchPageBySlug,
   fetchRoomsPageContent,
 } from "@/lib/sanity/fetch"
 
@@ -176,21 +174,14 @@ export default async function BookRoomPage({
   const preselectedRoomId = roomParam ? Number(roomParam) : undefined
   activateRequestLocale(locale)
 
-  const [
-    initialRooms,
-    houseHours,
-    roomsPageContent,
-    eventRooms,
-    eventTypes,
-    eventGroups,
-  ] = await Promise.all([
-    fetchBookableRoomsForBooker("ekstern"),
-    fetchHouseHours(),
-    fetchRoomsPageContent(),
-    fetchEventRooms(),
-    fetchEventTypes(),
-    fetchEventGroups(),
-  ])
+  const [initialRooms, houseHours, roomsPageContent, termsPage, cancellationPage] =
+    await Promise.all([
+      fetchBookableRoomsForBooker("ekstern"),
+      fetchHouseHours(),
+      fetchRoomsPageContent(),
+      fetchPageBySlug("leie-av-lokaler"),
+      fetchPageBySlug("avbestillingsvilkar"),
+    ])
 
   const howToSection = roomsPageContent?.sections?.find(
     s => s.title === "Slik booker du",
@@ -242,13 +233,12 @@ export default async function BookRoomPage({
       {howToSection ? <HowToSection section={howToSection} /> : null}
 
       <BookingForm
+        cancellationTermsContent={cancellationPage?.content ?? null}
         closedDates={houseHours?.houseClosedDates ?? []}
-        eventGroups={eventGroups}
-        eventRooms={eventRooms}
-        eventTypes={eventTypes}
         initialRoomId={preselectedRoomId}
         initialRooms={initialRooms}
         openingHours={houseHours?.operationsManagerHours ?? null}
+        rentalTermsContent={termsPage?.content ?? null}
       />
 
       {questionsSection ? (
