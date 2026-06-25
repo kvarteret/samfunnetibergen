@@ -21,6 +21,7 @@
     "sanity:migrate:repair-content:write": "SANITY_MIGRATION_WRITE=1 sanity exec scripts/repair-sanity-content.ts --with-user-token",
     "sanity:audit": "sanity exec scripts/audit-sanity-content.ts --with-user-token",
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
+    "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
     "test": "vitest run --coverage",
     "lint": "eslint",
     "format": "biome format --write .",
