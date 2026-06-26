@@ -13,11 +13,14 @@ import {
   INVOICE_ORG_NUMBER,
   INVOICE_PARENT_ID,
   INVOICE_PHONE,
+  KVARTERET_PAYMENT_TERMINAL,
   metaField,
   NEEDS_AMPHI,
   ON_BEHALF_OF_STUDENT_ORG,
   OPEN_OR_CLOSED,
   ORDER_PARENT_ID,
+  OWN_PAYMENT_TERMINAL,
+  OWN_TICKET_SYSTEM,
   PROMOTION_PARENT_ID,
   STUDENT_ORG_NAME,
   STUDENT_ORG_PARENT_ID,
@@ -67,6 +70,9 @@ export interface RoomBookingInput {
   cateringWishes: string
   freeOrPaid: "Gratis" | "Betalt"
   ticketTypes: string
+  // Paid events only: "house" = husets billettkasse, "ownTerminal" = egen
+  // betalingsterminal. Maps to the new Crescat ticketing metadata field.
+  ticketSalesMethod?: "house" | "ownTerminal"
   contactName: string
   contactEmail: string
   contactPhone: string
@@ -166,15 +172,18 @@ function timelineAssignments(input: RoomBookingInput): Assignment[] {
 }
 
 // Ekstern/studentorg may flag flexibility on date/room (no Crescat field).
-// When structured alternative dates are provided, skip the free-text note to
-// avoid duplicate signal.
+// When set, the note is prepended to the description so the room coordinator
+// sees it first, ahead of the organizer's own text. When structured alternative
+// dates are provided, skip the free-text note to avoid duplicate signal.
+const FLEXIBLE_DATES_NOTE =
+  "Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre."
+
 function descriptionWithFlexible(input: RoomBookingInput): string {
   if (!input.flexibleDates) return input.description
   if (input.alternativeDates?.length) return input.description
-  const note = "Fleksibel på dato og rom: ja"
   return input.description.trim()
-    ? `${input.description.trim()}\n\n${note}`
-    : note
+    ? `${FLEXIBLE_DATES_NOTE}\n\n${input.description.trim()}`
+    : FLEXIBLE_DATES_NOTE
 }
 
 function roomBookingsFor(input: RoomBookingInput, start: string, end: string) {
@@ -252,7 +261,17 @@ export function buildExternalBooking(
           'Skal du selge billetter og/eller ta betalt for inngang til ditt arrangement ønsker vi å vite hvilke typer billetter som selges og hva disse koster. Er ikke dette feltet relevant for ditt arrangement ber vi om at feltet fylles ut som "N/A"',
         type: "metaData",
         content: {
-          fields: [metaField(TICKET_TYPES, ticketTypesOrNA(input))],
+          fields: [
+            metaField(TICKET_TYPES, ticketTypesOrNA(input)),
+            metaField(
+              KVARTERET_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "house",
+            ),
+            metaField(
+              OWN_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "ownTerminal",
+            ),
+          ],
           parent_id: TICKETING_PARENT_ID,
         },
       },
@@ -395,6 +414,14 @@ export function buildInternalBooking(
           fields: [
             metaField(FREE_OR_PAID, input.freeOrPaid),
             metaField(TICKET_TYPES, ticketTypesOrNA(input)),
+            metaField(
+              KVARTERET_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "house",
+            ),
+            metaField(
+              OWN_TICKET_SYSTEM,
+              input.ticketSalesMethod === "ownTerminal",
+            ),
           ],
           parent_id: TICKETING_PARENT_ID,
         },

@@ -26,13 +26,13 @@
  *       For every calendar, list Crescat rooms and Sanity coverage.
  */
 
-import { writeFileSync, mkdirSync } from "node:fs"
-import { resolve, dirname } from "node:path"
+import { mkdirSync, writeFileSync } from "node:fs"
+import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import {
-  fetchNormalizedTemplate,
   diffTemplateAgainstRegistry,
+  fetchNormalizedTemplate,
   type RegistryEntry,
 } from "@/lib/integrations/crescat/form-template"
 
@@ -72,7 +72,9 @@ const REGISTRY: RegistryEntry[] = [
   {
     parentId: 4989,
     sectionTitle: "Billettsalg / inngangspriser",
-    fieldIds: [1443270, 1244809], // FREE_OR_PAID, TICKET_TYPES (external); intern uses only FREE_OR_PAID + TICKET_TYPES under "Billettsalg"
+    // FREE_OR_PAID, TICKET_TYPES, KVARTERET_PAYMENT_TERMINAL, OWN_PAYMENT_TERMINAL
+    // (4451407 is "Vi bruker eget billettsystem" on the intern form)
+    fieldIds: [1443270, 1244809, 3511840, 4451407],
   },
   {
     parentId: 11068,

@@ -17,7 +17,7 @@ const REGISTRY: RegistryEntry[] = [
   {
     parentId: 4989,
     sectionTitle: "Billettsalg / inngangspriser",
-    fieldIds: [1443270, 1244809],
+    fieldIds: [1443270, 1244809, 3511840, 4451407],
   },
   {
     parentId: 11068,
