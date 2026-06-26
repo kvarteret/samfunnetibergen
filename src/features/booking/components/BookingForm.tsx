@@ -31,6 +31,7 @@ import {
 } from "../domain/availability"
 import {
   buildBookingPayload,
+  hasValidPaidTickets,
   initialBookingState,
   isExternalBooker,
 } from "../domain/formState"
@@ -81,6 +82,7 @@ export function BookingForm({
     startDate: `${uid}-startDate`,
     eventName: `${uid}-eventName`,
     audienceCount: `${uid}-audience`,
+    tickets: `${uid}-tickets`,
     furniture: `${uid}-furniture`,
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
@@ -291,7 +293,10 @@ export function BookingForm({
             eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
           />
-          <BookingFormTicketSection />
+          <BookingFormTicketSection
+            ticketsError={errorFor(fieldIds.tickets)}
+            ticketsId={fieldIds.tickets}
+          />
           <BookingFormContactSection
             contactEmailError={errorFor(fieldIds.contactEmail)}
             contactEmailId={fieldIds.contactEmail}
@@ -400,6 +405,7 @@ interface BookingValidationOptions {
     | "startDate"
     | "eventName"
     | "audienceCount"
+    | "tickets"
     | "furniture"
     | "contactName"
     | "contactEmail"
@@ -476,6 +482,12 @@ function getBookingValidationErrors({
     errors.push({
       fieldId: fieldIds.audienceCount,
       message: "Skriv inn estimert antall publikum.",
+    })
+  }
+  if (!hasValidPaidTickets(values)) {
+    errors.push({
+      fieldId: fieldIds.tickets,
+      message: "Legg til minst én billettype med pris for betalte arrangement.",
     })
   }
   if (!values.furniture.trim()) {

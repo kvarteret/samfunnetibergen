@@ -4,8 +4,10 @@ import type { AnyFieldApi } from "@tanstack/react-form"
 import { Plus, X } from "lucide-react"
 import { useId } from "react"
 import { Button } from "@/components/ui/button"
+import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { TicketType } from "../domain/formState"
 import type { BookingFormValues } from "./BookingForm"
@@ -16,13 +18,26 @@ const FREE_PAID_OPTIONS = [
   { value: "Betalt", label: "Betalt" },
 ]
 
+const SALES_METHOD_OPTIONS = [
+  { value: "house", label: "Husets billettkasse (kostnadsfritt)" },
+  { value: "ownTerminal", label: "Egen betalingsterminal" },
+]
+
 const DEFAULT_TICKET_TYPES: TicketType[] = [
   { name: "Ordinær", price: "200" },
   { name: "Student", price: "150" },
   { name: "Medlem", price: "100" },
 ]
 
-export function BookingFormTicketSection() {
+interface BookingFormTicketSectionProps {
+  ticketsError?: string
+  ticketsId: string
+}
+
+export function BookingFormTicketSection({
+  ticketsError,
+  ticketsId,
+}: BookingFormTicketSectionProps) {
   const uid = useId()
   const form = useBookingForm()
 
@@ -35,8 +50,7 @@ export function BookingFormTicketSection() {
               onValueChange={v => {
                 field.handleChange(v)
                 if (v === "Betalt") {
-                  const current = form.state.values
-                    .ticketTypes as TicketType[]
+                  const current = form.state.values.ticketTypes as TicketType[]
                   if (current.length === 0) {
                     form.setFieldValue(
                       "ticketTypes",
@@ -59,7 +73,31 @@ export function BookingFormTicketSection() {
           selector={(s: { values: BookingFormValues }) => s.values.freeOrPaid}
         >
           {(freeOrPaid: string) =>
-            freeOrPaid === "Betalt" ? <TicketTypesEditor uid={uid} /> : null
+            freeOrPaid === "Betalt" ? (
+              <div className="space-y-6">
+                <FieldGroup error={ticketsError} errorId={`${ticketsId}-error`}>
+                  <Label htmlFor={ticketsId}>Billettyper og priser *</Label>
+                  <TicketTypesEditor anchorId={ticketsId} uid={uid} />
+                </FieldGroup>
+                <FieldGroup>
+                  <Label>Hvordan selges billettene? *</Label>
+                  <form.Field name="ticketSalesMethod">
+                    {(field: AnyFieldApi) => (
+                      <RadioGroup<string>
+                        onValueChange={field.handleChange}
+                        value={field.state.value as string}
+                      >
+                        {SALES_METHOD_OPTIONS.map(opt => (
+                          <RadioGroupItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </RadioGroupItem>
+                        ))}
+                      </RadioGroup>
+                    )}
+                  </form.Field>
+                </FieldGroup>
+              </div>
+            ) : null
           }
         </form.Subscribe>
       </div>
@@ -67,7 +105,13 @@ export function BookingFormTicketSection() {
   )
 }
 
-function TicketTypesEditor({ uid }: { uid: string }) {
+function TicketTypesEditor({
+  uid,
+  anchorId,
+}: {
+  uid: string
+  anchorId: string
+}) {
   const form = useBookingForm()
 
   return (
@@ -102,6 +146,7 @@ function TicketTypesEditor({ uid }: { uid: string }) {
                 key={`${uid}-ticket-${i}`}
               >
                 <Input
+                  id={i === 0 ? anchorId : undefined}
                   onChange={e => updateTicket(i, "name", e.target.value)}
                   placeholder="Billettnavn"
                   value={ticket.name}
