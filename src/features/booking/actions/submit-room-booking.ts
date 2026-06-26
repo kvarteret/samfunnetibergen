@@ -31,11 +31,11 @@ import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
-import { getPostHogClient } from "@/lib/posthog-server"
 import {
   getHandledExceptionProperties,
   toPostHogException,
 } from "@/lib/posthog/error-context"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
@@ -73,6 +73,8 @@ const payloadSchema = z.object({
   cateringWishes: z.string().trim().default(""),
   freeOrPaid: z.enum(["Gratis", "Betalt"]),
   ticketTypes: z.string().trim().default(""),
+  // Paid events only: ticket sales channel.
+  ticketSalesMethod: z.enum(["house", "ownTerminal"]).optional(),
   contactName: z.string().trim().min(1),
   contactEmail: z.string().trim().email(),
   contactPhone: z.string().trim().default(""),

@@ -3,7 +3,11 @@ import { DetailRow } from "@/components/ui/detail-row"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
 import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
-import { type BookingFormState, composeCatering } from "../domain/formState"
+import {
+  type BookingFormState,
+  bookerTypeLabel,
+  composeCatering,
+} from "../domain/formState"
 import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
 import { useBookingForm } from "./bookingFormContext"
@@ -48,6 +52,9 @@ export function BookingFormOrderSummary({
   return (
     <aside>
       <div className="panel p-0">
+        <p className="border-b-2 border-border bg-muted/50 px-5 py-3 font-heading text-sm uppercase tracking-widest text-foreground">
+          Du booker som {bookerTypeLabel(state.bookerType)}
+        </p>
         {selectedRooms.length > 0 ? (
           <div>
             {selectedRooms.map((room, i) => (

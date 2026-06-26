@@ -8,6 +8,7 @@ interface FormSectionProps {
   title: string
   children: ReactNode
   className?: string
+  id?: string
 }
 
 export function FormSection({
@@ -15,9 +16,10 @@ export function FormSection({
   title,
   children,
   className,
+  id,
 }: FormSectionProps) {
   return (
-    <section className={cn("space-y-6", className)}>
+    <section className={cn("scroll-mt-24 space-y-6", className)} id={id}>
       <SectionHeader number={number} title={title} />
       {children}
     </section>

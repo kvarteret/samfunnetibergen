@@ -42,6 +42,9 @@ export interface BookingFormState {
   barKvarteret: boolean
   freeOrPaid: "Gratis" | "Betalt"
   ticketTypes: TicketType[]
+  // Paid events only: whether ticket sales run through the house register
+  // (free) or the organizer brings their own payment terminal.
+  ticketSalesMethod: "house" | "ownTerminal"
   invoiceAddress: string
   orgNumber: string
   flexibleDates: boolean
@@ -84,6 +87,7 @@ export const initialBookingState: BookingFormState = {
   barKvarteret: false,
   freeOrPaid: "Gratis",
   ticketTypes: [{ name: "Ordinær", price: "200" }],
+  ticketSalesMethod: "house",
   invoiceAddress: "",
   orgNumber: "",
   flexibleDates: false,
@@ -96,6 +100,15 @@ export const initialBookingState: BookingFormState = {
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
   bookerType !== "intern"
+
+const BOOKER_TYPE_LABELS: Record<BookerType, string> = {
+  ekstern: "Privat",
+  studentorg: "Studentorganisasjon",
+  intern: "Intern",
+}
+
+export const bookerTypeLabel = (bookerType: BookerType): string =>
+  BOOKER_TYPE_LABELS[bookerType]
 
 // --- Crescat free-text composition (shared by the order summary and payload) ---
 
@@ -147,6 +160,8 @@ export function buildBookingPayload(
       .filter(t => t.name.trim())
       .map(t => `${t.name} ${t.price} kr`)
       .join(", "),
+    ticketSalesMethod:
+      state.freeOrPaid === "Betalt" ? state.ticketSalesMethod : undefined,
     contactName: state.contactName,
     contactEmail: state.contactEmail,
     contactPhone: state.contactPhone,
@@ -165,6 +180,15 @@ export function buildBookingPayload(
   }
 }
 
+// Paid events must list at least one ticket type with both a name and a price.
+// Free events have nothing to validate here.
+export function hasValidPaidTickets(state: BookingFormState): boolean {
+  if (state.freeOrPaid !== "Betalt") return true
+  return state.ticketTypes.some(
+    t => t.name.trim() !== "" && t.price.trim() !== "",
+  )
+}
+
 export function canSubmitBooking(
   state: BookingFormState,
   roomSelected: boolean,
@@ -181,6 +205,7 @@ export function canSubmitBooking(
     state.doorsTimes.every(Boolean) &&
     state.audienceCount.trim() !== "" &&
     state.furniture.trim() !== "" &&
+    hasValidPaidTickets(state) &&
     state.contactName.trim() !== "" &&
     state.contactEmail.trim() !== "" &&
     (!isExternal || state.invoiceAddress.trim() !== "") &&

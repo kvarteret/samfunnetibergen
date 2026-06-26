@@ -64,7 +64,7 @@ export function BookingFormScheduleSection({
   const firstRoom = rooms.find(r => selectedRoomIds.includes(r.crescatRoomId))
 
   return (
-    <FormSection number="02" title="Rom og tidspunkt">
+    <FormSection id="booking-schedule" number="02" title="Rom og tidspunkt">
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => ({
           selectedRoomIds: s.values.selectedRoomIds as number[],
@@ -183,6 +183,7 @@ export function BookingFormScheduleSection({
                             <div className="relative aspect-video bg-muted">
                               <ImageWithFallback
                                 alt={room.image?.alt ?? roomName}
+                                className={cn(occupied && "grayscale")}
                                 fallback={
                                   <Building2
                                     aria-hidden
@@ -193,22 +194,23 @@ export function BookingFormScheduleSection({
                                 src={room.image?.assetUrl}
                               />
                               {occupied && (
-                                <>
-                                  <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
+                                <div className="absolute inset-0 flex flex-col bg-black/55">
+                                  <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
                                     <CalendarClock
                                       aria-hidden
-                                      className="size-3.5 shrink-0"
+                                      className="size-4 shrink-0"
                                     />
-                                    <span className="font-heading text-xs uppercase tracking-widest">
+                                    <span className="font-heading text-sm uppercase tracking-widest">
                                       Opptatt
                                     </span>
                                   </div>
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                    <span className="font-heading text-lg uppercase tracking-widest text-white">
-                                      Opptatt
-                                    </span>
+                                  <div className="mt-auto p-3">
+                                    <RoomConflictList
+                                      conflicts={conflicts}
+                                      tone="onImage"
+                                    />
                                   </div>
-                                </>
+                                </div>
                               )}
                               {!occupied && (
                                 <AddRoomButton
@@ -216,14 +218,6 @@ export function BookingFormScheduleSection({
                                   onClick={() => toggleRoom(room.crescatRoomId)}
                                   selected={selected}
                                 />
-                              )}
-                              {room.slug && (
-                                <div
-                                  className="absolute bottom-3 left-3"
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  <RoomInfoTrigger room={room} />
-                                </div>
                               )}
                             </div>
                           )}
@@ -260,8 +254,19 @@ export function BookingFormScheduleSection({
                                   />
                                 </p>
                               )}
-                            {occupied && (
+                            {/* Occupied conflicts now render over the image; the
+                                crescat-only card (no image) still needs them
+                                inline. */}
+                            {occupied && isCrescatOnly && (
                               <RoomConflictList conflicts={conflicts} />
+                            )}
+                            {room.slug && (
+                              <div
+                                className="mt-auto pt-1"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <RoomInfoTrigger room={room} />
+                              </div>
                             )}
                           </div>
                         </div>
@@ -316,7 +321,13 @@ export function BookingFormScheduleSection({
 
 const CONFLICT_PREVIEW_COUNT = 3
 
-function RoomConflictList({ conflicts }: { conflicts: string[] }) {
+function RoomConflictList({
+  conflicts,
+  tone = "inline",
+}: {
+  conflicts: string[]
+  tone?: "inline" | "onImage"
+}) {
   const [expanded, setExpanded] = useState(false)
   const visibleConflicts = expanded
     ? conflicts
@@ -324,7 +335,12 @@ function RoomConflictList({ conflicts }: { conflicts: string[] }) {
   const hiddenCount = conflicts.length - visibleConflicts.length
 
   return (
-    <ul className="space-y-0.5 text-sm text-destructive">
+    <ul
+      className={cn(
+        "space-y-0.5 text-sm",
+        tone === "onImage" ? "text-white" : "text-destructive",
+      )}
+    >
       {visibleConflicts.map(conflict => (
         <li key={conflict}>{conflict}</li>
       ))}
