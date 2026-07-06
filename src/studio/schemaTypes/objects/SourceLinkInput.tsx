@@ -88,12 +88,15 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
   const [documentTitle, setDocumentTitle] = useState<string | null>(null)
 
   useEffect(() => {
+    // Sync external storedValue into local input state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(storedValue)
   }, [storedValue])
 
   useEffect(() => {
     const documentId = value?.internalPage?._ref
     if (!documentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDocumentTitle(null)
       return
     }
