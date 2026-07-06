@@ -38,9 +38,7 @@ export function BookingFormCateringBarSection() {
                         <Textarea
                           className="resize-y"
                           id={`${uid}-catering`}
-                          onChange={e =>
-                            textField.handleChange(e.target.value)
-                          }
+                          onChange={e => textField.handleChange(e.target.value)}
                           placeholder="Beskriv ønsker om mat, snacks eller drikke."
                           rows={4}
                           value={textField.state.value as string}
@@ -90,7 +88,13 @@ function BarSection({ requiresBar }: { requiresBar: boolean }) {
             barKvarteret: s.values.barKvarteret,
           })}
         >
-          {({ barSelf, barKvarteret }: { barSelf: boolean; barKvarteret: boolean }) => {
+          {({
+            barSelf,
+            barKvarteret,
+          }: {
+            barSelf: boolean
+            barKvarteret: boolean
+          }) => {
             const wantsBar = barSelf || barKvarteret
             return (
               <>

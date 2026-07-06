@@ -174,14 +174,19 @@ export default async function BookRoomPage({
   const preselectedRoomId = roomParam ? Number(roomParam) : undefined
   activateRequestLocale(locale)
 
-  const [initialRooms, houseHours, roomsPageContent, termsPage, cancellationPage] =
-    await Promise.all([
-      fetchBookableRoomsForBooker("ekstern"),
-      fetchHouseHours(),
-      fetchRoomsPageContent(),
-      fetchPageBySlug("leie-av-lokaler"),
-      fetchPageBySlug("avbestillingsvilkar"),
-    ])
+  const [
+    initialRooms,
+    houseHours,
+    roomsPageContent,
+    termsPage,
+    cancellationPage,
+  ] = await Promise.all([
+    fetchBookableRoomsForBooker("ekstern"),
+    fetchHouseHours(),
+    fetchRoomsPageContent(),
+    fetchPageBySlug("leie-av-lokaler"),
+    fetchPageBySlug("avbestillingsvilkar"),
+  ])
 
   const howToSection = roomsPageContent?.sections?.find(
     s => s.title === "Slik booker du",

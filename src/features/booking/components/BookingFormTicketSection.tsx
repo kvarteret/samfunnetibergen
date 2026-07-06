@@ -35,8 +35,7 @@ export function BookingFormTicketSection() {
               onValueChange={v => {
                 field.handleChange(v)
                 if (v === "Betalt") {
-                  const current = form.state.values
-                    .ticketTypes as TicketType[]
+                  const current = form.state.values.ticketTypes as TicketType[]
                   if (current.length === 0) {
                     form.setFieldValue(
                       "ticketTypes",

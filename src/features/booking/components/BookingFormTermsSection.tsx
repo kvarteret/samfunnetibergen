@@ -3,10 +3,10 @@
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Check, ExternalLink, X } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
+import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FormSection } from "@/components/ui/form-section"
-import ReactMarkdown from "react-markdown"
 import { useBookingForm } from "./bookingFormContext"
 
 interface BookingFormTermsSectionProps {
