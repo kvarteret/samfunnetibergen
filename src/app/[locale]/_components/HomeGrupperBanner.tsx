@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 
 interface HomeGrupperBannerProps {
-  eyebrow: string
+  eyebrow?: string
   heading1: string
   heading2: string
   body: string
@@ -19,9 +19,11 @@ export function HomeGrupperBanner({
 }: HomeGrupperBannerProps) {
   return (
     <section className="bg-primary p-8 text-primary-foreground shadow-hard-lg sm:p-12">
-      <p className="font-heading text-lg text-primary-foreground/75">
-        {eyebrow}
-      </p>
+      {eyebrow && (
+        <p className="font-heading text-lg text-primary-foreground/75">
+          {eyebrow}
+        </p>
+      )}
       <h2 className="mt-2 font-heading text-5xl leading-none sm:text-7xl">
         {heading1}
         <br />

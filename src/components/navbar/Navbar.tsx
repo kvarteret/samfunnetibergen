@@ -1,6 +1,6 @@
+import { ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -9,18 +9,11 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import type {
-  NavbarContent,
-  NavGroup,
-  NavItem,
-  NavLeaf,
-} from "@/lib/sanity/fetch"
+import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
+import { cn } from "@/lib/utils"
 import { MobileMenu } from "./MobileMenu"
+import { NavbarScrollShell } from "./NavbarScrollShell"
 import { PaperMenuSection } from "./PaperPicker"
-
-type NavbarProps = {
-  navbar: NavbarContent | null
-}
 
 const moreItem: NavItem = {
   _key: "static-more",
@@ -32,6 +25,12 @@ const moreItem: NavItem = {
       _key: "static-more-links",
       groupLabel: null,
       items: [
+        {
+          _key: "static-contact",
+          label: "Kontakt",
+          href: "/kontakt",
+          externalUrl: null,
+        },
         {
           _key: "static-sponsors",
           label: "Sponsorer",
@@ -77,11 +76,38 @@ const bookingItem: NavItem = {
   ],
 }
 
-function withMoreMenu(items: NavItem[]) {
-  const filtered = items.filter(
-    item => item._key !== moreItem._key && item._key !== bookingItem._key,
-  )
-  return [bookingItem, ...filtered, moreItem]
+const volunteerItem: NavItem = {
+  _key: "static-volunteer",
+  label: "Bli frivillig",
+  href: "/grupper",
+  externalUrl: null,
+  children: [],
+}
+
+const arrangementerItem: NavItem = {
+  _key: "static-arrangementer",
+  label: "Arrangementer",
+  href: "/arrangementer",
+  externalUrl: null,
+  children: [],
+}
+
+const usefulInfoItem: NavItem = {
+  _key: "static-useful-info",
+  label: "Nyttig info",
+  href: "/nyttig",
+  externalUrl: null,
+  children: [],
+}
+
+function orderedNavItems() {
+  return [
+    volunteerItem,
+    arrangementerItem,
+    bookingItem,
+    usefulInfoItem,
+    moreItem,
+  ]
 }
 
 function resolveHref(item: {
@@ -100,23 +126,23 @@ function isExternal(item: {
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
-export function Navbar({ navbar }: NavbarProps) {
-  const items = withMoreMenu(navbar?.items ?? [])
+export function Navbar() {
+  const items = orderedNavItems()
 
   return (
-    <header className="sticky top-0 z-30 border-b-2 border-border bg-background">
+    <NavbarScrollShell>
       <nav
         aria-label="Hovednavigasjon"
-        className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
+        className="mx-auto flex max-w-7xl items-center justify-between px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
       >
         <Link
           aria-label="Samfunnet i Bergen"
-          className="block py-2.5 transition-opacity hover:opacity-75 focus-brutal"
+          className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
           href="/"
         >
           <Image
             alt="Samfunnet i Bergen logo"
-            className="h-8 w-auto sm:h-10"
+            className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
             height={62}
             priority
             src="/kvarteret-logo.svg"
@@ -128,7 +154,7 @@ export function Navbar({ navbar }: NavbarProps) {
 
         <MobileMenu items={items} />
       </nav>
-    </header>
+    </NavbarScrollShell>
   )
 }
 
@@ -152,11 +178,16 @@ function DesktopNavItem({ item }: { item: NavItem }) {
   const hasDropdown = (item.children?.length ?? 0) > 0
   const href = resolveHref(item)
   const external = isExternal(item)
+  const isVolunteer = item._key === volunteerItem._key
 
   if (!hasDropdown) {
     return (
       <NavigationMenuItem value={item._key}>
         <NavigationMenuLink
+          className={cn(
+            isVolunteer &&
+              "border-primary bg-primary px-4 text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+          )}
           render={<NavLink external={external} href={href} />}
           variant="top"
         >

@@ -1,4 +1,4 @@
-import { ClockIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 import { DurationInput } from "./DurationInput"
 
@@ -15,7 +15,7 @@ export const duration = defineType({
   name: "duration",
   title: "Varighet",
   type: "object",
-  icon: ClockIcon,
+  icon: icons.clock,
   fields: [
     defineField({
       name: "start",

@@ -53,9 +53,10 @@ function getSession(): { cookie: string; token: string } {
 
 // ── API calls ───────────────────────────────────────────────────────────────
 
-async function listPendingRequests(
-  session: { cookie: string; token: string },
-): Promise<EventRequest[]> {
+async function listPendingRequests(session: {
+  cookie: string
+  token: string
+}): Promise<EventRequest[]> {
   const params = new URLSearchParams({
     model_type: "App\\Group",
     model_id: GROUP_ID,

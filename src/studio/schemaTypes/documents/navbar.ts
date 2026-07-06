@@ -1,11 +1,11 @@
-import { LinkIcon, MenuIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 const navItem = defineType({
   name: "navItem",
   title: "Navigasjonselement",
   type: "object",
-  icon: LinkIcon,
+  icon: icons.link,
   fields: [
     defineField({
       name: "label",
@@ -51,7 +51,7 @@ const navItem = defineType({
                   name: "navLeaf",
                   title: "Lenke",
                   type: "object",
-                  icon: LinkIcon,
+                  icon: icons.link,
                   fields: [
                     defineField({
                       name: "label",
@@ -106,7 +106,7 @@ export const navbar = defineType({
   name: "navbar",
   title: "Navigasjon",
   type: "document",
-  icon: MenuIcon,
+  icon: icons.menu,
   fields: [
     defineField({
       name: "items",

@@ -1,4 +1,4 @@
-import { ClockIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 const weekdayLabels: Record<number, string> = {
@@ -126,7 +126,7 @@ export const openingHours = defineType({
   name: "openingHours",
   title: "Åpningstider",
   type: "object",
-  icon: ClockIcon,
+  icon: icons.clock,
   fields: [
     defineField({
       name: "rows",

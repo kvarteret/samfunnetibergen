@@ -35,7 +35,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
         <Dialog.Popup className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden">
           <Dialog.Title className="sr-only">Hovedmeny</Dialog.Title>
 
-          <div className="shrink-0 border-b-2 border-border">
+          <div className="shrink-0">
             <div className={navShellClass}>
               <Link
                 aria-label="Samfunnet i Bergen"
@@ -83,8 +83,12 @@ interface MobileNavItemProps {
 }
 
 function MobileNavItem({ item, onClose }: MobileNavItemProps) {
-  const linkCls =
-    "block cursor-pointer border-2 border-transparent px-6 py-5 font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+  const isVolunteer = item._key === "static-volunteer"
+  const linkCls = cn(
+    "block cursor-pointer border-2 border-transparent px-6 py-5 font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
+    isVolunteer &&
+      "border-primary bg-primary text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground",
+  )
 
   return (
     <div>

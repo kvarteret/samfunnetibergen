@@ -1,6 +1,6 @@
+import { ExternalLink } from "lucide-react"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import { ExternalLink } from "lucide-react"
 
 const APP_STORE_URL = "https://apps.apple.com/app/kvarteret/id6578415973"
 const GOOGLE_PLAY_URL =

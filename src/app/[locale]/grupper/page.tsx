@@ -123,7 +123,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
                 <AccordionItem key={item._key} value={item._key}>
                   <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionPanel>
-                    <div className="paper-prose text-foreground">
+                    <div className="paper-prose !bg-transparent !p-0 text-foreground">
                       {item.answer?.map((paragraph: string) => (
                         <p key={paragraph}>{paragraph}</p>
                       ))}

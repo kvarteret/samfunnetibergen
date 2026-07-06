@@ -2,12 +2,11 @@
 
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
-
-import { getPostHogClient } from "@/lib/posthog-server"
 import {
   getHandledExceptionProperties,
   toPostHogException,
 } from "@/lib/posthog/error-context"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import {

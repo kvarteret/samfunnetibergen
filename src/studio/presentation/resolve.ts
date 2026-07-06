@@ -36,6 +36,10 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       filter: `_id == "kontaktPage"`,
     },
     {
+      route: "/:locale/nyttig",
+      filter: `_id == "usefulInfoPage"`,
+    },
+    {
       route: "/:locale/sponsorer",
       filter: `_id == "sponsorsPage"`,
     },
@@ -57,7 +61,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     },
     {
       route: "/:locale/:slug",
-      filter: `_type == "page" && slug.current == $slug && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])`,
+      filter: `_type == "page" && slug.current == $slug && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "nyttig", "rom", "sponsorer", "tilgjengelighet"])`,
     },
   ]),
   locations: {
@@ -176,6 +180,13 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: {},
       resolve: () => ({
         locations: [{ title: "Kontakt", href: `/${defaultLocale}/kontakt` }],
+      }),
+    }),
+
+    usefulInfoPage: defineLocations({
+      select: {},
+      resolve: () => ({
+        locations: [{ title: "Nyttig info", href: `/${defaultLocale}/nyttig` }],
       }),
     }),
 

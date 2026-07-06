@@ -1,19 +1,4 @@
-import {
-  CalendarIcon,
-  CogIcon,
-  ComponentIcon,
-  DocumentIcon,
-  EarthGlobeIcon,
-  EnvelopeIcon,
-  LinkIcon,
-  MenuIcon,
-  MobileDeviceIcon,
-  PauseIcon,
-  StarIcon,
-  TagIcon,
-  TextIcon,
-  UsersIcon,
-} from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
@@ -40,7 +25,7 @@ function singletonListItem(
 ) {
   return S.listItem()
     .title(title)
-    .icon(icon ?? DocumentIcon)
+    .icon(icon ?? icons.document)
     .child(S.document().schemaType(typeName).documentId(typeName).title(title))
 }
 
@@ -53,7 +38,7 @@ function pageListItem(
   return S.listItem()
     .id(id)
     .title(title)
-    .icon(DocumentIcon)
+    .icon(icons.document)
     .child(
       S.documentList()
         .apiVersion(STRUCTURE_API_VERSION)
@@ -67,7 +52,7 @@ function pageListItem(
 
 function seoAuditItems(S: StructureBuilder) {
   const pageLikeTypes =
-    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
+    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "usefulInfoPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
 
   return [
     S.listItem()
@@ -86,13 +71,13 @@ export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Samfunnet i Bergen")
     .items([
-      singletonListItem(S, "homePage", "Hovedside", DocumentIcon),
+      singletonListItem(S, "homePage", "Hovedside", icons.document),
 
       S.divider(),
 
       S.listItem()
         .title("Program")
-        .icon(CalendarIcon)
+        .icon(icons.calendar)
         .child(
           S.list()
             .title("Program")
@@ -101,13 +86,13 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "eventsPage",
                 "Innhold på arrangementsiden",
-                DocumentIcon,
+                icons.document,
               ),
               S.divider(),
               S.listItem()
                 .id("arrangement-pending")
                 .title("Venter på godkjenning")
-                .icon(CalendarIcon)
+                .icon(icons.calendar)
                 .child(
                   S.documentList()
                     .apiVersion(STRUCTURE_API_VERSION)
@@ -119,7 +104,7 @@ export const structure: StructureResolver = (S, context) =>
               S.listItem()
                 .id("arrangement-upcoming")
                 .title("Kommende")
-                .icon(CalendarIcon)
+                .icon(icons.calendar)
                 .child(
                   S.documentList()
                     .apiVersion(STRUCTURE_API_VERSION)
@@ -132,9 +117,24 @@ export const structure: StructureResolver = (S, context) =>
                     ]),
                 ),
               S.listItem()
+                .id("arrangement-promoted")
+                .title("Promotert på forsiden")
+                .icon(icons.calendar)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Promotert på forsiden")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "approved" && isPromoted == true',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "asc" },
+                    ]),
+                ),
+              S.listItem()
                 .id("arrangement-paused")
                 .title("Satt på pause")
-                .icon(PauseIcon)
+                .icon(icons.pause)
                 .child(
                   S.documentList()
                     .apiVersion(STRUCTURE_API_VERSION)
@@ -146,7 +146,7 @@ export const structure: StructureResolver = (S, context) =>
               S.listItem()
                 .id("arrangement-past")
                 .title("Tidligere")
-                .icon(CalendarIcon)
+                .icon(icons.calendar)
                 .child(
                   S.documentList()
                     .apiVersion(STRUCTURE_API_VERSION)
@@ -182,7 +182,7 @@ export const structure: StructureResolver = (S, context) =>
                 ),
               S.documentTypeListItem("arrangement")
                 .title("Alle arrangementer")
-                .icon(CalendarIcon),
+                .icon(icons.calendar),
               S.divider(),
               orderableDocumentListDeskItem({
                 S,
@@ -190,7 +190,7 @@ export const structure: StructureResolver = (S, context) =>
                 type: "eventTaxonomyGroup",
                 id: "orderable-event-taxonomy-group",
                 title: "Kategorier",
-                icon: TagIcon,
+                icon: icons.tag,
               }),
               orderableDocumentListDeskItem({
                 S,
@@ -198,14 +198,14 @@ export const structure: StructureResolver = (S, context) =>
                 type: "eventType",
                 id: "orderable-event-type-all",
                 title: "Arrangementtyper",
-                icon: TagIcon,
+                icon: icons.tag,
               }),
             ]),
         ),
 
       S.listItem()
         .title("Rom")
-        .icon(ComponentIcon)
+        .icon(icons.component)
         .child(
           S.list()
             .title("Rom")
@@ -214,7 +214,7 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "roomsPage",
                 "Innhold på romsiden",
-                DocumentIcon,
+                icons.document,
               ),
               orderableDocumentListDeskItem({
                 S,
@@ -239,14 +239,14 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "siteMetadata",
                 "Åpningstider og stengte dager",
-                CogIcon,
+                icons.cog,
               ),
             ]),
         ),
 
       S.listItem()
         .title("Grupper og frivillighet")
-        .icon(UsersIcon)
+        .icon(icons.users)
         .child(
           S.list()
             .title("Grupper og frivillighet")
@@ -255,7 +255,7 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "groupsPage",
                 "Innhold på gruppesiden",
-                DocumentIcon,
+                icons.document,
               ),
               orderableDocumentListDeskItem({
                 S,
@@ -278,7 +278,7 @@ export const structure: StructureResolver = (S, context) =>
 
       S.listItem()
         .title("Sider")
-        .icon(DocumentIcon)
+        .icon(icons.document)
         .child(
           S.list()
             .title("Sider")
@@ -296,31 +296,37 @@ export const structure: StructureResolver = (S, context) =>
                 "Retningslinjer og vilkår",
                 POLICY_PAGE_SLUGS,
               ),
-              singletonListItem(S, "sponsorsPage", "Sponsorer", StarIcon),
-              singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
+              singletonListItem(S, "sponsorsPage", "Sponsorer", icons.star),
+              singletonListItem(
+                S,
+                "usefulInfoPage",
+                "Nyttig info",
+                icons["info-outline"],
+              ),
+              singletonListItem(S, "kontaktPage", "Kontakt", icons.envelope),
               S.divider(),
               S.documentTypeListItem("page")
                 .title("Alle sider")
-                .icon(DocumentIcon),
+                .icon(icons.document),
             ]),
         ),
 
       S.listItem()
         .title("Navigasjon og kanaler")
-        .icon(MenuIcon)
+        .icon(icons.menu)
         .child(
           S.list()
             .title("Navigasjon og kanaler")
             .items([
-              singletonListItem(S, "navbar", "Hovednavigasjon", MenuIcon),
-              singletonListItem(S, "footer", "Bunntekst", TextIcon),
-              singletonListItem(S, "linkInBio", "Link-i-bio", LinkIcon),
+              singletonListItem(S, "navbar", "Hovednavigasjon", icons.menu),
+              singletonListItem(S, "footer", "Bunntekst", icons.text),
+              singletonListItem(S, "linkInBio", "Link-i-bio", icons.link),
             ]),
         ),
 
       S.listItem()
         .title("App og internt innhold")
-        .icon(MobileDeviceIcon)
+        .icon(icons["mobile-device"])
         .child(
           S.list()
             .title("App og internt innhold")
@@ -329,11 +335,11 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "internbevisPage",
                 "Internbevis",
-                MobileDeviceIcon,
+                icons["mobile-device"],
               ),
               S.documentTypeListItem("internbevisBenefit")
                 .title("Frivilligfordeler")
-                .icon(StarIcon),
+                .icon(icons.star),
             ]),
         ),
 
@@ -341,7 +347,7 @@ export const structure: StructureResolver = (S, context) =>
 
       S.listItem()
         .title("Nettstedsinnstillinger")
-        .icon(CogIcon)
+        .icon(icons.cog)
         .child(
           S.list()
             .title("Nettstedsinnstillinger")
@@ -350,7 +356,7 @@ export const structure: StructureResolver = (S, context) =>
                 S,
                 "siteMetadata",
                 "Identitet, SEO og deling",
-                EarthGlobeIcon,
+                icons["earth-globe"],
               ),
               S.divider(),
               ...seoAuditItems(S),

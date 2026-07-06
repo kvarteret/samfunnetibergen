@@ -1,4 +1,4 @@
-import { UsersIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import {
@@ -10,7 +10,7 @@ export const groupsPage = defineType({
   name: "groupsPage",
   title: "Grupper-side",
   type: "document",
-  icon: UsersIcon,
+  icon: icons.users,
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "intro", title: "Introduksjon" },

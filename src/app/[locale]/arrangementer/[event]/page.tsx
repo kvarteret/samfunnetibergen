@@ -9,6 +9,7 @@ import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
+import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
@@ -98,6 +99,10 @@ function EventDetailHero({
   eventSlug: string
   ticketsLabel: string
 }) {
+  const imageUrl = event.imageUrl
+    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
+    : null
+
   return (
     <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
       <div className="flex h-full flex-col justify-evenly">
@@ -120,7 +125,7 @@ function EventDetailHero({
       </div>
 
       <div className="overflow-hidden border-2 border-border bg-muted">
-        {event.imageUrl ? (
+        {imageUrl ? (
           <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
             <Image
               alt={event.imageCaption ?? event.title}
@@ -128,7 +133,8 @@ function EventDetailHero({
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 80vw"
-              src={event.imageUrl}
+              src={imageUrl}
+              unoptimized={shouldLoadImageDirectly(imageUrl)}
             />
           </div>
         ) : (
@@ -260,6 +266,8 @@ function EventDetailRoomLink({
 }) {
   const roomFloor = event.room?.floor
   const roomImageUrl = event.room?.imageUrl
+    ? sanityImageUrl(event.room.imageUrl, { height: 264, width: 352 })
+    : null
 
   return (
     <span className="group relative inline-block">
@@ -279,6 +287,7 @@ function EventDetailRoomLink({
                 fill
                 className="object-cover"
                 sizes="176px"
+                unoptimized={shouldLoadImageDirectly(roomImageUrl)}
               />
             </span>
           )}

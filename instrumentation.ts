@@ -1,11 +1,11 @@
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import type { Logger } from "@opentelemetry/api-logs"
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import { resourceFromAttributes } from "@opentelemetry/resources"
+import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import {
   LoggerProvider,
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
-import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import type { Instrumentation } from "next"
 import {
   getPostHogDistinctIdFromCookie,

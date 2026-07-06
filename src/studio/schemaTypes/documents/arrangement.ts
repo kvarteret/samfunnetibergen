@@ -1,4 +1,4 @@
-import { CalendarIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import { createSeoFields, createSharingFields } from "../shared/metadataFields"
@@ -15,7 +15,7 @@ export const arrangement = defineType({
   name: "arrangement",
   title: "Arrangement",
   type: "document",
-  icon: CalendarIcon,
+  icon: icons.calendar,
   groups: [
     { name: "core", title: "Grunninfo", default: true },
     { name: "dates", title: "Datoer" },
@@ -55,6 +55,15 @@ export const arrangement = defineType({
       name: "isInternalEvent",
       title: "Internarrangement",
       description: "Arrangementet er kun tilgjengelig for frivillige.",
+      type: "boolean",
+      group: "core",
+      initialValue: false,
+    }),
+    defineField({
+      name: "isPromoted",
+      title: "Promotert på forsiden",
+      description:
+        "Vises blant de tre fremhevede arrangementene øverst på forsiden.",
       type: "boolean",
       group: "core",
       initialValue: false,

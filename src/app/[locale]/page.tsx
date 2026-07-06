@@ -3,12 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
-import { Button } from "@/components/ui/button"
-import {
-  EventCard,
-  type EventDateEntry,
-  type EventSummary,
-} from "@/features/events"
+import { type EventDateEntry, type EventSummary } from "@/features/events"
 import {
   computeAllDates,
   formatPrimaryDate,
@@ -26,6 +21,7 @@ import {
   fetchPublishedEvents,
   fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
+import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
 import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
@@ -88,12 +84,6 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 
 type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
 type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
-
-function localizeHref(href: string | null | undefined, locale: AppLocale) {
-  if (!href) return `/${locale}`
-  if (!href.startsWith("/")) return href
-  return href === "/" ? `/${locale}` : `/${locale}${href}`
-}
 
 type EventCardLabels = {
   today: string
@@ -194,18 +184,62 @@ function toEventSummary(
   }
 }
 
+const promotedDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+  day: "numeric",
+  month: "long",
+  timeZone: "Europe/Oslo",
+})
+
+const upcomingDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "Europe/Oslo",
+  weekday: "long",
+})
+
+function parseEventDate(dateStr: string) {
+  if (!dateStr) return null
+  const date = new Date(`${dateStr}T12:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function capitalize(value: string) {
+  return value ? `${value[0]?.toUpperCase()}${value.slice(1)}` : value
+}
+
+function formatPromotedDate(date: EventDateEntry) {
+  const parsed = parseEventDate(date.startDate)
+  return parsed ? promotedDateFormatter.format(parsed) : null
+}
+
+function formatUpcomingDateTime(date: EventDateEntry) {
+  const parsed = parseEventDate(date.startDate)
+  if (!parsed) return null
+  const dateLabel = capitalize(upcomingDateFormatter.format(parsed))
+  return date.startTime ? `${dateLabel}, kl. ${date.startTime}` : dateLabel
+}
+
+function eventHref(event: EventSummary, locale: AppLocale) {
+  return `/${locale}/arrangementer/${event.slug}`
+}
+
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
 
-  const [homePage, events, barPreviews, t, homeT] = await Promise.all([
-    fetchHomePageContent(locale),
+  const [events, barPreviews, t, homeT] = await Promise.all([
     fetchPublishedEvents(),
     fetchBarPreviews(),
     getTranslations({ locale, namespace: "EventCard" }),
     getTranslations({ locale, namespace: "HomePage" }),
   ])
-  const visibleEvents = (events ?? []).slice(0, 3)
+  const promotedEvents = (events ?? [])
+    .filter(event => event.isPromoted)
+    .slice(0, 3)
+  const promotedEventIds = new Set(promotedEvents.map(event => event._id))
+  const upcomingEvents = (events ?? [])
+    .filter(event => !promotedEventIds.has(event._id))
+    .slice(0, 5)
 
   const eventCardLabels: EventCardLabels = {
     today: t("today"),
@@ -219,12 +253,21 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
   return (
     <div className="flex flex-col gap-12 pb-12">
-      <HomeHero homePage={homePage} locale={locale} />
-      <HomeUpdateNotice locale={locale} />
-      <HomeEvents
-        events={visibleEvents}
+      <HomePromotedEvents
+        events={promotedEvents}
         labels={eventCardLabels}
         locale={locale}
+      />
+      <HomeUpcomingEvents
+        events={upcomingEvents}
+        labels={eventCardLabels}
+        locale={locale}
+      />
+      <HomeGrupperBanner
+        body={homeT("grupperBannerBody")}
+        cta={homeT("grupperBannerCta")}
+        heading1={homeT("grupperBannerHeading1")}
+        heading2={homeT("grupperBannerHeading2")}
       />
       <div className="hs:hidden">
         <HomeBookingBanner
@@ -240,15 +283,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         locale={locale}
         rooms={barPreviews?.rooms ?? []}
       />
-      <div className="hs:hidden">
-        <HomeGrupperBanner
-          body={homeT("grupperBannerBody")}
-          cta={homeT("grupperBannerCta")}
-          eyebrow={homeT("grupperBannerEyebrow")}
-          heading1={homeT("grupperBannerHeading1")}
-          heading2={homeT("grupperBannerHeading2")}
-        />
-      </div>
 
       <section className="hs:hidden">
         <Image
@@ -275,145 +309,217 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   )
 }
 
-// ─── HomeHero ─────────────────────────────────────────────────────────────────
-
-type HomePage = Awaited<ReturnType<typeof fetchHomePageContent>>
-
-function HomeHero({
-  homePage,
-  locale,
-}: {
-  homePage: HomePage
-  locale: AppLocale
-}) {
-  const ctaHref = homePage?.primaryCta?.href
-    ? localizeHref(homePage.primaryCta.href, locale)
-    : null
-
-  return (
-    <section className="hs:bg-card hs:w-screen hs:[margin-left:calc(50%_-_50vw)] hs:-mt-10 hs:pt-10 hs:pb-10 lg:hs:pt-16 lg:hs:pb-16">
-      <div className="grid items-center gap-8 pb-12 pt-2 lg:grid-cols-[minmax(0,0.85fr)_minmax(380px,1.15fr)] lg:gap-14 hs:mx-auto hs:w-full hs:max-w-7xl hs:px-6 hs:pt-0 hs:pb-0 hs:sm:px-10 hs:lg:px-14">
-        <div className="flex flex-col gap-6">
-          {homePage?.title && (
-            <h1 className="font-heading text-4xl leading-tight sm:text-5xl">
-              {homePage.title}
-            </h1>
-          )}
-          {homePage?.description?.split(/\n{2,}/).map(paragraph => (
-            <p
-              className="max-w-2xl leading-relaxed text-foreground-muted"
-              key={paragraph}
-            >
-              {paragraph}
-            </p>
-          ))}
-          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {ctaHref && homePage?.primaryCta?.label ? (
-              <>
-                <Button
-                  className="shrink-0"
-                  render={<Link href={ctaHref} />}
-                  size="lg"
-                >
-                  {homePage.primaryCta.label}
-                </Button>
-                <Link
-                  className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
-                  href={`/${locale}/arrangementer`}
-                >
-                  Se hva som skjer
-                  <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-                </Link>
-              </>
-            ) : (
-              <Button
-                className="group shrink-0"
-                render={<Link href={`/${locale}/arrangementer`} />}
-                size="lg"
-              >
-                Se hva som skjer
-                <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-              </Button>
-            )}
-          </div>
-        </div>
-        <Image
-          alt="Illustrasjon av Det Akademiske Kvarter"
-          className="order-first mx-auto h-auto w-full max-w-sm lg:order-none lg:mr-0 lg:max-w-none"
-          height={986}
-          priority
-          sizes="(min-width: 1024px) 45vw, 100vw"
-          src="/kvarteret-logo.svg"
-          width={1595}
-        />
-      </div>
-    </section>
-  )
-}
-
-// ─── HomeUpdateNotice ─────────────────────────────────────────────────────────
-
-// Temporary maintenance notice shown while the site is being finalized.
-// Norwegian-only by intent; remove once the redesign content is in place.
-function HomeUpdateNotice({ locale }: { locale: AppLocale }) {
-  return (
-    <section
-      aria-label="Statusmelding"
-      className="panel flex flex-col gap-2 rounded-base sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-    >
-      <p className="text-foreground-muted">
-        Vi oppdaterer våre nettsider. Finner du ikke det du leter etter?
-      </p>
-      <Link
-        className="group inline-flex shrink-0 items-center gap-1.5 font-heading text-foreground underline underline-offset-4 focus-brutal"
-        href={`/${locale}/kontakt`}
-      >
-        Kontakt oss
-        <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-      </Link>
-    </section>
-  )
-}
-
-// ─── HomeEvents ───────────────────────────────────────────────────────────────
-
-interface HomeEventsProps {
+interface HomeEventsSectionProps {
   events: SanityEvent[]
   labels: EventCardLabels
   locale: AppLocale
 }
 
-function HomeEvents({ events, labels, locale }: HomeEventsProps) {
+function HomePromotedEvents({
+  events,
+  labels,
+  locale,
+}: HomeEventsSectionProps) {
   if (!events.length) return null
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
-          Arrangementer
-        </p>
-        <Link
-          className="group inline-flex items-center gap-1.5 font-heading underline underline-offset-4 focus-brutal"
-          href={`/${locale}/arrangementer`}
-        >
-          Se alle
-          <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
-        </Link>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map(event => (
-          <EventCard
+    <section className="space-y-6">
+      <HomeEventsHeader
+        href={`/${locale}/arrangementer`}
+        label="Arrangementer"
+        linkLabel="Se alle arrangementer"
+      />
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
+        {events.map((event, index) => (
+          <HomePromotedEventCard
             event={toEventSummary(event, labels)}
-            facebookLabel="Facebook"
+            index={index}
             key={event._id}
-            showActions={false}
-            showRoom={false}
-            size="small"
-            ticketsLabel="Billetter"
-            variant="default"
+            locale={locale}
           />
         ))}
       </div>
     </section>
+  )
+}
+
+function HomeUpcomingEvents({
+  events,
+  labels,
+  locale,
+}: HomeEventsSectionProps) {
+  if (!events.length) return null
+
+  return (
+    <section className="w-screen bg-primary py-8 text-primary-foreground [margin-left:calc(50%_-_50vw)] sm:py-10">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-6 sm:px-10 lg:px-14">
+        <HomeEventsHeader
+          href={`/${locale}/arrangementer`}
+          label="Kommende"
+          linkLabel="Vis kalender"
+          onPrimary
+        />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
+          {events.map(event => (
+            <HomeUpcomingEventCard
+              event={toEventSummary(event, labels)}
+              key={event._id}
+              locale={locale}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function HomeEventsHeader({
+  href,
+  label,
+  linkLabel,
+  onPrimary = false,
+}: {
+  href: string
+  label: string
+  linkLabel: string
+  onPrimary?: boolean
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <span className="flex gap-2" aria-hidden>
+          {[0, 1, 2].map(dot => (
+            <span
+              className={`size-2.5 rounded-full ${
+                onPrimary ? "bg-primary-foreground" : "bg-primary"
+              }`}
+              key={dot}
+            />
+          ))}
+        </span>
+        <h1 className="text-base uppercase tracking-wide sm:text-lg">
+          {label}
+        </h1>
+      </div>
+      <Link
+        className="group inline-flex items-center gap-2 font-heading underline underline-offset-4 focus-brutal"
+        href={href}
+      >
+        {linkLabel}
+        <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
+      </Link>
+    </div>
+  )
+}
+
+function HomePromotedEventCard({
+  event,
+  index,
+  locale,
+}: {
+  event: EventSummary
+  index: number
+  locale: AppLocale
+}) {
+  const dates = event.resolvedDates ?? event.dates
+  const visibleDates = dates.slice(0, 3).map(formatPromotedDate).filter(Boolean)
+  const extraDates = Math.max(0, dates.length - visibleDates.length)
+  const imageUrl = event.imageUrl
+    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1200 })
+    : null
+
+  return (
+    <article className="min-w-0">
+      <Link
+        className="group block focus-brutal"
+        href={eventHref(event, locale)}
+      >
+        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+          {imageUrl ? (
+            <Image
+              alt={event.imageCaption ?? event.title}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              fill
+              priority={index === 0}
+              sizes="(max-width: 768px) 100vw, 33vw"
+              src={imageUrl}
+              unoptimized={shouldLoadImageDirectly(imageUrl)}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-card p-6 text-center font-heading text-foreground-muted">
+              {event.title}
+            </div>
+          )}
+        </div>
+        <div className="mt-4 space-y-3">
+          <h2 className="text-3xl leading-none tracking-normal sm:text-4xl md:text-3xl lg:text-4xl">
+            {event.title}
+          </h2>
+          {visibleDates.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {visibleDates.map(date => (
+                <span
+                  className="rounded-full bg-primary px-2.5 py-1 font-heading text-sm leading-none text-primary-foreground"
+                  key={date}
+                >
+                  {date}
+                </span>
+              ))}
+              {extraDates > 0 && (
+                <span className="rounded-full bg-primary px-2.5 py-1 font-heading text-sm leading-none text-primary-foreground">
+                  +{extraDates}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </Link>
+    </article>
+  )
+}
+
+function HomeUpcomingEventCard({
+  event,
+  locale,
+}: {
+  event: EventSummary
+  locale: AppLocale
+}) {
+  const primaryDate = (event.resolvedDates ?? event.dates)[0]
+  const dateLabel = primaryDate ? formatUpcomingDateTime(primaryDate) : null
+  const imageUrl = event.imageUrl
+    ? sanityImageUrl(event.imageUrl, { height: 480, width: 640 })
+    : null
+
+  return (
+    <Link
+      className="group grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 focus-brutal xl:grid-cols-1"
+      href={eventHref(event, locale)}
+    >
+      <div className="relative aspect-4/3 min-w-0 overflow-hidden bg-primary-foreground/15">
+        {imageUrl ? (
+          <Image
+            alt={event.imageCaption ?? event.title}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 8rem, (max-width: 1280px) 40vw, 12rem"
+            src={imageUrl}
+            unoptimized={shouldLoadImageDirectly(imageUrl)}
+          />
+        ) : (
+          <div className="h-full bg-primary-foreground/15" />
+        )}
+      </div>
+      <div className="min-w-0 space-y-1">
+        {dateLabel && (
+          <p className="font-heading text-sm leading-tight opacity-80">
+            {dateLabel}
+          </p>
+        )}
+        <h2 className="text-xl leading-tight transition-colors group-hover:underline group-hover:underline-offset-4">
+          {event.title}
+        </h2>
+      </div>
+    </Link>
   )
 }
