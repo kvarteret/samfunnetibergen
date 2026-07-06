@@ -133,6 +133,21 @@ export const structure: StructureResolver = (S, context) =>
                     ]),
                 ),
               S.listItem()
+                .id("arrangement-promoted")
+                .title("Promotert på forsiden")
+                .icon(CalendarIcon)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Promotert på forsiden")
+                    .filter(
+                      '_type == "arrangement" && approvalStatus == "approved" && isPromoted == true',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "asc" },
+                    ]),
+                ),
+              S.listItem()
                 .id("arrangement-paused")
                 .title("Satt på pause")
                 .icon(PauseIcon)

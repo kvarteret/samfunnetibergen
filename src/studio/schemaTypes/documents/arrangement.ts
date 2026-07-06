@@ -60,6 +60,15 @@ export const arrangement = defineType({
       initialValue: false,
     }),
     defineField({
+      name: "isPromoted",
+      title: "Promotert på forsiden",
+      description:
+        "Vises blant de tre fremhevede arrangementene øverst på forsiden.",
+      type: "boolean",
+      group: "core",
+      initialValue: false,
+    }),
+    defineField({
       name: "description",
       title: "Beskrivelse",
       description: "Rik tekst — formatering, bilder og lenker støttes",

@@ -60,7 +60,7 @@ export function AccordionPanel({
 }: AccordionPrimitive.Panel.Props) {
   return (
     <AccordionPrimitive.Panel className={className} {...props}>
-      <div className="pb-5">{children}</div>
+      <div className="accordion-panel-content pb-5">{children}</div>
     </AccordionPrimitive.Panel>
   )
 }

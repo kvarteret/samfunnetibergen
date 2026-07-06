@@ -517,6 +517,7 @@ export type Arrangement = {
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
+  isPromoted?: boolean
   description?: PortableTextContent
   dates: Array<
     {

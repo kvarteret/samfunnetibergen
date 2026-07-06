@@ -49,6 +49,7 @@ const eventProjection = `{
     "title": coalesce(title, "[Mangler arrangementstittel]"),
     "slug": coalesce(slug.current, ""),
     "approvalStatus": coalesce(approvalStatus, "pending"),
+    "isPromoted": coalesce(isPromoted, false),
     "isRecurring": coalesce(isRecurring, false),
     rrule,
     "dates": coalesce(dates[] | order(startDate asc) {

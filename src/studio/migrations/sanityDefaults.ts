@@ -9,6 +9,7 @@ const defaultsByType: Record<string, Record<string, unknown>> = {
     approvalStatus: "pending",
     isFree: false,
     isInternalEvent: false,
+    isPromoted: false,
     isRecurring: false,
   },
   footer: {
