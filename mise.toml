@@ -1,0 +1,13 @@
+# Tool pins for working directly in this repo.
+# Versions must match ../infra/mise.toml (infra is the source of truth;
+# `mise run doctor` there flags drift).
+
+[tools]
+bun = "1.3.14"
+node = "24.16.0"
+
+# Puts the `kvarteret` / `kv` CLI on PATH when inside this repo.
+# The CLI lives in the sibling infra repo (see ../infra); clone it
+# beside this checkout and run `mise install` there first.
+[env]
+_.path = ["{{config_root}}/../infra/bin"]
