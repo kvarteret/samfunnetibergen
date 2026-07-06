@@ -1,5 +1,5 @@
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import type { SelectOption } from "@/components/ui/select-field"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 
 export function eventTypeOptions(types: EventType[]): SelectOption[] {
   return types.map(et => ({

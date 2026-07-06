@@ -14,6 +14,7 @@ export const sourceLinkProjection = `{
         linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",
         linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",
         linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",
+        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",
         linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,
         linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,
         linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,

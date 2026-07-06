@@ -96,6 +96,13 @@ export type SponsorsPageReference = {
   [internalGroqTypeReferenceTo]?: "sponsorsPage"
 }
 
+export type UsefulInfoPageReference = {
+  _ref: string
+  _type: "reference"
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: "usefulInfoPage"
+}
+
 export type KontaktPageReference = {
   _ref: string
   _type: "reference"
@@ -141,6 +148,7 @@ export type SourceLink = {
     | RoomsPageReference
     | GroupsPageReference
     | SponsorsPageReference
+    | UsefulInfoPageReference
     | KontaktPageReference
     | PageReference
     | ArrangementReference
@@ -443,6 +451,31 @@ export type TimeValue =
   | "23:00"
   | "23:30"
 
+export type InfoAccordionBlock = {
+  _type: "infoAccordionBlock"
+  heading: string
+  intro?: string
+  items: Array<
+    {
+      _key: string
+    } & InfoAccordionItem
+  >
+}
+
+export type InfoAccordionItem = {
+  _type: "infoAccordionItem"
+  title: string
+  body: PortableTextContent
+}
+
+export type InfoAddressBlock = {
+  _type: "infoAddressBlock"
+  heading: string
+  body?: PortableTextContent
+  address?: string
+  mapUrl?: string
+}
+
 export type EditorialSection = {
   _type: "editorialSection"
   title?: string
@@ -729,6 +762,43 @@ export type KontaktPage = {
     {
       _key: string
     } & ContactGroup
+  >
+  seoTitle?: string
+  seoDescription?: string
+  canonicalUrl?: string
+  noIndex?: boolean
+  noFollow?: boolean
+  openGraphImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+  openGraphImageAlt?: string
+  openGraphTitle?: string
+  openGraphDescription?: string
+}
+
+export type UsefulInfoPage = {
+  _id: string
+  _type: "usefulInfoPage"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eyebrow?: string
+  title: string
+  intro?: string
+  sections?: Array<
+    | ({
+        _key: string
+      } & InfoAddressBlock)
+    | ({
+        _key: string
+      } & EditorialSection)
+    | ({
+        _key: string
+      } & InfoAccordionBlock)
   >
   seoTitle?: string
   seoDescription?: string
@@ -1171,6 +1241,7 @@ export type AllSanitySchemaTypes =
   | RoomsPageReference
   | GroupsPageReference
   | SponsorsPageReference
+  | UsefulInfoPageReference
   | KontaktPageReference
   | PageReference
   | ArrangementReference
@@ -1196,6 +1267,9 @@ export type AllSanitySchemaTypes =
   | OpeningHoursRow
   | Duration
   | TimeValue
+  | InfoAccordionBlock
+  | InfoAccordionItem
+  | InfoAddressBlock
   | EditorialSection
   | SourcedImage
   | EventTypeReference
@@ -1209,6 +1283,7 @@ export type AllSanitySchemaTypes =
   | Page
   | Markdown
   | KontaktPage
+  | UsefulInfoPage
   | SponsorsPage
   | GroupsPage
   | SanityFileAssetReference

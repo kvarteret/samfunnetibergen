@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
 import { BoolSpec } from "@/features/rooms"
 import {
+  type CarouselSlide,
   ImageCarousel,
   PanoramaEmbed,
-  type CarouselSlide,
 } from "@/features/rooms/components/ImageCarousel"
 import {
   activateRequestLocale,

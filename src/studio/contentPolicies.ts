@@ -3,8 +3,10 @@ export const RESERVED_PAGE_SLUGS = [
   "grupper",
   "karaoke",
   "kontakt",
+  "nyttig",
   "rom",
   "sponsorer",
+  "tilgjengelighet",
 ] as const
 
 export function isReservedPageSlug(slug: string | undefined) {

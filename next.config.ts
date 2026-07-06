@@ -1,5 +1,5 @@
-import type { NextConfig } from "next"
 import { withPostHogConfig } from "@posthog/nextjs-config"
+import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 import { networkInterfaces } from "os"
 
@@ -40,6 +40,15 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "12mb",
     },
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:locale/tilgjengelighet",
+        destination: "/:locale/nyttig",
+        permanent: true,
+      },
+    ]
   },
   async rewrites() {
     return [

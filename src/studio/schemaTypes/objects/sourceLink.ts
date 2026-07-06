@@ -37,6 +37,7 @@ export const sourceLink = defineType({
         { type: "roomsPage" },
         { type: "groupsPage" },
         { type: "sponsorsPage" },
+        { type: "usefulInfoPage" },
         { type: "kontaktPage" },
         { type: "page" },
         { type: "arrangement" },

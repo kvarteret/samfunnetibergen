@@ -5,6 +5,7 @@ import {
   DocumentIcon,
   EarthGlobeIcon,
   EnvelopeIcon,
+  InfoOutlineIcon,
   LinkIcon,
   MenuIcon,
   MobileDeviceIcon,
@@ -67,7 +68,7 @@ function pageListItem(
 
 function seoAuditItems(S: StructureBuilder) {
   const pageLikeTypes =
-    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
+    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "usefulInfoPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
 
   return [
     S.listItem()
@@ -297,6 +298,12 @@ export const structure: StructureResolver = (S, context) =>
                 POLICY_PAGE_SLUGS,
               ),
               singletonListItem(S, "sponsorsPage", "Sponsorer", StarIcon),
+              singletonListItem(
+                S,
+                "usefulInfoPage",
+                "Nyttig info",
+                InfoOutlineIcon,
+              ),
               singletonListItem(S, "kontaktPage", "Kontakt", EnvelopeIcon),
               S.divider(),
               S.documentTypeListItem("page")

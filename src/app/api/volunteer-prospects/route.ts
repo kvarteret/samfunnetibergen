@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
-import { getPostHogClient } from "@/lib/posthog-server"
 import {
   getHandledExceptionProperties,
   toPostHogException,
 } from "@/lib/posthog/error-context"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
@@ -161,7 +161,9 @@ export async function POST(request: Request) {
         },
       })
       posthog.captureException(
-        new Error(`Volunteer prospect forwarding failed with ${response.status}`),
+        new Error(
+          `Volunteer prospect forwarding failed with ${response.status}`,
+        ),
         "anonymous",
         getHandledExceptionProperties("volunteer_application", {
           source: "volunteer-prospects-route",

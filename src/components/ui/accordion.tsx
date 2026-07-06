@@ -11,7 +11,7 @@ export function Accordion({
 }: AccordionPrimitive.Root.Props<string>) {
   return (
     <AccordionPrimitive.Root
-      className={cn("grid gap-4", className)}
+      className={cn("flex flex-col border-t-2 border-border", className)}
       {...props}
     />
   )
@@ -23,7 +23,7 @@ export function AccordionItem({
 }: AccordionPrimitive.Item.Props) {
   return (
     <AccordionPrimitive.Item
-      className={cn("panel p-0 shadow-shadow", className)}
+      className={cn("border-b-2 border-border", className)}
       {...props}
     />
   )
@@ -38,7 +38,7 @@ export function AccordionTrigger({
     <AccordionPrimitive.Header>
       <AccordionPrimitive.Trigger
         className={cn(
-          "group flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left font-heading text-xl text-foreground focus-brutal",
+          "group flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left font-heading text-xl text-foreground transition-colors hover:text-primary focus-brutal",
           className,
         )}
         {...props}
@@ -60,7 +60,7 @@ export function AccordionPanel({
 }: AccordionPrimitive.Panel.Props) {
   return (
     <AccordionPrimitive.Panel className={className} {...props}>
-      <div className="px-5 pb-5">{children}</div>
+      <div className="pb-5">{children}</div>
     </AccordionPrimitive.Panel>
   )
 }

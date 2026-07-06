@@ -1,8 +1,8 @@
-import { getPostHogClient } from "@/lib/posthog-server"
 import {
   getHandledExceptionProperties,
   toPostHogException,
 } from "@/lib/posthog/error-context"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 const PERSONAL_APP_BASE_URL =
