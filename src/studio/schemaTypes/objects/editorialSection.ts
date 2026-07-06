@@ -1,11 +1,11 @@
-import { DocumentTextIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const editorialSection = defineType({
   name: "editorialSection",
   title: "Tekstseksjon",
   type: "object",
-  icon: DocumentTextIcon,
+  icon: icons["document-text"],
   fields: [
     defineField({ name: "title", title: "Tittel", type: "string" }),
     defineField({

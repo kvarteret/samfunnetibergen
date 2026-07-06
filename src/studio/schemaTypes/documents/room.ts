@@ -1,4 +1,4 @@
-import { ComponentIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
@@ -8,7 +8,7 @@ export const room = defineType({
   name: "room",
   title: "Rom",
   type: "document",
-  icon: ComponentIcon,
+  icon: icons.component,
   groups: [
     { name: "info", title: "Info", default: true },
     { name: "menu", title: "Meny" },

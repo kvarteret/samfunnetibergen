@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const infoAccordionItem = defineType({
@@ -31,7 +31,7 @@ export const infoAccordionBlock = defineType({
   name: "infoAccordionBlock",
   title: "Trekkspill-blokk",
   type: "object",
-  icon: ChevronDownIcon,
+  icon: icons["chevron-down"],
   fields: [
     defineField({
       name: "heading",

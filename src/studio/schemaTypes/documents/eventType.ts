@@ -1,4 +1,4 @@
-import { TagIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import {
   orderRankField,
   orderRankOrdering,
@@ -9,7 +9,7 @@ export const eventType = defineType({
   name: "eventType",
   title: "Arrangementtype",
   type: "document",
-  icon: TagIcon,
+  icon: icons.tag,
   fields: [
     defineField({
       name: "name",

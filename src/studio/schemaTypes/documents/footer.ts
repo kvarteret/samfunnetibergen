@@ -1,4 +1,4 @@
-import { ComponentIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 const socialLinkSchema = defineType({
@@ -46,7 +46,7 @@ export const footer = defineType({
   name: "footer",
   title: "Bunntekst",
   type: "document",
-  icon: ComponentIcon,
+  icon: icons.component,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],

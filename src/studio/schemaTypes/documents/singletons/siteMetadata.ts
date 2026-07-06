@@ -1,11 +1,11 @@
-import { CogIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
   name: "siteMetadata",
   title: "Nettstedsinfo",
   type: "document",
-  icon: CogIcon,
+  icon: icons.cog,
   groups: [
     { name: "identity", title: "Identitet", default: true },
     { name: "venue", title: "Huset" },

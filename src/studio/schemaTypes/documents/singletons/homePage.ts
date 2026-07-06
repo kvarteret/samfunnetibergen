@@ -1,4 +1,4 @@
-import { DocumentIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 import {
@@ -10,7 +10,7 @@ export const homePage = defineType({
   name: "homePage",
   title: "Hovedside",
   type: "document",
-  icon: DocumentIcon,
+  icon: icons.document,
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "seo", title: "SEO" },

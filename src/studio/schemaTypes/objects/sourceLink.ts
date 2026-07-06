@@ -1,4 +1,4 @@
-import { LinkIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 import { SourceLinkInput } from "./SourceLinkInput"
@@ -9,7 +9,7 @@ export const sourceLink = defineType({
   name: "sourceLink",
   title: "Link",
   type: "object",
-  icon: LinkIcon,
+  icon: icons.link,
   components: {
     input: SourceLinkInput,
   },

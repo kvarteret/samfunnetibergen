@@ -1,11 +1,11 @@
-import { LinkIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const linkInBio = defineType({
   name: "linkInBio",
   title: "Link-i-bio",
   type: "document",
-  icon: LinkIcon,
+  icon: icons.link,
   fields: [
     defineField({
       name: "heading",

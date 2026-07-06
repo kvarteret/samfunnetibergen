@@ -1,11 +1,11 @@
-import { PinIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 export const infoAddressBlock = defineType({
   name: "infoAddressBlock",
   title: "Adkomst-blokk",
   type: "object",
-  icon: PinIcon,
+  icon: icons.pin,
   fields: [
     defineField({
       name: "heading",

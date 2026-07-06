@@ -1,4 +1,4 @@
-import { InfoOutlineIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import {
@@ -10,7 +10,7 @@ export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
   title: "Nyttig info",
   type: "document",
-  icon: InfoOutlineIcon,
+  icon: icons["info-outline"],
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],

@@ -1,4 +1,4 @@
-import { MobileDeviceIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 function benefitTierField(
@@ -23,7 +23,7 @@ export const internbevisPage = defineType({
   name: "internbevisPage",
   title: "Internbevis",
   type: "document",
-  icon: MobileDeviceIcon,
+  icon: icons["mobile-device"],
   fields: [
     benefitTierField("trinn1Benefits", "Trinn 1 – Brukerorganisasjon"),
     benefitTierField("trinn2Benefits", "Trinn 2 – Driftsorganisasjon"),
