@@ -1,0 +1,181 @@
+name: Release Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to release"
+        required: true
+        default: "develop"
+      promote:
+        description: "Promote the staged production deployment after smoke tests"
+        required: true
+        type: boolean
+        default: true
+      smoke_paths:
+        description: "Space-separated paths to smoke test before promotion"
+        required: true
+        default: "/nb /nb/rom /nb/rom/book"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, stage, and promote production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_sha="$(git rev-parse HEAD)"
+          short_sha="$(git rev-parse --short HEAD)"
+
+          git fetch --tags origin
+          tag_prefix="prod-$(date -u +'%Y.%m.%d')"
+          tag_index=1
+          while git rev-parse -q --verify "refs/tags/${tag_prefix}.${tag_index}" >/dev/null; do
+            tag_index=$((tag_index + 1))
+          done
+
+          release_tag="${tag_prefix}.${tag_index}"
+
+          {
+            echo "source_sha=${source_sha}"
+            echo "short_sha=${short_sha}"
+            echo "tag=${release_tag}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Biome format check
+        run: npx biome format .
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Generate Next.js route types
+        run: npx next typegen
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@48
+
+      - name: Pull Vercel production environment
+        run: vercel pull --yes --environment=production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build production artifact
+        run: vercel build --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy staged production artifact
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain)"
+          if [[ "${deployment_url}" != http* ]]; then
+            deployment_url="https://${deployment_url}"
+          fi
+
+          echo "url=${deployment_url}" >> "$GITHUB_OUTPUT"
+          echo "Staged production deployment: ${deployment_url}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Smoke test staged deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_url="${{ steps.deploy.outputs.url }}"
+          for path in ${{ inputs.smoke_paths }}; do
+            url="${base_url%/}${path}"
+            status="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" "$url")"
+            echo "${status} ${url}"
+
+            if [[ "$status" -lt 200 || "$status" -ge 400 ]]; then
+              echo "Smoke test failed for ${url} with HTTP ${status}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Promote staged deployment
+        if: ${{ inputs.promote }}
+        run: vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Create release tag
+        if: ${{ inputs.promote }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "${{ steps.release.outputs.tag }}" "${{ steps.release.outputs.source_sha }}" --message "Production release ${{ steps.release.outputs.tag }}"
+          git push origin "${{ steps.release.outputs.tag }}"
+
+      - name: Create GitHub release
+        if: ${{ inputs.promote }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.release.outputs.tag }}" \
+            --target "${{ steps.release.outputs.source_sha }}" \
+            --title "Production ${{ steps.release.outputs.tag }}" \
+            --notes "Source: ${{ steps.release.outputs.short_sha }}
+          Staged deployment: ${{ steps.deploy.outputs.url }}
+          Promoted: true"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Production Release"
+            echo ""
+            echo "- Source: \`${{ steps.release.outputs.short_sha }}\`"
+            echo "- Tag: \`${{ steps.release.outputs.tag }}\`"
+            echo "- Staged deployment: ${{ steps.deploy.outputs.url }}"
+            echo "- Promoted: \`${{ inputs.promote }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
