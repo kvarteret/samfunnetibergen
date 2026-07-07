@@ -513,13 +513,20 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
+  eventKind?:
+    | "single"
+    | "seriesParent"
+    | "seriesInstance"
+    | "festivalParent"
+    | "festivalSession"
+  parentEvent?: ArrangementReference
+  title?: string
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
   isPromoted?: boolean
   description?: PortableTextContent
-  dates: Array<
+  dates?: Array<
     {
       _key: string
     } & ArrangementDate
@@ -559,6 +566,7 @@ export type Arrangement = {
   openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
+  eventStatus?: "scheduled" | "cancelled" | "postponed"
   approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
   submittedBy?: string
   submittedByEmail?: string
@@ -1368,18 +1376,20 @@ export type EventGroupsQueryResult = Array<{
 // Query: *[_type == "arrangement" && approvalStatus == "approved" && (        count(dates[startDate >= $today]) > 0        || (isRecurring == true && defined(rrule) && count(dates) > 0)    )] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "title": coalesce(title, "[Mangler arrangementstittel]"),    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    "isRecurring": coalesce(isRecurring, false),    rrule,    "dates": coalesce(dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    }, []),    "isFree": coalesce(isFree, false),    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    "description": coalesce(description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}
 export type PublishedEventsQueryResult = Array<{
   _id: string
-  title: string
+  title: string | "[Mangler arrangementstittel]"
   slug: string
   approvalStatus: "approved" | "archived" | "paused" | "pending" | "rejected"
   isPromoted: boolean | false
   isRecurring: boolean | false
   rrule: string | null
-  dates: Array<{
-    _key: string
-    startDate: string
-    startTime: string | null
-    endTime: string | null
-  }>
+  dates:
+    | Array<{
+        _key: string
+        startDate: string
+        startTime: string | null
+        endTime: string | null
+      }>
+    | Array<never>
   isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null
@@ -1470,18 +1480,20 @@ export type PublishedEventSlugsQueryResult = Array<{
 // Query: *[_type == "arrangement" && slug.current == $slug && (        $preview == true        || (            approvalStatus == "approved"            && (                count(dates[startDate >= $today]) > 0                || (isRecurring == true && defined(rrule) && count(dates) > 0)            )        )    )][0] {    _id,    "title": coalesce(title, "[Mangler arrangementstittel]"),    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    "isRecurring": coalesce(isRecurring, false),    rrule,    "dates": coalesce(dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime    }, []),    "isFree": coalesce(isFree, false),    priceOrdinar,    priceStudent,    priceMedlem,    seoTitle,    seoDescription,    canonicalUrl,    "noIndex": coalesce(noIndex, false),    "noFollow": coalesce(noFollow, false),    openGraphTitle,    openGraphDescription,    "openGraphImageUrl": openGraphImage.asset->url,    openGraphImageAlt,    ticketUrl,    facebookUrl,    "imageUrl": image.asset->url,    imageCaption,    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "slug": coalesce(slug.current, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }    },    "description": coalesce(description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}
 export type EventBySlugQueryResult = {
   _id: string
-  title: string
+  title: string | "[Mangler arrangementstittel]"
   slug: string
   approvalStatus: "approved" | "archived" | "paused" | "pending" | "rejected"
   isPromoted: boolean | false
   isRecurring: boolean | false
   rrule: string | null
-  dates: Array<{
-    _key: string
-    startDate: string
-    startTime: string | null
-    endTime: string | null
-  }>
+  dates:
+    | Array<{
+        _key: string
+        startDate: string
+        startTime: string | null
+        endTime: string | null
+      }>
+    | Array<never>
   isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null
@@ -1566,16 +1578,18 @@ export type EventBySlugQueryResult = {
 export type FeedEventsQueryResult = Array<{
   _id: string
   _updatedAt: string
-  title: string
+  title: string | "[Mangler arrangementstittel]"
   slug: string
   isRecurring: boolean | false
   rrule: string | null
-  dates: Array<{
-    _key: string
-    startDate: string
-    startTime: string | null
-    endTime: string | null
-  }>
+  dates:
+    | Array<{
+        _key: string
+        startDate: string
+        startTime: string | null
+        endTime: string | null
+      }>
+    | Array<never>
   isFree: boolean | false
   priceOrdinar: number | null
   priceStudent: number | null

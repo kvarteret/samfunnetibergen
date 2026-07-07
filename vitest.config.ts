@@ -13,6 +13,8 @@ export default defineConfig({
     environment: "node",
     coverage: {
       include: [
+        "src/features/events/domain/instances.ts",
+        "src/features/events/domain/resolveEvent.ts",
         "src/studio/migrations/nyttigInfo.ts",
         "src/studio/migrations/sanityDefaults.ts",
         "src/studio/presentation/routing.ts",

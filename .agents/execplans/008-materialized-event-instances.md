@@ -1,0 +1,144 @@
+# Materialize recurring-event instances and festival event graphs as real Sanity documents
+
+This ExecPlan is a living document. The sections Progress, Surprises & Discoveries, Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.
+
+This repository's ExecPlan rules live in `.agents/PLANS.md` (repository root is the `samfunnetibergen` Next.js + Sanity project). This document must be maintained in accordance with `.agents/PLANS.md`: keep it self-contained, prose-first, and novice-guiding; update Progress and the Decision Log at every stopping point; commit frequently.
+
+The governing design decision is ADR 005 (`docs/adr/005-materialized-event-instances-and-festival-event-graphs.md`). Where this plan and the ADR disagree, this plan wins for execution detail and the Decision Log below records why; the ADR wins for intent.
+
+## Purpose / Big Picture
+
+Today, a recurring event (say, a weekly quiz) is stored in Sanity as a single `arrangement` document with an `isRecurring` flag and an iCal recurrence rule string (`rrule`, e.g. `FREQ=WEEKLY;BYDAY=MO`). The website expands that rule at render time to show future dates. Those computed dates are ghosts: an editor cannot cancel one quiz night, give one occurrence a special description, or link to one occurrence — there is no document to edit. Festivals have the inverse problem: many real sessions across rooms and days, but no way to connect them to one promotable festival parent.
+
+After this change, every public event occurrence is a real Sanity document. A weekly quiz becomes one `seriesParent` document (the rule and shared content) plus ~26 generated `seriesInstance` child documents (one per occurrence, each with its own slug, URL, cancellable status, and editable overrides). A festival becomes one `festivalParent` plus hand-authored `festivalSession` children. Children inherit display content from the parent unless they override it. Promotion (`isPromoted`) never inherits, so a festival parent can be promoted on the homepage without promoting all its sessions.
+
+There is no data migration. The site is unreleased and existing recurring documents only matter as future authoring; expired events are irrelevant. Everything here is greenfield.
+
+You will know it works when:
+
+- `npm run test` passes, including new unit tests for occurrence generation (six-month cap, deterministic ids, DST safety, rerun-is-a-no-op diffing) and inheritance/effective-status resolution.
+- In Sanity Studio, an `arrangement` can be given the kind `seriesParent`; running the generation script (`npm run sanity:generate:instances -- --parent <id>`) prints a dry-run of the child documents it would create; adding `:write` creates them; rerunning creates nothing new.
+- `/arrangementer` lists concrete events only (singles, series instances, festival sessions) — a series parent never appears as a duplicate row.
+- A child's detail page renders the parent's title/description/image when the child has none, and shows a cancelled state when `eventStatus` is `cancelled` without the URL 404ing.
+- The JSON-LD feed at `/api/events/feed` emits one entry per concrete occurrence with Schema.org status URLs, and no longer emits the non-standard `rrule` field.
+
+## Progress
+
+- [x] (2026-07-07) ADR 005 reviewed and hardened; all previously-implicit decisions (inheritance boundaries, rule-change reconciliation, deterministic ids, parent status semantics, approval defaults) made explicit.
+- [x] (2026-07-07) Greenfield decision recorded: no migration of existing documents (Decision D1). ADR migration section superseded accordingly.
+- [x] (2026-07-07) Milestone 1 — Occurrence generation domain (`src/features/events/domain/instances.ts` + tests): rrule expansion with six-month cap and Europe/Oslo date safety, deterministic `_id`/slug/`_key` derivation, child-document builder with approval default from parent, reconciliation diff (`toCreate` / orphaned `untouched` vs `edited`). Tests green.
+- [x] (2026-07-07) Milestone 2 — Resolution domain (`src/features/events/domain/resolveEvent.ts` + tests): field-level inheritance for the ADR's inherited set, never-inherited set enforced by construction, effective-status resolution (child wins; parent's non-scheduled status applies to scheduled children). Tests green.
+- [x] (2026-07-07) Milestone 3 — Schema: `eventKind`, `parentEvent` (strong ref, kind-checked), `eventStatus` on `arrangement`; kind-conditional validation for title/dates/parentEvent; recurrence fields scoped to `seriesParent`; Studio preview falls back to parent title and shows kind/status. TypeGen clean.
+- [ ] Milestone 4 — Queries and fetch layer: concrete-listing contract (`coalesce(eventKind, "single")`), parent projection on children for inheritance + effective status, parent-overview query (children of a parent), fetch wrappers and TypeGen.
+- [ ] Milestone 5 — Generation script: `scripts/generate-event-instances.ts` (+ `npm run sanity:generate:instances[:write]`) using Milestone 1's pure functions; dry-run by default per repo convention; reconciliation report for rule changes.
+- [ ] Milestone 6 — Frontend surfaces: listing/detail/homepage/feed consume resolved events; remove read-time rrule expansion from public reads (`computeAllDates` fallback); series/festival parent detail pages list their children; cancelled/postponed detail states.
+- [ ] Milestone 7 — Studio desk structure: queues for series parents, festival parents, children per parent, cancelled/postponed, and "series needing regeneration"; submission flow (`submitEvent.ts`) marks recurring submissions as `seriesParent`.
+
+## Surprises & Discoveries
+
+- Observation: The read-time expansion the ADR retires lives in two places, not one: `src/features/events/domain/dates.ts` (`expandRRuleDates`, `computeAllDates` — used by event cards) and `src/app/api/events/feed/route.ts` (emits a non-standard `rrule` field). Both must change in Milestone 6.
+  Evidence: `grep -rn "rrule" src/` shows those call sites plus the form builder (`recurrence.ts`), which stays.
+- Observation: The existing `expandRRuleDates` uses the "noon UTC" trick (`dtstart` at `T12:00:00Z`) to make date-level recurrence DST-safe: noon UTC is always 13:00 or 14:00 in Oslo, i.e. the same calendar day, so `toISOString().split("T")[0]` never shifts a day across DST. Milestone 1 reuses this trick rather than inventing new timezone handling.
+  Evidence: `src/features/events/domain/dates.ts:78` and both Oslo DST transitions covered in new tests.
+- Observation: Query projections `coalesce(isFree, false)` and similar poison inheritance — a child that never set `isFree` would read as `false` instead of "missing, inherit from parent". Child projections must project raw nullable fields plus a `parent { ... }` sub-projection, and resolution must happen in the domain layer, not in GROQ.
+  Evidence: `src/lib/sanity/queries/events.ts` `eventProjection` coalesces `isFree`, `title`, etc.
+- Observation: Vitest runs with `environment: "node"` and an explicit coverage `include` list in `vitest.config.ts`; new domain files must be added to that list or they silently escape the 80% thresholds.
+- Observation: The first `diffInstances` implementation had a circular bug the tests caught immediately: it judged whether an orphan was "untouched" by comparing the document's date entry against an occurrence *derived from that same document*, so a rescheduled child always looked pristine. The fix derives the expected occurrence from the deterministic `_id` token instead (`occurrenceFromInstanceId`), and compares end times against the seed when the caller provides it (`diffInstances(parent, planned, existing, seed?)`). Lesson for the generation script: always pass the seed so end-time edits are detected.
+  Evidence: `src/features/events/domain/instances.test.ts` — "content overrides and changed dates mark an orphan as edited" failed against the first implementation, passes against the token-based one.
+
+## Decision Log
+
+- Decision D1: **No data migration.** Existing `arrangement` documents are left untouched; expired events are irrelevant and the site is unreleased. The `coalesce(eventKind, "single")` query contract from ADR 005 is kept anyway (it is one function call per filter) because it also covers drafts and future imports that lack the field, but no backfill script is written and ADR 005's four-step migration sequence is superseded by "steps 3–4 only" (switch queries, remove read-time expansion).
+  Rationale: User directive 2026-07-07: "we do not need to migrate old events... this is greenfield and not yet released, with no baggage."
+  Date/Author: 2026-07-07 / Martin via Claude
+- Decision D2: **Generation ships as a repo script first, not a Studio tool.** `scripts/generate-event-instances.ts` run via `sanity exec ... --with-user-token`, dry-run by default, `SANITY_MIGRATION_WRITE=1` (reused convention) or `:write` npm script to apply — exactly the pattern of `scripts/migrate-nyttig-info.ts`. A Studio document action ("Generate instances" button on a `seriesParent`) is a follow-up once the script's behavior has been exercised; both share the pure functions in `src/features/events/domain/instances.ts`.
+  Rationale: The repo already has a proven, safe convention for admin write operations; a Studio action adds UI surface before the core logic has been proven in anger. Hardest-and-riskiest first means the logic, not the button.
+  Date/Author: 2026-07-07 / Claude
+- Decision D3: **Deterministic ids are derived from the parent's published id** (strip any `drafts.` prefix) so a draft parent and its published version yield the same child ids: `arrangement.<parentId>.<yyyy-mm-dd>` plus `-<hhmm>` when the occurrence has a start time. The single date entry inside each generated child uses the same date(-time) token as its `_key`, so regenerated documents are byte-identical and diffable. Sanity document ids allow letters, digits, `.`, `-` and `_`, so this format is valid.
+  Rationale: `createIfNotExists` on a deterministic id is the whole idempotency story; deriving from the published id prevents draft/publish producing two parallel child sets.
+  Date/Author: 2026-07-07 / Claude
+- Decision D4: **Domain code is pure and colocated:** `src/features/events/domain/instances.ts` (generation + reconciliation) and `src/features/events/domain/resolveEvent.ts` (inheritance + effective status), each with a colocated `.test.ts`, both added to the vitest coverage include list. The functions take plain data in and return plain data out — no Sanity client, no I/O — so the script (Milestone 5), a future Studio action, and the app can all share them.
+  Rationale: Testability and the ADR's requirement that website and app agree on resolution rules.
+  Date/Author: 2026-07-07 / Claude
+- Decision D5: **Expansion window and cap semantics:** occurrences are expanded from the seed date (the first entry in the parent's `dates` array) through `min(rule's own COUNT/UNTIL bound, seed date + 6 calendar months)`, inclusive of the seed occurrence itself. `addMonths` from `date-fns` defines "six months" (2026-08-31 + 6 months → 2027-02-28, the clamped month-end behavior, which is fine for a cap). Expansion is date-level: times are copied from the seed entry onto every occurrence; the rule only decides dates.
+  Rationale: Matches ADR ("up to one semester, capped at six months from the seed date") with an unambiguous, library-defined month arithmetic.
+  Date/Author: 2026-07-07 / Claude
+- Decision D6: **"Untouched" in reconciliation is defined structurally, not by revision history:** a child counts as untouched (and therefore safe for the editor to bulk-delete when the rule no longer produces its occurrence) exactly when `eventStatus` is `scheduled`, `approvalStatus` equals what generation would have set, and every inheritable content field is absent (child never overrode anything), and its single date entry equals what generation would produce. Anything else is listed as edited and requires a per-document decision. The pure function only classifies; it never deletes.
+  Rationale: Revision-based heuristics (`_updatedAt`) are unreliable (any bulk touch changes them); structural comparison is deterministic and testable.
+  Date/Author: 2026-07-07 / Claude
+- Decision D7: **Inheritance is strict field-level fallback** (`child.field ?? parent.field`) over the ADR's inherited set — title, description, image + caption, organizer group/text, event type, `isFree` + the three price fields, ticket/Facebook URLs, `isInternalEvent`, and the SEO/sharing fields. There is no group logic (e.g. "pricing inherits as a block"). Generated children simply omit every inheritable field, so they inherit everything until an editor writes an override. `isPromoted`, `eventStatus`, `approvalStatus`, slug, dates, room/location, `eventKind`, `parentEvent`, and submission metadata never inherit, enforced by the resolver only ever reading the inherited list.
+  Rationale: ADR mandates shallow field-level fallback; group semantics would be a merge policy the ADR explicitly rejects.
+  Date/Author: 2026-07-07 / Claude
+- Decision D8: **Recurrence fields are scoped to `seriesParent` in the schema** (`isRecurring`/`rrule` hidden otherwise), and the public submission flow (`src/features/events/actions/submitEvent.ts`) sets `eventKind: "seriesParent"` when a recurring pattern was chosen and `eventKind: "single"` otherwise (Milestone 7). Submitted parents stay `approvalStatus: "pending"`; an editor approves and generates.
+  Rationale: Keeps one authoring path; the ADR's "public recurring submissions become pending series parents" with zero extra UI.
+  Date/Author: 2026-07-07 / Claude
+- Decision D9: **`parentEvent` kind-checking is a custom async schema validation** that fetches the referenced document's `eventKind` with the Studio client and rejects mismatches (`seriesInstance` must point at `seriesParent`; `festivalSession` at `festivalParent`). References stay strong (Sanity default — no `weak: true`), so deleting a parent with children is blocked by Sanity itself.
+  Rationale: ADR graph-shape constraint; async custom validation is the only schema-level mechanism that can inspect a referenced document.
+  Date/Author: 2026-07-07 / Claude
+- Decision D10: **`eventKind` is not schema-required.** It has `initialValue: "single"` so every new document gets it, but the field carries no `required()` rule: the read contract already treats missing as `single`, and a required rule would flag legacy documents with validation errors the moment an editor opens them, for zero safety gain.
+  Rationale: The `coalesce(eventKind, "single")` contract makes absence well-defined; schema-level required-ness would only create editor friction.
+  Date/Author: 2026-07-07 / Claude
+
+## Outcomes & Retrospective
+
+To be written at completion of each milestone and at the end. Compare against Purpose: can an editor generate, cancel, and override a single occurrence; can a festival parent be promoted without its sessions; do public surfaces read only concrete documents.
+
+- Milestones 1–2 (2026-07-07): pure domain layer landed with tests. Generation and resolution logic exist and are proven before any schema, query, or UI work depends on them — the riskiest logic is now the most-tested code in the feature.
+- Milestone 3 (2026-07-07): schema fields + kind-conditional validation landed; typegen regenerated cleanly. Preview falls back to `parentEvent->title` so generated children are legible in desk lists.
+
+## Context and Orientation
+
+You are working in the `samfunnetibergen` repository: a Next.js App Router site with an embedded Sanity Studio. Use `npm run <script>` for scripts; the dev server runs on port 3187. If plain `node`/`npx` fails due to version-manager shims, prefix commands with `mise exec node@24 --` (see memory note: the preview MCP hits an asdf shim without Node 24).
+
+Key terms, in plain language:
+
+- **`arrangement`**: the Sanity document type for a public event, defined in `src/studio/schemaTypes/documents/arrangement.ts`. It holds title, slug, dates (array of `arrangementDate` objects: `startDate` "YYYY-MM-DD", optional `startTime`/`endTime` "HH:MM"), pricing, organizer, links, image, SEO fields, and `approvalStatus` (editorial workflow: pending/approved/paused/rejected/archived).
+- **`eventKind`** (new): discriminates the five roles a document can play — `single` (ordinary event), `seriesParent` (recurring-series template + rule), `seriesInstance` (one generated occurrence), `festivalParent` (festival overview), `festivalSession` (one festival session). Missing values read as `single` everywhere.
+- **`eventStatus`** (new): the real-world state — `scheduled`, `cancelled`, `postponed`. Orthogonal to `approvalStatus`.
+- **RRULE**: an iCal recurrence rule string like `FREQ=WEEKLY;BYDAY=MO;COUNT=8`, parsed by the `rrule` npm package (already a dependency). Built by the public submission form via `src/features/events/domain/recurrence.ts`.
+- **GROQ / TypeGen**: queries live in `src/lib/sanity/queries/events.ts` inside `defineQuery(...)`; `npm run sanity:typegen` regenerates result types into `src/lib/sanity/sanity.types.ts` (frontend) and `src/studio/sanity.types.ts` (studio). Run it after any schema or query change.
+- **Fetch layer**: `src/lib/sanity/fetch/events.ts` wraps queries in server-only functions (`fetchPublishedEvents`, `fetchEventBySlug`, …) and derives exported TS types via `ClientReturn<typeof query>`.
+- **Generation script convention**: admin writes run as `sanity exec scripts/<name>.ts --with-user-token`, dry-run by default, applying only when `SANITY_MIGRATION_WRITE=1` — see `scripts/migrate-nyttig-info.ts` and the paired npm scripts in `package.json`.
+
+The feature's brain lives in two pure modules:
+
+- `src/features/events/domain/instances.ts` — turns (parent document, rrule, seed date) into a deterministic set of child documents, and diffs a planned set against existing children. Exports: `expandOccurrences`, `instanceIdFor`, `instanceSlugFor`, `occurrenceToken`, `buildInstanceDocument`, `diffInstances`, plus the types `Occurrence`, `GenerationParent`, `GeneratedInstance`, `ExistingInstance`, `InstanceDiff`.
+- `src/features/events/domain/resolveEvent.ts` — merges a child with its parent (field-level fallback over `INHERITED_FIELDS`) and computes effective status. Exports: `INHERITED_FIELDS`, `resolveEventContent`, `resolveEffectiveStatus`, types `InheritableContent`, `EventStatus`.
+
+## Milestone details
+
+### Milestone 1 — Occurrence generation domain (done)
+
+`src/features/events/domain/instances.ts`. All functions pure. `expandOccurrences(rrule, seed, options)` parses the rule with `RRule.parseString`, anchors `dtstart` at the seed date at noon UTC (DST-safe day arithmetic — noon UTC is 13:00/14:00 Oslo year-round, so the ISO date never shifts), and expands through `addMonths(seedDate, 6)` intersected with the rule's own COUNT/UNTIL. Times are copied from the seed onto every occurrence. `instanceIdFor`/`instanceSlugFor` produce `arrangement.<publishedParentId>.<token>` and `<parent-slug>-<token>` where the token is `yyyy-mm-dd` or `yyyy-mm-dd-hhmm`. `buildInstanceDocument` emits a complete Sanity document: deterministic `_id`, `_type: "arrangement"`, `eventKind: "seriesInstance"`, strong `parentEvent` reference, one `dates` entry keyed by the token, `eventStatus: "scheduled"`, `approvalStatus` `approved` iff the parent is approved else `pending`, and **no inheritable content fields** (so inheritance covers everything until overridden). `diffInstances(planned, existing)` classifies: planned occurrences with no existing document → `toCreate`; existing documents whose occurrence is no longer planned → `orphaned`, split into `untouched` (structurally identical to what generation would produce — Decision D6) and `edited`. Nothing in this module performs I/O or deletion.
+
+Tests (`instances.test.ts`): weekly/biweekly/monthly expansion; COUNT and UNTIL respected under the cap; six-month cap enforced when the rule is unbounded; expansions crossing both Oslo DST transitions (late March, late October) keep the correct weekday and never shift a day; id/slug/token derivation with and without start time, including two same-day occurrences with different times; `buildInstanceDocument` shape and approval default; diff classification including rerun-is-a-no-op (planned == existing → nothing to create, nothing orphaned) and an edited-orphan (cancelled child) never classified untouched.
+
+### Milestone 2 — Resolution domain (done)
+
+`src/features/events/domain/resolveEvent.ts`. `INHERITED_FIELDS` is the single source of truth for what may inherit (Decision D7). `resolveEventContent(child, parent)` returns a new object where each inherited field is `child value if defined and non-null, else parent value`; all non-inherited child fields pass through untouched; parent-only fields outside the list never leak. `resolveEffectiveStatus(childStatus, parentStatus)` returns the child's status when it is not `scheduled`, else the parent's when that is not `scheduled`, else `scheduled`; missing statuses read as `scheduled`.
+
+Tests (`resolveEvent.test.ts`): override-wins and fallback per inherited field; empty-string and `false` child values are respected as overrides only where they are meaningful (`isFree: false` set by a child is an override; `null`/`undefined` inherit); never-inherited fields (`isPromoted`, `eventStatus`, slug, dates, room) stay child-side even when the parent has values; effective-status truth table.
+
+### Milestone 3 — Schema (done)
+
+In `src/studio/schemaTypes/documents/arrangement.ts`: add `eventKind` (radio, default `single`, in a new "Struktur" group), `parentEvent` (reference to `arrangement`, strong, hidden unless kind is a child kind, custom async validation per Decision D9), `eventStatus` (radio, default `scheduled`, admin group). Convert `title` and `dates` validation to kind-conditional custom rules: title required except for child kinds with a parent; dates required (min 1) for `single`, exactly 1 for child kinds, optional for parents. Scope `isRecurring`/`rrule` visibility to `seriesParent` (legacy documents keep their data; nothing breaks). Preview selects `parentEvent.title` as fallback and appends kind + eventStatus to the subtitle. Run `npm run sanity:typegen`.
+
+### Milestone 4 — Queries and fetch (next)
+
+In `src/lib/sanity/queries/events.ts`: introduce a `concreteEventFilter` string constant — approved, upcoming-or-status-exempt, and `coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]`. Listing/slugs/feed queries use it and drop the `isRecurring == true && defined(rrule)` upcoming-branch. The shared `eventProjection` gains `"eventKind": coalesce(eventKind, "single")`, `eventStatus`, and a `"parent": parentEvent-> { ...raw inheritable fields..., eventStatus, "slug": slug.current, "title": title }` sub-projection with **no coalescing of inheritable fields** (raw null must survive so the resolver can fall back — see Surprises). Child-facing fields that are inheritable must also stop coalescing in the child projection itself (`title`, `isFree`); display defaults move into the resolver/domain layer. Detail query: approved cancelled/postponed children bypass the upcoming-date filter (status-exempt clause: `eventStatus in ["cancelled", "postponed"]` keeps the document fetchable). Add `parentWithChildrenQuery` (one parent + `*[_type == "arrangement" && parentEvent._ref == ^._id] | order(dates[0].startDate asc)`) for series/festival overview pages. Update `src/lib/sanity/fetch/events.ts` wrappers and run TypeGen. Tests: extend query-contract coverage per the ADR test plan (documents without `eventKind` resolve as single; children carry parent fields).
+
+### Milestone 5 — Generation script
+
+`scripts/generate-event-instances.ts` following `scripts/migrate-nyttig-info.ts`'s conventions: `sanity exec` entry, `--with-user-token`, dry-run default. Flow: resolve target parents (`--parent <id>` or all `seriesParent` documents with a rule), fetch each parent + existing children, call `expandOccurrences` + `diffInstances`, print a human-readable report (create / keep / orphaned-untouched / orphaned-edited), and on write runs `createIfNotExists` each `toCreate` document in a transaction. Orphan deletion is **not** automatic: the script prints ids and the exact `sanity documents delete` commands an editor can run for untouched orphans. Add npm scripts `sanity:generate:instances` and `sanity:generate:instances:write`.
+
+### Milestone 6 — Frontend surfaces
+
+Replace read-time expansion: delete the rrule fallback from `computeAllDates` in `src/features/events/domain/dates.ts` (concrete documents always have concrete dates) and the recurring-badge logic follows `eventKind` instead of `isRecurring`. Route all card/detail/homepage rendering through `resolveEventContent` + `resolveEffectiveStatus` (a thin `resolvePublishedEvent(event)` helper in the domain layer adapts the query row shape). Detail page renders cancelled/postponed states (badge + muted styling) instead of 404. Series/festival parent detail pages render an overview listing children via `parentWithChildrenQuery`. Feed (`src/app/api/events/feed/route.ts`): drop the `rrule` extension and the recurring branch entirely, map effective status to Schema.org URLs, keep `#<date._key>` fragment ids only for multi-date singles. Verify with `npm run build` and a manual feed fetch.
+
+### Milestone 7 — Studio desk structure and submission
+
+`src/studio/structure.ts`: add an "Arrangementer" group with filtered lists — series parents, festival parents, pending generated children, cancelled/postponed, and "series needing regeneration" (series parents whose newest child `dates[0].startDate` is under eight weeks away; expressed as a GROQ filter with a computed date param if possible, else a static filtered list ordered by last child date). `submitEvent.ts`: set `eventKind` per Decision D8. Re-run TypeGen; full `npm run test` + `npm run build`.
+
+## Validation
+
+At every milestone: `mise exec node@24 -- npm run test` (vitest, node environment, coverage thresholds 80% on the include list — new domain files are in that list), `mise exec node@24 -- npx tsc --noEmit`, and after schema/query changes `npm run sanity:typegen` (must exit clean and leave no diff beyond regenerated types). After Milestone 6, `npm run build` and manual checks: `/nb/arrangementer` shows no series parent; a generated child URL resolves; `/api/events/feed` contains no `"rrule"` key.

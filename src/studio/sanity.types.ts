@@ -513,13 +513,20 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
+  eventKind?:
+    | "single"
+    | "seriesParent"
+    | "seriesInstance"
+    | "festivalParent"
+    | "festivalSession"
+  parentEvent?: ArrangementReference
+  title?: string
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
   isPromoted?: boolean
   description?: PortableTextContent
-  dates: Array<
+  dates?: Array<
     {
       _key: string
     } & ArrangementDate
@@ -559,6 +566,7 @@ export type Arrangement = {
   openGraphImageAlt?: string
   openGraphTitle?: string
   openGraphDescription?: string
+  eventStatus?: "scheduled" | "cancelled" | "postponed"
   approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
   submittedBy?: string
   submittedByEmail?: string
