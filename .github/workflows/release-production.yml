@@ -140,9 +140,14 @@ jobs:
           set -euo pipefail
 
           base_url="${{ steps.deploy.outputs.url }}"
+          curl_args=(--silent --show-error --location --output /dev/null --write-out "%{http_code}")
+          if [[ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]]; then
+            curl_args+=(--header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
+          fi
+
           for path in ${{ inputs.smoke_paths }}; do
             url="${base_url%/}${path}"
-            status="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" "$url")"
+            status="$(curl "${curl_args[@]}" "$url")"
             echo "${status} ${url}"
 
             if [[ "$status" -lt 200 || "$status" -ge 400 ]]; then
@@ -150,6 +155,8 @@ jobs:
               exit 1
             fi
           done
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Promote staged deployment
         if: ${{ inputs.promote }}
