@@ -361,10 +361,10 @@ function HomeUpcomingEvents({
           linkLabel="Vis kalender"
           onPrimary
         />
-        <HorizontalScrollRow className="gap-6">
+        <HorizontalScrollRow className="gap-3 sm:gap-4">
           {events.map(event => (
             <div
-              className="w-full shrink-0 sm:w-[calc((100%-1.5rem)/2)] xl:w-[calc((100%-6rem)/5)]"
+              className="w-[min(21rem,calc(100vw-3rem))] shrink-0 md:w-[21rem] xl:w-[calc((100%-4rem)/5)]"
               key={event._id}
             >
               <HomeUpcomingEventCard
@@ -508,7 +508,7 @@ function HomeUpcomingEventCard({
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 focus-brutal xl:grid-cols-1"
+      className="group grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 focus-brutal sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-4 xl:grid-cols-1"
       href={eventHref(event, locale)}
     >
       <div className="relative aspect-4/3 min-w-0 overflow-hidden bg-primary-foreground/15">
