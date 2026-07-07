@@ -4,7 +4,6 @@ import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
 import { VisualEditing } from "next-sanity/visual-editing"
-import { CountdownOverlay } from "@/components/CountdownOverlay"
 import { paperPreferenceScript } from "@/lib/paper-preference"
 import { fetchSiteMetadata } from "@/lib/sanity/fetch"
 import { SanityLive } from "@/lib/sanity/fetcher"
@@ -101,7 +100,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {themePreferenceScript}
         </Script>
         {children}
-        <CountdownOverlay />
         <SanityLive />
         {isDraftMode && <VisualEditing />}
       </body>
