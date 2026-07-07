@@ -1,11 +1,11 @@
-import { ImageIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 export const sourcedImage = defineType({
   name: "sourcedImage",
   title: "Image",
   type: "object",
-  icon: ImageIcon,
+  icon: icons.image,
   fields: [
     defineField({
       name: "image",

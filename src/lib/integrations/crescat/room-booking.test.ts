@@ -125,12 +125,51 @@ describe("buildExternalBooking", () => {
     expect(body.description).not.toContain("Fleksibel")
   })
 
-  test("appends flexible-dates note when no alternativeDates", () => {
+  test("prepends flexible-dates note before the description when no alternativeDates", () => {
     const body = buildExternalBooking({
       ...BASE_INPUT,
       flexibleDates: true,
     })
-    expect(body.description).toContain("Fleksibel på dato og rom")
+    expect(body.description).toBe(
+      `Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre.\n\n${BASE_INPUT.description.trim()}`,
+    )
+  })
+
+  test("ekstern: 'house' sales method toggles Kvarteret's terminal on", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      freeOrPaid: "Betalt",
+      ticketSalesMethod: "house",
+    })
+    expect(metaFieldById(body, 3511840)?.value).toBe(true)
+    expect(metaFieldById(body, 4451407)?.value).toBe(false)
+  })
+
+  test("ekstern: 'ownTerminal' sales method toggles own terminal on", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      freeOrPaid: "Betalt",
+      ticketSalesMethod: "ownTerminal",
+    })
+    expect(metaFieldById(body, 3511840)?.value).toBe(false)
+    expect(metaFieldById(body, 4451407)?.value).toBe(true)
+  })
+
+  test("intern: 'ownTerminal' maps to the 'eget billettsystem' toggle", () => {
+    const body = buildInternalBooking({
+      ...BASE_INPUT,
+      freeOrPaid: "Betalt",
+      ticketSalesMethod: "ownTerminal",
+    })
+    const own = metaFieldById(body, 4451407)
+    expect(own?.value).toBe(true)
+    expect(own?.title).toBe("Vi bruker eget billettsystem")
+  })
+
+  test("free events leave both payment toggles off", () => {
+    const body = buildExternalBooking(BASE_INPUT)
+    expect(metaFieldById(body, 3511840)?.value).toBe(false)
+    expect(metaFieldById(body, 4451407)?.value).toBe(false)
   })
 
   test("single room produces one roomBooking entry", () => {

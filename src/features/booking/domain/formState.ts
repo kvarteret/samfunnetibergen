@@ -4,6 +4,11 @@ import type { BookingRoom } from "../types"
 
 export type { BookerType }
 
+export interface TicketType {
+  name: string
+  price: string
+}
+
 export interface BookingFormState {
   bookerType: BookerType
   studentOrgName: string
@@ -14,8 +19,10 @@ export interface BookingFormState {
   startTime: string
   endTime: string
   // One entry per day spanned by the booking, indexed from the start date.
-  // Each day's "doors open" time is independent and optional.
+  // Each day's "doors open" time is mandatory for day 0, optional for others.
   doorsTimes: string[]
+  // One entry per day. Estimated time the public event ends. Always optional.
+  estimatedEndTimes: string[]
   audienceCount: string
   openOrClosed: "Åpent" | "Lukket"
   description: string
@@ -34,7 +41,10 @@ export interface BookingFormState {
   barSelf: boolean
   barKvarteret: boolean
   freeOrPaid: "Gratis" | "Betalt"
-  ticketTypes: string
+  ticketTypes: TicketType[]
+  // Paid events only: whether ticket sales run through the house register
+  // (free) or the organizer brings their own payment terminal.
+  ticketSalesMethod: "house" | "ownTerminal"
   invoiceAddress: string
   orgNumber: string
   flexibleDates: boolean
@@ -57,6 +67,7 @@ export const initialBookingState: BookingFormState = {
   startTime: "19:00",
   endTime: "23:00",
   doorsTimes: [],
+  estimatedEndTimes: [],
   audienceCount: "1",
   openOrClosed: "Åpent",
   description: "",
@@ -75,7 +86,8 @@ export const initialBookingState: BookingFormState = {
   barSelf: false,
   barKvarteret: false,
   freeOrPaid: "Gratis",
-  ticketTypes: "",
+  ticketTypes: [{ name: "Ordinær", price: "200" }],
+  ticketSalesMethod: "house",
   invoiceAddress: "",
   orgNumber: "",
   flexibleDates: false,
@@ -83,11 +95,20 @@ export const initialBookingState: BookingFormState = {
   contactName: "",
   contactEmail: "",
   contactPhone: "",
-  promote: "",
+  promote: "ja",
 }
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
   bookerType !== "intern"
+
+const BOOKER_TYPE_LABELS: Record<BookerType, string> = {
+  ekstern: "Privat",
+  studentorg: "Studentorganisasjon",
+  intern: "Intern",
+}
+
+export const bookerTypeLabel = (bookerType: BookerType): string =>
+  BOOKER_TYPE_LABELS[bookerType]
 
 // --- Crescat free-text composition (shared by the order summary and payload) ---
 
@@ -125,6 +146,9 @@ export function buildBookingPayload(
     startTime: state.startTime,
     endTime: state.endTime,
     doorsTimes: state.doorsTimes.some(Boolean) ? state.doorsTimes : undefined,
+    estimatedEndTimes: state.estimatedEndTimes.some(Boolean)
+      ? state.estimatedEndTimes
+      : undefined,
     description: state.description,
     audienceCount: Number(state.audienceCount) || 0,
     openOrClosed: state.openOrClosed,
@@ -132,7 +156,12 @@ export function buildBookingPayload(
     techEquipment: composeTechEquipment(state),
     cateringWishes: composeCatering(state),
     freeOrPaid: state.freeOrPaid,
-    ticketTypes: state.ticketTypes,
+    ticketTypes: state.ticketTypes
+      .filter(t => t.name.trim())
+      .map(t => `${t.name} ${t.price} kr`)
+      .join(", "),
+    ticketSalesMethod:
+      state.freeOrPaid === "Betalt" ? state.ticketSalesMethod : undefined,
     contactName: state.contactName,
     contactEmail: state.contactEmail,
     contactPhone: state.contactPhone,
@@ -151,6 +180,15 @@ export function buildBookingPayload(
   }
 }
 
+// Paid events must list at least one ticket type with both a name and a price.
+// Free events have nothing to validate here.
+export function hasValidPaidTickets(state: BookingFormState): boolean {
+  if (state.freeOrPaid !== "Betalt") return true
+  return state.ticketTypes.some(
+    t => t.name.trim() !== "" && t.price.trim() !== "",
+  )
+}
+
 export function canSubmitBooking(
   state: BookingFormState,
   roomSelected: boolean,
@@ -163,8 +201,11 @@ export function canSubmitBooking(
     !hasConflict &&
     state.eventName.trim() !== "" &&
     state.startDate !== "" &&
+    state.doorsTimes.length > 0 &&
+    state.doorsTimes.every(Boolean) &&
     state.audienceCount.trim() !== "" &&
     state.furniture.trim() !== "" &&
+    hasValidPaidTickets(state) &&
     state.contactName.trim() !== "" &&
     state.contactEmail.trim() !== "" &&
     (!isExternal || state.invoiceAddress.trim() !== "") &&

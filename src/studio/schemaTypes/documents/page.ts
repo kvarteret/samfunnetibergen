@@ -1,4 +1,4 @@
-import { DocumentIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
 import { createSeoFields, createSharingFields } from "../shared/metadataFields"
@@ -9,7 +9,7 @@ export const page = defineType({
   description:
     "Selvstendig informasjonsside. Innhold for arrangementer, rom, grupper og andre egne områder redigeres i de tilhørende Studio-seksjonene.",
   type: "document",
-  icon: DocumentIcon,
+  icon: icons.document,
   groups: [
     { name: "content", title: "Innhold", default: true },
     { name: "seo", title: "SEO" },

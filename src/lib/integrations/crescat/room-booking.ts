@@ -13,11 +13,14 @@ import {
   INVOICE_ORG_NUMBER,
   INVOICE_PARENT_ID,
   INVOICE_PHONE,
+  KVARTERET_PAYMENT_TERMINAL,
   metaField,
   NEEDS_AMPHI,
   ON_BEHALF_OF_STUDENT_ORG,
   OPEN_OR_CLOSED,
   ORDER_PARENT_ID,
+  OWN_PAYMENT_TERMINAL,
+  OWN_TICKET_SYSTEM,
   PROMOTION_PARENT_ID,
   STUDENT_ORG_NAME,
   STUDENT_ORG_PARENT_ID,
@@ -67,12 +70,18 @@ export interface RoomBookingInput {
   cateringWishes: string
   freeOrPaid: "Gratis" | "Betalt"
   ticketTypes: string
+  // Paid events only: "house" = husets billettkasse, "ownTerminal" = egen
+  // betalingsterminal. Maps to the new Crescat ticketing metadata field.
+  ticketSalesMethod?: "house" | "ownTerminal"
   contactName: string
   contactEmail: string
   contactPhone: string
   // Optional: when doors open each day (HH:mm), indexed from startDate. Each
   // non-empty entry adds a 0-minute "Doors" timeline entry for that day.
   doorsTimes?: string[]
+  // Optional: estimated public end time per day. Each non-empty entry adds a
+  // 0-minute "Antatt slutt" timeline entry.
+  estimatedEndTimes?: string[]
   // Ekstern only
   onBehalfOfStudentOrg?: boolean
   studentOrgName?: string
@@ -130,29 +139,51 @@ const ticketTypesOrNA = (input: RoomBookingInput) =>
 const cateringOrNo = (input: RoomBookingInput) =>
   input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei"
 
-// A 0-minute "Doors" entry on each day's timeline that has a doors time set.
-function doorsAssignments(input: RoomBookingInput): Assignment[] {
-  const times = input.doorsTimes ?? []
-  const isMultiDay = times.length > 1
-  return times.flatMap((time, dayIndex) => {
-    if (!time) return []
+// 0-minute timeline entries for "Doors" and "Antatt slutt" per day.
+function timelineAssignments(input: RoomBookingInput): Assignment[] {
+  const doorsTimes = input.doorsTimes ?? []
+  const estimatedEndTimes = input.estimatedEndTimes ?? []
+  const isMultiDay = Math.max(doorsTimes.length, estimatedEndTimes.length) > 1
+
+  const dayCount = Math.max(doorsTimes.length, estimatedEndTimes.length)
+  const entries: Assignment[] = []
+
+  for (let dayIndex = 0; dayIndex < dayCount; dayIndex++) {
     const date = addDaysDateOnly(input.startDate, dayIndex)
-    const doors = toDateTime(date, time)
-    const title = isMultiDay ? `Doors dag ${dayIndex + 1}` : "Doors"
-    return [{ title, description: null, start: doors, end: doors }]
-  })
+    const doorsTime = doorsTimes[dayIndex]
+    const estimatedEnd = estimatedEndTimes[dayIndex]
+
+    if (doorsTime) {
+      const start = toDateTime(date, doorsTime)
+      const title = isMultiDay ? `Doors dag ${dayIndex + 1}` : "Doors"
+      entries.push({ title, description: null, start, end: start })
+    }
+
+    if (estimatedEnd) {
+      const start = toDateTime(date, estimatedEnd)
+      const title = isMultiDay
+        ? `Antatt slutt dag ${dayIndex + 1}`
+        : "Antatt slutt"
+      entries.push({ title, description: null, start, end: start })
+    }
+  }
+
+  return entries
 }
 
 // Ekstern/studentorg may flag flexibility on date/room (no Crescat field).
-// When structured alternative dates are provided, skip the free-text note to
-// avoid duplicate signal.
+// When set, the note is prepended to the description so the room coordinator
+// sees it first, ahead of the organizer's own text. When structured alternative
+// dates are provided, skip the free-text note to avoid duplicate signal.
+const FLEXIBLE_DATES_NOTE =
+  "Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre."
+
 function descriptionWithFlexible(input: RoomBookingInput): string {
   if (!input.flexibleDates) return input.description
   if (input.alternativeDates?.length) return input.description
-  const note = "Fleksibel på dato og rom: ja"
   return input.description.trim()
-    ? `${input.description.trim()}\n\n${note}`
-    : note
+    ? `${FLEXIBLE_DATES_NOTE}\n\n${input.description.trim()}`
+    : FLEXIBLE_DATES_NOTE
 }
 
 function roomBookingsFor(input: RoomBookingInput, start: string, end: string) {
@@ -230,7 +261,17 @@ export function buildExternalBooking(
           'Skal du selge billetter og/eller ta betalt for inngang til ditt arrangement ønsker vi å vite hvilke typer billetter som selges og hva disse koster. Er ikke dette feltet relevant for ditt arrangement ber vi om at feltet fylles ut som "N/A"',
         type: "metaData",
         content: {
-          fields: [metaField(TICKET_TYPES, ticketTypesOrNA(input))],
+          fields: [
+            metaField(TICKET_TYPES, ticketTypesOrNA(input)),
+            metaField(
+              KVARTERET_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "house",
+            ),
+            metaField(
+              OWN_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "ownTerminal",
+            ),
+          ],
           parent_id: TICKETING_PARENT_ID,
         },
       },
@@ -253,7 +294,7 @@ export function buildExternalBooking(
         description:
           "Har du oversikt over tentative tider for arrangementet? Venligst noter ned punkter som rigg, prøver, arrangement, nedrigg osv i feltet under.",
         type: "assignments",
-        content: doorsAssignments(input),
+        content: timelineAssignments(input),
       },
       {
         title: "Promotering",
@@ -347,7 +388,7 @@ export function buildInternalBooking(
         description:
           "Her fyller du ut når ting skjer (get-in, arrangementets start og når det er ferdig)",
         type: "assignments",
-        content: doorsAssignments(input),
+        content: timelineAssignments(input),
       },
       {
         title: "Bestilling",
@@ -373,6 +414,14 @@ export function buildInternalBooking(
           fields: [
             metaField(FREE_OR_PAID, input.freeOrPaid),
             metaField(TICKET_TYPES, ticketTypesOrNA(input)),
+            metaField(
+              KVARTERET_PAYMENT_TERMINAL,
+              input.ticketSalesMethod === "house",
+            ),
+            metaField(
+              OWN_TICKET_SYSTEM,
+              input.ticketSalesMethod === "ownTerminal",
+            ),
           ],
           parent_id: TICKETING_PARENT_ID,
         },

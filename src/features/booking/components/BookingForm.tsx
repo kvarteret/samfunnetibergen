@@ -10,17 +10,6 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { submitPromotionEvent } from "@/features/events/actions/submitPromotionEvent"
-import {
-  type FormState as EventFormState,
-  initialState as eventInitialState,
-} from "@/features/events/domain/formState"
-import {
-  eventTypeOptions,
-  groupOptions,
-  roomOptions,
-} from "@/features/events/domain/options"
-import { useEventImage } from "@/features/events/domain/useEventImage"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -31,7 +20,6 @@ import {
   isSlotAllowedForCombinedHours,
   type OpeningHours,
 } from "@/lib/opening-hours"
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
@@ -43,20 +31,10 @@ import {
 } from "../domain/availability"
 import {
   buildBookingPayload,
+  hasValidPaidTickets,
   initialBookingState,
   isExternalBooker,
 } from "../domain/formState"
-import {
-  bookingStartTime,
-  buildPromotionDefaults,
-  getPromotionValidationMessages,
-  PROMO_FIRST_DATE_FIELD,
-  PROMO_IMAGE_FIELD,
-  PROMO_SUBMITTER_EMAIL_FIELD,
-  PROMO_SUBMITTER_FIELD,
-  PROMO_TITLE_FIELD,
-  PROMOTE_FIELD,
-} from "../domain/promotion"
 import type { BookingRoom } from "../types"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
@@ -81,9 +59,8 @@ interface BookingFormProps {
   initialRoomId?: number
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
-  eventRooms: EventRoom[]
-  eventTypes: EventType[]
-  eventGroups: EventGroup[]
+  rentalTermsContent: string | null
+  cancellationTermsContent: string | null
 }
 
 export function BookingForm({
@@ -91,9 +68,8 @@ export function BookingForm({
   initialRoomId,
   openingHours,
   closedDates,
-  eventRooms,
-  eventTypes,
-  eventGroups,
+  rentalTermsContent,
+  cancellationTermsContent,
 }: BookingFormProps) {
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
@@ -106,41 +82,13 @@ export function BookingForm({
     startDate: `${uid}-startDate`,
     eventName: `${uid}-eventName`,
     audienceCount: `${uid}-audience`,
+    tickets: `${uid}-tickets`,
     furniture: `${uid}-furniture`,
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
     invoiceAddress: `${uid}-invoiceAddress`,
     acceptTerms: `${uid}-acceptTerms`,
   }
-  const promoteFieldIds = {
-    promote: `${uid}-promote`,
-    title: `${uid}-promote-title`,
-    firstDate: `${uid}-promote-first-date`,
-    submittedBy: `${uid}-promote-submitter`,
-    submittedByEmail: `${uid}-promote-submitter-email`,
-  }
-  const promoFieldByPlaceholder: Record<string, string> = {
-    [PROMOTE_FIELD]: promoteFieldIds.promote,
-    [PROMO_TITLE_FIELD]: promoteFieldIds.title,
-    [PROMO_FIRST_DATE_FIELD]: promoteFieldIds.firstDate,
-    [PROMO_SUBMITTER_FIELD]: promoteFieldIds.submittedBy,
-    [PROMO_SUBMITTER_EMAIL_FIELD]: promoteFieldIds.submittedByEmail,
-    [PROMO_IMAGE_FIELD]: promoteFieldIds.promote,
-  }
-
-  const eventTypeSelectOptions = eventTypeOptions(eventTypes)
-  const roomSelectOptions = roomOptions(eventRooms)
-  const groupSelectOptions = groupOptions(eventGroups)
-
-  const image = useEventImage()
-  const [uploadLater, setUploadLater] = useState(false)
-  const [promotionError, setPromotionError] = useState<string | null>(null)
-
-  const promotionForm = useForm({
-    defaultValues: eventInitialState as EventFormState,
-  })
-  const promotionValues = useStore(promotionForm.store, state => state.values)
-
   const form = useForm({
     defaultValues: {
       ...initialBookingState,
@@ -164,30 +112,6 @@ export function BookingForm({
       posthog.capture("room_booking_submitted", {
         promote: value.promote === "ja",
       })
-
-      // The booking is the primary action; once it succeeds we never fail the
-      // whole submit because the optional promotion could not be created. A
-      // promotion error becomes a non-blocking warning on the success screen.
-      if (value.promote === "ja") {
-        setPromotionError(null)
-        const promoResult = await submitPromotionEvent(
-          promotionForm.state.values,
-          image.imageFile,
-        )
-        if (!promoResult.ok) {
-          posthog.capture("room_booking_promotion_event_failed", {
-            error: promoResult.error,
-          })
-          setPromotionError(
-            "Bookingen er sendt, men promoteringen kunne ikke opprettes. Ta kontakt med pr@samfunnetibergen.no.",
-          )
-        } else {
-          posthog.capture("room_booking_promotion_event_created", {
-            has_image: Boolean(image.imageFile),
-            upload_later: uploadLater,
-          })
-        }
-      }
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -223,12 +147,16 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType])
 
+  const selectedStartDate = values.startDate
+
   useEffect(() => {
     let active = true
+    // Fetch around the selected date when available, otherwise fetch from today.
+    const windowStart = selectedStartDate || today
     fetchRoomAvailability(
       bookerType,
-      today,
-      addDaysDateOnly(today, DATE_COUNT),
+      windowStart,
+      addDaysDateOnly(windowStart, DATE_COUNT),
     ).then(result => {
       if (active) setBookings(result)
     })
@@ -236,40 +164,7 @@ export function BookingForm({
       active = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookerType])
-
-  // Seed the embedded event form once, the first time the guest opts in, from
-  // what they already typed into the booking. Seeding once avoids clobbering
-  // edits if they toggle the choice off and on again.
-  const hasSeededPromotionRef = useRef(false)
-  useEffect(() => {
-    if (values.promote !== "ja" || hasSeededPromotionRef.current) return
-    hasSeededPromotionRef.current = true
-    posthog.capture("room_booking_promotion_opted_in")
-    const defaults = buildPromotionDefaults(values, promotionForm.state.values)
-    promotionForm.setFieldValue("title", defaults.title)
-    promotionForm.setFieldValue("isFree", defaults.isFree)
-    promotionForm.setFieldValue("dates", defaults.dates)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.promote])
-
-  const showDoorsHint = values.doorsTimes.some(Boolean)
-  const onSameAsBooking = () => {
-    const time = bookingStartTime(values)
-    promotionForm.setFieldValue("dates", (dates: EventFormState["dates"]) =>
-      dates.map((date, index) => {
-        if (index === 0) {
-          return {
-            ...date,
-            startDate: date.startDate || values.startDate,
-            startTime: time,
-            endTime: values.endTime || date.endTime,
-          }
-        }
-        return date
-      }),
-    )
-  }
+  }, [bookerType, selectedStartDate])
 
   const selectedRoomIds = values.selectedRoomIds
   const primaryRoom = selectedRooms[0]
@@ -321,26 +216,13 @@ export function BookingForm({
     )
   })()
 
-  const bookingValidationErrors = getBookingValidationErrors({
+  const validationErrors = getBookingValidationErrors({
     values,
     fieldIds,
     roomsSelected: selectedRoomIds.length > 0,
     hasConflict,
     slotWithinHours,
   })
-  const promotionValidationErrors = getPromotionValidationMessages({
-    promote: values.promote,
-    event: promotionValues,
-    hasImageFile: Boolean(image.imageFile),
-    uploadLater,
-  }).map(message => ({
-    fieldId: promoFieldByPlaceholder[message.fieldId] ?? message.fieldId,
-    message: message.message,
-  }))
-  const validationErrors = [
-    ...bookingValidationErrors,
-    ...promotionValidationErrors,
-  ]
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -360,15 +242,7 @@ export function BookingForm({
         <AlertDescription>
           Takk for din bookingforespørsel. Vi behandler den så fort vi kan og
           tar kontakt på e-post.
-          {values.promote === "ja" && !promotionError && (
-            <> Arrangementet er sendt til godkjenning hos PR-gruppen.</>
-          )}
         </AlertDescription>
-        {promotionError && (
-          <AlertDescription className="text-destructive">
-            {promotionError}
-          </AlertDescription>
-        )}
         <Link
           className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
@@ -395,9 +269,6 @@ export function BookingForm({
             form.handleSubmit()
           }}
         >
-          {visibleErrors.length > 0 && (
-            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
-          )}
           <BookingFormBookerTypeSection
             studentOrgNameError={errorFor(fieldIds.studentOrgName)}
             studentOrgNameId={fieldIds.studentOrgName}
@@ -422,7 +293,10 @@ export function BookingForm({
             eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
           />
-          <BookingFormTicketSection />
+          <BookingFormTicketSection
+            ticketsError={errorFor(fieldIds.tickets)}
+            ticketsId={fieldIds.tickets}
+          />
           <BookingFormContactSection
             contactEmailError={errorFor(fieldIds.contactEmail)}
             contactEmailId={fieldIds.contactEmail}
@@ -437,30 +311,12 @@ export function BookingForm({
             selectedRoomCrescatId={hasTivoli ? 95 : (selectedRoomIds[0] ?? 0)}
           />
           <BookingFormCateringBarSection />
-          <BookingPromotionSection
-            eventTypeOptions={eventTypeSelectOptions}
-            firstDateError={errorFor(promoteFieldIds.firstDate)}
-            firstDateId={promoteFieldIds.firstDate}
-            groupOptions={groupSelectOptions}
-            image={image}
-            onSameAsBooking={onSameAsBooking}
-            onUploadLaterChange={setUploadLater}
-            promoteError={errorFor(promoteFieldIds.promote)}
-            promoteFieldId={promoteFieldIds.promote}
-            promotionForm={promotionForm}
-            roomOptions={roomSelectOptions}
-            showDoorsHint={showDoorsHint}
-            submittedByEmailError={errorFor(promoteFieldIds.submittedByEmail)}
-            submittedByEmailId={promoteFieldIds.submittedByEmail}
-            submittedByError={errorFor(promoteFieldIds.submittedBy)}
-            submittedById={promoteFieldIds.submittedBy}
-            titleError={errorFor(promoteFieldIds.title)}
-            titleId={promoteFieldIds.title}
-            uploadLater={uploadLater}
-          />
+          <BookingPromotionSection />
           <BookingFormTermsSection
             acceptTermsError={errorFor(fieldIds.acceptTerms)}
             acceptTermsId={fieldIds.acceptTerms}
+            cancellationTermsContent={cancellationTermsContent}
+            rentalTermsContent={rentalTermsContent}
           />
 
           {/* Honeypot */}
@@ -486,16 +342,6 @@ export function BookingForm({
                 </AlertDescription>
               </Alert>
             )}
-            {submitError && (
-              <Alert className="max-w-3xl" variant="destructive">
-                <X
-                  aria-hidden
-                  className="mt-0.5 size-4 shrink-0 text-destructive"
-                />
-                <AlertTitle>Det oppstod en feil</AlertTitle>
-                <AlertDescription>{String(submitError)}</AlertDescription>
-              </Alert>
-            )}
             <Button
               className="w-full sm:w-auto"
               disabled={isSubmitting}
@@ -514,6 +360,19 @@ export function BookingForm({
                 </>
               )}
             </Button>
+            {visibleErrors.length > 0 && (
+              <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+            )}
+            {submitError && (
+              <Alert className="max-w-3xl" variant="destructive">
+                <X
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-destructive"
+                />
+                <AlertTitle>Det oppstod en feil</AlertTitle>
+                <AlertDescription>{String(submitError)}</AlertDescription>
+              </Alert>
+            )}
           </section>
         </form>
 
@@ -521,6 +380,8 @@ export function BookingForm({
           <form.Subscribe selector={s => s.values}>
             {values => (
               <BookingFormOrderSummary
+                closedDates={closedDates}
+                openingHours={openingHours}
                 rooms={rooms}
                 selectedRoomIds={values.selectedRoomIds}
                 state={values}
@@ -544,6 +405,7 @@ interface BookingValidationOptions {
     | "startDate"
     | "eventName"
     | "audienceCount"
+    | "tickets"
     | "furniture"
     | "contactName"
     | "contactEmail"
@@ -584,6 +446,20 @@ function getBookingValidationErrors({
       message: "Velg dato.",
     })
   }
+  if (values.startDate && values.doorsTimes.length > 0) {
+    const missingDoors = values.doorsTimes.some(t => !t)
+    if (missingDoors) {
+      errors.push({
+        fieldId: fieldIds.startDate,
+        message: "Velg tidspunkt for dørene åpner for alle dager.",
+      })
+    }
+  } else if (values.startDate) {
+    errors.push({
+      fieldId: fieldIds.startDate,
+      message: "Velg tidspunkt for dørene åpner.",
+    })
+  }
   if (hasConflict) {
     errors.push({
       fieldId: `${fieldIds.startDate}-time`,
@@ -606,6 +482,12 @@ function getBookingValidationErrors({
     errors.push({
       fieldId: fieldIds.audienceCount,
       message: "Skriv inn estimert antall publikum.",
+    })
+  }
+  if (!hasValidPaidTickets(values)) {
+    errors.push({
+      fieldId: fieldIds.tickets,
+      message: "Legg til minst én billettype med pris for betalte arrangement.",
     })
   }
   if (!values.furniture.trim()) {

@@ -15,6 +15,7 @@ import {
   pageSlugsQuery,
   siteMetadataNbQuery,
   sponsorsPageQuery,
+  usefulInfoPageQuery,
 } from "../queries"
 import { compact, type FetchOptions } from "./shared"
 
@@ -125,6 +126,17 @@ export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
 export async function fetchLinkInBio() {
   const { data } = await sanityFetch({
     query: linkInBioQuery,
+  })
+  return data
+}
+
+export type UsefulInfoPage = NonNullable<
+  ClientReturn<typeof usefulInfoPageQuery>
+>
+
+export async function fetchUsefulInfoPage(): Promise<UsefulInfoPage | null> {
+  const { data } = await sanityFetch({
+    query: usefulInfoPageQuery,
   })
   return data
 }

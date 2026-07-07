@@ -90,9 +90,33 @@
       "parentId": 4989,
       "fields": [
         {
+          "id": 1443270,
+          "title": "Gratis/betalt arrangement",
+          "component": "field-list",
+          "required": true,
+          "class": "col-md-3",
+          "options": ["Gratis", "Betalt"]
+        },
+        {
           "id": 1244809,
           "title": "Billettyper og priser",
           "component": "field-text",
+          "required": false,
+          "class": "col-md-6",
+          "options": null
+        },
+        {
+          "id": 3511840,
+          "title": "Vi vil at Kvarteret setter opp en betalingsterminal",
+          "component": "field-toggle",
+          "required": false,
+          "class": "col-md-6",
+          "options": null
+        },
+        {
+          "id": 4451407,
+          "title": "Vi bruker egen betalingsterminal",
+          "component": "field-toggle",
           "required": false,
           "class": "col-md-6",
           "options": null
@@ -248,16 +272,8 @@
       "name": "Bakgården"
     },
     {
-      "id": 122,
-      "name": "Lobby 1. Etg (Bermuda)"
-    },
-    {
       "id": 123,
       "name": "Lobby 2. Etg"
-    },
-    {
-      "id": 124,
-      "name": "Lobbyrinten"
     },
     {
       "id": 125,

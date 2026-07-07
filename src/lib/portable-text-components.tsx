@@ -1,6 +1,8 @@
 import Image from "next/image"
 import { PortableText } from "next-sanity"
 
+import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+
 type PortableTextBlock = {
   _key?: string
   _type: string
@@ -8,6 +10,7 @@ type PortableTextBlock = {
 }
 
 type PortableTextContentProps = {
+  className?: string
   value: PortableTextBlock[] | null | undefined
 }
 
@@ -27,7 +30,10 @@ type PortableTextLinkValue = {
   blank?: boolean
 }
 
-export function PortableTextContent({ value }: PortableTextContentProps) {
+export function PortableTextContent({
+  className,
+  value,
+}: PortableTextContentProps) {
   if (!value?.length) {
     return null
   }
@@ -47,7 +53,12 @@ export function PortableTextContent({ value }: PortableTextContentProps) {
 
       return (
         <div
-          className="paper-prose prose prose-neutral max-w-none dark:prose-invert"
+          className={[
+            "paper-prose prose prose-neutral max-w-none dark:prose-invert",
+            className,
+          ]
+            .filter(Boolean)
+            .join(" ")}
           key={block._key}
         >
           <PortableText
@@ -82,6 +93,11 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
     return null
   }
 
+  const imageUrl = sanityImageUrl(value.imageUrl, {
+    height: 720,
+    width: 1280,
+  })
+
   return (
     <figure className="my-10">
       <div className="relative aspect-video overflow-hidden border-2 border-border">
@@ -90,7 +106,8 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
           className="object-cover"
           fill
           sizes="(max-width: 1280px) 100vw, 1280px"
-          src={value.imageUrl}
+          src={imageUrl}
+          unoptimized={shouldLoadImageDirectly(imageUrl)}
         />
       </div>
       {value.caption && (

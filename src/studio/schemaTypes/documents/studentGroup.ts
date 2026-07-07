@@ -1,4 +1,4 @@
-import { UsersIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import {
   orderRankField,
   orderRankOrdering,
@@ -23,7 +23,7 @@ export const studentGroup = defineType({
   name: "studentGroup",
   title: "Gruppe",
   type: "document",
-  icon: UsersIcon,
+  icon: icons.users,
   groups: [
     { name: "identity", title: "Gruppe", default: true },
     { name: "hierarchy", title: "Hierarki" },

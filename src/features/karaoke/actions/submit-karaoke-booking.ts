@@ -3,22 +3,26 @@
 import { z } from "zod"
 
 import type { KaraokeBookingPayload } from "@/features/karaoke/types"
-import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
+import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
   buildKaraokeRequest,
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
-import { fetchKaraokeAvailability } from "./karaoke-availability"
 import { slotOverlapsKaraokeBookings } from "../domain/availability"
 import { calcKaraokePrice, KARAOKE_PRICING } from "../domain/formState"
 import { timeToMinutes } from "../domain/time"
 import type { PriceType } from "../types"
+import { fetchKaraokeAvailability } from "./karaoke-availability"
 
 const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
 const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
@@ -201,5 +205,15 @@ export async function submitKaraokeBooking(
       error: result.error,
     },
   })
+  posthog.captureException(
+    toPostHogException(result.error),
+    "anonymous",
+    getHandledExceptionProperties("karaoke_booking", {
+      source: "submit-karaoke-booking",
+      failure_branch: "crescat_request_failed",
+      price_type: parsed.data.priceType,
+      start_date: parsed.data.startDate,
+    }),
+  )
   return err(GENERIC_ERROR)
 }

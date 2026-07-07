@@ -2,7 +2,11 @@ import { defineQuery } from "next-sanity"
 import { sourceLinkProjection } from "../fragments/links"
 import { portableTextProjection } from "../fragments/portableText"
 import { openingHoursProjection } from "../fragments/rooms"
-import { editorialSectionProjection } from "../fragments/sections"
+import {
+  editorialSectionProjection,
+  infoAccordionBlockProjection,
+  infoAddressBlockProjection,
+} from "../fragments/sections"
 
 export const siteMetadataNbQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
@@ -163,6 +167,27 @@ export const kontaktPageQuery =
             phone,
             "imageUrl": image.asset->url
         }, [])
+    }, [])
+}`)
+
+export const usefulInfoPageQuery =
+  defineQuery(`*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {
+    eyebrow,
+    "title": coalesce(title, "Nyttig info"),
+    intro,
+    seoTitle,
+    seoDescription,
+    canonicalUrl,
+    "noIndex": coalesce(noIndex, false),
+    "noFollow": coalesce(noFollow, false),
+    openGraphTitle,
+    openGraphDescription,
+    "openGraphImageUrl": openGraphImage.asset->url,
+    openGraphImageAlt,
+    "sections": coalesce(sections[] {
+        _type == "editorialSection" => ${editorialSectionProjection},
+        _type == "infoAddressBlock" => ${infoAddressBlockProjection},
+        _type == "infoAccordionBlock" => ${infoAccordionBlockProjection}
     }, [])
 }`)
 

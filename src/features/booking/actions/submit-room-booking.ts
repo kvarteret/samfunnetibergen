@@ -31,6 +31,10 @@ import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
@@ -58,6 +62,9 @@ const payloadSchema = z.object({
   doorsTimes: z
     .array(z.union([z.literal(""), z.string().regex(timeRegex)]))
     .optional(),
+  estimatedEndTimes: z
+    .array(z.union([z.literal(""), z.string().regex(timeRegex)]))
+    .optional(),
   description: z.string().trim().default(""),
   audienceCount: z.number().int().min(0),
   openOrClosed: z.enum(["Åpent", "Lukket"]),
@@ -66,6 +73,8 @@ const payloadSchema = z.object({
   cateringWishes: z.string().trim().default(""),
   freeOrPaid: z.enum(["Gratis", "Betalt"]),
   ticketTypes: z.string().trim().default(""),
+  // Paid events only: ticket sales channel.
+  ticketSalesMethod: z.enum(["house", "ownTerminal"]).optional(),
   contactName: z.string().trim().min(1),
   contactEmail: z.string().trim().email(),
   contactPhone: z.string().trim().default(""),
@@ -234,5 +243,16 @@ export async function submitRoomBooking(
       error: result.error,
     },
   })
+  posthog.captureException(
+    toPostHogException(result.error),
+    "anonymous",
+    getHandledExceptionProperties("room_booking", {
+      source: "submit-room-booking",
+      failure_branch: "crescat_request_failed",
+      booker_type: parsed.data.bookerType,
+      room_id: parsed.data.roomIds[0],
+      start_date: parsed.data.startDate,
+    }),
+  )
   return err(GENERIC_ERROR)
 }

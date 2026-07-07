@@ -6,6 +6,7 @@ export const singletonTypeNames = [
   "roomsPage",
   "groupsPage",
   "sponsorsPage",
+  "usefulInfoPage",
   "kontaktPage",
   "navbar",
   "linkInBio",

@@ -19,10 +19,16 @@ import { linkInBio } from "./documents/singletons/linkInBio"
 import { roomsPage } from "./documents/singletons/roomsPage"
 import { siteMetadata } from "./documents/singletons/siteMetadata"
 import { sponsorsPage } from "./documents/singletons/sponsorsPage"
+import { usefulInfoPage } from "./documents/singletons/usefulInfoPage"
 import { studentGroup } from "./documents/studentGroup"
 import { duration, timeValue } from "./objects/duration"
 import { editorialSection } from "./objects/editorialSection"
 import { arrangementDate } from "./objects/eventDate"
+import {
+  infoAccordionBlock,
+  infoAccordionItem,
+} from "./objects/infoAccordionBlock"
+import { infoAddressBlock } from "./objects/infoAddressBlock"
 import { menuItem, menuSchema, menuSection } from "./objects/menu"
 import { openingHours, openingHoursRow } from "./objects/openingHours"
 import { portableTextContent } from "./objects/portableText"
@@ -34,6 +40,9 @@ export const schemaTypes = [
   sourceLink,
   sourcedImage,
   editorialSection,
+  infoAddressBlock,
+  infoAccordionItem,
+  infoAccordionBlock,
   timeValue,
   duration,
   openingHoursRow,
@@ -68,5 +77,6 @@ export const schemaTypes = [
   roomsPage,
   groupsPage,
   sponsorsPage,
+  usefulInfoPage,
   linkInBio,
 ]

@@ -1,7 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { Building2, type LucideIcon, User, Users } from "lucide-react"
+import { Building2, Check, type LucideIcon, User, Users } from "lucide-react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -61,17 +61,27 @@ export function BookingFormBookerTypeSection({
           <>
             <SelectableCardGroup
               className="gap-3 md:grid-cols-3"
-              onValueChange={value =>
+              onValueChange={value => {
                 form.setFieldValue("bookerType", value as BookerType)
-              }
+                // Nudge the guest into the next step once they've picked a type.
+                document
+                  .getElementById("booking-schedule")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }}
               value={bookerType}
             >
               {BOOKER_OPTIONS.map(option => (
                 <SelectableCard
-                  className="min-h-20 gap-1 p-3"
+                  className="group relative min-h-20 gap-1 p-3 data-[checked]:border-primary data-[checked]:bg-primary/10 data-[checked]:ring-2 data-[checked]:ring-primary data-[checked]:ring-offset-2 data-[checked]:ring-offset-background"
                   key={option.type}
                   value={option.type}
                 >
+                  <span
+                    aria-hidden
+                    className="absolute right-2 top-2 hidden size-5 items-center justify-center rounded-full bg-primary text-primary-foreground group-data-[checked]:flex"
+                  >
+                    <Check className="size-3.5" />
+                  </span>
                   <span className="flex items-center gap-1.5 font-heading text-sm text-foreground">
                     <option.icon aria-hidden className="size-4 text-primary" />
                     {option.label}

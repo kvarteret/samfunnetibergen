@@ -13,6 +13,7 @@ describe("Sanity default migration", () => {
     expect(patch).toEqual({
       approvalStatus: "pending",
       isInternalEvent: false,
+      isPromoted: false,
       isRecurring: false,
     })
   })

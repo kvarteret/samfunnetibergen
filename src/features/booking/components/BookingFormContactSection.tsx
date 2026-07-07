@@ -81,7 +81,6 @@ export function BookingFormContactSection({
             {(field: AnyFieldApi) => (
               <Input
                 autoComplete="tel"
-                className="max-w-48"
                 id={`${uid}-contactPhone`}
                 inputMode="tel"
                 onChange={e => field.handleChange(e.target.value)}
@@ -120,7 +119,6 @@ export function BookingFormContactSection({
                 <FieldGroup>
                   <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
                   <Input
-                    className="max-w-48"
                     id={`${uid}-orgNumber`}
                     inputMode="numeric"
                     onChange={e => field.handleChange(e.target.value)}

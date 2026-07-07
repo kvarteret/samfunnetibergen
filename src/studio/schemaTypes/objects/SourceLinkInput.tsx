@@ -1,6 +1,6 @@
 "use client"
 
-import { LinkIcon, SearchIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import {
   Autocomplete,
   type BaseAutocompleteOption,
@@ -88,12 +88,15 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
   const [documentTitle, setDocumentTitle] = useState<string | null>(null)
 
   useEffect(() => {
+    // Sync external storedValue into local input state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(storedValue)
   }, [storedValue])
 
   useEffect(() => {
     const documentId = value?.internalPage?._ref
     if (!documentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDocumentTitle(null)
       return
     }
@@ -196,7 +199,7 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
         </Text>
         <Autocomplete<DocumentOption>
           filterOption={() => true}
-          icon={storedValue.startsWith("document:") ? LinkIcon : SearchIcon}
+          icon={storedValue.startsWith("document:") ? icons.link : icons.search}
           id={`${props.id}-destination`}
           loading={loading}
           onBlur={() => applyTypedDestination(inputValue)}

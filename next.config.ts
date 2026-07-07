@@ -1,3 +1,4 @@
+import { withPostHogConfig } from "@posthog/nextjs-config"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 import { networkInterfaces } from "os"
@@ -40,6 +41,15 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "12mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/:locale/tilgjengelighet",
+        destination: "/:locale/nyttig",
+        permanent: true,
+      },
+    ]
+  },
   async rewrites() {
     return [
       {
@@ -72,4 +82,20 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
 }
 
-export default withNextIntl(nextConfig)
+const config = withNextIntl(nextConfig)
+
+// PostHog source-map upload only runs when its CLI credentials are present.
+// Since sourcemaps default to enabled, the plugin throws ("projectId is
+// required when sourcemaps are enabled") in environments that don't set these
+// vars (e.g. Vercel), which breaks the build. Fall back to the plain config
+// there and only enable upload when both credentials exist.
+const posthogApiKey = process.env.POSTHOG_CLI_API_KEY
+const posthogProjectId = process.env.POSTHOG_CLI_PROJECT_ID
+
+export default posthogApiKey && posthogProjectId
+  ? withPostHogConfig(config, {
+      personalApiKey: posthogApiKey,
+      projectId: posthogProjectId,
+      host: process.env.POSTHOG_CLI_HOST,
+    })
+  : config

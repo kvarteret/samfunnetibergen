@@ -87,6 +87,33 @@ export const TICKET_TYPES = {
   class: "col-md-6",
   required: true,
 } satisfies FieldDef
+// Payment-handling toggles (added 2026-06-26). The website models these as a
+// single "Hvordan selges billettene?" choice, so for paid events exactly one is
+// true; both are false for free events. Field 4451407 is labelled differently
+// per form, hence the two descriptors below sharing one id.
+export const KVARTERET_PAYMENT_TERMINAL = {
+  id: 3511840,
+  title: "Vi vil at Kvarteret setter opp en betalingsterminal",
+  component: "field-toggle",
+  class: "col-md-6",
+  required: false,
+} satisfies FieldDef
+export const OWN_PAYMENT_TERMINAL = {
+  id: 4451407,
+  title: "Vi bruker egen betalingsterminal",
+  component: "field-toggle",
+  class: "col-md-6",
+  required: false,
+} satisfies FieldDef
+// Same Crescat field id as OWN_PAYMENT_TERMINAL; the intern form labels it
+// "Vi bruker eget billettsystem".
+export const OWN_TICKET_SYSTEM = {
+  id: 4451407,
+  title: "Vi bruker eget billettsystem",
+  component: "field-toggle",
+  class: "col-md-6",
+  required: false,
+} satisfies FieldDef
 
 // — parent 11068: "Catering/bar" —
 export const CATERING_PARENT_ID = 11068

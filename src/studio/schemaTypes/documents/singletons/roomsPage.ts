@@ -1,4 +1,4 @@
-import { DocumentIcon, ImageIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import {
@@ -10,7 +10,7 @@ export const roomsPage = defineType({
   name: "roomsPage",
   title: "Rom-side",
   type: "document",
-  icon: DocumentIcon,
+  icon: icons.document,
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "booking", title: "Bestilling" },
@@ -65,7 +65,7 @@ export const roomsPage = defineType({
           name: "floorPlan",
           title: "Plantegning",
           type: "object",
-          icon: ImageIcon,
+          icon: icons.image,
           fields: [
             defineField({
               name: "floor",

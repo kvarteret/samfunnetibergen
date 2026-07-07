@@ -14,6 +14,11 @@ if (
     api_host: "/ingest",
     ui_host: "https://eu.posthog.com",
     defaults: "2026-01-30",
+    capture_pageview: true,
+    capture_pageleave: true,
     capture_exceptions: true,
+    person_profiles: "identified_only",
+    tracing_headers:
+      typeof window === "undefined" ? undefined : [window.location.hostname],
   })
 }

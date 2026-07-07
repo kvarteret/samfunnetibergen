@@ -1,4 +1,4 @@
-import { CheckmarkIcon, CloseIcon, PauseIcon, PlayIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import type { DocumentActionProps } from "sanity"
 import { useDocumentOperation } from "sanity"
 
@@ -40,7 +40,7 @@ function createStatusAction({
 
 export const ApproveAction = createStatusAction({
   currentStatus: "pending",
-  icon: CheckmarkIcon,
+  icon: icons.checkmark,
   label: "Godkjenn",
   nextStatus: "approved",
   tone: "positive",
@@ -48,7 +48,7 @@ export const ApproveAction = createStatusAction({
 
 export const RejectAction = createStatusAction({
   currentStatus: "pending",
-  icon: CloseIcon,
+  icon: icons.close,
   label: "Avvis",
   nextStatus: "rejected",
   tone: "critical",
@@ -56,7 +56,7 @@ export const RejectAction = createStatusAction({
 
 export const PauseAction = createStatusAction({
   currentStatus: "approved",
-  icon: PauseIcon,
+  icon: icons.pause,
   label: "Sett på pause",
   nextStatus: "paused",
   tone: "caution",
@@ -64,7 +64,7 @@ export const PauseAction = createStatusAction({
 
 export const ResumeAction = createStatusAction({
   currentStatus: "paused",
-  icon: PlayIcon,
+  icon: icons.play,
   label: "Gjenoppta",
   nextStatus: "approved",
   tone: "positive",

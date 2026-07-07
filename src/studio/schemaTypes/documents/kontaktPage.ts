@@ -1,4 +1,4 @@
-import { EnvelopeIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import { createSeoFields, createSharingFields } from "../shared/metadataFields"
@@ -68,7 +68,7 @@ export const kontaktPage = defineType({
   // organisation-wide contact data (consumed by footer, etc.).
   title: "Kontakt og organisasjon",
   type: "document",
-  icon: EnvelopeIcon,
+  icon: icons.envelope,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],

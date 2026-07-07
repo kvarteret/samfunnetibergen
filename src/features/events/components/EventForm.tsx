@@ -19,13 +19,13 @@ import {
   type FormState,
   initialState,
 } from "../domain/formState"
+import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { useEventImage } from "../domain/useEventImage"
 import {
-  getEventValidationIssues,
   type EventValidationField,
+  getEventValidationIssues,
 } from "../domain/validation"
 import { EventFormActions } from "./EventFormActions"
-import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
 import { EventFormLinksSection } from "./EventFormLinksSection"

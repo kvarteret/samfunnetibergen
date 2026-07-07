@@ -64,7 +64,7 @@ export function BookingFormScheduleSection({
   const firstRoom = rooms.find(r => selectedRoomIds.includes(r.crescatRoomId))
 
   return (
-    <FormSection number="02" title="Rom og tidspunkt">
+    <FormSection id="booking-schedule" number="02" title="Rom og tidspunkt">
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => ({
           selectedRoomIds: s.values.selectedRoomIds as number[],
@@ -73,6 +73,7 @@ export function BookingFormScheduleSection({
           startTime: s.values.startTime,
           endTime: s.values.endTime,
           doorsTimes: s.values.doorsTimes,
+          estimatedEndTimes: s.values.estimatedEndTimes,
           bookerType: s.values.bookerType,
         })}
       >
@@ -83,6 +84,7 @@ export function BookingFormScheduleSection({
           startTime,
           endTime,
           doorsTimes,
+          estimatedEndTimes,
           bookerType,
         }: {
           selectedRoomIds: number[]
@@ -91,6 +93,7 @@ export function BookingFormScheduleSection({
           startTime: string
           endTime: string
           doorsTimes: string[]
+          estimatedEndTimes: string[]
           bookerType: BookerType
         }) => {
           return (
@@ -100,21 +103,33 @@ export function BookingFormScheduleSection({
                 <DateTimePicker
                   closedDates={closedDates}
                   doorsTimes={doorsTimes}
+                  estimatedEndTimes={estimatedEndTimes}
                   endDate={endDate}
                   endTime={endTime}
                   hasConflict={hasConflict}
                   occupiedRanges={occupiedRanges}
-                  onDoorsChange={(dayIndex, v) =>
-                    form.setFieldValue("doorsTimes", (arr: string[]) => {
-                      const next = [...arr]
-                      next[dayIndex] = v
-                      return next
-                    })
-                  }
+                  onDoorsChange={(dayIndex, v) => {
+                    const next = [...doorsTimes]
+                    next[dayIndex] = v
+                    form.setFieldValue("doorsTimes", next)
+                  }}
+                  onEstimatedEndChange={(dayIndex, v) => {
+                    const next = [...estimatedEndTimes]
+                    next[dayIndex] = v
+                    form.setFieldValue("estimatedEndTimes", next)
+                  }}
                   onEndChange={v => form.setFieldValue("endTime", v)}
-                  onEndDateChange={v => form.setFieldValue("endDate", v)}
+                  onEndDateChange={v => {
+                    form.setFieldValue("endDate", v)
+                    form.setFieldValue("doorsTimes", [])
+                    form.setFieldValue("estimatedEndTimes", [])
+                  }}
                   onStartChange={v => form.setFieldValue("startTime", v)}
-                  onStartDateChange={v => form.setFieldValue("startDate", v)}
+                  onStartDateChange={v => {
+                    form.setFieldValue("startDate", v)
+                    form.setFieldValue("doorsTimes", [])
+                    form.setFieldValue("estimatedEndTimes", [])
+                  }}
                   openingHours={openingHours}
                   roomOpeningHours={firstRoom?.openingHours ?? null}
                   startDate={startDate}
@@ -151,19 +166,24 @@ export function BookingFormScheduleSection({
                       return (
                         <div
                           className={cn(
-                            "relative flex flex-col overflow-hidden border-2 transition-colors cursor-pointer",
-                            selected
+                            "relative flex flex-col overflow-hidden border-2 transition-colors",
+                            occupied
+                              ? "border-border bg-card cursor-default"
+                              : "cursor-pointer",
+                            !occupied && selected
                               ? "border-primary bg-primary/5"
-                              : "border-border bg-card",
-                            occupied && "opacity-60 saturate-50",
+                              : !occupied && "border-border bg-card",
                           )}
                           key={room.crescatRoomId}
-                          onClick={() => toggleRoom(room.crescatRoomId)}
+                          onClick={() =>
+                            !occupied && toggleRoom(room.crescatRoomId)
+                          }
                         >
                           {!isCrescatOnly && (
                             <div className="relative aspect-video bg-muted">
                               <ImageWithFallback
                                 alt={room.image?.alt ?? roomName}
+                                className={cn(occupied && "grayscale")}
                                 fallback={
                                   <Building2
                                     aria-hidden
@@ -174,28 +194,30 @@ export function BookingFormScheduleSection({
                                 src={room.image?.assetUrl}
                               />
                               {occupied && (
-                                <div className="absolute inset-x-0 top-0 flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
-                                  <CalendarClock
-                                    aria-hidden
-                                    className="size-3.5 shrink-0"
-                                  />
-                                  <span className="font-heading text-xs uppercase tracking-widest">
-                                    Opptatt
-                                  </span>
+                                <div className="absolute inset-0 flex flex-col bg-black/55">
+                                  <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
+                                    <CalendarClock
+                                      aria-hidden
+                                      className="size-4 shrink-0"
+                                    />
+                                    <span className="font-heading text-sm uppercase tracking-widest">
+                                      Opptatt
+                                    </span>
+                                  </div>
+                                  <div className="mt-auto p-3">
+                                    <RoomConflictList
+                                      conflicts={conflicts}
+                                      tone="onImage"
+                                    />
+                                  </div>
                                 </div>
                               )}
-                              <AddRoomButton
-                                className="absolute right-3 top-3"
-                                onClick={() => toggleRoom(room.crescatRoomId)}
-                                selected={selected}
-                              />
-                              {room.slug && (
-                                <div
-                                  className="absolute bottom-3 left-3"
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  <RoomInfoTrigger room={room} />
-                                </div>
+                              {!occupied && (
+                                <AddRoomButton
+                                  className="absolute right-3 top-3"
+                                  onClick={() => toggleRoom(room.crescatRoomId)}
+                                  selected={selected}
+                                />
                               )}
                             </div>
                           )}
@@ -204,11 +226,22 @@ export function BookingFormScheduleSection({
                               <p className="font-heading text-lg text-foreground">
                                 {roomName}
                               </p>
-                              {isCrescatOnly && (
+                              {isCrescatOnly && !occupied && (
                                 <AddRoomButton
                                   onClick={() => toggleRoom(room.crescatRoomId)}
                                   selected={selected}
                                 />
+                              )}
+                              {isCrescatOnly && occupied && (
+                                <div className="flex items-center gap-1 text-destructive">
+                                  <CalendarClock
+                                    aria-hidden
+                                    className="size-3.5 shrink-0"
+                                  />
+                                  <span className="font-heading text-xs uppercase tracking-widest">
+                                    Opptatt
+                                  </span>
+                                </div>
                               )}
                             </div>
                             {!isCrescatOnly &&
@@ -221,8 +254,19 @@ export function BookingFormScheduleSection({
                                   />
                                 </p>
                               )}
-                            {occupied && (
+                            {/* Occupied conflicts now render over the image; the
+                                crescat-only card (no image) still needs them
+                                inline. */}
+                            {occupied && isCrescatOnly && (
                               <RoomConflictList conflicts={conflicts} />
+                            )}
+                            {room.slug && (
+                              <div
+                                className="mt-auto pt-1"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <RoomInfoTrigger room={room} />
+                              </div>
                             )}
                           </div>
                         </div>
@@ -277,7 +321,13 @@ export function BookingFormScheduleSection({
 
 const CONFLICT_PREVIEW_COUNT = 3
 
-function RoomConflictList({ conflicts }: { conflicts: string[] }) {
+function RoomConflictList({
+  conflicts,
+  tone = "inline",
+}: {
+  conflicts: string[]
+  tone?: "inline" | "onImage"
+}) {
   const [expanded, setExpanded] = useState(false)
   const visibleConflicts = expanded
     ? conflicts
@@ -285,7 +335,12 @@ function RoomConflictList({ conflicts }: { conflicts: string[] }) {
   const hiddenCount = conflicts.length - visibleConflicts.length
 
   return (
-    <ul className="space-y-0.5 text-sm text-destructive">
+    <ul
+      className={cn(
+        "space-y-0.5 text-sm",
+        tone === "onImage" ? "text-white" : "text-destructive",
+      )}
+    >
       {visibleConflicts.map(conflict => (
         <li key={conflict}>{conflict}</li>
       ))}

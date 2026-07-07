@@ -1,4 +1,4 @@
-import { StarIcon } from "@sanity/icons"
+import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import {
@@ -10,7 +10,7 @@ export const sponsorsPage = defineType({
   name: "sponsorsPage",
   title: "Sponsorer-side",
   type: "document",
-  icon: StarIcon,
+  icon: icons.star,
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "sponsors", title: "Sponsorer" },
