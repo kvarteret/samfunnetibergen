@@ -58,7 +58,7 @@ const moreItem: NavItem = {
 const bookingItem: NavItem = {
   _key: "static-booking",
   label: "Booking",
-  href: "/rom/book",
+  href: "/rom",
   externalUrl: null,
   children: [
     {

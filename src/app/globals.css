@@ -470,6 +470,15 @@
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* P3 boost for supported displays */
 @supports (color: color(display-p3 0 0 0)) {
   :root {

@@ -6,6 +6,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react"
 
+import { HowToBookSection } from "@/components/how-to-book-section"
 import { LeietiderSection } from "@/components/leietider-section"
 import { BookingForm } from "@/features/booking"
 import { fetchBookableRoomsForBooker } from "@/features/booking/actions/bookable-rooms"
@@ -61,29 +62,6 @@ function InlineContentLink({ link }: { link: ContentLink }) {
     <Link className={className} href={link.href}>
       {link.label}
     </Link>
-  )
-}
-
-function HowToSection({ section }: { section: EditorialSection }) {
-  return (
-    <section aria-labelledby="how-to-heading" className="space-y-5">
-      <h2 className="font-heading text-2xl text-foreground" id="how-to-heading">
-        {section.title}
-      </h2>
-      <ol className="grid gap-4 sm:grid-cols-3">
-        {section.paragraphs?.map((paragraph, i) => (
-          <li
-            className="flex gap-4 border-l-2 border-border pl-4"
-            key={paragraph}
-          >
-            <span className="mt-0.5 shrink-0 font-heading text-foreground-muted">
-              {i + 1}
-            </span>
-            <p className=" leading-6 text-foreground">{paragraph}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
   )
 }
 
@@ -235,7 +213,7 @@ export default async function BookRoomPage({
         </div>
       </header>
 
-      {howToSection ? <HowToSection section={howToSection} /> : null}
+      <HowToBookSection section={howToSection} />
 
       <BookingForm
         cancellationTermsContent={cancellationPage?.content ?? null}
