@@ -93,7 +93,8 @@ jobs:
         run: |
           set -euo pipefail
           token_flag="--""token"
-          vercel pull --yes --environment=production "$token_flag" "$VERCEL_TOKEN"
+          scope_flag="--""scope"
+          vercel pull --yes --environment=production "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -103,7 +104,8 @@ jobs:
         run: |
           set -euo pipefail
           token_flag="--""token"
-          vercel build --prod "$token_flag" "$VERCEL_TOKEN"
+          scope_flag="--""scope"
+          vercel build --prod "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -122,7 +124,8 @@ jobs:
           set -euo pipefail
 
           token_flag="--""token"
-          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain "$token_flag" "$VERCEL_TOKEN")"
+          scope_flag="--""scope"
+          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN")"
           if [[ "${deployment_url}" != http* ]]; then
             deployment_url="https://${deployment_url}"
           fi
@@ -163,7 +166,8 @@ jobs:
         run: |
           set -euo pipefail
           token_flag="--""token"
-          vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m "$token_flag" "$VERCEL_TOKEN"
+          scope_flag="--""scope"
+          vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
