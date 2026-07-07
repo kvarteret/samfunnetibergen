@@ -100,9 +100,7 @@ export function EventsPageSections({
       {filteredEvents.map(event => (
         <EventCard
           event={toEventSummary(event, precomputedDates)}
-          facebookLabel={t("facebook")}
           key={event._id}
-          ticketsLabel={t("tickets")}
         />
       ))}
     </div>

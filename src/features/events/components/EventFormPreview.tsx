@@ -13,11 +13,7 @@ export function EventFormPreview({ event }: EventFormPreviewProps) {
         Forhåndsvisning
       </p>
       <div className="pointer-events-none select-none">
-        <EventCard
-          event={event}
-          facebookLabel="Facebook"
-          ticketsLabel="Billetter"
-        />
+        <EventCard event={event} />
       </div>
       <p className="text-center text-sm text-foreground-muted">
         Slik vil arrangementet se ut i listen

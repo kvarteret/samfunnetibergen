@@ -1,7 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { CalendarDays, ExternalLink, MapPin, Ticket } from "lucide-react"
+import { CalendarDays, MapPin } from "lucide-react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
@@ -90,19 +89,13 @@ const eventCardContentVariants = cva("flex h-full flex-col", {
 
 export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   event: EventSummary
-  facebookLabel: string
-  showActions?: boolean
   showRoom?: boolean
-  ticketsLabel: string
 }
 
 export function EventCard({
   event,
-  facebookLabel,
-  showActions = true,
   showRoom = true,
   size,
-  ticketsLabel,
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default"
@@ -212,38 +205,6 @@ export function EventCard({
 
         {allDates.length > 1 && (
           <DateBadges dates={allDates} primaryIndex={0} size={cardSize} />
-        )}
-
-        {showActions && (event.ticketUrl ?? event.facebookUrl) && (
-          <div className="mt-auto flex flex-wrap gap-3 pt-2">
-            {event.ticketUrl && (
-              <Button
-                render={
-                  <a href={event.ticketUrl} rel="noreferrer" target="_blank" />
-                }
-                size="sm"
-              >
-                <Ticket aria-hidden />
-                {ticketsLabel}
-              </Button>
-            )}
-            {event.facebookUrl && (
-              <Button
-                render={
-                  <a
-                    href={event.facebookUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  />
-                }
-                size="sm"
-                variant="neutral"
-              >
-                <ExternalLink aria-hidden />
-                {facebookLabel}
-              </Button>
-            )}
-          </div>
         )}
       </CardContent>
     </Card>
