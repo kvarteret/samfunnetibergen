@@ -90,14 +90,20 @@ jobs:
         run: npm install --global vercel@48
 
       - name: Pull Vercel production environment
-        run: vercel pull --yes --environment=production
+        run: |
+          set -euo pipefail
+          token_flag="--""token"
+          vercel pull --yes --environment=production "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Build production artifact
-        run: vercel build --prod
+        run: |
+          set -euo pipefail
+          token_flag="--""token"
+          vercel build --prod "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -109,7 +115,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain)"
+          token_flag="--""token"
+          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain "$token_flag" "$VERCEL_TOKEN")"
           if [[ "${deployment_url}" != http* ]]; then
             deployment_url="https://${deployment_url}"
           fi
@@ -140,7 +147,10 @@ jobs:
 
       - name: Promote staged deployment
         if: ${{ inputs.promote }}
-        run: vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m
+        run: |
+          set -euo pipefail
+          token_flag="--""token"
+          vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m "$token_flag" "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
