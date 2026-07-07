@@ -2,8 +2,8 @@
 
 import { Collapsible } from "@base-ui/react/collapsible"
 import { NavigationMenu } from "@base-ui/react/navigation-menu"
-import { Check, ChevronDown, ChevronRight } from "lucide-react"
-import { useSyncExternalStore } from "react"
+import { Check, ChevronDown, ChevronLeft } from "lucide-react"
+import { useRef, useSyncExternalStore } from "react"
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
@@ -71,15 +71,20 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
 }
 
 function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
   return (
     <NavigationMenu.Root closeDelay={100} delay={0} orientation="vertical">
       <NavigationMenu.List className="list-none border-t-2 border-border/30 p-3">
         <NavigationMenu.Item value="paper">
-          <NavigationMenu.Trigger className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:bg-accent focus-brutal data-popup-open:bg-accent">
+          <NavigationMenu.Trigger
+            className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:bg-accent focus-brutal data-popup-open:bg-accent"
+            ref={triggerRef}
+          >
             Enda mer
-            <ChevronRight
+            <ChevronLeft
               aria-hidden
-              className="size-[1em] transition-transform group-data-popup-open:translate-x-0.5"
+              className="size-[1em] transition-transform group-data-popup-open:-translate-x-0.5"
               strokeWidth={1.75}
             />
           </NavigationMenu.Trigger>
@@ -97,10 +102,16 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
         <NavigationMenu.Positioner
           align="start"
           alignOffset={-12}
+          anchor={triggerRef}
           className="z-50 outline-none before:absolute before:top-0 before:right-full before:h-full before:w-3 before:content-[''] data-side-left:before:right-auto data-side-left:before:left-full"
+          collisionAvoidance={{
+            align: "shift",
+            fallbackAxisSide: "none",
+            side: "shift",
+          }}
           collisionPadding={12}
-          side="right"
-          sideOffset={24}
+          side="left"
+          sideOffset={12}
         >
           <NavigationMenu.Popup className="relative border-2 border-border bg-card shadow-shadow outline-none">
             <NavigationMenu.Viewport className="relative h-[var(--popup-height)] w-[var(--popup-width)] overflow-hidden" />
