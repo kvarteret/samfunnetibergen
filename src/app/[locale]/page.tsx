@@ -111,7 +111,7 @@ function toEventSummary(
   )
 
   const todayStr = new Date().toISOString().split("T")[0]!
-  const resolvedDates = computeAllDates(dates, event.rrule, todayStr)
+  const resolvedDates = computeAllDates(dates, todayStr)
 
   const primaryDateLabels = labels
     ? {
@@ -125,15 +125,18 @@ function toEventSummary(
     primaryDate && primaryDateLabels
       ? formatPrimaryDate(primaryDate, primaryDateLabels)
       : null
-  const recurringLabel =
-    labels && event.isRecurring
-      ? getRecurringLabel(event.rrule, {
-          daily: labels.recurringDaily,
-          weekly: labels.recurringWeekly,
-          monthly: labels.recurringMonthly,
-          generic: labels.recurringGeneric,
-        })
-      : null
+  const recurringLabel = labels
+    ? event.eventKind === "seriesInstance"
+      ? labels.recurringGeneric
+      : event.isRecurring
+        ? getRecurringLabel(event.rrule, {
+            daily: labels.recurringDaily,
+            weekly: labels.recurringWeekly,
+            monthly: labels.recurringMonthly,
+            generic: labels.recurringGeneric,
+          })
+        : null
+    : null
 
   return {
     _id: event._id,

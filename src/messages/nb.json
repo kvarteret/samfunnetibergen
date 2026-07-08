@@ -32,7 +32,9 @@
     "recurringDaily": "Hver dag",
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
-    "recurringGeneric": "Gjentagende"
+    "recurringGeneric": "Gjentagende",
+    "statusCancelled": "Avlyst",
+    "statusPostponed": "Utsatt"
   },
   "EventsPage": {
     "back": "Tilbake til forsiden",
@@ -56,7 +58,13 @@
     "tickets": "Kjøp billetter",
     "facebook": "Gå til Facebook-event",
     "addToGoogleCalendar": "Legg til i Google Kalender",
-    "addToCalendar": "Last ned .ics-fil"
+    "addToCalendar": "Last ned .ics-fil",
+    "cancelledNotice": "Dette arrangementet er avlyst.",
+    "postponedNotice": "Dette arrangementet er utsatt. Ny dato kommer.",
+    "partOf": "Del av",
+    "childEvents": "Program",
+    "statusCancelled": "Avlyst",
+    "statusPostponed": "Utsatt"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",
@@ -191,14 +199,41 @@
     "serviceUnavailable": "Kunne ikke kontakte registreringstjenesten akkurat nå. Prøv igjen om litt."
   },
   "InstitutionOptions": [
-    { "value": "NHH", "label": "NHH" },
-    { "value": "UiB", "label": "UiB" },
-    { "value": "HVL", "label": "HVL" },
-    { "value": "BI", "label": "BI" },
-    { "value": "NLA", "label": "NLA" },
-    { "value": "ViD", "label": "ViD" },
-    { "value": "Høyskolen Kristiania", "label": "Høyskolen Kristiania" },
-    { "value": "Noroff", "label": "Noroff" },
-    { "value": "Annet / ikke student", "label": "Annet / ikke student" }
+    {
+      "value": "NHH",
+      "label": "NHH"
+    },
+    {
+      "value": "UiB",
+      "label": "UiB"
+    },
+    {
+      "value": "HVL",
+      "label": "HVL"
+    },
+    {
+      "value": "BI",
+      "label": "BI"
+    },
+    {
+      "value": "NLA",
+      "label": "NLA"
+    },
+    {
+      "value": "ViD",
+      "label": "ViD"
+    },
+    {
+      "value": "Høyskolen Kristiania",
+      "label": "Høyskolen Kristiania"
+    },
+    {
+      "value": "Noroff",
+      "label": "Noroff"
+    },
+    {
+      "value": "Annet / ikke student",
+      "label": "Annet / ikke student"
+    }
   ]
 }

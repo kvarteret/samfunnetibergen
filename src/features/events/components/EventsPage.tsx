@@ -16,6 +16,7 @@ interface EventsPageProps {
       resolvedDates: EventDateEntry[]
       recurringLabel: string | null
       primaryDateLabel: string | null
+      statusLabel: string | null
     }
   >
   searchParams: Record<string, string | string[] | undefined>

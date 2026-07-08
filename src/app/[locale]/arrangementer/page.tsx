@@ -94,6 +94,7 @@ export default async function EventsPage({
       resolvedDates: EventDateEntry[]
       recurringLabel: string | null
       primaryDateLabel: string | null
+      statusLabel: string | null
     }
   >()
   for (const event of arrangements) {
@@ -103,18 +104,28 @@ export default async function EventsPage({
       startTime: d.startTime ?? null,
       endTime: d.endTime ?? null,
     }))
-    const resolvedDates = computeAllDates(dates, event.rrule, todayStr)
+    const resolvedDates = computeAllDates(dates, todayStr)
     const primaryDate = resolvedDates[0]
     const primaryDateLabel = primaryDate
       ? formatPrimaryDate(primaryDate, primaryDateLabels)
       : null
-    const recurringLabel = event.isRecurring
-      ? getRecurringLabel(event.rrule, recurringLabels)
-      : null
+    const recurringLabel =
+      event.eventKind === "seriesInstance"
+        ? recurringLabels.generic
+        : event.isRecurring
+          ? getRecurringLabel(event.rrule, recurringLabels)
+          : null
+    const statusLabel =
+      event.eventStatus === "cancelled"
+        ? cardT("statusCancelled")
+        : event.eventStatus === "postponed"
+          ? cardT("statusPostponed")
+          : null
     precomputedDates.set(event._id, {
       resolvedDates,
       recurringLabel,
       primaryDateLabel,
+      statusLabel,
     })
   }
 
