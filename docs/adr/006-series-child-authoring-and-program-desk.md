@@ -218,7 +218,7 @@ is:
 ```
 GENERATE_PARENT_ID=3rpjI1abmKeJaJDXiUkKcs npm run sanity:generate:instances   # review
 # delete children explicitly (they are safe to delete — untouched, scheduled):
-sanity documents delete <each arrangement.3rpjI1abmKeJaJDXiUkKcs.* id>
+sanity documents delete <each generated child id printed as orphaned>
 ```
 
 Recommendation: keep them; fix the desk. Deletion is only for a genuine re-seed.

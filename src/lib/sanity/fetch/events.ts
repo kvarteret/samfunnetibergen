@@ -17,6 +17,7 @@ import {
   eventRoomsQuery,
   eventsPageContentNbQuery,
   eventTypesQuery,
+  promotedParentEventsQuery,
   publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "../queries"
@@ -27,6 +28,9 @@ export type EventsPageContent = NonNullable<
 >
 
 type RawPublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
+type RawPromotedParentEvent = ClientReturn<
+  typeof promotedParentEventsQuery
+>[number]
 type RawEventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
 
 const MISSING_TITLE = "[Mangler arrangementstittel]"
@@ -36,9 +40,9 @@ const MISSING_TITLE = "[Mangler arrangementstittel]"
  * parent status, and display defaults (title placeholder, isFree=false,
  * empty description) are applied after inheritance so a null child value
  * can inherit before defaulting. */
-function resolveArrangement<T extends RawPublishedEvent | RawEventDetail>(
-  row: T,
-) {
+function resolveArrangement<
+  T extends RawPublishedEvent | RawPromotedParentEvent | RawEventDetail,
+>(row: T) {
   const { parent, ...child } = row
   const content = resolveEventContent(child, parent)
   return {
@@ -56,7 +60,9 @@ function resolveArrangement<T extends RawPublishedEvent | RawEventDetail>(
   }
 }
 
-function resolvePublishedEvent(row: RawPublishedEvent) {
+function resolvePublishedEvent(
+  row: RawPublishedEvent | RawPromotedParentEvent,
+) {
   return resolveArrangement(row)
 }
 
@@ -88,6 +94,14 @@ export async function fetchEventsPageContent(
 export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({
     query: publishedEventsQuery,
+    params: { today: getOsloDateString() },
+  })
+  return data.map(resolvePublishedEvent)
+}
+
+export async function fetchPromotedParentEvents(): Promise<PublishedEvent[]> {
+  const { data } = await sanityFetch({
+    query: promotedParentEventsQuery,
     params: { today: getOsloDateString() },
   })
   return data.map(resolvePublishedEvent)

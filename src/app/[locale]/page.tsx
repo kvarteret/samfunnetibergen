@@ -18,9 +18,11 @@ import {
 import {
   fetchBarPreviews,
   fetchHomePageContent,
+  fetchPromotedParentEvents,
   fetchPublishedEvents,
   fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
+import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
@@ -228,18 +230,31 @@ function eventHref(event: EventSummary, locale: AppLocale) {
   return `/${locale}/arrangementer/${event.slug}`
 }
 
+function eventStartSortKey(event: SanityEvent, today: string): string {
+  const date =
+    event.dates?.find(candidate => candidate.startDate >= today) ??
+    event.dates?.[0]
+  return `${date?.startDate ?? "9999-12-31"}T${date?.startTime ?? "00:00"}`
+}
+
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
 
-  const [events, barPreviews, t, homeT] = await Promise.all([
-    fetchPublishedEvents(),
-    fetchBarPreviews(),
-    getTranslations({ locale, namespace: "EventCard" }),
-    getTranslations({ locale, namespace: "HomePage" }),
-  ])
-  const promotedEvents = (events ?? [])
+  const [events, promotedParentEvents, barPreviews, t, homeT] =
+    await Promise.all([
+      fetchPublishedEvents(),
+      fetchPromotedParentEvents(),
+      fetchBarPreviews(),
+      getTranslations({ locale, namespace: "EventCard" }),
+      getTranslations({ locale, namespace: "HomePage" }),
+    ])
+  const today = getOsloDateString()
+  const promotedEvents = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => event.isPromoted)
+    .sort((a, b) =>
+      eventStartSortKey(a, today).localeCompare(eventStartSortKey(b, today)),
+    )
     .slice(0, 3)
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
   const upcomingEvents = (events ?? [])

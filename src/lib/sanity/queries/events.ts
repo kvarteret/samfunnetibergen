@@ -119,6 +119,17 @@ export const publishedEventsQuery = defineQuery(`
         && count(dates[startDate >= $today]) > 0
     ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
+// Promoted parent events are fetched separately for homepage-style promoted
+// surfaces. Normal listings and feeds still show only concrete events.
+export const promotedParentEventsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && isPromoted == true
+        && ${PARENT_EVENT_KINDS}
+        && count(dates[startDate >= $today]) > 0
+    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
+
 export const publishedEventSlugsQuery = defineQuery(`
     *[
         _type == "arrangement"

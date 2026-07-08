@@ -153,10 +153,10 @@ describe("deterministic identity", () => {
     }
 
     expect(instanceIdFor(parent._id, matinee)).toBe(
-      "arrangement.abc123.2026-08-03-1300",
+      "arrangement-abc123-2026-08-03-1300",
     )
     expect(instanceIdFor(parent._id, evening)).toBe(
-      "arrangement.abc123.2026-08-03-1900",
+      "arrangement-abc123-2026-08-03-1900",
     )
     expect(instanceSlugFor(parent.slug, matinee)).toBe(
       "quiz-kvelden-2026-08-03-1300",
@@ -195,7 +195,7 @@ describe("buildInstanceDocument", () => {
     const doc = buildInstanceDocument(parent, occurrence)
 
     expect(doc).toEqual({
-      _id: "arrangement.abc123.2026-08-10-1900",
+      _id: "arrangement-abc123-2026-08-10-1900",
       _type: "arrangement",
       eventKind: "seriesInstance",
       parentEvent: { _type: "reference", _ref: "abc123" },
@@ -334,5 +334,17 @@ describe("diffInstances", () => {
       [existingFor(occurrenceA, { approvalStatus: "paused" })],
     )
     expect(diff.orphanedEdited).toHaveLength(1)
+  })
+
+  test("plans public replacement for legacy dotted private ids", () => {
+    const legacyPrivateInstance = existingFor(occurrenceA, {
+      _id: "arrangement.abc123.2026-08-03-1900",
+    })
+
+    const diff = diffInstances(parent, [occurrenceA], [legacyPrivateInstance])
+
+    expect(diff.toCreate).toEqual([occurrenceA])
+    expect(diff.orphanedUntouched).toEqual([legacyPrivateInstance])
+    expect(diff.orphanedEdited).toEqual([])
   })
 })

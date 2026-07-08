@@ -91,17 +91,19 @@ export function instanceIdFor(
   parentId: string,
   occurrence: Occurrence,
 ): string {
-  return `arrangement.${publishedIdOf(parentId)}.${occurrenceToken(occurrence)}`
+  const publicParentId = publishedIdOf(parentId).replaceAll(".", "-")
+  return `arrangement-${publicParentId}-${occurrenceToken(occurrence)}`
 }
 
 /** Invert `occurrenceToken`: recover the generated date and start time from
- * a child `_id`. Returns null when the id is not generation-shaped. The end
- * time is not encoded in the token; callers compare it against the seed. */
+ * a child `_id`. Supports both the current root-path id shape and the legacy
+ * dotted id shape, whose documents are private to unauthenticated Sanity
+ * clients. Returns null when the id is not generation-shaped. The end time is
+ * not encoded in the token; callers compare it against the seed. */
 export function occurrenceFromInstanceId(
   id: string,
 ): { startDate: string; startTime: string | null } | null {
-  const token = id.split(".").at(-1) ?? ""
-  const match = token.match(/^(\d{4}-\d{2}-\d{2})(?:-(\d{2})(\d{2}))?$/)
+  const match = id.match(/(?:^|[.-])(\d{4}-\d{2}-\d{2})(?:-(\d{2})(\d{2}))?$/)
   if (!match) return null
   const [, startDate, hours, minutes] = match
   return { startDate, startTime: hours ? `${hours}:${minutes}` : null }

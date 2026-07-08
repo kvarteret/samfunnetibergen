@@ -110,11 +110,11 @@ fallback (`child.field ?? parent.field`), never a merge within a field.
 
 ### Identity and idempotent generation
 
-Generated children use a **deterministic document `_id`** derived from the
-parent and the occurrence:
+Generated children use a **deterministic root-path document `_id`** derived
+from the parent and the occurrence:
 
 ```
-arrangement.<parentDocumentId>.<yyyy-mm-dd>[-<hhmm>]
+arrangement-<parentDocumentId>-<yyyy-mm-dd>[-<hhmm>]
 ```
 
 The `-<hhmm>` start-time suffix is always included when the occurrence has a
@@ -123,6 +123,10 @@ evening show). The deterministic `_id` is the idempotency key: generation runs
 use `createIfNotExists`, so rerunning a generation never overwrites an existing
 child — including children an editor has since edited, cancelled, or approved.
 No separate source-key field is needed.
+
+Do not use periods in generated public child IDs. Sanity treats IDs under a
+sub-path as private to unauthenticated clients, and the public site reads
+arrangements without an authentication token.
 
 Child slugs are generated the same way: `<parent-slug>-<yyyy-mm-dd>` with a
 `-<hhmm>` suffix when a start time exists. Slug uniqueness validation applies
