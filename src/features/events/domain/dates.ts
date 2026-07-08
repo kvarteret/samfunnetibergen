@@ -1,5 +1,4 @@
 import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
-import { RRule } from "rrule"
 
 import type { EventDateEntry } from "../components/EventCard"
 
@@ -67,49 +66,15 @@ export function getRecurringLabel(
 
 // ─── Date computation ────────────────────────────────────────────────────────
 
-export function expandRRuleDates(
-  rruleStr: string,
-  seed: EventDateEntry,
-  count: number,
-): EventDateEntry[] {
-  try {
-    const rule = new RRule({
-      ...RRule.parseString(rruleStr),
-      dtstart: new Date(`${seed.startDate}T12:00:00Z`),
-    })
-    const now = new Date()
-    const ceiling = new Date(
-      now.getFullYear() + 2,
-      now.getMonth(),
-      now.getDate(),
-    )
-    return rule
-      .between(now, ceiling, true)
-      .slice(0, count)
-      .map((d, i) => ({
-        _key: `rrule-${i}`,
-        startDate: d.toISOString().split("T")[0],
-        startTime: seed.startTime ?? null,
-        endTime: seed.endTime ?? null,
-      }))
-  } catch {
-    return []
-  }
-}
-
+// ADR 005: public reads never expand recurrence rules. Recurring series are
+// materialized as concrete child documents; every event's dates are stored.
 export function computeAllDates(
   dates: EventDateEntry[],
-  rrule: string | null | undefined,
   todayStr: string,
 ): EventDateEntry[] {
   const seedDate = dates[0]
   const futureDates = dates.filter(d => d.startDate >= todayStr)
   if (futureDates.length > 0) return futureDates
-
-  if (rrule && seedDate) {
-    const expanded = expandRRuleDates(rrule, seedDate, 14)
-    if (expanded.length > 0) return expanded
-  }
 
   return seedDate ? [seedDate] : []
 }

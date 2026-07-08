@@ -2,15 +2,22 @@ import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
 import { draftMode } from "next/headers"
+import {
+  type EventStatus,
+  resolveEffectiveStatus,
+  resolveEventContent,
+} from "@/features/events/domain/resolveEvent"
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
   eventBySlugQuery,
+  eventChildrenQuery,
   eventGroupsQuery,
   eventRoomsQuery,
   eventsPageContentNbQuery,
   eventTypesQuery,
+  promotedParentEventsQuery,
   publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "../queries"
@@ -20,9 +27,52 @@ export type EventsPageContent = NonNullable<
   ClientReturn<typeof eventsPageContentNbQuery>
 >
 
-export type PublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
+type RawPublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
+type RawPromotedParentEvent = ClientReturn<
+  typeof promotedParentEventsQuery
+>[number]
+type RawEventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
 
-export type EventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
+const MISSING_TITLE = "[Mangler arrangementstittel]"
+
+/** Apply ADR 005 read semantics to a query row: inheritable fields fall
+ * back to the parent, the effective real-world status combines child and
+ * parent status, and display defaults (title placeholder, isFree=false,
+ * empty description) are applied after inheritance so a null child value
+ * can inherit before defaulting. */
+function resolveArrangement<
+  T extends RawPublishedEvent | RawPromotedParentEvent | RawEventDetail,
+>(row: T) {
+  const { parent, ...child } = row
+  const content = resolveEventContent(child, parent)
+  return {
+    ...content,
+    title: (content.title ?? MISSING_TITLE) as string,
+    isFree: (content.isFree ?? false) as boolean,
+    description: (content.description ?? []) as NonNullable<T["description"]>,
+    eventStatus: resolveEffectiveStatus(
+      row.eventStatus as EventStatus | null,
+      parent?.eventStatus as EventStatus | null,
+    ),
+    parentEvent: parent
+      ? { _id: parent._id, slug: parent.slug, title: parent.title }
+      : null,
+  }
+}
+
+function resolvePublishedEvent(
+  row: RawPublishedEvent | RawPromotedParentEvent,
+) {
+  return resolveArrangement(row)
+}
+
+function resolveEventDetail(row: RawEventDetail) {
+  return resolveArrangement(row)
+}
+
+export type PublishedEvent = ReturnType<typeof resolvePublishedEvent>
+
+export type EventDetail = ReturnType<typeof resolveEventDetail>
 
 export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
 
@@ -46,7 +96,15 @@ export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
     query: publishedEventsQuery,
     params: { today: getOsloDateString() },
   })
-  return data
+  return data.map(resolvePublishedEvent)
+}
+
+export async function fetchPromotedParentEvents(): Promise<PublishedEvent[]> {
+  const { data } = await sanityFetch({
+    query: promotedParentEventsQuery,
+    params: { today: getOsloDateString() },
+  })
+  return data.map(resolvePublishedEvent)
 }
 
 export async function fetchPublishedEventSlugs(): Promise<string[]> {
@@ -71,7 +129,21 @@ export async function fetchEventBySlug(
     params: { preview, slug, today: getOsloDateString() },
     stega: options.stega,
   })
-  return data
+  return data ? resolveEventDetail(data) : null
+}
+
+/** Approved children of a series or festival parent, in date order —
+ * used by parent detail pages to render the series/festival overview. */
+export async function fetchEventChildren(
+  parentId: string,
+  options: FetchOptions = {},
+): Promise<PublishedEvent[]> {
+  const { data } = await sanityFetch({
+    query: eventChildrenQuery,
+    params: { parentId },
+    stega: options.stega,
+  })
+  return data.map(resolvePublishedEvent)
 }
 
 export async function fetchEventRooms(): Promise<EventRoom[]> {

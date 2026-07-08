@@ -228,10 +228,16 @@ export async function submitEvent(
 
 function buildEventDocument(input: SubmitEventInput) {
   const slug = `${toSlug(input.title)}-${Date.now()}`
+  // A recurring submission becomes a seriesParent (an editor approves it and
+  // generates the concrete instances); everything else is a single event
+  // (ADR 005, Decision D8). Both enter the editorial queue as pending.
+  const isRecurringSeries = Boolean(input.isRecurring && input.rrule)
   const doc: { _type: string; [key: string]: unknown } = {
     _type: "arrangement",
     title: input.title.trim(),
     slug: { _type: "slug", current: slug },
+    eventKind: isRecurringSeries ? "seriesParent" : "single",
+    eventStatus: "scheduled",
     approvalStatus: "pending",
     dates: input.dates.map(d => ({
       _key: nanoid(),
@@ -258,7 +264,7 @@ function buildEventDocument(input: SubmitEventInput) {
     ]
   }
 
-  if (input.isRecurring && input.rrule) {
+  if (isRecurringSeries) {
     doc.isRecurring = true
     doc.rrule = input.rrule
   }

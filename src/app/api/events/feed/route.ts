@@ -1,6 +1,11 @@
 import { TZDate } from "@date-fns/tz"
 import { toPlainText } from "@portabletext/toolkit"
 import { createClient } from "next-sanity"
+import {
+  resolveEffectiveStatus,
+  resolveEventContent,
+  schemaOrgEventStatus,
+} from "@/features/events/domain/resolveEvent"
 import { apiVersion, dataset, projectId } from "@/lib/sanity/env"
 import { feedEventsQuery } from "@/lib/sanity/queries/events"
 
@@ -27,8 +32,22 @@ function toIsoUtc(date: string, time?: string | null): string {
   return new TZDate(`${date}T${time}:00`, TZ).toISOString()
 }
 
+type RawFeedEvent = Awaited<ReturnType<typeof fetchEvents>>[number]
+
+/** ADR 005: every feed entry is a concrete occurrence. Inheritable fields
+ * fall back to the parent; the effective status combines child and parent
+ * status. The non-standard `rrule` extension is gone — consumers no longer
+ * expand recurrence. */
+function resolveFeedEvent(raw: RawFeedEvent) {
+  const { parent, ...child } = raw
+  return {
+    ...resolveEventContent(child, parent),
+    eventStatus: resolveEffectiveStatus(raw.eventStatus, parent?.eventStatus),
+  }
+}
+
 function buildEventEntry(
-  arrangement: NonNullable<Awaited<ReturnType<typeof fetchEvents>>>[number],
+  arrangement: ReturnType<typeof resolveFeedEvent>,
   date: EventDate,
   index: number,
 ) {
@@ -40,16 +59,19 @@ function buildEventEntry(
   const location =
     arrangement.room?.title ?? arrangement.roomText ?? "Samfunnet i Bergen"
   const organizer =
-    arrangement.organizerGroup?.name ?? arrangement.organizerText ?? "Kvarteret"
+    (arrangement.organizerGroup as { name?: string } | null)?.name ??
+    (arrangement.organizerText as string | null) ??
+    "Kvarteret"
 
   const entry: Record<string, unknown> = {
     "@type": "Event",
     "@id": id,
-    name: arrangement.title,
+    name:
+      (arrangement.title as string | null) ?? "[Mangler arrangementstittel]",
     url: canonicalUrl,
     startDate: toIsoUtc(date.startDate, date.startTime),
     endDate: toIsoUtc(date.startDate, date.endTime ?? date.startTime),
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus: schemaOrgEventStatus(arrangement.eventStatus),
     location: {
       "@type": "Place",
       name: location,
@@ -63,7 +85,7 @@ function buildEventEntry(
       "@type": "Organization",
       name: organizer,
     },
-    isAccessibleForFree: arrangement.isFree ?? false,
+    isAccessibleForFree: (arrangement.isFree as boolean | null) ?? false,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     inLanguage: "no",
     lastReviewed: arrangement._updatedAt,
@@ -72,32 +94,36 @@ function buildEventEntry(
   // All events in this feed are approved — always true
   entry.published = true
 
-  if (arrangement.isRecurring && arrangement.rrule) {
-    // Non-standard extension: iCal RRULE for consumers that support recurrence expansion
-    entry.rrule = arrangement.rrule
+  const imageUrl = arrangement.imageUrl as string | null
+  if (imageUrl) {
+    entry.image = imageUrl
   }
 
-  if (arrangement.imageUrl) {
-    entry.image = arrangement.imageUrl
+  const description = arrangement.description as
+    | Parameters<typeof toPlainText>[0]
+    | null
+  if (Array.isArray(description) && description.length > 0) {
+    entry.description = toPlainText(description)
   }
 
-  if (arrangement.description?.length) {
-    entry.description = toPlainText(arrangement.description)
-  }
-
-  if (arrangement.eventType?.name) {
-    entry.keywords = arrangement.eventType.name
+  const eventTypeName = (arrangement.eventType as { name?: string } | null)
+    ?.name
+  if (eventTypeName) {
+    entry.keywords = eventTypeName
   }
 
   if (!arrangement.isFree) {
-    const price = arrangement.priceStudent ?? arrangement.priceOrdinar
+    const price =
+      (arrangement.priceStudent as number | null) ??
+      (arrangement.priceOrdinar as number | null)
     if (price != null) {
+      const ticketUrl = arrangement.ticketUrl as string | null
       entry.offers = {
         "@type": "Offer",
         price: String(price),
         priceCurrency: "NOK",
         availability: "https://schema.org/InStock",
-        ...(arrangement.ticketUrl ? { url: arrangement.ticketUrl } : {}),
+        ...(ticketUrl ? { url: ticketUrl } : {}),
       }
     }
   }
@@ -115,16 +141,12 @@ export async function GET() {
 
   const events: Record<string, unknown>[] = []
 
-  for (const event of rawEvents) {
-    const dates = event.dates ?? []
+  for (const rawEvent of rawEvents) {
+    const event = resolveFeedEvent(rawEvent)
+    const dates = rawEvent.dates ?? []
 
-    if (event.isRecurring && event.rrule && dates.length > 0) {
-      // Recurring events: emit base occurrence — consumers expand via rrule
-      events.push(buildEventEntry(event, dates[0], 0))
-    } else {
-      for (let i = 0; i < dates.length; i++) {
-        events.push(buildEventEntry(event, dates[i], i))
-      }
+    for (let i = 0; i < dates.length; i++) {
+      events.push(buildEventEntry(event, dates[i], i))
     }
   }
 

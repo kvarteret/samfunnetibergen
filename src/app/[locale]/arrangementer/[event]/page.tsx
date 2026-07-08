@@ -8,7 +8,11 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import { fetchEventBySlug, fetchSiteMetadata } from "@/lib/sanity/fetch"
+import {
+  fetchEventBySlug,
+  fetchEventChildren,
+  fetchSiteMetadata,
+} from "@/lib/sanity/fetch"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
@@ -18,10 +22,13 @@ const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
 })
 
 type EventDetail = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>
+type EventChild = Awaited<ReturnType<typeof fetchEventChildren>>[number]
 
 type EventPageProps = {
   params: Promise<{ event: string; locale: string }>
 }
+
+const PARENT_EVENT_KINDS = ["seriesParent", "festivalParent"]
 
 export default async function EventPage({ params }: EventPageProps) {
   const resolvedParams = await params
@@ -37,14 +44,24 @@ export default async function EventPage({ params }: EventPageProps) {
 
   if (!eventData) notFound()
 
+  const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
+  const childEvents = isParentEvent
+    ? await fetchEventChildren(eventData._id, { stega: false })
+    : []
+
   return (
     <article className="flex w-full flex-col gap-8">
+      <EventStatusNotice event={eventData} t={t} />
       <EventDetailHero
         event={eventData}
         eventSlug={resolvedParams.event}
         ticketsLabel={t("tickets")}
+        partOfLabel={t("partOf")}
       />
       <EventDetailScheduleAndMeta event={eventData} t={t} />
+      {childEvents.length > 0 && (
+        <EventChildList childEvents={childEvents} t={t} />
+      )}
       <EventDetailDescription
         event={eventData}
         eventSlug={resolvedParams.event}
@@ -90,14 +107,37 @@ export async function generateMetadata({ params }: EventPageProps) {
   }
 }
 
+function EventStatusNotice({
+  event,
+  t,
+}: {
+  event: EventDetail
+  t: Awaited<ReturnType<typeof getTranslations>>
+}) {
+  if (event.eventStatus === "scheduled") return null
+
+  return (
+    <p
+      className="border-2 border-destructive bg-destructive px-4 py-3 font-heading uppercase tracking-widest text-destructive-foreground"
+      role="status"
+    >
+      {event.eventStatus === "cancelled"
+        ? t("cancelledNotice")
+        : t("postponedNotice")}
+    </p>
+  )
+}
+
 function EventDetailHero({
   event,
   eventSlug,
   ticketsLabel,
+  partOfLabel,
 }: {
   event: EventDetail
   eventSlug: string
   ticketsLabel: string
+  partOfLabel: string
 }) {
   const imageUrl = event.imageUrl
     ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
@@ -114,6 +154,17 @@ function EventDetailHero({
         <h1 className="wrap-break-word font-heading text-4xl leading-none text-foreground">
           {event.title}
         </h1>
+        {event.parentEvent && (
+          <p className="text-foreground-muted">
+            {partOfLabel}{" "}
+            <Link
+              href={`/arrangementer/${event.parentEvent.slug}`}
+              className="underline underline-offset-4 hover:no-underline"
+            >
+              {event.parentEvent.title ?? event.title}
+            </Link>
+          </p>
+        )}
         {event.ticketUrl && (
           <EventTicketButton
             ticketUrl={event.ticketUrl}
@@ -299,6 +350,52 @@ function EventDetailRoomLink({
         </span>
       )}
     </span>
+  )
+}
+
+function EventChildList({
+  childEvents,
+  t,
+}: {
+  childEvents: EventChild[]
+  t: Awaited<ReturnType<typeof getTranslations>>
+}) {
+  return (
+    <section className="space-y-4">
+      <h2 className="font-heading text-2xl uppercase tracking-widest text-foreground">
+        {t("childEvents")}
+      </h2>
+      <ul className="border-t-2 border-border">
+        {childEvents.map(child => (
+          <li key={child._id} className="border-b-2 border-border">
+            <Link
+              href={`/arrangementer/${child.slug}`}
+              className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4 text-foreground transition-colors hover:bg-muted"
+            >
+              <span className="flex flex-col gap-1">
+                <span className="font-heading text-lg uppercase tracking-wide">
+                  {child.title}
+                </span>
+                {child.dates[0] && (
+                  <span className="text-base text-foreground-muted">
+                    {formatDate(child.dates[0].startDate)}
+                    {formatScheduleTime(child.dates[0]) !== "-" &&
+                      `, ${formatScheduleTime(child.dates[0])}`}
+                  </span>
+                )}
+              </span>
+              {child.eventStatus !== "scheduled" && (
+                <span className="font-heading uppercase tracking-widest text-destructive">
+                  {child.eventStatus === "cancelled"
+                    ? t("statusCancelled")
+                    : t("statusPostponed")}
+                </span>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
