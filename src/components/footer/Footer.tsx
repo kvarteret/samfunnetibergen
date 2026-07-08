@@ -1,6 +1,10 @@
 import Link from "next/link"
 import { OpenStatus } from "@/features/bars"
-import { formatWeekdays } from "@/lib/opening-hours"
+import {
+  formatVacationModeNotice,
+  formatWeekdays,
+  isoDate,
+} from "@/lib/opening-hours"
 import type { fetchFooter } from "@/lib/sanity/fetch"
 
 // ─── App store links ──────────────────────────────────────────────────────────
@@ -296,12 +300,20 @@ function formatOpeningTimeLabel(row: HoursRow): string | null {
 function OpeningHoursColumn({
   rooms,
   houseClosedDates,
+  operationsManagerHours,
+  vacationMode,
 }: {
   rooms: RoomHours[]
   houseClosedDates: FooterData["houseClosedDates"]
+  operationsManagerHours: FooterData["operationsManagerHours"]
+  vacationMode: FooterData["vacationMode"]
 }) {
   const roomsWithHours = rooms.filter(r => (r.hours?.rows?.length ?? 0) > 0)
   if (!roomsWithHours.length) return null
+  const vacationNotice = formatVacationModeNotice(
+    isoDate(new Date()),
+    vacationMode,
+  )
   return (
     <div>
       <ColumnHeading>Åpningstider</ColumnHeading>
@@ -315,6 +327,8 @@ function OpeningHoursColumn({
               <OpenStatus
                 rooms={[{ openingHours: room.hours }]}
                 houseClosedDates={houseClosedDates}
+                operationsManagerHours={operationsManagerHours}
+                vacationMode={vacationMode}
               />
             </div>
             <dl className="space-y-1">
@@ -322,6 +336,11 @@ function OpeningHoursColumn({
                 <HoursRow key={row._key} row={row} />
               ))}
             </dl>
+            {vacationNotice ? (
+              <p className="mt-2 text-sm font-medium text-foreground">
+                {vacationNotice}
+              </p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -353,6 +372,8 @@ export function Footer({ data, locale }: FooterProps) {
           <OpeningHoursColumn
             rooms={roomHours}
             houseClosedDates={data.houseClosedDates}
+            operationsManagerHours={data.operationsManagerHours}
+            vacationMode={data.vacationMode}
           />
         </div>
 

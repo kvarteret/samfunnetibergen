@@ -9,6 +9,7 @@ import {
   minutesToTime,
   type OpeningHours,
   slotRangesForDate,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import {
   dateHasKaraokeSlot,
@@ -24,6 +25,7 @@ interface KaraokeFormSlotPickerProps {
   today: string
   operationsManagerHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
+  vacationMode?: VacationMode | null
   onDateChange: (date: string) => void
   onSlotChange: (slotMin: number | null) => void
   id?: string
@@ -39,6 +41,7 @@ export function KaraokeFormSlotPicker({
   today,
   operationsManagerHours,
   houseClosedDates,
+  vacationMode,
   onDateChange,
   onSlotChange,
   id,
@@ -53,6 +56,7 @@ export function KaraokeFormSlotPicker({
         duration,
         operationsManagerHours,
         houseClosedDates,
+        vacationMode,
       ).map(slotMin => ({
         value: String(slotMin),
         label: minutesToTime(slotMin),
@@ -80,6 +84,7 @@ export function KaraokeFormSlotPicker({
             bookings,
             operationsManagerHours,
             houseClosedDates,
+            vacationMode,
           )
             ? "available"
             : "unavailable"

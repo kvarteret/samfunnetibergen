@@ -39,6 +39,11 @@ export const barPreviewsQuery = defineQuery(`{
         "date": coalesce(date, ""),
         note
     }, []),
+    "vacationMode": {
+        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),
+        "reopensAt": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt
+    },
+    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours ${openingHoursProjection},
     "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {
         "title": coalesce(title, "[Mangler romnavn]"),
         "slug": coalesce(slug.current, ""),

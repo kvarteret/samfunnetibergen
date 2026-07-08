@@ -15,6 +15,7 @@ import {
   isHouseClosed,
   minutesToTime,
   type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { timeToMinutes } from "@/lib/time"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,7 @@ function slotMarks(
   hours: OpeningHours | null,
   roomHours: OpeningHours | null,
   closed: ClosedDate[],
+  vacationMode?: VacationMode | null,
   stepMin = SLOT_STEP_MIN,
 ): number[] {
   const marks = new Set<number>()
@@ -40,6 +42,7 @@ function slotMarks(
     hours,
     roomHours,
     closed,
+    vacationMode,
   )) {
     for (let m = range.startMin; m <= range.endMin; m += stepMin) marks.add(m)
   }
@@ -54,12 +57,14 @@ function dayClosingMinute(
   openingHours: OpeningHours | null,
   roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
+  vacationMode?: VacationMode | null,
 ): number {
   const ranges = combineOpeningRangesForDate(
     date,
     openingHours,
     roomOpeningHours,
     closedDates,
+    vacationMode,
   )
   return ranges.length === 0 ? 0 : Math.max(...ranges.map(r => r.endMin))
 }
@@ -77,6 +82,7 @@ export function multiDayMarks(
   openingHours: OpeningHours | null,
   roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
+  vacationMode?: VacationMode | null,
 ): number[] {
   const marks = unconstrainedMarks(dayCount, MULTI_DAY_SLOT_STEP_MIN)
 
@@ -86,6 +92,7 @@ export function multiDayMarks(
     openingHours,
     roomOpeningHours,
     closedDates,
+    vacationMode,
   )
   if (lastClose <= MINUTES_IN_DAY) return marks
 
@@ -118,6 +125,7 @@ export function computeMultiDayConstraints(
   openingHours: OpeningHours | null,
   roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
+  vacationMode?: VacationMode | null,
 ): MultiDayConstraints {
   if (dayCount <= 1) return { stapledSegments: [] }
 
@@ -130,6 +138,7 @@ export function computeMultiDayConstraints(
       openingHours,
       roomOpeningHours,
       closedDates,
+      vacationMode,
     )
     if (ranges.length === 0) continue
     const minStart = Math.min(...ranges.map(r => r.startMin))
@@ -195,6 +204,7 @@ interface DateTimePickerProps {
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
 }
 
 export function DateTimePicker({
@@ -217,6 +227,7 @@ export function DateTimePicker({
   openingHours,
   roomOpeningHours,
   closedDates,
+  vacationMode,
 }: DateTimePickerProps) {
   const todayDate = new Date(`${today}T00:00:00`)
 
@@ -235,10 +246,12 @@ export function DateTimePicker({
   const isOccupied = (d: Date): boolean => {
     if (d < todayDate) return false
     const ds = toDateString(d)
-    if (closedDateSet.has(ds)) return true
+    if (closedDateSet.has(ds) || isHouseClosed(ds, [], vacationMode))
+      return true
     if (!hasHours) return false
     return (
-      slotMarks(ds, openingHours, roomOpeningHours, closedDates).length === 0
+      slotMarks(ds, openingHours, roomOpeningHours, closedDates, vacationMode)
+        .length === 0
     )
   }
 
@@ -358,7 +371,7 @@ export function DateTimePicker({
 
       <div className="border-t border-border pt-6">
         {startDate ? (
-          isHouseClosed(startDate, closedDates) ? (
+          isHouseClosed(startDate, closedDates, vacationMode) ? (
             <p className="text-sm text-foreground-muted">
               Huset er stengt denne dagen. Velg en annen dato.
             </p>
@@ -372,6 +385,7 @@ export function DateTimePicker({
               openingHours={openingHours}
               roomOpeningHours={roomOpeningHours}
               closedDates={closedDates}
+              vacationMode={vacationMode}
               startTime={startTime}
               endTime={endTime}
               doorsTimes={doorsTimes}
@@ -401,6 +415,7 @@ interface TimeSlotsProps {
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
   startTime: string
   endTime: string
   doorsTimes: string[]
@@ -420,6 +435,7 @@ function TimeSlots({
   openingHours,
   roomOpeningHours,
   closedDates,
+  vacationMode,
   startTime,
   endTime,
   doorsTimes,
@@ -445,8 +461,15 @@ function TimeSlots({
         openingHours,
         roomOpeningHours,
         closedDates,
+        vacationMode,
       )
-    : slotMarks(startDate, openingHours, roomOpeningHours, closedDates)
+    : slotMarks(
+        startDate,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+        vacationMode,
+      )
 
   if (marks.length === 0 || marks.length < 2) {
     if (hasHours) {
@@ -487,6 +510,7 @@ function TimeSlots({
     openingHours,
     roomOpeningHours,
     closedDates,
+    vacationMode,
   )
 
   return (

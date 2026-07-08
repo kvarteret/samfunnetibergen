@@ -19,6 +19,7 @@ import {
   isoDate,
   isSlotAllowedForCombinedHours,
   type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
@@ -59,6 +60,7 @@ interface BookingFormProps {
   initialRoomId?: number
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
   rentalTermsContent: string | null
   cancellationTermsContent: string | null
 }
@@ -68,6 +70,7 @@ export function BookingForm({
   initialRoomId,
   openingHours,
   closedDates,
+  vacationMode,
   rentalTermsContent,
   cancellationTermsContent,
 }: BookingFormProps) {
@@ -213,6 +216,7 @@ export function BookingForm({
       openingHours,
       primaryRoom?.openingHours ?? null,
       closedDates,
+      vacationMode,
     )
   })()
 
@@ -280,6 +284,7 @@ export function BookingForm({
             occupiedRanges={occupiedRanges}
             openingHours={openingHours}
             closedDates={closedDates}
+            vacationMode={vacationMode}
             hasConflict={hasConflict}
             startDateError={
               errorFor(fieldIds.startDate) ??
@@ -382,6 +387,7 @@ export function BookingForm({
               <BookingFormOrderSummary
                 closedDates={closedDates}
                 openingHours={openingHours}
+                vacationMode={vacationMode}
                 rooms={rooms}
                 selectedRoomIds={values.selectedRoomIds}
                 state={values}

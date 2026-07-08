@@ -16,8 +16,6 @@
 
 const BASE_URL = "https://app.crescat.io"
 const GROUP_ID = "77" // studentersamfunnet-i-bergen
-const UA =
-  "Mozilla/5.0 (compatible; SamfunnetBot/1.0; +https://samfunnetibergen.no)"
 
 interface EventRequest {
   id: number

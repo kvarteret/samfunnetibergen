@@ -7,7 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SelectField } from "@/components/ui/select-field"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
-import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
+import type {
+  ClosedDate,
+  OpeningHours,
+  VacationMode,
+} from "@/lib/opening-hours"
 import {
   KARAOKE_DURATION_OPTIONS,
   type KaraokeDerivedState,
@@ -22,6 +26,7 @@ interface KaraokeFormDetailsSectionProps {
   bookings: CresatBooking[]
   operationsManagerHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
+  vacationMode?: VacationMode | null
   eventNameError?: string
   eventNameId: string
   startDateError?: string
@@ -35,6 +40,7 @@ export function KaraokeFormDetailsSection({
   bookings,
   operationsManagerHours,
   houseClosedDates,
+  vacationMode,
   eventNameError,
   eventNameId,
   startDateError,
@@ -103,6 +109,7 @@ export function KaraokeFormDetailsSection({
                           today={today}
                           operationsManagerHours={operationsManagerHours}
                           houseClosedDates={houseClosedDates}
+                          vacationMode={vacationMode}
                           onDateChange={date => {
                             dateField.handleChange(date)
                             slotField.handleChange(null)

@@ -26,10 +26,21 @@ export interface ClosedDate {
   date?: string | null
 }
 
+export interface VacationMode {
+  enabled?: boolean | null
+  reopensAt?: string | null
+}
+
 export interface SlotRange {
   startMin: number
   endMin: number
 }
+
+const vacationReopenDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+})
 
 const MINUTES_IN_DAY = 24 * 60
 const WEEKDAY_SHORT_LABELS: Record<number, string> = {
@@ -65,8 +76,32 @@ export function isoWeekday(dateStr: string): number {
 export function isHouseClosed(
   dateStr: string,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): boolean {
-  return (closedDates ?? []).some(closedDate => closedDate?.date === dateStr)
+  return (
+    isVacationModeActive(dateStr, vacationMode) ||
+    (closedDates ?? []).some(closedDate => closedDate?.date === dateStr)
+  )
+}
+
+export function isVacationModeActive(
+  dateStr: string,
+  vacationMode?: VacationMode | null,
+): boolean {
+  if (vacationMode?.enabled !== true) return false
+  if (!vacationMode.reopensAt) return true
+  return dateStr < vacationMode.reopensAt
+}
+
+export function formatVacationModeNotice(
+  dateStr: string,
+  vacationMode?: VacationMode | null,
+): string | null {
+  if (!isVacationModeActive(dateStr, vacationMode)) return null
+  if (!vacationMode?.reopensAt) return "STENGT."
+  return `STENGT. Vi åpner igjen ${vacationReopenDateFormatter.format(
+    new Date(`${vacationMode.reopensAt}T00:00:00`),
+  )}`
 }
 
 export function timeToMinutes(time?: string | null): number | null {
@@ -139,8 +174,9 @@ export function openingRangesForDate(
   dateStr: string,
   hours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): SlotRange[] {
-  if (isHouseClosed(dateStr, closedDates)) return []
+  if (isHouseClosed(dateStr, closedDates, vacationMode)) return []
 
   const weekday = isoWeekday(dateStr)
   const rows = (hours?.rows ?? []).flatMap(row => {
@@ -171,18 +207,29 @@ export function combineOpeningRangesForDate(
   baseHours?: OpeningHours | null,
   roomHours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): SlotRange[] {
   const hasBaseHours = hasOpeningHoursRows(baseHours)
   const hasRoomHours = hasOpeningHoursRows(roomHours)
 
   if (!hasBaseHours && !hasRoomHours) return []
   if (!hasBaseHours)
-    return openingRangesForDate(dateStr, roomHours, closedDates)
+    return openingRangesForDate(dateStr, roomHours, closedDates, vacationMode)
   if (!hasRoomHours)
-    return openingRangesForDate(dateStr, baseHours, closedDates)
+    return openingRangesForDate(dateStr, baseHours, closedDates, vacationMode)
 
-  const baseRanges = openingRangesForDate(dateStr, baseHours, closedDates)
-  const roomRanges = openingRangesForDate(dateStr, roomHours, closedDates)
+  const baseRanges = openingRangesForDate(
+    dateStr,
+    baseHours,
+    closedDates,
+    vacationMode,
+  )
+  const roomRanges = openingRangesForDate(
+    dateStr,
+    roomHours,
+    closedDates,
+    vacationMode,
+  )
 
   const intersections = baseRanges.flatMap(baseRange =>
     roomRanges.flatMap(roomRange => {
@@ -199,18 +246,55 @@ export function isOpenAt(
   date: Date,
   hours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): boolean {
   const today = isoDate(date)
-  if (isHouseClosed(today, closedDates)) return false
+  if (isHouseClosed(today, closedDates, vacationMode)) return false
 
   const minutes = date.getHours() * 60 + date.getMinutes()
-  const todayRanges = openingRangesForDate(today, hours, closedDates).some(
-    range => minutes >= range.startMin && minutes < range.endMin,
-  )
+  const todayRanges = openingRangesForDate(
+    today,
+    hours,
+    closedDates,
+    vacationMode,
+  ).some(range => minutes >= range.startMin && minutes < range.endMin)
   if (todayRanges) return true
 
   const yesterday = isoDate(subDays(date, 1))
-  return openingRangesForDate(yesterday, hours, closedDates).some(
+  return openingRangesForDate(yesterday, hours, closedDates, vacationMode).some(
+    range =>
+      range.endMin > MINUTES_IN_DAY && minutes + MINUTES_IN_DAY < range.endMin,
+  )
+}
+
+export function isOpenAtForCombinedHours(
+  date: Date,
+  baseHours?: OpeningHours | null,
+  roomHours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
+): boolean {
+  const today = isoDate(date)
+  if (isHouseClosed(today, closedDates, vacationMode)) return false
+
+  const minutes = date.getHours() * 60 + date.getMinutes()
+  const todayRanges = combineOpeningRangesForDate(
+    today,
+    baseHours,
+    roomHours,
+    closedDates,
+    vacationMode,
+  ).some(range => minutes >= range.startMin && minutes < range.endMin)
+  if (todayRanges) return true
+
+  const yesterday = isoDate(subDays(date, 1))
+  return combineOpeningRangesForDate(
+    yesterday,
+    baseHours,
+    roomHours,
+    closedDates,
+    vacationMode,
+  ).some(
     range =>
       range.endMin > MINUTES_IN_DAY && minutes + MINUTES_IN_DAY < range.endMin,
   )
@@ -244,10 +328,11 @@ export function slotRangesForDate(
   durationHours: number,
   hours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
   stepMin = 60,
 ): number[] {
   return slotStartsFromRanges(
-    openingRangesForDate(dateStr, hours, closedDates),
+    openingRangesForDate(dateStr, hours, closedDates, vacationMode),
     durationHours,
     stepMin,
   )
@@ -259,10 +344,17 @@ export function combinedSlotRangesForDate(
   baseHours?: OpeningHours | null,
   roomHours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
   stepMin = 60,
 ): number[] {
   return slotStartsFromRanges(
-    combineOpeningRangesForDate(dateStr, baseHours, roomHours, closedDates),
+    combineOpeningRangesForDate(
+      dateStr,
+      baseHours,
+      roomHours,
+      closedDates,
+      vacationMode,
+    ),
     durationHours,
     stepMin,
   )
@@ -274,8 +366,9 @@ export function isSlotAllowed(
   durationHours: number,
   hours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): boolean {
-  if (isHouseClosed(actualDateStr, closedDates)) return false
+  if (isHouseClosed(actualDateStr, closedDates, vacationMode)) return false
 
   const startMin = timeToMinutes(startTime)
   if (startMin === null) return false
@@ -292,7 +385,7 @@ export function isSlotAllowed(
   ]
 
   return candidates.some(candidate =>
-    openingRangesForDate(candidate.date, hours, closedDates).some(
+    openingRangesForDate(candidate.date, hours, closedDates, vacationMode).some(
       range =>
         candidate.startMin >= range.startMin &&
         candidate.startMin + durationMin <= range.endMin,
@@ -307,8 +400,9 @@ export function isSlotAllowedForCombinedHours(
   baseHours?: OpeningHours | null,
   roomHours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): boolean {
-  if (isHouseClosed(actualDateStr, closedDates)) return false
+  if (isHouseClosed(actualDateStr, closedDates, vacationMode)) return false
 
   const startMin = timeToMinutes(startTime)
   if (startMin === null) return false
@@ -330,6 +424,7 @@ export function isSlotAllowedForCombinedHours(
       baseHours,
       roomHours,
       closedDates,
+      vacationMode,
     ).some(
       range =>
         candidate.startMin >= range.startMin &&
