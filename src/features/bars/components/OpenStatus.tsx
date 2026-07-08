@@ -6,9 +6,10 @@ import { Tag } from "@/components/ui/tag"
 import {
   type ClosedDate,
   isHouseClosed,
-  isOpenAt,
+  isOpenAtForCombinedHours,
   isoDate,
   type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 
 export interface OpenStatusRoom {
@@ -18,12 +19,16 @@ export interface OpenStatusRoom {
 interface OpenStatusProps {
   rooms: OpenStatusRoom[]
   houseClosedDates?: ClosedDate[] | null
+  operationsManagerHours?: OpeningHours | null
+  vacationMode?: VacationMode | null
   variant?: "status" | "announcement"
 }
 
 export function OpenStatus({
   rooms,
   houseClosedDates,
+  operationsManagerHours,
+  vacationMode,
   variant = "status",
 }: OpenStatusProps) {
   const [now, setNow] = useState(() => new Date())
@@ -33,12 +38,18 @@ export function OpenStatus({
     return () => window.clearInterval(interval)
   }, [])
 
-  if (isHouseClosed(isoDate(now), houseClosedDates)) {
+  if (isHouseClosed(isoDate(now), houseClosedDates, vacationMode)) {
     if (variant === "announcement") return null
   }
 
   const isOpen = rooms.some(room =>
-    isOpenAt(now, room.openingHours, houseClosedDates),
+    isOpenAtForCombinedHours(
+      now,
+      operationsManagerHours,
+      room.openingHours,
+      houseClosedDates,
+      vacationMode,
+    ),
   )
 
   if (variant === "announcement") {

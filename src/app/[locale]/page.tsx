@@ -283,7 +283,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       <HomeBarPreviews
         houseClosedDates={barPreviews?.houseClosedDates}
         locale={locale}
+        operationsManagerHours={barPreviews?.operationsManagerHours}
         rooms={barPreviews?.rooms ?? []}
+        vacationMode={barPreviews?.vacationMode}
       />
 
       <section className="hs:hidden">

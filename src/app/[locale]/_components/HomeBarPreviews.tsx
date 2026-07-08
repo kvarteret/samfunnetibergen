@@ -7,9 +7,12 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
+  formatVacationModeNotice,
   formatOpeningHoursRow,
-  isOpenAt,
+  isOpenAtForCombinedHours,
+  isoDate,
   type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 
 interface NowPlayingState {
@@ -39,6 +42,8 @@ export interface HomeBarPreviewRoom {
 interface HomeBarPreviewsProps {
   rooms: HomeBarPreviewRoom[]
   houseClosedDates?: ClosedDate[] | null
+  operationsManagerHours?: OpeningHours | null
+  vacationMode?: VacationMode | null
   locale: AppLocale
 }
 
@@ -57,6 +62,8 @@ function hasSpotifyTrack(
 export function HomeBarPreviews({
   rooms,
   houseClosedDates,
+  operationsManagerHours,
+  vacationMode,
   locale,
 }: HomeBarPreviewsProps) {
   const [now, setNow] = useState(() => new Date())
@@ -106,7 +113,9 @@ export function HomeBarPreviews({
             locale={locale}
             now={now}
             nowPlaying={nowPlaying}
+            operationsManagerHours={operationsManagerHours}
             room={room}
+            vacationMode={vacationMode}
           />
         ))}
       </div>
@@ -117,18 +126,32 @@ export function HomeBarPreviews({
 function HomeBarPreviewCard({
   room,
   houseClosedDates,
+  operationsManagerHours,
+  vacationMode,
   now,
   nowPlaying,
   locale,
 }: {
   room: HomeBarPreviewRoom
   houseClosedDates?: ClosedDate[] | null
+  operationsManagerHours?: OpeningHours | null
+  vacationMode?: VacationMode | null
   now: Date
   nowPlaying: NowPlayingState | null
   locale: AppLocale
 }) {
   const spotifyTrack = hasSpotifyTrack(nowPlaying, room)
-  const isOpen = isOpenAt(now, room.openingHours, houseClosedDates)
+  const isOpen = isOpenAtForCombinedHours(
+    now,
+    operationsManagerHours,
+    room.openingHours,
+    houseClosedDates,
+    vacationMode,
+  )
+  const vacationNotice = formatVacationModeNotice(
+    isoDate(now),
+    vacationMode,
+  )
   const imageUrl = room.image?.assetUrl
   const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 
@@ -185,6 +208,11 @@ function HomeBarPreviewCard({
                 </div>
               )
             })}
+            {vacationNotice ? (
+              <div className="text-sm font-medium text-foreground">
+                {vacationNotice}
+              </div>
+            ) : null}
           </dl>
         ) : null}
       </div>

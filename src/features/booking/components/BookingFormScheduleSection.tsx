@@ -25,6 +25,7 @@ import {
   type ClosedDate,
   isoDate,
   type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
 import type { BookerType } from "../domain/formState"
@@ -41,6 +42,7 @@ interface BookingFormScheduleSectionProps {
   hasConflict: boolean
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
   startDateError?: string
   startDateId: string
 }
@@ -53,6 +55,7 @@ export function BookingFormScheduleSection({
   hasConflict,
   openingHours,
   closedDates,
+  vacationMode,
   startDateError,
   startDateId,
 }: BookingFormScheduleSectionProps) {
@@ -136,6 +139,7 @@ export function BookingFormScheduleSection({
                   startTime={startTime}
                   today={today}
                   uid={uid}
+                  vacationMode={vacationMode}
                 />
                 <p className="text-sm text-foreground-muted">
                   Husk å beregne tid til opprigg og nedrigg innenfor bookingens

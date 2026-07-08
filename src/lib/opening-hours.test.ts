@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest"
 import {
+  formatVacationModeNotice,
+  isVacationModeActive,
   minutesToTime,
   type OpeningHours,
   openingRangesForDate,
@@ -69,6 +71,28 @@ describe("openingRangesForDate", () => {
       { startMin: 840, endMin: 960 },
     ])
   })
+
+  test("returns no ranges while vacation mode is active", () => {
+    const ranges = openingRangesForDate(
+      "2026-07-31",
+      rows(["10:00", "18:00"]),
+      [],
+      { enabled: true, reopensAt: "2026-08-01" },
+    )
+
+    expect(ranges).toEqual([])
+  })
+
+  test("uses normal hours on the vacation reopening date", () => {
+    const ranges = openingRangesForDate(
+      "2026-08-01",
+      rows(["10:00", "18:00"]),
+      [],
+      { enabled: true, reopensAt: "2026-08-01" },
+    )
+
+    expect(ranges).toEqual([{ startMin: 600, endMin: 1080 }])
+  })
 })
 
 describe("slotRangesForDate", () => {
@@ -97,5 +121,23 @@ describe("slotRangesForDate", () => {
     const slots = slotRangesForDate("2026-08-13", 24, OVERLAPPING_ROWS, [])
 
     expect(slots).toEqual([])
+  })
+})
+
+describe("vacation mode", () => {
+  test("is active before the reopening date and inactive on that date", () => {
+    const vacationMode = { enabled: true, reopensAt: "2026-08-01" }
+
+    expect(isVacationModeActive("2026-07-31", vacationMode)).toBe(true)
+    expect(isVacationModeActive("2026-08-01", vacationMode)).toBe(false)
+  })
+
+  test("formats the reopening notice while active", () => {
+    const notice = formatVacationModeNotice("2026-07-31", {
+      enabled: true,
+      reopensAt: "2026-08-01",
+    })
+
+    expect(notice).toBe("STENGT. Vi åpner igjen 1. august 2026")
   })
 })

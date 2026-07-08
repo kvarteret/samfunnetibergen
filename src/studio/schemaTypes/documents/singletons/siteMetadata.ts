@@ -20,6 +20,51 @@ export const siteMetadata = defineType({
       initialValue: "Samfunnet i Bergen",
     }),
     defineField({
+      name: "vacationMode",
+      title: "Feriemodus",
+      description:
+        'Når feriemodus er aktiv står åpningstidene som stengt. Datoen under brukes i teksten "Vi åpner igjen ...", og modusen slår seg av automatisk den datoen.',
+      type: "object",
+      group: "venue",
+      fields: [
+        defineField({
+          name: "enabled",
+          title: "FERIEMODUS aktiv",
+          type: "boolean",
+          initialValue: false,
+        }),
+        defineField({
+          name: "reopensAt",
+          title: "Vi åpner igjen",
+          description:
+            "Feriemodus gjelder frem til denne datoen. På selve datoen brukes vanlige åpningstider igjen.",
+          type: "date",
+          hidden: ({ parent }) => parent?.enabled !== true,
+          validation: rule =>
+            rule.custom((value, context) => {
+              const parent = context.parent as
+                | { enabled?: boolean }
+                | undefined
+              if (parent?.enabled === true && !value) {
+                return "Velg datoen feriemodus skal slås av"
+              }
+              return true
+            }),
+        }),
+      ],
+      preview: {
+        select: { enabled: "enabled", reopensAt: "reopensAt" },
+        prepare({ enabled, reopensAt }) {
+          return {
+            title: enabled ? "FERIEMODUS aktiv" : "Feriemodus av",
+            subtitle: enabled
+              ? `Vi åpner igjen ${reopensAt ?? "dato mangler"}`
+              : "Vanlige åpningstider brukes",
+          }
+        },
+      },
+    }),
+    defineField({
       name: "openingHours",
       title: "Driftsleder tilgjengelig",
       type: "openingHours",

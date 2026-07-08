@@ -14,6 +14,7 @@ import {
   isoDate,
   type OpeningHours,
   slotRangesForDate,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
@@ -45,12 +46,14 @@ interface KaraokeFormProps {
   room: KaraokeRoom
   operationsManagerHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
+  vacationMode?: VacationMode | null
 }
 
 export function KaraokeForm({
   room,
   operationsManagerHours,
   houseClosedDates,
+  vacationMode,
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
@@ -101,6 +104,7 @@ export function KaraokeForm({
       values.duration,
       operationsManagerHours,
       houseClosedDates,
+      vacationMode,
     )
     const slotTaken = slotOverlapsKaraokeBookings(
       values.startDate,
@@ -116,6 +120,7 @@ export function KaraokeForm({
     form,
     houseClosedDates,
     operationsManagerHours,
+    vacationMode,
     values.duration,
     values.startDate,
     values.startSlotMin,
@@ -156,6 +161,7 @@ export function KaraokeForm({
             bookings={bookings}
             houseClosedDates={houseClosedDates}
             operationsManagerHours={operationsManagerHours}
+            vacationMode={vacationMode}
             eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
             startDateError={errorFor(fieldIds.startDate)}

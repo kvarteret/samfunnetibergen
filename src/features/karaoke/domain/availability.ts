@@ -3,6 +3,7 @@ import {
   type ClosedDate,
   type OpeningHours,
   slotRangesForDate,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { rangesOverlap } from "@/lib/time"
 
@@ -33,12 +34,14 @@ export function dateHasKaraokeSlot(
   bookings: CresatBooking[],
   operationsManagerHours?: OpeningHours | null,
   houseClosedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
 ): boolean {
   return slotRangesForDate(
     date,
     durationHours,
     operationsManagerHours,
     houseClosedDates,
+    vacationMode,
   ).some(
     slotMin =>
       !slotOverlapsKaraokeBookings(date, slotMin, durationHours, bookings),

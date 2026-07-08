@@ -238,7 +238,7 @@ export const structure: StructureResolver = (S, context) =>
               singletonListItem(
                 S,
                 "siteMetadata",
-                "Åpningstider og stengte dager",
+                "Åpningstider, feriemodus og stengte dager",
                 icons.cog,
               ),
             ]),

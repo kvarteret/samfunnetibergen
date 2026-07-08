@@ -15,11 +15,19 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
-import { formatWeekdays } from "@/lib/opening-hours"
+import {
+  formatVacationModeNotice,
+  formatWeekdays,
+  isoDate,
+} from "@/lib/opening-hours"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { SourcedImage } from "@/lib/sanity/fetch"
-import { fetchRoomBySlug, fetchRoomSlugs } from "@/lib/sanity/fetch"
+import {
+  fetchHouseHours,
+  fetchRoomBySlug,
+  fetchRoomSlugs,
+} from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -62,7 +70,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
   )
   activateRequestLocale(locale)
 
-  const room = await fetchRoomBySlug(slug)
+  const [room, houseHours] = await Promise.all([
+    fetchRoomBySlug(slug),
+    fetchHouseHours(),
+  ])
   if (!room) notFound()
 
   const title = room.title ?? slug
@@ -140,7 +151,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
           )}
         </section>
         <RoomFloorPlan room={room} />
-        <RoomOpeningHours room={room} />
+        <RoomOpeningHours room={room} vacationMode={houseHours?.vacationMode} />
         <Button
           className="w-fit"
           render={<Link href={`/rom/book?room=${room.crescatRoomId}`} />}
@@ -272,12 +283,19 @@ function RoomFloorPlan({ room }: RoomSpecsProps) {
 
 interface RoomOpeningHoursProps {
   room: Room
+  vacationMode?: NonNullable<
+    Awaited<ReturnType<typeof fetchHouseHours>>
+  >["vacationMode"]
 }
 
-function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
+function RoomOpeningHours({ room, vacationMode }: RoomOpeningHoursProps) {
   if (!room.openingHours?.rows?.length) {
     return null
   }
+  const vacationNotice = formatVacationModeNotice(
+    isoDate(new Date()),
+    vacationMode,
+  )
 
   return (
     <section className="space-y-4">
@@ -314,6 +332,11 @@ function RoomOpeningHours({ room }: RoomOpeningHoursProps) {
           },
         )}
       </dl>
+      {vacationNotice ? (
+        <p className="max-w-md text-sm font-medium text-foreground">
+          {vacationNotice}
+        </p>
+      ) : null}
     </section>
   )
 }

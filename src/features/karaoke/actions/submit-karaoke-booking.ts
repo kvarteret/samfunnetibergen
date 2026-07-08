@@ -144,6 +144,7 @@ export async function submitKaraokeBooking(
     parsed.data.duration,
     houseHours?.operationsManagerHours,
     houseHours?.houseClosedDates,
+    houseHours?.vacationMode,
   )
 
   if (!slotAllowed) {
