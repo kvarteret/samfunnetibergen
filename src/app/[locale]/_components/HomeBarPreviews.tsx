@@ -148,10 +148,7 @@ function HomeBarPreviewCard({
     houseClosedDates,
     vacationMode,
   )
-  const vacationNotice = formatVacationModeNotice(
-    isoDate(now),
-    vacationMode,
-  )
+  const vacationNotice = formatVacationModeNotice(isoDate(now), vacationMode)
   const imageUrl = room.image?.assetUrl
   const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 

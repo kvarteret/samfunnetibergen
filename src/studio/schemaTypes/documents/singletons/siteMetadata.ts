@@ -42,9 +42,7 @@ export const siteMetadata = defineType({
           hidden: ({ parent }) => parent?.enabled !== true,
           validation: rule =>
             rule.custom((value, context) => {
-              const parent = context.parent as
-                | { enabled?: boolean }
-                | undefined
+              const parent = context.parent as { enabled?: boolean } | undefined
               if (parent?.enabled === true && !value) {
                 return "Velg datoen feriemodus skal slås av"
               }

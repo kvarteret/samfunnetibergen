@@ -385,12 +385,7 @@ export function isSlotAllowed(
   ]
 
   return candidates.some(candidate =>
-    openingRangesForDate(
-      candidate.date,
-      hours,
-      closedDates,
-      vacationMode,
-    ).some(
+    openingRangesForDate(candidate.date, hours, closedDates, vacationMode).some(
       range =>
         candidate.startMin >= range.startMin &&
         candidate.startMin + durationMin <= range.endMin,
