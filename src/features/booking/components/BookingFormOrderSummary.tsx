@@ -2,7 +2,11 @@ import { MapPin, X } from "lucide-react"
 import { DetailRow } from "@/components/ui/detail-row"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
-import type { ClosedDate, OpeningHours } from "@/lib/opening-hours"
+import type {
+  ClosedDate,
+  OpeningHours,
+  VacationMode,
+} from "@/lib/opening-hours"
 import {
   type BookingFormState,
   bookerTypeLabel,
@@ -22,6 +26,7 @@ interface BookingOrderSummaryProps {
   selectedRoomIds: number[]
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
 }
 
 export function BookingFormOrderSummary({
@@ -30,6 +35,7 @@ export function BookingFormOrderSummary({
   selectedRoomIds,
   openingHours,
   closedDates,
+  vacationMode,
 }: BookingOrderSummaryProps) {
   const form = useBookingForm()
   const catering = composeCatering(state)
@@ -42,6 +48,7 @@ export function BookingFormOrderSummary({
     selectedRooms,
     openingHours,
     closedDates,
+    vacationMode,
   )
 
   const removeRoom = (roomId: number) => {

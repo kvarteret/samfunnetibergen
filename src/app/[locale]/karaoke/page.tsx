@@ -66,6 +66,7 @@ export default async function KaraokePage({
         room={room}
         operationsManagerHours={houseHours?.operationsManagerHours}
         houseClosedDates={houseHours?.houseClosedDates}
+        vacationMode={houseHours?.vacationMode}
       />
     </article>
   )

@@ -221,6 +221,7 @@ export default async function BookRoomPage({
         initialRoomId={preselectedRoomId}
         initialRooms={initialRooms}
         openingHours={houseHours?.operationsManagerHours ?? null}
+        vacationMode={houseHours?.vacationMode}
         rentalTermsContent={termsPage?.content ?? null}
       />
 

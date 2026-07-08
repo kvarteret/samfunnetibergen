@@ -170,6 +170,7 @@ async function isAllowedByOpeningHours(
     baseHours,
     roomHours,
     houseHours?.houseClosedDates ?? [],
+    houseHours?.vacationMode,
   )
 }
 

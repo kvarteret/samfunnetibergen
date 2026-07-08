@@ -21,6 +21,10 @@ export const siteMetadataNbQuery =
 export const houseHoursQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
     "operationsManagerHours": openingHours ${openingHoursProjection},
+    "vacationMode": {
+        "enabled": coalesce(vacationMode.enabled, false),
+        "reopensAt": vacationMode.reopensAt
+    },
     "houseClosedDates": coalesce(houseClosedDates[] {
         _key,
         "date": coalesce(date, ""),

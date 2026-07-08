@@ -4,6 +4,7 @@ import {
   hasOpeningHoursRows,
   type OpeningHours,
   timeToMinutes,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import type { BookingRoom } from "../types"
 import { durationHoursBetween } from "./availability"
@@ -44,6 +45,7 @@ function billableHoursForRoom(
   endTime: string,
   baseHours: OpeningHours | null,
   closedDates: ClosedDate[],
+  vacationMode?: VacationMode | null,
 ): number {
   const totalHours = durationHoursBetween(startTime, endTime)
   const hasRoomHours = hasOpeningHoursRows(room.openingHours ?? null)
@@ -54,6 +56,7 @@ function billableHoursForRoom(
     baseHours,
     room.openingHours ?? null,
     closedDates,
+    vacationMode,
   )
   if (ranges.length === 0) return totalHours
 
@@ -122,6 +125,7 @@ export function computePriceSummary(
   rooms: BookingRoom[],
   baseHours: OpeningHours | null = null,
   closedDates: ClosedDate[] = [],
+  vacationMode?: VacationMode | null,
 ): PriceSummary {
   const hoursPerRoom = new Map<number, number>()
   if (state.startDate && state.startTime && state.endTime) {
@@ -135,6 +139,7 @@ export function computePriceSummary(
           state.endTime,
           baseHours,
           closedDates,
+          vacationMode,
         ),
       )
     }

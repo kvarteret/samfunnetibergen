@@ -195,6 +195,10 @@ export type SiteMetadata = {
   _updatedAt: string
   _rev: string
   siteName?: string
+  vacationMode?: {
+    enabled?: boolean
+    reopensAt?: string
+  }
   openingHours?: OpeningHours
   houseClosedDates?: Array<{
     date: string
