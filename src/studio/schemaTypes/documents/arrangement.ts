@@ -413,12 +413,12 @@ export const arrangement = defineType({
     {
       title: "Dato (nyeste først)",
       name: "dateDesc",
-      by: [{ field: "dates.0.startDate", direction: "desc" }],
+      by: [{ field: "dates[0].startDate", direction: "desc" }],
     },
     {
       title: "Dato (eldste først)",
       name: "dateAsc",
-      by: [{ field: "dates.0.startDate", direction: "asc" }],
+      by: [{ field: "dates[0].startDate", direction: "asc" }],
     },
   ],
 })

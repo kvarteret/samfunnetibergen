@@ -149,7 +149,7 @@ function parentWithChildren(
                     )
                     .params({ parentId })
                     .defaultOrdering([
-                      { field: "dates.0.startDate", direction: "asc" },
+                      { field: "dates[0].startDate", direction: "asc" },
                     ]),
                 ),
             ]),
@@ -186,7 +186,7 @@ export const structure: StructureResolver = (S, context) =>
                 title: "Venter på godkjenning",
                 icon: icons.clock,
                 filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "pending"`,
-                order: { field: "dates.0.startDate", direction: "asc" },
+                order: { field: "dates[0].startDate", direction: "asc" },
               }),
               arrangementList(S, {
                 id: "arrangement-needs-regeneration",
@@ -201,7 +201,7 @@ export const structure: StructureResolver = (S, context) =>
                 title: "Avlyst eller utsatt",
                 icon: icons["warning-outline"],
                 filter: `${BROWSE_EVENT_KINDS} && eventStatus in ["cancelled", "postponed"]`,
-                order: { field: "dates.0.startDate", direction: "asc" },
+                order: { field: "dates[0].startDate", direction: "asc" },
               }),
 
               // ── Innhold ──
@@ -211,7 +211,7 @@ export const structure: StructureResolver = (S, context) =>
                 title: "Enkeltarrangementer",
                 icon: icons.calendar,
                 filter: `coalesce(eventKind, "single") == "single"`,
-                order: { field: "dates.0.startDate", direction: "desc" },
+                order: { field: "dates[0].startDate", direction: "desc" },
               }),
               parentWithChildren(S, {
                 id: "arrangement-series",
@@ -233,14 +233,14 @@ export const structure: StructureResolver = (S, context) =>
                 title: "Kommende",
                 icon: icons.calendar,
                 filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) > 0`,
-                order: { field: "dates.0.startDate", direction: "asc" },
+                order: { field: "dates[0].startDate", direction: "asc" },
               }),
               arrangementList(S, {
                 id: "arrangement-promoted",
                 title: "Promotert på forsiden",
                 icon: icons.rocket,
                 filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && isPromoted == true`,
-                order: { field: "dates.0.startDate", direction: "asc" },
+                order: { field: "dates[0].startDate", direction: "asc" },
               }),
               // Rarely opened states, tucked into one submenu to keep the
               // top level scannable.
@@ -258,7 +258,10 @@ export const structure: StructureResolver = (S, context) =>
                         title: "Tidligere",
                         icon: icons.calendar,
                         filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) == 0`,
-                        order: { field: "dates.0.startDate", direction: "desc" },
+                        order: {
+                          field: "dates[0].startDate",
+                          direction: "desc",
+                        },
                       }),
                       arrangementList(S, {
                         id: "arrangement-paused",
