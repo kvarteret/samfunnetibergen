@@ -14,9 +14,13 @@ import { INHERITED_FIELDS } from "../src/features/events/domain/resolveEvent"
 // Materialize seriesInstance documents from seriesParent recurrence rules
 // (ADR 005, execplan 008 Milestone 5).
 //
-//   npm run sanity:generate:instances                    dry-run, all parents
-//   npm run sanity:generate:instances -- --parent <id>   dry-run, one parent
-//   npm run sanity:generate:instances:write              apply creations
+//   npm run sanity:generate:instances                      dry-run, all parents
+//   GENERATE_PARENT_ID=<id> npm run sanity:generate:instances        one parent
+//   npm run sanity:generate:instances:write                apply creations
+//   GENERATE_PARENT_ID=<id> npm run sanity:generate:instances:write  one parent
+//
+// Scope to one parent with the GENERATE_PARENT_ID env var — `sanity exec`
+// swallows a bare `--parent` flag before the script sees it.
 //
 // Creation uses createIfNotExists on deterministic ids, so reruns are no-ops
 // and edited children are never overwritten. Orphans (children whose
@@ -43,7 +47,14 @@ type ParentRow = GenerationParent & {
   children: Array<ExistingInstance & { overrideCount: number }>
 }
 
+// Scope generation to a single parent. Prefer the GENERATE_PARENT_ID env var:
+// `sanity exec` swallows unknown CLI flags, so a `--parent` flag never reaches
+// this script. The argv form is kept only as a fallback for direct
+// `node`/`tsx` invocation that bypasses the Sanity CLI.
 function parentIdArgument(): string | null {
+  const fromEnv = process.env.GENERATE_PARENT_ID?.trim()
+  if (fromEnv) return publishedIdOf(fromEnv)
+
   const index = process.argv.indexOf("--parent")
   if (index === -1) return null
   const value = process.argv[index + 1]
