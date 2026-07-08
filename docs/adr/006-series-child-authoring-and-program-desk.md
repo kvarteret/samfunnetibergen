@@ -19,7 +19,10 @@ landed in `src/studio/structure.ts`:
   the parent.
 - The Program menu is regrouped into *Trenger handling* / *Innhold* /
   *Visninger* + an "Absolutt alle (inkl. instanser)" escape hatch, matching
-  section D.
+  section D. The four rarely-opened states (Tidligere, Satt på pause, Avvist,
+  Arkivert) are tucked under one "Arkiv og skjulte" submenu so the top level
+  stays scannable (~8 rows instead of 13); Kommende and Promotert stay
+  top-level. Each row has a distinct icon.
 - The old flat "Genererte – venter på godkjenning" queue was removed; pending
   instances are reviewed via the parent (section B).
 

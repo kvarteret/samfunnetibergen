@@ -226,7 +226,7 @@ export const structure: StructureResolver = (S, context) =>
                 kind: "festivalParent",
               }),
 
-              // ── Visninger (foreldre + enkeltarrangementer, uten instanser) ──
+              // ── Visninger ──
               S.divider(),
               arrangementList(S, {
                 id: "arrangement-upcoming",
@@ -238,41 +238,52 @@ export const structure: StructureResolver = (S, context) =>
               arrangementList(S, {
                 id: "arrangement-promoted",
                 title: "Promotert på forsiden",
-                icon: icons.star,
+                icon: icons.rocket,
                 filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && isPromoted == true`,
                 order: { field: "dates.0.startDate", direction: "asc" },
               }),
-              arrangementList(S, {
-                id: "arrangement-past",
-                title: "Tidligere",
-                icon: icons.calendar,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) == 0`,
-                order: { field: "dates.0.startDate", direction: "desc" },
-              }),
-              arrangementList(S, {
-                id: "arrangement-paused",
-                title: "Satt på pause",
-                icon: icons.pause,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "paused"`,
-              }),
-              arrangementList(S, {
-                id: "arrangement-rejected",
-                title: "Avvist",
-                icon: icons["warning-outline"],
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "rejected"`,
-              }),
-              arrangementList(S, {
-                id: "arrangement-archived",
-                title: "Arkivert",
-                icon: icons.document,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "archived"`,
-              }),
-
+              // Rarely opened states, tucked into one submenu to keep the
+              // top level scannable.
+              S.listItem()
+                .id("arrangement-archive")
+                .title("Arkiv og skjulte")
+                .icon(icons.archive)
+                .child(
+                  S.list()
+                    .id("arrangement-archive-list")
+                    .title("Arkiv og skjulte")
+                    .items([
+                      arrangementList(S, {
+                        id: "arrangement-past",
+                        title: "Tidligere",
+                        icon: icons.calendar,
+                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) == 0`,
+                        order: { field: "dates.0.startDate", direction: "desc" },
+                      }),
+                      arrangementList(S, {
+                        id: "arrangement-paused",
+                        title: "Satt på pause",
+                        icon: icons.pause,
+                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "paused"`,
+                      }),
+                      arrangementList(S, {
+                        id: "arrangement-rejected",
+                        title: "Avvist",
+                        icon: icons["warning-outline"],
+                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "rejected"`,
+                      }),
+                      arrangementList(S, {
+                        id: "arrangement-archived",
+                        title: "Arkivert",
+                        icon: icons.document,
+                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "archived"`,
+                      }),
+                    ]),
+                ),
               // Escape hatch: everything, including generated instances.
-              S.divider(),
               S.documentTypeListItem("arrangement")
                 .title("Absolutt alle (inkl. instanser)")
-                .icon(icons.calendar),
+                .icon(icons.documents),
               S.divider(),
               orderableDocumentListDeskItem({
                 S,
