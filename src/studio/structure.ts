@@ -5,6 +5,16 @@ import type { StructureBuilder, StructureResolver } from "sanity/structure"
 export { singletonTypeNames } from "./documentTypes"
 
 const STRUCTURE_API_VERSION = "2025-02-19"
+// A materialized series runs dry once its last generated child passes; flag
+// series whose newest child is inside this lead time so editors regenerate.
+const SERIES_REGEN_LEAD_WEEKS = 8
+
+function seriesRegenHorizon(): string {
+  const horizon = new Date()
+  horizon.setDate(horizon.getDate() + SERIES_REGEN_LEAD_WEEKS * 7)
+  return horizon.toISOString().split("T")[0]!
+}
+
 const SERVICE_PAGE_SLUGS = ["catering", "silent-disco"]
 const POLICY_PAGE_SLUGS = [
   "aldersgrense",
@@ -180,6 +190,78 @@ export const structure: StructureResolver = (S, context) =>
                       '_type == "arrangement" && approvalStatus == "archived"',
                     ),
                 ),
+              S.divider(),
+              S.listItem()
+                .id("arrangement-series-parents")
+                .title("Serier")
+                .icon(icons.sync)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Serier")
+                    .filter(
+                      '_type == "arrangement" && eventKind == "seriesParent"',
+                    )
+                    .defaultOrdering([{ field: "title", direction: "asc" }]),
+                ),
+              S.listItem()
+                .id("arrangement-festival-parents")
+                .title("Festivaler")
+                .icon(icons.star)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Festivaler")
+                    .filter(
+                      '_type == "arrangement" && eventKind == "festivalParent"',
+                    )
+                    .defaultOrdering([{ field: "title", direction: "asc" }]),
+                ),
+              S.listItem()
+                .id("arrangement-generated-pending")
+                .title("Genererte – venter på godkjenning")
+                .icon(icons.clock)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Genererte – venter på godkjenning")
+                    .filter(
+                      '_type == "arrangement" && eventKind in ["seriesInstance", "festivalSession"] && approvalStatus == "pending"',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "asc" },
+                    ]),
+                ),
+              S.listItem()
+                .id("arrangement-cancelled-postponed")
+                .title("Avlyst eller utsatt")
+                .icon(icons["warning-outline"])
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Avlyst eller utsatt")
+                    .filter(
+                      '_type == "arrangement" && eventStatus in ["cancelled", "postponed"]',
+                    )
+                    .defaultOrdering([
+                      { field: "dates.0.startDate", direction: "asc" },
+                    ]),
+                ),
+              S.listItem()
+                .id("arrangement-needs-regeneration")
+                .title("Serier som må forlenges")
+                .icon(icons.reset)
+                .child(
+                  S.documentList()
+                    .apiVersion(STRUCTURE_API_VERSION)
+                    .title("Serier som må forlenges")
+                    .filter(
+                      '_type == "arrangement" && eventKind == "seriesParent" && count(*[_type == "arrangement" && parentEvent._ref == ^._id && dates[0].startDate > $horizon]) == 0',
+                    )
+                    .params({ horizon: seriesRegenHorizon() })
+                    .defaultOrdering([{ field: "title", direction: "asc" }]),
+                ),
+              S.divider(),
               S.documentTypeListItem("arrangement")
                 .title("Alle arrangementer")
                 .icon(icons.calendar),
