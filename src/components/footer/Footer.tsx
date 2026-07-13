@@ -332,9 +332,16 @@ function OpeningHoursColumn({
               />
             </div>
             <dl className="space-y-1">
-              {(room.hours?.rows ?? []).map((row: HoursRow) => (
-                <HoursRow key={row._key} row={row} />
-              ))}
+              {vacationNotice ? (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-foreground-muted">Feriemodus</dt>
+                  <dd className="shrink-0 text-foreground-muted">Stengt</dd>
+                </div>
+              ) : (
+                (room.hours?.rows ?? []).map((row: HoursRow) => (
+                  <HoursRow key={row._key} row={row} />
+                ))
+              )}
             </dl>
             {vacationNotice ? (
               <p className="mt-2 text-sm font-medium text-foreground">

@@ -28,7 +28,8 @@ export interface ClosedDate {
 
 export interface VacationMode {
   enabled?: boolean | null
-  reopensAt?: string | null
+  from?: string | null
+  to?: string | null
 }
 
 export interface SlotRange {
@@ -36,10 +37,27 @@ export interface SlotRange {
   endMin: number
 }
 
+export interface OpeningHoursStatus {
+  isOpen: boolean
+  currentRange?: SlotRange
+  nextRange?: SlotRange
+  nextDate?: string
+}
+
+export interface OpeningHoursDaySummary {
+  date: string
+  dayLabel: string
+  ranges: SlotRange[]
+}
+
 const vacationReopenDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   day: "numeric",
   month: "long",
   year: "numeric",
+})
+const openingDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+  day: "numeric",
+  month: "long",
 })
 
 const MINUTES_IN_DAY = 24 * 60
@@ -51,6 +69,15 @@ const WEEKDAY_SHORT_LABELS: Record<number, string> = {
   5: "Fre",
   6: "Lør",
   7: "Søn",
+}
+const WEEKDAY_LONG_LABELS: Record<number, string> = {
+  1: "mandag",
+  2: "tirsdag",
+  3: "onsdag",
+  4: "torsdag",
+  5: "fredag",
+  6: "lørdag",
+  7: "søndag",
 }
 
 export function isoDate(date: Date): string {
@@ -89,8 +116,9 @@ export function isVacationModeActive(
   vacationMode?: VacationMode | null,
 ): boolean {
   if (vacationMode?.enabled !== true) return false
-  if (!vacationMode.reopensAt) return true
-  return dateStr < vacationMode.reopensAt
+  if (vacationMode.from && dateStr < vacationMode.from) return false
+  if (!vacationMode.to) return true
+  return dateStr < vacationMode.to
 }
 
 export function formatVacationModeNotice(
@@ -98,10 +126,14 @@ export function formatVacationModeNotice(
   vacationMode?: VacationMode | null,
 ): string | null {
   if (!isVacationModeActive(dateStr, vacationMode)) return null
-  if (!vacationMode?.reopensAt) return "STENGT."
-  return `STENGT. Vi åpner igjen ${vacationReopenDateFormatter.format(
-    new Date(`${vacationMode.reopensAt}T00:00:00`),
+  if (!vacationMode?.to) return "STENGT."
+  return `Vi åpner igjen ${vacationReopenDateFormatter.format(
+    new Date(`${vacationMode.to}T00:00:00`),
   )}`
+}
+
+export function formatOpeningDate(dateStr: string): string {
+  return openingDateFormatter.format(new Date(`${dateStr}T00:00:00`))
 }
 
 export function timeToMinutes(time?: string | null): number | null {
@@ -116,6 +148,10 @@ export function minutesToTime(minutes: number): string {
   const normalized =
     ((minutes % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY
   return format(addMinutes(startOfDay(new Date()), normalized), "HH:mm")
+}
+
+export function formatOpeningHoursTime(minutes: number): string {
+  return minutesToTime(minutes).replace(":00", "")
 }
 
 export function formatWeekdays(
@@ -196,6 +232,97 @@ export function openingRangesForDate(
   })
 
   return mergeRanges(rows)
+}
+
+export function openingHoursStatusAt(
+  date: Date,
+  hours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
+): OpeningHoursStatus {
+  const today = isoDate(date)
+  const minutes = date.getHours() * 60 + date.getMinutes()
+
+  const todayRange = openingRangesForDate(
+    today,
+    hours,
+    closedDates,
+    vacationMode,
+  ).find(range => minutes >= range.startMin && minutes < range.endMin)
+  if (todayRange) {
+    return { isOpen: true, currentRange: todayRange }
+  }
+
+  const yesterday = isoDate(subDays(date, 1))
+  const yesterdayRange = openingRangesForDate(
+    yesterday,
+    hours,
+    closedDates,
+    vacationMode,
+  ).find(
+    range =>
+      range.endMin > MINUTES_IN_DAY && minutes + MINUTES_IN_DAY < range.endMin,
+  )
+  if (yesterdayRange) {
+    return {
+      isOpen: true,
+      currentRange: {
+        startMin: yesterdayRange.startMin - MINUTES_IN_DAY,
+        endMin: yesterdayRange.endMin - MINUTES_IN_DAY,
+      },
+    }
+  }
+
+  for (let offset = 0; offset < 14; offset++) {
+    const candidateDate = new Date(date)
+    candidateDate.setDate(candidateDate.getDate() + offset)
+    const dateStr = isoDate(candidateDate)
+    const nextRange = openingRangesForDate(
+      dateStr,
+      hours,
+      closedDates,
+      vacationMode,
+    ).find(range => offset > 0 || range.startMin > minutes)
+
+    if (nextRange) return { isOpen: false, nextDate: dateStr, nextRange }
+  }
+
+  if (
+    vacationMode?.enabled === true &&
+    vacationMode.to &&
+    isoDate(date) < vacationMode.to
+  ) {
+    const reopenDate = parseISO(vacationMode.to)
+    for (let offset = 0; offset < 14; offset++) {
+      const candidateDate = new Date(reopenDate)
+      candidateDate.setDate(candidateDate.getDate() + offset)
+      const dateStr = isoDate(candidateDate)
+      const nextRange = openingRangesForDate(
+        dateStr,
+        hours,
+        closedDates,
+        null,
+      )[0]
+
+      if (nextRange) return { isOpen: false, nextDate: dateStr, nextRange }
+    }
+  }
+
+  return { isOpen: false }
+}
+
+export function openingHoursDaySummaries(
+  startDate: Date,
+  count: number,
+  hours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
+): OpeningHoursDaySummary[] {
+  return buildDateSequence(isoDate(startDate), count).map(date => ({
+    date,
+    dayLabel: WEEKDAY_LONG_LABELS[isoWeekday(date)],
+    ranges: openingRangesForDate(date, hours, closedDates, vacationMode),
+  }))
 }
 
 export function hasOpeningHoursRows(hours?: OpeningHours | null): boolean {

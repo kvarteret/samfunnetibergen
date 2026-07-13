@@ -8,22 +8,13 @@ import {
   infoAddressBlockProjection,
 } from "../fragments/sections"
 
-export const siteMetadataNbQuery =
-  defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
-    "siteName": coalesce(siteName, "Samfunnet i Bergen"),
-    "defaultSeoTitle": coalesce(defaultSeoTitle, homeTitle, homeTitleNb),
-    "defaultSeoDescription": coalesce(defaultSeoDescription, homeDescription, homeDescriptionNb),
-    defaultOpenGraphTitle,
-    defaultOpenGraphDescription,
-    "defaultOpenGraphImageUrl": defaultOpenGraphImage.asset->url
-}`)
-
 export const houseHoursQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
     "operationsManagerHours": openingHours ${openingHoursProjection},
     "vacationMode": {
         "enabled": coalesce(vacationMode.enabled, false),
-        "reopensAt": vacationMode.reopensAt
+        "from": vacationMode.from,
+        "to": coalesce(vacationMode.to, vacationMode.reopensAt)
     },
     "houseClosedDates": coalesce(houseClosedDates[] {
         _key,
@@ -37,16 +28,7 @@ export const homePageNbQuery =
     eyebrow,
     "title": coalesce(title, "[Mangler tittel]"),
     description,
-    primaryCta ${sourceLinkProjection},
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt
+    primaryCta ${sourceLinkProjection}
 }`)
 
 export const roomsPageQuery =
@@ -54,15 +36,6 @@ export const roomsPageQuery =
     eyebrow,
     "title": coalesce(title, "[Mangler tittel]"),
     description,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     bookingLink ${sourceLinkProjection}
 }`)
@@ -72,15 +45,6 @@ export const sponsorsPageQuery =
     eyebrow,
     "title": coalesce(title, "[Mangler tittel]"),
     description,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "sponsors": coalesce(sponsors[] {
         _key,
         "title": coalesce(title, "[Mangler sponsornavn]"),
@@ -96,15 +60,6 @@ export const groupsPageQuery =
     eyebrow,
     "title": coalesce(title, "[Mangler tittel]"),
     description,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     "faq": coalesce(faq[] {
         _key,
@@ -116,7 +71,6 @@ export const groupsPageQuery =
 export const pageSlugsQuery = defineQuery(`*[
     _type == "page"
     && defined(slug.current)
-    && noIndex != true
     && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
   ] {
     "slug": slug.current
@@ -130,15 +84,6 @@ export const pageBySlugQuery = defineQuery(`*[
     _id,
     "title": coalesce(title, "[Mangler tittel]"),
     "slug": coalesce(slug.current, ""),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     content
 }`)
 
@@ -151,15 +96,6 @@ export const kontaktPageQuery =
     ehf,
     generalContact,
     pressContact,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "contactGroups": coalesce(contactGroups[] {
         _key,
         "title": coalesce(title, "[Mangler gruppenavn]"),
@@ -179,15 +115,6 @@ export const usefulInfoPageQuery =
     eyebrow,
     "title": coalesce(title, "Nyttig info"),
     intro,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "sections": coalesce(sections[] {
         _type == "editorialSection" => ${editorialSectionProjection},
         _type == "infoAddressBlock" => ${infoAddressBlockProjection},

@@ -1,8 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import { createSeoFields, createSharingFields } from "../shared/metadataFields"
-
 const APPROVAL_STATUS_OPTIONS = [
   { title: "Venter på godkjenning", value: "pending" },
   { title: "Godkjent", value: "approved" },
@@ -53,7 +51,6 @@ export const arrangement = defineType({
     { name: "organizer", title: "Arrangør" },
     { name: "links", title: "Lenker" },
     { name: "media", title: "Bilde" },
-    { name: "sharing", title: "Deling" },
     { name: "admin", title: "Administrasjon" },
   ],
   fields: [
@@ -301,16 +298,6 @@ export const arrangement = defineType({
       type: "url",
       group: "links",
       validation: rule => rule.uri({ scheme: ["http", "https"] }),
-    }),
-
-    // ─── Sharing / embeds ─────────────────────────────────────
-    ...createSeoFields({
-      group: "sharing",
-      titleDescription: "Overstyrer arrangementtittelen i søkemotorer.",
-    }),
-    ...createSharingFields({
-      group: "sharing",
-      openGraphImageDescription: "La stå tom for å bruke hovedbildet.",
     }),
 
     // ─── Admin / approval ──────────────────────────────────────

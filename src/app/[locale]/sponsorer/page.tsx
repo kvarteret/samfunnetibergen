@@ -25,7 +25,6 @@ export async function generateMetadata({ params }: SponsorsPageProps) {
   const content = await fetchSponsorsPageContent({ stega: false })
 
   return buildPageMetadata({
-    content,
     canonicalPath: `/${locale}/sponsorer`,
     fallbackTitle: content?.title ?? "Sponsorer",
     fallbackDescription:

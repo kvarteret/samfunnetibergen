@@ -1,11 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
-import {
-  createSeoFields,
-  createSharingFields,
-} from "../../shared/metadataFields"
-
 export const homePage = defineType({
   name: "homePage",
   title: "Hovedside",
@@ -13,8 +8,6 @@ export const homePage = defineType({
   icon: icons.document,
   groups: [
     { name: "hero", title: "Hero", default: true },
-    { name: "seo", title: "SEO" },
-    { name: "sharing", title: "Deling" },
   ],
   fields: [
     defineField({
@@ -43,10 +36,6 @@ export const homePage = defineType({
       type: "sourceLink",
       group: "hero",
     }),
-    ...createSeoFields({
-      titleDescription: "Overstyrer sidetittelen i søkemotorer.",
-    }),
-    ...createSharingFields(),
   ],
   preview: {
     select: { title: "title" },

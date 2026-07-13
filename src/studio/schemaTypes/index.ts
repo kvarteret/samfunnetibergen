@@ -14,7 +14,6 @@ import { room } from "./documents/room"
 import { eventsPage } from "./documents/singletons/eventsPage"
 import { groupsPage } from "./documents/singletons/groupsPage"
 import { homePage } from "./documents/singletons/homePage"
-import { internbevisPage } from "./documents/singletons/internbevisPage"
 import { linkInBio } from "./documents/singletons/linkInBio"
 import { roomsPage } from "./documents/singletons/roomsPage"
 import { siteMetadata } from "./documents/singletons/siteMetadata"
@@ -72,7 +71,6 @@ export const schemaTypes = [
   footer,
   siteMetadata,
   homePage,
-  internbevisPage,
   eventsPage,
   roomsPage,
   groupsPage,

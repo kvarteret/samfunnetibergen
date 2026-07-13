@@ -4,6 +4,7 @@ import {
   ACCESSIBILITY_MARKDOWN,
   buildNavbarNyttigItems,
   buildUsefulInfoPageDocument,
+  migrateUsefulInfoEditorialSections,
   RETIRED_ACCESSIBILITY_PAGE_ID,
   USEFUL_INFO_PAGE_ID,
 } from "../src/studio/migrations/nyttigInfo"
@@ -20,12 +21,36 @@ async function main() {
   )
   const accessibilityMarkdown = retiredContent ?? ACCESSIBILITY_MARKDOWN
 
-  const document = buildUsefulInfoPageDocument(accessibilityMarkdown)
-  console.log(
-    `${write ? "WRITE" : "DRY RUN"} createOrReplace ${USEFUL_INFO_PAGE_ID} (${document.sections.length} sections)`,
-  )
-  if (write) {
-    await client.createOrReplace(document)
+  const existingUsefulInfoPage = await client.fetch<{
+    _id: string
+    sections?: Array<Record<string, unknown>>
+  } | null>(`*[_id == $id][0]{ _id, sections }`, {
+    id: USEFUL_INFO_PAGE_ID,
+  })
+
+  if (existingUsefulInfoPage) {
+    const migration = migrateUsefulInfoEditorialSections(existingUsefulInfoPage)
+    if (migration.changed) {
+      console.log(
+        `${write ? "WRITE" : "DRY RUN"} migrate ${USEFUL_INFO_PAGE_ID}.sections to Portable Text`,
+      )
+      if (write) {
+        await client
+          .patch(USEFUL_INFO_PAGE_ID)
+          .set({ sections: migration.sections })
+          .commit()
+      }
+    } else {
+      console.log(`${USEFUL_INFO_PAGE_ID}.sections already migrated`)
+    }
+  } else {
+    const document = buildUsefulInfoPageDocument(accessibilityMarkdown)
+    console.log(
+      `${write ? "WRITE" : "DRY RUN"} createOrReplace ${USEFUL_INFO_PAGE_ID} (${document.sections.length} sections)`,
+    )
+    if (write) {
+      await client.createOrReplace(document)
+    }
   }
 
   const navbar = await client.fetch<{

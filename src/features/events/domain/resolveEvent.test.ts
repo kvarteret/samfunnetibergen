@@ -16,7 +16,6 @@ describe("resolveEventContent", () => {
     priceStudent: 50,
     ticketUrl: "https://tix.example/parent",
     isInternalEvent: false,
-    seoTitle: "Quiz hver mandag",
   }
 
   test("missing child fields fall back to the parent", () => {
@@ -28,7 +27,7 @@ describe("resolveEventContent", () => {
     expect(resolved.imageUrl).toBe("https://cdn.sanity.io/parent.jpg")
     expect(resolved.isFree).toBe(true)
     expect(resolved.priceStudent).toBe(50)
-    expect(resolved.seoTitle).toBe("Quiz hver mandag")
+    expect(resolved).not.toHaveProperty("seoTitle")
   })
 
   test("child overrides win over parent values", () => {

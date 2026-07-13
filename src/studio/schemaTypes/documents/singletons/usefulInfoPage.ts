@@ -1,11 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import {
-  createSeoFields,
-  createSharingFields,
-} from "../../shared/metadataFields"
-
 export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
   title: "Nyttig info",
@@ -16,7 +11,6 @@ export const usefulInfoPage = defineType({
   __experimental_actions: ["update", "publish"],
   groups: [
     { name: "content", title: "Innhold", default: true },
-    { name: "seo", title: "SEO" },
   ],
   fields: [
     defineField({
@@ -53,8 +47,6 @@ export const usefulInfoPage = defineType({
         defineArrayMember({ type: "infoAccordionBlock" }),
       ],
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     select: { title: "title" },

@@ -51,7 +51,6 @@ export async function generateMetadata({ params }: GroupPageProps) {
   if (!group) return {}
 
   return buildPageMetadata({
-    content: group,
     canonicalPath: `/${localeParam}/grupper/${slug}`,
     fallbackTitle: `${group.name} | Grupper`,
     fallbackDescription: group.summary,

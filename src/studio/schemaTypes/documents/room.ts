@@ -2,8 +2,6 @@ import { icons } from "@sanity/icons"
 import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import { createSeoFields, createSharingFields } from "../shared/metadataFields"
-
 export const room = defineType({
   name: "room",
   title: "Rom",
@@ -15,7 +13,6 @@ export const room = defineType({
     { name: "specs", title: "Tekniske specs" },
     { name: "hours", title: "Åpningstid" },
     { name: "media", title: "Bilder" },
-    { name: "seo", title: "SEO og deling" },
   ],
   fields: [
     // — Core info —
@@ -193,8 +190,6 @@ export const room = defineType({
       group: "media",
       of: [defineArrayMember({ type: "sourcedImage" })],
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     select: {

@@ -19,7 +19,11 @@ export const footerQuery = defineQuery(`{
     }, []),
     "vacationMode": {
         "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),
-        "reopensAt": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt
+        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,
+        "to": coalesce(
+            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,
+            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt
+        )
     },
     "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours ${openingHoursProjection},
     "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {

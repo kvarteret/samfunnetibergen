@@ -35,10 +35,7 @@ export const AccessibilityAccordionBlock = ({
             <AccordionTrigger>{item.title}</AccordionTrigger>
             <AccordionPanel>
               <div className="max-w-2xl text-foreground">
-                <PortableTextContent
-                  className="!bg-transparent !p-0"
-                  value={item.body}
-                />
+                <PortableTextContent value={item.body} />
               </div>
             </AccordionPanel>
           </AccordionItem>

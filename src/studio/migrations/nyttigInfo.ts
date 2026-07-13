@@ -3,6 +3,8 @@ import { markdownToPortableText } from "@portabletext/markdown"
 export const USEFUL_INFO_PAGE_ID = "usefulInfoPage"
 export const RETIRED_ACCESSIBILITY_PAGE_ID =
   "445aa6de-3a1a-4c29-b34e-2c98695e8cfb"
+export const VERGEORDNING_FORM_URL =
+  "https://forms.clickup.com/2452384/f/2aux0-4032/HNO5KFUM24SKGG2J5I"
 
 // Verbatim `content` of the retired `tilgjengelighet` page. Kept here so the
 // migration and its tests are self-contained and do not depend on live data.
@@ -156,18 +158,200 @@ const internalPathLink = (
   internalPath: path,
 })
 
+const externalLink = (key: string, label: string, url: string): SourceLink => ({
+  _type: "sourceLink",
+  _key: key,
+  label,
+  linkType: "external",
+  externalUrl: url,
+})
+
+function sourceLinkHref(link: SourceLink): string | null {
+  if (link.linkType === "external") return link.externalUrl ?? null
+  if (link.linkType === "internalPath") return link.internalPath ?? null
+
+  const ref = link.internalPage?._ref
+  if (!ref) return null
+
+  const singletonPaths: Record<string, string> = {
+    homePage: "/",
+    eventsPage: "/arrangementer",
+    roomsPage: "/rom",
+    groupsPage: "/grupper",
+    sponsorsPage: "/sponsorer",
+    usefulInfoPage: "/nyttig",
+    kontaktPage: "/kontakt",
+  }
+
+  return singletonPaths[ref] ?? null
+}
+
+function linkToPortableTextBlock(
+  link: SourceLink,
+  fallbackKey: string,
+): PortableTextBlock | null {
+  const href = sourceLinkHref(link)
+  if (!href) return null
+
+  const markKey = `${fallbackKey}-mark`
+  const isExternal = !href.startsWith("/")
+
+  return {
+    _key: fallbackKey,
+    _type: "block",
+    children: [
+      {
+        _key: `${fallbackKey}-span`,
+        _type: "span",
+        marks: [markKey],
+        text: link.label,
+      },
+    ],
+    markDefs: [
+      {
+        _key: markKey,
+        _type: "link",
+        href,
+        style: "cta",
+        target: isExternal ? "blank" : "self",
+      },
+    ],
+    style: "normal",
+  }
+}
+
+function bodyHasHref(
+  body: PortableTextBlock[] | null | undefined,
+  href: string,
+) {
+  return (body ?? []).some(
+    block =>
+      Array.isArray(block.markDefs) &&
+      block.markDefs.some(
+        mark =>
+          typeof mark === "object" &&
+          mark !== null &&
+          "href" in mark &&
+          mark.href === href,
+      ),
+  )
+}
+
 const editorialSection = (
   key: string,
   title: string,
   paragraphs: string[],
   links: SourceLink[] = [],
-) => ({
-  _type: "editorialSection",
-  _key: key,
-  title,
-  paragraphs,
-  ...(links.length > 0 ? { links } : {}),
-})
+) => {
+  const body = markdownToKeyedPortableText(
+    paragraphs.join("\n\n"),
+    `${key}-body`,
+  )
+  const linkBlocks = links
+    .map((link, index) =>
+      linkToPortableTextBlock(link, `${key}-link-${link._key ?? index}`),
+    )
+    .filter(block => block != null)
+
+  return {
+    _type: "editorialSection",
+    _key: key,
+    title,
+    body: [...body, ...linkBlocks],
+  }
+}
+
+type UsefulInfoSection = {
+  _key?: string
+  _type?: string
+  title?: string | null
+  body?: PortableTextBlock[] | null
+  paragraphs?: string[] | null
+  links?: SourceLink[] | null
+  [key: string]: unknown
+}
+
+type UsefulInfoDocument = {
+  sections?: UsefulInfoSection[] | null
+}
+
+export function migrateUsefulInfoEditorialSections(
+  document: UsefulInfoDocument,
+): { changed: boolean; sections: UsefulInfoSection[] } {
+  const sections = Array.isArray(document.sections) ? document.sections : []
+  let changed = false
+
+  const nextSections = sections.map((section, index) => {
+    if (section._type !== "editorialSection") return section
+
+    const nextSection: UsefulInfoSection = { ...section }
+    const paragraphs = Array.isArray(section.paragraphs)
+      ? section.paragraphs.filter(Boolean)
+      : []
+    const body = Array.isArray(section.body) ? section.body : []
+
+    if (body.length === 0 && paragraphs.length > 0) {
+      const key = section._key ?? `editorial-section-${index}`
+      nextSection.body = markdownToKeyedPortableText(
+        paragraphs.join("\n\n"),
+        `${key}-body`,
+      )
+      changed = true
+    }
+
+    if ("paragraphs" in nextSection) {
+      delete nextSection.paragraphs
+      changed = true
+    }
+
+    if (
+      section.title === "Vergeordningen" &&
+      !bodyHasHref(nextSection.body, VERGEORDNING_FORM_URL)
+    ) {
+      const nextLink = externalLink(
+        "vergeordningen-lenke",
+        "Legg inn søknad her",
+        VERGEORDNING_FORM_URL,
+      )
+      const currentLink = nextSection.links?.[0]
+
+      if (
+        nextSection.links?.length !== 1 ||
+        currentLink?._key !== nextLink._key ||
+        currentLink?.label !== nextLink.label ||
+        currentLink?.linkType !== nextLink.linkType ||
+        currentLink?.externalUrl !== nextLink.externalUrl
+      ) {
+        nextSection.links = [nextLink]
+        changed = true
+      }
+    }
+
+    const links = Array.isArray(nextSection.links) ? nextSection.links : []
+    if (links.length > 0) {
+      const linkBlocks = links
+        .map((link, linkIndex) =>
+          bodyHasHref(nextSection.body, sourceLinkHref(link) ?? "")
+            ? null
+            : linkToPortableTextBlock(
+                link,
+                `${section._key ?? `editorial-section-${index}`}-link-${link._key ?? linkIndex}`,
+              ),
+        )
+        .filter(block => block != null)
+      nextSection.body = [...(nextSection.body ?? []), ...linkBlocks]
+      delete nextSection.links
+      changed = true
+    } else if ("links" in nextSection) {
+      delete nextSection.links
+      changed = true
+    }
+
+    return nextSection
+  })
+
+  return { changed, sections: nextSections }
+}
 
 /**
  * Build the complete `usefulInfoPage` singleton from the curated seed copy and
@@ -205,6 +389,25 @@ export function buildUsefulInfoPageDocument(
           "Se hva som skjer på huset og finn oversikt over kommende arrangementer under Arrangementer. Billetter til arrangementene kjøpes direkte der.",
         ],
         [internalPageLink("billetter-lenke", "Arrangementer", "eventsPage")],
+      ),
+      editorialSection(
+        "vergeordningen",
+        "Vergeordningen",
+        [
+          "Vergen skal være over 25 år.",
+          "Vergen skal være familie eller nær relasjon.",
+          "Det må være minst én verge per mindreårig.",
+          "Søknad på vergeordning må være sendt innen 1 uke før arrangementet finner sted. Vi tar forbehold om at arrangementet kan ha nådd maks antall vergeordninger.",
+          "Får du avslag på din søknad har du selv ansvar for å kontakte arrangør for refusjon av billett.",
+          "Brudd på vergeordningen fører til umiddelbar utvisning.",
+        ],
+        [
+          externalLink(
+            "vergeordningen-lenke",
+            "Legg inn søknad her",
+            VERGEORDNING_FORM_URL,
+          ),
+        ],
       ),
       editorialSection(
         "booking",

@@ -8,7 +8,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
-import { fetchFooter } from "@/lib/sanity/fetch"
+import { fetchFooter, fetchHouseHours } from "@/lib/sanity/fetch"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -20,14 +20,18 @@ export default async function LocaleLayout({
 }: LayoutProps<"/[locale]">) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
-  const [messages, footer] = await Promise.all([getMessages(), fetchFooter()])
+  const [messages, footer, houseHours] = await Promise.all([
+    getMessages(),
+    fetchFooter(),
+    fetchHouseHours(),
+  ])
 
   return (
     <NextIntlClientProvider messages={messages}>
       <Providers>
         <div className="paper-canvas min-h-full [overflow-x:clip]">
           <div className="paper-surface flex min-h-screen flex-col">
-            <Navbar />
+            <Navbar houseHours={houseHours} />
             <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
               {children}
             </main>

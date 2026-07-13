@@ -66,23 +66,6 @@ function pageListItem(
     )
 }
 
-function seoAuditItems(S: StructureBuilder) {
-  const pageLikeTypes =
-    '["homePage", "eventsPage", "roomsPage", "groupsPage", "sponsorsPage", "usefulInfoPage", "kontaktPage", "page", "arrangement", "room", "studentGroup"]'
-
-  return [
-    S.listItem()
-      .id("seo-hidden-pages")
-      .title("Skjult fra søkemotorer")
-      .child(
-        S.documentList()
-          .apiVersion(STRUCTURE_API_VERSION)
-          .title("Skjult fra søkemotorer")
-          .filter(`_type in ${pageLikeTypes} && noIndex == true`),
-      ),
-  ]
-}
-
 type ArrangementListOptions = {
   id: string
   title: string
@@ -161,16 +144,12 @@ export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Samfunnet i Bergen")
     .items([
-      singletonListItem(S, "homePage", "Hovedside", icons.document),
-
-      S.divider(),
-
       S.listItem()
-        .title("Program")
+        .title("Arrangementer")
         .icon(icons.calendar)
         .child(
           S.list()
-            .title("Program")
+            .title("Arrangementer")
             .items([
               singletonListItem(
                 S,
@@ -308,6 +287,32 @@ export const structure: StructureResolver = (S, context) =>
         ),
 
       S.listItem()
+        .title("Åpningstider")
+        .icon(icons.clock)
+        .child(
+          S.list()
+            .title("Åpningstider")
+            .items([
+              singletonListItem(
+                S,
+                "siteMetadata",
+                "Primære åpningstider",
+                icons.clock,
+              ),
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "room",
+                id: "opening-hours-room-all",
+                title: "Rom",
+                icon: icons.component,
+                filter:
+                  '_type == "room" && slug.current in ["halvtimen", "grondahls", "stjernesalen"]',
+              }),
+            ]),
+        ),
+
+      S.listItem()
         .title("Rom")
         .icon(icons.component)
         .child(
@@ -327,24 +332,6 @@ export const structure: StructureResolver = (S, context) =>
                 id: "orderable-room-all",
                 title: "Rom",
               }),
-              pageListItem(
-                S,
-                "room-service-pages",
-                "Tjenester",
-                SERVICE_PAGE_SLUGS,
-              ),
-              pageListItem(
-                S,
-                "room-policy-pages",
-                "Retningslinjer og vilkår",
-                POLICY_PAGE_SLUGS,
-              ),
-              singletonListItem(
-                S,
-                "siteMetadata",
-                "Åpningstider, feriemodus og stengte dager",
-                icons.cog,
-              ),
             ]),
         ),
 
@@ -416,54 +403,15 @@ export const structure: StructureResolver = (S, context) =>
         ),
 
       S.listItem()
-        .title("Navigasjon og kanaler")
-        .icon(icons.menu)
-        .child(
-          S.list()
-            .title("Navigasjon og kanaler")
-            .items([
-              singletonListItem(S, "navbar", "Hovednavigasjon", icons.menu),
-              singletonListItem(S, "footer", "Bunntekst", icons.text),
-              singletonListItem(S, "linkInBio", "Link-i-bio", icons.link),
-            ]),
-        ),
-
-      S.listItem()
         .title("App og internt innhold")
         .icon(icons["mobile-device"])
         .child(
           S.list()
             .title("App og internt innhold")
             .items([
-              singletonListItem(
-                S,
-                "internbevisPage",
-                "Internbevis",
-                icons["mobile-device"],
-              ),
               S.documentTypeListItem("internbevisBenefit")
                 .title("Frivilligfordeler")
                 .icon(icons.star),
-            ]),
-        ),
-
-      S.divider(),
-
-      S.listItem()
-        .title("Nettstedsinnstillinger")
-        .icon(icons.cog)
-        .child(
-          S.list()
-            .title("Nettstedsinnstillinger")
-            .items([
-              singletonListItem(
-                S,
-                "siteMetadata",
-                "Identitet, SEO og deling",
-                icons["earth-globe"],
-              ),
-              S.divider(),
-              ...seoAuditItems(S),
             ]),
         ),
     ])

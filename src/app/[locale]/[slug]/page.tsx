@@ -29,7 +29,6 @@ export async function generateMetadata({ params }: PageProps) {
   if (!page) return {}
 
   return buildPageMetadata({
-    content: page,
     canonicalPath: `/${localeParam}/${slug}`,
     fallbackTitle: page.title,
   })

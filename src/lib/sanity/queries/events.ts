@@ -6,16 +6,7 @@ export const eventsPageContentNbQuery =
   defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
     "eyebrow": coalesce(eyebrow, eyebrowNb),
     "title": coalesce(title, titleNb, "[Mangler tittel]"),
-    "description": coalesce(description, descriptionNb),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt
+    "description": coalesce(description, descriptionNb)
 }`)
 
 export const eventRoomsQuery = defineQuery(`
@@ -71,13 +62,7 @@ const inheritableFieldsProjection = `
     priceMedlem,
     ticketUrl,
     facebookUrl,
-    isInternalEvent,
-    seoTitle,
-    seoDescription,
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt`
+    isInternalEvent`
 
 const parentProjection = `parentEvent-> {
     _id,
@@ -103,9 +88,6 @@ const eventProjection = `{
         startTime,
         endTime
     }, []),
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
     "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },
     roomText,
     ${inheritableFieldsProjection}
@@ -134,7 +116,6 @@ export const publishedEventSlugsQuery = defineQuery(`
     *[
         _type == "arrangement"
         && approvalStatus == "approved"
-        && noIndex != true
         && defined(slug.current)
         && ${CONCRETE_EVENT_KINDS}
         && (

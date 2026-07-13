@@ -1,8 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import { createSeoFields, createSharingFields } from "../shared/metadataFields"
-
 const contactPerson = defineType({
   name: "contactPerson",
   title: "Kontaktperson",
@@ -75,7 +73,6 @@ export const kontaktPage = defineType({
   groups: [
     { name: "org", title: "Organisasjon", default: true },
     { name: "page", title: "Kontaktside" },
-    { name: "seo", title: "SEO" },
   ],
   fields: [
     defineField({
@@ -133,8 +130,6 @@ export const kontaktPage = defineType({
       of: [defineArrayMember({ type: "contactGroup" })],
       group: "page",
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     prepare() {

@@ -1,12 +1,10 @@
-import { sourceLinkProjection } from "./links"
 import { portableTextProjection } from "./portableText"
 
 export const editorialSectionProjection = `{
     _key,
     _type,
     title,
-    "paragraphs": coalesce(paragraphs, []),
-    "links": coalesce(links[] ${sourceLinkProjection}, [])
+    "body": coalesce(body[] ${portableTextProjection}, [])
 }`
 
 export const infoAddressBlockProjection = `{

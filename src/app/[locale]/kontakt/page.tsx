@@ -18,9 +18,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/kontakt">) {
   const locale = await resolvePageLocale(params)
-  const page = await fetchKontaktPage()
   return buildPageMetadata({
-    content: page,
     canonicalPath: `/${locale}/kontakt`,
     fallbackTitle: "Kontakt",
     fallbackDescription: "Kontaktinformasjon for Samfunnet i Bergen.",

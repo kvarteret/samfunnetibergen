@@ -10,7 +10,6 @@ export const singletonTypeNames = [
   "kontaktPage",
   "navbar",
   "linkInBio",
-  "internbevisPage",
 ] as const
 
 export const studioDocumentTypeNames = [

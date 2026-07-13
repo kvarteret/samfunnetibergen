@@ -7,15 +7,6 @@ export const studentGroupsQuery =
     "name": coalesce(name, "[Mangler gruppenavn]"),
     "slug": coalesce(slug.current, ""),
     "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     email,
     website,
     "links": coalesce(links[] {
@@ -34,7 +25,7 @@ export const studentGroupsQuery =
 }`)
 
 export const studentGroupSlugsQuery =
-  defineQuery(`*[_type == "studentGroup" && defined(slug.current) && noIndex != true] {
+  defineQuery(`*[_type == "studentGroup" && defined(slug.current)] {
     "slug": slug.current
 }`)
 
@@ -43,15 +34,6 @@ export const studentGroupBySlugQuery =
     "name": coalesce(name, "[Mangler gruppenavn]"),
     "slug": coalesce(slug.current, ""),
     "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     "body": coalesce(body, []),
     email,
     website,

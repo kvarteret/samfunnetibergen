@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   CalendarCheck,
-  ExternalLink,
   Headphones,
   UtensilsCrossed,
 } from "lucide-react"
@@ -16,6 +15,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import type { EditorialSection } from "@/lib/sanity/fetch"
 import {
   fetchHouseHours,
@@ -37,34 +37,6 @@ export async function generateMetadata() {
   }
 }
 
-type ContentLink = {
-  _key?: string | null
-  label?: string | null
-  href?: string | null
-}
-
-function isExternalHref(href: string) {
-  return !href.startsWith("/")
-}
-
-function InlineContentLink({ link }: { link: ContentLink }) {
-  if (!link.href) return null
-
-  const className =
-    "inline-flex items-center gap-2 font-heading  underline underline-offset-4"
-
-  return isExternalHref(link.href) ? (
-    <a className={className} href={link.href} rel="noreferrer" target="_blank">
-      {link.label}
-      <ExternalLink aria-hidden="true" className="size-4" />
-    </a>
-  ) : (
-    <Link className={className} href={link.href}>
-      {link.label}
-    </Link>
-  )
-}
-
 function QuestionsSection({ section }: { section: EditorialSection }) {
   return (
     <div className="space-y-3 panel max-w-2xl">
@@ -73,20 +45,9 @@ function QuestionsSection({ section }: { section: EditorialSection }) {
           {section.title}
         </h2>
       ) : null}
-      <div className="space-y-2">
-        {section.paragraphs?.map((paragraph: string) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
+      <div>
+        <PortableTextContent value={section.body} />
       </div>
-      {section.links?.length ? (
-        <div className="flex flex-wrap gap-3">
-          {section.links.map(
-            (link: NonNullable<EditorialSection["links"]>[number]) => (
-              <InlineContentLink key={link._key} link={link} />
-            ),
-          )}
-        </div>
-      ) : null}
     </div>
   )
 }

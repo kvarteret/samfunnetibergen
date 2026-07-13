@@ -55,7 +55,6 @@ export async function generateMetadata({ params }: RoomPageProps) {
   const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
 
   return buildPageMetadata({
-    content: room,
     canonicalPath: `/${localeParam}/rom/${slug}`,
     fallbackTitle: `${title} | Rom`,
     fallbackDescription: room.summary,

@@ -148,7 +148,7 @@ export function expandOccurrences(
 }
 
 /** Build the complete child document generation would write. Inheritable
- * content fields (title, description, image, pricing, links, SEO, …) are
+ * content fields (title, description, image, pricing, links, …) are
  * deliberately absent so the child inherits everything from the parent
  * until an editor overrides a field (execplan 008, Decision D7). */
 export function buildInstanceDocument(
