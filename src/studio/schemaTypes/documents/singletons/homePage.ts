@@ -6,9 +6,7 @@ export const homePage = defineType({
   title: "Hovedside",
   type: "document",
   icon: icons.document,
-  groups: [
-    { name: "hero", title: "Hero", default: true },
-  ],
+  groups: [{ name: "hero", title: "Hero", default: true }],
   fields: [
     defineField({
       name: "eyebrow",

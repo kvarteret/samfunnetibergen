@@ -159,6 +159,5 @@ export const resolve: PresentationPluginOptions["resolve"] = {
         locations: [{ title: "Nyttig info", href: `/${defaultLocale}/nyttig` }],
       }),
     }),
-
   },
 }

@@ -15,7 +15,10 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { fetchEventsPageContent, fetchPublishedEvents } from "@/lib/sanity/fetch"
+import {
+  fetchEventsPageContent,
+  fetchPublishedEvents,
+} from "@/lib/sanity/fetch"
 
 export const revalidate = 60
 

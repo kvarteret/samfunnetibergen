@@ -31,7 +31,8 @@
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
     "test": "vitest run --coverage",
-    "lint": "eslint",
+    "format:check": "biome format .",
+    "lint": "npm run format:check && eslint",
     "format": "biome format --write .",
     "check": "biome check --write ."
   },

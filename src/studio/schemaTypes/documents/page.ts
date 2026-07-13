@@ -9,9 +9,7 @@ export const page = defineType({
     "Selvstendig informasjonsside. Innhold for arrangementer, rom, grupper og andre egne områder redigeres i de tilhørende Studio-seksjonene.",
   type: "document",
   icon: icons.document,
-  groups: [
-    { name: "content", title: "Innhold", default: true },
-  ],
+  groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
     defineField({
       name: "title",

@@ -6,9 +6,7 @@ export const eventsPage = defineType({
   title: "Arrangementer-side",
   type: "document",
   icon: icons.document,
-  groups: [
-    { name: "content", title: "Innhold", default: true },
-  ],
+  groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
     defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
     defineField({ name: "title", title: "Tittel", type: "string" }),
