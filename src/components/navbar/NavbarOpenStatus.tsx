@@ -72,10 +72,10 @@ export function NavbarOpenStatus({
         </span>
         {detail ? (
           <>
-            <span className="hidden shrink-0 text-foreground-muted sm:inline">
+            <span aria-hidden="true" className="shrink-0 text-foreground-muted">
               ·
             </span>
-            <span className="hidden min-w-0 truncate text-foreground-muted sm:inline">
+            <span className="min-w-0 truncate text-foreground-muted">
               {detail}
             </span>
           </>
