@@ -57,24 +57,6 @@ viewport and a desktop viewport. Confirm that both `Åpent`/`Stengt` and the
 `Stenger ...`/`Åpner ...` detail are visible in the navbar. Open the trigger and
 confirm that the seven-day opening-hours list still appears.
 
-## Deployment
-
-Push the fix through a PR for the Vercel preview environment. After the fix is
-merged into `develop`, production is released by
-`.github/workflows/release-production.yml`:
-
-    gh workflow run release-production.yml --ref develop \
-      -f ref=develop \
-      -f promote=true \
-      -f smoke_paths='/nb /nb/rom /nb/rom/book'
-    gh run list --workflow release-production.yml --limit 1
-    gh run watch <run-id> --exit-status
-
-The release workflow builds from the supplied `ref`, smoke-tests the staged
-Vercel deployment, promotes it, and creates the production tag only after the
-promotion succeeds. Treat a successful dispatch as started, not deployed;
-wait for the final workflow result.
-
 ## Common regression
 
 If desktop shows the detail but mobile shows only `Åpent` or `Stengt`, search
