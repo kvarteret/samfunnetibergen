@@ -21,7 +21,6 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
   const page = await fetchUsefulInfoPage()
   return buildPageMetadata({
-    content: page,
     canonicalPath: `/${locale}/nyttig`,
     fallbackTitle: page?.title ?? "Nyttig info",
     fallbackDescription:

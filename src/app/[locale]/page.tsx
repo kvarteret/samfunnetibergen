@@ -20,7 +20,6 @@ import {
   fetchHomePageContent,
   fetchPromotedParentEvents,
   fetchPublishedEvents,
-  fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
@@ -37,51 +36,19 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   const locale = await resolvePageLocale(params)
-  const [homePage, siteMetadata] = await Promise.all([
-    fetchHomePageContent(locale, { stega: false }),
-    fetchSiteMetadata(locale, { stega: false }),
-  ])
-  const title =
-    homePage?.seoTitle ??
-    siteMetadata?.defaultSeoTitle ??
-    homePage?.title ??
-    siteMetadata?.siteName ??
-    undefined
-  const description =
-    homePage?.seoDescription ??
-    siteMetadata?.defaultSeoDescription ??
-    homePage?.description ??
-    undefined
-  const openGraphTitle =
-    homePage?.openGraphTitle ?? siteMetadata?.defaultOpenGraphTitle ?? title
-  const openGraphDescription =
-    homePage?.openGraphDescription ??
-    siteMetadata?.defaultOpenGraphDescription ??
-    description
-  const openGraphImage =
-    homePage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
+  const homePage = await fetchHomePageContent(locale, { stega: false })
+  const title = homePage?.title ?? "Samfunnet i Bergen"
+  const description = homePage?.description ?? undefined
   return {
     title,
     description,
     alternates: {
-      canonical: homePage?.canonicalUrl ?? `/${locale}`,
-    },
-    robots: {
-      index: !homePage?.noIndex,
-      follow: !homePage?.noFollow,
+      canonical: `/${locale}`,
     },
     openGraph: {
-      title: openGraphTitle,
-      description: openGraphDescription,
-      images: openGraphImage
-        ? [
-            {
-              url: openGraphImage,
-              alt: homePage?.openGraphImageAlt ?? undefined,
-            },
-          ]
-        : undefined,
-      siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+      title,
+      description,
+      siteName: "Samfunnet i Bergen",
     },
   }
 }

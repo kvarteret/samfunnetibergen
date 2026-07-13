@@ -13,15 +13,10 @@ import {
   navbarQuery,
   pageBySlugQuery,
   pageSlugsQuery,
-  siteMetadataNbQuery,
   sponsorsPageQuery,
   usefulInfoPageQuery,
 } from "../queries"
 import { compact, type FetchOptions } from "./shared"
-
-export type SiteMetadataContent = NonNullable<
-  ClientReturn<typeof siteMetadataNbQuery>
->
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
@@ -42,17 +37,6 @@ export type NavItem = NonNullable<NavbarContent["items"]>[number]
 export type NavGroup = NonNullable<NavItem["children"]>[number]
 
 export type NavLeaf = NonNullable<NavGroup["items"]>[number]
-
-export async function fetchSiteMetadata(
-  _locale: AppLocale,
-  options: FetchOptions = {},
-): Promise<SiteMetadataContent | null> {
-  const { data } = await sanityFetch({
-    query: siteMetadataNbQuery,
-    stega: options.stega,
-  })
-  return data
-}
 
 export async function fetchHomePageContent(
   _locale: AppLocale,

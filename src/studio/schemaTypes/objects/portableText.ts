@@ -28,10 +28,38 @@ export const portableTextContent = defineType({
             fields: [
               {
                 name: "href",
-                type: "url",
+                type: "string",
                 title: "URL",
                 validation: rule =>
-                  rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
+                  rule.custom(value => {
+                    if (typeof value !== "string" || value.length === 0) {
+                      return "Skriv inn en URL"
+                    }
+                    if (value.startsWith("/")) return true
+                    try {
+                      const url = new URL(value)
+                      return ["http:", "https:", "mailto:", "tel:"].includes(
+                        url.protocol,
+                      )
+                        ? true
+                        : "Bruk http, https, mailto, tel eller intern sti som starter med /"
+                    } catch {
+                      return "Bruk en gyldig URL eller intern sti som starter med /"
+                    }
+                  }),
+              },
+              {
+                name: "style",
+                type: "string",
+                title: "Stil",
+                initialValue: "inline",
+                options: {
+                  list: [
+                    { title: "Inline", value: "inline" },
+                    { title: "Fremhevet lenke", value: "cta" },
+                  ],
+                  layout: "radio",
+                },
               },
               {
                 name: "target",

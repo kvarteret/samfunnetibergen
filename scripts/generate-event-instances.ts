@@ -33,11 +33,7 @@ const client = getCliClient({ apiVersion: "2026-01-01" })
 // Field names as stored on the document (the query projections rename
 // image/openGraphImage, which do not exist under those names in GROQ).
 const OVERRIDE_FIELDS = INHERITED_FIELDS.map(field =>
-  field === "imageUrl"
-    ? "image"
-    : field === "openGraphImageUrl"
-      ? "openGraphImage"
-      : field,
+  field === "imageUrl" ? "image" : field,
 )
 
 type ParentRow = GenerationParent & {

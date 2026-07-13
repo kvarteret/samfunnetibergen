@@ -1,4 +1,5 @@
 import { getCliClient } from "sanity/cli"
+import { VERGEORDNING_FORM_URL } from "../src/studio/migrations/nyttigInfo"
 
 const write = process.env.SANITY_MIGRATION_WRITE === "1"
 const client = getCliClient({ apiVersion: "2025-02-19" })
@@ -15,7 +16,7 @@ Godkjent studentbevis:
 - Gyldig lærlingbevis
 - Gyldig folkehøgskolebevis
 
-Er du under 18 år, kan du besøke Kvarteret sammen med en verge. [Les mer om vergeordningen her.](/vergeordningen/)
+Er du under 18 år, kan du besøke Kvarteret sammen med en verge. [Les mer om vergeordningen her.](${VERGEORDNING_FORM_URL})
 `
 
 function toPortableTextBlock(text: string, index: number) {

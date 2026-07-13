@@ -8,11 +8,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
-import {
-  fetchEventBySlug,
-  fetchEventChildren,
-  fetchSiteMetadata,
-} from "@/lib/sanity/fetch"
+import { fetchEventBySlug, fetchEventChildren } from "@/lib/sanity/fetch"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
@@ -73,35 +69,21 @@ export default async function EventPage({ params }: EventPageProps) {
 
 export async function generateMetadata({ params }: EventPageProps) {
   const resolvedParams = await params
-  const [eventData, siteMetadata] = await Promise.all([
-    fetchEventBySlug(resolvedParams.event),
-    fetchSiteMetadata(resolvedParams.locale as AppLocale, { stega: false }),
-  ])
+  const eventData = await fetchEventBySlug(resolvedParams.event)
 
   if (!eventData) return {}
-  const description =
-    eventData.seoDescription ??
-    eventData.openGraphDescription ??
-    siteMetadata?.defaultSeoDescription ??
-    undefined
-  const openGraphImage =
-    eventData.openGraphImageUrl ??
-    eventData.imageUrl ??
-    siteMetadata?.defaultOpenGraphImageUrl
 
   const metadata = buildPageMetadata({
-    content: eventData,
     canonicalPath: `/${resolvedParams.locale}/arrangementer/${resolvedParams.event}`,
     fallbackTitle: eventData.title,
-    fallbackDescription: description,
-    fallbackImageUrl: openGraphImage,
+    fallbackImageUrl: eventData.imageUrl,
   })
 
   return {
     ...metadata,
     openGraph: {
       ...metadata.openGraph,
-      siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+      siteName: "Samfunnet i Bergen",
       type: "article",
     },
   }

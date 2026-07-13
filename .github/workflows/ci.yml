@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
 
       - name: Biome format check
-        run: npx biome format .
+        run: npm run format:check
 
       - name: ESLint
         run: npm run lint

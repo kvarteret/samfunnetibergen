@@ -3,29 +3,16 @@ import { defineArrayMember, defineField, defineType } from "sanity"
 
 export const siteMetadata = defineType({
   name: "siteMetadata",
-  title: "Nettstedsinfo",
+  title: "Åpningstider",
   type: "document",
-  icon: icons.cog,
-  groups: [
-    { name: "identity", title: "Identitet", default: true },
-    { name: "venue", title: "Huset" },
-    { name: "sharing", title: "Deling" },
-  ],
+  icon: icons.clock,
   fields: [
-    defineField({
-      name: "siteName",
-      title: "Nettstedsnavn",
-      type: "string",
-      group: "identity",
-      initialValue: "Samfunnet i Bergen",
-    }),
     defineField({
       name: "vacationMode",
       title: "Feriemodus",
       description:
-        'Når feriemodus er aktiv står åpningstidene som stengt. Datoen under brukes i teksten "Vi åpner igjen ...", og modusen slår seg av automatisk den datoen.',
+        'Når feriemodus er aktiv står åpningstidene som stengt i perioden. "Til" er datoen vi åpner igjen, og vanlige åpningstider brukes fra og med den datoen.',
       type: "object",
-      group: "venue",
       fields: [
         defineField({
           name: "enabled",
@@ -34,29 +21,49 @@ export const siteMetadata = defineType({
           initialValue: false,
         }),
         defineField({
-          name: "reopensAt",
-          title: "Vi åpner igjen",
-          description:
-            "Feriemodus gjelder frem til denne datoen. På selve datoen brukes vanlige åpningstider igjen.",
+          name: "from",
+          title: "Fra",
+          description: "Første dato feriemodus gjelder fra.",
           type: "date",
           hidden: ({ parent }) => parent?.enabled !== true,
           validation: rule =>
             rule.custom((value, context) => {
               const parent = context.parent as { enabled?: boolean } | undefined
               if (parent?.enabled === true && !value) {
-                return "Velg datoen feriemodus skal slås av"
+                return "Velg datoen feriemodus starter"
+              }
+              return true
+            }),
+        }),
+        defineField({
+          name: "to",
+          title: "Til (vi åpner igjen)",
+          description:
+            "Feriemodus gjelder frem til denne datoen. På selve datoen brukes vanlige åpningstider igjen.",
+          type: "date",
+          hidden: ({ parent }) => parent?.enabled !== true,
+          validation: rule =>
+            rule.custom((value, context) => {
+              const parent = context.parent as
+                | { enabled?: boolean; from?: string }
+                | undefined
+              if (parent?.enabled === true && !value) {
+                return "Velg datoen vi åpner igjen"
+              }
+              if (value && parent?.from && value <= parent.from) {
+                return "Til-datoen må være etter fra-datoen"
               }
               return true
             }),
         }),
       ],
       preview: {
-        select: { enabled: "enabled", reopensAt: "reopensAt" },
-        prepare({ enabled, reopensAt }) {
+        select: { enabled: "enabled", from: "from", to: "to" },
+        prepare({ enabled, from, to }) {
           return {
             title: enabled ? "FERIEMODUS aktiv" : "Feriemodus av",
             subtitle: enabled
-              ? `Vi åpner igjen ${reopensAt ?? "dato mangler"}`
+              ? `${from ?? "fra mangler"} til ${to ?? "til mangler"}`
               : "Vanlige åpningstider brukes",
           }
         },
@@ -66,7 +73,6 @@ export const siteMetadata = defineType({
       name: "openingHours",
       title: "Driftsleder tilgjengelig",
       type: "openingHours",
-      group: "venue",
     }),
     defineField({
       name: "houseClosedDates",
@@ -74,7 +80,6 @@ export const siteMetadata = defineType({
       description:
         "Hele datoer der huset er stengt. Barer regnes som stengt, og karaoke kan ikke bookes disse datoene.",
       type: "array",
-      group: "venue",
       of: [
         defineArrayMember({
           name: "houseClosedDate",
@@ -105,47 +110,10 @@ export const siteMetadata = defineType({
         }),
       ],
     }),
-    defineField({
-      name: "defaultSeoTitle",
-      title: "Standard SEO-tittel",
-      type: "string",
-      group: "identity",
-    }),
-    defineField({
-      name: "defaultSeoDescription",
-      title: "Standard SEO-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "identity",
-      validation: rule =>
-        rule.max(160).warning("Hold deg under 160 tegn for beste SEO"),
-    }),
-    defineField({
-      name: "defaultOpenGraphImage",
-      title: "Standard Open Graph-bilde",
-      type: "image",
-      group: "sharing",
-      options: { hotspot: true },
-    }),
-    defineField({
-      name: "defaultOpenGraphTitle",
-      title: "Standard Open Graph-tittel",
-      type: "string",
-      group: "sharing",
-    }),
-    defineField({
-      name: "defaultOpenGraphDescription",
-      title: "Standard Open Graph-beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "sharing",
-      validation: rule => rule.max(200).warning("Hold teksten kort for deling"),
-    }),
   ],
   preview: {
-    select: { title: "siteName" },
-    prepare({ title }) {
-      return { title: title ?? "Nettstedsinfo" }
+    prepare() {
+      return { title: "Åpningstider" }
     },
   },
 })

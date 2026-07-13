@@ -1,11 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import {
-  createSeoFields,
-  createSharingFields,
-} from "../../shared/metadataFields"
-
 export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
   title: "Nyttig info",
@@ -14,10 +9,7 @@ export const usefulInfoPage = defineType({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],
-  groups: [
-    { name: "content", title: "Innhold", default: true },
-    { name: "seo", title: "SEO" },
-  ],
+  groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
     defineField({
       name: "eyebrow",
@@ -53,8 +45,6 @@ export const usefulInfoPage = defineType({
         defineArrayMember({ type: "infoAccordionBlock" }),
       ],
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     select: { title: "title" },

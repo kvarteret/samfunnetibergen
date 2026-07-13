@@ -15,7 +15,6 @@ export type {
   RoomDetail,
   RoomSummary,
   RoomsPageContent,
-  SiteMetadataContent,
   SourcedImage,
   SponsorsPageContent,
   StudentGroupDetail,

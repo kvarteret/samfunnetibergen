@@ -7,9 +7,9 @@ import {
   UtensilsCrossed,
 } from "lucide-react"
 
+import { PortableTextContent } from "@/lib/portable-text-components"
 import type { UsefulInfoPage } from "@/lib/sanity/fetch"
 import { InfoSection } from "./InfoSection"
-import { InlineContentLink } from "./InlineContentLink"
 
 type EditorialBlockData = Extract<
   NonNullable<UsefulInfoPage["sections"]>[number],
@@ -37,20 +37,9 @@ export const EditorialInfoBlock = ({
     title={block.title ?? "Informasjon"}
   >
     <div className="space-y-4">
-      <div className="max-w-2xl space-y-3 text-foreground">
-        {block.paragraphs.map(paragraph => (
-          <p className="leading-7" key={paragraph}>
-            {paragraph}
-          </p>
-        ))}
+      <div className="max-w-2xl text-foreground">
+        <PortableTextContent value={block.body} />
       </div>
-      {block.links.length > 0 ? (
-        <div className="flex flex-wrap gap-4">
-          {block.links.map(link => (
-            <InlineContentLink key={link._key} link={link} />
-          ))}
-        </div>
-      ) : null}
     </div>
   </InfoSection>
 )

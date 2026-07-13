@@ -1,4 +1,5 @@
 import { Disclosure } from "@/components/ui/disclosure"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import type { EditorialSection } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 
@@ -13,29 +14,25 @@ export function LeietiderSection({
 }: LeietiderSectionProps) {
   if (!section?.title) return null
 
-  const paragraphs = section.paragraphs ?? []
-
   return (
     <section aria-label={section.title} className={cn("space-y-2", className)}>
       <div className="hidden space-y-3 panel md:block">
         <h2 className="font-heading text-xl leading-tight text-foreground">
           {section.title}
         </h2>
-        <LeietiderParagraphs paragraphs={paragraphs} />
+        <LeietiderBody body={section.body} />
       </div>
       <Disclosure className="md:hidden" summary="Se leietider">
-        <LeietiderParagraphs paragraphs={paragraphs} />
+        <LeietiderBody body={section.body} />
       </Disclosure>
     </section>
   )
 }
 
-function LeietiderParagraphs({ paragraphs }: { paragraphs: string[] }) {
-  return (
-    <div className="space-y-2">
-      {paragraphs.map(paragraph => (
-        <p key={paragraph}>{paragraph}</p>
-      ))}
-    </div>
-  )
+function LeietiderBody({
+  body,
+}: {
+  body: NonNullable<EditorialSection["body"]>
+}) {
+  return <PortableTextContent value={body} />
 }

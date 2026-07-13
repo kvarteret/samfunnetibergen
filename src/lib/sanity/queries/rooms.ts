@@ -10,15 +10,6 @@ export const roomsQuery =
     "title": coalesce(title, "[Mangler romnavn]"),
     "slug": coalesce(slug.current, ""),
     "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     capacityStanding,
     capacitySeated,
     "suitedPurposes": coalesce(suitedPurposes, []),
@@ -41,7 +32,11 @@ export const barPreviewsQuery = defineQuery(`{
     }, []),
     "vacationMode": {
         "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),
-        "reopensAt": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt
+        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,
+        "to": coalesce(
+            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,
+            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt
+        )
     },
     "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours ${openingHoursProjection},
     "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {
@@ -55,7 +50,7 @@ export const barPreviewsQuery = defineQuery(`{
 }`)
 
 export const roomSlugsQuery =
-  defineQuery(`*[_type == "room" && defined(slug.current) && noIndex != true] {
+  defineQuery(`*[_type == "room" && defined(slug.current)] {
     "slug": slug.current
 }`)
 
@@ -87,15 +82,6 @@ export const roomBySlugQuery =
     "title": coalesce(title, "[Mangler romnavn]"),
     "slug": coalesce(slug.current, ""),
     "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    "noIndex": coalesce(noIndex, false),
-    "noFollow": coalesce(noFollow, false),
-    openGraphTitle,
-    openGraphDescription,
-    "openGraphImageUrl": openGraphImage.asset->url,
-    openGraphImageAlt,
     capacityStanding,
     capacitySeated,
     "suitedPurposes": coalesce(suitedPurposes, []),

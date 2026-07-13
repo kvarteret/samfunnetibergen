@@ -28,7 +28,6 @@ export async function generateMetadata({ params }: RoomsPageProps) {
   const content = await fetchRoomsPageContent({ stega: false })
 
   return buildPageMetadata({
-    content,
     canonicalPath: `/${locale}/rom`,
     fallbackTitle: content?.title ?? "Rom",
     fallbackDescription:

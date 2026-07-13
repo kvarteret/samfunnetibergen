@@ -5,7 +5,6 @@ import { draftMode } from "next/headers"
 import Script from "next/script"
 import { VisualEditing } from "next-sanity/visual-editing"
 import { paperPreferenceScript } from "@/lib/paper-preference"
-import { fetchSiteMetadata } from "@/lib/sanity/fetch"
 import { SanityLive } from "@/lib/sanity/fetcher"
 import { resolveSiteUrl } from "@/lib/site-url"
 import { themePreferenceScript } from "@/lib/theme-preference"
@@ -55,27 +54,14 @@ const hegvalDisplay = localFont({
 })
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteMetadata = await fetchSiteMetadata("nb", { stega: false })
-  const title =
-    siteMetadata?.defaultSeoTitle ??
-    siteMetadata?.siteName ??
-    "Samfunnet i Bergen"
-  const description = siteMetadata?.defaultSeoDescription ?? undefined
-  const openGraphTitle = siteMetadata?.defaultOpenGraphTitle ?? title
-  const openGraphDescription =
-    siteMetadata?.defaultOpenGraphDescription ?? description
+  const title = "Samfunnet i Bergen"
 
   return {
     metadataBase: new URL(resolveSiteUrl()),
     title,
-    description,
     openGraph: {
-      title: openGraphTitle,
-      description: openGraphDescription,
-      images: siteMetadata?.defaultOpenGraphImageUrl
-        ? [{ url: siteMetadata.defaultOpenGraphImageUrl }]
-        : undefined,
-      siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+      title,
+      siteName: "Samfunnet i Bergen",
       type: "website",
     },
   }

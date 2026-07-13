@@ -8,7 +8,6 @@ import {
   getPublishedDocumentId,
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
-import { createSeoFields, createSharingFields } from "../shared/metadataFields"
 
 export const STUDENT_GROUP_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
@@ -28,7 +27,6 @@ export const studentGroup = defineType({
     { name: "identity", title: "Gruppe", default: true },
     { name: "hierarchy", title: "Hierarki" },
     { name: "contact", title: "Kontakt" },
-    { name: "seo", title: "SEO og deling" },
   ],
   fields: [
     defineField({
@@ -260,8 +258,6 @@ export const studentGroup = defineType({
       type: "sourcedImage",
       group: "identity",
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
     orderRankField({ type: "studentGroup" }),
   ],
   orderings: [orderRankOrdering],

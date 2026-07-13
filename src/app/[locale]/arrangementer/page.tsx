@@ -18,7 +18,6 @@ import { buildPageMetadata } from "@/lib/page-metadata"
 import {
   fetchEventsPageContent,
   fetchPublishedEvents,
-  fetchSiteMetadata,
 } from "@/lib/sanity/fetch"
 
 export const revalidate = 60
@@ -31,28 +30,23 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/arrangementer">) {
   const locale = await resolvePageLocale(params)
-  const [t, eventsPage, siteMetadata] = await Promise.all([
+  const [t, eventsPage] = await Promise.all([
     getTranslations({ locale, namespace: "Metadata" }),
     fetchEventsPageContent(locale, { stega: false }),
-    fetchSiteMetadata(locale, { stega: false }),
   ])
-  const description = eventsPage?.seoDescription ?? t("eventsDescription")
-  const openGraphImage =
-    eventsPage?.openGraphImageUrl ?? siteMetadata?.defaultOpenGraphImageUrl
+  const description = eventsPage?.description ?? t("eventsDescription")
 
   const metadata = buildPageMetadata({
-    content: eventsPage,
     canonicalPath: `/${locale}/arrangementer`,
     fallbackTitle: t("eventsTitle"),
     fallbackDescription: description,
-    fallbackImageUrl: openGraphImage,
   })
 
   return {
     ...metadata,
     openGraph: {
       ...metadata.openGraph,
-      siteName: siteMetadata?.siteName ?? "Samfunnet i Bergen",
+      siteName: "Samfunnet i Bergen",
     },
   }
 }

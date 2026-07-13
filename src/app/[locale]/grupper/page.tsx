@@ -64,7 +64,6 @@ export async function generateMetadata({ params }: GroupsPageProps) {
   const content = await fetchGroupsPageContent({ stega: false })
 
   return buildPageMetadata({
-    content,
     canonicalPath: `/${locale}/grupper`,
     fallbackTitle: content?.title ?? "Grupper",
     fallbackDescription: content?.description ?? "Se gruppene i Samfunnet.",

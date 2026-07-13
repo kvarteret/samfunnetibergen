@@ -25,12 +25,6 @@ export const INHERITED_FIELDS = [
   "ticketUrl",
   "facebookUrl",
   "isInternalEvent",
-  "seoTitle",
-  "seoDescription",
-  "openGraphTitle",
-  "openGraphDescription",
-  "openGraphImageUrl",
-  "openGraphImageAlt",
 ] as const
 
 export type InheritedField = (typeof INHERITED_FIELDS)[number]

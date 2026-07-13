@@ -9,10 +9,12 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
+import type { HouseHoursContent } from "@/lib/sanity/fetch"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { MobileMenu } from "./MobileMenu"
 import { NavbarScrollShell } from "./NavbarScrollShell"
+import { NavbarOpenStatus } from "./NavbarOpenStatus"
 import { PaperMenuSection } from "./PaperPicker"
 
 const moreItem: NavItem = {
@@ -126,7 +128,11 @@ function isExternal(item: {
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
-export function Navbar() {
+export function Navbar({
+  houseHours,
+}: {
+  houseHours?: HouseHoursContent | null
+}) {
   const items = orderedNavItems()
 
   return (
@@ -135,20 +141,28 @@ export function Navbar() {
         aria-label="Hovednavigasjon"
         className="mx-auto flex max-w-7xl items-center justify-between px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
       >
-        <Link
-          aria-label="Samfunnet i Bergen"
-          className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
-          href="/"
-        >
-          <Image
-            alt="Samfunnet i Bergen logo"
-            className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
-            height={62}
-            priority
-            src="/kvarteret-logo.svg"
-            width={100}
+        <div className="flex min-w-0 items-center gap-4">
+          <Link
+            aria-label="Samfunnet i Bergen"
+            className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
+            href="/"
+          >
+            <Image
+              alt="Samfunnet i Bergen logo"
+              className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
+              height={62}
+              priority
+              src="/kvarteret-logo.svg"
+              width={100}
+            />
+          </Link>
+
+          <NavbarOpenStatus
+            closedDates={houseHours?.houseClosedDates}
+            openingHours={houseHours?.operationsManagerHours}
+            vacationMode={houseHours?.vacationMode}
           />
-        </Link>
+        </div>
 
         <DesktopNav items={items} />
 

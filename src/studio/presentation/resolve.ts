@@ -16,14 +16,6 @@ export {
 export const resolve: PresentationPluginOptions["resolve"] = {
   mainDocuments: defineDocuments([
     {
-      route: "/linkibio",
-      filter: `_id == "linkInBio"`,
-    },
-    {
-      route: "/:locale",
-      filter: `_id == "homePage"`,
-    },
-    {
       route: "/:locale/arrangementer",
       filter: `_id == "eventsPage"`,
     },
@@ -65,12 +57,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     },
   ]),
   locations: {
-    homePage: defineLocations({
-      select: {},
-      resolve: () => ({
-        locations: [{ title: "Hovedside", href: `/${defaultLocale}` }],
-      }),
-    }),
     room: defineLocations({
       select: { title: "title", slug: "slug.current" },
       resolve: doc => ({
@@ -160,22 +146,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       }),
     }),
 
-    navbar: defineLocations({
-      select: {},
-      resolve: () => ({
-        message: "Navigasjonen vises på alle offentlige sider.",
-        tone: "positive",
-      }),
-    }),
-
-    footer: defineLocations({
-      select: {},
-      resolve: () => ({
-        message: "Footeren vises på alle offentlige sider.",
-        tone: "positive",
-      }),
-    }),
-
     kontaktPage: defineLocations({
       select: {},
       resolve: () => ({
@@ -187,22 +157,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       select: {},
       resolve: () => ({
         locations: [{ title: "Nyttig info", href: `/${defaultLocale}/nyttig` }],
-      }),
-    }),
-
-    siteMetadata: defineLocations({
-      select: {},
-      resolve: () => ({
-        message:
-          "Metadata brukes på tvers av nettstedet og har ingen enkelt visningsside.",
-        tone: "positive",
-      }),
-    }),
-
-    linkInBio: defineLocations({
-      select: {},
-      resolve: () => ({
-        locations: [{ title: "Link i bio", href: `/linkibio` }],
       }),
     }),
   },

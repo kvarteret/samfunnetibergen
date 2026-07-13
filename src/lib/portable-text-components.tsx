@@ -2,6 +2,7 @@ import Image from "next/image"
 import { PortableText } from "next-sanity"
 
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { cn } from "@/lib/utils"
 
 type PortableTextBlock = {
   _key?: string
@@ -26,6 +27,7 @@ type PortableTextImageValue = {
 
 type PortableTextLinkValue = {
   href?: string
+  style?: "inline" | "cta"
   target?: "self" | "blank"
   blank?: boolean
 }
@@ -130,14 +132,20 @@ function PortableTextLink({
   }
 
   const opensInNewTab = value.target === "blank" || value.blank === true
+  const isCta = value.style === "cta"
 
   return (
     <a
+      className={cn(
+        isCta &&
+          "not-prose group inline-flex items-center gap-2 font-heading underline underline-offset-4",
+      )}
       href={value.href}
       rel={opensInNewTab ? "noreferrer" : undefined}
       target={opensInNewTab ? "_blank" : undefined}
     >
       {children}
+      {isCta ? <span aria-hidden>→</span> : null}
     </a>
   )
 }

@@ -313,19 +313,12 @@
 }
 
 .paper-prose {
-  background-color: var(--card);
-  padding: var(--paper-writing-line);
   line-height: var(--paper-writing-line);
   color: var(--color-foreground);
 }
 
 .paper-prose :where(p, li) {
   line-height: var(--paper-writing-line);
-}
-
-.accordion-panel-content .paper-prose {
-  background-color: transparent;
-  padding: 0;
 }
 
 :where(ul, ol) > li::marker,

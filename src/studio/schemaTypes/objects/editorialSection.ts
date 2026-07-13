@@ -1,5 +1,5 @@
 import { icons } from "@sanity/icons"
-import { defineArrayMember, defineField, defineType } from "sanity"
+import { defineField, defineType } from "sanity"
 
 export const editorialSection = defineType({
   name: "editorialSection",
@@ -9,23 +9,29 @@ export const editorialSection = defineType({
   fields: [
     defineField({ name: "title", title: "Tittel", type: "string" }),
     defineField({
-      name: "paragraphs",
-      title: "Avsnitt",
-      type: "array",
-      of: [defineArrayMember({ type: "text" })],
-      validation: rule => rule.required().min(1),
-    }),
-    defineField({
-      name: "links",
-      title: "Lenker",
-      type: "array",
-      of: [defineArrayMember({ type: "sourceLink" })],
+      name: "body",
+      title: "Innhold",
+      type: "portableTextContent",
+      description: "Bruk dette for tekst med lenker i løpende innhold.",
+      validation: rule => rule.required(),
     }),
   ],
   preview: {
-    select: { title: "title", paragraphs: "paragraphs" },
-    prepare({ title, paragraphs }) {
-      return { title: title || paragraphs?.[0] || "Tekstseksjon" }
+    select: { title: "title", body: "body" },
+    prepare({ title, body }) {
+      const bodyPreview = Array.isArray(body)
+        ? body
+            .flatMap(block =>
+              Array.isArray(block?.children)
+                ? block.children.map((child: { text?: string }) => child.text)
+                : [],
+            )
+            .filter(Boolean)
+            .join(" ")
+        : undefined
+      return {
+        title: title || bodyPreview || "Tekstseksjon",
+      }
     },
   },
 })

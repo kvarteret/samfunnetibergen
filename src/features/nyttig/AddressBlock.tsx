@@ -14,7 +14,7 @@ export const AddressBlock = ({ block }: { block: AddressBlockData }) => (
   <InfoSection icon={MapPin} id={block._key} title={block.heading}>
     <div className="space-y-4">
       {block.body.length > 0 ? (
-        <div className="max-w-2xl text-foreground [&_.paper-prose]:bg-transparent [&_.paper-prose]:p-0">
+        <div className="max-w-2xl text-foreground">
           <PortableTextContent value={block.body} />
         </div>
       ) : null}

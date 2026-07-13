@@ -1,11 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-import {
-  createSeoFields,
-  createSharingFields,
-} from "../../shared/metadataFields"
-
 export const roomsPage = defineType({
   name: "roomsPage",
   title: "Rom-side",
@@ -15,7 +10,6 @@ export const roomsPage = defineType({
     { name: "hero", title: "Hero", default: true },
     { name: "booking", title: "Bestilling" },
     { name: "floorPlans", title: "Plantegninger" },
-    { name: "seo", title: "SEO" },
   ],
   fields: [
     defineField({
@@ -99,8 +93,6 @@ export const roomsPage = defineType({
         }),
       ],
     }),
-    ...createSeoFields(),
-    ...createSharingFields({ group: "seo" }),
   ],
   preview: {
     select: { title: "title" },

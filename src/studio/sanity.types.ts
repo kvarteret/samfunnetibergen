@@ -158,46 +158,16 @@ export type SourceLink = {
   externalUrl?: string
 }
 
-export type InternbevisBenefitReference = {
-  _ref: string
-  _type: "reference"
-  _weak?: boolean
-  [internalGroqTypeReferenceTo]?: "internbevisBenefit"
-}
-
-export type InternbevisPage = {
-  _id: string
-  _type: "internbevisPage"
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  trinn1Benefits?: Array<
-    {
-      _key: string
-    } & InternbevisBenefitReference
-  >
-  trinn2Benefits?: Array<
-    {
-      _key: string
-    } & InternbevisBenefitReference
-  >
-  trinn3Benefits?: Array<
-    {
-      _key: string
-    } & InternbevisBenefitReference
-  >
-}
-
 export type SiteMetadata = {
   _id: string
   _type: "siteMetadata"
   _createdAt: string
   _updatedAt: string
   _rev: string
-  siteName?: string
   vacationMode?: {
     enabled?: boolean
-    reopensAt?: string
+    from?: string
+    to?: string
   }
   openingHours?: OpeningHours
   houseClosedDates?: Array<{
@@ -206,17 +176,6 @@ export type SiteMetadata = {
     _type: "houseClosedDate"
     _key: string
   }>
-  defaultSeoTitle?: string
-  defaultSeoDescription?: string
-  defaultOpenGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  defaultOpenGraphTitle?: string
-  defaultOpenGraphDescription?: string
 }
 
 export type OpeningHours = {
@@ -371,6 +330,7 @@ export type PortableTextContent = Array<
       listItem?: "bullet" | "number"
       markDefs?: Array<{
         href?: string
+        style?: "inline" | "cta"
         target?: "self" | "blank"
         _type: "link"
         _key: string
@@ -483,12 +443,7 @@ export type InfoAddressBlock = {
 export type EditorialSection = {
   _type: "editorialSection"
   title?: string
-  paragraphs: Array<string>
-  links?: Array<
-    {
-      _key: string
-    } & SourceLink
-  >
+  body: PortableTextContent
 }
 
 export type SourcedImage = {
@@ -555,21 +510,6 @@ export type Arrangement = {
   priceMedlem?: number
   ticketUrl?: string
   facebookUrl?: string
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
   eventStatus?: "scheduled" | "cancelled" | "postponed"
   approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
   submittedBy?: string
@@ -623,21 +563,6 @@ export type StudentGroup = {
   }
   labels?: Array<string>
   image?: SourcedImage
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
   orderRank?: string
 }
 
@@ -680,21 +605,6 @@ export type Room = {
       _key: string
     } & SourcedImage
   >
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type EventTaxonomyGroupReference = {
@@ -739,21 +649,6 @@ export type Page = {
   title: string
   slug: Slug
   content?: Markdown
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type Markdown = string
@@ -776,21 +671,6 @@ export type KontaktPage = {
       _key: string
     } & ContactGroup
   >
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type UsefulInfoPage = {
@@ -813,21 +693,6 @@ export type UsefulInfoPage = {
         _key: string
       } & InfoAccordionBlock)
   >
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type SponsorsPage = {
@@ -853,21 +718,6 @@ export type SponsorsPage = {
     _type: "sponsor"
     _key: string
   }>
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type GroupsPage = {
@@ -884,21 +734,6 @@ export type GroupsPage = {
       _key: string
     } & EditorialSection
   >
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
   faq?: Array<{
     question: string
     answer: Array<string>
@@ -940,21 +775,6 @@ export type RoomsPage = {
     _type: "floorPlan"
     _key: string
   }>
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type EventsPage = {
@@ -966,21 +786,6 @@ export type EventsPage = {
   eyebrow?: string
   title?: string
   description?: string
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type HomePage = {
@@ -993,21 +798,6 @@ export type HomePage = {
   title: string
   description?: string
   primaryCta?: SourceLink
-  seoTitle?: string
-  seoDescription?: string
-  canonicalUrl?: string
-  noIndex?: boolean
-  noFollow?: boolean
-  openGraphImage?: {
-    asset?: SanityImageAssetReference
-    media?: unknown
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: "image"
-  }
-  openGraphImageAlt?: string
-  openGraphTitle?: string
-  openGraphDescription?: string
 }
 
 export type SanityAssistInstructionTask = {
@@ -1261,8 +1051,6 @@ export type AllSanitySchemaTypes =
   | RoomReference
   | StudentGroupReference
   | SourceLink
-  | InternbevisBenefitReference
-  | InternbevisPage
   | SiteMetadata
   | OpeningHours
   | Footer
