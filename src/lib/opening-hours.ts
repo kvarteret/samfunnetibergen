@@ -1,4 +1,5 @@
 import {
+  addDays,
   addMinutes,
   format,
   getISODay,
@@ -55,6 +56,15 @@ const vacationReopenDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   month: "long",
   year: "numeric",
 })
+const osloDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
+  day: "2-digit",
+  hour: "2-digit",
+  hourCycle: "h23",
+  minute: "2-digit",
+  month: "2-digit",
+  timeZone: "Europe/Oslo",
+  year: "numeric",
+})
 const openingDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   day: "numeric",
   month: "long",
@@ -80,8 +90,18 @@ const WEEKDAY_LONG_LABELS: Record<number, string> = {
   7: "søndag",
 }
 
+function osloDateTimeParts(date: Date) {
+  const parts = osloDateTimeFormatter.formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(item => item.type === type)?.value ?? ""
+  return {
+    date: `${part("year")}-${part("month")}-${part("day")}`,
+    minutes: Number(part("hour")) * 60 + Number(part("minute")),
+  }
+}
+
 export function isoDate(date: Date): string {
-  return format(date, "yyyy-MM-dd")
+  return osloDateTimeParts(date).date
 }
 
 /**
@@ -89,11 +109,14 @@ export function isoDate(date: Date): string {
  * Used by the booking form (7-day window) and karaoke form (60-day window).
  */
 export function buildDateSequence(today: string, count: number): string[] {
+  const startDate = parseISO(today)
   return Array.from({ length: count }, (_, index) => {
-    const date = new Date(today)
-    date.setDate(date.getDate() + index)
-    return isoDate(date)
+    return format(addDays(startDate, index), "yyyy-MM-dd")
   })
+}
+
+function addCalendarDays(dateStr: string, amount: number): string {
+  return format(addDays(parseISO(dateStr), amount), "yyyy-MM-dd")
 }
 
 export function isoWeekday(dateStr: string): number {
@@ -240,8 +263,7 @@ export function openingHoursStatusAt(
   closedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
 ): OpeningHoursStatus {
-  const today = isoDate(date)
-  const minutes = date.getHours() * 60 + date.getMinutes()
+  const { date: today, minutes } = osloDateTimeParts(date)
 
   const todayRange = openingRangesForDate(
     today,
@@ -253,7 +275,7 @@ export function openingHoursStatusAt(
     return { isOpen: true, currentRange: todayRange }
   }
 
-  const yesterday = isoDate(subDays(date, 1))
+  const yesterday = addCalendarDays(today, -1)
   const yesterdayRange = openingRangesForDate(
     yesterday,
     hours,
@@ -273,10 +295,7 @@ export function openingHoursStatusAt(
     }
   }
 
-  for (let offset = 0; offset < 14; offset++) {
-    const candidateDate = new Date(date)
-    candidateDate.setDate(candidateDate.getDate() + offset)
-    const dateStr = isoDate(candidateDate)
+  for (const [offset, dateStr] of buildDateSequence(today, 14).entries()) {
     const nextRange = openingRangesForDate(
       dateStr,
       hours,
@@ -292,11 +311,7 @@ export function openingHoursStatusAt(
     vacationMode.to &&
     isoDate(date) < vacationMode.to
   ) {
-    const reopenDate = parseISO(vacationMode.to)
-    for (let offset = 0; offset < 14; offset++) {
-      const candidateDate = new Date(reopenDate)
-      candidateDate.setDate(candidateDate.getDate() + offset)
-      const dateStr = isoDate(candidateDate)
+    for (const dateStr of buildDateSequence(vacationMode.to, 14)) {
       const nextRange = openingRangesForDate(
         dateStr,
         hours,
@@ -375,10 +390,9 @@ export function isOpenAt(
   closedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
 ): boolean {
-  const today = isoDate(date)
+  const { date: today, minutes } = osloDateTimeParts(date)
   if (isHouseClosed(today, closedDates, vacationMode)) return false
 
-  const minutes = date.getHours() * 60 + date.getMinutes()
   const todayRanges = openingRangesForDate(
     today,
     hours,
@@ -387,7 +401,7 @@ export function isOpenAt(
   ).some(range => minutes >= range.startMin && minutes < range.endMin)
   if (todayRanges) return true
 
-  const yesterday = isoDate(subDays(date, 1))
+  const yesterday = addCalendarDays(today, -1)
   return openingRangesForDate(yesterday, hours, closedDates, vacationMode).some(
     range =>
       range.endMin > MINUTES_IN_DAY && minutes + MINUTES_IN_DAY < range.endMin,
@@ -401,10 +415,9 @@ export function isOpenAtForCombinedHours(
   closedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
 ): boolean {
-  const today = isoDate(date)
+  const { date: today, minutes } = osloDateTimeParts(date)
   if (isHouseClosed(today, closedDates, vacationMode)) return false
 
-  const minutes = date.getHours() * 60 + date.getMinutes()
   const todayRanges = combineOpeningRangesForDate(
     today,
     baseHours,
@@ -414,7 +427,7 @@ export function isOpenAtForCombinedHours(
   ).some(range => minutes >= range.startMin && minutes < range.endMin)
   if (todayRanges) return true
 
-  const yesterday = isoDate(subDays(date, 1))
+  const yesterday = addCalendarDays(today, -1)
   return combineOpeningRangesForDate(
     yesterday,
     baseHours,
