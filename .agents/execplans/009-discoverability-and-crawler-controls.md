@@ -106,9 +106,10 @@ Implement on branch
   redirect status and need explicit permanent statuses if they are confirmed
   as legacy moves.
 - Next 16 rejects non-literal segment configuration exports during production
-  builds. `src/app/sitemap.ts` therefore exports the literal `revalidate =
-  3600`, while `src/app/sitemapEntries.ts` keeps the shared test/documentation
-  constant.
+  builds, so `src/app/sitemap.ts` exports the literal `revalidate = 3600`. A
+  mirroring `SITEMAP_REVALIDATE_SECONDS` constant was later removed during
+  review cleanup: it could not be wired to the real export (the sitemap module
+  is not importable under vitest), so its test asserted nothing.
 - Next's `alternates.types` resolver expects an array of link descriptors. A
   single descriptor object type-checks but renders no `<link>`; the event
   listing now emits one `application/ld+json` alternate link after this was
