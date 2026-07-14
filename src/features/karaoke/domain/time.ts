@@ -1,19 +1,15 @@
 import { addDays, parseISO } from "date-fns"
 
-import { isoDate } from "@/lib/opening-hours"
+import { isoDate, minutesToTime } from "@/lib/opening-hours"
 
 import { timeToMinutes } from "@/lib/time"
 export { timeToMinutes }
-
-/** Convert minutes from midnight to "HH:MM" (wraps past 24h). */
-export function minutesToTimeOfDay(minutes: number): string {
-  return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`
-}
+export { minutesToTime as minutesToTimeOfDay }
 
 /** Add hours to "HH:MM" string, returning "HH:MM" (wraps past 24h). */
 export function addHours(time: string, hours: number): string {
   if (!time) return ""
-  return minutesToTimeOfDay(timeToMinutes(time) + hours * 60)
+  return minutesToTime(timeToMinutes(time) + hours * 60)
 }
 
 /**

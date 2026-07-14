@@ -27,6 +27,7 @@ import {
   buildRoomBooking,
   slugForBookerType,
 } from "@/lib/integrations/crescat/room-booking"
+import { durationHoursBetween } from "@/features/booking/domain/availability"
 import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
@@ -129,15 +130,6 @@ async function hasVenueCalendarConflict(
       end > formatOsloDateTime(booking.start)
     )
   })
-}
-
-function durationHoursBetween(startTime: string, endTime: string): number {
-  const [startHour, startMinute] = startTime.split(":").map(Number)
-  const [endHour, endMinute] = endTime.split(":").map(Number)
-  const startMin = startHour * 60 + startMinute
-  const endMin = endHour * 60 + endMinute
-  const diff = endMin - startMin
-  return (diff <= 0 ? diff + 24 * 60 : diff) / 60
 }
 
 async function isAllowedByOpeningHours(
