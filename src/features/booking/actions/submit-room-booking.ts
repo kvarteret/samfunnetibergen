@@ -31,21 +31,17 @@ import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
-import {
-  getHandledExceptionProperties,
-  toPostHogException,
-} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
-
-const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
-const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 5
-
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
+import {
+  captureSubmitFailure,
+  GENERIC_SUBMIT_ERROR,
+  INVALID_PAYLOAD_ERROR,
+  isSubmissionRateLimited,
+  RATE_LIMIT_ERROR,
+  TIME_PATTERN as timeRegex,
+} from "@/lib/submission"
 
 const payloadSchema = z.object({
   bookerType: z.enum(["intern", "ekstern", "studentorg"]),
@@ -180,21 +176,13 @@ export async function submitRoomBooking(
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
   if (payload.honeypot?.trim()) return ok(-1)
 
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "submitRoomBooking",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
+  if (await isSubmissionRateLimited("submitRoomBooking")) {
     return err(RATE_LIMIT_ERROR)
   }
 
   const parsed = payloadSchema.safeParse(payload)
   if (!parsed.success) {
-    return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
+    return err(INVALID_PAYLOAD_ERROR)
   }
 
   if (!(await isAllowedByOpeningHours(parsed.data))) {
@@ -214,9 +202,8 @@ export async function submitRoomBooking(
     body,
   )
 
-  const posthog = getPostHogClient()
   if (result.ok) {
-    posthog.capture({
+    getPostHogClient().capture({
       distinctId: "anonymous",
       event: "room_booking_submitted",
       properties: {
@@ -233,27 +220,12 @@ export async function submitRoomBooking(
     return result
   }
 
-  // Keep internal error detail in PostHog; return generic message to client.
-  posthog.capture({
-    distinctId: "anonymous",
-    event: "room_booking_submit_failed",
-    properties: {
-      booker_type: parsed.data.bookerType,
-      room_id: parsed.data.roomIds[0],
-      start_date: parsed.data.startDate,
-      error: result.error,
-    },
+  captureSubmitFailure("room_booking", result.error, {
+    source: "submit-room-booking",
+    failure_branch: "crescat_request_failed",
+    booker_type: parsed.data.bookerType,
+    room_id: parsed.data.roomIds[0],
+    start_date: parsed.data.startDate,
   })
-  posthog.captureException(
-    toPostHogException(result.error),
-    "anonymous",
-    getHandledExceptionProperties("room_booking", {
-      source: "submit-room-booking",
-      failure_branch: "crescat_request_failed",
-      booker_type: parsed.data.bookerType,
-      room_id: parsed.data.roomIds[0],
-      start_date: parsed.data.startDate,
-    }),
-  )
-  return err(GENERIC_ERROR)
+  return err(GENERIC_SUBMIT_ERROR)
 }
