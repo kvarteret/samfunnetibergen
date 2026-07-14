@@ -64,8 +64,19 @@ function normalizedSiteUrl(siteUrl: string) {
 
 function toOsloTimestamp(date: string, time: string) {
   if (!TIME_PATTERN.test(time)) return null
-  const normalizedTime = time.length === 5 ? `${time}:00` : time
-  return new TZDate(`${date}T${normalizedTime}`, OSLO_TIME_ZONE).toISOString()
+
+  const [year, month, day] = date.split("-").map(Number)
+  const [hours, minutes, seconds = 0] = time.split(":").map(Number)
+
+  return new TZDate(
+    year,
+    month - 1,
+    day,
+    hours,
+    minutes,
+    seconds,
+    OSLO_TIME_ZONE,
+  ).toISOString()
 }
 
 export function toPlainTextContent(value: unknown): string | undefined {
