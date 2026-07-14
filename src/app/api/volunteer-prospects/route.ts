@@ -1,106 +1,46 @@
 import { NextResponse } from "next/server"
-import {
-  getHandledExceptionProperties,
-  toPostHogException,
-} from "@/lib/posthog/error-context"
+import { z } from "zod"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import {
+  captureSubmitFailure,
+  isSubmissionRateLimited,
+  RATE_LIMIT_ERROR,
+} from "@/lib/submission"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
 const GENERIC_ERROR = "Kunne ikke registrere frivillig."
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 5
 
-interface VolunteerProspectBody {
-  full_name: string
-  email: string
-  phone: string
-  study_institution: string
-  first_choice_group_slug: string
-  second_choice_group_slug?: string
-  background_details?: string
-  friend_emails?: string[]
-}
-
-const REQUIRED_FIELDS = [
-  "full_name",
-  "email",
-  "phone",
-  "study_institution",
-  "first_choice_group_slug",
-] as const
-
-type RequiredField = (typeof REQUIRED_FIELDS)[number]
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.trim() !== ""
-}
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_RE = /\d/
-
-function fieldError(
-  b: Record<string, unknown>,
-  key: RequiredField,
-): string | null {
-  if (!isNonEmptyString(b[key])) return `${key} er påkrevd`
-  if (key === "email" && !EMAIL_RE.test(b[key] as string))
-    return "Ugyldig e-post"
-  if (key === "phone" && !PHONE_RE.test(b[key] as string))
-    return "Telefonnummer er påkrevd"
-  return null
-}
-
-function validate(body: unknown): body is VolunteerProspectBody {
-  if (!body || typeof body !== "object") return false
-  const b = body as Record<string, unknown>
-  for (const field of REQUIRED_FIELDS) {
-    if (fieldError(b, field)) return false
-  }
-  if (
-    b.friend_emails !== undefined &&
-    (!Array.isArray(b.friend_emails) ||
-      b.friend_emails.length > 2 ||
-      b.friend_emails.some(
-        email => !isNonEmptyString(email) || !EMAIL_RE.test(email),
-      ))
-  ) {
-    return false
-  }
-  return true
-}
-
-function extractErrorDetail(err: unknown): string {
-  if (typeof err !== "object" || err === null || !("detail" in err)) {
-    return "Kunne ikke registrere frivillig."
-  }
-  const d = (err as { detail: unknown }).detail
-  if (typeof d === "string") return d
-  if (Array.isArray(d) && d.length > 0) {
-    const first = d[0]
-    return typeof first === "object" && first !== null && "msg" in first
-      ? String((first as { msg: unknown }).msg)
-      : JSON.stringify(first)
-  }
-  return "Kunne ikke registrere frivillig."
-}
+const payloadSchema = z.object({
+  full_name: z.string().trim().min(1),
+  email: z.string().trim().toLowerCase().pipe(z.email()),
+  phone: z
+    .string()
+    .trim()
+    .regex(/\d/)
+    .transform(value => value.replace(/\D/g, "")),
+  study_institution: z.string().trim().min(1),
+  first_choice_group_slug: z.string().trim().min(1),
+  second_choice_group_slug: z
+    .string()
+    .trim()
+    .optional()
+    .transform(value => value || undefined),
+  background_details: z
+    .string()
+    .trim()
+    .optional()
+    .transform(value => value || undefined),
+  friend_emails: z
+    .array(z.string().trim().toLowerCase().pipe(z.email()))
+    .max(2)
+    .optional(),
+})
 
 export async function POST(request: Request) {
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "volunteer-prospects",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
-    return NextResponse.json(
-      { detail: "For mange forsøk. Vent litt og prøv igjen." },
-      { status: 429 },
-    )
+  if (await isSubmissionRateLimited("volunteer-prospects")) {
+    return NextResponse.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
   }
 
   try {
@@ -116,26 +56,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ registrationId: "ignored" }, { status: 201 })
     }
 
-    if (!validate(body)) {
+    const parsed = payloadSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
         { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
         { status: 400 },
       )
     }
-
-    const requestBody = {
-      full_name: body.full_name.trim(),
-      email: body.email.trim().toLowerCase(),
-      phone: body.phone.trim().replace(/\D/g, ""),
-      study_institution: body.study_institution.trim(),
-      first_choice_group_slug: body.first_choice_group_slug.trim(),
-      second_choice_group_slug:
-        body.second_choice_group_slug?.trim() || undefined,
-      background_details: body.background_details?.trim() || undefined,
-      friend_emails: body.friend_emails?.map(email =>
-        email.trim().toLowerCase(),
-      ),
-    }
+    const requestBody = parsed.data
 
     const response = await fetch(
       `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
@@ -148,30 +76,23 @@ export async function POST(request: Request) {
     )
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => null)
-      const detail = extractErrorDetail(errorBody)
-      const posthog = getPostHogClient()
-      posthog.capture({
-        distinctId: "anonymous",
-        event: "volunteer_application_submit_failed",
-        properties: {
-          first_choice_group_slug: requestBody.first_choice_group_slug,
-          has_second_choice: Boolean(requestBody.second_choice_group_slug),
-          error: detail,
-        },
-      })
-      posthog.captureException(
-        new Error(
-          `Volunteer prospect forwarding failed with ${response.status}`,
-        ),
-        "anonymous",
-        getHandledExceptionProperties("volunteer_application", {
+      const errorBody = (await response.json().catch(() => null)) as {
+        detail?: unknown
+      } | null
+      // Forward the Personal backend's own message (e.g. duplicate email)
+      // when it is a plain string; anything structured stays server-side.
+      const detail =
+        typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
+      captureSubmitFailure(
+        "volunteer_application",
+        new Error(`Volunteer prospect forwarding failed with ${response.status}`),
+        {
           source: "volunteer-prospects-route",
           failure_branch: "personal_backend_rejected",
           status: response.status,
           first_choice_group_slug: requestBody.first_choice_group_slug,
           has_second_choice: Boolean(requestBody.second_choice_group_slug),
-        }),
+        },
       )
       return NextResponse.json({ detail }, { status: 422 })
     }
@@ -191,21 +112,10 @@ export async function POST(request: Request) {
       { status: 201 },
     )
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ukjent feil"
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "volunteer_application_submit_failed",
-      properties: { error: message },
+    captureSubmitFailure("volunteer_application", error, {
+      source: "volunteer-prospects-route",
+      failure_branch: "personal_backend_request_failed",
     })
-    posthog.captureException(
-      toPostHogException(error),
-      "anonymous",
-      getHandledExceptionProperties("volunteer_application", {
-        source: "volunteer-prospects-route",
-        failure_branch: "personal_backend_request_failed",
-      }),
-    )
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }
 }
