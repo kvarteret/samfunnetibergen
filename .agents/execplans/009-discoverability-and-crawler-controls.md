@@ -629,6 +629,7 @@ Baseline evidence captured before implementation on 2026-07-14:
 
     Branch: itleder/e-50-gjennomga-hvor-vi-ligger-an-pa-disoverability
     Commit: 59361f40773257c4603465ac6d0f82392fa578f0
+    Implementation commit: d2c5b94 (feat: implement discoverability and crawler controls)
     robots.txt: HTTP 200; User-agent * Allow /; canonical sitemap; Vercel cache HIT
     sitemap.xml: HTTP 200; 94 URLs; request-time lastmod; cache MISS on first read
     /nb/does-not-exist-e50-baseline: HTTP 404
