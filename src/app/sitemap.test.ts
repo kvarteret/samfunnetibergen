@@ -5,7 +5,6 @@ import {
   filterSitemapDynamicPaths,
   PUBLIC_STATIC_PATHS,
   SITEMAP_EXCLUDED_PATHS,
-  SITEMAP_REVALIDATE_SECONDS,
 } from "./sitemapEntries"
 
 describe("sitemap entries", () => {
@@ -50,9 +49,5 @@ describe("sitemap entries", () => {
       nb: "https://example.com/nb/rom",
     })
     expect(entries.every(entry => !("lastModified" in entry))).toBe(true)
-  })
-
-  it("uses a bounded one-hour cache window", () => {
-    expect(SITEMAP_REVALIDATE_SECONDS).toBe(3600)
   })
 })

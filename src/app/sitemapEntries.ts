@@ -12,7 +12,6 @@ export const PUBLIC_STATIC_PATHS = [
   "/karaoke",
 ] as const
 
-export const SITEMAP_REVALIDATE_SECONDS = 60 * 60
 export const SITEMAP_EXCLUDED_PATHS = new Set([
   "/blifrivillig",
   "/tilgjengelighet",
