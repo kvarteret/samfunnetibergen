@@ -13,6 +13,7 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
   hour12: false,
 })
 
+import { durationHoursBetween } from "@/features/booking/domain/availability"
 import {
   calendarSlugForBookerType,
   fetchVenueCalendar,
@@ -27,7 +28,6 @@ import {
   buildRoomBooking,
   slugForBookerType,
 } from "@/lib/integrations/crescat/room-booking"
-import { durationHoursBetween } from "@/features/booking/domain/availability"
 import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,

@@ -85,7 +85,9 @@ export async function POST(request: Request) {
         typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
       captureSubmitFailure(
         "volunteer_application",
-        new Error(`Volunteer prospect forwarding failed with ${response.status}`),
+        new Error(
+          `Volunteer prospect forwarding failed with ${response.status}`,
+        ),
         {
           source: "volunteer-prospects-route",
           failure_branch: "personal_backend_rejected",
