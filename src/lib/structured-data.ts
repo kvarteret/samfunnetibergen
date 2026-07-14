@@ -1,19 +1,14 @@
 import { TZDate } from "@date-fns/tz"
 import { toPlainText } from "@portabletext/toolkit"
 import {
-  schemaOrgEventStatus,
   type EventStatus,
+  schemaOrgEventStatus,
 } from "@/features/events/domain/resolveEvent"
 
 const OSLO_TIME_ZONE = "Europe/Oslo"
 const SCHEMA_CONTEXT = "https://schema.org"
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
-const TIME_PATTERN = /^(\d{2}):(\d{2})(?::(\d{2}))?$/
-const EVENT_STATUSES = new Set<EventStatus>([
-  "scheduled",
-  "cancelled",
-  "postponed",
-])
+const TIME_PATTERN = /^\d{2}:\d{2}(:\d{2})?$/
 
 export type StructuredEventDate = {
   _key?: string | null
@@ -59,37 +54,16 @@ type EventBuildOptions = {
   locale: string
 }
 
-type EventDocumentOptions = EventBuildOptions & {
-  today?: string
-}
-
-type EventFeedOptions = EventBuildOptions & {
-  today?: string
+type EventOccurrenceOptions = EventBuildOptions & {
+  today: string
 }
 
 function normalizedSiteUrl(siteUrl: string) {
   return siteUrl.replace(/\/+$/, "")
 }
 
-function isValidDate(value: string) {
-  if (!DATE_PATTERN.test(value)) return false
-
-  const date = new Date(`${value}T00:00:00.000Z`)
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
-}
-
-function isValidTime(value: string) {
-  const match = value.match(TIME_PATTERN)
-  if (!match) return false
-
-  const hours = Number(match[1])
-  const minutes = Number(match[2])
-  const seconds = Number(match[3] ?? "0")
-  return hours < 24 && minutes < 60 && seconds < 60
-}
-
 function toOsloTimestamp(date: string, time: string) {
-  if (!isValidDate(date) || !isValidTime(time)) return null
+  if (!TIME_PATTERN.test(time)) return null
   const normalizedTime = time.length === 5 ? `${time}:00` : time
   return new TZDate(`${date}T${normalizedTime}`, OSLO_TIME_ZONE).toISOString()
 }
@@ -138,18 +112,18 @@ export function buildEventStructuredDataNode(
   date: StructuredEventDate,
   { siteUrl, locale }: EventBuildOptions,
 ): StructuredEventNode | null {
-  if (!isValidDate(date.startDate)) return null
+  if (!DATE_PATTERN.test(date.startDate)) return null
 
   const baseUrl = normalizedSiteUrl(siteUrl)
   const canonicalUrl = `${baseUrl}/${locale}/arrangementer/${encodeURIComponent(event.slug)}`
-  const occurrenceKey = encodeURIComponent(date._key?.trim() || date.startDate)
-  const startDate = date.startTime?.trim()
-    ? toOsloTimestamp(date.startDate, date.startTime.trim())
+  const occurrenceKey = encodeURIComponent(date._key || date.startDate)
+  const startDate = date.startTime
+    ? toOsloTimestamp(date.startDate, date.startTime)
     : date.startDate
   if (!startDate) return null
 
-  const endDate = date.endTime?.trim()
-    ? toOsloTimestamp(date.startDate, date.endTime.trim())
+  const endDate = date.endTime
+    ? toOsloTimestamp(date.startDate, date.endTime)
     : null
   const name = event.title?.trim() || "[Mangler arrangementstittel]"
   const locationName = firstNonEmpty(event.room?.title, event.roomText)
@@ -158,8 +132,8 @@ export function buildEventStructuredDataNode(
     event.organizerText,
   )
   const description = toPlainTextContent(event.description)
-  const imageUrl = firstNonEmpty(event.imageUrl)
-  const ticketUrl = firstNonEmpty(event.ticketUrl)
+  const imageUrl = event.imageUrl?.trim()
+  const ticketUrl = event.ticketUrl?.trim()
   const price = [
     event.priceStudent,
     event.priceOrdinar,
@@ -185,7 +159,7 @@ export function buildEventStructuredDataNode(
   if (organizerName) {
     node.organizer = { "@type": "Organization", name: organizerName }
   }
-  if (event.eventStatus && EVENT_STATUSES.has(event.eventStatus)) {
+  if (event.eventStatus) {
     node.eventStatus = schemaOrgEventStatus(event.eventStatus)
   }
   if (typeof event.isFree === "boolean") {
@@ -203,24 +177,22 @@ export function buildEventStructuredDataNode(
   return node
 }
 
-function osloDateString() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: OSLO_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date())
-}
-
-export function buildEventStructuredData(
+function buildOccurrenceNodes(
   event: StructuredEvent,
-  { siteUrl, locale, today = osloDateString() }: EventDocumentOptions,
-): StructuredDataDocument | null {
-  const nodes = event.dates.flatMap(date => {
+  { siteUrl, locale, today }: EventOccurrenceOptions,
+): StructuredEventNode[] {
+  return event.dates.flatMap(date => {
     if (date.startDate < today) return []
     const node = buildEventStructuredDataNode(event, date, { siteUrl, locale })
     return node ? [node] : []
   })
+}
+
+export function buildEventStructuredData(
+  event: StructuredEvent,
+  options: EventOccurrenceOptions,
+): StructuredDataDocument | null {
+  const nodes = buildOccurrenceNodes(event, options)
 
   if (nodes.length === 0) return null
 
@@ -232,19 +204,10 @@ export function buildEventStructuredData(
 
 export function buildEventFeedData(
   events: readonly StructuredEvent[],
-  { siteUrl, locale, today = osloDateString() }: EventFeedOptions,
+  options: EventOccurrenceOptions,
 ): StructuredDataDocument {
-  const items = events.flatMap(event =>
-    event.dates.flatMap(date => {
-      if (date.startDate < today) return []
-      const node = buildEventStructuredDataNode(event, date, {
-        siteUrl,
-        locale,
-      })
-      return node ? [node] : []
-    }),
-  )
-  const feedUrl = `${normalizedSiteUrl(siteUrl)}/${locale}/arrangementer`
+  const items = events.flatMap(event => buildOccurrenceNodes(event, options))
+  const feedUrl = `${normalizedSiteUrl(options.siteUrl)}/${options.locale}/arrangementer`
 
   return {
     "@context": SCHEMA_CONTEXT,
@@ -261,5 +224,5 @@ export function buildEventFeedData(
 }
 
 export function serializeJsonLd(data: unknown) {
-  return (JSON.stringify(data) ?? "null").replace(/</g, "\\u003c")
+  return JSON.stringify(data).replace(/</g, "\\u003c")
 }

@@ -147,6 +147,9 @@ export const eventChildrenQuery = defineQuery(`
 
 // The internal-event flag is inheritable, so the feed's exclusion must
 // consider the parent's flag for children that never set their own.
+// The $today date filter here trims payload; the structured-data builder
+// filters by its own "today" again because cached query results can span a
+// date boundary within the revalidation window.
 export const feedEventsQuery = defineQuery(`
     *[
         _type == "arrangement"
