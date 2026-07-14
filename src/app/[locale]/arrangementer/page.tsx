@@ -38,15 +38,22 @@ export async function generateMetadata({
 
   const metadata = buildPageMetadata({
     canonicalPath: `/${locale}/arrangementer`,
-    fallbackTitle: t("eventsTitle"),
-    fallbackDescription: description,
+    title: t("eventsTitle"),
+    description,
   })
 
   return {
     ...metadata,
-    openGraph: {
-      ...metadata.openGraph,
-      siteName: "Samfunnet i Bergen",
+    alternates: {
+      ...metadata.alternates,
+      types: {
+        "application/ld+json": [
+          {
+            title: "Arrangementer — Samfunnet i Bergen",
+            url: "/api/events/feed",
+          },
+        ],
+      },
     },
   }
 }

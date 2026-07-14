@@ -20,8 +20,8 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
   return buildPageMetadata({
     canonicalPath: `/${locale}/kontakt`,
-    fallbackTitle: "Kontakt",
-    fallbackDescription: "Kontaktinformasjon for Samfunnet i Bergen.",
+    title: "Kontakt",
+    description: "Kontaktinformasjon for Samfunnet i Bergen.",
   })
 }
 

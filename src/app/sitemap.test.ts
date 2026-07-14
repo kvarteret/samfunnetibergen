@@ -2,21 +2,36 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildLocalizedSitemapEntries,
+  filterSitemapDynamicPaths,
   PUBLIC_STATIC_PATHS,
+  SITEMAP_EXCLUDED_PATHS,
+  SITEMAP_REVALIDATE_SECONDS,
 } from "./sitemapEntries"
 
 describe("sitemap entries", () => {
   it("includes public fixed routes and excludes retired or internal routes", () => {
     expect(PUBLIC_STATIC_PATHS).toContain("/grupper")
     expect(PUBLIC_STATIC_PATHS).toContain("/arrangementer")
+    expect(PUBLIC_STATIC_PATHS).toContain("/nyttig")
+    expect(PUBLIC_STATIC_PATHS).toContain("/rom/book")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/blifrivillig")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/design")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/studio")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/arrangementer/ny")
+    expect(SITEMAP_EXCLUDED_PATHS).toEqual(
+      new Set(["/blifrivillig", "/tilgjengelighet"]),
+    )
   })
 
   it("does not expose code-owned generic page slugs", () => {
     expect(PUBLIC_STATIC_PATHS).toContain("/karaoke")
+    expect(
+      filterSitemapDynamicPaths([
+        "/blifrivillig",
+        "/tilgjengelighet",
+        "/public-page",
+      ]),
+    ).toEqual(["/public-page"])
   })
 
   it("builds localized URLs and language alternates", () => {
@@ -24,7 +39,6 @@ describe("sitemap entries", () => {
       locales: ["nb"],
       paths: ["/", "/rom", "/rom/det-akademiske-kvarter"],
       siteUrl: "https://example.com",
-      lastModified: new Date("2026-06-12T00:00:00.000Z"),
     })
 
     expect(entries.map(entry => entry.url)).toEqual([
@@ -35,5 +49,10 @@ describe("sitemap entries", () => {
     expect(entries[1].alternates?.languages).toEqual({
       nb: "https://example.com/nb/rom",
     })
+    expect(entries.every(entry => !("lastModified" in entry))).toBe(true)
+  })
+
+  it("uses a bounded one-hour cache window", () => {
+    expect(SITEMAP_REVALIDATE_SECONDS).toBe(3600)
   })
 })

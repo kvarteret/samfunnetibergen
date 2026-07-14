@@ -1,6 +1,7 @@
 import { CalendarPlus } from "lucide-react"
 import { EventForm } from "@/features/events"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import {
   fetchEventGroups,
   fetchEventRooms,
@@ -9,12 +10,19 @@ import {
 
 export const revalidate = 300
 
-export async function generateMetadata() {
-  return {
-    title: "Legg til arrangement | Samfunnet i Bergen",
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const locale = await resolvePageLocale(params)
+
+  return buildPageMetadata({
+    canonicalPath: `/${locale}/arrangementer/ny`,
+    title: "Legg til arrangement",
     description:
       "Arrangerer du eller din organisasjon noe på Samfunnet i Bergen? Legg til arrangementet i listen her.",
-  }
+  })
 }
 
 export default async function NyttArrangementPage({

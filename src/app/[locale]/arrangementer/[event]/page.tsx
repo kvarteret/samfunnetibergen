@@ -3,13 +3,20 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
+import { JsonLd } from "@/components/JsonLd"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { fetchEventBySlug, fetchEventChildren } from "@/lib/sanity/fetch"
+import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import {
+  buildEventStructuredData,
+  toPlainTextContent,
+} from "@/lib/structured-data"
+import { resolveSiteUrl } from "@/lib/site-url"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
@@ -44,26 +51,34 @@ export default async function EventPage({ params }: EventPageProps) {
   const childEvents = isParentEvent
     ? await fetchEventChildren(eventData._id, { stega: false })
     : []
+  const eventJsonLd = buildEventStructuredData(eventData, {
+    siteUrl: resolveSiteUrl(),
+    locale,
+    today: getOsloDateString(),
+  })
 
   return (
-    <article className="flex w-full flex-col gap-8">
-      <EventStatusNotice event={eventData} t={t} />
-      <EventDetailHero
-        event={eventData}
-        eventSlug={resolvedParams.event}
-        ticketsLabel={t("tickets")}
-        partOfLabel={t("partOf")}
-      />
-      <EventDetailScheduleAndMeta event={eventData} t={t} />
-      {childEvents.length > 0 && (
-        <EventChildList childEvents={childEvents} t={t} />
-      )}
-      <EventDetailDescription
-        event={eventData}
-        eventSlug={resolvedParams.event}
-        t={t}
-      />
-    </article>
+    <>
+      {eventJsonLd && <JsonLd data={eventJsonLd} />}
+      <article className="flex w-full flex-col gap-8">
+        <EventStatusNotice event={eventData} t={t} />
+        <EventDetailHero
+          event={eventData}
+          eventSlug={resolvedParams.event}
+          ticketsLabel={t("tickets")}
+          partOfLabel={t("partOf")}
+        />
+        <EventDetailScheduleAndMeta event={eventData} t={t} />
+        {childEvents.length > 0 && (
+          <EventChildList childEvents={childEvents} t={t} />
+        )}
+        <EventDetailDescription
+          event={eventData}
+          eventSlug={resolvedParams.event}
+          t={t}
+        />
+      </article>
+    </>
   )
 }
 
@@ -75,18 +90,13 @@ export async function generateMetadata({ params }: EventPageProps) {
 
   const metadata = buildPageMetadata({
     canonicalPath: `/${resolvedParams.locale}/arrangementer/${resolvedParams.event}`,
-    fallbackTitle: eventData.title,
-    fallbackImageUrl: eventData.imageUrl,
+    title: eventData.title,
+    description: toPlainTextContent(eventData.description),
+    imageUrl: eventData.imageUrl,
+    openGraphType: "article",
   })
 
-  return {
-    ...metadata,
-    openGraph: {
-      ...metadata.openGraph,
-      siteName: "Samfunnet i Bergen",
-      type: "article",
-    },
-  }
+  return metadata
 }
 
 function EventStatusNotice({

@@ -65,8 +65,8 @@ export async function generateMetadata({ params }: GroupsPageProps) {
 
   return buildPageMetadata({
     canonicalPath: `/${locale}/grupper`,
-    fallbackTitle: content?.title ?? "Grupper",
-    fallbackDescription: content?.description ?? "Se gruppene i Samfunnet.",
+    title: content?.title ?? "Grupper",
+    description: content?.description ?? "Se gruppene i Samfunnet.",
   })
 }
 

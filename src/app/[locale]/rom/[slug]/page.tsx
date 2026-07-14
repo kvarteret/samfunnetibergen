@@ -56,9 +56,9 @@ export async function generateMetadata({ params }: RoomPageProps) {
 
   return buildPageMetadata({
     canonicalPath: `/${localeParam}/rom/${slug}`,
-    fallbackTitle: `${title} | Rom`,
-    fallbackDescription: room.summary,
-    fallbackImageUrl: firstImageUrl,
+    title: `${title} | Rom`,
+    description: room.summary,
+    imageUrl: firstImageUrl,
   })
 }
 

@@ -52,9 +52,9 @@ export async function generateMetadata({ params }: GroupPageProps) {
 
   return buildPageMetadata({
     canonicalPath: `/${localeParam}/grupper/${slug}`,
-    fallbackTitle: `${group.name} | Grupper`,
-    fallbackDescription: group.summary,
-    fallbackImageUrl: group.image?.assetUrl,
+    title: `${group.name} | Grupper`,
+    description: group.summary,
+    imageUrl: group.image?.assetUrl,
   })
 }
 

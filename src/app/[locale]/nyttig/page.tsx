@@ -22,8 +22,8 @@ export async function generateMetadata({
   const page = await fetchUsefulInfoPage()
   return buildPageMetadata({
     canonicalPath: `/${locale}/nyttig`,
-    fallbackTitle: page?.title ?? "Nyttig info",
-    fallbackDescription:
+    title: page?.title ?? "Nyttig info",
+    description:
       "Praktisk informasjon om Samfunnet i Bergen – adkomst, billetter, booking, servering og tilgjengelighet.",
   })
 }

@@ -4,9 +4,12 @@ import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
 import { VisualEditing } from "next-sanity/visual-editing"
+import { JsonLd } from "@/components/JsonLd"
 import { paperPreferenceScript } from "@/lib/paper-preference"
 import { SanityLive } from "@/lib/sanity/fetcher"
+import { buildRootMetadata } from "@/lib/page-metadata"
 import { resolveSiteUrl } from "@/lib/site-url"
+import { buildOrganizationWebsiteGraph } from "@/lib/structured-data"
 import { themePreferenceScript } from "@/lib/theme-preference"
 
 import "./globals.css"
@@ -54,27 +57,18 @@ const hegvalDisplay = localFont({
 })
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = "Samfunnet i Bergen"
-
-  return {
-    metadataBase: new URL(resolveSiteUrl()),
-    title,
-    openGraph: {
-      title,
-      siteName: "Samfunnet i Bergen",
-      type: "website",
-    },
-  }
+  return buildRootMetadata(resolveSiteUrl())
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { isEnabled: isDraftMode } = await draftMode()
+  const siteUrl = resolveSiteUrl()
 
   return (
     <html
       data-paper="grid"
       data-theme="hs"
-      lang="no"
+      lang="nb"
       className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -85,6 +79,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-preference" strategy="beforeInteractive">
           {themePreferenceScript}
         </Script>
+        <JsonLd data={buildOrganizationWebsiteGraph(siteUrl)} />
         {children}
         <SanityLive />
         {isDraftMode && <VisualEditing />}
