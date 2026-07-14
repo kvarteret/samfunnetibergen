@@ -1,22 +1,8 @@
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
-
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 5
+import { isSubmissionRateLimited, RATE_LIMIT_ERROR } from "@/lib/submission"
 
 export async function POST(request: Request) {
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "slack-feedback",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
-    return Response.json(
-      { detail: "For mange forsøk. Vent litt og prøv igjen." },
-      { status: 429 },
-    )
+  if (await isSubmissionRateLimited("slack-feedback")) {
+    return Response.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
   }
 
   const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK

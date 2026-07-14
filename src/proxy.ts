@@ -6,26 +6,28 @@ import { routing } from "./i18n/routing"
 const intlMiddleware = createMiddleware(routing)
 
 const eventSubmissionHost = "event.kvarteret.no"
-const eventSubmissionRedirectUrl = "https://kvarteret.no/arrangementer/ny"
+const eventSubmissionRedirectUrl =
+  "https://samfunnetibergen.no/nb/arrangementer/ny"
 const studioHosts = new Set(["studio.samfunnetibergen.no"])
 
 export default function proxy(request: NextRequest) {
   const host = request.headers.get("host")?.split(":")[0]
 
   if (host === eventSubmissionHost) {
-    return NextResponse.redirect(eventSubmissionRedirectUrl)
+    return NextResponse.redirect(eventSubmissionRedirectUrl, 308)
   }
 
   if (host && studioHosts.has(host) && request.nextUrl.pathname === "/") {
     const url = request.nextUrl.clone()
     url.pathname = "/studio"
 
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(url, 308)
   }
 
   return intlMiddleware(request)
 }
 
 export const config = {
-  matcher: "/((?!api|ingest|studio|appen|linkibio|_next|_vercel|.*\\..*).*)",
+  matcher:
+    "/((?!api|ingest|studio|appen|linkibio|opengraph-image|_next|_vercel|.*\\..*).*)",
 }

@@ -6,6 +6,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import type { SourcedImage } from "@/lib/sanity/fetch"
 import { fetchHouseHours, fetchRoomBySlug } from "@/lib/sanity/fetch"
 import { KaraokePhoneLink } from "./KaraokePhoneLink"
@@ -14,12 +15,19 @@ export function generateStaticParams() {
   return getLocaleStaticParams()
 }
 
-export async function generateMetadata() {
-  return {
-    title: "Booking av karaoke | Samfunnet i Bergen",
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const locale = await resolvePageLocale(params)
+
+  return buildPageMetadata({
+    canonicalPath: `/${locale}/karaoke`,
+    title: "Booking av karaoke",
     description:
       "Book karaoke på Maos Lille Røde hos Studentersamfunnet i Bergen. Fyll ut skjemaet så behandler vi forespørselen din så fort vi ser den.",
-  }
+  })
 }
 
 const MAOS_FALLBACK: KaraokeRoom = {

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   return buildPageMetadata({
     canonicalPath: `/${localeParam}/${slug}`,
-    fallbackTitle: page.title,
+    title: page.title,
   })
 }
 

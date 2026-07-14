@@ -15,6 +15,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import {
   fetchBarPreviews,
   fetchHomePageContent,
@@ -39,18 +40,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   const homePage = await fetchHomePageContent(locale, { stega: false })
   const title = homePage?.title ?? "Samfunnet i Bergen"
   const description = homePage?.description ?? undefined
-  return {
+  return buildPageMetadata({
+    canonicalPath: `/${locale}`,
     title,
     description,
-    alternates: {
-      canonical: `/${locale}`,
-    },
-    openGraph: {
-      title,
-      description,
-      siteName: "Samfunnet i Bergen",
-    },
-  }
+  })
 }
 
 type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
@@ -240,6 +234,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
   return (
     <div className="flex flex-col gap-12 pb-12">
+      <h1 className="sr-only">Samfunnet i Bergen</h1>
       <HomePromotedEvents
         events={promotedEvents}
         labels={eventCardLabels}
@@ -383,9 +378,9 @@ function HomeEventsHeader({
         <SectionMark
           className={onPrimary ? "text-primary-foreground" : "text-primary"}
         />
-        <h1 className="text-base uppercase tracking-wide sm:text-lg">
+        <h2 className="text-base uppercase tracking-wide sm:text-lg">
           {label}
-        </h1>
+        </h2>
       </div>
       <Link
         className="group inline-flex items-center gap-2 font-heading underline underline-offset-4 focus-brutal"

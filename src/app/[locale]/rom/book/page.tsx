@@ -15,6 +15,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { EditorialSection } from "@/lib/sanity/fetch"
 import {
@@ -29,12 +30,19 @@ export function generateStaticParams() {
   return getLocaleStaticParams()
 }
 
-export async function generateMetadata() {
-  return {
-    title: "Book rom | Samfunnet i Bergen",
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const locale = await resolvePageLocale(params)
+
+  return buildPageMetadata({
+    canonicalPath: `/${locale}/rom/book`,
+    title: "Book rom",
     description:
       "Send en bookingforespørsel for rom på Det Akademiske Kvarter. Fyll ut skjemaet, så behandler vi forespørselen din.",
-  }
+  })
 }
 
 function QuestionsSection({ section }: { section: EditorialSection }) {

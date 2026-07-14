@@ -2,13 +2,14 @@
 
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
-import {
-  getHandledExceptionProperties,
-  toPostHogException,
-} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
+import {
+  captureSubmitFailure,
+  GENERIC_SUBMIT_ERROR,
+  isSubmissionRateLimited,
+  RATE_LIMIT_ERROR,
+} from "@/lib/submission"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
@@ -20,13 +21,6 @@ const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
 const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
 
-// User-facing copy. Internal error detail never crosses to the client; it is
-// kept in the PostHog captures below for debugging.
-const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
-const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
-
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 5
 const UPLOAD_LIMIT = 12
 
 function getWriteClient() {
@@ -79,15 +73,7 @@ export type UploadImageResult = Result<string>
 export async function uploadEventImage(
   formData: FormData,
 ): Promise<UploadImageResult> {
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "uploadEventImage",
-      ip,
-      limit: UPLOAD_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
+  if (await isSubmissionRateLimited("uploadEventImage", UPLOAD_LIMIT)) {
     return err(RATE_LIMIT_ERROR)
   }
 
@@ -110,22 +96,11 @@ export async function uploadEventImage(
     })
     return ok(asset._id)
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ukjent feil"
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "event_image_upload_failed",
-      properties: { error: message },
+    captureSubmitFailure("event_image_upload", error, {
+      source: "submit-event-image",
+      failure_branch: "sanity_asset_upload_failed",
     })
-    posthog.captureException(
-      toPostHogException(error),
-      "anonymous",
-      getHandledExceptionProperties("event_image_upload", {
-        source: "submit-event-image",
-        failure_branch: "sanity_asset_upload_failed",
-      }),
-    )
-    return err(GENERIC_ERROR)
+    return err(GENERIC_SUBMIT_ERROR)
   }
 }
 
@@ -160,15 +135,7 @@ export async function submitEvent(
     return ok("ignored")
   }
 
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "submitEvent",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
+  if (await isSubmissionRateLimited("submitEvent")) {
     return err(RATE_LIMIT_ERROR)
   }
 
@@ -201,28 +168,17 @@ export async function submitEvent(
     })
     return ok(created._id)
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Ukjent feil"
-    const posthog = getPostHogClient()
-    posthog.capture({
-      distinctId: "anonymous",
-      event: "event_submission_submit_failed",
-      properties: { error: message },
+    captureSubmitFailure("event_submission", error, {
+      source: "submit-event",
+      failure_branch: "sanity_document_create_failed",
+      is_recurring: Boolean(input.isRecurring),
+      is_internal: Boolean(input.isInternalEvent),
+      is_free: Boolean(input.isFree),
+      has_ticket_url: Boolean(input.ticketUrl),
+      has_facebook_url: Boolean(input.facebookUrl),
+      date_count: input.dates.length,
     })
-    posthog.captureException(
-      toPostHogException(error),
-      "anonymous",
-      getHandledExceptionProperties("event_submission", {
-        source: "submit-event",
-        failure_branch: "sanity_document_create_failed",
-        is_recurring: Boolean(input.isRecurring),
-        is_internal: Boolean(input.isInternalEvent),
-        is_free: Boolean(input.isFree),
-        has_ticket_url: Boolean(input.ticketUrl),
-        has_facebook_url: Boolean(input.facebookUrl),
-        date_count: input.dates.length,
-      }),
-    )
-    return err(GENERIC_ERROR)
+    return err(GENERIC_SUBMIT_ERROR)
   }
 }
 

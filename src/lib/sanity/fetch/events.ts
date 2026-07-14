@@ -126,7 +126,7 @@ export async function fetchEventBySlug(
   const { isEnabled: preview } = await draftMode()
   const { data } = await sanityFetch({
     query: eventBySlugQuery,
-    params: { preview, slug, today: getOsloDateString() },
+    params: { preview, slug },
     stega: options.stega,
   })
   return data ? resolveEventDetail(data) : null

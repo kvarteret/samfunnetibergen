@@ -78,6 +78,118 @@ function buildSlotOptions(
   return options
 }
 
+/** Index of the first mark in [searchStart, searchEnd) whose local
+ * time-of-day equals `time`, or -1 when none matches. */
+export function timeIndexWithin(
+  marks: number[],
+  time: string,
+  searchStart: number,
+  searchEnd: number,
+): number {
+  for (
+    let i = Math.max(0, searchStart);
+    i < searchEnd && i < marks.length;
+    i++
+  ) {
+    if (minutesToTime(marks[i] % MINUTES_IN_DAY) === time) return i
+  }
+  return -1
+}
+
+/** Compact Norwegian duration badge: "3t 30m" single-day, "2d 4t" multi-day. */
+export function formatDurationLabel(
+  durationMin: number,
+  isMultiDay: boolean,
+): string {
+  if (durationMin <= 0) return ""
+
+  if (isMultiDay) {
+    const d = Math.floor(durationMin / MINUTES_IN_DAY)
+    const h = Math.floor((durationMin % MINUTES_IN_DAY) / 60)
+    if (d === 0) return `${h}t`
+    if (h === 0) return `${d}d`
+    return `${d}d ${h}t`
+  }
+
+  const h = Math.floor(durationMin / 60)
+  const m = durationMin % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}t`
+  return `${h}t ${m}m`
+}
+
+export interface TickMark {
+  index: number
+  minute: number
+  pct: number
+  label: string
+}
+
+/** Track ticks: one per day for multi-day, every 2 hours for single-day. */
+export function computeTickMarks(
+  marks: number[],
+  dayCount: number,
+  minStartIdx: number,
+  minMinute: number,
+  totalSpan: number,
+): TickMark[] {
+  const ticks: TickMark[] = []
+
+  if (dayCount > 1) {
+    // Per-day ticks: one at the start of each day's marks
+    for (let d = 0; d < dayCount; d++) {
+      const dayStart = d * MINUTES_IN_DAY
+      const idx = marks.findIndex(
+        m => m >= dayStart && m < dayStart + MINUTES_IN_DAY,
+      )
+      if (idx >= 0 && idx >= minStartIdx) {
+        const pct = ((marks[idx] - minMinute) / totalSpan) * 100
+        ticks.push({
+          index: idx,
+          minute: marks[idx],
+          pct,
+          label: `Dag ${d + 1}`,
+        })
+      }
+    }
+    return ticks
+  }
+
+  for (let i = 0; i < marks.length; i++) {
+    const localMinute = marks[i] % MINUTES_IN_DAY
+    if (localMinute % 120 === 0 && i >= minStartIdx) {
+      const pct = ((marks[i] - minMinute) / totalSpan) * 100
+      ticks.push({
+        index: i,
+        minute: marks[i],
+        pct,
+        label: minutesToTime(localMinute),
+      })
+    }
+  }
+  return ticks
+}
+
+/** Occupied minute ranges as percentage stripes on the visible track. */
+export function occupiedStripeSegments(
+  occupiedRanges: { startMin: number; endMin: number }[],
+  minMinute: number,
+  maxMinute: number,
+  totalSpan: number,
+): { left: number; width: number }[] {
+  return occupiedRanges
+    .map(r => ({
+      start: Math.max(minMinute, r.startMin),
+      end: Math.min(maxMinute, r.endMin),
+    }))
+    .filter(r => r.end > r.start)
+    .map(r => ({
+      left: ((r.start - minMinute) / totalSpan) * 100,
+      width: ((r.end - r.start) / totalSpan) * 100,
+    }))
+    .filter(s => s.width > 0)
+}
+
 export function TimeRangeSlider({
   marks,
   startTime,
@@ -112,30 +224,19 @@ export function TimeRangeSlider({
     if (!startTime) return minStartIdx
     // Search within first day's marks for multi-day
     const searchEnd = firstDayEndIdx != null ? firstDayEndIdx + 1 : marks.length
-    const searchStart = firstDayStartIdx ?? 0
-    const slice = marks.slice(searchStart, searchEnd)
-    const idx = slice.findIndex(m => minutesToTime(m) === startTime)
-    const clamped = idx >= 0 ? searchStart + idx : minStartIdx
+    const idx = timeIndexWithin(marks, startTime, minStartIdx, searchEnd)
+    const clamped = idx >= 0 ? idx : minStartIdx
     return Math.min(Math.max(clamped, minStartIdx), maxStartIdx)
-  }, [
-    marks,
-    startTime,
-    minStartIdx,
-    maxStartIdx,
-    firstDayStartIdx,
-    firstDayEndIdx,
-  ])
+  }, [marks, startTime, minStartIdx, maxStartIdx, firstDayEndIdx])
 
   const endIndex = useMemo(() => {
     if (!endTime) return maxEndIdx
     // Search within last day's marks for multi-day
-    const searchStart = lastDayStartIdx ?? 0
     const searchEnd = lastDayEndIdx != null ? lastDayEndIdx + 1 : marks.length
-    const slice = marks.slice(searchStart, searchEnd)
-    const idx = slice.findIndex(m => minutesToTime(m) === endTime)
-    const clamped = idx >= 0 ? searchStart + idx : maxEndIdx
+    const idx = timeIndexWithin(marks, endTime, minEndIdx, searchEnd)
+    const clamped = idx >= 0 ? idx : maxEndIdx
     return Math.min(Math.max(clamped, minEndIdx), maxEndIdx)
-  }, [marks, endTime, minEndIdx, maxEndIdx, lastDayStartIdx, lastDayEndIdx])
+  }, [marks, endTime, minEndIdx, maxEndIdx, lastDayEndIdx])
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
@@ -209,11 +310,11 @@ export function TimeRangeSlider({
 
   const selectStart = useCallback(
     (timeValue: string) => {
-      const idx = marks.findIndex(
-        (m, i) =>
-          i >= minStartIdx &&
-          i <= maxStartIdx &&
-          minutesToTime(m % MINUTES_IN_DAY) === timeValue,
+      const idx = timeIndexWithin(
+        marks,
+        timeValue,
+        minStartIdx,
+        maxStartIdx + 1,
       )
       if (idx === -1) return
       handleValueCommit([idx, endIndex])
@@ -223,12 +324,7 @@ export function TimeRangeSlider({
 
   const selectEnd = useCallback(
     (timeValue: string) => {
-      const idx = marks.findIndex(
-        (m, i) =>
-          i >= minEndIdx &&
-          i <= maxEndIdx &&
-          minutesToTime(m % MINUTES_IN_DAY) === timeValue,
-      )
+      const idx = timeIndexWithin(marks, timeValue, minEndIdx, maxEndIdx + 1)
       if (idx === -1) return
       handleValueCommit([startIndex, idx])
     },
@@ -257,79 +353,22 @@ export function TimeRangeSlider({
   const maxMinute = marks[maxIndex]
   const totalSpan = maxMinute - minMinute || 1
 
-  // ── Duration badge ─────────────────────────────────────────────────
-  const durationLabel = useMemo(() => {
-    const dur = marks[endIndex] - marks[startIndex]
-    if (dur <= 0) return ""
+  const durationLabel = useMemo(
+    () =>
+      formatDurationLabel(marks[endIndex] - marks[startIndex], dayCount > 1),
+    [marks, startIndex, endIndex, dayCount],
+  )
 
-    if (dayCount > 1) {
-      const d = Math.floor(dur / MINUTES_IN_DAY)
-      const h = Math.floor((dur % MINUTES_IN_DAY) / 60)
-      if (d === 0) return `${h}t`
-      if (h === 0) return `${d}d`
-      return `${d}d ${h}t`
-    }
+  const tickMarks = useMemo(
+    () => computeTickMarks(marks, dayCount, minStartIdx, minMinute, totalSpan),
+    [marks, dayCount, minStartIdx, minMinute, totalSpan],
+  )
 
-    const h = Math.floor(dur / 60)
-    const m = dur % 60
-    if (h === 0) return `${m}m`
-    if (m === 0) return `${h}t`
-    return `${h}t ${m}m`
-  }, [marks, startIndex, endIndex, dayCount])
-
-  // ── Tick marks ────────────────────────────────────────────────────
-  // Multi-day: one tick per day. Single-day: every 2 hours.
-  const tickMarks = useMemo(() => {
-    const isMulti = dayCount > 1
-    const raw: { index: number; minute: number; pct: number; label: string }[] =
-      []
-
-    if (isMulti) {
-      // Per-day ticks: one at the start of each day's marks
-      for (let d = 0; d < dayCount; d++) {
-        const dayStart = d * MINUTES_IN_DAY
-        const idx = marks.findIndex(
-          m => m >= dayStart && m < dayStart + MINUTES_IN_DAY,
-        )
-        if (idx >= 0 && idx >= minStartIdx) {
-          const pct = ((marks[idx] - minMinute) / totalSpan) * 100
-          raw.push({
-            index: idx,
-            minute: marks[idx],
-            pct,
-            label: `Dag ${d + 1}`,
-          })
-        }
-      }
-    } else {
-      // 2-hour ticks for single-day
-      for (let i = 0; i < marks.length; i++) {
-        const localMinute = marks[i] % MINUTES_IN_DAY
-        if (localMinute % 120 === 0 && i >= minStartIdx) {
-          const pct = ((marks[i] - minMinute) / totalSpan) * 100
-          raw.push({ index: i, minute: marks[i], pct, label: formatLabel(i) })
-        }
-      }
-    }
-
-    return raw
-  }, [marks, dayCount, minMinute, totalSpan, minStartIdx, formatLabel])
-
-  const stripeSegments = useMemo(() => {
-    if (!occupiedRanges.length) return []
-    return occupiedRanges
-      .map(r => ({
-        start: Math.max(minMinute, r.startMin),
-        end: Math.min(maxMinute, r.endMin),
-      }))
-      .filter(r => r.end > r.start)
-      .map(r => {
-        const left = ((r.start - minMinute) / totalSpan) * 100
-        const width = ((r.end - r.start) / totalSpan) * 100
-        return { left, width }
-      })
-      .filter(s => s.width > 0)
-  }, [occupiedRanges, minMinute, maxMinute, totalSpan])
+  const stripeSegments = useMemo(
+    () =>
+      occupiedStripeSegments(occupiedRanges, minMinute, maxMinute, totalSpan),
+    [occupiedRanges, minMinute, maxMinute, totalSpan],
+  )
 
   // If there are fewer than 2 marks, we can't render a meaningful range.
   if (marks.length < 2) {

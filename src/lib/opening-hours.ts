@@ -1,13 +1,4 @@
-import {
-  addDays,
-  addMinutes,
-  format,
-  getISODay,
-  parse,
-  parseISO,
-  startOfDay,
-  subDays,
-} from "date-fns"
+import { addDays, format, getISODay, parseISO, subDays } from "date-fns"
 
 export interface OpeningHoursRow {
   _key?: string | null
@@ -160,17 +151,15 @@ export function formatOpeningDate(dateStr: string): string {
 }
 
 export function timeToMinutes(time?: string | null): number | null {
-  if (!time) return null
-  const parsed = parse(time, "HH:mm", startOfDay(new Date()))
-  if (Number.isNaN(parsed.getTime())) return null
-  const midnight = startOfDay(parsed)
-  return Math.round((parsed.getTime() - midnight.getTime()) / 60_000)
+  if (!time || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return null
+  const [hours, minutes] = time.split(":").map(Number)
+  return hours * 60 + minutes
 }
 
 export function minutesToTime(minutes: number): string {
   const normalized =
     ((minutes % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY
-  return format(addMinutes(startOfDay(new Date()), normalized), "HH:mm")
+  return `${String(Math.floor(normalized / 60)).padStart(2, "0")}:${String(normalized % 60).padStart(2, "0")}`
 }
 
 export function formatOpeningHoursTime(minutes: number): string {
@@ -384,30 +373,6 @@ export function combineOpeningRangesForDate(
   return mergeRanges(intersections)
 }
 
-export function isOpenAt(
-  date: Date,
-  hours?: OpeningHours | null,
-  closedDates?: ClosedDate[] | null,
-  vacationMode?: VacationMode | null,
-): boolean {
-  const { date: today, minutes } = osloDateTimeParts(date)
-  if (isHouseClosed(today, closedDates, vacationMode)) return false
-
-  const todayRanges = openingRangesForDate(
-    today,
-    hours,
-    closedDates,
-    vacationMode,
-  ).some(range => minutes >= range.startMin && minutes < range.endMin)
-  if (todayRanges) return true
-
-  const yesterday = addCalendarDays(today, -1)
-  return openingRangesForDate(yesterday, hours, closedDates, vacationMode).some(
-    range =>
-      range.endMin > MINUTES_IN_DAY && minutes + MINUTES_IN_DAY < range.endMin,
-  )
-}
-
 export function isOpenAtForCombinedHours(
   date: Date,
   baseHours?: OpeningHours | null,
@@ -478,28 +443,6 @@ export function slotRangesForDate(
   )
 }
 
-export function combinedSlotRangesForDate(
-  dateStr: string,
-  durationHours: number,
-  baseHours?: OpeningHours | null,
-  roomHours?: OpeningHours | null,
-  closedDates?: ClosedDate[] | null,
-  vacationMode?: VacationMode | null,
-  stepMin = 60,
-): number[] {
-  return slotStartsFromRanges(
-    combineOpeningRangesForDate(
-      dateStr,
-      baseHours,
-      roomHours,
-      closedDates,
-      vacationMode,
-    ),
-    durationHours,
-    stepMin,
-  )
-}
-
 export function isSlotAllowed(
   actualDateStr: string,
   startTime: string,
@@ -508,28 +451,14 @@ export function isSlotAllowed(
   closedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
 ): boolean {
-  if (isHouseClosed(actualDateStr, closedDates, vacationMode)) return false
-
-  const startMin = timeToMinutes(startTime)
-  if (startMin === null) return false
-
-  const durationMin = durationHours * 60
-  const actualDate = parseISO(actualDateStr)
-
-  const candidates = [
-    { date: actualDateStr, startMin },
-    {
-      date: isoDate(subDays(actualDate, 1)),
-      startMin: startMin + MINUTES_IN_DAY,
-    },
-  ]
-
-  return candidates.some(candidate =>
-    openingRangesForDate(candidate.date, hours, closedDates, vacationMode).some(
-      range =>
-        candidate.startMin >= range.startMin &&
-        candidate.startMin + durationMin <= range.endMin,
-    ),
+  return isSlotAllowedForCombinedHours(
+    actualDateStr,
+    startTime,
+    durationHours,
+    hours,
+    null,
+    closedDates,
+    vacationMode,
   )
 }
 

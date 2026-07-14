@@ -10,26 +10,22 @@ import {
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
-import {
-  getHandledExceptionProperties,
-  toPostHogException,
-} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
+import {
+  captureSubmitFailure,
+  GENERIC_SUBMIT_ERROR,
+  INVALID_PAYLOAD_ERROR,
+  isSubmissionRateLimited,
+  RATE_LIMIT_ERROR,
+  TIME_PATTERN as timeRegex,
+} from "@/lib/submission"
 import { slotOverlapsKaraokeBookings } from "../domain/availability"
 import { calcKaraokePrice, KARAOKE_PRICING } from "../domain/formState"
 import { timeToMinutes } from "../domain/time"
 import type { PriceType } from "../types"
 import { fetchKaraokeAvailability } from "./karaoke-availability"
-
-const GENERIC_ERROR = "Noe gikk galt. Prøv igjen senere."
-const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 5
-
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const karaokePayloadSchema = z.object({
   eventName: z.string().trim().min(1),
@@ -120,21 +116,13 @@ export async function submitKaraokeBooking(
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
   if (payload.honeypot?.trim()) return ok(-1)
 
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "submitKaraokeBooking",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
+  if (await isSubmissionRateLimited("submitKaraokeBooking")) {
     return err(RATE_LIMIT_ERROR)
   }
 
   const parsed = karaokePayloadSchema.safeParse(payload)
   if (!parsed.success) {
-    return err("Skjemaet er ufullstendig eller inneholder ugyldige verdier.")
+    return err(INVALID_PAYLOAD_ERROR)
   }
 
   const houseHours = await fetchHouseHours()
@@ -179,9 +167,8 @@ export async function submitKaraokeBooking(
 
   const result = await postEventRequest(KARAOKE_SLUG, body)
 
-  const posthog = getPostHogClient()
   if (result.ok) {
-    posthog.capture({
+    getPostHogClient().capture({
       distinctId: "anonymous",
       event: "karaoke_booking_submitted",
       properties: {
@@ -196,25 +183,11 @@ export async function submitKaraokeBooking(
     return result
   }
 
-  // Keep internal error detail in PostHog; return generic message to client.
-  posthog.capture({
-    distinctId: "anonymous",
-    event: "karaoke_booking_submit_failed",
-    properties: {
-      price_type: parsed.data.priceType,
-      start_date: parsed.data.startDate,
-      error: result.error,
-    },
+  captureSubmitFailure("karaoke_booking", result.error, {
+    source: "submit-karaoke-booking",
+    failure_branch: "crescat_request_failed",
+    price_type: parsed.data.priceType,
+    start_date: parsed.data.startDate,
   })
-  posthog.captureException(
-    toPostHogException(result.error),
-    "anonymous",
-    getHandledExceptionProperties("karaoke_booking", {
-      source: "submit-karaoke-booking",
-      failure_branch: "crescat_request_failed",
-      price_type: parsed.data.priceType,
-      start_date: parsed.data.startDate,
-    }),
-  )
-  return err(GENERIC_ERROR)
+  return err(GENERIC_SUBMIT_ERROR)
 }

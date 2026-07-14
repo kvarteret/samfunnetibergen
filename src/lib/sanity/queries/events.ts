@@ -126,19 +126,15 @@ export const publishedEventSlugsQuery = defineQuery(`
         "slug": slug.current
     }`)
 
-// Detail pages stay reachable for approved cancelled/postponed events
-// (shared URLs must not 404 because the real-world status changed) and for
-// series/festival parents, whose pages act as overviews.
+// Detail pages stay reachable for every approved event, including historical
+// events whose stable URLs may still be linked from search or social posts.
+// Preview mode continues to expose drafts, while unpublished events remain
+// unavailable to ordinary requests.
 export const eventBySlugQuery = defineQuery(`
     *[_type == "arrangement" && slug.current == $slug && (
         $preview == true
         || (
             approvalStatus == "approved"
-            && (
-                count(dates[startDate >= $today]) > 0
-                || eventStatus in ["cancelled", "postponed"]
-                || ${PARENT_EVENT_KINDS}
-            )
         )
     )][0] ${eventProjection}`)
 
@@ -151,6 +147,9 @@ export const eventChildrenQuery = defineQuery(`
 
 // The internal-event flag is inheritable, so the feed's exclusion must
 // consider the parent's flag for children that never set their own.
+// The $today date filter here trims payload; the structured-data builder
+// filters by its own "today" again because cached query results can span a
+// date boundary within the revalidation window.
 export const feedEventsQuery = defineQuery(`
     *[
         _type == "arrangement"
@@ -165,7 +164,7 @@ export const feedEventsQuery = defineQuery(`
         eventStatus,
         "parent": ${parentProjection},
         "slug": coalesce(slug.current, ""),
-        "dates": coalesce(dates[] | order(startDate asc) {
+        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {
             _key,
             "startDate": coalesce(startDate, ""),
             startTime,

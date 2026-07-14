@@ -1,32 +1,18 @@
-import {
-  getHandledExceptionProperties,
-  toPostHogException,
-} from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import {
+  captureSubmitFailure,
+  isSubmissionRateLimited,
+  RATE_LIMIT_ERROR,
+} from "@/lib/submission"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
 const ALLOWED_TYPES = new Set(["bug", "feature", "improvement"])
 
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
-const SUBMIT_LIMIT = 10
-
 export async function POST(request: Request) {
-  const ip = await getClientIp()
-  if (
-    !checkRateLimit({
-      name: "feedback",
-      ip,
-      limit: SUBMIT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    })
-  ) {
-    return Response.json(
-      { detail: "For mange forsøk. Vent litt og prøv igjen." },
-      { status: 429 },
-    )
+  if (await isSubmissionRateLimited("feedback", 10)) {
+    return Response.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
   }
 
   let body: unknown
@@ -76,17 +62,13 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("[feedback] Failed to forward to personal backend:", error)
-    getPostHogClient().captureException(
-      toPostHogException(error),
-      "anonymous",
-      getHandledExceptionProperties("feedback", {
-        source: "feedback-route",
-        failure_branch: "personal_backend_request_failed",
-        feedback_type: feedbackType,
-        has_page: typeof raw.page === "string" && raw.page.trim() !== "",
-        contact_allowed: Boolean(contactEmail),
-      }),
-    )
+    captureSubmitFailure("feedback", error, {
+      source: "feedback-route",
+      failure_branch: "personal_backend_request_failed",
+      feedback_type: feedbackType,
+      has_page: typeof raw.page === "string" && raw.page.trim() !== "",
+      contact_allowed: Boolean(contactEmail),
+    })
     return Response.json(
       { detail: "Failed to submit feedback" },
       { status: 502 },

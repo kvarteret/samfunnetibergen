@@ -26,9 +26,8 @@ export async function generateMetadata({ params }: SponsorsPageProps) {
 
   return buildPageMetadata({
     canonicalPath: `/${locale}/sponsorer`,
-    fallbackTitle: content?.title ?? "Sponsorer",
-    fallbackDescription:
-      content?.description ?? "Se sponsorer for Samfunnet i Bergen.",
+    title: content?.title ?? "Sponsorer",
+    description: content?.description ?? "Se sponsorer for Samfunnet i Bergen.",
   })
 }
 
