@@ -194,7 +194,6 @@ interface DateTimePickerProps {
   endTime: string
   doorsTimes: string[]
   estimatedEndTimes: string[]
-  hasConflict: boolean
   occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
@@ -217,7 +216,6 @@ export function DateTimePicker({
   endTime,
   doorsTimes,
   estimatedEndTimes,
-  hasConflict,
   occupiedRanges,
   onStartDateChange,
   onEndDateChange,
@@ -371,7 +369,6 @@ export function DateTimePicker({
               uid={uid}
               startDate={startDate}
               endDate={endDate}
-              hasConflict={hasConflict}
               occupiedRanges={occupiedRanges}
               openingHours={openingHours}
               roomOpeningHours={roomOpeningHours}
@@ -401,7 +398,6 @@ interface TimeSlotsProps {
   uid: string
   startDate: string
   endDate: string
-  hasConflict: boolean
   occupiedRanges: { startMin: number; endMin: number }[]
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
@@ -438,7 +434,6 @@ function TimeSlots({
   uid,
   startDate,
   endDate,
-  hasConflict,
   occupiedRanges,
   openingHours,
   roomOpeningHours,
@@ -519,7 +514,6 @@ function TimeSlots({
           firstDayEndIdx={constraints.firstDayEndIdx}
           lastDayStartIdx={constraints.lastDayStartIdx}
           lastDayEndIdx={constraints.lastDayEndIdx}
-          conflict={hasConflict}
           occupiedRanges={occupiedRanges}
           stapledSegments={constraints.stapledSegments}
           onStartChange={onStartChange}

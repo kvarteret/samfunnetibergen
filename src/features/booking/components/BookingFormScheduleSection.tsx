@@ -12,7 +12,8 @@ import {
   X,
 } from "lucide-react"
 import { type MouseEvent, type ReactNode, useId, useState } from "react"
-import { Card } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -38,8 +39,6 @@ interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
   roomOccupancy: Map<number, string[]>
   occupiedRanges: { startMin: number; endMin: number }[]
-  selectedRoomIds: number[]
-  hasConflict: boolean
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
@@ -51,8 +50,6 @@ export function BookingFormScheduleSection({
   rooms,
   roomOccupancy,
   occupiedRanges,
-  selectedRoomIds,
-  hasConflict,
   openingHours,
   closedDates,
   vacationMode,
@@ -64,7 +61,6 @@ export function BookingFormScheduleSection({
   const startDateErrorId = `${startDateId}-error`
 
   const today = isoDate(new Date())
-  const firstRoom = rooms.find(r => selectedRoomIds.includes(r.crescatRoomId))
 
   return (
     <FormSection id="booking-schedule" number="02" title="Rom og tidspunkt">
@@ -99,6 +95,22 @@ export function BookingFormScheduleSection({
           estimatedEndTimes: string[]
           bookerType: BookerType
         }) => {
+          const selectedRoomIdSet = new Set(selectedRoomIds)
+          const firstRoom = rooms.find(room =>
+            selectedRoomIdSet.has(room.crescatRoomId),
+          )
+          const toggleRoom = (roomId: number) => {
+            const next = selectedRoomIds.includes(roomId)
+              ? selectedRoomIds.filter(id => id !== roomId)
+              : [...selectedRoomIds, roomId]
+            form.setFieldValue("selectedRoomIds", next)
+          }
+          const selectedConflictRooms = rooms.filter(
+            room =>
+              selectedRoomIdSet.has(room.crescatRoomId) &&
+              roomOccupancy.has(room.crescatRoomId),
+          )
+
           return (
             <>
               <FieldGroup error={startDateError} errorId={startDateErrorId}>
@@ -109,7 +121,6 @@ export function BookingFormScheduleSection({
                   estimatedEndTimes={estimatedEndTimes}
                   endDate={endDate}
                   endTime={endTime}
-                  hasConflict={hasConflict}
                   occupiedRanges={occupiedRanges}
                   onDoorsChange={(dayIndex, v) => {
                     const next = [...doorsTimes]
@@ -147,25 +158,47 @@ export function BookingFormScheduleSection({
                 </p>
               </FieldGroup>
 
+              {selectedConflictRooms.length > 0 && (
+                <Alert
+                  className="max-w-3xl"
+                  id={`${startDateId}-time`}
+                  variant="destructive"
+                >
+                  <CalendarClock aria-hidden />
+                  <AlertTitle>
+                    {selectedConflictRooms
+                      .map(room => room.title ?? room.crescatRoomId)
+                      .join(", ")}{" "}
+                    er opptatt i valgt tidsrom
+                  </AlertTitle>
+                  <AlertDescription className="gap-3">
+                    <p>Endre tidspunktet eller fjern rommet fra bookingen.</p>
+                    {selectedConflictRooms.map(room => (
+                      <Button
+                        key={room.crescatRoomId}
+                        onClick={() => toggleRoom(room.crescatRoomId)}
+                        size="sm"
+                        type="button"
+                        variant="neutral"
+                      >
+                        <X aria-hidden />
+                        Fjern {room.title ?? room.crescatRoomId}
+                      </Button>
+                    ))}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {startDate && startTime && endTime ? (
                 rooms.length > 0 ? (
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {rooms.map(room => {
-                      const selected = selectedRoomIds.includes(
-                        room.crescatRoomId,
-                      )
+                      const selected = selectedRoomIdSet.has(room.crescatRoomId)
                       const occupied = roomOccupancy.has(room.crescatRoomId)
                       const conflicts =
                         roomOccupancy.get(room.crescatRoomId) ?? []
                       const roomName = room.title ?? String(room.crescatRoomId)
                       const isCrescatOnly = room.source === "crescat"
-
-                      const toggleRoom = (roomId: number) => {
-                        const next = selectedRoomIds.includes(roomId)
-                          ? selectedRoomIds.filter(id => id !== roomId)
-                          : [...selectedRoomIds, roomId]
-                        form.setFieldValue("selectedRoomIds", next)
-                      }
 
                       return (
                         <div
@@ -175,7 +208,7 @@ export function BookingFormScheduleSection({
                               ? "border-border bg-card cursor-default"
                               : "cursor-pointer",
                             !occupied && selected
-                              ? "border-primary bg-primary/5"
+                              ? "border-state bg-state/5"
                               : !occupied && "border-border bg-card",
                           )}
                           key={room.crescatRoomId}
@@ -301,20 +334,6 @@ export function BookingFormScheduleSection({
                   )}
                 </form.Field>
               )}
-
-              {hasConflict && (
-                <Card className="max-w-3xl gap-2 p-4 border-destructive bg-destructive/10">
-                  <p
-                    className="flex items-center gap-2 border-l-4 border-destructive pl-3 font-heading text-destructive"
-                    id={`${startDateId}-time-conflict`}
-                    role="alert"
-                  >
-                    <CalendarClock aria-hidden className="size-4 shrink-0" />
-                    Valgt tidsrom overlapper en eksisterende booking. Velg et
-                    annet tidspunkt.
-                  </p>
-                </Card>
-              )}
             </>
           )
         }}
@@ -399,7 +418,7 @@ function AddRoomButton({
       <button
         aria-label="Fjern rom fra bookingen"
         className={cn(
-          "flex items-center gap-1.5 border-2 border-primary bg-primary px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 focus-brutal",
+          "flex items-center gap-1.5 border-2 border-state bg-state px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-state-foreground transition-colors hover:opacity-90 focus-brutal",
           className,
         )}
         onClick={handleClick}
@@ -415,7 +434,7 @@ function AddRoomButton({
     <button
       aria-label="Legg til rom i bookingen"
       className={cn(
-        "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground focus-brutal",
+        "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:border-state hover:bg-state hover:text-state-foreground focus-brutal",
         className,
       )}
       onClick={handleClick}

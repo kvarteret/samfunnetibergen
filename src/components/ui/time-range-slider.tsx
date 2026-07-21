@@ -3,7 +3,7 @@
 import { Popover } from "@base-ui/react/popover"
 import { Slider } from "@base-ui/react/slider"
 import { Info } from "lucide-react"
-import { type ReactNode, useCallback, useMemo } from "react"
+import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { minutesToTime } from "@/lib/opening-hours"
 import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
 
@@ -33,8 +33,6 @@ interface TimeRangeSliderProps {
   lastDayStartIdx?: number
   /** Multi-day: last selectable index in last day's marks (end max). */
   lastDayEndIdx?: number
-  /** When true, the slider turns red to indicate a booking conflict. */
-  conflict: boolean
   /** Minute ranges (relative to start date midnight) that are booked. */
   occupiedRanges: { startMin: number; endMin: number }[]
   /** Index range from end of first day to start of last day (stapled mid-section). */
@@ -190,6 +188,11 @@ export function occupiedStripeSegments(
     .filter(s => s.width > 0)
 }
 
+function markTime(marks: number[], index: number): string {
+  const minute = marks[index]
+  return minute == null ? "" : minutesToTime(minute % MINUTES_IN_DAY)
+}
+
 export function TimeRangeSlider({
   marks,
   startTime,
@@ -199,7 +202,6 @@ export function TimeRangeSlider({
   firstDayEndIdx,
   lastDayStartIdx,
   lastDayEndIdx,
-  conflict,
   occupiedRanges,
   stapledSegments,
   onStartChange,
@@ -237,6 +239,28 @@ export function TimeRangeSlider({
     const clamped = idx >= 0 ? idx : maxEndIdx
     return Math.min(Math.max(clamped, minEndIdx), maxEndIdx)
   }, [marks, endTime, minEndIdx, maxEndIdx, lastDayEndIdx])
+
+  const resolvedStartTime = markTime(marks, startIndex)
+  const resolvedEndTime = markTime(marks, endIndex)
+
+  // The boxes already show clamped indices when a date or room narrows the
+  // valid marks. Persist those same values so validation never reads stale
+  // times that differ from what the user sees.
+  useEffect(() => {
+    if (resolvedStartTime && resolvedStartTime !== startTime) {
+      onStartChange(resolvedStartTime)
+    }
+    if (resolvedEndTime && resolvedEndTime !== endTime) {
+      onEndChange(resolvedEndTime)
+    }
+  }, [
+    resolvedStartTime,
+    resolvedEndTime,
+    startTime,
+    endTime,
+    onStartChange,
+    onEndChange,
+  ])
 
   // ── Handlers ─────────────────────────────────────────────────────────
 
@@ -334,18 +358,15 @@ export function TimeRangeSlider({
   // ── Format helpers ───────────────────────────────────────────────────
 
   const formatLabel = useCallback(
-    (index: number) => {
-      const minute = marks[index] ?? 0
-      const localMinute = minute % MINUTES_IN_DAY
-      return minutesToTime(localMinute)
-    },
+    (index: number) => markTime(marks, index),
     [marks],
   )
 
   const sliderValue: [number, number] = [startIndex, endIndex]
 
-  // Colors: use theme tokens — primary by default, destructive on conflict
-  const trackColor = conflict ? "var(--destructive)" : "var(--primary)"
+  // The selected request stays neutral. Only actual occupied intervals use
+  // the destructive striped overlay below.
+  const trackColor = "var(--state)"
 
   // ── Occupied stripe overlays ─────────────────────────────────────────
   // Convert occupied minute ranges to percentage positions on the track.

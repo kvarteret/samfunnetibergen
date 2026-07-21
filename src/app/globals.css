@@ -100,6 +100,10 @@
     --destructive-foreground: var(--cream-100);
     --success: var(--green-500);
     --success-foreground: var(--navy-950);
+    /* Neutral selection/state color. Skyss keeps the existing amber treatment;
+       themes where primary and destructive are both red can override it. */
+    --state: var(--primary);
+    --state-foreground: var(--primary-foreground);
     --muted: var(--cream-400);
     --muted-foreground: var(--navy-600);
     --card: var(--cream-100);
@@ -191,6 +195,9 @@
     --accent: #ffe8e8;
     --accent-foreground: #eb3b3b;
 
+    --state: #62666b;
+    --state-foreground: #ffffff;
+
     --muted: #ffe8e8;
     --muted-foreground: #8a2b2b;
     --card: #ffe8e8;
@@ -249,6 +256,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success:              var(--success);
   --color-success-foreground:   var(--success-foreground);
+  --color-state:                var(--state);
+  --color-state-foreground:     var(--state-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
   --color-card:                 var(--card);
