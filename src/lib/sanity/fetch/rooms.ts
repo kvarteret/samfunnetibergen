@@ -49,6 +49,21 @@ export async function fetchRoomsPageContent(
   return data
 }
 
+// The booking route is already dynamic because room availability is fetched
+// per request. Read its supporting content without the Live Content cache so
+// newly published terms and help links cannot be shadowed by an older result.
+export async function fetchPublishedRoomsPageContent(): Promise<RoomsPageContent | null> {
+  return sanityClient.fetch(
+    roomsPageQuery,
+    {},
+    {
+      cache: "no-store",
+      perspective: "published",
+      stega: false,
+    },
+  )
+}
+
 export async function fetchRooms(): Promise<RoomSummary[]> {
   const { data: rooms } = await sanityFetch({
     query: roomsQuery,

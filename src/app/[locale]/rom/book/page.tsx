@@ -21,7 +21,7 @@ import type { EditorialSection } from "@/lib/sanity/fetch"
 import {
   fetchHouseHours,
   fetchPageBySlug,
-  fetchRoomsPageContent,
+  fetchPublishedRoomsPageContent,
 } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
@@ -130,8 +130,8 @@ export default async function BookRoomPage({
   ] = await Promise.all([
     fetchBookableRoomsForBooker("ekstern"),
     fetchHouseHours(),
-    fetchRoomsPageContent(),
-    fetchPageBySlug("leie-av-lokaler"),
+    fetchPublishedRoomsPageContent(),
+    fetchPageBySlug("leievilkaar"),
     fetchPageBySlug("avbestillingsvilkar"),
   ])
 
@@ -194,7 +194,7 @@ export default async function BookRoomPage({
         rentalTermsContent={termsPage?.content ?? null}
       />
 
-      {questionsSection ? (
+      {questionsSection?.body?.length ? (
         <QuestionsSection section={questionsSection} />
       ) : null}
 

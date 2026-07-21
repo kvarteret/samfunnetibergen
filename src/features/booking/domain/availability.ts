@@ -86,6 +86,30 @@ export function durationHoursBetween(
   return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
 }
 
+// Elapsed booking hours across calendar dates. Date-only values are converted
+// through UTC so daylight-saving changes do not turn a calendar day into 23
+// or 25 billable hours.
+export function durationHoursBetweenDates(
+  startDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string,
+): number {
+  if (!endDate || endDate === startDate) {
+    return durationHoursBetween(startTime, endTime)
+  }
+
+  const [startYear, startMonth, startDay] = startDate.split("-").map(Number)
+  const [endYear, endMonth, endDay] = endDate.split("-").map(Number)
+  const calendarMinutes =
+    (Date.UTC(endYear, endMonth - 1, endDay) -
+      Date.UTC(startYear, startMonth - 1, startDay)) /
+    60_000
+  const timeMinutes = timeToMinutes(endTime) - timeToMinutes(startTime)
+
+  return (calendarMinutes + timeMinutes) / 60
+}
+
 // Bookings for one Crescat room (resourceId) out of the day's calendar.
 export function bookingsForRoom(
   bookings: CresatBooking[],
