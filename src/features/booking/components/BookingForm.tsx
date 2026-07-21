@@ -279,13 +279,11 @@ export function BookingForm({
           />
           <BookingFormScheduleSection
             rooms={rooms}
-            selectedRoomIds={selectedRoomIds}
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}
             openingHours={openingHours}
             closedDates={closedDates}
             vacationMode={vacationMode}
-            hasConflict={hasConflict}
             startDateError={
               errorFor(fieldIds.startDate) ??
               errorFor(`${fieldIds.startDate}-time`)
