@@ -1,7 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { Check, ExternalLink, X } from "lucide-react"
+import { Check, X } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
@@ -87,15 +87,11 @@ export function BookingFormTermsSection({
         <div className="flex flex-wrap gap-4">
           <span className="inline-flex items-center gap-2">
             <button
-              className="inline-flex items-center gap-1 font-heading underline underline-offset-4 focus-brutal"
+              className="inline-flex cursor-pointer items-center gap-1 font-heading underline underline-offset-4 focus-brutal"
               onClick={openRentalDialog}
               type="button"
             >
               Vilkår for leie
-              <ExternalLink
-                aria-hidden
-                className="inline size-3 shrink-0 align-baseline"
-              />
             </button>
             {hasReadRental && (
               <span className="inline-flex items-center gap-1 text-sm text-success">
@@ -106,15 +102,11 @@ export function BookingFormTermsSection({
           </span>
           <span className="inline-flex items-center gap-2">
             <button
-              className="inline-flex items-center gap-1 font-heading underline underline-offset-4 focus-brutal"
+              className="inline-flex cursor-pointer items-center gap-1 font-heading underline underline-offset-4 focus-brutal"
               onClick={openCancellationDialog}
               type="button"
             >
               Avbestillingsvilkår
-              <ExternalLink
-                aria-hidden
-                className="inline size-3 shrink-0 align-baseline"
-              />
             </button>
             {hasReadCancellation && (
               <span className="inline-flex items-center gap-1 text-sm text-success">

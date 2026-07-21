@@ -65,6 +65,24 @@ describe("computePriceSummary", () => {
     expect(result.totalIncVat).toBe(9000)
   })
 
+  it("charges the full elapsed duration for a multi-day booking", () => {
+    const result = computePriceSummary(
+      {
+        ...booking,
+        startDate: "2026-09-15",
+        endDate: "2026-09-18",
+        startTime: "19:00",
+        endTime: "20:00",
+      },
+      [room({ title: "Maos Lille Røde", pricePerHour: 500 })],
+    )
+
+    expect(result.lines).toEqual([
+      { label: "Maos Lille Røde (73 t × 500 kr)", amount: 36_500 },
+    ])
+    expect(result.totalIncVat).toBe(45_625)
+  })
+
   it("does not charge room rent for internal bookers", () => {
     const result = computePriceSummary({ ...booking, bookerType: "intern" }, [
       tivoli,

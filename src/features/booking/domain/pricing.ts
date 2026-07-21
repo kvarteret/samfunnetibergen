@@ -7,7 +7,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import type { BookingRoom } from "../types"
-import { durationHoursBetween } from "./availability"
+import { durationHoursBetweenDates } from "./availability"
 import type { BookingFormState } from "./formState"
 
 const VAT_RATE = 0.25
@@ -41,15 +41,21 @@ export interface PriceSummary {
 function billableHoursForRoom(
   room: BookingRoom,
   startDate: string,
+  endDate: string,
   startTime: string,
   endTime: string,
   baseHours: OpeningHours | null,
   closedDates: ClosedDate[],
   vacationMode?: VacationMode | null,
 ): number {
-  const totalHours = durationHoursBetween(startTime, endTime)
+  const totalHours = durationHoursBetweenDates(
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+  )
   const hasRoomHours = hasOpeningHoursRows(room.openingHours ?? null)
-  if (!hasRoomHours) return totalHours
+  if (!hasRoomHours || (endDate && endDate !== startDate)) return totalHours
 
   const ranges = combineOpeningRangesForDate(
     startDate,
@@ -135,6 +141,7 @@ export function computePriceSummary(
         billableHoursForRoom(
           room,
           state.startDate,
+          state.endDate,
           state.startTime,
           state.endTime,
           baseHours,
