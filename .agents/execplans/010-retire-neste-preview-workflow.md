@@ -17,11 +17,11 @@ The result is visible in three places: pull requests to `develop` cannot merge w
 - [x] (2026-07-22 08:55Z) Updated the Sanity Presentation origin and durable release documentation without adding a pull-request template or `CONTRIBUTING.md`.
 - [x] (2026-07-22 08:55Z) Added classic GitHub branch protection for `develop`: pull request required, one approval, conversations resolved, existing CI and Vercel checks required, loose status checks, force pushes and deletion blocked, administrators able to bypass emergencies.
 - [x] (2026-07-22 08:57Z) Passed focused Studio tests, touched-file formatting and ESLint, TypeScript, the full 443-test suite with coverage, `git diff --check`, and a production build.
-- [ ] Commit the implementation, push the branch, and open a pull request.
-- [ ] Verify the pull request gets CI and a Vercel preview and is blocked pending an external approval.
-- [ ] Remove the branch-scoped Preview `NEXT_PUBLIC_SITE_URL` value that points at `neste` and verify Preview builds no longer depend on it.
-- [ ] Remove the Vercel domain-to-`develop` mapping and current `neste` alias.
-- [ ] Remove only the `neste` DNS record if the available credentials authorize the DNS provider; otherwise record the exact external action still required.
+- [x] (2026-07-22 09:01Z) Committed the implementation as `2084c2b`, pushed `codex/remove-neste-workflow`, and opened pull request #73 to `develop`.
+- [x] (2026-07-22 09:03Z) Verified pull request #73 received a Ready Vercel Preview and green CI and Vercel statuses; GitHub reports `REVIEW_REQUIRED` and blocks merging pending one external approval.
+- [x] (2026-07-22 09:04Z) Removed the branch-scoped Preview `NEXT_PUBLIC_SITE_URL` value that pointed at `neste`; only Development and Production values remain.
+- [x] (2026-07-22 09:06Z) Removed `neste.samfunnetibergen.no` from the Vercel project through the project-domain API, eliminating both the `develop` branch mapping and current alias. Vercel can no longer inspect the hostname and HTTPS returns Vercel 404 while DNS remains.
+- [ ] Remove only the `neste` DNS record (blocked on Domeneshop authentication: remove the `neste` CNAME pointing to `68e276a0db0fcb0a.vercel-dns-017.com`; the available browser-control connection could not initialize and no Domeneshop API credentials are present).
 - [ ] Verify production and Studio behavior, update this plan, and record the outcome.
 
 ## Surprises & Discoveries
@@ -43,6 +43,9 @@ The result is visible in three places: pull requests to `develop` cannot merge w
 
 - Observation: the repository-wide Biome format check currently enters `.claude/worktrees/silly-haslett-8ff3a5` and fails on its nested root configuration.
   Evidence: `npm run lint` stopped before ESLint with “Found a nested root configuration.” Touched-file Biome formatting, touched-file ESLint, and TypeScript passed; the full check will also be exercised by GitHub CI, whose clean checkout does not include the local nested worktree.
+
+- Observation: removing the Vercel project domain immediately removed the branch mapping and active alias, but third-party DNS continues to resolve until its CNAME is deleted at Domeneshop.
+  Evidence: the Vercel project-domain list no longer contains `neste`, `vercel inspect` cannot find it, HTTPS returns 404, and DNS still returns `68e276a0db0fcb0a.vercel-dns-017.com` through authoritative servers `ns1.hyp.net`, `ns2.hyp.net`, and `ns3.hyp.net`.
 
 ## Decision Log
 
@@ -68,7 +71,7 @@ The result is visible in three places: pull requests to `develop` cannot merge w
 
 ## Outcomes & Retrospective
 
-Implementation is in progress. At completion, this section will state which repository, GitHub, Vercel, and DNS changes succeeded; identify any action blocked by external ownership; and record the final verification evidence.
+The new repository and GitHub workflow is implemented in pull request #73. GitHub protection is active, the pull request's CI and Vercel Preview checks pass, and the PR is correctly waiting for one external approval. The branch-scoped Preview site URL and Vercel branch-domain mapping are removed. The production deployment remains Ready. Two external boundaries remain: a teammate must approve pull request #73, and an authenticated Domeneshop operator must delete the single stale `neste` CNAME before DNS retirement is complete.
 
 ## Context and Orientation
 
@@ -159,3 +162,5 @@ Revision note (2026-07-22): Initial plan created after the user removed the PR-t
 Revision note (2026-07-22 08:55Z): Recorded the completed source and GitHub-protection milestones plus local verification discoveries.
 
 Revision note (2026-07-22 08:57Z): Recorded successful repository verification and split publishing into its own remaining progress item.
+
+Revision note (2026-07-22 09:08Z): Recorded the published trial PR, successful checks, Preview environment cleanup, Vercel domain removal, and the exact approval and Domeneshop boundaries that remain.
