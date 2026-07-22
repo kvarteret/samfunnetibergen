@@ -44,6 +44,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "(?:www\\.)?blifrivillig\\.no",
+          },
+        ],
+        destination: "https://www.samfunnetibergen.no/blifrivillig",
+        permanent: true,
+      },
+      {
         source: "/program",
         destination: "/nb/arrangementer",
         permanent: true,
