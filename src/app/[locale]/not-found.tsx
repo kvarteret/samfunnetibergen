@@ -21,8 +21,7 @@ export default function NotFound() {
           Her var det visst tomt.
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-8 text-foreground-muted sm:text-xl">
-          Siden du leter etter finnes ikke, eller den kan ha blitt flyttet. Vi
-          hjelper deg gjerne videre.
+          Siden du leter etter finnes ikke, eller den kan ha blitt flyttet.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
