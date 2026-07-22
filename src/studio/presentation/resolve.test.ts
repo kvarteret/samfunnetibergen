@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { eventBySlugQuery } from "../../lib/sanity/queries/events"
 import { studentGroupBySlugQuery } from "../../lib/sanity/queries/groups"
 import {
@@ -11,6 +11,8 @@ const originalPreviewUrl = process.env.SANITY_STUDIO_PREVIEW_URL
 const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 afterEach(() => {
+  vi.unstubAllEnvs()
+
   if (originalPreviewUrl === undefined) {
     delete process.env.SANITY_STUDIO_PREVIEW_URL
   } else {
@@ -28,7 +30,17 @@ describe("Presentation URL configuration", () => {
   it("defaults local Presentation to the Next.js development port", () => {
     delete process.env.SANITY_STUDIO_PREVIEW_URL
     delete process.env.NEXT_PUBLIC_SITE_URL
+    vi.stubEnv("NODE_ENV", "development")
     expect(resolvePresentationInitialUrl()).toBe("http://localhost:3187/nb")
+  })
+
+  it("defaults deployed Presentation to the production site", () => {
+    delete process.env.SANITY_STUDIO_PREVIEW_URL
+    delete process.env.NEXT_PUBLIC_SITE_URL
+    vi.stubEnv("NODE_ENV", "production")
+    expect(resolvePresentationInitialUrl()).toBe(
+      "https://samfunnetibergen.no/nb",
+    )
   })
 
   it("prefers the explicit Studio preview origin", () => {
@@ -47,6 +59,12 @@ describe("Presentation URL configuration", () => {
         origin => origin === "http://localhost:3187",
       ),
     ).toHaveLength(1)
+  })
+
+  it("trusts production without retaining the retired develop origin", () => {
+    const origins = resolvePresentationOrigins()
+    expect(origins).toContain("https://samfunnetibergen.no")
+    expect(origins).not.toContain("https://neste.samfunnetibergen.no")
   })
 })
 

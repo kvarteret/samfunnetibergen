@@ -8,12 +8,20 @@ staged smoke tests pass.
 ## Prerequisites
 
 - The source to release is available on a branch, tag, or commit. The normal
-  release source is the merged `develop` branch.
+  release source is the merged `develop` branch. Changes normally reach
+  `develop` through a reviewed pull request whose repository checks and Vercel
+  Preview deployment have passed.
 - GitHub CLI is authenticated for `kvarteret/samfunnetibergen`.
 - The repository's production environment secrets are configured. The workflow
   uses Vercel credentials, Sanity build variables, PostHog source-map
   variables, and `VERCEL_AUTOMATION_BYPASS_SECRET` for protected smoke-test
   deployments.
+
+Pull-request-specific Vercel Preview deployments are the normal place to review
+changes before merging. The release workflow still provides the integration
+gate for the complete `develop` state: it rebuilds that state as a production
+artifact, deploys the artifact without assigning the public domain, smoke-tests
+it, and promotes that exact artifact.
 
 ## Release the merged `develop` branch
 
