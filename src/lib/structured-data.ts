@@ -9,6 +9,20 @@ const OSLO_TIME_ZONE = "Europe/Oslo"
 const SCHEMA_CONTEXT = "https://schema.org"
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const TIME_PATTERN = /^\d{2}:\d{2}(:\d{2})?$/
+const KVARTERET_MAP_URL =
+  "https://www.google.com/maps/place/Det+Akademiske+Kvarter/@60.3896713,5.3212395,19z/data=!3m1!4b1!4m6!3m5!1s0x463cfc0208521f51:0xbdfb43c9a516175!8m2!3d60.3896713!4d5.3218932!16zL20vMDNxZGJn?entry=ttu&g_ep=EgoyMDI2MDcxOS4wIKXMDSoASAFQAw%3D%3D"
+const ORGANIZATION_SAME_AS = [
+  "https://www.facebook.com/studentersamfunnet/",
+  "https://www.instagram.com/samfunnet/",
+] as const
+
+const KVARTERET_ADDRESS = {
+  "@type": "PostalAddress",
+  streetAddress: "Olav Kyrres gate 49",
+  postalCode: "5015",
+  addressLocality: "Bergen",
+  addressCountry: "NO",
+} as const
 
 export type StructuredEventDate = {
   _key?: string | null
@@ -33,6 +47,16 @@ export type StructuredEvent = {
   priceStudent?: number | null
   priceMedlem?: number | null
   ticketUrl?: string | null
+}
+
+export type StructuredFaqSection = {
+  _type?: string | null
+  items?:
+    | readonly {
+        title?: string | null
+        body?: unknown
+      }[]
+    | null
 }
 
 export type StructuredEventNode = {
@@ -96,6 +120,7 @@ export function buildOrganizationWebsiteGraph(
 ): StructuredDataDocument {
   const normalizedUrl = normalizedSiteUrl(siteUrl)
   const organizationId = `${normalizedUrl}#organization`
+  const placeId = `${normalizedUrl}#place`
 
   return {
     "@context": SCHEMA_CONTEXT,
@@ -105,6 +130,16 @@ export function buildOrganizationWebsiteGraph(
         "@id": organizationId,
         name: "Samfunnet i Bergen",
         url: normalizedUrl,
+        sameAs: ORGANIZATION_SAME_AS,
+        location: { "@id": placeId },
+      },
+      {
+        "@type": "Place",
+        "@id": placeId,
+        name: "Det Akademiske Kvarter",
+        url: `${normalizedUrl}/nb`,
+        hasMap: KVARTERET_MAP_URL,
+        address: KVARTERET_ADDRESS,
       },
       {
         "@type": "WebSite",
@@ -164,7 +199,16 @@ export function buildEventStructuredDataNode(
   if (description) node.description = description
   if (imageUrl) node.image = imageUrl
   if (locationName) {
-    node.location = { "@type": "Place", name: locationName }
+    node.location = {
+      "@type": "Place",
+      name: locationName,
+      ...(event.room
+        ? {
+            address: KVARTERET_ADDRESS,
+            containedInPlace: { "@id": `${baseUrl}#place` },
+          }
+        : {}),
+    }
     node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
   }
   if (organizerName) {
@@ -231,6 +275,39 @@ export function buildEventFeedData(
       position: index + 1,
       item,
     })),
+  }
+}
+
+export function buildFaqPageStructuredData(
+  sections: readonly StructuredFaqSection[],
+): StructuredDataDocument | null {
+  const mainEntity = sections.flatMap(section => {
+    if (section._type !== "infoAccordionBlock") return []
+
+    return (section.items ?? []).flatMap(item => {
+      const name = item.title?.trim()
+      const text = toPlainTextContent(item.body)
+      if (!name || !text) return []
+
+      return [
+        {
+          "@type": "Question",
+          name,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text,
+          },
+        },
+      ]
+    })
+  })
+
+  if (mainEntity.length === 0) return null
+
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "FAQPage",
+    mainEntity,
   }
 }
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildEventFeedData,
   buildEventStructuredData,
+  buildFaqPageStructuredData,
   buildOrganizationWebsiteGraph,
   serializeJsonLd,
 } from "./structured-data"
@@ -47,7 +48,7 @@ const event = {
 }
 
 describe("structured data", () => {
-  it("builds a minimal organization and website graph", () => {
+  it("builds linked organization, venue, and website entities", () => {
     expect(buildOrganizationWebsiteGraph("https://example.com")).toEqual({
       "@context": "https://schema.org",
       "@graph": [
@@ -56,6 +57,27 @@ describe("structured data", () => {
           "@id": "https://example.com#organization",
           name: "Samfunnet i Bergen",
           url: "https://example.com",
+          sameAs: [
+            "https://www.facebook.com/studentersamfunnet/",
+            "https://www.instagram.com/samfunnet/",
+          ],
+          location: { "@id": "https://example.com#place" },
+        },
+        {
+          "@type": "Place",
+          "@id": "https://example.com#place",
+          name: "Det Akademiske Kvarter",
+          url: "https://example.com/nb",
+          hasMap: expect.stringContaining(
+            "google.com/maps/place/Det+Akademiske+Kvarter",
+          ),
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "Olav Kyrres gate 49",
+            postalCode: "5015",
+            addressLocality: "Bergen",
+            addressCountry: "NO",
+          },
         },
         {
           "@type": "WebSite",
@@ -141,6 +163,114 @@ describe("structured data", () => {
         }),
       ]),
     )
+  })
+
+  it("adds the Kvarteret address only for referenced rooms", () => {
+    const referencedRoom = buildEventStructuredData(
+      {
+        ...event,
+        room: { title: "Teglverket" },
+        roomText: null,
+      },
+      {
+        siteUrl: "https://example.com",
+        locale: "nb",
+        today: "2026-07-14",
+      },
+    )
+    const freeTextVenue = buildEventStructuredData(event, {
+      siteUrl: "https://example.com",
+      locale: "nb",
+      today: "2026-07-14",
+    })
+
+    const referencedLocation = (
+      referencedRoom as unknown as {
+        "@graph": Array<Record<string, unknown>>
+      }
+    )["@graph"][0]?.location
+    expect(referencedLocation).toMatchObject({
+      "@type": "Place",
+      name: "Teglverket",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Olav Kyrres gate 49",
+        postalCode: "5015",
+        addressLocality: "Bergen",
+        addressCountry: "NO",
+      },
+      containedInPlace: { "@id": "https://example.com#place" },
+    })
+    const freeTextLocation = (
+      freeTextVenue as unknown as {
+        "@graph": Array<Record<string, unknown>>
+      }
+    )["@graph"][0]?.location
+    expect(freeTextLocation).toMatchObject({
+      "@type": "Place",
+      name: "Storsalen",
+    })
+    expect(freeTextLocation).not.toHaveProperty("address")
+  })
+
+  it("builds FAQ markup from complete visible accordion items", () => {
+    expect(
+      buildFaqPageStructuredData([
+        {
+          _type: "editorialSection",
+          items: [{ title: "Skjult?", body: "Nei" }],
+        },
+        {
+          _type: "infoAccordionBlock",
+          items: [
+            {
+              title: " Hvor ligger Kvarteret? ",
+              body: [
+                {
+                  _key: "block-1",
+                  _type: "block",
+                  children: [
+                    {
+                      _key: "span-1",
+                      _type: "span",
+                      text: "I Olav Kyrres gate 49.",
+                    },
+                  ],
+                  markDefs: [],
+                  style: "normal",
+                },
+              ],
+            },
+            { title: "Tomt svar", body: [] },
+            { title: "  ", body: "Har tekst" },
+          ],
+        },
+      ]),
+    ).toEqual({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Hvor ligger Kvarteret?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "I Olav Kyrres gate 49.",
+          },
+        },
+      ],
+    })
+  })
+
+  it("omits FAQ markup when there are no complete answers", () => {
+    expect(
+      buildFaqPageStructuredData([
+        {
+          _type: "infoAccordionBlock",
+          items: [{ title: "Ubesvart", body: [] }],
+        },
+      ]),
+    ).toBeNull()
   })
 
   it("omits Event markup when every occurrence is historical", () => {

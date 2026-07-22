@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 
+import { JsonLd } from "@/components/JsonLd"
 import { NyttigPage } from "@/features/nyttig"
 import {
   activateRequestLocale,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { fetchUsefulInfoPage } from "@/lib/sanity/fetch"
+import { buildFaqPageStructuredData } from "@/lib/structured-data"
 
 export const revalidate = 300
 
@@ -39,5 +41,12 @@ export default async function UsefulInfoPage({
     notFound()
   }
 
-  return <NyttigPage page={page} />
+  const faqJsonLd = buildFaqPageStructuredData(page.sections ?? [])
+
+  return (
+    <>
+      {faqJsonLd && <JsonLd data={faqJsonLd} />}
+      <NyttigPage page={page} />
+    </>
+  )
 }

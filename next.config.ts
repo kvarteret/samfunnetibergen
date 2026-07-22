@@ -44,6 +44,36 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/program",
+        destination: "/nb/arrangementer",
+        permanent: true,
+      },
+      {
+        source: "/program/:event",
+        destination: "/nb/arrangementer/:event",
+        permanent: true,
+      },
+      {
+        source: "/komiteer",
+        destination: "/nb/grupper",
+        permanent: true,
+      },
+      {
+        source: "/komiteer/:group",
+        destination: "/nb/grupper/:group",
+        permanent: true,
+      },
+      {
+        source: "/bli-aktiv",
+        destination: "/nb/grupper",
+        permanent: true,
+      },
+      {
+        source: "/kontakt-oss",
+        destination: "/nb/kontakt",
+        permanent: true,
+      },
+      {
         source: "/:locale/tilgjengelighet",
         destination: "/:locale/nyttig",
         permanent: true,
