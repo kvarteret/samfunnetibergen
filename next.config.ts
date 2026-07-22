@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/bli-aktiv",
-        destination: "/nb/grupper",
+        destination: "/nb/blifrivillig",
         permanent: true,
       },
       {
