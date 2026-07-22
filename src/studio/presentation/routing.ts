@@ -1,6 +1,7 @@
 const defaultLocale = "nb"
 const defaultPreviewPath = `/${defaultLocale}`
 const localPreviewOrigin = "http://localhost:3187"
+const productionPreviewOrigin = "https://samfunnetibergen.no"
 
 export function documentLocation(
   title: string | undefined,
@@ -24,7 +25,9 @@ export function resolvePresentationInitialUrl() {
   const siteUrl =
     process.env.SANITY_STUDIO_PREVIEW_URL ??
     process.env.NEXT_PUBLIC_SITE_URL ??
-    localPreviewOrigin
+    (process.env.NODE_ENV === "development"
+      ? localPreviewOrigin
+      : productionPreviewOrigin)
 
   return new URL(defaultPreviewPath, siteUrl).toString()
 }
@@ -34,8 +37,7 @@ export function resolvePresentationOrigins() {
     localPreviewOrigin,
     process.env.SANITY_STUDIO_PREVIEW_URL,
     process.env.NEXT_PUBLIC_SITE_URL,
-    "https://samfunnetibergen.no",
-    "https://neste.samfunnetibergen.no",
+    productionPreviewOrigin,
   ]
 
   return Array.from(
