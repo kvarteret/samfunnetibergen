@@ -44,6 +44,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/en/tivoli",
+        destination: "/nb/rom/tivoli",
+        permanent: true,
+      },
+      {
+        source: "/nb/en/tivoli",
+        destination: "/nb/rom/tivoli",
+        permanent: true,
+      },
+      {
         source: "/:locale/tilgjengelighet",
         destination: "/:locale/nyttig",
         permanent: true,
