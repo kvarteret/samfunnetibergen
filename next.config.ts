@@ -51,8 +51,8 @@ const nextConfig: NextConfig = {
             value: "(?:www\\.)?blifrivillig\\.no",
           },
         ],
-        destination: "https://www.samfunnetibergen.no/blifrivillig",
-        permanent: true,
+        destination: "https://www.samfunnetibergen.no/nb/blifrivillig",
+        permanent: false,
       },
       {
         source: "/program",
