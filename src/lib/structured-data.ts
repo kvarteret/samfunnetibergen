@@ -37,7 +37,7 @@ export type StructuredEvent = {
   dates: readonly StructuredEventDate[]
   description?: unknown
   imageUrl?: string | null
-  organizerGroup?: { name?: string | null } | null
+  organizerGroup?: { name?: string | null; slug?: string | null } | null
   organizerText?: string | null
   room?: { title?: string | null } | null
   roomText?: string | null
@@ -173,6 +173,8 @@ export function buildEventStructuredDataNode(
     : null
   const name = event.title?.trim() || "[Mangler arrangementstittel]"
   const locationName = firstNonEmpty(event.room?.title, event.roomText)
+  if (!locationName) return null
+
   const organizerName = firstNonEmpty(
     event.organizerGroup?.name,
     event.organizerText,
@@ -198,21 +200,28 @@ export function buildEventStructuredDataNode(
   if (endDate) node.endDate = endDate
   if (description) node.description = description
   if (imageUrl) node.image = imageUrl
-  if (locationName) {
-    node.location = {
-      "@type": "Place",
-      name: locationName,
-      ...(event.room
-        ? {
-            address: KVARTERET_ADDRESS,
-            containedInPlace: { "@id": `${baseUrl}#place` },
-          }
-        : {}),
-    }
-    node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
+  node.location = {
+    "@type": "Place",
+    name: locationName,
+    address: KVARTERET_ADDRESS,
+    containedInPlace: { "@id": `${baseUrl}#place` },
   }
+  node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
   if (organizerName) {
-    node.organizer = { "@type": "Organization", name: organizerName }
+    const organizerSlug = event.organizerGroup?.slug?.trim()
+    const organizerUrl = organizerSlug
+      ? `${baseUrl}/${locale}/grupper/${encodeURIComponent(organizerSlug)}`
+      : ["samfunnet i bergen", "studentersamfunnet"].includes(
+            organizerName.toLocaleLowerCase("nb-NO"),
+          )
+        ? baseUrl
+        : undefined
+
+    node.organizer = {
+      "@type": "Organization",
+      name: organizerName,
+      ...(organizerUrl ? { url: organizerUrl } : {}),
+    }
   }
   if (event.eventStatus) {
     node.eventStatus = schemaOrgEventStatus(event.eventStatus)
@@ -220,7 +229,14 @@ export function buildEventStructuredDataNode(
   if (typeof event.isFree === "boolean") {
     node.isAccessibleForFree = event.isFree
   }
-  if (event.isFree !== true && (price != null || ticketUrl)) {
+  if (event.isFree === true) {
+    node.offers = {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "NOK",
+      availability: "https://schema.org/InStock",
+    }
+  } else if (price != null || ticketUrl) {
     node.offers = {
       "@type": "Offer",
       ...(price != null ? { price: String(price), priceCurrency: "NOK" } : {}),
