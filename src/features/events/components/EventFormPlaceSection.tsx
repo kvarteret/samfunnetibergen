@@ -41,14 +41,15 @@ export function EventFormPlaceSection({
         <Label htmlFor={`${uid}-roomText`}>Alternativt sted</Label>
         <FieldHint>
           Bruk dette feltet om stedet ikke er i lista, f.eks.
-          &quot;Uteområdet&quot; eller &quot;Storstuen, 3. etasje&quot;.
+          &quot;Uteområdet&quot; eller &quot;Storstuen, 3. etasje&quot;. For
+          arrangementer utenfor Kvarteret, ta med full gateadresse.
         </FieldHint>
         <form.Field name="roomText">
           {(field: AnyFieldApi) => (
             <Input
               id={`${uid}-roomText`}
               onChange={event => field.handleChange(event.target.value)}
-              placeholder="Fritekst"
+              placeholder="Stedsnavn, og gateadresse utenfor Kvarteret"
               value={field.state.value as string}
             />
           )}

@@ -229,7 +229,8 @@ export const arrangement = defineType({
       name: "roomText",
       title: "Sted (fritekst)",
       description:
-        "Brukes om stedet ikke er et registrert rom — f.eks. 'Uteområdet'",
+        "Brukes om stedet ikke er et registrert rom — f.eks. 'Uteområdet'. " +
+        "For steder utenfor Kvarteret må full gateadresse tas med.",
       type: "string",
       group: "location",
     }),
