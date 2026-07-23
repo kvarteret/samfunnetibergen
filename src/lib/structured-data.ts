@@ -172,7 +172,9 @@ export function buildEventStructuredDataNode(
     ? toOsloTimestamp(date.startDate, date.endTime)
     : null
   const name = event.title?.trim() || "[Mangler arrangementstittel]"
-  const locationName = firstNonEmpty(event.room?.title, event.roomText)
+  const roomName = firstNonEmpty(event.room?.title)
+  const freeTextLocation = firstNonEmpty(event.roomText)
+  const locationName = roomName ?? freeTextLocation
   if (!locationName) return null
 
   const organizerName = firstNonEmpty(
@@ -203,8 +205,17 @@ export function buildEventStructuredDataNode(
   node.location = {
     "@type": "Place",
     name: locationName,
-    address: KVARTERET_ADDRESS,
-    containedInPlace: { "@id": `${baseUrl}#place` },
+    ...(roomName
+      ? {
+          address: KVARTERET_ADDRESS,
+          containedInPlace: { "@id": `${baseUrl}#place` },
+        }
+      : {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: freeTextLocation,
+          },
+        }),
   }
   node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
   if (organizerName) {

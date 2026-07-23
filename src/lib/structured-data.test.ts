@@ -40,7 +40,8 @@ const event = {
   ],
   imageUrl: "https://cdn.example.com/sommerfest.jpg",
   organizerText: "Samfunnet i Bergen",
-  roomText: "Storsalen",
+  room: { title: "Storsalen" },
+  roomText: null,
   eventStatus: "scheduled" as const,
   isFree: false,
   priceStudent: 50,
@@ -179,7 +180,7 @@ describe("structured data", () => {
     )
   })
 
-  it("adds the Kvarteret address to referenced and on-site free-text venues", () => {
+  it("uses Kvarteret's address only for referenced rooms", () => {
     const referencedRoom = buildEventStructuredData(
       {
         ...event,
@@ -192,11 +193,18 @@ describe("structured data", () => {
         today: "2026-07-14",
       },
     )
-    const freeTextVenue = buildEventStructuredData(event, {
-      siteUrl: "https://example.com",
-      locale: "nb",
-      today: "2026-07-14",
-    })
+    const freeTextVenue = buildEventStructuredData(
+      {
+        ...event,
+        room: null,
+        roomText: "Litteraturhuset, Østre Skostredet 5",
+      },
+      {
+        siteUrl: "https://example.com",
+        locale: "nb",
+        today: "2026-07-14",
+      },
+    )
 
     const referencedLocation = (
       referencedRoom as unknown as {
@@ -222,16 +230,13 @@ describe("structured data", () => {
     )["@graph"][0]?.location
     expect(freeTextLocation).toMatchObject({
       "@type": "Place",
-      name: "Storsalen",
+      name: "Litteraturhuset, Østre Skostredet 5",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Olav Kyrres gate 49",
-        postalCode: "5015",
-        addressLocality: "Bergen",
-        addressCountry: "NO",
+        streetAddress: "Litteraturhuset, Østre Skostredet 5",
       },
-      containedInPlace: { "@id": "https://example.com#place" },
     })
+    expect(freeTextLocation).not.toHaveProperty("containedInPlace")
   })
 
   it("omits Event markup when the venue is missing", () => {
