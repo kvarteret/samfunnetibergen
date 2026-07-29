@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   applyFeaturedSelection,
+  getFeaturedVisibleCount,
+  moveFeaturedDocumentBetweenSections,
   reorderFeaturedDocuments,
   selectFeaturedDocuments,
   selectionNeedsNormalization,
@@ -61,6 +63,61 @@ describe("featured arrangement selection", () => {
       "b",
     ])
     expect(reorderFeaturedDocuments(["a", "b"], 0, 0)).toEqual(["a", "b"])
+  })
+
+  it("moves a visible event into the queue when dropped across the divider", () => {
+    expect(
+      moveFeaturedDocumentBetweenSections(
+        ["a", "b", "c", "d"],
+        3,
+        "visible",
+        2,
+        "queue",
+        0,
+      ),
+    ).toEqual({ documents: ["a", "b", "c", "d"], visibleCount: 2 })
+    expect(
+      moveFeaturedDocumentBetweenSections(
+        ["a", "b", "c", "d", "e"],
+        3,
+        "visible",
+        0,
+        "queue",
+        1,
+      ),
+    ).toEqual({
+      documents: ["b", "c", "d", "a", "e"],
+      visibleCount: 2,
+    })
+  })
+
+  it("keeps the visible group capped when a queued event is dragged up", () => {
+    const documents = ["a", "b", "c", "d"]
+    expect(
+      moveFeaturedDocumentBetweenSections(
+        documents,
+        3,
+        "queue",
+        0,
+        "visible",
+        2,
+      ),
+    ).toEqual({ documents, visibleCount: 3 })
+  })
+
+  it("preserves an explicit visible count between one and three", () => {
+    expect(
+      getFeaturedVisibleCount([
+        { _id: "a", promotedPlacement: "top" },
+        { _id: "b", promotedPlacement: "pool" },
+      ]),
+    ).toBe(1)
+    expect(
+      getFeaturedVisibleCount([
+        { _id: "a", promotedPlacement: "pool" },
+        { _id: "b", promotedPlacement: "pool" },
+      ]),
+    ).toBe(1)
   })
 
   it("detects legacy and inconsistent selection fields", () => {
@@ -146,6 +203,33 @@ describe("featured arrangement selection", () => {
         isPromoted: true,
         promotedOrder: 2,
         promotedPlacement: "top",
+      },
+    ])
+  })
+
+  it("keeps manually queued events below a two-item visible group", () => {
+    const documents = ["a", "b", "c"].map(_id => ({
+      _id,
+      isPromoted: false,
+    }))
+    expect(applyFeaturedSelection(documents, documents, 2)).toEqual([
+      {
+        _id: "a",
+        isPromoted: true,
+        promotedOrder: 0,
+        promotedPlacement: "top",
+      },
+      {
+        _id: "b",
+        isPromoted: true,
+        promotedOrder: 1,
+        promotedPlacement: "top",
+      },
+      {
+        _id: "c",
+        isPromoted: true,
+        promotedOrder: 2,
+        promotedPlacement: "pool",
       },
     ])
   })

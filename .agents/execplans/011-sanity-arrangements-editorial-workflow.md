@@ -115,6 +115,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   opprykk og søkbart gjenopptak. Fjernet den siste stale live-oppdateringen,
   gjorde lagring ikke-blokkerende og synkroniserte alltid både publisert
   dokument og eksisterende utkast.
+- [x] (2026-07-29) Delte synlige og kølagte arrangementer i to faktiske
+  droppsoner. Et arrangement som slippes under skillelinjen flyttes nå
+  deterministisk til køen uten at et annet køelement flyttes opp.
 
 ## Surprises & Discoveries
 
@@ -249,6 +252,14 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   API-kontroll viste fortsatt `isPromoted: true` på utkastet, som gjeninnførte
   raden ved neste last. En separat raw-spørring etter draft-ID-er gjør at begge
   kopier nå patches i samme transaksjon.
+
+- Observation: Med én sammenhengende droppsone måtte det tredje kortet dras
+  forbi midtpunktet til det første køkortet før biblioteket rapporterte
+  destinasjonsindeks 3. Et slipp rett under skillelinjen ble derfor rapportert
+  som indeks 2 og ignorert som en no-op.
+  Evidence: Nettleser-E2E flyttet samme kort først ingen steder ved slipp under
+  linjen, men til køen ved slipp nær køkortets nedre halvdel. Separate
+  droppsoner med et stort, eksplisitt kømål gjør grensekryssingen entydig.
 
 - Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
   dra-og-slipp utilstrekkelig.
@@ -1028,3 +1039,8 @@ Plan revision note (2026-07-29): Full E2E avdekket at synkron mutation
 visibility, stale listelytting og separate draft-felt var tre uavhengige
 årsaker til heng og tilbakerulling. Panelet bruker nå asynkron lagring med
 lokal normalisering, ingen live-lyttere og eksplisitt draft-/published-patching.
+
+Plan revision note (2026-07-29): Synlig toppgruppe og kø er nå egne droppsoner.
+Dette fjerner den tvetydige indeksgrensen der et slipp under linjen fortsatt
+kunne bli tolket som tredje plass, og bevarer eksplisitt én til tre synlige
+arrangementer uten å trekke et annet arrangement opp fra køen.

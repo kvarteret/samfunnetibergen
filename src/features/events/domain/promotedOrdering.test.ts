@@ -33,8 +33,8 @@ describe("promoted event ordering", () => {
 
   it("promotes the next queued event when an earlier candidate has expired", () => {
     const remainingEligibleEvents = [
-      { promotedOrder: 1 },
-      { promotedOrder: 2 },
+      { promotedOrder: 1, promotedPlacement: "top" as const },
+      { promotedOrder: 2, promotedPlacement: "top" as const },
       { promotedOrder: 3, promotedPlacement: "pool" as const },
       { promotedOrder: 4, promotedPlacement: "pool" as const },
     ]
@@ -42,6 +42,22 @@ describe("promoted event ordering", () => {
     expect(
       selectHomepagePromotedEvents(remainingEligibleEvents, "2026-07-29"),
     ).toEqual(remainingEligibleEvents.slice(0, 3))
+  })
+
+  it("does not fill a manually reduced visible group until a top event expires", () => {
+    const configuredEvents = [
+      { promotedOrder: 0, promotedPlacement: "top" as const },
+      { promotedOrder: 1, promotedPlacement: "top" as const },
+      { promotedOrder: 2, promotedPlacement: "pool" as const },
+      { promotedOrder: 3, promotedPlacement: "pool" as const },
+    ]
+    expect(
+      selectHomepagePromotedEvents(configuredEvents, "2026-07-29"),
+    ).toEqual(configuredEvents.slice(0, 2))
+
+    expect(
+      selectHomepagePromotedEvents(configuredEvents.slice(1), "2026-07-29"),
+    ).toEqual(configuredEvents.slice(1, 3))
   })
 
   it("centers one or two cards in the six-column homepage grid", () => {

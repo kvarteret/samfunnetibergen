@@ -24,8 +24,9 @@ import { IntentLink } from "sanity/router"
 import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
   applyFeaturedSelection,
+  getFeaturedVisibleCount,
+  moveFeaturedDocumentBetweenSections,
   normalizedArrangementId,
-  reorderFeaturedDocuments,
   selectFeaturedDocuments,
   selectionNeedsNormalization,
   type FeaturedSelectionDocument,
@@ -55,6 +56,9 @@ const FEATURED_DOCUMENTS_QUERY = `*[
 }`
 const ARRANGEMENT_DRAFT_IDS_QUERY =
   '*[_type == "arrangement" && _id in path("drafts.**")]._id'
+const VISIBLE_DROPPABLE_ID = "featured-visible"
+const QUEUE_ENTRY_DROPPABLE_ID = "featured-queue-entry"
+const QUEUE_DROPPABLE_ID = "featured-queue"
 
 type FeaturedDocument = FeaturedSelectionDocument & {
   approvalStatus: string
@@ -85,6 +89,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
   const [selectedDocuments, setSelectedDocuments] = useState<
     FeaturedDocument[]
   >([])
+  const [visibleCount, setVisibleCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const refreshRunner = useRef(createCoalescedAsyncRunner())
@@ -136,6 +141,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
     async (
       allDocuments: FeaturedDocument[],
       nextSelection: FeaturedDocument[],
+      nextVisibleCount: number,
     ) => {
       const selectedIds = new Set(
         nextSelection.map(document => normalizedArrangementId(document._id)),
@@ -152,7 +158,8 @@ export function PromotedArrangementList({ today }: { today: string }) {
               patch.set({
                 isPromoted: true,
                 promotedOrder: selectedIndex,
-                promotedPlacement: selectedIndex < 3 ? "top" : "pool",
+                promotedPlacement:
+                  selectedIndex < nextVisibleCount ? "top" : "pool",
               }),
             )
           }
@@ -180,14 +187,23 @@ export function PromotedArrangementList({ today }: { today: string }) {
   const performRefresh = useCallback(async () => {
     const nextDocuments = await loadDocuments()
     let nextSelection = selectFeaturedDocuments(nextDocuments)
+    let nextVisibleCount = getFeaturedVisibleCount(nextSelection)
     if (nextSelection.length === 0 && nextDocuments[0]) {
       nextSelection = [nextDocuments[0]]
+      nextVisibleCount = 1
     }
-    if (selectionNeedsNormalization(nextDocuments, nextSelection)) {
-      await persistSelection(nextDocuments, nextSelection)
+    if (
+      selectionNeedsNormalization(
+        nextDocuments,
+        nextSelection,
+        nextVisibleCount,
+      )
+    ) {
+      await persistSelection(nextDocuments, nextSelection, nextVisibleCount)
       const normalizedDocuments = applyFeaturedSelection(
         nextDocuments,
         nextSelection,
+        nextVisibleCount,
       )
       setDocuments(normalizedDocuments)
       setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
@@ -195,6 +211,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
       setDocuments(nextDocuments)
       setSelectedDocuments(nextSelection)
     }
+    setVisibleCount(nextVisibleCount)
     setLoading(false)
   }, [loadDocuments, persistSelection])
 
@@ -211,14 +228,19 @@ export function PromotedArrangementList({ today }: { today: string }) {
     }
   }, [refresh])
 
-  const saveSelection = async (nextSelection: FeaturedDocument[]) => {
+  const saveSelection = async (
+    nextSelection: FeaturedDocument[],
+    nextVisibleCount = visibleCount,
+  ) => {
     setSaving(true)
     setSelectedDocuments(nextSelection)
+    setVisibleCount(nextVisibleCount)
     try {
-      await persistSelection(documents, nextSelection)
+      await persistSelection(documents, nextSelection, nextVisibleCount)
       const normalizedDocuments = applyFeaturedSelection(
         documents,
         nextSelection,
+        nextVisibleCount,
       )
       setDocuments(normalizedDocuments)
       setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
@@ -235,23 +257,58 @@ export function PromotedArrangementList({ today }: { today: string }) {
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || saving) return
-    const reordered = reorderFeaturedDocuments(
+    const sourceSection =
+      result.source.droppableId === VISIBLE_DROPPABLE_ID ? "visible" : "queue"
+    const destinationSection =
+      result.destination.droppableId === VISIBLE_DROPPABLE_ID
+        ? "visible"
+        : "queue"
+    const destinationIndex =
+      result.destination.droppableId === QUEUE_ENTRY_DROPPABLE_ID
+        ? 0
+        : result.destination.index
+    if (
+      sourceSection === "queue" &&
+      destinationSection === "visible" &&
+      visibleCount >= 3
+    ) {
+      toast.push({
+        status: "warning",
+        title:
+          "Du kan legge til maksimalt tre arrangementer som fremhevet. Flytt først et annet arrangement ned.",
+      })
+      return
+    }
+    const moved = moveFeaturedDocumentBetweenSections(
       selectedDocuments,
+      visibleCount,
+      sourceSection,
       result.source.index,
-      result.destination.index,
+      destinationSection,
+      destinationIndex,
     )
-    if (reordered === selectedDocuments) return
-    void saveSelection(reordered)
+    if (
+      moved.documents === selectedDocuments &&
+      moved.visibleCount === visibleCount
+    )
+      return
+    void saveSelection(moved.documents, moved.visibleCount)
   }
 
   const remove = (document: FeaturedDocument) => {
     if (selectedDocuments.length <= 1 || saving) return
     const id = normalizedArrangementId(document._id)
-    void saveSelection(
-      selectedDocuments.filter(
-        selected => normalizedArrangementId(selected._id) !== id,
-      ),
+    const selectedIndex = selectedDocuments.findIndex(
+      selected => normalizedArrangementId(selected._id) === id,
     )
+    const nextSelection = selectedDocuments.filter(
+      selected => normalizedArrangementId(selected._id) !== id,
+    )
+    const nextVisibleCount =
+      selectedIndex < visibleCount
+        ? Math.min(visibleCount, nextSelection.length)
+        : visibleCount
+    void saveSelection(nextSelection, nextVisibleCount)
   }
 
   if (loading) {
@@ -266,17 +323,90 @@ export function PromotedArrangementList({ today }: { today: string }) {
   const selectedIds = selectedDocuments.map(document =>
     normalizedArrangementId(document._id),
   )
+  const visibleDocuments = selectedDocuments.slice(0, visibleCount)
+  const queuedDocuments = selectedDocuments.slice(visibleCount)
+
+  const renderDocument = (
+    document: FeaturedDocument,
+    index: number,
+    section: "visible" | "queue",
+  ) => {
+    const id = normalizedArrangementId(document._id)
+    const position = section === "visible" ? index : index + 3
+    return (
+      <Draggable draggableId={id} index={index} key={id}>
+        {(draggable, snapshot) => (
+          <Card
+            border
+            padding={3}
+            radius={2}
+            ref={draggable.innerRef}
+            shadow={snapshot.isDragging ? 2 : undefined}
+            tone={snapshot.isDragging ? "primary" : "default"}
+            {...draggable.draggableProps}
+            style={draggable.draggableProps.style}
+          >
+            <Flex align="center" gap={3}>
+              <Box
+                aria-label={`Flytt ${document.title ?? "arrangement"}`}
+                padding={2}
+                style={{ cursor: saving ? "wait" : "grab" }}
+                {...draggable.dragHandleProps}
+              >
+                <DragHandleIcon />
+              </Box>
+              <Badge tone={section === "visible" ? "primary" : "default"}>
+                {section === "visible"
+                  ? `Plass ${position + 1}`
+                  : `Kø ${position - 2}`}
+              </Badge>
+              <Stack flex={1} space={2}>
+                <IntentLink
+                  intent="edit"
+                  params={{
+                    id,
+                    mode: "structure",
+                    type: "arrangement",
+                  }}
+                  style={{
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
+                >
+                  <Text size={2} weight="semibold">
+                    {document.title ?? "Arrangement uten tittel"}
+                  </Text>
+                </IntentLink>
+                <Text muted size={1}>
+                  {[document.nextDate, KIND_LABELS[document.eventKind]]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </Text>
+              </Stack>
+              <Button
+                aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
+                disabled={selectedDocuments.length <= 1 || saving}
+                icon={TrashIcon}
+                mode="ghost"
+                onClick={() => remove(document)}
+                text="Fjern"
+                tone="critical"
+              />
+            </Flex>
+          </Card>
+        )}
+      </Draggable>
+    )
+  }
 
   return (
     <Stack space={4}>
       <Card border padding={4} radius={2} tone="primary">
         <Stack space={3}>
           <Flex align="center" gap={2} wrap="wrap">
-            <Badge tone="positive">
-              {Math.min(selectedDocuments.length, 3)} vises
-            </Badge>
-            {selectedDocuments.length > 3 ? (
-              <Badge tone="caution">{selectedDocuments.length - 3} i kø</Badge>
+            <Badge tone="positive">{visibleCount} vises</Badge>
+            {queuedDocuments.length > 0 ? (
+              <Badge tone="caution">{queuedDocuments.length} i kø</Badge>
             ) : null}
             <Text weight="semibold">Vises øverst på forsiden</Text>
           </Flex>
@@ -289,97 +419,59 @@ export function PromotedArrangementList({ today }: { today: string }) {
       </Card>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="featured-arrangements">
+        <Droppable droppableId={VISIBLE_DROPPABLE_ID}>
           {provided => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
               <Stack space={2}>
-                {selectedDocuments.map((document, index) => {
-                  const id = normalizedArrangementId(document._id)
-                  return (
-                    <Draggable draggableId={id} index={index} key={id}>
-                      {(draggable, snapshot) => (
-                        <Card
-                          border
-                          padding={3}
-                          radius={2}
-                          ref={draggable.innerRef}
-                          shadow={snapshot.isDragging ? 2 : undefined}
-                          tone={snapshot.isDragging ? "primary" : "default"}
-                          {...draggable.draggableProps}
-                          style={draggable.draggableProps.style}
-                        >
-                          <Stack space={3}>
-                            {index === 3 ? (
-                              <Flex align="center" gap={3}>
-                                <Card borderTop flex={1} />
-                                <Text muted size={1} weight="semibold">
-                                  Kø – vises automatisk senere
-                                </Text>
-                                <Card borderTop flex={1} />
-                              </Flex>
-                            ) : null}
-                            <Flex align="center" gap={3}>
-                              <Box
-                                aria-label={`Flytt ${document.title ?? "arrangement"}`}
-                                padding={2}
-                                style={{ cursor: saving ? "wait" : "grab" }}
-                                {...draggable.dragHandleProps}
-                              >
-                                <DragHandleIcon />
-                              </Box>
-                              <Badge tone={index < 3 ? "primary" : "default"}>
-                                {index < 3
-                                  ? `Plass ${index + 1}`
-                                  : `Kø ${index - 2}`}
-                              </Badge>
-                              <Stack flex={1} space={2}>
-                                <IntentLink
-                                  intent="edit"
-                                  params={{
-                                    id,
-                                    mode: "structure",
-                                    type: "arrangement",
-                                  }}
-                                  style={{
-                                    color: "inherit",
-                                    textDecoration: "none",
-                                  }}
-                                >
-                                  <Text size={2} weight="semibold">
-                                    {document.title ??
-                                      "Arrangement uten tittel"}
-                                  </Text>
-                                </IntentLink>
-                                <Text muted size={1}>
-                                  {[
-                                    document.nextDate,
-                                    KIND_LABELS[document.eventKind],
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" · ")}
-                                </Text>
-                              </Stack>
-                              <Button
-                                aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
-                                disabled={
-                                  selectedDocuments.length <= 1 || saving
-                                }
-                                icon={TrashIcon}
-                                mode="ghost"
-                                onClick={() => remove(document)}
-                                text="Fjern"
-                                tone="critical"
-                              />
-                            </Flex>
-                          </Stack>
-                        </Card>
-                      )}
-                    </Draggable>
-                  )
-                })}
+                {visibleDocuments.map((document, index) =>
+                  renderDocument(document, index, "visible"),
+                )}
                 {provided.placeholder}
               </Stack>
             </div>
+          )}
+        </Droppable>
+
+        <Droppable droppableId={QUEUE_ENTRY_DROPPABLE_ID}>
+          {(provided, snapshot) => (
+            <Card
+              border
+              padding={3}
+              radius={2}
+              ref={provided.innerRef}
+              style={{ minHeight: 88 }}
+              tone={snapshot.isDraggingOver ? "primary" : "default"}
+              {...provided.droppableProps}
+            >
+              <Flex align="center" gap={3} justify="center">
+                <Card borderTop flex={1} />
+                <Text muted size={1} weight="semibold">
+                  Kø – slipp her for å vise automatisk senere
+                </Text>
+                <Card borderTop flex={1} />
+              </Flex>
+              {provided.placeholder}
+            </Card>
+          )}
+        </Droppable>
+
+        <Droppable droppableId={QUEUE_DROPPABLE_ID}>
+          {(provided, snapshot) => (
+            <Card
+              border
+              padding={2}
+              radius={2}
+              ref={provided.innerRef}
+              tone={snapshot.isDraggingOver ? "primary" : "default"}
+              {...provided.droppableProps}
+            >
+              <Stack space={2} style={{ minHeight: 52 }}>
+                {queuedDocuments.map((document, index) =>
+                  renderDocument(document, index, "queue"),
+                )}
+                {provided.placeholder}
+              </Stack>
+            </Card>
           )}
         </Droppable>
       </DragDropContext>

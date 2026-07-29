@@ -55,9 +55,72 @@ export function reorderFeaturedDocuments<T>(
   return reordered
 }
 
+export function moveFeaturedDocumentBetweenSections<T>(
+  documents: T[],
+  visibleCount: number,
+  sourceSection: "visible" | "queue",
+  sourceIndex: number,
+  destinationSection: "visible" | "queue",
+  destinationIndex: number,
+  visibleLimit = 3,
+): { documents: T[]; visibleCount: number } {
+  const visibleDocuments = documents.slice(0, visibleCount)
+  const queuedDocuments = documents.slice(visibleCount)
+
+  if (sourceSection === destinationSection) {
+    const sectionDocuments =
+      sourceSection === "visible" ? visibleDocuments : queuedDocuments
+    const reordered = reorderFeaturedDocuments(
+      sectionDocuments,
+      sourceIndex,
+      destinationIndex,
+    )
+    if (reordered === sectionDocuments) return { documents, visibleCount }
+    return {
+      documents:
+        sourceSection === "visible"
+          ? [...reordered, ...queuedDocuments]
+          : [...visibleDocuments, ...reordered],
+      visibleCount,
+    }
+  }
+
+  if (sourceSection === "visible") {
+    if (visibleCount <= 1) return { documents, visibleCount }
+    const nextVisible = [...visibleDocuments]
+    const [moved] = nextVisible.splice(sourceIndex, 1)
+    if (!moved) return { documents, visibleCount }
+    const nextQueue = [...queuedDocuments]
+    nextQueue.splice(
+      Math.min(Math.max(destinationIndex, 0), nextQueue.length),
+      0,
+      moved,
+    )
+    return {
+      documents: [...nextVisible, ...nextQueue],
+      visibleCount: visibleCount - 1,
+    }
+  }
+
+  if (visibleCount >= visibleLimit) return { documents, visibleCount }
+  const nextQueue = [...queuedDocuments]
+  const [moved] = nextQueue.splice(sourceIndex, 1)
+  if (!moved) return { documents, visibleCount }
+  visibleDocuments.splice(
+    Math.min(Math.max(destinationIndex, 0), visibleDocuments.length),
+    0,
+    moved,
+  )
+  return {
+    documents: [...visibleDocuments, ...nextQueue],
+    visibleCount: visibleCount + 1,
+  }
+}
+
 export function applyFeaturedSelection<T extends FeaturedSelectionDocument>(
   documents: T[],
   selectedDocuments: T[],
+  visibleCount = Math.min(selectedDocuments.length, 3),
 ): T[] {
   const selectedIndexById = new Map(
     selectedDocuments.map((document, index) => [
@@ -82,14 +145,30 @@ export function applyFeaturedSelection<T extends FeaturedSelectionDocument>(
       ...document,
       isPromoted: true,
       promotedOrder: selectedIndex,
-      promotedPlacement: selectedIndex < 3 ? "top" : "pool",
+      promotedPlacement: selectedIndex < visibleCount ? "top" : "pool",
     }
   })
+}
+
+export function getFeaturedVisibleCount(
+  selectedDocuments: FeaturedSelectionDocument[],
+): number {
+  if (selectedDocuments.length === 0) return 0
+  const explicitTopCount = selectedDocuments.filter(
+    document => document.promotedPlacement === "top",
+  ).length
+  const hasExplicitPlacement = selectedDocuments.some(
+    document => document.promotedPlacement !== undefined,
+  )
+  return hasExplicitPlacement
+    ? Math.min(Math.max(explicitTopCount, 1), 3)
+    : Math.min(selectedDocuments.length, 3)
 }
 
 export function selectionNeedsNormalization(
   documents: FeaturedSelectionDocument[],
   selectedDocuments: FeaturedSelectionDocument[],
+  visibleCount = Math.min(selectedDocuments.length, 3),
 ) {
   const selectedIds = new Set(
     selectedDocuments.map(document => normalizedArrangementId(document._id)),
@@ -100,7 +179,7 @@ export function selectionNeedsNormalization(
       selected => normalizedArrangementId(selected._id) === id,
     )
     if (selectedIds.has(id)) {
-      const expectedPlacement = selectedIndex < 3 ? "top" : "pool"
+      const expectedPlacement = selectedIndex < visibleCount ? "top" : "pool"
       return (
         document.isPromoted !== true ||
         document.promotedPlacement !== expectedPlacement ||
