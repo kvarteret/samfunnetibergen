@@ -131,37 +131,6 @@ export const structure: StructureResolver = (S, context) =>
         ),
 
       S.listItem()
-        .id("settings")
-        .title("Innstillinger")
-        .icon(icons.cog)
-        .child(
-          S.list()
-            .id("settings-list")
-            .title("Innstillinger")
-            .items([
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "eventTaxonomyGroup",
-                id: "orderable-event-taxonomy-group",
-                title: "Kategorier",
-                icon: icons.tag,
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "eventType",
-                id: "orderable-event-type-all",
-                title: "Arrangementtyper",
-                icon: icons.tag,
-              }),
-              S.documentTypeListItem("internbevisBenefit")
-                .title("Frivilligfordeler")
-                .icon(icons.star),
-            ]),
-        ),
-
-      S.listItem()
         .title("Åpningstider")
         .icon(icons.clock)
         .child(
@@ -274,6 +243,37 @@ export const structure: StructureResolver = (S, context) =>
               S.documentTypeListItem("page")
                 .title("Alle sider")
                 .icon(icons.document),
+            ]),
+        ),
+
+      S.listItem()
+        .id("settings")
+        .title("Innstillinger")
+        .icon(icons.cog)
+        .child(
+          S.list()
+            .id("settings-list")
+            .title("Innstillinger")
+            .items([
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventTaxonomyGroup",
+                id: "orderable-event-taxonomy-group",
+                title: "Kategorier",
+                icon: icons.tag,
+              }),
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventType",
+                id: "orderable-event-type-all",
+                title: "Arrangementtyper",
+                icon: icons.tag,
+              }),
+              S.documentTypeListItem("internbevisBenefit")
+                .title("Frivilligfordeler")
+                .icon(icons.star),
             ]),
         ),
     ])

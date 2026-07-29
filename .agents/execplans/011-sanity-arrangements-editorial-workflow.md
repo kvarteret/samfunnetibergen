@@ -67,6 +67,7 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 10:52Z) Flyttet `Innstillinger` til første kolonne, samlet
   `Frivilligfordeler` der, forenklet arrangementsfiltrene og la til
   sidepanel-navigasjon og festivaldaghandling på festivaler.
+- [x] (2026-07-29) Plasserte `Innstillinger` nederst i første kolonne.
 
 ## Surprises & Discoveries
 
@@ -664,3 +665,7 @@ arrangementssegmentet heter `Alle`, statusfilteret bruker `Alle statuser` og
 `Kommende`, og festivaldagmalen brukes nå fra både festivalvisningen og
 festivalens dokumenthandling. Arrangementlenker ber eksplisitt om sidepanel i
 Structure-modus.
+
+Plan revision note (2026-07-29): `Innstillinger` er flyttet til bunnen av
+første kolonne etter produkteiers presisering; innholdet i seksjonen er
+uendret.
