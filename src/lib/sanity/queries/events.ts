@@ -70,13 +70,14 @@ const eventProjection = `{
     "slug": coalesce(slug.current, ""),
     "approvalStatus": coalesce(approvalStatus, "pending"),
     "isPromoted": coalesce(isPromoted, false),
+    orderRank,
     "isRecurring": coalesce(isRecurring, false),
     "useFestivalImage": coalesce(useFestivalImage, true),
     rrule,
     "dates": coalesce(select(
-      eventKind == "festivalParent" => *[
+      eventKind in ["seriesParent", "festivalParent"] => *[
         _type == "arrangement" &&
-        eventKind == "festivalSession" &&
+        eventKind in ["seriesInstance", "festivalSession"] &&
         parentEvent._ref == ^._id &&
         approvalStatus == "approved"
       ].dates[] | order(startDate asc, startTime asc) {
@@ -113,17 +114,13 @@ export const promotedParentEventsQuery = defineQuery(`
         && approvalStatus == "approved"
         && isPromoted == true
         && ${PARENT_EVENT_KINDS}
-        && select(
-          eventKind == "festivalParent" =>
-            count(*[
-              _type == "arrangement" &&
-              eventKind == "festivalSession" &&
-              parentEvent._ref == ^._id &&
-              approvalStatus == "approved" &&
-              count(dates[startDate >= $today]) > 0
-            ]) > 0,
+        && count(*[
+          _type == "arrangement" &&
+          eventKind in ["seriesInstance", "festivalSession"] &&
+          parentEvent._ref == ^._id &&
+          approvalStatus == "approved" &&
           count(dates[startDate >= $today]) > 0
-        )
+        ]) > 0
     ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
 export const publishedEventSlugsQuery = defineQuery(`

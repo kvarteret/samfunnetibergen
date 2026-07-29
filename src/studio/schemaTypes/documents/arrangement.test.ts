@@ -38,6 +38,26 @@ describe("editorial arrangement schema", () => {
     expect(field?.initialValue).toBe(true)
   })
 
+  it("shows the festival-day shortcut only on festival parents", () => {
+    const field = arrangement.fields?.find(
+      candidate => candidate.name === "festivalDayShortcut",
+    )
+    expect(field?.title).toBe("Festivaldager")
+    expect(
+      typeof field?.hidden === "function" &&
+        field.hidden({ document: { eventKind: "festivalParent" } } as never),
+    ).toBe(false)
+    expect(
+      typeof field?.hidden === "function" &&
+        field.hidden({ document: { eventKind: "single" } } as never),
+    ).toBe(true)
+  })
+
+  it("stores the editorial homepage order in the standard rank field", () => {
+    expect(fieldNames(arrangement)).toContain("orderRank")
+    expect(arrangement.orderings?.[0]?.name).toBe("ordered")
+  })
+
   it("explains the first and last dates of a recurring series", () => {
     const dates = arrangement.fields?.find(field => field.name === "dates")
     expect(dates?.description).toContain("seriens første dag")

@@ -9,6 +9,7 @@ import {
   formatPrimaryDate,
   getRecurringLabel,
 } from "@/features/events/domain/dates"
+import { comparePromotedEvents } from "@/features/events/domain/promotedOrdering"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -191,13 +192,6 @@ function eventHref(event: EventSummary, locale: AppLocale) {
   return `/${locale}/arrangementer/${event.slug}`
 }
 
-function eventStartSortKey(event: SanityEvent, today: string): string {
-  const date =
-    event.dates?.find(candidate => candidate.startDate >= today) ??
-    event.dates?.[0]
-  return `${date?.startDate ?? "9999-12-31"}T${date?.startTime ?? "00:00"}`
-}
-
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
@@ -213,9 +207,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const today = getOsloDateString()
   const promotedEvents = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => event.isPromoted)
-    .sort((a, b) =>
-      eventStartSortKey(a, today).localeCompare(eventStartSortKey(b, today)),
-    )
+    .sort((a, b) => comparePromotedEvents(a, b, today))
     .slice(0, 3)
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
   const upcomingEvents = (events ?? [])

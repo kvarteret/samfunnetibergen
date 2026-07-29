@@ -15,14 +15,23 @@ describe("event detail query", () => {
 })
 
 describe("festival projections", () => {
-  it("derives festival dates from approved festival days", () => {
+  it("derives parent dates from approved series and festival days", () => {
     expect(promotedParentEventsQuery).toContain(
-      'eventKind == "festivalSession"',
+      'eventKind in ["seriesInstance", "festivalSession"]',
     )
     expect(promotedParentEventsQuery).toContain('approvalStatus == "approved"')
     expect(promotedParentEventsQuery).toContain("parentEvent._ref == ^._id")
     expect(publishedEventsQuery).toContain(
       '"useFestivalImage": coalesce(useFestivalImage, true)',
+    )
+  })
+})
+
+describe("promoted ordering", () => {
+  it("projects editorial order and excludes parents without upcoming days", () => {
+    expect(promotedParentEventsQuery).toContain("orderRank")
+    expect(promotedParentEventsQuery).toContain(
+      "count(dates[startDate >= $today]) > 0",
     )
   })
 })

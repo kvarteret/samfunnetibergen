@@ -1,11 +1,16 @@
 import { icons } from "@sanity/icons"
 import {
+  orderRankField,
+  orderRankOrdering,
+} from "@sanity/orderable-document-list"
+import {
   ALL_FIELDS_GROUP,
   defineArrayMember,
   defineField,
   defineType,
 } from "sanity"
 
+import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 
 const EVENT_KIND_OPTIONS = [
@@ -101,6 +106,14 @@ export const arrangement = defineType({
           return true
         }),
     }),
+    defineField({
+      name: "festivalDayShortcut",
+      title: "Festivaldager",
+      type: "string",
+      group: "core",
+      hidden: ({ document }) => eventKindOf(document) !== "festivalParent",
+      components: { field: FestivalDayShortcutInput },
+    }),
 
     // ─── Core info ─────────────────────────────────────────────
     defineField({
@@ -149,6 +162,7 @@ export const arrangement = defineType({
       group: "core",
       initialValue: false,
     }),
+    orderRankField({ type: "arrangement" }),
     defineField({
       name: "description",
       title: "Beskrivelse",
@@ -414,6 +428,7 @@ export const arrangement = defineType({
     },
   },
   orderings: [
+    orderRankOrdering,
     {
       title: "Dato (nyeste først)",
       name: "dateDesc",

@@ -71,6 +71,12 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 11:05Z) Rettet gjentakelsesvalget for utkast-ID-er, gjorde
   `Alle` til standard feltgruppe og dokumenterte første og siste dato i en
   gjentakende serie.
+- [x] (2026-07-29 11:23Z) La «Legg til festivaldag» synlig øverst i
+  festivaldokumentet og gjorde `Fremhevede arrangementer` til en rangerbar
+  liste som styrer de tre arrangementene øverst på forsiden.
+- [x] (2026-07-29 11:28Z) Verifiserte oppfølgingen med 15 fokuserte tester,
+  TypeScript, lint, Sanity TypeGen, Studio-bygg, Next.js-bygg og anonym
+  GROQ-kontroll mot dagens datasett.
 
 ## Surprises & Discoveries
 
@@ -124,6 +130,26 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   registrere `ALL_FIELDS_GROUP` eksplisitt i dokumentets feltgrupper.
   Evidence: Installert Sanity 6.7 bruker gruppen med navn `all-fields` som
   innebygd reserve og velger den gruppen som har `default: true`.
+
+- Observation: `@sanity/orderable-document-list` var allerede installert i
+  siste versjon som støtter Sanity 6 og brukt for rom, grupper og
+  arrangementstyper.
+  Evidence: `package.json` har versjon `^2.0.18`; pakken eksponerer både
+  `orderRankField` og den innebyggbare React-komponenten
+  `OrderableDocumentList`.
+
+- Observation: Seriefordelen på forsiden brukte tidligere bare
+  serieforelderens første dato for å avgjøre om serien fortsatt var kommende.
+  Evidence: `promotedParentEventsQuery` slo bare opp festivaldager; nå bruker
+  både serie- og festivalforeldre sine godkjente barnedokumenter.
+
+- Observation: Datasettet har fem godkjente, fremhevede arrangementer med
+  kommende dager og fire fremhevede arrangementer som allerede er avsluttet.
+  Ingen av de kommende dokumentene har en eksisterende `orderRank`.
+  Evidence: Den samme GROQ-avgrensningen som Studio-listen bruker returnerte
+  `5`; et anonymt feltuttrekk viste ni fremhevede dokumenter totalt og
+  `orderRank: null`. Derfor viser Studio en engangsknapp for å klargjøre bare
+  de urangerte dokumentene.
 
 ## Decision Log
 
@@ -216,14 +242,31 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   mulige dag; uten sluttdato gjelder sikkerhetsgrensen på seks måneder.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Behold `Fremhevede arrangementer` som segment i den eksisterende
+  arrangementsvisningen, men rendrer pluginens rangerbare dokumentliste i
+  segmentet og lagrer rekkefølgen i `orderRank`.
+  Rationale: Dette bevarer den flate, plassbesparende navigasjonen og gir
+  redaktørene velkjent dra-og-slipp-rekkefølge. De tre første markeres med en
+  forklaring og en skillelinje; nettsiden sorterer på samme rangering.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Vis en egen «Legg til festivaldag»-kontroll som første synlige
+  felt på festivalforelderen, i tillegg til dokumenthandlingen.
+  Rationale: Dokumenthandlinger kan ligge i Sanitys handlingsmeny og oppleves
+  derfor som manglende. En kontroll i selve skjemaet gjør festivalens vanligste
+  neste steg synlig uten å lete.
+  Date/Author: 2026-07-29, user/Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
 request-telleren, kombinerbare filtre, publiserende statusoverganger,
 redaksjonell gjentakelsesbygger, trygg generering av seriedager og egne
-festival-/festivaldagmaler. Nettsiden avleder festivalperioden fra godkjente
-dager, håndterer eksplisitt bildearv og bruker faste norske tekster uten
-`eventsPage`.
+festival-/festivaldagmaler. Festivalforelderen har en synlig snarvei for nye
+dager, og fremhevede arrangementer kan rangeres direkte i segmentet. Nettsiden
+avleder festivalperioden fra godkjente dager, håndterer eksplisitt bildearv,
+bruker den redaksjonelle rekkefølgen på forsiden og bruker faste norske tekster
+uten `eventsPage`.
 
 Sanity TypeGen, TypeScript, lint, Studio-bygg, Next.js-produksjonsbygg og hele
 testsuiten passerer. Offentlig runtime-kontroll viste 38 arrangementer med
@@ -694,3 +737,13 @@ Plan revision note (2026-07-29 11:05Z): Gjentakelsesfeltet normaliserer nå
 utkast-ID før dokumentoperasjoner. Arrangementsdokumentet åpner i `Alle`, og
 skjemaet forklarer at seriens dato er første dag mens gjentakelsesfeltet styrer
 siste mulige dag.
+
+Plan revision note (2026-07-29 11:23Z): Festivaldagsnarveien er flyttet inn i
+selve festivaldokumentet. Fremhevede arrangementer bruker den installerte
+ordningspluginen, og nettsiden viser de tre første fremtidige arrangementene i
+den lagrede rekkefølgen.
+
+Plan revision note (2026-07-29 11:28Z): Sluttverifisering og dagens
+datasettobservasjon er lagt inn. Innlogget visuell Studio-kontroll kunne ikke
+utføres fordi den lokale Studio-ruten stoppet ved Sanity-innlogging; begge
+produksjonsbygg og alle målrettede kontroller passerer.
