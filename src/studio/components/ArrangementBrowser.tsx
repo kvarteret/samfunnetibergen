@@ -27,7 +27,7 @@ import {
 const API_VERSION = "2026-07-29"
 const ARRANGEMENTS_QUERY = `*[
   _type == "arrangement" &&
-  coalesce(eventKind, "single") in ["single", "seriesParent"]
+  coalesce(eventKind, "single") in ["single", "seriesParent", "festivalParent"]
 ] {
   _id,
   title,
@@ -71,11 +71,19 @@ async function fetchBrowserData(client: ReturnType<typeof useClient>): Promise<{
 
 const PRESET_TITLES: Record<ArrangementPreset, string> = {
   arrangements: "Arrangementer",
-  recurring: "recurring",
+  recurring: "Recurring",
+  festivals: "Festivaler",
   promoted: "Fremhevede arrangementer",
 }
 
-function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
+const PRESETS = [
+  "arrangements",
+  "recurring",
+  "festivals",
+  "promoted",
+] as const satisfies readonly ArrangementPreset[]
+
+function ArrangementBrowser() {
   const client = useClient({ apiVersion: API_VERSION })
   const [items, setItems] = useState<ArrangementBrowserItem[]>([])
   const [taxonomy, setTaxonomy] = useState<Taxonomy>({
@@ -83,7 +91,7 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
     types: [],
   })
   const [filters, setFilters] = useState<ArrangementFilterState>(() =>
-    defaultArrangementFilters(preset),
+    defaultArrangementFilters("arrangements"),
   )
   const [loading, setLoading] = useState(true)
 
@@ -114,18 +122,39 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
     key: K,
     value: ArrangementFilterState[K],
   ) => setFilters(current => ({ ...current, [key]: value }))
+  const selectPreset = (preset: ArrangementPreset) =>
+    setFilters(current => ({ ...current, preset }))
+  const preset = filters.preset
 
   return (
     <Card height="fill" overflow="auto" padding={4}>
       <Stack space={4}>
-        <Flex align="center" justify="space-between">
-          <Heading size={2}>{PRESET_TITLES[preset]}</Heading>
+        <Flex align="center" gap={3} justify="space-between" wrap="wrap">
+          <Heading size={2}>Arrangementer</Heading>
           <Button
             icon={icons.reset}
             mode="ghost"
             onClick={() => setFilters(defaultArrangementFilters(preset))}
             text="Nullstill filtre"
           />
+        </Flex>
+        <Flex
+          aria-label="Arrangementsvisning"
+          gap={1}
+          role="tablist"
+          wrap="wrap"
+        >
+          {PRESETS.map(candidate => (
+            <Button
+              aria-selected={preset === candidate}
+              key={candidate}
+              mode={preset === candidate ? "default" : "ghost"}
+              onClick={() => selectPreset(candidate)}
+              role="tab"
+              selected={preset === candidate}
+              text={PRESET_TITLES[candidate]}
+            />
+          ))}
         </Flex>
         <Grid columns={[1, 1, 3]} gap={3}>
           <TextInput
@@ -252,22 +281,20 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
                   horizon.setDate(horizon.getDate() + 8 * 7)
                   return date >= horizon.toISOString().slice(0, 10)
                 })
+              const isFestival = item.eventKind === "festivalParent"
               return (
-                <Card
-                  as={IntentLink}
-                  border
-                  intent="edit"
-                  key={item._id}
-                  padding={3}
-                  params={{ id: item._id, type: "arrangement" }}
-                  radius={2}
-                  style={{ textDecoration: "none" }}
-                >
+                <Card border key={item._id} padding={3} radius={2}>
                   <Flex align="center" gap={3} justify="space-between">
                     <Stack space={2}>
-                      <Text size={2} weight="semibold">
-                        {item.title ?? "Arrangement uten tittel"}
-                      </Text>
+                      <IntentLink
+                        intent="edit"
+                        params={{ id: item._id, type: "arrangement" }}
+                        style={{ color: "inherit", textDecoration: "none" }}
+                      >
+                        <Text size={2} weight="semibold">
+                          {item.title ?? "Arrangement uten tittel"}
+                        </Text>
+                      </IntentLink>
                       <Text muted size={1}>
                         {[
                           nextDate,
@@ -282,9 +309,26 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
                           .join(" · ") || "Ingen dato"}
                       </Text>
                     </Stack>
-                    {needsDays ? (
-                      <Badge tone="caution">Mangler kommende dager</Badge>
-                    ) : null}
+                    <Flex align="center" gap={2}>
+                      {isFestival ? (
+                        <Button
+                          as={IntentLink}
+                          intent="create"
+                          mode="ghost"
+                          params={[
+                            {
+                              template: "festival-day",
+                              type: "arrangement",
+                            },
+                            { parentId: item._id },
+                          ]}
+                          text="Ny festivaldag"
+                        />
+                      ) : null}
+                      {needsDays ? (
+                        <Badge tone="caution">Mangler kommende dager</Badge>
+                      ) : null}
+                    </Flex>
                   </Flex>
                 </Card>
               )
@@ -296,12 +340,4 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
   )
 }
 
-export const ArrangementsPane = () => (
-  <ArrangementBrowser preset="arrangements" />
-)
-export const RecurringArrangementsPane = () => (
-  <ArrangementBrowser preset="recurring" />
-)
-export const PromotedArrangementsPane = () => (
-  <ArrangementBrowser preset="promoted" />
-)
+export const ArrangementsPane = () => <ArrangementBrowser />

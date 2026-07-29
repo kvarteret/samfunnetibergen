@@ -1,4 +1,8 @@
-export type ArrangementPreset = "arrangements" | "recurring" | "promoted"
+export type ArrangementPreset =
+  | "arrangements"
+  | "recurring"
+  | "festivals"
+  | "promoted"
 
 export type ArrangementFilterState = {
   date: "all" | "upcoming" | "past"
@@ -82,8 +86,19 @@ export function filterArrangements(
   return deduplicatePreviewDocuments(items)
     .filter(item => {
       const kind = item.eventKind ?? "single"
-      if (!["single", "seriesParent"].includes(kind)) return false
-      if (filters.preset === "recurring" && item.isRecurring !== true)
+      if (!["single", "seriesParent", "festivalParent"].includes(kind))
+        return false
+      if (
+        filters.preset === "arrangements" &&
+        !["single", "seriesParent"].includes(kind)
+      )
+        return false
+      if (
+        filters.preset === "recurring" &&
+        (kind !== "seriesParent" || item.isRecurring !== true)
+      )
+        return false
+      if (filters.preset === "festivals" && kind !== "festivalParent")
         return false
       if (filters.preset === "promoted" && item.isPromoted !== true)
         return false

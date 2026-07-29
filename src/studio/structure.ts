@@ -2,11 +2,7 @@ import { icons } from "@sanity/icons"
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
-import {
-  ArrangementsPane,
-  PromotedArrangementsPane,
-  RecurringArrangementsPane,
-} from "./components/ArrangementBrowser"
+import { ArrangementsPane } from "./components/ArrangementBrowser"
 import { RequestCountIcon } from "./components/RequestCountIcon"
 
 export { singletonTypeNames } from "./documentTypes"
@@ -81,67 +77,6 @@ function arrangementList(S: StructureBuilder, opts: ArrangementListOptions) {
     .child(list)
 }
 
-// Festival days stay below their festival rather than filling the main list.
-function parentWithChildren(
-  S: StructureBuilder,
-  opts: { id: string; title: string; icon: React.ComponentType; kind: string },
-) {
-  const isFestival = opts.kind === "festivalParent"
-  const editTitle = isFestival ? "Rediger festival" : "Rediger serie"
-  const childrenTitle = isFestival ? "Festivaldager" : "Dager"
-  return S.listItem()
-    .id(opts.id)
-    .title(opts.title)
-    .icon(opts.icon)
-    .child(
-      S.documentTypeList("arrangement")
-        .id(`${opts.id}-parents`)
-        .title(opts.title)
-        .filter(`_type == "arrangement" && eventKind == "${opts.kind}"`)
-        .defaultOrdering([{ field: "title", direction: "asc" }])
-        .child(parentId =>
-          S.list()
-            .id(`${opts.id}-parent`)
-            .title(opts.title)
-            .items([
-              S.listItem()
-                .id("parent-editor")
-                .title(editTitle)
-                .icon(icons.edit)
-                .child(
-                  S.document().documentId(parentId).schemaType("arrangement"),
-                ),
-              S.listItem()
-                .id("parent-instances")
-                .title(childrenTitle)
-                .icon(icons.calendar)
-                .child(
-                  S.documentList()
-                    .apiVersion(STRUCTURE_API_VERSION)
-                    .id("parent-instances-list")
-                    .title(childrenTitle)
-                    .filter(
-                      '_type == "arrangement" && parentEvent._ref == $parentId',
-                    )
-                    .params({ parentId })
-                    .initialValueTemplates(
-                      isFestival
-                        ? [
-                            S.initialValueTemplateItem("festival-day", {
-                              parentId,
-                            }),
-                          ]
-                        : [],
-                    )
-                    .defaultOrdering([
-                      { field: "dates[0].startDate", direction: "asc" },
-                    ]),
-                ),
-            ]),
-        ),
-    )
-}
-
 export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Samfunnet i Bergen")
@@ -187,48 +122,11 @@ export const structure: StructureResolver = (S, context) =>
                 .title("Arrangementer")
                 .icon(icons.calendar)
                 .child(
-                  S.list()
-                    .id("arrangement-browse-list")
+                  S.component()
+                    .id("arrangement-browser-pane")
                     .title("Arrangementer")
-                    .items([
-                      S.listItem()
-                        .id("arrangement-browser")
-                        .title("Arrangementer")
-                        .icon(icons.calendar)
-                        .child(
-                          S.component()
-                            .id("arrangement-browser-pane")
-                            .title("Arrangementer")
-                            .component(ArrangementsPane),
-                        ),
-                      S.listItem()
-                        .id("arrangement-recurring")
-                        .title("recurring")
-                        .icon(icons.sync)
-                        .child(
-                          S.component()
-                            .id("arrangement-recurring-pane")
-                            .title("recurring")
-                            .component(RecurringArrangementsPane),
-                        ),
-                      S.listItem()
-                        .id("arrangement-promoted")
-                        .title("Fremhevede arrangementer")
-                        .icon(icons.rocket)
-                        .child(
-                          S.component()
-                            .id("arrangement-promoted-pane")
-                            .title("Fremhevede arrangementer")
-                            .component(PromotedArrangementsPane),
-                        ),
-                    ]),
+                    .component(ArrangementsPane),
                 ),
-              parentWithChildren(S, {
-                id: "arrangement-festivals",
-                title: "Festivaler",
-                icon: icons.star,
-                kind: "festivalParent",
-              }),
               S.listItem()
                 .id("arrangement-settings")
                 .title("Innstillinger")

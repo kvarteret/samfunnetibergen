@@ -61,6 +61,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 10:25Z) Regenererte Sanity-typer og fullførte automatisert
   verifisering, produksjonsbygg og offentlig visuell kontroll. Studio-bygget
   passerer; innlogget visuell Studio-kontroll gjenstår sammen med migreringen.
+- [x] (2026-07-29 10:30Z) Flatet ut `Arrangementer` til én Studio-rute med
+  segmentene `Arrangementer`, `Recurring`, `Festivaler` og `Fremhevede`, uten
+  en ekstra navigasjonskolonne.
 
 ## Surprises & Discoveries
 
@@ -165,6 +168,14 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   overstyringer. Endringen skal forenkle redaksjonsflaten, ikke reversere
   datamodellen fra ADR 005 og ADR 006.
   Date/Author: 2026-07-29, Codex.
+
+- Decision: Gjør `Recurring` og `Festivaler` til segmenter i den samme
+  filtrerbare arrangementsvisningen, sammen med `Arrangementer` og
+  `Fremhevede`.
+  Rationale: Produkteier ønsker å spare en navigasjonskolonne og behandle disse
+  som visninger av samme innhold. Festivalvisningen beholder en direkte
+  «Ny festivaldag»-handling med riktig festivalmal.
+  Date/Author: 2026-07-29, user/Codex.
 
 ## Outcomes & Retrospective
 
@@ -623,3 +634,8 @@ Plan revision note (2026-07-29 10:25Z): Sluttverifisering er oppdatert med
 238 passerende tester, TypeScript, lint, begge produksjonsbygg og offentlig
 runtime-kontroll. Outcomes & Retrospective skiller ferdig kode fra den
 autentiseringsavhengige produksjonsmigreringen og innlogget Studio-kontroll.
+
+Plan revision note (2026-07-29 10:30Z): Oppfølging fra produkteier er
+implementert: `recurring` er rettet til `Recurring`, festivaler er flyttet inn
+i arrangementsvisningen, og de tidligere undermenypunktene er erstattet av ett
+segmentert filter i samme pane.

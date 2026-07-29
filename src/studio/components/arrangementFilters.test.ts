@@ -32,6 +32,14 @@ const items = [
     childDates: ["2026-07-01"],
   },
   {
+    _id: "festival",
+    title: "Festival",
+    eventKind: "festivalParent",
+    approvalStatus: "approved",
+    eventStatus: "scheduled",
+    childDates: ["2026-08-10", "2026-08-11"],
+  },
+  {
     _id: "child",
     title: "Skjult seriedag",
     eventKind: "seriesInstance",
@@ -64,6 +72,16 @@ describe("arrangement filters", () => {
         "2026-07-29",
       ).map(item => item._id),
     ).toEqual(["series"])
+  })
+
+  it("uses festivals as another preset over the same browser data", () => {
+    expect(
+      filterArrangements(
+        items,
+        defaultArrangementFilters("festivals"),
+        "2026-07-29",
+      ).map(item => item._id),
+    ).toEqual(["festival"])
   })
 
   it("prefers drafts while deduplicating preview results", () => {
