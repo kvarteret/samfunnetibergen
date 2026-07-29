@@ -26,12 +26,10 @@ export function publishableArrangement(
   id: string,
   status: ApprovalStatus,
 ): IdentifiedSanityDocumentStub {
-  const {
-    _createdAt: _createdAt,
-    _rev: _rev,
-    _updatedAt: _updatedAt,
-    ...content
-  } = source
+  const content = { ...source } as Record<string, unknown>
+  delete content._createdAt
+  delete content._rev
+  delete content._updatedAt
   return {
     ...content,
     _id: id.replace(/^drafts\./, ""),

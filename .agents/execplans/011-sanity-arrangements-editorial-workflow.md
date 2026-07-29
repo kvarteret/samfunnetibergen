@@ -58,8 +58,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [ ] (2026-07-29 10:22Z) La til tørrkjørbar datamigrering og gjennomførte
   anonym tørrkjøring (gjenstår: autentisert eksport og kontrollert skriving;
   CLI-en mangler innlogget bruker-token).
-- [ ] Regenerer Sanity-typer og fullfør automatisert, visuell og
-  produksjonsnær verifisering.
+- [x] (2026-07-29 10:25Z) Regenererte Sanity-typer og fullførte automatisert
+  verifisering, produksjonsbygg og offentlig visuell kontroll. Studio-bygget
+  passerer; innlogget visuell Studio-kontroll gjenstår sammen med migreringen.
 
 ## Surprises & Discoveries
 
@@ -167,10 +168,20 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 
 ## Outcomes & Retrospective
 
-Planleggingen er fullført. Implementering, migrering og sluttverifisering
-gjenstår. Denne seksjonen skal oppdateres ved slutten av hver milepæl med hva
-som faktisk ble levert, avvik fra planen og lærdommer som påvirker videre
-arbeid.
+Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
+request-telleren, kombinerbare filtre, publiserende statusoverganger,
+redaksjonell gjentakelsesbygger, trygg generering av seriedager og egne
+festival-/festivaldagmaler. Nettsiden avleder festivalperioden fra godkjente
+dager, håndterer eksplisitt bildearv og bruker faste norske tekster uten
+`eventsPage`.
+
+Sanity TypeGen, TypeScript, lint, Studio-bygg, Next.js-produksjonsbygg og hele
+testsuiten passerer. Offentlig runtime-kontroll viste 38 arrangementer med
+riktig overskrift og metadata. Det eneste gjenstående arbeidet er operasjonelt:
+Sanity CLI må autentiseres, datasettet eksporteres til en fil utenfor
+repositoryet, oppryddingsmigreringen kjøres i skrivemodus og de innloggede
+Studio-flytene kontrolleres visuelt. Dette ble ikke omgått eller simulert,
+fordi arbeidskopien mangler bruker-token og Studio stopper på innlogging.
 
 ## Context and Orientation
 
@@ -607,3 +618,8 @@ Oppryddingsmigreringen er implementert og tørrkjørt anonymt. Produksjonsekspor
 og skrivemodus gjenstår fordi Sanity CLI ikke har bruker-token; denne
 begrensningen og ferske datasettall er dokumentert i Progress og
 Surprises & Discoveries.
+
+Plan revision note (2026-07-29 10:25Z): Sluttverifisering er oppdatert med
+238 passerende tester, TypeScript, lint, begge produksjonsbygg og offentlig
+runtime-kontroll. Outcomes & Retrospective skiller ferdig kode fra den
+autentiseringsavhengige produksjonsmigreringen og innlogget Studio-kontroll.

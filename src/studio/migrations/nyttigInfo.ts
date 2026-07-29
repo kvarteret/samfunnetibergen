@@ -134,18 +134,6 @@ type SourceLink = {
   externalUrl?: string
 }
 
-const internalPageLink = (
-  key: string,
-  label: string,
-  ref: string,
-): SourceLink => ({
-  _type: "sourceLink",
-  _key: key,
-  label,
-  linkType: "internalPage",
-  internalPage: { _type: "reference", _ref: ref },
-})
-
 const internalPathLink = (
   key: string,
   label: string,

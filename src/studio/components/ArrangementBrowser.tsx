@@ -1,7 +1,6 @@
 import { icons } from "@sanity/icons"
 import {
   Badge,
-  Box,
   Button,
   Card,
   Flex,
@@ -13,7 +12,7 @@ import {
   Text,
   TextInput,
 } from "@sanity/ui"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useClient } from "sanity"
 import { IntentLink } from "sanity/router"
 
@@ -55,6 +54,21 @@ type Taxonomy = {
   types: Array<{ _id: string; name?: string; groupId?: string }>
 }
 
+async function fetchBrowserData(client: ReturnType<typeof useClient>): Promise<{
+  documents: ArrangementBrowserItem[]
+  taxonomyDocuments: Taxonomy
+}> {
+  const [documents, taxonomyDocuments] = await Promise.all([
+    client.fetch<ArrangementBrowserItem[]>(
+      ARRANGEMENTS_QUERY,
+      {},
+      { perspective: "previewDrafts" },
+    ),
+    client.fetch<Taxonomy>(TAXONOMY_QUERY),
+  ])
+  return { documents, taxonomyDocuments }
+}
+
 const PRESET_TITLES: Record<ArrangementPreset, string> = {
   arrangements: "Arrangementer",
   recurring: "recurring",
@@ -73,21 +87,13 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
   )
   const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(async () => {
-    const [documents, taxonomyDocuments] = await Promise.all([
-      client.fetch<ArrangementBrowserItem[]>(
-        ARRANGEMENTS_QUERY,
-        {},
-        { perspective: "previewDrafts" },
-      ),
-      client.fetch<Taxonomy>(TAXONOMY_QUERY),
-    ])
-    setItems(documents)
-    setTaxonomy(taxonomyDocuments)
-    setLoading(false)
-  }, [client])
-
   useEffect(() => {
+    const refresh = () =>
+      fetchBrowserData(client).then(({ documents, taxonomyDocuments }) => {
+        setItems(documents)
+        setTaxonomy(taxonomyDocuments)
+        setLoading(false)
+      })
     void refresh()
     const subscription = client
       .listen(
@@ -97,7 +103,7 @@ function ArrangementBrowser({ preset }: { preset: ArrangementPreset }) {
       )
       .subscribe(() => void refresh())
     return () => subscription.unsubscribe()
-  }, [client, refresh])
+  }, [client])
 
   const today = new Date().toISOString().slice(0, 10)
   const results = useMemo(
