@@ -23,12 +23,17 @@ site unless these call paths change.
 ## Volunteer Prospects
 
 The public volunteer form submits to this repo first. The route validates the
-payload and proxies accepted submissions to `kvarteret-personal`.
+payload and proxies accepted submissions to `kvarteret-personal`. Every
+published group can use the form. Sanity group slugs are forwarded unchanged;
+Personal owns the stable group-slug lookup and resolves them to its group IDs.
+Both repositories use the same deterministic slug rule without aliases. In
+Studio, an existing group slug is hidden and read-only; it is only generated
+while creating a new group.
 
 Verified source:
 
-- `src/features/blifrivillig/prospect.ts`
-- `src/features/blifrivillig/components/GroupVolunteerForm.tsx`
+- `src/features/grupper/components/GroupVolunteerForm.tsx`
+- `src/app/[locale]/grupper/[slug]/page.tsx`
 - `src/app/api/volunteer-prospects/route.ts`
 
 ## Generated Personal Client

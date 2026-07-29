@@ -1713,8 +1713,25 @@
             "type": "string"
           },
           "first_choice_group_slug": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
             "title": "First Choice Group Slug",
             "type": "string"
+          },
+          "friend_emails": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Friend Emails"
           },
           "full_name": {
             "title": "Full Name",
@@ -1727,6 +1744,9 @@
           "second_choice_group_slug": {
             "anyOf": [
               {
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
                 "type": "string"
               },
               {

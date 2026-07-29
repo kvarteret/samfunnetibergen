@@ -21,12 +21,19 @@ const payloadSchema = z.object({
     .regex(/\d/)
     .transform(value => value.replace(/\D/g, "")),
   study_institution: z.string().trim().min(1),
-  first_choice_group_slug: z.string().trim().min(1),
+  first_choice_group_slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   second_choice_group_slug: z
     .string()
     .trim()
-    .optional()
-    .transform(value => value || undefined),
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
   background_details: z
     .string()
     .trim()
@@ -42,6 +49,8 @@ export async function POST(request: Request) {
   if (await isSubmissionRateLimited("volunteer-prospects")) {
     return NextResponse.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
   }
+
+  let submissionEmail: string | undefined
 
   try {
     const body = await request.json().catch(() => null)
@@ -64,6 +73,7 @@ export async function POST(request: Request) {
       )
     }
     const requestBody = parsed.data
+    submissionEmail = requestBody.email
 
     const response = await fetch(
       `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
@@ -83,6 +93,8 @@ export async function POST(request: Request) {
       // when it is a plain string; anything structured stays server-side.
       const detail =
         typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
+      // POTENTIAL GDPR VIOLATION: This intentionally logs the applicant's email
+      // to PostHog so failed volunteer submissions can be followed up manually.
       captureSubmitFailure(
         "volunteer_application",
         new Error(
@@ -92,6 +104,7 @@ export async function POST(request: Request) {
           source: "volunteer-prospects-route",
           failure_branch: "personal_backend_rejected",
           status: response.status,
+          email: requestBody.email,
           first_choice_group_slug: requestBody.first_choice_group_slug,
           has_second_choice: Boolean(requestBody.second_choice_group_slug),
         },
@@ -114,9 +127,12 @@ export async function POST(request: Request) {
       { status: 201 },
     )
   } catch (error) {
+    // POTENTIAL GDPR VIOLATION: This intentionally logs the applicant's email
+    // to PostHog so failed volunteer submissions can be followed up manually.
     captureSubmitFailure("volunteer_application", error, {
       source: "volunteer-prospects-route",
       failure_branch: "personal_backend_request_failed",
+      email: submissionEmail,
     })
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }

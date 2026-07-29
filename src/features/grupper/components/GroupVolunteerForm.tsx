@@ -139,13 +139,14 @@ export function GroupVolunteerForm({
 }: GroupVolunteerFormProps) {
   const uid = useId()
   const t = useTranslations("GroupVolunteerForm")
-  const hasSubGroups = Boolean(subGroups?.length)
-  const [selectedSlug, setSelectedSlug] = useState<string>(
-    hasSubGroups ? "" : groupSlug,
-  )
+  const groupChoices = [
+    { slug: groupSlug, name: groupName },
+    ...(subGroups ?? []),
+  ]
+  const hasMultipleGroupChoices = groupChoices.length > 1
+  const [selectedSlug, setSelectedSlug] = useState(groupSlug)
   const [secondChoiceSlug, setSecondChoiceSlug] = useState("")
   const [honeypot, setHoneypot] = useState("")
-  const slugSelected = !hasSubGroups || selectedSlug !== ""
 
   const selectFirstChoice = (slug: string) => {
     setSelectedSlug(slug)
@@ -157,7 +158,7 @@ export function GroupVolunteerForm({
     if (hasStartedRef.current) return
     hasStartedRef.current = true
     posthog.capture("volunteer_application_started", {
-      first_choice_group_slug: selectedSlug || undefined,
+      first_choice_group_slug: selectedSlug,
     })
   }
 
@@ -240,43 +241,39 @@ export function GroupVolunteerForm({
 
   return (
     <FormSection title={t("title")}>
-      {hasSubGroups && (
+      {hasMultipleGroupChoices && (
         <FieldGroup>
-          <p className=" text-foreground-muted">{t("selectSubGroup")}</p>
+          <p className="text-foreground-muted">{t("selectSubGroup")}</p>
           <SegmentedControl
             onValueChange={selectFirstChoice}
-            options={subGroups!.map(sub => ({
-              value: sub.slug,
-              label: sub.name,
+            options={groupChoices.map(group => ({
+              value: group.slug,
+              label: group.name,
             }))}
             value={selectedSlug}
           />
-          {selectedSlug && (
-            <p className="text-sm text-foreground-muted">
-              {t("applyingTo", {
-                group:
-                  subGroups!.find(g => g.slug === selectedSlug)?.name ??
-                  selectedSlug,
-              })}
-            </p>
-          )}
-          {selectedSlug && subGroups!.length > 1 && (
-            <SelectField
-              className="max-w-72"
-              id="volunteer-second-choice"
-              label={t("secondChoiceLabel")}
-              onChange={setSecondChoiceSlug}
-              options={subGroups!
-                .filter(sub => sub.slug !== selectedSlug)
-                .map(sub => ({ value: sub.slug, label: sub.name }))}
-              placeholder={t("secondChoicePlaceholder")}
-              value={secondChoiceSlug}
-            />
-          )}
+          <p className="text-sm text-foreground-muted">
+            {t("applyingTo", {
+              group:
+                groupChoices.find(group => group.slug === selectedSlug)?.name ??
+                selectedSlug,
+            })}
+          </p>
+          <SelectField
+            className="max-w-72"
+            id="volunteer-second-choice"
+            label={t("secondChoiceLabel")}
+            onChange={setSecondChoiceSlug}
+            options={groupChoices
+              .filter(group => group.slug !== selectedSlug)
+              .map(group => ({ value: group.slug, label: group.name }))}
+            placeholder={t("secondChoicePlaceholder")}
+            value={secondChoiceSlug}
+          />
         </FieldGroup>
       )}
 
-      {slugSelected && (
+      {selectedSlug && (
         <form
           className="space-y-6"
           noValidate
@@ -291,8 +288,8 @@ export function GroupVolunteerForm({
           {visibleErrors.length > 0 && (
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
-          {!hasSubGroups && (
-            <p className=" text-foreground-muted">
+          {!hasMultipleGroupChoices && (
+            <p className="text-foreground-muted">
               {t("applyingTo", { group: groupName })}
             </p>
           )}
