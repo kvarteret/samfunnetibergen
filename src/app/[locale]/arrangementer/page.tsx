@@ -15,10 +15,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import {
-  fetchEventsPageContent,
-  fetchPublishedEvents,
-} from "@/lib/sanity/fetch"
+import { fetchPublishedEvents } from "@/lib/sanity/fetch"
 
 export const revalidate = 60
 
@@ -30,16 +27,12 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/arrangementer">) {
   const locale = await resolvePageLocale(params)
-  const [t, eventsPage] = await Promise.all([
-    getTranslations({ locale, namespace: "Metadata" }),
-    fetchEventsPageContent(locale, { stega: false }),
-  ])
-  const description = eventsPage?.description ?? t("eventsDescription")
+  const t = await getTranslations({ locale, namespace: "Metadata" })
 
   const metadata = buildPageMetadata({
     canonicalPath: `/${locale}/arrangementer`,
     title: t("eventsTitle"),
-    description,
+    description: t("eventsDescription"),
   })
 
   return {
@@ -65,16 +58,12 @@ export default async function EventsPage({
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
 
-  const [t, eventsContent, arrangements, resolvedSearchParams, cardT] =
-    await Promise.all([
-      getTranslations({ locale, namespace: "EventsPage" }),
-      fetchEventsPageContent(locale),
-      fetchPublishedEvents(),
-      searchParams,
-      getTranslations({ locale, namespace: "EventCard" }),
-    ])
-
-  const title = eventsContent?.title ?? t("title")
+  const [t, arrangements, resolvedSearchParams, cardT] = await Promise.all([
+    getTranslations({ locale, namespace: "EventsPage" }),
+    fetchPublishedEvents(),
+    searchParams,
+    getTranslations({ locale, namespace: "EventCard" }),
+  ])
 
   const primaryDateLabels: PrimaryDateLabels = {
     today: cardT("today"),
@@ -136,7 +125,7 @@ export default async function EventsPage({
       backLabel={t("back")}
       precomputedDates={precomputedDates}
       searchParams={resolvedSearchParams}
-      title={title}
+      title={t("title")}
     />
   )
 }

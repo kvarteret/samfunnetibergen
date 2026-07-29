@@ -33,6 +33,8 @@
     "sanity:generate:instances:write": "SANITY_MIGRATION_WRITE=1 sanity exec scripts/generate-event-instances.ts --with-user-token",
     "sanity:migrate:private-event-children": "sanity exec scripts/migrate-private-event-children.ts --with-user-token",
     "sanity:migrate:private-event-children:write": "SANITY_MIGRATION_WRITE=1 sanity exec scripts/migrate-private-event-children.ts --with-user-token",
+    "sanity:migrate:arrangement-editorial-cleanup": "sanity exec scripts/migrate-arrangement-editorial-cleanup.ts --with-user-token",
+    "sanity:migrate:arrangement-editorial-cleanup:write": "SANITY_MIGRATION_WRITE=1 sanity exec scripts/migrate-arrangement-editorial-cleanup.ts --with-user-token",
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
     "test": "vitest run --coverage",

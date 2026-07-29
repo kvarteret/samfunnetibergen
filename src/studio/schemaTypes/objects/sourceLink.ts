@@ -33,7 +33,6 @@ export const sourceLink = defineType({
       type: "reference",
       to: [
         { type: "homePage" },
-        { type: "eventsPage" },
         { type: "roomsPage" },
         { type: "groupsPage" },
         { type: "sponsorsPage" },

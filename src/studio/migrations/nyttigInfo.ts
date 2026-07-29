@@ -175,7 +175,6 @@ function sourceLinkHref(link: SourceLink): string | null {
 
   const singletonPaths: Record<string, string> = {
     homePage: "/",
-    eventsPage: "/arrangementer",
     roomsPage: "/rom",
     groupsPage: "/grupper",
     sponsorsPage: "/sponsorer",
@@ -388,7 +387,13 @@ export function buildUsefulInfoPageDocument(
         [
           "Se hva som skjer på huset og finn oversikt over kommende arrangementer under Arrangementer. Billetter til arrangementene kjøpes direkte der.",
         ],
-        [internalPageLink("billetter-lenke", "Arrangementer", "eventsPage")],
+        [
+          internalPathLink(
+            "billetter-lenke",
+            "Arrangementer",
+            "/arrangementer",
+          ),
+        ],
       ),
       editorialSection(
         "vergeordningen",

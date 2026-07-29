@@ -124,6 +124,15 @@ function parentWithChildren(
                       '_type == "arrangement" && parentEvent._ref == $parentId',
                     )
                     .params({ parentId })
+                    .initialValueTemplates(
+                      isFestival
+                        ? [
+                            S.initialValueTemplateItem("festival-day", {
+                              parentId,
+                            }),
+                          ]
+                        : [],
+                    )
                     .defaultOrdering([
                       { field: "dates[0].startDate", direction: "asc" },
                     ]),

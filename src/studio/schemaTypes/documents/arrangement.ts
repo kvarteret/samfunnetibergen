@@ -1,20 +1,14 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
-const APPROVAL_STATUS_OPTIONS = [
-  { title: "Venter på godkjenning", value: "pending" },
-  { title: "Godkjent", value: "approved" },
-  { title: "Satt på pause", value: "paused" },
-  { title: "Avvist", value: "rejected" },
-  { title: "Arkivert", value: "archived" },
-]
+import { RecurringInput } from "../../components/RecurringInput"
 
 const EVENT_KIND_OPTIONS = [
   { title: "Enkeltarrangement", value: "single" },
-  { title: "Serie (forelder)", value: "seriesParent" },
-  { title: "Serieinstans", value: "seriesInstance" },
-  { title: "Festival (forelder)", value: "festivalParent" },
-  { title: "Festivaløkt", value: "festivalSession" },
+  { title: "Serie", value: "seriesParent" },
+  { title: "Seriedag", value: "seriesInstance" },
+  { title: "Festival", value: "festivalParent" },
+  { title: "Festivaldag", value: "festivalSession" },
 ]
 
 const EVENT_STATUS_OPTIONS = [
@@ -57,38 +51,32 @@ export const arrangement = defineType({
     // ─── Structure (ADR 005: materialized instances & festivals) ──
     defineField({
       name: "eventKind",
-      title: "Arrangementsrolle",
-      description:
-        "Enkeltarrangement er standard. Serie/festival-foreldre er maler og " +
-        "oversikter; instanser og økter er konkrete forekomster knyttet til " +
-        "en forelder. Manglende verdi tolkes som enkeltarrangement.",
+      title: "Arrangementstype",
       type: "string",
       group: "structure",
       initialValue: "single",
+      hidden: true,
       options: { list: EVENT_KIND_OPTIONS, layout: "radio" },
     }),
     defineField({
       name: "parentEvent",
-      title: "Foreldrearrangement",
-      description:
-        "Serien eller festivalen denne forekomsten hører til. Sterk referanse: " +
-        "forelderen kan ikke slettes så lenge barn finnes.",
+      title: "Serie eller festival",
       type: "reference",
       to: [{ type: "arrangement" }],
       group: "structure",
-      hidden: ({ document }) => !CHILD_KINDS.includes(eventKindOf(document)),
+      hidden: true,
       validation: rule =>
         rule.custom(async (value, context) => {
           const kind = eventKindOf(context.document)
           const isChild = CHILD_KINDS.includes(kind)
           if (!isChild) {
             return value
-              ? "Kun serieinstanser og festivaløkter kan ha foreldrearrangement"
+              ? "Bare serie- og festivaldager kan knyttes til en serie eller festival"
               : true
           }
           const ref = (value as { _ref?: string } | undefined)?._ref
           if (!ref) {
-            return "Påkrevd for serieinstanser og festivaløkter"
+            return "Velg serien eller festivalen dagen hører til"
           }
           const client = context.getClient({ apiVersion: "2026-01-01" })
           const parentKind = await client.fetch<string | null>(
@@ -108,8 +96,7 @@ export const arrangement = defineType({
       name: "title",
       title: "Tittel",
       description:
-        "Kan stå tom på serieinstanser og festivaløkter — da arves tittelen " +
-        "fra foreldrearrangementet.",
+        "Kan stå tom på serie- og festivaldager. Da brukes tittelen fra serien eller festivalen.",
       type: "string",
       group: "core",
       validation: rule =>
@@ -121,7 +108,7 @@ export const arrangement = defineType({
     }),
     defineField({
       name: "slug",
-      title: "Slug",
+      title: "Nettadresse",
       type: "slug",
       group: "core",
       options: { source: "title" },
@@ -157,16 +144,22 @@ export const arrangement = defineType({
       description: "Rik tekst — formatering, bilder og lenker støttes",
       type: "portableTextContent",
       group: "core",
+      validation: rule =>
+        rule.custom((value, context) =>
+          eventKindOf(context.document) === "festivalParent" && !value
+            ? "Festivalen må ha en beskrivelse"
+            : true,
+        ),
     }),
     // ─── Dates ─────────────────────────────────────────────────
     defineField({
       name: "dates",
       title: "Datoer",
       description:
-        "Enkeltarrangement: én eller flere datoer. Instanser/økter: nøyaktig " +
-        "én. Serie/festival-foreldre: valgfrie oversiktsdatoer.",
+        "Legg inn når arrangementet eller dagen starter og eventuelt slutter.",
       type: "array",
       group: "dates",
+      hidden: ({ document }) => eventKindOf(document) === "festivalParent",
       of: [defineArrayMember({ type: "arrangementDate" })],
       validation: rule =>
         rule.custom((value, context) => {
@@ -174,31 +167,27 @@ export const arrangement = defineType({
           const count = Array.isArray(value) ? value.length : 0
           if (kind === "seriesParent" || kind === "festivalParent") return true
           if (CHILD_KINDS.includes(kind)) {
-            return count === 1 || "Instanser og økter skal ha nøyaktig én dato"
+            return count === 1 || "Serie- og festivaldager skal ha én dato"
           }
           return count >= 1 || "Minst én dato er påkrevd"
         }),
     }),
     defineField({
       name: "isRecurring",
-      title: "Gjentagende arrangement",
-      description:
-        "Slå på for å angi et gjentagelsesmønster. Kun relevant for " +
-        "serieforeldre — instansene genereres som egne dokumenter.",
+      title: "Gjentakelse",
       type: "boolean",
       group: "dates",
       initialValue: false,
-      hidden: ({ document }) => eventKindOf(document) !== "seriesParent",
+      hidden: ({ document }) =>
+        !["single", "seriesParent"].includes(eventKindOf(document)),
+      components: { input: RecurringInput },
     }),
     defineField({
       name: "rrule",
-      title: "Gjentagelsesregel (iCal RRULE)",
-      description:
-        "Genererings-metadata for serieinstanser. Format: FREQ=WEEKLY;BYDAY=MO,WE",
+      title: "Lagret gjentakelse",
       type: "string",
       group: "dates",
-      hidden: ({ document }) =>
-        eventKindOf(document) !== "seriesParent" || !document?.isRecurring,
+      hidden: true,
     }),
 
     // ─── Media ─────────────────────────────────────────────────
@@ -208,6 +197,31 @@ export const arrangement = defineType({
       type: "image",
       group: "media",
       options: { hotspot: true },
+      hidden: ({ document }) =>
+        eventKindOf(document) === "festivalSession" &&
+        document?.useFestivalImage !== false,
+      validation: rule =>
+        rule.custom((value, context) => {
+          const kind = eventKindOf(context.document)
+          if (kind === "festivalParent" && !value)
+            return "Festivalen må ha et bilde"
+          if (
+            kind === "festivalSession" &&
+            context.document?.useFestivalImage === false &&
+            !value
+          )
+            return "Velg et eget bilde eller slå på «Bruk festivalbildet»"
+          return true
+        }),
+    }),
+    defineField({
+      name: "useFestivalImage",
+      title: "Bruk festivalbildet",
+      description: "Slå av hvis denne festivaldagen skal ha sitt eget bilde.",
+      type: "boolean",
+      group: "media",
+      initialValue: true,
+      hidden: ({ document }) => eventKindOf(document) !== "festivalSession",
     }),
     defineField({
       name: "imageCaption",
@@ -319,10 +333,6 @@ export const arrangement = defineType({
       group: "admin",
       initialValue: "pending",
       hidden: true,
-      options: {
-        list: APPROVAL_STATUS_OPTIONS,
-        layout: "radio",
-      },
     }),
     defineField({
       name: "submittedBy",
@@ -340,14 +350,6 @@ export const arrangement = defineType({
       name: "submittedByOrganization",
       title: "Organisasjon",
       type: "string",
-      group: "admin",
-    }),
-    defineField({
-      name: "adminNote",
-      title: "Intern kommentar",
-      description: "Kun synlig for redaktører",
-      type: "text",
-      rows: 2,
       group: "admin",
     }),
   ],

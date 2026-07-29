@@ -11,7 +11,6 @@ import {
 import { navbar, navItemSchema } from "./documents/navbar"
 import { page } from "./documents/page"
 import { room } from "./documents/room"
-import { eventsPage } from "./documents/singletons/eventsPage"
 import { groupsPage } from "./documents/singletons/groupsPage"
 import { homePage } from "./documents/singletons/homePage"
 import { linkInBio } from "./documents/singletons/linkInBio"
@@ -71,7 +70,6 @@ export const schemaTypes = [
   footer,
   siteMetadata,
   homePage,
-  eventsPage,
   roomsPage,
   groupsPage,
   sponsorsPage,

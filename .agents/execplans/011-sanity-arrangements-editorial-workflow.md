@@ -50,12 +50,14 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   arrangementsvisningen.
 - [x] (2026-07-29 10:14Z) Implementerte komplett og publiserende
   request-arbeidsflyt.
-- [ ] (2026-07-29 10:14Z) Forenkle arrangementsskjemaet og
+- [x] (2026-07-29 10:22Z) Forenklet arrangementsskjemaet og
   serie-/festivalarbeidsflytene.
-- [ ] Endre offentlige spørringer slik at festivalperioden avledes fra
+- [x] (2026-07-29 10:22Z) Endret offentlige spørringer slik at festivalperioden
+  avledes fra
   festivaldagene og arrangementsidetekst kommer fra norske tekstfiler.
-- [ ] Legg til tørrkjørbar datamigrering, ta sikkerhetskopi og gjennomfør
-  kontrollert opprydding.
+- [ ] (2026-07-29 10:22Z) La til tørrkjørbar datamigrering og gjennomførte
+  anonym tørrkjøring (gjenstår: autentisert eksport og kontrollert skriving;
+  CLI-en mangler innlogget bruker-token).
 - [ ] Regenerer Sanity-typer og fullfør automatisert, visuell og
   produksjonsnær verifisering.
 
@@ -93,6 +95,14 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   som verken finnes i gjeldende skjema eller leses av nettsiden. Ingen
   arrangementer har en lagret `adminNote`.
   Evidence: feltopptelling over publiserte arrangementer i datasettet.
+
+- Observation: Den ferdige oppryddingsmigreringen kan lese det offentlige
+  datasettet anonymt, men `--with-user-token` stopper før kjøring fordi denne
+  arbeidskopien ikke har en innlogget Sanity-bruker.
+  Evidence: `npm run sanity:migrate:arrangement-editorial-cleanup` svarte
+  `no auth token could be found`; anonym tørrkjøring rapporterte 69 dokumenter,
+  ett `festivalParent.dates`, 44 `arrangement.language`, fem kategorier, 19
+  arrangementstyper, ett `eventsPage`-dokument og null innkommende referanser.
 
 ## Decision Log
 
@@ -591,3 +601,9 @@ Plan revision note (2026-07-29 10:14Z): Milepæl 2 er implementert med én
 sentral overgangsmodell og transaksjonell publisering av siste utkast. Seks
 fokuserte tester og TypeScript-kontrollen passerer. Skjema- og
 serie-/festivalarbeidet er nå aktivt.
+
+Plan revision note (2026-07-29 10:22Z): Milepæl 3–5 er implementert.
+Oppryddingsmigreringen er implementert og tørrkjørt anonymt. Produksjonseksport
+og skrivemodus gjenstår fordi Sanity CLI ikke har bruker-token; denne
+begrensningen og ferske datasettall er dokumentert i Progress og
+Surprises & Discoveries.

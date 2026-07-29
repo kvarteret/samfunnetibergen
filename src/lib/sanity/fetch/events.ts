@@ -7,7 +7,6 @@ import {
   resolveEffectiveStatus,
   resolveEventContent,
 } from "@/features/events/domain/resolveEvent"
-import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
@@ -15,17 +14,12 @@ import {
   eventChildrenQuery,
   eventGroupsQuery,
   eventRoomsQuery,
-  eventsPageContentNbQuery,
   eventTypesQuery,
   promotedParentEventsQuery,
   publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "../queries"
 import { compact, type FetchOptions, getOsloDateString } from "./shared"
-
-export type EventsPageContent = NonNullable<
-  ClientReturn<typeof eventsPageContentNbQuery>
->
 
 type RawPublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
 type RawPromotedParentEvent = ClientReturn<
@@ -44,9 +38,33 @@ function resolveArrangement<
   T extends RawPublishedEvent | RawPromotedParentEvent | RawEventDetail,
 >(row: T) {
   const { parent, ...child } = row
-  const content = resolveEventContent(child, parent)
+  const inheritFestivalImage =
+    row.eventKind !== "festivalSession" || row.useFestivalImage !== false
+  const effectiveParent =
+    parent && !inheritFestivalImage
+      ? { ...parent, imageUrl: null, imageCaption: null }
+      : parent
+  const content = resolveEventContent(child, effectiveParent)
+  const dates: Array<{
+    _key: string
+    startDate: string
+    startTime: string | null
+    endTime: string | null
+  }> = (content.dates ?? []).flatMap(date =>
+    date
+      ? [
+          {
+            _key: date._key,
+            startDate: date.startDate,
+            startTime: date.startTime,
+            endTime: date.endTime,
+          },
+        ]
+      : [],
+  )
   return {
     ...content,
+    dates,
     title: (content.title ?? MISSING_TITLE) as string,
     isFree: (content.isFree ?? false) as boolean,
     description: (content.description ?? []) as NonNullable<T["description"]>,
@@ -79,17 +97,6 @@ export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
 export type EventType = ClientReturn<typeof eventTypesQuery>[number]
 
 export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
-
-export async function fetchEventsPageContent(
-  _locale: AppLocale,
-  options: FetchOptions = {},
-): Promise<EventsPageContent | null> {
-  const { data } = await sanityFetch({
-    query: eventsPageContentNbQuery,
-    stega: options.stega,
-  })
-  return data
-}
 
 export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({

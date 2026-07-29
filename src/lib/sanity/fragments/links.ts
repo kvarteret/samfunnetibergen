@@ -8,7 +8,6 @@ export const sourceLinkProjection = `{
     ),
     "href": select(
         linkType == "internalPage" && internalPage->_type == "homePage" => "/",
-        linkType == "internalPage" && internalPage->_type == "eventsPage" => "/arrangementer",
         linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",
         linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",
         linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",

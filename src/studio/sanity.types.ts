@@ -68,13 +68,6 @@ export type HomePageReference = {
   [internalGroqTypeReferenceTo]?: "homePage"
 }
 
-export type EventsPageReference = {
-  _ref: string
-  _type: "reference"
-  _weak?: boolean
-  [internalGroqTypeReferenceTo]?: "eventsPage"
-}
-
 export type RoomsPageReference = {
   _ref: string
   _type: "reference"
@@ -144,7 +137,6 @@ export type SourceLink = {
   linkType: string
   internalPage?:
     | HomePageReference
-    | EventsPageReference
     | RoomsPageReference
     | GroupsPageReference
     | SponsorsPageReference
@@ -499,6 +491,7 @@ export type Arrangement = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  useFestivalImage?: boolean
   imageCaption?: string
   room?: RoomReference
   roomText?: string
@@ -511,11 +504,10 @@ export type Arrangement = {
   ticketUrl?: string
   facebookUrl?: string
   eventStatus?: "scheduled" | "cancelled" | "postponed"
-  approvalStatus?: "pending" | "approved" | "paused" | "rejected" | "archived"
+  approvalStatus?: string
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
-  adminNote?: string
 }
 
 export type StudentGroup = {
@@ -621,9 +613,7 @@ export type EventType = {
   _updatedAt: string
   _rev: string
   name: string
-  slug: Slug
   taxonomyGroup: EventTaxonomyGroupReference
-  description?: string
   isActive?: boolean
   orderRank?: string
 }
@@ -635,8 +625,6 @@ export type EventTaxonomyGroup = {
   _updatedAt: string
   _rev: string
   name: string
-  slug: Slug
-  isActive?: boolean
   orderRank?: string
 }
 
@@ -775,17 +763,6 @@ export type RoomsPage = {
     _type: "floorPlan"
     _key: string
   }>
-}
-
-export type EventsPage = {
-  _id: string
-  _type: "eventsPage"
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  eyebrow?: string
-  title?: string
-  description?: string
 }
 
 export type HomePage = {
@@ -1040,7 +1017,6 @@ export type AllSanitySchemaTypes =
   | SanityImageCrop
   | SanityImageHotspot
   | HomePageReference
-  | EventsPageReference
   | RoomsPageReference
   | GroupsPageReference
   | SponsorsPageReference
@@ -1089,7 +1065,6 @@ export type AllSanitySchemaTypes =
   | GroupsPage
   | SanityFileAssetReference
   | RoomsPage
-  | EventsPage
   | HomePage
   | SanityAssistInstructionTask
   | SanityAssistTaskStatus
