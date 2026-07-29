@@ -1,6 +1,6 @@
 import { icons } from "@sanity/icons"
 import { Button, Card, Flex, Spinner, Stack, Text, TextInput } from "@sanity/ui"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useClient } from "sanity"
 
 import { PROMOTABLE_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
@@ -57,18 +57,6 @@ export function PromotedArrangementPicker({
       setLoading(false)
     }
   }, [client, today])
-
-  useEffect(() => {
-    if (!open) return
-    const subscription = client
-      .listen(
-        `*[_type == "arrangement" && (${PROMOTABLE_ARRANGEMENTS_FILTER})]`,
-        { today },
-        { includeResult: false, visibility: "query" },
-      )
-      .subscribe(() => void refresh())
-    return () => subscription.unsubscribe()
-  }, [client, open, refresh, today])
 
   const openPicker = () => {
     setOpen(true)

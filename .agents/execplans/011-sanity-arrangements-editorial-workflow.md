@@ -108,6 +108,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29) Utvidet den kontrollerte listen til en ubegrenset kø:
   de tre første kommende arrangementene vises på forsiden, mens senere valg
   rykker automatisk frem når et tidligere arrangement avsluttes.
+- [x] (2026-07-29) Rettet køens samtidighetsfeil: liveoppdateringer
+  serialiseres og slås sammen, søkepanelet gjør ikke lenger egne
+  mutasjonsutløste refetch, og hver kø-rad er én stabil draggable-enhet.
 
 ## Surprises & Discoveries
 
@@ -211,6 +214,15 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   Evidence: En direkte anonym datasettspørring feilet; projeksjon av
   `dates[]{startDate}` og korrelerte `childDates` ble deretter validert mot
   dagens datasett.
+
+- Observation: En normaliseringstransaksjon kunne utløse flere samtidige
+  listeoppdateringer, som hver observerte mellomtilstand og forsøkte en ny
+  normalisering. Når søkepanelet var åpent, lyttet det også til hver mutasjon
+  og viste løkken som kontinuerlig refetch.
+  Evidence: Next.js-feiloverlegget viste gjentatte Sanity
+  `data/mutate/production`-feil med kallstakken
+  `persistSelection` → `refresh`. Søkepanelets kandidatgrunnlag avhenger ikke
+  av fremhevingsfeltene og trenger derfor ingen egen live-lytter.
 
 - Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
   dra-og-slipp utilstrekkelig.
@@ -401,6 +413,15 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   rykker frem uten at Studio må åpnes.
   Date/Author: 2026-07-29, user/Codex; supersederer maksimum tre valg, men
   beholder maksimum tre synlige kort.
+
+- Decision: Kjør aldri mer enn én fremhevet-refresh om gangen. Overlappende
+  lytterhendelser samles til nøyaktig én påfølgende refresh, og kandidatvelgeren
+  henter bare ved åpning.
+  Rationale: Normalisering skriver til de samme dokumentene som live-lytteren
+  observerer. Serialisering gjør skrive–lese-syklusen deterministisk, mens
+  fjerning av den overflødige kandidatlytteren hindrer refetch-stormen uten å
+  gjøre søkeresultatene utdaterte i den aktuelle brukerflyten.
+  Date/Author: 2026-07-29, Codex.
 
 ## Outcomes & Retrospective
 
@@ -955,3 +976,8 @@ Plan revision note (2026-07-29): Produkteiers addendum utvider den kontrollerte
 listen til en fremtidskø uten maksimum. Bare de tre første kvalifiserte
 arrangementene vises på forsiden; senere valg beholdes i rekkefølge og rykker
 automatisk frem ved utløp.
+
+Plan revision note (2026-07-29): Oppfølgingsfeilen ved flytting og sletting er
+sporet til overlappende normaliseringsrefresh og en redundant live-lytter i
+søkepanelet. Refresh er nå serialisert og koalesert, og draggable-raden
+omslutter både kømarkør og kort i én målt enhet.

@@ -17,10 +17,11 @@ import {
   Text,
   useToast,
 } from "@sanity/ui"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useClient } from "sanity"
 import { IntentLink } from "sanity/router"
 
+import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
   normalizedArrangementId,
   reorderFeaturedDocuments,
@@ -83,6 +84,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
   >([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const refreshRunner = useRef(createCoalescedAsyncRunner())
 
   const loadDocuments = useCallback(async () => {
     const rawDocuments = await client.fetch<RawFeaturedDocument[]>(
@@ -165,7 +167,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
     [client],
   )
 
-  const refresh = useCallback(async () => {
+  const performRefresh = useCallback(async () => {
     const nextDocuments = await loadDocuments()
     let nextSelection = selectFeaturedDocuments(nextDocuments)
     if (nextSelection.length === 0 && nextDocuments[0]) {
@@ -183,15 +185,24 @@ export function PromotedArrangementList({ today }: { today: string }) {
     setLoading(false)
   }, [loadDocuments, persistSelection])
 
+  const refresh = useCallback(() => {
+    return refreshRunner.current(performRefresh)
+  }, [performRefresh])
+
   useEffect(() => {
-    const initialRefresh = window.setTimeout(() => void refresh(), 0)
+    const requestRefresh = () => {
+      void refresh().catch(() => {
+        setLoading(false)
+      })
+    }
+    const initialRefresh = window.setTimeout(requestRefresh, 0)
     const subscription = client
       .listen(
         `*[_type == "arrangement" && (${PROMOTABLE_ARRANGEMENTS_FILTER})]`,
         { today },
         { includeResult: false, visibility: "query" },
       )
-      .subscribe(() => void refresh())
+      .subscribe(requestRefresh)
     return () => {
       window.clearTimeout(initialRefresh)
       subscription.unsubscribe()
@@ -278,28 +289,28 @@ export function PromotedArrangementList({ today }: { today: string }) {
                 {selectedDocuments.map((document, index) => {
                   const id = normalizedArrangementId(document._id)
                   return (
-                    <Stack key={id} space={2}>
-                      {index === 3 ? (
-                        <Flex align="center" gap={3} paddingY={2}>
-                          <Card borderTop flex={1} />
-                          <Text muted size={1} weight="semibold">
-                            Kø – vises automatisk senere
-                          </Text>
-                          <Card borderTop flex={1} />
-                        </Flex>
-                      ) : null}
-                      <Draggable draggableId={id} index={index}>
-                        {(draggable, snapshot) => (
-                          <Card
-                            border
-                            padding={3}
-                            radius={2}
-                            ref={draggable.innerRef}
-                            shadow={snapshot.isDragging ? 2 : undefined}
-                            tone={snapshot.isDragging ? "primary" : "default"}
-                            {...draggable.draggableProps}
-                            style={draggable.draggableProps.style}
-                          >
+                    <Draggable draggableId={id} index={index} key={id}>
+                      {(draggable, snapshot) => (
+                        <Card
+                          border
+                          padding={3}
+                          radius={2}
+                          ref={draggable.innerRef}
+                          shadow={snapshot.isDragging ? 2 : undefined}
+                          tone={snapshot.isDragging ? "primary" : "default"}
+                          {...draggable.draggableProps}
+                          style={draggable.draggableProps.style}
+                        >
+                          <Stack space={3}>
+                            {index === 3 ? (
+                              <Flex align="center" gap={3}>
+                                <Card borderTop flex={1} />
+                                <Text muted size={1} weight="semibold">
+                                  Kø – vises automatisk senere
+                                </Text>
+                                <Card borderTop flex={1} />
+                              </Flex>
+                            ) : null}
                             <Flex align="center" gap={3}>
                               <Box
                                 aria-label={`Flytt ${document.title ?? "arrangement"}`}
@@ -353,10 +364,10 @@ export function PromotedArrangementList({ today }: { today: string }) {
                                 tone="critical"
                               />
                             </Flex>
-                          </Card>
-                        )}
-                      </Draggable>
-                    </Stack>
+                          </Stack>
+                        </Card>
+                      )}
+                    </Draggable>
                   )
                 })}
                 {provided.placeholder}
