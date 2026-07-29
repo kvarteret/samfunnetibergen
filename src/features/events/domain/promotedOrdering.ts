@@ -12,17 +12,9 @@ export function selectHomepagePromotedEvents<T extends PromotedOrderableEvent>(
   events: T[],
   today: string,
 ): T[] {
-  const ordered = [...events].sort((first, second) =>
-    comparePromotedEvents(first, second, today),
-  )
-  const hasSavedPlacement = ordered.some(event =>
-    Boolean(event.promotedPlacement),
-  )
-  return (
-    hasSavedPlacement
-      ? ordered.filter(event => event.promotedPlacement === "top")
-      : ordered
-  ).slice(0, 3)
+  return [...events]
+    .sort((first, second) => comparePromotedEvents(first, second, today))
+    .slice(0, 3)
 }
 
 export function isPromotableEventKind(kind: string | null | undefined) {

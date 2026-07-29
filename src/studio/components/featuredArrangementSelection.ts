@@ -29,12 +29,9 @@ export function compareFeaturedSelection(
 export function selectFeaturedDocuments<T extends FeaturedSelectionDocument>(
   documents: T[],
 ): T[] {
-  const ordered = [...documents].sort(compareFeaturedSelection)
-  const explicitSelection = ordered.filter(
-    document => document.promotedPlacement === "top",
-  )
-  if (explicitSelection.length > 0) return explicitSelection.slice(0, 3)
-  return ordered.filter(document => document.isPromoted).slice(0, 3)
+  return [...documents]
+    .filter(document => document.isPromoted)
+    .sort(compareFeaturedSelection)
 }
 
 export function reorderFeaturedDocuments<T>(
@@ -71,9 +68,10 @@ export function selectionNeedsNormalization(
       selected => normalizedArrangementId(selected._id) === id,
     )
     if (selectedIds.has(id)) {
+      const expectedPlacement = selectedIndex < 3 ? "top" : "pool"
       return (
         document.isPromoted !== true ||
-        document.promotedPlacement !== "top" ||
+        document.promotedPlacement !== expectedPlacement ||
         document.promotedOrder !== selectedIndex
       )
     }

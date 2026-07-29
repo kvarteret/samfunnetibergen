@@ -105,6 +105,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29) La til eksplisitt `promotedOrder`, migrering ved åpning,
   søkbart tillegg som alltid appenderer, fjerning med minimumsvern og
   dra-og-slipp som bare rangerer de valgte arrangementene.
+- [x] (2026-07-29) Utvidet den kontrollerte listen til en ubegrenset kø:
+  de tre første kommende arrangementene vises på forsiden, mens senere valg
+  rykker automatisk frem når et tidligere arrangement avsluttes.
 
 ## Surprises & Discoveries
 
@@ -389,6 +392,16 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   kvalifiserte arrangement automatisk.
   Date/Author: 2026-07-29, Codex.
 
+- Decision: Tillat flere enn tre valg i `Fremhevede`, men vis bare de tre
+  første kvalifiserte arrangementene på forsiden. Vis resten under en tydelig
+  kømarkør i Studio og la tillegg alltid havne sist.
+  Rationale: Redaksjonen kan planlegge fremover uten å vente på at et synlig
+  arrangement avsluttes. De offentlige spørringene fjerner avsluttede
+  kandidater før `promotedOrder` sorteres og begrenses til tre, så neste køvalg
+  rykker frem uten at Studio må åpnes.
+  Date/Author: 2026-07-29, user/Codex; supersederer maksimum tre valg, men
+  beholder maksimum tre synlige kort.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
@@ -409,14 +422,15 @@ repositoryet, oppryddingsmigreringen kjøres i skrivemodus og de innloggede
 Studio-flytene kontrolleres visuelt. Dette ble ikke omgått eller simulert,
 fordi arbeidskopien mangler bruker-token og Studio stopper på innlogging.
 
-Fremhevede er nå en egen, kontrollert liste på ett–tre valg i stedet for en
-lineær pluginliste med en simulert skillelinje. Søk og «Legg til» appenderer
-valget uten å erstatte eksisterende kort, «Fjern» er deaktivert ved ett valg,
-og dra-og-slipp rangerer bare de valgte kortene. Forsiden leser samme
+Fremhevede er nå en egen, kontrollert kø i stedet for en lineær pluginliste
+med en simulert skillelinje. Søk og «Legg til» appenderer uten å erstatte
+eksisterende kort, «Fjern» er deaktivert ved ett valg, og dra-og-slipp rangerer
+hele køen. De tre første kommende arrangementene vises; resten merkes som kø
+og rykker automatisk frem når et tidligere valg avsluttes. Forsiden leser samme
 medlemskap og `promotedOrder`; eldre `orderRank` og `promotedPlacement`
-normaliseres automatisk ved første åpning. Hvis alle lagrede toppvalg har
-forsvunnet, for eksempel fordi de er avsluttet, velger Studio automatisk første
-gjenværende kvalifiserte arrangement.
+normaliseres automatisk ved første åpning. Hvis alle lagrede valg har
+forsvunnet, velger Studio automatisk første gjenværende kvalifiserte
+arrangement.
 
 ## Context and Orientation
 
@@ -936,3 +950,8 @@ Plan revision note (2026-07-29): Den kroniske pluginfeilen er undersøkt mot
 installert API og offisiell dokumentasjon. Den simulerte todelingen er
 supersedert av en kontrollert én–tre-liste med dedikert `promotedOrder`,
 automatisk legacy-normalisering, søkbart append og intern dra-og-slipp.
+
+Plan revision note (2026-07-29): Produkteiers addendum utvider den kontrollerte
+listen til en fremtidskø uten maksimum. Bare de tre første kvalifiserte
+arrangementene vises på forsiden; senere valg beholdes i rekkefølge og rykker
+automatisk frem ved utløp.

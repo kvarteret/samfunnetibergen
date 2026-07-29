@@ -16,17 +16,32 @@ describe("promoted event ordering", () => {
     expect(isPromotableEventKind("festivalSession")).toBe(false)
   })
 
-  it("keeps saved top membership stable instead of filling empty slots", () => {
+  it("fills the visible three from the ordered promoted queue", () => {
     const events = [
-      { orderRank: "0|a:", promotedPlacement: "top" as const },
-      { orderRank: "0|b:", promotedPlacement: "pool" as const },
-      { orderRank: "0|c:", promotedPlacement: "top" as const },
+      { promotedOrder: 0, promotedPlacement: "top" as const },
+      { promotedOrder: 1, promotedPlacement: "top" as const },
+      { promotedOrder: 2, promotedPlacement: "top" as const },
+      { promotedOrder: 3, promotedPlacement: "pool" as const },
     ]
 
     expect(selectHomepagePromotedEvents(events, "2026-07-29")).toEqual([
       events[0],
+      events[1],
       events[2],
     ])
+  })
+
+  it("promotes the next queued event when an earlier candidate has expired", () => {
+    const remainingEligibleEvents = [
+      { promotedOrder: 1 },
+      { promotedOrder: 2 },
+      { promotedOrder: 3, promotedPlacement: "pool" as const },
+      { promotedOrder: 4, promotedPlacement: "pool" as const },
+    ]
+
+    expect(
+      selectHomepagePromotedEvents(remainingEligibleEvents, "2026-07-29"),
+    ).toEqual(remainingEligibleEvents.slice(0, 3))
   })
 
   it("centers one or two cards in the six-column homepage grid", () => {

@@ -102,7 +102,7 @@ export function PromotedArrangementPicker({
         patch.set({
           isPromoted: true,
           promotedOrder: selectedIds.length,
-          promotedPlacement: "top",
+          promotedPlacement: selectedIds.length < 3 ? "top" : "pool",
         }),
       )
       if (hasDraft) {
@@ -110,7 +110,7 @@ export function PromotedArrangementPicker({
           patch.set({
             isPromoted: true,
             promotedOrder: selectedIds.length,
-            promotedPlacement: "top",
+            promotedPlacement: selectedIds.length < 3 ? "top" : "pool",
           }),
         )
       }

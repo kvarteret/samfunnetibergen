@@ -140,7 +140,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
               patch.set({
                 isPromoted: true,
                 promotedOrder: selectedIndex,
-                promotedPlacement: "top",
+                promotedPlacement: selectedIndex < 3 ? "top" : "pool",
               }),
             )
           }
@@ -254,13 +254,18 @@ export function PromotedArrangementList({ today }: { today: string }) {
       <Card border padding={4} radius={2} tone="primary">
         <Stack space={3}>
           <Flex align="center" gap={2} wrap="wrap">
-            <Badge tone="positive">{selectedDocuments.length} av 3 valgt</Badge>
+            <Badge tone="positive">
+              {Math.min(selectedDocuments.length, 3)} vises
+            </Badge>
+            {selectedDocuments.length > 3 ? (
+              <Badge tone="caution">{selectedDocuments.length - 3} i kø</Badge>
+            ) : null}
             <Text weight="semibold">Vises øverst på forsiden</Text>
           </Flex>
           <Text muted size={1}>
-            Velg mellom ett og tre arrangementer. Dra bare de valgte
-            arrangementene for å endre rekkefølgen. Avsluttede arrangementer
-            fjernes automatisk fra forsiden.
+            De tre første kommende arrangementene vises. Legg gjerne flere i kø;
+            neste arrangement vises automatisk når et tidligere arrangement er
+            avsluttet. Dra for å endre rekkefølgen.
           </Text>
         </Stack>
       </Card>
@@ -273,67 +278,85 @@ export function PromotedArrangementList({ today }: { today: string }) {
                 {selectedDocuments.map((document, index) => {
                   const id = normalizedArrangementId(document._id)
                   return (
-                    <Draggable draggableId={id} index={index} key={id}>
-                      {(draggable, snapshot) => (
-                        <Card
-                          border
-                          padding={3}
-                          radius={2}
-                          ref={draggable.innerRef}
-                          shadow={snapshot.isDragging ? 2 : undefined}
-                          tone={snapshot.isDragging ? "primary" : "default"}
-                          {...draggable.draggableProps}
-                          style={draggable.draggableProps.style}
-                        >
-                          <Flex align="center" gap={3}>
-                            <Box
-                              aria-label={`Flytt ${document.title ?? "arrangement"}`}
-                              padding={2}
-                              style={{ cursor: saving ? "wait" : "grab" }}
-                              {...draggable.dragHandleProps}
-                            >
-                              <DragHandleIcon />
-                            </Box>
-                            <Badge tone="primary">Plass {index + 1}</Badge>
-                            <Stack flex={1} space={2}>
-                              <IntentLink
-                                intent="edit"
-                                params={{
-                                  id,
-                                  mode: "structure",
-                                  type: "arrangement",
-                                }}
-                                style={{
-                                  color: "inherit",
-                                  textDecoration: "none",
-                                }}
+                    <Stack key={id} space={2}>
+                      {index === 3 ? (
+                        <Flex align="center" gap={3} paddingY={2}>
+                          <Card borderTop flex={1} />
+                          <Text muted size={1} weight="semibold">
+                            Kø – vises automatisk senere
+                          </Text>
+                          <Card borderTop flex={1} />
+                        </Flex>
+                      ) : null}
+                      <Draggable draggableId={id} index={index}>
+                        {(draggable, snapshot) => (
+                          <Card
+                            border
+                            padding={3}
+                            radius={2}
+                            ref={draggable.innerRef}
+                            shadow={snapshot.isDragging ? 2 : undefined}
+                            tone={snapshot.isDragging ? "primary" : "default"}
+                            {...draggable.draggableProps}
+                            style={draggable.draggableProps.style}
+                          >
+                            <Flex align="center" gap={3}>
+                              <Box
+                                aria-label={`Flytt ${document.title ?? "arrangement"}`}
+                                padding={2}
+                                style={{ cursor: saving ? "wait" : "grab" }}
+                                {...draggable.dragHandleProps}
                               >
-                                <Text size={2} weight="semibold">
-                                  {document.title ?? "Arrangement uten tittel"}
+                                <DragHandleIcon />
+                              </Box>
+                              <Badge tone={index < 3 ? "primary" : "default"}>
+                                {index < 3
+                                  ? `Plass ${index + 1}`
+                                  : `Kø ${index - 2}`}
+                              </Badge>
+                              <Stack flex={1} space={2}>
+                                <IntentLink
+                                  intent="edit"
+                                  params={{
+                                    id,
+                                    mode: "structure",
+                                    type: "arrangement",
+                                  }}
+                                  style={{
+                                    color: "inherit",
+                                    textDecoration: "none",
+                                  }}
+                                >
+                                  <Text size={2} weight="semibold">
+                                    {document.title ??
+                                      "Arrangement uten tittel"}
+                                  </Text>
+                                </IntentLink>
+                                <Text muted size={1}>
+                                  {[
+                                    document.nextDate,
+                                    KIND_LABELS[document.eventKind],
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
                                 </Text>
-                              </IntentLink>
-                              <Text muted size={1}>
-                                {[
-                                  document.nextDate,
-                                  KIND_LABELS[document.eventKind],
-                                ]
-                                  .filter(Boolean)
-                                  .join(" · ")}
-                              </Text>
-                            </Stack>
-                            <Button
-                              aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
-                              disabled={selectedDocuments.length <= 1 || saving}
-                              icon={TrashIcon}
-                              mode="ghost"
-                              onClick={() => remove(document)}
-                              text="Fjern"
-                              tone="critical"
-                            />
-                          </Flex>
-                        </Card>
-                      )}
-                    </Draggable>
+                              </Stack>
+                              <Button
+                                aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
+                                disabled={
+                                  selectedDocuments.length <= 1 || saving
+                                }
+                                icon={TrashIcon}
+                                mode="ghost"
+                                onClick={() => remove(document)}
+                                text="Fjern"
+                                tone="critical"
+                              />
+                            </Flex>
+                          </Card>
+                        )}
+                      </Draggable>
+                    </Stack>
                   )
                 })}
                 {provided.placeholder}
@@ -343,17 +366,11 @@ export function PromotedArrangementList({ today }: { today: string }) {
         </Droppable>
       </DragDropContext>
 
-      {selectedDocuments.length < 3 ? (
-        <PromotedArrangementPicker
-          onAdded={refresh}
-          selectedIds={selectedIds}
-          today={today}
-        />
-      ) : (
-        <Text muted size={1}>
-          Tre arrangementer er valgt. Fjern ett før du legger til et annet.
-        </Text>
-      )}
+      <PromotedArrangementPicker
+        onAdded={refresh}
+        selectedIds={selectedIds}
+        today={today}
+      />
     </Stack>
   )
 }
