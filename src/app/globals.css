@@ -182,8 +182,8 @@
 
   /* ── Theme: HS ──
      White background, soft-red surfaces, red primary, dark-red shadows,
-     rounded corners, serif headings. Overrides only the semantic tokens;
-     every component re-skins through them. */
+     selectively rounded controls, serif headings. Overrides only the semantic
+     tokens; every component re-skins through them. */
   :root[data-theme="hs"] {
     --background: #ffffff;
     --foreground: #1a1414;
@@ -218,11 +218,6 @@
 
     --font-display: var(--font-source-serif);
     --body-font: var(--font-lora);
-  }
-
-  /* Apply rounded corners globally in HS, overridable by Tailwind rounded-* utilities */
-  [data-theme="hs"] * {
-    border-radius: var(--radius);
   }
 
   /* HS footer: links underline on hover */
