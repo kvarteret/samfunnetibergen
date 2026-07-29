@@ -21,4 +21,13 @@ if (
     tracing_headers:
       typeof window === "undefined" ? undefined : [window.location.hostname],
   })
+
+  posthog.register({
+    ...(process.env.NEXT_PUBLIC_DEPLOYMENT_TAG
+      ? { deployment_tag: process.env.NEXT_PUBLIC_DEPLOYMENT_TAG }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_GIT_SHA
+      ? { git_sha: process.env.NEXT_PUBLIC_GIT_SHA }
+      : {}),
+  })
 }

@@ -115,10 +115,14 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
           NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+          NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
+          NEXT_PUBLIC_GIT_SHA: ${{ steps.release.outputs.source_sha }}
           SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
           POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
           POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}
           POSTHOG_CLI_HOST: ${{ secrets.POSTHOG_CLI_HOST }}
+          POSTHOG_RELEASE_BUILD: ${{ steps.release.outputs.source_sha }}
+          POSTHOG_RELEASE_VERSION: ${{ steps.release.outputs.tag }}
 
       - name: Deploy staged production artifact
         id: deploy
