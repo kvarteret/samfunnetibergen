@@ -68,6 +68,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `Frivilligfordeler` der, forenklet arrangementsfiltrene og la til
   sidepanel-navigasjon og festivaldaghandling på festivaler.
 - [x] (2026-07-29) Plasserte `Innstillinger` nederst i første kolonne.
+- [x] (2026-07-29 11:05Z) Rettet gjentakelsesvalget for utkast-ID-er, gjorde
+  `Alle` til standard feltgruppe og dokumenterte første og siste dato i en
+  gjentakende serie.
 
 ## Surprises & Discoveries
 
@@ -111,6 +114,16 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `no auth token could be found`; anonym tørrkjøring rapporterte 69 dokumenter,
   ett `festivalParent.dates`, 44 `arrangement.language`, fem kategorier, 19
   arrangementstyper, ett `eventsPage`-dokument og null innkommende referanser.
+
+- Observation: Sanitys `useDocumentOperation` avviser ID-er med
+  `drafts.`-prefiks selv om skjemafeltet naturlig leser utkastets `_id`.
+  Evidence: Valg av Gjentakelse feilet i `editOpsOf`; samme installerte API
+  godtar dokumentets publiserte ID og retter operasjonen mot utkastet.
+
+- Observation: Den innebygde «All fields»-gruppen kan overstyres ved å
+  registrere `ALL_FIELDS_GROUP` eksplisitt i dokumentets feltgrupper.
+  Evidence: Installert Sanity 6.7 bruker gruppen med navn `all-fields` som
+  innebygd reserve og velger den gruppen som har `default: true`.
 
 ## Decision Log
 
@@ -194,6 +207,13 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   Rationale: Listen og filtrene skal bli stående mens redaktøren beveger seg
   mellom dokumenter, og festivalens vanligste neste handling skal være synlig
   fra begge arbeidsflater.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Gjør den eksplisitte feltgruppen `Alle` til standard i
+  arrangementsdokumentet, og la en serie ha nøyaktig én første dato.
+  Rationale: Redaktøren skal se hele dokumentet ved åpning, og generering av
+  seriedager må ha én entydig startdato. Gjentakelsens sluttdato er siste
+  mulige dag; uten sluttdato gjelder sikkerhetsgrensen på seks måneder.
   Date/Author: 2026-07-29, user/Codex.
 
 ## Outcomes & Retrospective
@@ -669,3 +689,8 @@ Structure-modus.
 Plan revision note (2026-07-29): `Innstillinger` er flyttet til bunnen av
 første kolonne etter produkteiers presisering; innholdet i seksjonen er
 uendret.
+
+Plan revision note (2026-07-29 11:05Z): Gjentakelsesfeltet normaliserer nå
+utkast-ID før dokumentoperasjoner. Arrangementsdokumentet åpner i `Alle`, og
+skjemaet forklarer at seriens dato er første dag mens gjentakelsesfeltet styrer
+siste mulige dag.

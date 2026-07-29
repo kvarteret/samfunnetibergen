@@ -9,6 +9,14 @@ function fieldNames(schema: { fields?: Array<{ name: string }> }) {
 }
 
 describe("editorial arrangement schema", () => {
+  it("opens with every field visible in the Alle group", () => {
+    expect(arrangement.groups?.[0]).toMatchObject({
+      name: "all-fields",
+      title: "Alle",
+      default: true,
+    })
+  })
+
   it("hides storage-only fields and removes retired fields", () => {
     const fields = arrangement.fields ?? []
     expect(fields.find(field => field.name === "eventKind")?.hidden).toBe(true)
@@ -28,6 +36,12 @@ describe("editorial arrangement schema", () => {
     )
     expect(field?.title).toBe("Bruk festivalbildet")
     expect(field?.initialValue).toBe(true)
+  })
+
+  it("explains the first and last dates of a recurring series", () => {
+    const dates = arrangement.fields?.find(field => field.name === "dates")
+    expect(dates?.description).toContain("seriens første dag")
+    expect(dates?.description).toContain("Siste dag styres under Gjentakelse")
   })
 
   it("removes retired category and event type fields", () => {

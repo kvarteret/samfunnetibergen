@@ -9,6 +9,7 @@ import {
   TextInput,
 } from "@sanity/ui"
 import { useEffect, useMemo, useState } from "react"
+import { RRule } from "rrule"
 import type { BooleanInputProps } from "sanity"
 import {
   set,
@@ -17,7 +18,6 @@ import {
   useDocumentOperation,
   useFormValue,
 } from "sanity"
-import { RRule } from "rrule"
 
 const API_VERSION = "2026-07-29"
 const WEEKDAYS = [
@@ -76,11 +76,16 @@ export function serializeEditorialRecurrence(fields: RecurrenceFields): string {
   return parts.join(";")
 }
 
+export function documentOperationId(id: string): string {
+  return id.replace(/^drafts\./, "")
+}
+
 export function RecurringInput(props: BooleanInputProps) {
   const id = String(useFormValue(["_id"]) ?? "")
+  const operationId = documentOperationId(id)
   const storedRule = useFormValue(["rrule"])
   const client = useClient({ apiVersion: API_VERSION })
-  const operations = useDocumentOperation(id, "arrangement")
+  const operations = useDocumentOperation(operationId, "arrangement")
   const [childCount, setChildCount] = useState(0)
   const fields = useMemo(() => readRule(storedRule), [storedRule])
 
@@ -89,11 +94,11 @@ export function RecurringInput(props: BooleanInputProps) {
     void client
       .fetch<number>(
         'count(*[_type == "arrangement" && parentEvent._ref == $id])',
-        { id: id.replace(/^drafts\./, "") },
+        { id: operationId },
         { perspective: "raw" },
       )
       .then(setChildCount)
-  }, [client, id])
+  }, [client, id, operationId])
 
   const patchRule = (next: RecurrenceFields) => {
     operations.patch.execute([
@@ -139,7 +144,7 @@ export function RecurringInput(props: BooleanInputProps) {
         {childCount > 0 ? (
           <Text muted size={1}>
             Gjentakelse kan ikke slås av fordi serien har {childCount} dager.
-            Åpne serien fra «recurring» for å se dagene.
+            Åpne serien fra «Recurring» for å se dagene.
           </Text>
         ) : null}
         {props.value ? (
@@ -179,17 +184,23 @@ export function RecurringInput(props: BooleanInputProps) {
                 ))}
               </Flex>
             ) : null}
-            <TextInput
-              aria-label="Sluttdato"
-              onChange={event =>
-                patchRule({ ...fields, until: event.currentTarget.value })
-              }
-              type="date"
-              value={fields.until}
-            />
-            <Text muted size={1}>
-              Serien kan maksimalt opprette dager seks måneder frem i tid.
-            </Text>
+            <Stack space={2}>
+              <Text size={1} weight="semibold">
+                Siste dag i serien
+              </Text>
+              <TextInput
+                aria-label="Siste dag i serien"
+                onChange={event =>
+                  patchRule({ ...fields, until: event.currentTarget.value })
+                }
+                type="date"
+                value={fields.until}
+              />
+              <Text muted size={1}>
+                Datoen er siste mulige seriedag. Uten en sluttdato opprettes
+                dager i maksimalt seks måneder fra første dato.
+              </Text>
+            </Stack>
           </Stack>
         ) : null}
       </Stack>

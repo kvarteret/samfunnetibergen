@@ -1,5 +1,10 @@
 import { icons } from "@sanity/icons"
-import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  ALL_FIELDS_GROUP,
+  defineArrayMember,
+  defineField,
+  defineType,
+} from "sanity"
 
 import { RecurringInput } from "../../components/RecurringInput"
 
@@ -37,7 +42,13 @@ export const arrangement = defineType({
   type: "document",
   icon: icons.calendar,
   groups: [
-    { name: "core", title: "Grunninfo", default: true },
+    {
+      ...ALL_FIELDS_GROUP,
+      title: "Alle",
+      i18n: undefined,
+      default: true,
+    },
+    { name: "core", title: "Grunninfo" },
     { name: "structure", title: "Struktur" },
     { name: "dates", title: "Datoer" },
     { name: "location", title: "Sted" },
@@ -156,7 +167,7 @@ export const arrangement = defineType({
       name: "dates",
       title: "Datoer",
       description:
-        "Legg inn når arrangementet eller dagen starter og eventuelt slutter.",
+        "For en gjentakende serie er dette seriens første dag. Klokkeslettene kopieres til nye seriedager. Siste dag styres under Gjentakelse.",
       type: "array",
       group: "dates",
       hidden: ({ document }) => eventKindOf(document) === "festivalParent",
@@ -165,7 +176,10 @@ export const arrangement = defineType({
         rule.custom((value, context) => {
           const kind = eventKindOf(context.document)
           const count = Array.isArray(value) ? value.length : 0
-          if (kind === "seriesParent" || kind === "festivalParent") return true
+          if (kind === "festivalParent") return true
+          if (kind === "seriesParent") {
+            return count === 1 || "En gjentakende serie skal ha én første dato"
+          }
           if (CHILD_KINDS.includes(kind)) {
             return count === 1 || "Serie- og festivaldager skal ha én dato"
           }
