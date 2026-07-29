@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  appendDocumentToTopGroup,
   decidePromotedDrag,
   firstDocumentIdForTopRecovery,
   placementsAfterDecision,
@@ -66,6 +67,21 @@ describe("promoted arrangement placement", () => {
       draggedId: "c",
       placement: "top",
     })
+    expect(
+      appendDocumentToTopGroup(before, "c").map(document => document._id),
+    ).toEqual(["a", "b", "c"])
+  })
+
+  it("appends a new top item after one existing top item", () => {
+    const before = docs([
+      ["a", "top"],
+      ["b", "pool"],
+      ["c", "pool"],
+    ])
+
+    expect(
+      appendDocumentToTopGroup(before, "c").map(document => document._id),
+    ).toEqual(["a", "c", "b"])
   })
 
   it("rejects a fourth item above the line", () => {

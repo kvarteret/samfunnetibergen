@@ -8,6 +8,7 @@ import styled from "styled-components"
 import { PromotedArrangementPicker } from "./PromotedArrangementPicker"
 import { PROMOTED_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
 import {
+  appendDocumentToTopGroup,
   decidePromotedDrag,
   firstDocumentIdForTopRecovery,
   normalizedDocumentId,
@@ -145,14 +146,31 @@ export function PromotedArrangementList({ today }: { today: string }) {
       >,
     ) => {
       const placements = placementsAfterDecision(before, decision)
+      const desiredOrder =
+        decision.placement === "top"
+          ? appendDocumentToTopGroup(before, decision.draggedId)
+          : before
+      const ranks = before.map(document => document.orderRank)
+      const desiredRankById = new Map(
+        desiredOrder.map((document, index) => [
+          normalizedDocumentId(document._id),
+          ranks[index],
+        ]),
+      )
       const transaction = client.transaction()
       for (const { id, placement } of placements) {
         const document = before.find(
           candidate => normalizedDocumentId(candidate._id) === id,
         )
+        const desiredRank = desiredRankById.get(id)
         for (const documentId of document?.documentIds ?? []) {
           transaction.patch(documentId, patch =>
-            patch.set({ promotedPlacement: placement }),
+            patch.set({
+              promotedPlacement: placement,
+              ...(decision.placement === "top" && desiredRank
+                ? { orderRank: desiredRank }
+                : {}),
+            }),
           )
         }
       }
@@ -293,10 +311,11 @@ export function PromotedArrangementList({ today }: { today: string }) {
             <Text weight="semibold">Vises øverst på forsiden</Text>
           </Flex>
           <Text muted size={1}>
-            Minst ett og maksimalt tre arrangementer vises. Dra dem til ønsket
-            rekkefølge; linjen markerer de som vises. Festivaler fjernes etter
-            siste festivaldag, og andre avsluttede arrangementer fjernes etter
-            siste arrangementsdato.
+            Minst ett og maksimalt tre arrangementer vises. Dra et arrangement
+            opp for å legge det til sist over linjen, og ranger deretter
+            toppvalgene innbyrdes. Festivaler fjernes etter siste festivaldag,
+            og andre avsluttede arrangementer fjernes etter siste
+            arrangementsdato.
           </Text>
           {unrankedCount > 0 ? (
             <Button

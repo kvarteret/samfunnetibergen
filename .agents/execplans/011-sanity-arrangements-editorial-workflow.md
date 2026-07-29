@@ -94,6 +94,11 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   ingen lagret toppplassering.
 - [x] (2026-07-29 12:24Z) Verifiserte automatisk gjenoppretting med 11
   fokuserte tester, TypeScript, lint og Sanity Studio-bygg.
+- [x] (2026-07-29 12:28Z) Endret flytting opp slik at den flyttede raden
+  legges sist i toppgruppen uten å erstatte eller omrangere eksisterende
+  toppvalg; gruppen vokser fra én til to og fra to til tre.
+- [x] (2026-07-29 12:29Z) Verifiserte append-regelen med 12 fokuserte tester,
+  TypeScript, lint og Sanity Studio-bygg.
 
 ## Surprises & Discoveries
 
@@ -334,6 +339,13 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   ekstra redaksjonelt steg. Første rad er allerede redaktørens høyest rangerte
   valg, så automatisk gjenoppretting er deterministisk og endrer ikke
   rekkefølgen.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: En pool-rad som dras over linjen skal settes etter eksisterende
+  toppvalg, uavhengig av nøyaktig slippunkt.
+  Rationale: Handlingen betyr «legg til i toppgruppen», ikke «erstatt
+  toppvalget på denne posisjonen». Dette gjør at medlemskapet øker fra én til
+  to eller fra to til tre, mens den etablerte topprekkefølgen bevares.
   Date/Author: 2026-07-29, user/Codex.
 
 ## Outcomes & Retrospective
@@ -867,3 +879,10 @@ fremheving av første rad.
 
 Plan revision note (2026-07-29 12:24Z): Verifisering av kanttilfellet er
 dokumentert med fokuserte tester og komplette Studio-kontroller.
+
+Plan revision note (2026-07-29 12:28Z): Semantikken ved flytting opp er
+presisert og implementert som append til toppgruppen, med bevaring av
+eksisterende toppvalg og maksimum tre.
+
+Plan revision note (2026-07-29 12:29Z): Append-regelen er verifisert med egne
+én-til-to- og to-til-tre-scenarier samt komplette Studio-kontroller.

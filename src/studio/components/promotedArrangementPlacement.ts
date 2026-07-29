@@ -41,6 +41,29 @@ export function firstDocumentIdForTopRecovery(
   return documents[0] ? normalizedDocumentId(documents[0]._id) : null
 }
 
+export function appendDocumentToTopGroup(
+  documents: PromotedPlacementDocument[],
+  draggedId: string,
+) {
+  const normalizedId = normalizedDocumentId(draggedId)
+  const topIds = topDocumentIds(documents)
+  const draggedDocument = documents.find(
+    document => normalizedDocumentId(document._id) === normalizedId,
+  )
+  if (!draggedDocument || topIds.has(normalizedId) || topIds.size >= 3) {
+    return documents
+  }
+
+  const remainingDocuments = documents.filter(
+    document => normalizedDocumentId(document._id) !== normalizedId,
+  )
+  return [
+    ...remainingDocuments.slice(0, topIds.size),
+    draggedDocument,
+    ...remainingDocuments.slice(topIds.size),
+  ]
+}
+
 export function decidePromotedDrag(
   before: PromotedPlacementDocument[],
   after: PromotedPlacementDocument[],
