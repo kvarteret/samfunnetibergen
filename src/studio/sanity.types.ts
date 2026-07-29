@@ -471,11 +471,15 @@ export type Arrangement = {
     | "festivalParent"
     | "festivalSession"
   parentEvent?: ArrangementReference
+  festivalDayShortcut?: string
   title?: string
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
   isPromoted?: boolean
+  promotedPlacement?: "top" | "pool"
+  promotedOrder?: number
+  orderRank?: string
   description?: PortableTextContent
   dates?: Array<
     {

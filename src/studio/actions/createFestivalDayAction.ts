@@ -12,7 +12,7 @@ export function CreateFestivalDayAction(props: DocumentActionProps) {
   if (source?.eventKind !== "festivalParent") return null
 
   return {
-    label: "Ny festivaldag",
+    label: "Legg til festivaldag",
     icon: icons.add,
     onHandle: () => {
       router.navigateIntent("create", [

@@ -9,6 +9,11 @@ import {
   formatPrimaryDate,
   getRecurringLabel,
 } from "@/features/events/domain/dates"
+import {
+  isPromotableEventKind,
+  promotedCardGridStartClass,
+  selectHomepagePromotedEvents,
+} from "@/features/events/domain/promotedOrdering"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -191,13 +196,6 @@ function eventHref(event: EventSummary, locale: AppLocale) {
   return `/${locale}/arrangementer/${event.slug}`
 }
 
-function eventStartSortKey(event: SanityEvent, today: string): string {
-  const date =
-    event.dates?.find(candidate => candidate.startDate >= today) ??
-    event.dates?.[0]
-  return `${date?.startDate ?? "9999-12-31"}T${date?.startTime ?? "00:00"}`
-}
-
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
@@ -211,12 +209,10 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       getTranslations({ locale, namespace: "HomePage" }),
     ])
   const today = getOsloDateString()
-  const promotedEvents = [...promotedParentEvents, ...(events ?? [])]
+  const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
+    .filter(event => isPromotableEventKind(event.eventKind))
     .filter(event => event.isPromoted)
-    .sort((a, b) =>
-      eventStartSortKey(a, today).localeCompare(eventStartSortKey(b, today)),
-    )
-    .slice(0, 3)
+  const promotedEvents = selectHomepagePromotedEvents(promotedCandidates, today)
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
   const upcomingEvents = (events ?? [])
     .filter(event => !promotedEventIds.has(event._id))
@@ -313,14 +309,21 @@ function HomePromotedEvents({
         label="Arrangementer"
         linkLabel="Se alle arrangementer"
       />
-      <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-6">
         {events.map((event, index) => (
-          <HomePromotedEventCard
-            event={toEventSummary(event, labels)}
-            index={index}
+          <div
+            className={cn(
+              "md:col-span-2",
+              promotedCardGridStartClass(events.length, index),
+            )}
             key={event._id}
-            locale={locale}
-          />
+          >
+            <HomePromotedEventCard
+              event={toEventSummary(event, labels)}
+              index={index}
+              locale={locale}
+            />
+          </div>
         ))}
       </div>
     </section>

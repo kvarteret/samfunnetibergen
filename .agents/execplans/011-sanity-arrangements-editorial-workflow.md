@@ -71,6 +71,59 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 11:05Z) Rettet gjentakelsesvalget for utkast-ID-er, gjorde
   `Alle` til standard feltgruppe og dokumenterte første og siste dato i en
   gjentakende serie.
+- [x] (2026-07-29 11:23Z) La «Legg til festivaldag» synlig øverst i
+  festivaldokumentet og gjorde `Fremhevede` til en rangerbar
+  liste som styrer de tre arrangementene øverst på forsiden.
+- [x] (2026-07-29 11:28Z) Verifiserte oppfølgingen med 15 fokuserte tester,
+  TypeScript, lint, Sanity TypeGen, Studio-bygg, Next.js-bygg og anonym
+  GROQ-kontroll mot dagens datasett.
+- [x] (2026-07-29 11:50Z) Begrenset fremheving til enkeltarrangementer,
+  serieforeldre og festivalforeldre, la til søkbar «Legg til arrangement» og
+  sentrerte én eller to fremhevede kort på forsiden.
+- [x] (2026-07-29 11:52Z) Verifiserte fremhevingsoppfølgingen med ni
+  fokuserte tester, lint, Studio-bygg, Next.js-bygg og anonym GROQ-kontroll.
+  Full `tsc` stopper i en samtidig, ikke-relatert bookingtest.
+- [x] (2026-07-29 12:07Z) Gjorde medlemskapet over og under skillelinjen
+  stabilt, begrenset toppgruppen til én–tre arrangementer og avviser et fjerde
+  arrangement med forklarende melding uten å endre den lagrede rekkefølgen.
+- [x] (2026-07-29 12:08Z) Verifiserte den stabile toppgruppen med 23
+  fokuserte tester, Sanity TypeGen, TypeScript, lint, Studio-bygg og
+  Next.js-produksjonsbygg.
+- [x] (2026-07-29 12:23Z) Lukket nullgruppe-kanttilfellet ved automatisk å
+  flytte første kommende arrangement over linjen når listen har innhold, men
+  ingen lagret toppplassering.
+- [x] (2026-07-29 12:24Z) Verifiserte automatisk gjenoppretting med 11
+  fokuserte tester, TypeScript, lint og Sanity Studio-bygg.
+- [x] (2026-07-29 12:28Z) Endret flytting opp slik at den flyttede raden
+  legges sist i toppgruppen uten å erstatte eller omrangere eksisterende
+  toppvalg; gruppen vokser fra én til to og fra to til tre.
+- [x] (2026-07-29 12:29Z) Verifiserte append-regelen med 12 fokuserte tester,
+  TypeScript, lint og Sanity Studio-bygg.
+- [x] (2026-07-29) Undersøkte den vedvarende dra-og-slipp-feilen mot
+  ordningspluginens faktiske API og erstattet den simulerte skillelinjen med
+  en kontrollert liste på ett–tre fremhevede arrangementer.
+- [x] (2026-07-29) La til eksplisitt `promotedOrder`, migrering ved åpning,
+  søkbart tillegg som alltid appenderer, fjerning med minimumsvern og
+  dra-og-slipp som bare rangerer de valgte arrangementene.
+- [x] (2026-07-29) Utvidet den kontrollerte listen til en ubegrenset kø:
+  de tre første kommende arrangementene vises på forsiden, mens senere valg
+  rykker automatisk frem når et tidligere arrangement avsluttes.
+- [x] (2026-07-29) Rettet køens samtidighetsfeil: liveoppdateringer
+  serialiseres og slås sammen, søkepanelet gjør ikke lenger egne
+  mutasjonsutløste refetch, og hver kø-rad er én stabil draggable-enhet.
+- [x] (2026-07-29) Fullførte nettleser-E2E av flytting, sletting med automatisk
+  opprykk og søkbart gjenopptak. Fjernet den siste stale live-oppdateringen,
+  gjorde lagring ikke-blokkerende og synkroniserte alltid både publisert
+  dokument og eksisterende utkast.
+- [x] (2026-07-29) Delte synlige og kølagte arrangementer i to faktiske
+  droppsoner. Et arrangement som slippes under skillelinjen flyttes nå
+  deterministisk til køen uten at et annet køelement flyttes opp.
+- [x] (2026-07-29) Fjernet visuelle rammer rundt den tekniske kø-droppsonen og
+  kølisten. Den store trefflaten er beholdt, men grensesnittet viser igjen bare
+  arrangementskort og én køskillelinje.
+- [x] (2026-07-29) Stabiliserte køskillelinjen under aktiv dragging ved å legge
+  teksten som et absolutt overlay over en blokkbasert placeholder. Kortets
+  placeholder kan dermed ikke lenger skyve linjen sidelengs eller klippe teksten.
 
 ## Surprises & Discoveries
 
@@ -124,6 +177,101 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   registrere `ALL_FIELDS_GROUP` eksplisitt i dokumentets feltgrupper.
   Evidence: Installert Sanity 6.7 bruker gruppen med navn `all-fields` som
   innebygd reserve og velger den gruppen som har `default: true`.
+
+- Observation: `@sanity/orderable-document-list` var allerede installert i
+  siste versjon som støtter Sanity 6 og brukt for rom, grupper og
+  arrangementstyper.
+  Evidence: `package.json` har versjon `^2.0.18`; pakken eksponerer både
+  `orderRankField` og den innebyggbare React-komponenten
+  `OrderableDocumentList`.
+
+- Observation: Seriefordelen på forsiden brukte tidligere bare
+  serieforelderens første dato for å avgjøre om serien fortsatt var kommende.
+  Evidence: `promotedParentEventsQuery` slo bare opp festivaldager; nå bruker
+  både serie- og festivalforeldre sine godkjente barnedokumenter.
+
+- Observation: Datasettet har fem godkjente, fremhevede arrangementer med
+  kommende dager og fire fremhevede arrangementer som allerede er avsluttet.
+  Ingen av de kommende dokumentene har en eksisterende `orderRank`.
+  Evidence: Den samme GROQ-avgrensningen som Studio-listen bruker returnerte
+  `5`; et anonymt feltuttrekk viste ni fremhevede dokumenter totalt og
+  `orderRank: null`. Derfor viser Studio en engangsknapp for å klargjøre bare
+  de urangerte dokumentene.
+
+- Observation: To av de fem tidligere synlige fremhevede dokumentene var
+  festivaldager, selv om festivalforelderen også var fremhevet.
+  Evidence: Den nye foreldreavgrensningen returnerer nøyaktig tre kommende
+  dokumenter: serien «Quiz!», festivalen «Velkomstuken 2026» og
+  enkeltarrangementet «BSI: Sosialdans». Søkespørringen fant samtidig to
+  kommende, ikke-fremhevede enkeltarrangementer som kan legges til.
+
+- Observation: Den installerte ordningspluginen eksponerer bare handlinger for
+  å nullstille rangering og vise flytteknapper; den eksponerer ikke en
+  `onDragEnd`-hendelse for innbygging.
+  Evidence: `OrderableDocumentListProps` i
+  `node_modules/@sanity/orderable-document-list/dist/index.d.ts` har bare
+  `options` og `ref`. Studio-visningen fanger derfor identiteten til raden ved
+  dragstart og avstemmer den mot den synkroniserte rangeringen.
+
+- Observation: Ordningspluginen har én lineær `orderRank` og kan ikke uttrykke
+  en separat, stabil underliste med eget medlemskap. Filtrerte ordningslister
+  rangeres fortsatt mot alle dokumenter, og pluginen advarer selv om
+  uventede resultater når flere filtrerte lister brukes.
+  Evidence: `OrderableDocumentListProps` i installert versjon mangler
+  `onDragEnd`, mens pluginens dokumentasjon beskriver global rangberegning for
+  filtrerte dokumentsett. Pointer-avlytting og etterfølgende reparasjon av
+  pluginens transaksjon kan derfor ikke gi atomisk gruppesemantikk.
+
+- Observation: Første versjon av den nye kandidatspørringen brukte en
+  GROQ-arrayfunksjon som ikke parses av det aktive Sanity-API-et.
+  Evidence: En direkte anonym datasettspørring feilet; projeksjon av
+  `dates[]{startDate}` og korrelerte `childDates` ble deretter validert mot
+  dagens datasett.
+
+- Observation: En normaliseringstransaksjon kunne utløse flere samtidige
+  listeoppdateringer, som hver observerte mellomtilstand og forsøkte en ny
+  normalisering. Når søkepanelet var åpent, lyttet det også til hver mutasjon
+  og viste løkken som kontinuerlig refetch.
+  Evidence: Next.js-feiloverlegget viste gjentatte Sanity
+  `data/mutate/production`-feil med kallstakken
+  `persistSelection` → `refresh`. Søkepanelets kandidatgrunnlag avhenger ikke
+  av fremhevingsfeltene og trenger derfor ingen egen live-lytter.
+
+- Observation: `visibility: "sync"` kunne bli stående uten svar i den
+  innloggede Studio-klienten. Da ble alle rader permanent deaktivert selv om
+  ingen mutasjon nådde datasettet.
+  Evidence: Nettleser-E2E aksepterte droppet, men knappene forble deaktivert i
+  flere minutter og publisert `promotedOrder` var uendret. Med
+  `visibility: "async"` og lokal normalisering blir UI ferdig umiddelbart og
+  rå datasettkontroll viste den nye rekkefølgen.
+
+- Observation: En live-refresh umiddelbart etter asynkron lagring kunne lese
+  den gamle søkeindeksen og overskrive den nettopp lagrede rekkefølgen.
+  Evidence: `_updatedAt` ble oppdatert på alle fire dokumentene, men feltene
+  endte tilbake i gammel rekkefølge. Uten den redundante live-lytteren forble
+  både UI og rådata i den nye rekkefølgen.
+
+- Observation: `drafts`-perspektivet skjuler at et arrangement kan ha både
+  publisert dokument og et separat `drafts.`-dokument med gamle
+  fremhevingsfelt.
+  Evidence: Sletting av BSI oppdaterte først bare publisert dokument; rå
+  API-kontroll viste fortsatt `isPromoted: true` på utkastet, som gjeninnførte
+  raden ved neste last. En separat raw-spørring etter draft-ID-er gjør at begge
+  kopier nå patches i samme transaksjon.
+
+- Observation: Med én sammenhengende droppsone måtte det tredje kortet dras
+  forbi midtpunktet til det første køkortet før biblioteket rapporterte
+  destinasjonsindeks 3. Et slipp rett under skillelinjen ble derfor rapportert
+  som indeks 2 og ignorert som en no-op.
+  Evidence: Nettleser-E2E flyttet samme kort først ingen steder ved slipp under
+  linjen, men til køen ved slipp nær køkortets nedre halvdel. Separate
+  droppsoner med et stort, eksplisitt kømål gjør grensekryssingen entydig.
+
+- Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
+  dra-og-slipp utilstrekkelig.
+  Evidence: Alle kommende arrangementer kan allerede ha `isPromoted == true`,
+  slik at kandidatsøket er tomt, mens en linje med null medlemmer ikke gir et
+  mål en pool-rad kan dras over.
 
 ## Decision Log
 
@@ -216,14 +364,135 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   mulige dag; uten sluttdato gjelder sikkerhetsgrensen på seks måneder.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Behold `Fremhevede` som segment i den eksisterende
+  arrangementsvisningen, men rendrer pluginens rangerbare dokumentliste i
+  segmentet og lagrer rekkefølgen i `orderRank`.
+  Rationale: Dette bevarer den flate, plassbesparende navigasjonen og gir
+  redaktørene velkjent dra-og-slipp-rekkefølge. De tre første markeres med en
+  forklaring og en skillelinje; nettsiden sorterer på samme rangering.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Vis en egen «Legg til festivaldag»-kontroll som første synlige
+  felt på festivalforelderen, i tillegg til dokumenthandlingen.
+  Rationale: Dokumenthandlinger kan ligge i Sanitys handlingsmeny og oppleves
+  derfor som manglende. En kontroll i selve skjemaet gjør festivalens vanligste
+  neste steg synlig uten å lete.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Tillat bare enkeltarrangementer, serieforeldre og
+  festivalforeldre i `Fremhevede`; tilby et søkbart valg som publiserer
+  fremhevingen og legger den nye raden sist i rekkefølgen.
+  Rationale: En generert seriedag eller festivaldag skal representeres av
+  forelderen, ellers kan forsiden vise samme redaksjonelle arrangement flere
+  ganger. Festivalen forblir synlig til og med siste godkjente festivaldag.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Vis maksimalt tre fremhevede kort på forsiden og sentrer raden når
+  den inneholder ett eller to kort. I Studio legges skillelinjen etter det
+  faktiske antallet når listen har færre enn tre.
+  Rationale: Rekkefølgen og skillet skal beskrive det som faktisk vises, også
+  når redaksjonen midlertidig har færre enn tre valg.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Lagre `promotedPlacement` som `top` eller `pool` separat fra
+  `orderRank`, og bruk de tre første som bakoverkompatibel toppgruppe når ingen
+  plassering ennå er lagret.
+  Rationale: Rangeringen alene gjør at en annen rad automatisk flyter over
+  linjen når én rad flyttes ned. Et separat medlemskap lar bare den raden som
+  dras bytte gruppe, samtidig som dagens publiserte data fortsetter å vise de
+  samme tre arrangementene uten en forhåndsmigrering.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Gjenopprett forrige `orderRank` og vis den avtalte meldingen hvis
+  en redaktør drar et fjerde arrangement inn i toppgruppen. Bruk samme
+  gjenoppretting når siste topparrangement forsøkes flyttet ned.
+  Rationale: Gruppen skal ha maksimalt tre og minst ett medlem. En avvist
+  handling skal derfor ikke indirekte endre verken medlemskap eller
+  rekkefølge.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Når den filtrerte listen har minst ett arrangement, men null
+  `top`-plasseringer, skal Studio automatisk lagre første arrangement som
+  `top`.
+  Rationale: Kravet om minst ett fremhevet arrangement skal repareres uten et
+  ekstra redaksjonelt steg. Første rad er allerede redaktørens høyest rangerte
+  valg, så automatisk gjenoppretting er deterministisk og endrer ikke
+  rekkefølgen.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: En pool-rad som dras over linjen skal settes etter eksisterende
+  toppvalg, uavhengig av nøyaktig slippunkt.
+  Rationale: Handlingen betyr «legg til i toppgruppen», ikke «erstatt
+  toppvalget på denne posisjonen». Dette gjør at medlemskapet øker fra én til
+  to eller fra to til tre, mens den etablerte topprekkefølgen bevares.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Erstatt den tidligere pluginlisten og skillelinjen med en
+  kontrollert liste som bare inneholder de faktiske fremhevede valgene.
+  `Legg til arrangement` appenderer et valg, `Fjern` tar det ut, og
+  dra-og-slipp endrer bare rekkefølgen innenfor listen.
+  Rationale: Pluginen tilbyr ikke de hendelsene eller den todelte datamodellen
+  som kreves for trygg flytting mellom en toppgruppe og en pool. Den
+  kontrollerte listen gjør minimum én, maksimum tre og append-semantikken
+  entydig og atomisk.
+  Date/Author: 2026-07-29, Codex; supersederer beslutningene om en synlig
+  skillelinje og etterfølgende reparasjon av pluginens rangering.
+
+- Decision: Lagre rekkefølgen blant de valgte i `promotedOrder` og behold
+  `promotedPlacement` og `orderRank` bare som migrerings-/bakoverkompatible
+  felt.
+  Rationale: Arrangementenes øvrige administrative `orderRank` skal ikke
+  blandes med den korte, eksplisitte forsidelisten. Ved første åpning
+  normaliserer Studio eksisterende toppvalg, og når ingen finnes velges første
+  kvalifiserte arrangement automatisk.
+  Date/Author: 2026-07-29, Codex.
+
+- Decision: Tillat flere enn tre valg i `Fremhevede`, men vis bare de tre
+  første kvalifiserte arrangementene på forsiden. Vis resten under en tydelig
+  kømarkør i Studio og la tillegg alltid havne sist.
+  Rationale: Redaksjonen kan planlegge fremover uten å vente på at et synlig
+  arrangement avsluttes. De offentlige spørringene fjerner avsluttede
+  kandidater før `promotedOrder` sorteres og begrenses til tre, så neste køvalg
+  rykker frem uten at Studio må åpnes.
+  Date/Author: 2026-07-29, user/Codex; supersederer maksimum tre valg, men
+  beholder maksimum tre synlige kort.
+
+- Decision: Kjør aldri mer enn én fremhevet-refresh om gangen. Overlappende
+  lytterhendelser samles til nøyaktig én påfølgende refresh, og kandidatvelgeren
+  henter bare ved åpning.
+  Rationale: Normalisering skriver til de samme dokumentene som live-lytteren
+  observerer. Serialisering gjør skrive–lese-syklusen deterministisk, mens
+  fjerning av den overflødige kandidatlytteren hindrer refetch-stormen uten å
+  gjøre søkeresultatene utdaterte i den aktuelle brukerflyten.
+  Date/Author: 2026-07-29, Codex.
+
+- Decision: Fremhevet-panelet har ingen kontinuerlig dokumentlytter. Det
+  henter ved åpning og etter eksplisitt tillegg; flytting og sletting bruker
+  transaksjonsresultatet til å oppdatere lokal tilstand.
+  Rationale: Panelet er en eksplisitt redaksjonell kø, ikke en generell
+  sanntidsmonitor. Dette forhindrer at et stale query-resultat reverserer en
+  nylig mutasjon, mens publikumssiden fortsatt beregner aktive toppvalg per
+  request.
+  Date/Author: 2026-07-29, Codex.
+
+- Decision: Bruk asynkron mutation visibility for køendringer og hent
+  eksisterende draft-ID-er separat med raw-perspektiv. Patch publisert ID og
+  draft-ID sammen når begge finnes.
+  Rationale: Studio skal ikke blokkere på søkeindeksen, og et utkast må aldri
+  kunne gjenopplive en slettet eller eldre fremhevingsrekkefølge.
+  Date/Author: 2026-07-29, Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
 request-telleren, kombinerbare filtre, publiserende statusoverganger,
 redaksjonell gjentakelsesbygger, trygg generering av seriedager og egne
-festival-/festivaldagmaler. Nettsiden avleder festivalperioden fra godkjente
-dager, håndterer eksplisitt bildearv og bruker faste norske tekster uten
-`eventsPage`.
+festival-/festivaldagmaler. Festivalforelderen har en synlig snarvei for nye
+dager, og fremhevede foreldrearrangementer kan søkes frem, legges til og
+rangeres direkte i segmentet. Nettsiden avleder festivalperioden fra godkjente
+dager, sentrerer én eller to fremhevede kort, håndterer eksplisitt bildearv,
+bruker den redaksjonelle rekkefølgen på forsiden og bruker faste norske tekster
+uten `eventsPage`.
 
 Sanity TypeGen, TypeScript, lint, Studio-bygg, Next.js-produksjonsbygg og hele
 testsuiten passerer. Offentlig runtime-kontroll viste 38 arrangementer med
@@ -232,6 +501,16 @@ Sanity CLI må autentiseres, datasettet eksporteres til en fil utenfor
 repositoryet, oppryddingsmigreringen kjøres i skrivemodus og de innloggede
 Studio-flytene kontrolleres visuelt. Dette ble ikke omgått eller simulert,
 fordi arbeidskopien mangler bruker-token og Studio stopper på innlogging.
+
+Fremhevede er nå en egen, kontrollert kø i stedet for en lineær pluginliste
+med en simulert skillelinje. Søk og «Legg til» appenderer uten å erstatte
+eksisterende kort, «Fjern» er deaktivert ved ett valg, og dra-og-slipp rangerer
+hele køen. De tre første kommende arrangementene vises; resten merkes som kø
+og rykker automatisk frem når et tidligere valg avsluttes. Forsiden leser samme
+medlemskap og `promotedOrder`; eldre `orderRank` og `promotedPlacement`
+normaliseres automatisk ved første åpning. Hvis alle lagrede valg har
+forsvunnet, velger Studio automatisk første gjenværende kvalifiserte
+arrangement.
 
 ## Context and Orientation
 
@@ -307,7 +586,7 @@ Komponenten skal ha følgende filtertilstand:
 
 Standardmenyen `Arrangementer` bruker godkjent synlighet, alle datoer og
 arrangementrollene enkeltarrangement og serie. `recurring` bruker samme visning
-med et låst filter for `isRecurring == true`. `Fremhevede arrangementer`
+med et låst filter for `isRecurring == true`. `Fremhevede`
 bruker et låst filter for `isPromoted == true`. Festivaler holdes utenfor disse
 tre og administreres under sin egen seksjon. Filtervisningen skal vise
 resultatantall, aktiv filtertilstand, en tydelig «Nullstill filtre»-handling og
@@ -619,9 +898,15 @@ festivalspesifikt wire-format.
 Arrangementsskjemaet får ett nytt lagret felt:
 
     useFestivalImage?: boolean
+    promotedPlacement?: "top" | "pool"
+    promotedOrder?: number
 
-Feltet er bare relevant for `festivalSession`. `undefined` behandles som
-`true` for eksisterende data.
+`useFestivalImage` er bare relevant for `festivalSession`, og `undefined`
+behandles som `true` for eksisterende data. `promotedPlacement` er et skjult
+redaksjonelt medlemsfelt på fremhevede toppnivådokumenter, og `promotedOrder`
+er den nullbaserte rekkefølgen i den kontrollerte listen. Når dokumentene
+mangler det nye rekkefølgefeltet, brukes eksisterende `orderRank` bare til å
+velge og normalisere inntil tre legacy-valg.
 
 Den egendefinerte arrangementsvisningen skal ha en intern filtermodell med
 disse stabile verdiene:
@@ -694,3 +979,82 @@ Plan revision note (2026-07-29 11:05Z): Gjentakelsesfeltet normaliserer nå
 utkast-ID før dokumentoperasjoner. Arrangementsdokumentet åpner i `Alle`, og
 skjemaet forklarer at seriens dato er første dag mens gjentakelsesfeltet styrer
 siste mulige dag.
+
+Plan revision note (2026-07-29 11:23Z): Festivaldagsnarveien er flyttet inn i
+selve festivaldokumentet. `Fremhevede` bruker den installerte
+ordningspluginen, og nettsiden viser de tre første fremtidige arrangementene i
+den lagrede rekkefølgen.
+
+Plan revision note (2026-07-29 11:28Z): Sluttverifisering og dagens
+datasettobservasjon er lagt inn. Innlogget visuell Studio-kontroll kunne ikke
+utføres fordi den lokale Studio-ruten stoppet ved Sanity-innlogging; begge
+produksjonsbygg og alle målrettede kontroller passerer.
+
+Plan revision note (2026-07-29): Segmentet heter nå `Fremhevede`, og den
+valgfrie «Vis flytteknapper»-kontrollen er fjernet etter produkteiers
+presisering. Dra-og-slipp og engangsklargjøring av manglende rangering består.
+
+Plan revision note (2026-07-29 11:50Z): Fremheving er begrenset til
+enkeltarrangementer og serie-/festivalforeldre. Segmentet har søkbar
+tilleggshandling, skillelinjen følger ett til tre faktiske valg, forsiden
+sentrerer korte rader, og festivalens siste dag bestemmer når den forsvinner.
+
+Plan revision note (2026-07-29 11:52Z): Verifiseringsresultatene og den
+ikke-relaterte TypeScript-feilen i den samtidige bookingtesten er dokumentert,
+slik at planens status kan gjenopptas uten å blande arbeidsområdene.
+
+Plan revision note (2026-07-29 12:07Z): Skillelinjen er gjort til en lagret,
+stabil gruppe på én–tre arrangementer. Planen dokumenterer
+bakoverkompatibiliteten, dragavstemmingens pluginbegrunnelse og at ulovlige
+flyttinger gjenoppretter forrige rangering.
+
+Plan revision note (2026-07-29 12:08Z): Verifiseringsdelen er oppdatert med 23
+fokuserte tester, regenererte Sanity-typer og vellykkede TypeScript-, lint-,
+Studio- og Next.js-bygg.
+
+Plan revision note (2026-07-29 12:23Z): Kanttilfellet med en ikke-tom pool og
+tom toppgruppe er dokumentert og løst ved deterministisk automatisk
+fremheving av første rad.
+
+Plan revision note (2026-07-29 12:24Z): Verifisering av kanttilfellet er
+dokumentert med fokuserte tester og komplette Studio-kontroller.
+
+Plan revision note (2026-07-29 12:28Z): Semantikken ved flytting opp er
+presisert og implementert som append til toppgruppen, med bevaring av
+eksisterende toppvalg og maksimum tre.
+
+Plan revision note (2026-07-29 12:29Z): Append-regelen er verifisert med egne
+én-til-to- og to-til-tre-scenarier samt komplette Studio-kontroller.
+
+Plan revision note (2026-07-29): Den kroniske pluginfeilen er undersøkt mot
+installert API og offisiell dokumentasjon. Den simulerte todelingen er
+supersedert av en kontrollert én–tre-liste med dedikert `promotedOrder`,
+automatisk legacy-normalisering, søkbart append og intern dra-og-slipp.
+
+Plan revision note (2026-07-29): Produkteiers addendum utvider den kontrollerte
+listen til en fremtidskø uten maksimum. Bare de tre første kvalifiserte
+arrangementene vises på forsiden; senere valg beholdes i rekkefølge og rykker
+automatisk frem ved utløp.
+
+Plan revision note (2026-07-29): Oppfølgingsfeilen ved flytting og sletting er
+sporet til overlappende normaliseringsrefresh og en redundant live-lytter i
+søkepanelet. Refresh er nå serialisert og koalesert, og draggable-raden
+omslutter både kømarkør og kort i én målt enhet.
+
+Plan revision note (2026-07-29): Full E2E avdekket at synkron mutation
+visibility, stale listelytting og separate draft-felt var tre uavhengige
+årsaker til heng og tilbakerulling. Panelet bruker nå asynkron lagring med
+lokal normalisering, ingen live-lyttere og eksplisitt draft-/published-patching.
+
+Plan revision note (2026-07-29): Synlig toppgruppe og kø er nå egne droppsoner.
+Dette fjerner den tvetydige indeksgrensen der et slipp under linjen fortsatt
+kunne bli tolket som tredje plass, og bevarer eksplisitt én til tre synlige
+arrangementer uten å trekke et annet arrangement opp fra køen.
+
+Plan revision note (2026-07-29): De separate droppsonene er nå visuelt
+transparente. Den tekniske inndelingen er beholdt for pålitelig dra-og-slipp,
+uten å tegne et tomt ekstra panel eller en ytre ramme rundt køkortene.
+
+Plan revision note (2026-07-29): Køetiketten ligger nå utenfor placeholderens
+layoutflyt. Dette forhindrer horisontal flex-kollaps mens et arrangement holdes
+over den tomme køsonen.
