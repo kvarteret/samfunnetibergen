@@ -64,6 +64,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 10:30Z) Flatet ut `Arrangementer` til én Studio-rute med
   segmentene `Arrangementer`, `Recurring`, `Festivaler` og `Fremhevede`, uten
   en ekstra navigasjonskolonne.
+- [x] (2026-07-29 10:52Z) Flyttet `Innstillinger` til første kolonne, samlet
+  `Frivilligfordeler` der, forenklet arrangementsfiltrene og la til
+  sidepanel-navigasjon og festivaldaghandling på festivaler.
 
 ## Surprises & Discoveries
 
@@ -175,6 +178,21 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   Rationale: Produkteier ønsker å spare en navigasjonskolonne og behandle disse
   som visninger av samme innhold. Festivalvisningen beholder en direkte
   «Ny festivaldag»-handling med riktig festivalmal.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Flytt `Innstillinger` til rotnavigasjonen og samle kategorier,
+  arrangementstyper og frivilligfordeler der. Fjern den tomme
+  «App og internt innhold»-gruppen.
+  Rationale: Produkteier ønsker færre unødvendige navigasjonsnivåer og ett
+  forståelig sted for sjeldnere vedlikehold.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Åpne arrangementer med Structure-modus i et sidepanel og tilby
+  «Ny festivaldag» både i festivalfilteret og som dokumenthandling på
+  festivalen.
+  Rationale: Listen og filtrene skal bli stående mens redaktøren beveger seg
+  mellom dokumenter, og festivalens vanligste neste handling skal være synlig
+  fra begge arbeidsflater.
   Date/Author: 2026-07-29, user/Codex.
 
 ## Outcomes & Retrospective
@@ -639,3 +657,10 @@ Plan revision note (2026-07-29 10:30Z): Oppfølging fra produkteier er
 implementert: `recurring` er rettet til `Recurring`, festivaler er flyttet inn
 i arrangementsvisningen, og de tidligere undermenypunktene er erstattet av ett
 segmentert filter i samme pane.
+
+Plan revision note (2026-07-29 10:52Z): Andre oppfølgingsrunde er implementert.
+Innstillinger og frivilligfordeler er samlet i første kolonne,
+arrangementssegmentet heter `Alle`, statusfilteret bruker `Alle statuser` og
+`Kommende`, og festivaldagmalen brukes nå fra både festivalvisningen og
+festivalens dokumenthandling. Arrangementlenker ber eksplisitt om sidepanel i
+Structure-modus.

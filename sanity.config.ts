@@ -6,6 +6,7 @@ import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/lib/sanity/env"
 import { arrangementApprovalActions } from "./src/studio/actions/approvalActions"
+import { CreateFestivalDayAction } from "./src/studio/actions/createFestivalDayAction"
 import { GenerateSeriesDaysAction } from "./src/studio/actions/generateSeriesDaysAction"
 import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
@@ -15,6 +16,7 @@ import {
 } from "./src/studio/presentation/resolve"
 import { schemaTypes } from "./src/studio/schemaTypes"
 import { structure } from "./src/studio/structure"
+import { festivalDayInitialValue } from "./src/studio/templates/arrangementTemplates"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -58,6 +60,7 @@ export default defineConfig({
         )
         return [
           ...arrangementApprovalActions,
+          CreateFestivalDayAction,
           GenerateSeriesDaysAction,
           ...core,
         ]
@@ -105,17 +108,8 @@ export default defineConfig({
         title: "Ny festivaldag",
         schemaType: "arrangement",
         parameters: [{ name: "parentId", title: "Festival", type: "string" }],
-        value: ({ parentId }: { parentId: string }) => ({
-          eventKind: "festivalSession",
-          parentEvent: {
-            _type: "reference",
-            _ref: parentId.replace(/^drafts\./, ""),
-          },
-          approvalStatus: "approved",
-          eventStatus: "scheduled",
-          useFestivalImage: true,
-          dates: [{ _type: "arrangementDate", startDate: "" }],
-        }),
+        value: ({ parentId }: { parentId: string }) =>
+          festivalDayInitialValue(parentId),
       },
     ],
   },

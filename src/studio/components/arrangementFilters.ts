@@ -36,7 +36,7 @@ export const defaultArrangementFilters = (
 ): ArrangementFilterState => ({
   date: "all",
   visibility: "approved",
-  eventStatus: "all",
+  eventStatus: "scheduled",
   taxonomyGroupId: null,
   eventTypeId: null,
   query: "",

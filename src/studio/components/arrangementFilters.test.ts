@@ -55,6 +55,7 @@ describe("arrangement filters", () => {
         items,
         {
           ...defaultArrangementFilters("promoted"),
+          eventStatus: "all",
           date: "upcoming",
           taxonomyGroupId: "music",
           query: "kon",
@@ -82,6 +83,12 @@ describe("arrangement filters", () => {
         "2026-07-29",
       ).map(item => item._id),
     ).toEqual(["festival"])
+  })
+
+  it("shows upcoming-status arrangements by default", () => {
+    expect(defaultArrangementFilters("arrangements").eventStatus).toBe(
+      "scheduled",
+    )
   })
 
   it("prefers drafts while deduplicating preview results", () => {

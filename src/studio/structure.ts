@@ -127,33 +127,37 @@ export const structure: StructureResolver = (S, context) =>
                     .title("Arrangementer")
                     .component(ArrangementsPane),
                 ),
-              S.listItem()
-                .id("arrangement-settings")
-                .title("Innstillinger")
-                .icon(icons.cog)
-                .child(
-                  S.list()
-                    .id("arrangement-settings-list")
-                    .title("Innstillinger")
-                    .items([
-                      orderableDocumentListDeskItem({
-                        S,
-                        context,
-                        type: "eventTaxonomyGroup",
-                        id: "orderable-event-taxonomy-group",
-                        title: "Kategorier",
-                        icon: icons.tag,
-                      }),
-                      orderableDocumentListDeskItem({
-                        S,
-                        context,
-                        type: "eventType",
-                        id: "orderable-event-type-all",
-                        title: "Arrangementtyper",
-                        icon: icons.tag,
-                      }),
-                    ]),
-                ),
+            ]),
+        ),
+
+      S.listItem()
+        .id("settings")
+        .title("Innstillinger")
+        .icon(icons.cog)
+        .child(
+          S.list()
+            .id("settings-list")
+            .title("Innstillinger")
+            .items([
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventTaxonomyGroup",
+                id: "orderable-event-taxonomy-group",
+                title: "Kategorier",
+                icon: icons.tag,
+              }),
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventType",
+                id: "orderable-event-type-all",
+                title: "Arrangementtyper",
+                icon: icons.tag,
+              }),
+              S.documentTypeListItem("internbevisBenefit")
+                .title("Frivilligfordeler")
+                .icon(icons.star),
             ]),
         ),
 
@@ -270,19 +274,6 @@ export const structure: StructureResolver = (S, context) =>
               S.documentTypeListItem("page")
                 .title("Alle sider")
                 .icon(icons.document),
-            ]),
-        ),
-
-      S.listItem()
-        .title("App og internt innhold")
-        .icon(icons["mobile-device"])
-        .child(
-          S.list()
-            .title("App og internt innhold")
-            .items([
-              S.documentTypeListItem("internbevisBenefit")
-                .title("Frivilligfordeler")
-                .icon(icons.star),
             ]),
         ),
     ])

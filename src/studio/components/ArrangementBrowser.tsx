@@ -70,7 +70,7 @@ async function fetchBrowserData(client: ReturnType<typeof useClient>): Promise<{
 }
 
 const PRESET_TITLES: Record<ArrangementPreset, string> = {
-  arrangements: "Arrangementer",
+  arrangements: "Alle",
   recurring: "Recurring",
   festivals: "Festivaler",
   promoted: "Fremhevede arrangementer",
@@ -205,8 +205,8 @@ function ArrangementBrowser() {
             }
             value={filters.eventStatus}
           >
-            <option value="all">Alle faktiske statuser</option>
-            <option value="scheduled">Planlagt</option>
+            <option value="all">Alle statuser</option>
+            <option value="scheduled">Kommende</option>
             <option value="cancelled">Avlyst</option>
             <option value="postponed">Utsatt</option>
           </Select>
@@ -288,7 +288,11 @@ function ArrangementBrowser() {
                     <Stack space={2}>
                       <IntentLink
                         intent="edit"
-                        params={{ id: item._id, type: "arrangement" }}
+                        params={{
+                          id: item._id,
+                          mode: "structure",
+                          type: "arrangement",
+                        }}
                         style={{ color: "inherit", textDecoration: "none" }}
                       >
                         <Text size={2} weight="semibold">
@@ -317,6 +321,7 @@ function ArrangementBrowser() {
                           mode="ghost"
                           params={[
                             {
+                              mode: "structure",
                               template: "festival-day",
                               type: "arrangement",
                             },
