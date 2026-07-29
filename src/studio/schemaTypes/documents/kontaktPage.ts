@@ -1,4 +1,4 @@
-import { EnvelopeIcon } from "@sanity/icons"
+import { EnvelopeIcon } from "@sanity/icons/Envelope"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import { createSeoFields, createSharingFields } from "../shared/metadataFields"

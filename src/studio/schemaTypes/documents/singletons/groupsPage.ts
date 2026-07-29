@@ -1,4 +1,4 @@
-import { UsersIcon } from "@sanity/icons"
+import { UsersIcon } from "@sanity/icons/Users"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 import {

@@ -1,4 +1,4 @@
-import { MobileDeviceIcon } from "@sanity/icons"
+import { MobileDeviceIcon } from "@sanity/icons/MobileDevice"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 function benefitTierField(

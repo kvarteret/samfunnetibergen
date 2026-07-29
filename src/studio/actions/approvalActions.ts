@@ -1,4 +1,7 @@
-import { CheckmarkIcon, CloseIcon, PauseIcon, PlayIcon } from "@sanity/icons"
+import { CheckmarkIcon } from "@sanity/icons/Checkmark"
+import { CloseIcon } from "@sanity/icons/Close"
+import { PauseIcon } from "@sanity/icons/Pause"
+import { PlayIcon } from "@sanity/icons/Play"
 import type { DocumentActionProps } from "sanity"
 import { useDocumentOperation } from "sanity"
 

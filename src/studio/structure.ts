@@ -1,19 +1,17 @@
-import {
-  CalendarIcon,
-  CogIcon,
-  ComponentIcon,
-  DocumentIcon,
-  EarthGlobeIcon,
-  EnvelopeIcon,
-  LinkIcon,
-  MenuIcon,
-  MobileDeviceIcon,
-  PauseIcon,
-  StarIcon,
-  TagIcon,
-  TextIcon,
-  UsersIcon,
-} from "@sanity/icons"
+import { CalendarIcon } from "@sanity/icons/Calendar"
+import { CogIcon } from "@sanity/icons/Cog"
+import { ComponentIcon } from "@sanity/icons/Component"
+import { DocumentIcon } from "@sanity/icons/Document"
+import { EarthGlobeIcon } from "@sanity/icons/EarthGlobe"
+import { EnvelopeIcon } from "@sanity/icons/Envelope"
+import { LinkIcon } from "@sanity/icons/Link"
+import { MenuIcon } from "@sanity/icons/Menu"
+import { MobileDeviceIcon } from "@sanity/icons/MobileDevice"
+import { PauseIcon } from "@sanity/icons/Pause"
+import { StarIcon } from "@sanity/icons/Star"
+import { TagIcon } from "@sanity/icons/Tag"
+import { TextIcon } from "@sanity/icons/Text"
+import { UsersIcon } from "@sanity/icons/Users"
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 

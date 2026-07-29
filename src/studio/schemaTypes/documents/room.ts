@@ -1,4 +1,4 @@
-import { ComponentIcon } from "@sanity/icons"
+import { ComponentIcon } from "@sanity/icons/Component"
 import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
 

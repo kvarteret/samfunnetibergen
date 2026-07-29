@@ -1,4 +1,5 @@
-import { LinkIcon, MenuIcon } from "@sanity/icons"
+import { LinkIcon } from "@sanity/icons/Link"
+import { MenuIcon } from "@sanity/icons/Menu"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 const navItem = defineType({

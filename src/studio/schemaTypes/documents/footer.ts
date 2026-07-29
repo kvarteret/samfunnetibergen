@@ -1,4 +1,4 @@
-import { ComponentIcon } from "@sanity/icons"
+import { ComponentIcon } from "@sanity/icons/Component"
 import { defineArrayMember, defineField, defineType } from "sanity"
 
 const socialLinkSchema = defineType({
