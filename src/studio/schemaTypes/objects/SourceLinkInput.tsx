@@ -82,22 +82,26 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
     member => member.kind === "field" && member.name === "label",
   )
   const storedValue = getDestinationValue(value)
-  const [inputValue, setInputValue] = useState(storedValue)
+  const [inputState, setInputState] = useState(() => ({
+    storedValue,
+    inputValue: storedValue,
+  }))
+  const inputValue =
+    inputState.storedValue === storedValue ? inputState.inputValue : storedValue
   const [options, setOptions] = useState<DocumentOption[]>([])
   const [loading, setLoading] = useState(false)
-  const [documentTitle, setDocumentTitle] = useState<string | null>(null)
+  const documentId = value?.internalPage?._ref
+  const [documentTitleResult, setDocumentTitleResult] = useState<{
+    documentId: string
+    title: string | null
+  } | null>(null)
+  const documentTitle =
+    documentTitleResult && documentTitleResult.documentId === documentId
+      ? documentTitleResult.title
+      : null
 
   useEffect(() => {
-    // Sync external storedValue into local input state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setInputValue(storedValue)
-  }, [storedValue])
-
-  useEffect(() => {
-    const documentId = value?.internalPage?._ref
     if (!documentId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDocumentTitle(null)
       return
     }
 
@@ -106,9 +110,9 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
         `coalesce(*[_id == $id][0].title, *[_id == $id][0].name)`,
         { id: documentId },
       )
-      .then(title => setDocumentTitle(title))
-      .catch(() => setDocumentTitle(null))
-  }, [client, value?.internalPage?._ref])
+      .then(title => setDocumentTitleResult({ documentId, title }))
+      .catch(() => setDocumentTitleResult({ documentId, title: null }))
+  }, [client, documentId])
 
   const renderProps = useMemo(
     () => ({
@@ -176,9 +180,9 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
           ),
         ]),
       )
-      setInputValue(selectedValue)
+      setInputState({ storedValue, inputValue: selectedValue })
     },
-    [onChange, value],
+    [onChange, storedValue, value],
   )
 
   if (!labelMember) {
@@ -204,7 +208,7 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
           loading={loading}
           onBlur={() => applyTypedDestination(inputValue)}
           onChange={nextValue => {
-            setInputValue(nextValue)
+            setInputState({ storedValue, inputValue: nextValue })
             if (!nextValue) {
               applyTypedDestination("")
             }

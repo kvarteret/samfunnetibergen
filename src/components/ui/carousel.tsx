@@ -94,13 +94,20 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- embla api init sets derived state once
-    onSelect(api)
+    let active = true
+
     api.on("reInit", onSelect)
     api.on("select", onSelect)
+    queueMicrotask(() => {
+      if (active) {
+        onSelect(api)
+      }
+    })
 
     return () => {
-      api?.off("select", onSelect)
+      active = false
+      api.off("reInit", onSelect)
+      api.off("select", onSelect)
     }
   }, [api, onSelect])
 
