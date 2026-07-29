@@ -8,6 +8,7 @@ import {
   getPublishedDocumentId,
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
+import { studentGroupSlugFromName } from "../../groupSlugs"
 
 export const STUDENT_GROUP_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
@@ -39,9 +40,18 @@ export const studentGroup = defineType({
     defineField({
       name: "slug",
       title: "Slug",
+      description:
+        "Teknisk identifikator. Den skjules og låses så snart den er opprettet.",
       type: "slug",
       group: "identity",
-      options: { source: "name" },
+      hidden: ({ document }) =>
+        Boolean((document?.slug as { current?: string } | undefined)?.current),
+      readOnly: ({ document }) =>
+        Boolean((document?.slug as { current?: string } | undefined)?.current),
+      options: {
+        source: "name",
+        slugify: studentGroupSlugFromName,
+      },
       validation: rule => rule.required(),
     }),
     defineField({

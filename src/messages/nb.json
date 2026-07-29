@@ -125,7 +125,7 @@
   },
   "GroupVolunteerForm": {
     "title": "Bli frivillig",
-    "selectSubGroup": "Velg hvilken undergruppe du vil søke til:",
+    "selectSubGroup": "Velg hvilken gruppe du vil søke til:",
     "applyingTo": "Du søker til: {group}",
     "secondChoiceLabel": "Andrevalg (valgfritt)",
     "secondChoicePlaceholder": "Ingen andrevalg",
@@ -186,7 +186,6 @@
     "phoneRequired": "Skriv inn telefonnummer.",
     "studyInstitutionRequired": "Velg studiested.",
     "firstChoiceRequired": "Velg en gruppe som førstevalg.",
-    "unsupportedGroup": "Denne gruppen støttes ikke i denne lanseringen.",
     "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg.",
     "friendEmailInvalid": "Skriv inn en gyldig e-postadresse.",
     "friendEmailDuplicate": "E-postadressene må være ulike.",
