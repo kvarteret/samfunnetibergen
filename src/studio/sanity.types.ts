@@ -477,6 +477,7 @@ export type Arrangement = {
   eventType?: EventTypeReference
   isInternalEvent?: boolean
   isPromoted?: boolean
+  promotedPlacement?: "top" | "pool"
   orderRank?: string
   description?: PortableTextContent
   dates?: Array<

@@ -83,6 +83,12 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 11:52Z) Verifiserte fremhevingsoppfølgingen med ni
   fokuserte tester, lint, Studio-bygg, Next.js-bygg og anonym GROQ-kontroll.
   Full `tsc` stopper i en samtidig, ikke-relatert bookingtest.
+- [x] (2026-07-29 12:07Z) Gjorde medlemskapet over og under skillelinjen
+  stabilt, begrenset toppgruppen til én–tre arrangementer og avviser et fjerde
+  arrangement med forklarende melding uten å endre den lagrede rekkefølgen.
+- [x] (2026-07-29 12:08Z) Verifiserte den stabile toppgruppen med 23
+  fokuserte tester, Sanity TypeGen, TypeScript, lint, Studio-bygg og
+  Next.js-produksjonsbygg.
 
 ## Surprises & Discoveries
 
@@ -163,6 +169,14 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   dokumenter: serien «Quiz!», festivalen «Velkomstuken 2026» og
   enkeltarrangementet «BSI: Sosialdans». Søkespørringen fant samtidig to
   kommende, ikke-fremhevede enkeltarrangementer som kan legges til.
+
+- Observation: Den installerte ordningspluginen eksponerer bare handlinger for
+  å nullstille rangering og vise flytteknapper; den eksponerer ikke en
+  `onDragEnd`-hendelse for innbygging.
+  Evidence: `OrderableDocumentListProps` i
+  `node_modules/@sanity/orderable-document-list/dist/index.d.ts` har bare
+  `options` og `ref`. Studio-visningen fanger derfor identiteten til raden ved
+  dragstart og avstemmer den mot den synkroniserte rangeringen.
 
 ## Decision Log
 
@@ -285,6 +299,23 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   når redaksjonen midlertidig har færre enn tre valg.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Lagre `promotedPlacement` som `top` eller `pool` separat fra
+  `orderRank`, og bruk de tre første som bakoverkompatibel toppgruppe når ingen
+  plassering ennå er lagret.
+  Rationale: Rangeringen alene gjør at en annen rad automatisk flyter over
+  linjen når én rad flyttes ned. Et separat medlemskap lar bare den raden som
+  dras bytte gruppe, samtidig som dagens publiserte data fortsetter å vise de
+  samme tre arrangementene uten en forhåndsmigrering.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Gjenopprett forrige `orderRank` og vis den avtalte meldingen hvis
+  en redaktør drar et fjerde arrangement inn i toppgruppen. Bruk samme
+  gjenoppretting når siste topparrangement forsøkes flyttet ned.
+  Rationale: Gruppen skal ha maksimalt tre og minst ett medlem. En avvist
+  handling skal derfor ikke indirekte endre verken medlemskap eller
+  rekkefølge.
+  Date/Author: 2026-07-29, user/Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
@@ -304,6 +335,11 @@ Sanity CLI må autentiseres, datasettet eksporteres til en fil utenfor
 repositoryet, oppryddingsmigreringen kjøres i skrivemodus og de innloggede
 Studio-flytene kontrolleres visuelt. Dette ble ikke omgått eller simulert,
 fordi arbeidskopien mangler bruker-token og Studio stopper på innlogging.
+
+Fremhevede har nå også et stabilt skille: en rad som flyttes ned etterlater en
+ledig plass, en rad som flyttes opp fyller en ledig plass, og ingen annen rad
+bytter side som følge av flyttingen. Forsiden leser det samme medlemskapet og
+beholder de tre første som reserve for eldre dokumenter uten det nye feltet.
 
 ## Context and Orientation
 
@@ -691,9 +727,13 @@ festivalspesifikt wire-format.
 Arrangementsskjemaet får ett nytt lagret felt:
 
     useFestivalImage?: boolean
+    promotedPlacement?: "top" | "pool"
 
-Feltet er bare relevant for `festivalSession`. `undefined` behandles som
-`true` for eksisterende data.
+`useFestivalImage` er bare relevant for `festivalSession`, og `undefined`
+behandles som `true` for eksisterende data. `promotedPlacement` er et skjult
+redaksjonelt felt på fremhevede toppnivådokumenter. Når alle fremhevede
+dokumenter mangler feltet, behandles de tre første i `orderRank`-rekkefølge som
+`top`.
 
 Den egendefinerte arrangementsvisningen skal ha en intern filtermodell med
 disse stabile verdiene:
@@ -789,3 +829,12 @@ sentrerer korte rader, og festivalens siste dag bestemmer når den forsvinner.
 Plan revision note (2026-07-29 11:52Z): Verifiseringsresultatene og den
 ikke-relaterte TypeScript-feilen i den samtidige bookingtesten er dokumentert,
 slik at planens status kan gjenopptas uten å blande arbeidsområdene.
+
+Plan revision note (2026-07-29 12:07Z): Skillelinjen er gjort til en lagret,
+stabil gruppe på én–tre arrangementer. Planen dokumenterer
+bakoverkompatibiliteten, dragavstemmingens pluginbegrunnelse og at ulovlige
+flyttinger gjenoppretter forrige rangering.
+
+Plan revision note (2026-07-29 12:08Z): Verifiseringsdelen er oppdatert med 23
+fokuserte tester, regenererte Sanity-typer og vellykkede TypeScript-, lint-,
+Studio- og Next.js-bygg.

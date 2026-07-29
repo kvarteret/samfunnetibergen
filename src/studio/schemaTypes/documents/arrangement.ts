@@ -162,6 +162,18 @@ export const arrangement = defineType({
       group: "core",
       initialValue: false,
     }),
+    defineField({
+      name: "promotedPlacement",
+      title: "Plassering blant fremhevede",
+      type: "string",
+      hidden: true,
+      options: {
+        list: [
+          { title: "Over linjen", value: "top" },
+          { title: "Under linjen", value: "pool" },
+        ],
+      },
+    }),
     orderRankField({ type: "arrangement" }),
     defineField({
       name: "description",

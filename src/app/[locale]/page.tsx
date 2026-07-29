@@ -10,9 +10,9 @@ import {
   getRecurringLabel,
 } from "@/features/events/domain/dates"
 import {
-  comparePromotedEvents,
   isPromotableEventKind,
   promotedCardGridStartClass,
+  selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -209,11 +209,10 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       getTranslations({ locale, namespace: "HomePage" }),
     ])
   const today = getOsloDateString()
-  const promotedEvents = [...promotedParentEvents, ...(events ?? [])]
+  const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
     .filter(event => event.isPromoted)
-    .sort((a, b) => comparePromotedEvents(a, b, today))
-    .slice(0, 3)
+  const promotedEvents = selectHomepagePromotedEvents(promotedCandidates, today)
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
   const upcomingEvents = (events ?? [])
     .filter(event => !promotedEventIds.has(event._id))

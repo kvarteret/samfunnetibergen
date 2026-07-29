@@ -29,9 +29,11 @@ const KIND_LABELS: Record<PromotionCandidate["eventKind"], string> = {
 
 export function PromotedArrangementPicker({
   onAdded,
+  placeAboveLine,
   today,
 }: {
   onAdded: () => Promise<void>
+  placeAboveLine: boolean
   today: string
 }) {
   const client = useClient({ apiVersion: API_VERSION })
@@ -95,14 +97,20 @@ export function PromotedArrangementPicker({
         { draftId },
         { perspective: "raw" },
       )
-      const transaction = client
-        .transaction()
-        .patch(candidate._id, patch =>
-          patch.set({ isPromoted: true, orderRank: "~" }),
-        )
+      const transaction = client.transaction().patch(candidate._id, patch =>
+        patch.set({
+          isPromoted: true,
+          orderRank: "~",
+          promotedPlacement: placeAboveLine ? "top" : "pool",
+        }),
+      )
       if (hasDraft) {
         transaction.patch(draftId, patch =>
-          patch.set({ isPromoted: true, orderRank: "~" }),
+          patch.set({
+            isPromoted: true,
+            orderRank: "~",
+            promotedPlacement: placeAboveLine ? "top" : "pool",
+          }),
         )
       }
       await transaction.commit({ visibility: "sync" })

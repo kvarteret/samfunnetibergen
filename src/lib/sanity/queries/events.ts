@@ -70,6 +70,7 @@ const eventProjection = `{
     "slug": coalesce(slug.current, ""),
     "approvalStatus": coalesce(approvalStatus, "pending"),
     "isPromoted": coalesce(isPromoted, false),
+    promotedPlacement,
     orderRank,
     "isRecurring": coalesce(isRecurring, false),
     "useFestivalImage": coalesce(useFestivalImage, true),

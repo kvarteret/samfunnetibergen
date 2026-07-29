@@ -4,6 +4,7 @@ import {
   comparePromotedEvents,
   isPromotableEventKind,
   promotedCardGridStartClass,
+  selectHomepagePromotedEvents,
 } from "./promotedOrdering"
 
 describe("promoted event ordering", () => {
@@ -13,6 +14,19 @@ describe("promoted event ordering", () => {
     expect(isPromotableEventKind("festivalParent")).toBe(true)
     expect(isPromotableEventKind("seriesInstance")).toBe(false)
     expect(isPromotableEventKind("festivalSession")).toBe(false)
+  })
+
+  it("keeps saved top membership stable instead of filling empty slots", () => {
+    const events = [
+      { orderRank: "0|a:", promotedPlacement: "top" as const },
+      { orderRank: "0|b:", promotedPlacement: "pool" as const },
+      { orderRank: "0|c:", promotedPlacement: "top" as const },
+    ]
+
+    expect(selectHomepagePromotedEvents(events, "2026-07-29")).toEqual([
+      events[0],
+      events[2],
+    ])
   })
 
   it("centers one or two cards in the six-column homepage grid", () => {
