@@ -9,6 +9,7 @@ import { PromotedArrangementPicker } from "./PromotedArrangementPicker"
 import { PROMOTED_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
 import {
   decidePromotedDrag,
+  firstDocumentIdForTopRecovery,
   normalizedDocumentId,
   placementsAfterDecision,
   topDocumentIds,
@@ -52,6 +53,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
   const toast = useToast()
   const listRef = useRef<OrderableListHandle>(null)
   const pendingDragRef = useRef<PendingDrag | null>(null)
+  const recoveringTopPlacementRef = useRef(false)
   const clearPendingDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
@@ -106,6 +108,34 @@ export function PromotedArrangementList({ today }: { today: string }) {
     )
   }, [])
 
+  const recoverTopPlacement = useCallback(
+    async (nextDocuments: ListedDocument[]) => {
+      const recoveryDocumentId = firstDocumentIdForTopRecovery(nextDocuments)
+      if (!recoveryDocumentId || recoveringTopPlacementRef.current) {
+        return nextDocuments
+      }
+      const document = nextDocuments.find(
+        candidate => normalizedDocumentId(candidate._id) === recoveryDocumentId,
+      )
+      if (!document) return nextDocuments
+
+      recoveringTopPlacementRef.current = true
+      try {
+        const transaction = client.transaction()
+        for (const documentId of document.documentIds) {
+          transaction.patch(documentId, patch =>
+            patch.set({ promotedPlacement: "top" }),
+          )
+        }
+        await transaction.commit({ visibility: "sync" })
+        return await loadDocuments()
+      } finally {
+        recoveringTopPlacementRef.current = false
+      }
+    },
+    [client, loadDocuments],
+  )
+
   const savePlacements = useCallback(
     async (
       before: ListedDocument[],
@@ -156,7 +186,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
     const nextDocuments = await loadDocuments()
     const pendingDrag = pendingDragRef.current
     if (!pendingDrag) {
-      applyDocuments(nextDocuments)
+      applyDocuments(await recoverTopPlacement(nextDocuments))
       return
     }
 
@@ -199,10 +229,17 @@ export function PromotedArrangementList({ today }: { today: string }) {
           ? "Du kan legge til maksimalt tre arrangementer som fremhevet. Flytt først et annet arrangement ned."
           : "Minst ett arrangement må være fremhevet over linjen.",
     })
-  }, [applyDocuments, loadDocuments, restoreOrder, savePlacements, toast])
+  }, [
+    applyDocuments,
+    loadDocuments,
+    recoverTopPlacement,
+    restoreOrder,
+    savePlacements,
+    toast,
+  ])
 
   useEffect(() => {
-    void loadDocuments().then(applyDocuments)
+    void loadDocuments().then(recoverTopPlacement).then(applyDocuments)
     const subscription = client
       .listen(
         `*[
@@ -219,7 +256,14 @@ export function PromotedArrangementList({ today }: { today: string }) {
         clearTimeout(clearPendingDragTimerRef.current)
       }
     }
-  }, [applyDocuments, client, loadDocuments, refreshAndReconcile, today])
+  }, [
+    applyDocuments,
+    client,
+    loadDocuments,
+    recoverTopPlacement,
+    refreshAndReconcile,
+    today,
+  ])
 
   const initializeOrder = async () => {
     setInitializing(true)

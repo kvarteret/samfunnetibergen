@@ -89,6 +89,11 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 12:08Z) Verifiserte den stabile toppgruppen med 23
   fokuserte tester, Sanity TypeGen, TypeScript, lint, Studio-bygg og
   Next.js-produksjonsbygg.
+- [x] (2026-07-29 12:23Z) Lukket nullgruppe-kanttilfellet ved automatisk å
+  flytte første kommende arrangement over linjen når listen har innhold, men
+  ingen lagret toppplassering.
+- [x] (2026-07-29 12:24Z) Verifiserte automatisk gjenoppretting med 11
+  fokuserte tester, TypeScript, lint og Sanity Studio-bygg.
 
 ## Surprises & Discoveries
 
@@ -177,6 +182,12 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `node_modules/@sanity/orderable-document-list/dist/index.d.ts` har bare
   `options` og `ref`. Studio-visningen fanger derfor identiteten til raden ved
   dragstart og avstemmer den mot den synkroniserte rangeringen.
+
+- Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
+  dra-og-slipp utilstrekkelig.
+  Evidence: Alle kommende arrangementer kan allerede ha `isPromoted == true`,
+  slik at kandidatsøket er tomt, mens en linje med null medlemmer ikke gir et
+  mål en pool-rad kan dras over.
 
 ## Decision Log
 
@@ -316,6 +327,15 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   rekkefølge.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Når den filtrerte listen har minst ett arrangement, men null
+  `top`-plasseringer, skal Studio automatisk lagre første arrangement som
+  `top`.
+  Rationale: Kravet om minst ett fremhevet arrangement skal repareres uten et
+  ekstra redaksjonelt steg. Første rad er allerede redaktørens høyest rangerte
+  valg, så automatisk gjenoppretting er deterministisk og endrer ikke
+  rekkefølgen.
+  Date/Author: 2026-07-29, user/Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
@@ -340,6 +360,8 @@ Fremhevede har nå også et stabilt skille: en rad som flyttes ned etterlater en
 ledig plass, en rad som flyttes opp fyller en ledig plass, og ingen annen rad
 bytter side som følge av flyttingen. Forsiden leser det samme medlemskapet og
 beholder de tre første som reserve for eldre dokumenter uten det nye feltet.
+Hvis alle lagrede toppvalg har forsvunnet, for eksempel fordi de er avsluttet,
+løfter Studio automatisk første gjenværende rad over linjen.
 
 ## Context and Orientation
 
@@ -838,3 +860,10 @@ flyttinger gjenoppretter forrige rangering.
 Plan revision note (2026-07-29 12:08Z): Verifiseringsdelen er oppdatert med 23
 fokuserte tester, regenererte Sanity-typer og vellykkede TypeScript-, lint-,
 Studio- og Next.js-bygg.
+
+Plan revision note (2026-07-29 12:23Z): Kanttilfellet med en ikke-tom pool og
+tom toppgruppe er dokumentert og løst ved deterministisk automatisk
+fremheving av første rad.
+
+Plan revision note (2026-07-29 12:24Z): Verifisering av kanttilfellet er
+dokumentert med fokuserte tester og komplette Studio-kontroller.

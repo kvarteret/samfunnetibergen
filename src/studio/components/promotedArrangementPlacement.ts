@@ -34,6 +34,13 @@ export function topDocumentIds(documents: PromotedPlacementDocument[]) {
   )
 }
 
+export function firstDocumentIdForTopRecovery(
+  documents: PromotedPlacementDocument[],
+) {
+  if (topDocumentIds(documents).size > 0) return null
+  return documents[0] ? normalizedDocumentId(documents[0]._id) : null
+}
+
 export function decidePromotedDrag(
   before: PromotedPlacementDocument[],
   after: PromotedPlacementDocument[],

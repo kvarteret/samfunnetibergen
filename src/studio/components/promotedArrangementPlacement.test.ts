@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   decidePromotedDrag,
+  firstDocumentIdForTopRecovery,
   placementsAfterDecision,
   topDocumentIds,
   type PromotedPlacementDocument,
@@ -91,5 +92,23 @@ describe("promoted arrangement placement", () => {
     expect(decidePromotedDrag(before, after, "a")).toEqual({
       type: "rejectMinimum",
     })
+  })
+
+  it("recovers from an existing pool with no item above the line", () => {
+    const documents = docs([
+      ["a", "pool"],
+      ["b", "pool"],
+    ])
+
+    expect(firstDocumentIdForTopRecovery(documents)).toBe("a")
+    expect(firstDocumentIdForTopRecovery([])).toBeNull()
+    expect(
+      firstDocumentIdForTopRecovery(
+        docs([
+          ["a", "top"],
+          ["b", "pool"],
+        ]),
+      ),
+    ).toBeNull()
   })
 })
