@@ -121,6 +121,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29) Fjernet visuelle rammer rundt den tekniske kø-droppsonen og
   kølisten. Den store trefflaten er beholdt, men grensesnittet viser igjen bare
   arrangementskort og én køskillelinje.
+- [x] (2026-07-29) Stabiliserte køskillelinjen under aktiv dragging ved å legge
+  teksten som et absolutt overlay over en blokkbasert placeholder. Kortets
+  placeholder kan dermed ikke lenger skyve linjen sidelengs eller klippe teksten.
 
 ## Surprises & Discoveries
 
@@ -1051,3 +1054,7 @@ arrangementer uten å trekke et annet arrangement opp fra køen.
 Plan revision note (2026-07-29): De separate droppsonene er nå visuelt
 transparente. Den tekniske inndelingen er beholdt for pålitelig dra-og-slipp,
 uten å tegne et tomt ekstra panel eller en ytre ramme rundt køkortene.
+
+Plan revision note (2026-07-29): Køetiketten ligger nå utenfor placeholderens
+layoutflyt. Dette forhindrer horisontal flex-kollaps mens et arrangement holdes
+over den tomme køsonen.

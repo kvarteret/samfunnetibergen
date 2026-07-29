@@ -437,13 +437,21 @@ export function PromotedArrangementList({ today }: { today: string }) {
             <div
               ref={provided.innerRef}
               style={{
-                alignItems: "center",
-                display: "flex",
                 minHeight: 88,
+                position: "relative",
               }}
               {...provided.droppableProps}
             >
-              <Flex align="center" flex={1} gap={3} justify="center">
+              <Flex
+                align="center"
+                gap={3}
+                justify="center"
+                style={{
+                  inset: 0,
+                  pointerEvents: "none",
+                  position: "absolute",
+                }}
+              >
                 <Card borderTop flex={1} />
                 <Text muted size={1} weight="semibold">
                   Kø – slipp her for å vise automatisk senere
