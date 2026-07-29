@@ -1,8 +1,27 @@
 import { describe, expect, it } from "vitest"
 
-import { comparePromotedEvents } from "./promotedOrdering"
+import {
+  comparePromotedEvents,
+  isPromotableEventKind,
+  promotedCardGridStartClass,
+} from "./promotedOrdering"
 
 describe("promoted event ordering", () => {
+  it("allows only single events and series or festival parents", () => {
+    expect(isPromotableEventKind("single")).toBe(true)
+    expect(isPromotableEventKind("seriesParent")).toBe(true)
+    expect(isPromotableEventKind("festivalParent")).toBe(true)
+    expect(isPromotableEventKind("seriesInstance")).toBe(false)
+    expect(isPromotableEventKind("festivalSession")).toBe(false)
+  })
+
+  it("centers one or two cards in the six-column homepage grid", () => {
+    expect(promotedCardGridStartClass(1, 0)).toBe("md:col-start-3")
+    expect(promotedCardGridStartClass(2, 0)).toBe("md:col-start-2")
+    expect(promotedCardGridStartClass(2, 1)).toBeUndefined()
+    expect(promotedCardGridStartClass(3, 0)).toBeUndefined()
+  })
+
   it("uses editorial rank before date", () => {
     const events = [
       {

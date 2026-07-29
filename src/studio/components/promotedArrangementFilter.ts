@@ -1,6 +1,6 @@
-export const PROMOTED_ARRANGEMENTS_FILTER = `
-  isPromoted == true &&
+export const PROMOTABLE_ARRANGEMENTS_FILTER = `
   approvalStatus == "approved" &&
+  coalesce(eventKind, "single") in ["single", "seriesParent", "festivalParent"] &&
   select(
     coalesce(eventKind, "single") in ["seriesParent", "festivalParent"] =>
       count(*[
@@ -11,4 +11,14 @@ export const PROMOTED_ARRANGEMENTS_FILTER = `
       ]) > 0,
     count(dates[startDate >= $today]) > 0
   )
+`
+
+export const PROMOTED_ARRANGEMENTS_FILTER = `
+  isPromoted == true &&
+  (${PROMOTABLE_ARRANGEMENTS_FILTER})
+`
+
+export const PROMOTION_CANDIDATES_FILTER = `
+  isPromoted != true &&
+  (${PROMOTABLE_ARRANGEMENTS_FILTER})
 `

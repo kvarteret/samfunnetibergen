@@ -77,6 +77,12 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 11:28Z) Verifiserte oppfølgingen med 15 fokuserte tester,
   TypeScript, lint, Sanity TypeGen, Studio-bygg, Next.js-bygg og anonym
   GROQ-kontroll mot dagens datasett.
+- [x] (2026-07-29 11:50Z) Begrenset fremheving til enkeltarrangementer,
+  serieforeldre og festivalforeldre, la til søkbar «Legg til arrangement» og
+  sentrerte én eller to fremhevede kort på forsiden.
+- [x] (2026-07-29 11:52Z) Verifiserte fremhevingsoppfølgingen med ni
+  fokuserte tester, lint, Studio-bygg, Next.js-bygg og anonym GROQ-kontroll.
+  Full `tsc` stopper i en samtidig, ikke-relatert bookingtest.
 
 ## Surprises & Discoveries
 
@@ -150,6 +156,13 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `5`; et anonymt feltuttrekk viste ni fremhevede dokumenter totalt og
   `orderRank: null`. Derfor viser Studio en engangsknapp for å klargjøre bare
   de urangerte dokumentene.
+
+- Observation: To av de fem tidligere synlige fremhevede dokumentene var
+  festivaldager, selv om festivalforelderen også var fremhevet.
+  Evidence: Den nye foreldreavgrensningen returnerer nøyaktig tre kommende
+  dokumenter: serien «Quiz!», festivalen «Velkomstuken 2026» og
+  enkeltarrangementet «BSI: Sosialdans». Søkespørringen fant samtidig to
+  kommende, ikke-fremhevede enkeltarrangementer som kan legges til.
 
 ## Decision Log
 
@@ -257,14 +270,30 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   neste steg synlig uten å lete.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Tillat bare enkeltarrangementer, serieforeldre og
+  festivalforeldre i `Fremhevede`; tilby et søkbart valg som publiserer
+  fremhevingen og legger den nye raden sist i rekkefølgen.
+  Rationale: En generert seriedag eller festivaldag skal representeres av
+  forelderen, ellers kan forsiden vise samme redaksjonelle arrangement flere
+  ganger. Festivalen forblir synlig til og med siste godkjente festivaldag.
+  Date/Author: 2026-07-29, user/Codex.
+
+- Decision: Vis maksimalt tre fremhevede kort på forsiden og sentrer raden når
+  den inneholder ett eller to kort. I Studio legges skillelinjen etter det
+  faktiske antallet når listen har færre enn tre.
+  Rationale: Rekkefølgen og skillet skal beskrive det som faktisk vises, også
+  når redaksjonen midlertidig har færre enn tre valg.
+  Date/Author: 2026-07-29, user/Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
 request-telleren, kombinerbare filtre, publiserende statusoverganger,
 redaksjonell gjentakelsesbygger, trygg generering av seriedager og egne
 festival-/festivaldagmaler. Festivalforelderen har en synlig snarvei for nye
-dager, og fremhevede arrangementer kan rangeres direkte i segmentet. Nettsiden
-avleder festivalperioden fra godkjente dager, håndterer eksplisitt bildearv,
+dager, og fremhevede foreldrearrangementer kan søkes frem, legges til og
+rangeres direkte i segmentet. Nettsiden avleder festivalperioden fra godkjente
+dager, sentrerer én eller to fremhevede kort, håndterer eksplisitt bildearv,
 bruker den redaksjonelle rekkefølgen på forsiden og bruker faste norske tekster
 uten `eventsPage`.
 
@@ -751,3 +780,12 @@ produksjonsbygg og alle målrettede kontroller passerer.
 Plan revision note (2026-07-29): Segmentet heter nå `Fremhevede`, og den
 valgfrie «Vis flytteknapper»-kontrollen er fjernet etter produkteiers
 presisering. Dra-og-slipp og engangsklargjøring av manglende rangering består.
+
+Plan revision note (2026-07-29 11:50Z): Fremheving er begrenset til
+enkeltarrangementer og serie-/festivalforeldre. Segmentet har søkbar
+tilleggshandling, skillelinjen følger ett til tre faktiske valg, forsiden
+sentrerer korte rader, og festivalens siste dag bestemmer når den forsvinner.
+
+Plan revision note (2026-07-29 11:52Z): Verifiseringsresultatene og den
+ikke-relaterte TypeScript-feilen i den samtidige bookingtesten er dokumentert,
+slik at planens status kan gjenopptas uten å blande arbeidsområdene.

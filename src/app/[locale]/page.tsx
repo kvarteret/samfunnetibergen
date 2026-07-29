@@ -9,7 +9,11 @@ import {
   formatPrimaryDate,
   getRecurringLabel,
 } from "@/features/events/domain/dates"
-import { comparePromotedEvents } from "@/features/events/domain/promotedOrdering"
+import {
+  comparePromotedEvents,
+  isPromotableEventKind,
+  promotedCardGridStartClass,
+} from "@/features/events/domain/promotedOrdering"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -206,6 +210,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     ])
   const today = getOsloDateString()
   const promotedEvents = [...promotedParentEvents, ...(events ?? [])]
+    .filter(event => isPromotableEventKind(event.eventKind))
     .filter(event => event.isPromoted)
     .sort((a, b) => comparePromotedEvents(a, b, today))
     .slice(0, 3)
@@ -305,14 +310,21 @@ function HomePromotedEvents({
         label="Arrangementer"
         linkLabel="Se alle arrangementer"
       />
-      <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-6">
         {events.map((event, index) => (
-          <HomePromotedEventCard
-            event={toEventSummary(event, labels)}
-            index={index}
+          <div
+            className={cn(
+              "md:col-span-2",
+              promotedCardGridStartClass(events.length, index),
+            )}
             key={event._id}
-            locale={locale}
-          />
+          >
+            <HomePromotedEventCard
+              event={toEventSummary(event, labels)}
+              index={index}
+              locale={locale}
+            />
+          </div>
         ))}
       </div>
     </section>

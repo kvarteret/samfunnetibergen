@@ -6,6 +6,19 @@ type PromotedOrderableEvent = {
   }> | null
 }
 
+export function isPromotableEventKind(kind: string | null | undefined) {
+  return ["single", "seriesParent", "festivalParent"].includes(kind ?? "single")
+}
+
+export function promotedCardGridStartClass(
+  eventCount: number,
+  index: number,
+): string | undefined {
+  if (eventCount === 1) return "md:col-start-3"
+  if (eventCount === 2 && index === 0) return "md:col-start-2"
+  return undefined
+}
+
 function eventStartSortKey(
   event: PromotedOrderableEvent,
   today: string,
