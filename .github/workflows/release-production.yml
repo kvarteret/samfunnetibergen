@@ -1,6 +1,9 @@
 name: Release Production
 
 on:
+  push:
+    branches:
+      - develop
   workflow_dispatch:
     inputs:
       ref:
@@ -35,7 +38,7 @@ jobs:
       - name: Checkout release source
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
           fetch-depth: 0
 
       - name: Resolve release metadata
@@ -148,7 +151,7 @@ jobs:
             curl_args+=(--header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
           fi
 
-          for path in ${{ inputs.smoke_paths }}; do
+          for path in $SMOKE_PATHS; do
             url="${base_url%/}${path}"
             status="$(curl "${curl_args[@]}" "$url")"
             echo "${status} ${url}"
@@ -159,10 +162,11 @@ jobs:
             fi
           done
         env:
+          SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book' }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Promote staged deployment
-        if: ${{ inputs.promote }}
+        if: ${{ github.event_name == 'push' || inputs.promote }}
         run: |
           set -euo pipefail
           token_flag="--""token"
@@ -174,7 +178,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Create release tag
-        if: ${{ inputs.promote }}
+        if: ${{ github.event_name == 'push' || inputs.promote }}
         shell: bash
         run: |
           set -euo pipefail
@@ -185,7 +189,7 @@ jobs:
           git push origin "${{ steps.release.outputs.tag }}"
 
       - name: Create GitHub release
-        if: ${{ inputs.promote }}
+        if: ${{ github.event_name == 'push' || inputs.promote }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -204,5 +208,5 @@ jobs:
             echo "- Source: \`${{ steps.release.outputs.short_sha }}\`"
             echo "- Tag: \`${{ steps.release.outputs.tag }}\`"
             echo "- Staged deployment: ${{ steps.deploy.outputs.url }}"
-            echo "- Promoted: \`${{ inputs.promote }}\`"
+            echo "- Promoted: \`${{ github.event_name == 'push' || inputs.promote }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
