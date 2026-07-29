@@ -433,17 +433,17 @@ export function PromotedArrangementList({ today }: { today: string }) {
         </Droppable>
 
         <Droppable droppableId={QUEUE_ENTRY_DROPPABLE_ID}>
-          {(provided, snapshot) => (
-            <Card
-              border
-              padding={3}
-              radius={2}
+          {provided => (
+            <div
               ref={provided.innerRef}
-              style={{ minHeight: 88 }}
-              tone={snapshot.isDraggingOver ? "primary" : "default"}
+              style={{
+                alignItems: "center",
+                display: "flex",
+                minHeight: 88,
+              }}
               {...provided.droppableProps}
             >
-              <Flex align="center" gap={3} justify="center">
+              <Flex align="center" flex={1} gap={3} justify="center">
                 <Card borderTop flex={1} />
                 <Text muted size={1} weight="semibold">
                   Kø – slipp her for å vise automatisk senere
@@ -451,27 +451,24 @@ export function PromotedArrangementList({ today }: { today: string }) {
                 <Card borderTop flex={1} />
               </Flex>
               {provided.placeholder}
-            </Card>
+            </div>
           )}
         </Droppable>
 
         <Droppable droppableId={QUEUE_DROPPABLE_ID}>
-          {(provided, snapshot) => (
-            <Card
-              border
-              padding={2}
-              radius={2}
+          {provided => (
+            <div
               ref={provided.innerRef}
-              tone={snapshot.isDraggingOver ? "primary" : "default"}
+              style={{ minHeight: 52 }}
               {...provided.droppableProps}
             >
-              <Stack space={2} style={{ minHeight: 52 }}>
+              <Stack space={2}>
                 {queuedDocuments.map((document, index) =>
                   renderDocument(document, index, "queue"),
                 )}
                 {provided.placeholder}
               </Stack>
-            </Card>
+            </div>
           )}
         </Droppable>
       </DragDropContext>

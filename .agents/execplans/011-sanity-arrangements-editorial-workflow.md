@@ -118,6 +118,9 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29) Delte synlige og kølagte arrangementer i to faktiske
   droppsoner. Et arrangement som slippes under skillelinjen flyttes nå
   deterministisk til køen uten at et annet køelement flyttes opp.
+- [x] (2026-07-29) Fjernet visuelle rammer rundt den tekniske kø-droppsonen og
+  kølisten. Den store trefflaten er beholdt, men grensesnittet viser igjen bare
+  arrangementskort og én køskillelinje.
 
 ## Surprises & Discoveries
 
@@ -1044,3 +1047,7 @@ Plan revision note (2026-07-29): Synlig toppgruppe og kø er nå egne droppsoner
 Dette fjerner den tvetydige indeksgrensen der et slipp under linjen fortsatt
 kunne bli tolket som tredje plass, og bevarer eksplisitt én til tre synlige
 arrangementer uten å trekke et annet arrangement opp fra køen.
+
+Plan revision note (2026-07-29): De separate droppsonene er nå visuelt
+transparente. Den tekniske inndelingen er beholdt for pålitelig dra-og-slipp,
+uten å tegne et tomt ekstra panel eller en ytre ramme rundt køkortene.
