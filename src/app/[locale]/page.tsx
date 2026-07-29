@@ -310,7 +310,6 @@ function HomePromotedEvents({
     <section className="space-y-6">
       <HomeEventsHeader
         href={`/${locale}/arrangementer`}
-        label="Arrangementer"
         linkLabel="Se alle arrangementer"
       />
       <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
@@ -339,7 +338,7 @@ function HomeUpcomingEvents({
       <div className="mx-auto w-full max-w-7xl space-y-6 px-6 sm:px-10 lg:px-14">
         <HomeEventsHeader
           href={`/${locale}/arrangementer`}
-          label="Kommende"
+          label="Arrangementer"
           linkLabel="Vis kalender"
           onPrimary
         />
@@ -368,20 +367,27 @@ function HomeEventsHeader({
   onPrimary = false,
 }: {
   href: string
-  label: string
+  label?: string
   linkLabel: string
   onPrimary?: boolean
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <SectionMark
-          className={onPrimary ? "text-primary-foreground" : "text-primary"}
-        />
-        <h2 className="text-base uppercase tracking-wide sm:text-lg">
-          {label}
-        </h2>
-      </div>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-4",
+        label ? "justify-between" : "justify-end",
+      )}
+    >
+      {label && (
+        <div className="flex items-center gap-4">
+          <SectionMark
+            className={onPrimary ? "text-primary-foreground" : "text-primary"}
+          />
+          <h2 className="text-base uppercase tracking-wide sm:text-lg">
+            {label}
+          </h2>
+        </div>
+      )}
       <Link
         className="group inline-flex items-center gap-2 font-heading underline underline-offset-4 focus-brutal"
         href={href}

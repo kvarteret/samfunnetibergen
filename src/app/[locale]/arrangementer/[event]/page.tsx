@@ -68,15 +68,15 @@ export default async function EventPage({ params }: EventPageProps) {
           ticketsLabel={t("tickets")}
           partOfLabel={t("partOf")}
         />
-        <EventDetailScheduleAndMeta event={eventData} t={t} />
-        {childEvents.length > 0 && (
-          <EventChildList childEvents={childEvents} t={t} />
-        )}
         <EventDetailDescription
           event={eventData}
           eventSlug={resolvedParams.event}
           t={t}
         />
+        <EventDetailScheduleAndMeta event={eventData} t={t} />
+        {childEvents.length > 0 && (
+          <EventChildList childEvents={childEvents} t={t} />
+        )}
       </article>
     </>
   )

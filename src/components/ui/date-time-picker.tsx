@@ -1,7 +1,7 @@
 "use client"
 
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
@@ -186,47 +186,39 @@ function toDateString(d: Date): string {
 }
 
 interface DateTimePickerProps {
-  uid: string
   startDate: string
   endDate: string
   today: string
   startTime: string
   endTime: string
-  doorsTimes: string[]
-  estimatedEndTimes: string[]
   occupiedRanges: { startMin: number; endMin: number }[]
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (dayIndex: number, value: string) => void
-  onEstimatedEndChange: (dayIndex: number, value: string) => void
   openingHours: OpeningHours | null
   roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
+  timingWarning?: ReactNode
 }
 
 export function DateTimePicker({
-  uid,
   startDate,
   endDate,
   today,
   startTime,
   endTime,
-  doorsTimes,
-  estimatedEndTimes,
   occupiedRanges,
   onStartDateChange,
   onEndDateChange,
   onStartChange,
   onEndChange,
-  onDoorsChange,
-  onEstimatedEndChange,
   openingHours,
   roomOpeningHours,
   closedDates,
   vacationMode,
+  timingWarning,
 }: DateTimePickerProps) {
   const todayDate = new Date(`${today}T00:00:00`)
 
@@ -366,7 +358,6 @@ export function DateTimePicker({
             </p>
           ) : (
             <TimeSlots
-              uid={uid}
               startDate={startDate}
               endDate={endDate}
               occupiedRanges={occupiedRanges}
@@ -376,12 +367,9 @@ export function DateTimePicker({
               vacationMode={vacationMode}
               startTime={startTime}
               endTime={endTime}
-              doorsTimes={doorsTimes}
-              estimatedEndTimes={estimatedEndTimes}
               onStartChange={onStartChange}
               onEndChange={onEndChange}
-              onDoorsChange={onDoorsChange}
-              onEstimatedEndChange={onEstimatedEndChange}
+              timingWarning={timingWarning}
             />
           )
         ) : (
@@ -395,7 +383,6 @@ export function DateTimePicker({
 }
 
 interface TimeSlotsProps {
-  uid: string
   startDate: string
   endDate: string
   occupiedRanges: { startMin: number; endMin: number }[]
@@ -405,12 +392,9 @@ interface TimeSlotsProps {
   vacationMode?: VacationMode | null
   startTime: string
   endTime: string
-  doorsTimes: string[]
-  estimatedEndTimes: string[]
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
-  onDoorsChange: (dayIndex: number, value: string) => void
-  onEstimatedEndChange: (dayIndex: number, value: string) => void
+  timingWarning?: ReactNode
 }
 
 /** First/last-day thumb clamps for a booking with no configured opening
@@ -431,7 +415,6 @@ function unconstrainedConstraints(
 }
 
 function TimeSlots({
-  uid,
   startDate,
   endDate,
   occupiedRanges,
@@ -441,12 +424,9 @@ function TimeSlots({
   vacationMode,
   startTime,
   endTime,
-  doorsTimes,
-  estimatedEndTimes,
   onStartChange,
   onEndChange,
-  onDoorsChange,
-  onEstimatedEndChange,
+  timingWarning,
 }: TimeSlotsProps) {
   const hasHours =
     hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
@@ -516,41 +496,9 @@ function TimeSlots({
           lastDayEndIdx={constraints.lastDayEndIdx}
           occupiedRanges={occupiedRanges}
           stapledSegments={constraints.stapledSegments}
+          timingWarning={timingWarning}
           onStartChange={onStartChange}
           onEndChange={onEndChange}
-          doorsSlot={
-            // Keyed by dayCount so changing the booking span resets the
-            // one-day-at-a-time reveal in both select groups.
-            <div className="space-y-4" key={dayCount}>
-              <PerDayTimeSelects
-                uid={uid}
-                idPrefix="doorsTime"
-                heading="Dørene åpner"
-                headingNote="dag 1 obligatorisk"
-                singleDayLabel="Dørene åpner *"
-                requiredFirstDay
-                marks={marks}
-                dayCount={dayCount}
-                startTime={startTime}
-                endTime={endTime}
-                values={doorsTimes}
-                onChange={onDoorsChange}
-              />
-              <PerDayTimeSelects
-                uid={uid}
-                idPrefix="estimatedEnd"
-                heading="Antatt slutt"
-                headingNote="valgfritt"
-                singleDayLabel="Antatt slutt (valgfritt)"
-                marks={marks}
-                dayCount={dayCount}
-                startTime={startTime}
-                endTime={endTime}
-                values={estimatedEndTimes}
-                onChange={onEstimatedEndChange}
-              />
-            </div>
-          }
         />
       </div>
     </div>
@@ -605,6 +553,107 @@ function timeOptionsForDay(
     })
 }
 
+interface BookingEventTimesProps {
+  uid: string
+  startDate: string
+  endDate: string
+  startTime: string
+  endTime: string
+  doorsTimes: string[]
+  estimatedEndTimes: string[]
+  openingHours: OpeningHours | null
+  roomOpeningHours: OpeningHours | null
+  closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
+  onDoorsChange: (dayIndex: number, value: string) => void
+  onEstimatedEndChange: (dayIndex: number, value: string) => void
+}
+
+/** Per-day event timings shown with the arrangement details after the room
+ * and booking window are valid. Uses the same opening-hour marks as the
+ * get-in/get-out picker, and omits selects that have no valid options. */
+export function BookingEventTimes({
+  uid,
+  startDate,
+  endDate,
+  startTime,
+  endTime,
+  doorsTimes,
+  estimatedEndTimes,
+  openingHours,
+  roomOpeningHours,
+  closedDates,
+  vacationMode,
+  onDoorsChange,
+  onEstimatedEndChange,
+}: BookingEventTimesProps) {
+  if (!startDate || !startTime || !endTime) return null
+
+  const dayCount = endDate
+    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+    : 1
+  const openingMarks = endDate
+    ? multiDayMarks(
+        startDate,
+        dayCount,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+        vacationMode,
+      )
+    : slotMarks(
+        startDate,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+        vacationMode,
+      )
+  const hasHours =
+    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+
+  if (openingMarks.length < 2 && hasHours) return null
+
+  const marks =
+    openingMarks.length < 2
+      ? unconstrainedMarks(
+          dayCount,
+          dayCount > 1 ? MULTI_DAY_SLOT_STEP_MIN : SLOT_STEP_MIN,
+        )
+      : openingMarks
+
+  return (
+    <div className="space-y-4 border-t border-border pt-4">
+      <PerDayTimeSelects
+        uid={uid}
+        idPrefix="doorsTime"
+        heading="Dørene åpner"
+        headingNote="dag 1 obligatorisk"
+        singleDayLabel="Dørene åpner *"
+        requiredFirstDay
+        marks={marks}
+        dayCount={dayCount}
+        startTime={startTime}
+        endTime={endTime}
+        values={doorsTimes}
+        onChange={onDoorsChange}
+      />
+      <PerDayTimeSelects
+        uid={uid}
+        idPrefix="estimatedEnd"
+        heading="Antatt slutt"
+        headingNote="valgfritt"
+        singleDayLabel="Antatt slutt (valgfritt)"
+        marks={marks}
+        dayCount={dayCount}
+        startTime={startTime}
+        endTime={endTime}
+        values={estimatedEndTimes}
+        onChange={onEstimatedEndChange}
+      />
+    </div>
+  )
+}
+
 interface PerDayTimeSelectsProps {
   uid: string
   idPrefix: string
@@ -655,25 +704,39 @@ function PerDayTimeSelects({
 
   // Single day: one plain dropdown, no section chrome needed.
   if (dayCount === 1) {
+    const options = timeOptionsForDay(
+      marks,
+      0,
+      1,
+      localStartMinute,
+      localEndMinute,
+    )
+    if (options.length === 0) return null
+
     return (
       <div className="max-w-xs">
         <SelectField
           id={`${uid}-${idPrefix}-0`}
           label={singleDayLabel}
           onChange={value => onChange(0, value)}
-          options={timeOptionsForDay(
-            marks,
-            0,
-            1,
-            localStartMinute,
-            localEndMinute,
-          )}
+          options={options}
           placeholder="Velg tidspunkt"
           value={values[0] ?? ""}
         />
       </div>
     )
   }
+
+  const shownDays = Array.from({ length: shownDayCount }, (_, dayIndex) => ({
+    dayIndex,
+    options: timeOptionsForDay(
+      marks,
+      dayIndex,
+      dayCount,
+      localStartMinute,
+      localEndMinute,
+    ),
+  })).filter(day => day.options.length > 0)
 
   return (
     <div className="space-y-3">
@@ -685,19 +748,13 @@ function PerDayTimeSelects({
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {Array.from({ length: shownDayCount }, (_, dayIndex) => (
+        {shownDays.map(({ dayIndex, options }) => (
           <SelectField
             id={`${uid}-${idPrefix}-${dayIndex}`}
             key={dayIndex}
             label={`Dag ${dayIndex + 1}${requiredFirstDay && dayIndex === 0 ? " *" : ""}`}
             onChange={value => onChange(dayIndex, value)}
-            options={timeOptionsForDay(
-              marks,
-              dayIndex,
-              dayCount,
-              localStartMinute,
-              localEndMinute,
-            )}
+            options={options}
             placeholder="Velg tidspunkt"
             value={values[dayIndex] ?? ""}
           />

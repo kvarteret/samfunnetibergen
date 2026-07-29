@@ -11,7 +11,7 @@ import {
   Plus,
   X,
 } from "lucide-react"
-import { type MouseEvent, type ReactNode, useId, useState } from "react"
+import { type MouseEvent, type ReactNode, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
@@ -56,7 +56,6 @@ export function BookingFormScheduleSection({
   startDateError,
   startDateId,
 }: BookingFormScheduleSectionProps) {
-  const uid = useId()
   const form = useBookingForm()
   const startDateErrorId = `${startDateId}-error`
 
@@ -71,8 +70,6 @@ export function BookingFormScheduleSection({
           endDate: s.values.endDate,
           startTime: s.values.startTime,
           endTime: s.values.endTime,
-          doorsTimes: s.values.doorsTimes,
-          estimatedEndTimes: s.values.estimatedEndTimes,
           bookerType: s.values.bookerType,
         })}
       >
@@ -82,8 +79,6 @@ export function BookingFormScheduleSection({
           endDate,
           startTime,
           endTime,
-          doorsTimes,
-          estimatedEndTimes,
           bookerType,
         }: {
           selectedRoomIds: number[]
@@ -91,8 +86,6 @@ export function BookingFormScheduleSection({
           endDate: string
           startTime: string
           endTime: string
-          doorsTimes: string[]
-          estimatedEndTimes: string[]
           bookerType: BookerType
         }) => {
           const selectedRoomIdSet = new Set(selectedRoomIds)
@@ -117,21 +110,9 @@ export function BookingFormScheduleSection({
                 <Label>Dato og tidspunkt *</Label>
                 <DateTimePicker
                   closedDates={closedDates}
-                  doorsTimes={doorsTimes}
-                  estimatedEndTimes={estimatedEndTimes}
                   endDate={endDate}
                   endTime={endTime}
                   occupiedRanges={occupiedRanges}
-                  onDoorsChange={(dayIndex, v) => {
-                    const next = [...doorsTimes]
-                    next[dayIndex] = v
-                    form.setFieldValue("doorsTimes", next)
-                  }}
-                  onEstimatedEndChange={(dayIndex, v) => {
-                    const next = [...estimatedEndTimes]
-                    next[dayIndex] = v
-                    form.setFieldValue("estimatedEndTimes", next)
-                  }}
                   onEndChange={v => form.setFieldValue("endTime", v)}
                   onEndDateChange={v => {
                     form.setFieldValue("endDate", v)
@@ -148,8 +129,37 @@ export function BookingFormScheduleSection({
                   roomOpeningHours={firstRoom?.openingHours ?? null}
                   startDate={startDate}
                   startTime={startTime}
+                  timingWarning={
+                    selectedConflictRooms.length > 0 ? (
+                      <Alert id={`${startDateId}-time`} variant="destructive">
+                        <CalendarClock aria-hidden />
+                        <AlertTitle>
+                          {selectedConflictRooms
+                            .map(room => room.title ?? room.crescatRoomId)
+                            .join(", ")}{" "}
+                          er opptatt i valgt tidsrom
+                        </AlertTitle>
+                        <AlertDescription className="gap-3">
+                          <p>
+                            Endre tidspunktet eller fjern rommet fra bookingen.
+                          </p>
+                          {selectedConflictRooms.map(room => (
+                            <Button
+                              key={room.crescatRoomId}
+                              onClick={() => toggleRoom(room.crescatRoomId)}
+                              size="sm"
+                              type="button"
+                              variant="neutral"
+                            >
+                              <X aria-hidden />
+                              Fjern {room.title ?? room.crescatRoomId}
+                            </Button>
+                          ))}
+                        </AlertDescription>
+                      </Alert>
+                    ) : undefined
+                  }
                   today={today}
-                  uid={uid}
                   vacationMode={vacationMode}
                 />
                 <p className="text-sm text-foreground-muted">
@@ -157,37 +167,6 @@ export function BookingFormScheduleSection({
                   start- og sluttid.
                 </p>
               </FieldGroup>
-
-              {selectedConflictRooms.length > 0 && (
-                <Alert
-                  className="max-w-3xl"
-                  id={`${startDateId}-time`}
-                  variant="destructive"
-                >
-                  <CalendarClock aria-hidden />
-                  <AlertTitle>
-                    {selectedConflictRooms
-                      .map(room => room.title ?? room.crescatRoomId)
-                      .join(", ")}{" "}
-                    er opptatt i valgt tidsrom
-                  </AlertTitle>
-                  <AlertDescription className="gap-3">
-                    <p>Endre tidspunktet eller fjern rommet fra bookingen.</p>
-                    {selectedConflictRooms.map(room => (
-                      <Button
-                        key={room.crescatRoomId}
-                        onClick={() => toggleRoom(room.crescatRoomId)}
-                        size="sm"
-                        type="button"
-                        variant="neutral"
-                      >
-                        <X aria-hidden />
-                        Fjern {room.title ?? room.crescatRoomId}
-                      </Button>
-                    ))}
-                  </AlertDescription>
-                </Alert>
-              )}
 
               {startDate && startTime && endTime ? (
                 rooms.length > 0 ? (
