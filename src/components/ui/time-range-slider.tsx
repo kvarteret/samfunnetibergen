@@ -41,8 +41,8 @@ interface TimeRangeSliderProps {
   onStartChange: (value: string) => void
   /** Called with the new end time (HH:mm). */
   onEndChange: (value: string) => void
-  /** The per-day doors-open config, rendered as its own block below the slider. */
-  doorsSlot?: ReactNode
+  /** Important timing feedback, rendered immediately before per-day fields. */
+  timingWarning?: ReactNode
 }
 
 // A mark is unavailable if it falls inside any existing booking for the
@@ -206,7 +206,7 @@ export function TimeRangeSlider({
   stapledSegments,
   onStartChange,
   onEndChange,
-  doorsSlot,
+  timingWarning,
 }: TimeRangeSliderProps) {
   // ── Index-based mapping ──────────────────────────────────────────────
   // The slider operates on indices into the (sorted) marks array.
@@ -539,8 +539,8 @@ export function TimeRangeSlider({
         ))}
       </div>
 
-      {doorsSlot && (
-        <div className="border-t border-border pt-4">{doorsSlot}</div>
+      {timingWarning && (
+        <div className="border-t border-border pt-4">{timingWarning}</div>
       )}
     </div>
   )

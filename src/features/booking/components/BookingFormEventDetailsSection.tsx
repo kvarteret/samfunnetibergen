@@ -2,6 +2,7 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { useId } from "react"
+import { BookingEventTimes } from "@/components/ui/date-time-picker"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,12 @@ import { Label } from "@/components/ui/label"
 import { NumberField } from "@/components/ui/number-field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
+import type {
+  ClosedDate,
+  OpeningHours,
+  VacationMode,
+} from "@/lib/opening-hours"
+import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
 const OPEN_CLOSED_OPTIONS = [
@@ -21,6 +28,10 @@ interface BookingFormEventDetailsSectionProps {
   audienceCountId: string
   eventNameError?: string
   eventNameId: string
+  openingHours: OpeningHours | null
+  roomOpeningHours: OpeningHours | null
+  closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
 }
 
 export function BookingFormEventDetailsSection({
@@ -28,6 +39,10 @@ export function BookingFormEventDetailsSection({
   audienceCountId,
   eventNameError,
   eventNameId,
+  openingHours,
+  roomOpeningHours,
+  closedDates,
+  vacationMode,
 }: BookingFormEventDetailsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
@@ -115,6 +130,51 @@ export function BookingFormEventDetailsSection({
           </form.Field>
         </FieldGroup>
       </div>
+
+      <form.Subscribe
+        selector={(state: { values: BookingFormValues }) => ({
+          startDate: state.values.startDate,
+          endDate: state.values.endDate,
+          startTime: state.values.startTime,
+          endTime: state.values.endTime,
+          doorsTimes: state.values.doorsTimes,
+          estimatedEndTimes: state.values.estimatedEndTimes,
+        })}
+      >
+        {({
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          doorsTimes,
+          estimatedEndTimes,
+        }) => (
+          <BookingEventTimes
+            closedDates={closedDates}
+            doorsTimes={doorsTimes}
+            endDate={endDate}
+            endTime={endTime}
+            estimatedEndTimes={estimatedEndTimes}
+            key={`${startDate}-${endDate}`}
+            onDoorsChange={(dayIndex, value) => {
+              const next = [...doorsTimes]
+              next[dayIndex] = value
+              form.setFieldValue("doorsTimes", next)
+            }}
+            onEstimatedEndChange={(dayIndex, value) => {
+              const next = [...estimatedEndTimes]
+              next[dayIndex] = value
+              form.setFieldValue("estimatedEndTimes", next)
+            }}
+            openingHours={openingHours}
+            roomOpeningHours={roomOpeningHours}
+            startDate={startDate}
+            startTime={startTime}
+            uid={uid}
+            vacationMode={vacationMode}
+          />
+        )}
+      </form.Subscribe>
     </FormSection>
   )
 }

@@ -100,6 +100,12 @@
     --destructive-foreground: var(--cream-100);
     --success: var(--green-500);
     --success-foreground: var(--navy-950);
+    /* Unavailable controls stay neutral across visual themes so they cannot
+       be mistaken for a theme-colored selectable state. */
+    --unavailable-background: #e5e7eb;
+    --unavailable-border: #9ca3af;
+    --unavailable-foreground: #4b5563;
+    --unavailable-stripe: #9ca3af;
     /* Neutral selection/state color. Skyss keeps the existing amber treatment;
        themes where primary and destructive are both red can override it. */
     --state: var(--primary);
@@ -182,8 +188,8 @@
 
   /* ── Theme: HS ──
      White background, soft-red surfaces, red primary, dark-red shadows,
-     rounded corners, serif headings. Overrides only the semantic tokens;
-     every component re-skins through them. */
+     selectively rounded controls, serif headings. Overrides only the semantic
+     tokens; every component re-skins through them. */
   :root[data-theme="hs"] {
     --background: #ffffff;
     --foreground: #1a1414;
@@ -218,11 +224,6 @@
 
     --font-display: var(--font-source-serif);
     --body-font: var(--font-lora);
-  }
-
-  /* Apply rounded corners globally in HS, overridable by Tailwind rounded-* utilities */
-  [data-theme="hs"] * {
-    border-radius: var(--radius);
   }
 
   /* HS footer: links underline on hover */
@@ -280,6 +281,19 @@
 
   --font-weight-base:    500;
   --font-weight-heading: 800;
+}
+
+@utility unavailable-slot {
+  border-color: var(--unavailable-border);
+  color: var(--unavailable-foreground);
+  background-color: var(--unavailable-background);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--unavailable-stripe) 0,
+    var(--unavailable-stripe) 2px,
+    transparent 2px,
+    transparent 7px
+  );
 }
 
 @layer base {

@@ -290,93 +290,103 @@ export function BookingForm({
             }
             startDateId={fieldIds.startDate}
           />
-          <BookingFormEventDetailsSection
-            audienceCountError={errorFor(fieldIds.audienceCount)}
-            audienceCountId={fieldIds.audienceCount}
-            eventNameError={errorFor(fieldIds.eventName)}
-            eventNameId={fieldIds.eventName}
-          />
-          <BookingFormTicketSection
-            ticketsError={errorFor(fieldIds.tickets)}
-            ticketsId={fieldIds.tickets}
-          />
-          <BookingFormContactSection
-            contactEmailError={errorFor(fieldIds.contactEmail)}
-            contactEmailId={fieldIds.contactEmail}
-            contactNameError={errorFor(fieldIds.contactName)}
-            contactNameId={fieldIds.contactName}
-            invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
-            invoiceAddressId={fieldIds.invoiceAddress}
-          />
-          <BookingFormNeedsSection
-            furnitureError={errorFor(fieldIds.furniture)}
-            furnitureId={fieldIds.furniture}
-            selectedRoomCrescatId={hasTivoli ? 95 : (selectedRoomIds[0] ?? 0)}
-          />
-          <BookingFormCateringBarSection />
-          <BookingPromotionSection />
-          <BookingFormTermsSection
-            acceptTermsError={errorFor(fieldIds.acceptTerms)}
-            acceptTermsId={fieldIds.acceptTerms}
-            cancellationTermsContent={cancellationTermsContent}
-            rentalTermsContent={rentalTermsContent}
-          />
+          {!hasConflict && (
+            <>
+              <BookingFormEventDetailsSection
+                audienceCountError={errorFor(fieldIds.audienceCount)}
+                audienceCountId={fieldIds.audienceCount}
+                closedDates={closedDates}
+                eventNameError={errorFor(fieldIds.eventName)}
+                eventNameId={fieldIds.eventName}
+                openingHours={openingHours}
+                roomOpeningHours={primaryRoom?.openingHours ?? null}
+                vacationMode={vacationMode}
+              />
+              <BookingFormTicketSection
+                ticketsError={errorFor(fieldIds.tickets)}
+                ticketsId={fieldIds.tickets}
+              />
+              <BookingFormContactSection
+                contactEmailError={errorFor(fieldIds.contactEmail)}
+                contactEmailId={fieldIds.contactEmail}
+                contactNameError={errorFor(fieldIds.contactName)}
+                contactNameId={fieldIds.contactName}
+                invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
+                invoiceAddressId={fieldIds.invoiceAddress}
+              />
+              <BookingFormNeedsSection
+                furnitureError={errorFor(fieldIds.furniture)}
+                furnitureId={fieldIds.furniture}
+                selectedRoomCrescatId={
+                  hasTivoli ? 95 : (selectedRoomIds[0] ?? 0)
+                }
+              />
+              <BookingFormCateringBarSection />
+              <BookingPromotionSection />
+              <BookingFormTermsSection
+                acceptTermsError={errorFor(fieldIds.acceptTerms)}
+                acceptTermsId={fieldIds.acceptTerms}
+                cancellationTermsContent={cancellationTermsContent}
+                rentalTermsContent={rentalTermsContent}
+              />
 
-          {/* Honeypot */}
-          <input
-            aria-hidden="true"
-            autoComplete="off"
-            className="absolute opacity-0 pointer-events-none h-0 w-0"
-            id={honeypotId}
-            name="honeypot"
-            onChange={e => setHoneypot(e.target.value)}
-            tabIndex={-1}
-            type="text"
-            value={honeypot}
-          />
+              {/* Honeypot */}
+              <input
+                aria-hidden="true"
+                autoComplete="off"
+                className="absolute opacity-0 pointer-events-none h-0 w-0"
+                id={honeypotId}
+                name="honeypot"
+                onChange={e => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                type="text"
+                value={honeypot}
+              />
 
-          <section className="space-y-4 border-t-2 border-border pt-8">
-            {!slotWithinHours && values.startDate && (
-              <Alert className="max-w-3xl" variant="destructive">
-                <AlertTitle>Utenfor åpningstid</AlertTitle>
-                <AlertDescription>
-                  Valgt start- eller sluttid er utenfor husets åpningstider for
-                  denne dagen.
-                </AlertDescription>
-              </Alert>
-            )}
-            <Button
-              className="w-full sm:w-auto"
-              disabled={isSubmitting}
-              size="lg"
-              type="submit"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 aria-hidden className="animate-spin" />
-                  Sender inn...
-                </>
-              ) : (
-                <>
-                  <ArrowRight aria-hidden />
-                  Send bookingforespørsel
-                </>
-              )}
-            </Button>
-            {visibleErrors.length > 0 && (
-              <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
-            )}
-            {submitError && (
-              <Alert className="max-w-3xl" variant="destructive">
-                <X
-                  aria-hidden
-                  className="mt-0.5 size-4 shrink-0 text-destructive"
-                />
-                <AlertTitle>Det oppstod en feil</AlertTitle>
-                <AlertDescription>{String(submitError)}</AlertDescription>
-              </Alert>
-            )}
-          </section>
+              <section className="space-y-4 border-t-2 border-border pt-8">
+                {!slotWithinHours && values.startDate && (
+                  <Alert className="max-w-3xl" variant="destructive">
+                    <AlertTitle>Utenfor åpningstid</AlertTitle>
+                    <AlertDescription>
+                      Valgt start- eller sluttid er utenfor husets åpningstider
+                      for denne dagen.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <Button
+                  className="w-full sm:w-auto"
+                  disabled={isSubmitting}
+                  size="lg"
+                  type="submit"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 aria-hidden className="animate-spin" />
+                      Sender inn...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight aria-hidden />
+                      Send bookingforespørsel
+                    </>
+                  )}
+                </Button>
+                {visibleErrors.length > 0 && (
+                  <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+                )}
+                {submitError && (
+                  <Alert className="max-w-3xl" variant="destructive">
+                    <X
+                      aria-hidden
+                      className="mt-0.5 size-4 shrink-0 text-destructive"
+                    />
+                    <AlertTitle>Det oppstod en feil</AlertTitle>
+                    <AlertDescription>{String(submitError)}</AlertDescription>
+                  </Alert>
+                )}
+              </section>
+            </>
+          )}
         </form>
 
         <div className="space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
