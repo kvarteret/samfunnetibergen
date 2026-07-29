@@ -23,6 +23,7 @@ import { IntentLink } from "sanity/router"
 
 import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
+  applyFeaturedSelection,
   normalizedArrangementId,
   reorderFeaturedDocuments,
   selectFeaturedDocuments,
@@ -52,6 +53,8 @@ const FEATURED_DOCUMENTS_QUERY = `*[
     approvalStatus == "approved"
   ].dates[].startDate
 }`
+const ARRANGEMENT_DRAFT_IDS_QUERY =
+  '*[_type == "arrangement" && _id in path("drafts.**")]._id'
 
 type FeaturedDocument = FeaturedSelectionDocument & {
   approvalStatus: string
@@ -87,16 +90,25 @@ export function PromotedArrangementList({ today }: { today: string }) {
   const refreshRunner = useRef(createCoalescedAsyncRunner())
 
   const loadDocuments = useCallback(async () => {
-    const rawDocuments = await client.fetch<RawFeaturedDocument[]>(
-      FEATURED_DOCUMENTS_QUERY,
-      { today },
-      { perspective: "previewDrafts" },
-    )
+    const [rawDocuments, draftIds] = await Promise.all([
+      client.fetch<RawFeaturedDocument[]>(
+        FEATURED_DOCUMENTS_QUERY,
+        { today },
+        { perspective: "drafts" },
+      ),
+      client.fetch<string[]>(
+        ARRANGEMENT_DRAFT_IDS_QUERY,
+        {},
+        { perspective: "raw" },
+      ),
+    ])
+    const draftIdSet = new Set(draftIds)
     const byId = new Map<string, FeaturedDocument>()
     for (const document of rawDocuments) {
       const id = normalizedArrangementId(document._id)
       const current = byId.get(id)
-      const documentIds = [...(current?.documentIds ?? []), document._id]
+      const draftId = `drafts.${id}`
+      const documentIds = [id, ...(draftIdSet.has(draftId) ? [draftId] : [])]
       const nextDate = [
         ...(document.dates ?? []).map(date => date.startDate),
         ...(document.childDates ?? []),
@@ -115,8 +127,6 @@ export function PromotedArrangementList({ today }: { today: string }) {
       }
       if (!current || document._id.startsWith("drafts.")) {
         byId.set(id, { ...documentFields, documentIds, nextDate })
-      } else {
-        current.documentIds = documentIds
       }
     }
     return [...byId.values()]
@@ -162,7 +172,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
           }
         }
       }
-      await transaction.commit({ visibility: "sync" })
+      await transaction.commit({ visibility: "async" })
     },
     [client],
   )
@@ -175,7 +185,10 @@ export function PromotedArrangementList({ today }: { today: string }) {
     }
     if (selectionNeedsNormalization(nextDocuments, nextSelection)) {
       await persistSelection(nextDocuments, nextSelection)
-      const normalizedDocuments = await loadDocuments()
+      const normalizedDocuments = applyFeaturedSelection(
+        nextDocuments,
+        nextSelection,
+      )
       setDocuments(normalizedDocuments)
       setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
     } else {
@@ -190,31 +203,25 @@ export function PromotedArrangementList({ today }: { today: string }) {
   }, [performRefresh])
 
   useEffect(() => {
-    const requestRefresh = () => {
-      void refresh().catch(() => {
-        setLoading(false)
-      })
-    }
-    const initialRefresh = window.setTimeout(requestRefresh, 0)
-    const subscription = client
-      .listen(
-        `*[_type == "arrangement" && (${PROMOTABLE_ARRANGEMENTS_FILTER})]`,
-        { today },
-        { includeResult: false, visibility: "query" },
-      )
-      .subscribe(requestRefresh)
+    const initialRefresh = window.setTimeout(() => {
+      void refresh().catch(() => setLoading(false))
+    }, 0)
     return () => {
       window.clearTimeout(initialRefresh)
-      subscription.unsubscribe()
     }
-  }, [client, refresh, today])
+  }, [refresh])
 
   const saveSelection = async (nextSelection: FeaturedDocument[]) => {
     setSaving(true)
     setSelectedDocuments(nextSelection)
     try {
       await persistSelection(documents, nextSelection)
-      await refresh()
+      const normalizedDocuments = applyFeaturedSelection(
+        documents,
+        nextSelection,
+      )
+      setDocuments(normalizedDocuments)
+      setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
     } catch {
       await refresh()
       toast.push({

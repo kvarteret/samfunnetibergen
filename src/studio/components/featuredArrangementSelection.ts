@@ -55,6 +55,38 @@ export function reorderFeaturedDocuments<T>(
   return reordered
 }
 
+export function applyFeaturedSelection<T extends FeaturedSelectionDocument>(
+  documents: T[],
+  selectedDocuments: T[],
+): T[] {
+  const selectedIndexById = new Map(
+    selectedDocuments.map((document, index) => [
+      normalizedArrangementId(document._id),
+      index,
+    ]),
+  )
+
+  return documents.map(document => {
+    const selectedIndex = selectedIndexById.get(
+      normalizedArrangementId(document._id),
+    )
+    if (selectedIndex === undefined) {
+      return {
+        ...document,
+        isPromoted: false,
+        promotedOrder: undefined,
+        promotedPlacement: "pool",
+      }
+    }
+    return {
+      ...document,
+      isPromoted: true,
+      promotedOrder: selectedIndex,
+      promotedPlacement: selectedIndex < 3 ? "top" : "pool",
+    }
+  })
+}
+
 export function selectionNeedsNormalization(
   documents: FeaturedSelectionDocument[],
   selectedDocuments: FeaturedSelectionDocument[],

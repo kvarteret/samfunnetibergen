@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  applyFeaturedSelection,
   reorderFeaturedDocuments,
   selectFeaturedDocuments,
   selectionNeedsNormalization,
@@ -106,5 +107,46 @@ describe("featured arrangement selection", () => {
         documents,
       ),
     ).toBe(true)
+  })
+
+  it("applies visible and queued positions without waiting for a refetch", () => {
+    const documents = ["a", "b", "c", "d", "e"].map(_id => ({
+      _id,
+      isPromoted: false,
+    }))
+    const selected = [documents[2], documents[0], documents[4], documents[3]]
+
+    expect(applyFeaturedSelection(documents, selected)).toEqual([
+      {
+        _id: "a",
+        isPromoted: true,
+        promotedOrder: 1,
+        promotedPlacement: "top",
+      },
+      {
+        _id: "b",
+        isPromoted: false,
+        promotedOrder: undefined,
+        promotedPlacement: "pool",
+      },
+      {
+        _id: "c",
+        isPromoted: true,
+        promotedOrder: 0,
+        promotedPlacement: "top",
+      },
+      {
+        _id: "d",
+        isPromoted: true,
+        promotedOrder: 3,
+        promotedPlacement: "pool",
+      },
+      {
+        _id: "e",
+        isPromoted: true,
+        promotedOrder: 2,
+        promotedPlacement: "top",
+      },
+    ])
   })
 })

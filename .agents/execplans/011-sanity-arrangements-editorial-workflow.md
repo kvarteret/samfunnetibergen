@@ -111,6 +111,10 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29) Rettet køens samtidighetsfeil: liveoppdateringer
   serialiseres og slås sammen, søkepanelet gjør ikke lenger egne
   mutasjonsutløste refetch, og hver kø-rad er én stabil draggable-enhet.
+- [x] (2026-07-29) Fullførte nettleser-E2E av flytting, sletting med automatisk
+  opprykk og søkbart gjenopptak. Fjernet den siste stale live-oppdateringen,
+  gjorde lagring ikke-blokkerende og synkroniserte alltid både publisert
+  dokument og eksisterende utkast.
 
 ## Surprises & Discoveries
 
@@ -223,6 +227,28 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `data/mutate/production`-feil med kallstakken
   `persistSelection` → `refresh`. Søkepanelets kandidatgrunnlag avhenger ikke
   av fremhevingsfeltene og trenger derfor ingen egen live-lytter.
+
+- Observation: `visibility: "sync"` kunne bli stående uten svar i den
+  innloggede Studio-klienten. Da ble alle rader permanent deaktivert selv om
+  ingen mutasjon nådde datasettet.
+  Evidence: Nettleser-E2E aksepterte droppet, men knappene forble deaktivert i
+  flere minutter og publisert `promotedOrder` var uendret. Med
+  `visibility: "async"` og lokal normalisering blir UI ferdig umiddelbart og
+  rå datasettkontroll viste den nye rekkefølgen.
+
+- Observation: En live-refresh umiddelbart etter asynkron lagring kunne lese
+  den gamle søkeindeksen og overskrive den nettopp lagrede rekkefølgen.
+  Evidence: `_updatedAt` ble oppdatert på alle fire dokumentene, men feltene
+  endte tilbake i gammel rekkefølge. Uten den redundante live-lytteren forble
+  både UI og rådata i den nye rekkefølgen.
+
+- Observation: `drafts`-perspektivet skjuler at et arrangement kan ha både
+  publisert dokument og et separat `drafts.`-dokument med gamle
+  fremhevingsfelt.
+  Evidence: Sletting av BSI oppdaterte først bare publisert dokument; rå
+  API-kontroll viste fortsatt `isPromoted: true` på utkastet, som gjeninnførte
+  raden ved neste last. En separat raw-spørring etter draft-ID-er gjør at begge
+  kopier nå patches i samme transaksjon.
 
 - Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
   dra-og-slipp utilstrekkelig.
@@ -421,6 +447,22 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   observerer. Serialisering gjør skrive–lese-syklusen deterministisk, mens
   fjerning av den overflødige kandidatlytteren hindrer refetch-stormen uten å
   gjøre søkeresultatene utdaterte i den aktuelle brukerflyten.
+  Date/Author: 2026-07-29, Codex.
+
+- Decision: Fremhevet-panelet har ingen kontinuerlig dokumentlytter. Det
+  henter ved åpning og etter eksplisitt tillegg; flytting og sletting bruker
+  transaksjonsresultatet til å oppdatere lokal tilstand.
+  Rationale: Panelet er en eksplisitt redaksjonell kø, ikke en generell
+  sanntidsmonitor. Dette forhindrer at et stale query-resultat reverserer en
+  nylig mutasjon, mens publikumssiden fortsatt beregner aktive toppvalg per
+  request.
+  Date/Author: 2026-07-29, Codex.
+
+- Decision: Bruk asynkron mutation visibility for køendringer og hent
+  eksisterende draft-ID-er separat med raw-perspektiv. Patch publisert ID og
+  draft-ID sammen når begge finnes.
+  Rationale: Studio skal ikke blokkere på søkeindeksen, og et utkast må aldri
+  kunne gjenopplive en slettet eller eldre fremhevingsrekkefølge.
   Date/Author: 2026-07-29, Codex.
 
 ## Outcomes & Retrospective
@@ -981,3 +1023,8 @@ Plan revision note (2026-07-29): Oppfølgingsfeilen ved flytting og sletting er
 sporet til overlappende normaliseringsrefresh og en redundant live-lytter i
 søkepanelet. Refresh er nå serialisert og koalesert, og draggable-raden
 omslutter både kømarkør og kort i én målt enhet.
+
+Plan revision note (2026-07-29): Full E2E avdekket at synkron mutation
+visibility, stale listelytting og separate draft-felt var tre uavhengige
+årsaker til heng og tilbakerulling. Panelet bruker nå asynkron lagring med
+lokal normalisering, ingen live-lyttere og eksplisitt draft-/published-patching.
