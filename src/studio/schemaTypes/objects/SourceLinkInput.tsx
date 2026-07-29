@@ -33,7 +33,6 @@ type DocumentOption = BaseAutocompleteOption & {
 
 const documentTypes = [
   "homePage",
-  "eventsPage",
   "roomsPage",
   "groupsPage",
   "sponsorsPage",

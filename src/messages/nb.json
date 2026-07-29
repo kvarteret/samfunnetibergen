@@ -37,6 +37,7 @@
     "statusPostponed": "Utsatt"
   },
   "EventsPage": {
+    "title": "Arrangementer",
     "back": "Tilbake til forsiden",
     "empty": "Ingen kommende arrangementer akkurat nå.",
     "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",

@@ -2,24 +2,12 @@ import { icons } from "@sanity/icons"
 import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
+import { ArrangementsPane } from "./components/ArrangementBrowser"
+import { RequestCountIcon } from "./components/RequestCountIcon"
+
 export { singletonTypeNames } from "./documentTypes"
 
 const STRUCTURE_API_VERSION = "2025-02-19"
-// A materialized series runs dry once its last generated child passes; flag
-// series whose newest child is inside this lead time so editors regenerate.
-const SERIES_REGEN_LEAD_WEEKS = 8
-
-function seriesRegenHorizon(): string {
-  const horizon = new Date()
-  horizon.setDate(horizon.getDate() + SERIES_REGEN_LEAD_WEEKS * 7)
-  return horizon.toISOString().split("T")[0]!
-}
-
-// ADR 006: browse lists show author-facing documents only. Generated
-// occurrences (seriesInstance / festivalSession) are reached through their
-// parent's "Instanser" drill-in, so they never spam the flat lists.
-const BROWSE_EVENT_KINDS = `coalesce(eventKind, "single") in ["single", "seriesParent", "festivalParent"]`
-const TODAY = 'string::split(now(), "T")[0]'
 
 const SERVICE_PAGE_SLUGS = ["catering", "silent-disco"]
 const POLICY_PAGE_SLUGS = [
@@ -89,57 +77,6 @@ function arrangementList(S: StructureBuilder, opts: ArrangementListOptions) {
     .child(list)
 }
 
-// A parent (series/festival) opens into its own editor plus a date-ordered
-// list of its generated occurrences, so an editor edits or cancels one
-// occurrence from inside the parent rather than hunting a flat list (ADR 006).
-function parentWithChildren(
-  S: StructureBuilder,
-  opts: { id: string; title: string; icon: React.ComponentType; kind: string },
-) {
-  return S.listItem()
-    .id(opts.id)
-    .title(opts.title)
-    .icon(opts.icon)
-    .child(
-      S.documentTypeList("arrangement")
-        .id(`${opts.id}-parents`)
-        .title(opts.title)
-        .filter(`_type == "arrangement" && eventKind == "${opts.kind}"`)
-        .defaultOrdering([{ field: "title", direction: "asc" }])
-        .child(parentId =>
-          S.list()
-            .id(`${opts.id}-parent`)
-            .title(opts.title)
-            .items([
-              S.listItem()
-                .id("parent-editor")
-                .title("Rediger")
-                .icon(icons.edit)
-                .child(
-                  S.document().documentId(parentId).schemaType("arrangement"),
-                ),
-              S.listItem()
-                .id("parent-instances")
-                .title("Instanser")
-                .icon(icons.calendar)
-                .child(
-                  S.documentList()
-                    .apiVersion(STRUCTURE_API_VERSION)
-                    .id("parent-instances-list")
-                    .title("Instanser")
-                    .filter(
-                      '_type == "arrangement" && parentEvent._ref == $parentId',
-                    )
-                    .params({ parentId })
-                    .defaultOrdering([
-                      { field: "dates[0].startDate", direction: "asc" },
-                    ]),
-                ),
-            ]),
-        ),
-    )
-}
-
 export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Samfunnet i Bergen")
@@ -151,138 +88,45 @@ export const structure: StructureResolver = (S, context) =>
           S.list()
             .title("Arrangementer")
             .items([
-              singletonListItem(
-                S,
-                "eventsPage",
-                "Innhold på arrangementsiden",
-                icons.document,
-              ),
-
-              // ── Trenger handling ──
-              S.divider(),
-              arrangementList(S, {
-                id: "arrangement-pending",
-                title: "Venter på godkjenning",
-                icon: icons.clock,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "pending"`,
-                order: { field: "dates[0].startDate", direction: "asc" },
-              }),
-              arrangementList(S, {
-                id: "arrangement-needs-regeneration",
-                title: "Serier som må forlenges",
-                icon: icons.reset,
-                filter: `eventKind == "seriesParent" && count(*[_type == "arrangement" && parentEvent._ref == ^._id && dates[0].startDate > $horizon]) == 0`,
-                params: { horizon: seriesRegenHorizon() },
-                order: { field: "title", direction: "asc" },
-              }),
-              arrangementList(S, {
-                id: "arrangement-cancelled-postponed",
-                title: "Avlyst eller utsatt",
-                icon: icons["warning-outline"],
-                filter: `${BROWSE_EVENT_KINDS} && eventStatus in ["cancelled", "postponed"]`,
-                order: { field: "dates[0].startDate", direction: "asc" },
-              }),
-
-              // ── Innhold ──
-              S.divider(),
-              arrangementList(S, {
-                id: "arrangement-singles",
-                title: "Enkeltarrangementer",
-                icon: icons.calendar,
-                filter: `coalesce(eventKind, "single") == "single"`,
-                order: { field: "dates[0].startDate", direction: "desc" },
-              }),
-              parentWithChildren(S, {
-                id: "arrangement-series",
-                title: "Serier",
-                icon: icons.sync,
-                kind: "seriesParent",
-              }),
-              parentWithChildren(S, {
-                id: "arrangement-festivals",
-                title: "Festivaler",
-                icon: icons.star,
-                kind: "festivalParent",
-              }),
-
-              // ── Visninger ──
-              S.divider(),
-              arrangementList(S, {
-                id: "arrangement-upcoming",
-                title: "Kommende",
-                icon: icons.calendar,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) > 0`,
-                order: { field: "dates[0].startDate", direction: "asc" },
-              }),
-              arrangementList(S, {
-                id: "arrangement-promoted",
-                title: "Promotert på forsiden",
-                icon: icons.rocket,
-                filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && isPromoted == true`,
-                order: { field: "dates[0].startDate", direction: "asc" },
-              }),
-              // Rarely opened states, tucked into one submenu to keep the
-              // top level scannable.
               S.listItem()
-                .id("arrangement-archive")
-                .title("Arkiv og skjulte")
-                .icon(icons.archive)
+                .id("arrangement-requests")
+                .title("Requests")
+                .icon(RequestCountIcon)
                 .child(
                   S.list()
-                    .id("arrangement-archive-list")
-                    .title("Arkiv og skjulte")
+                    .id("arrangement-request-lists")
+                    .title("Requests")
                     .items([
                       arrangementList(S, {
-                        id: "arrangement-past",
-                        title: "Tidligere",
-                        icon: icons.calendar,
-                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "approved" && count(dates[startDate >= ${TODAY}]) == 0`,
+                        id: "arrangement-pending",
+                        title: "Requests",
+                        icon: RequestCountIcon,
+                        filter:
+                          'defined(submittedByEmail) && coalesce(approvalStatus, "pending") == "pending"',
                         order: {
                           field: "dates[0].startDate",
-                          direction: "desc",
+                          direction: "asc",
                         },
                       }),
                       arrangementList(S, {
-                        id: "arrangement-paused",
-                        title: "Satt på pause",
-                        icon: icons.pause,
-                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "paused"`,
-                      }),
-                      arrangementList(S, {
-                        id: "arrangement-rejected",
+                        id: "arrangement-rejected-requests",
                         title: "Avvist",
                         icon: icons["warning-outline"],
-                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "rejected"`,
-                      }),
-                      arrangementList(S, {
-                        id: "arrangement-archived",
-                        title: "Arkivert",
-                        icon: icons.document,
-                        filter: `${BROWSE_EVENT_KINDS} && approvalStatus == "archived"`,
+                        filter:
+                          'defined(submittedByEmail) && approvalStatus == "rejected"',
                       }),
                     ]),
                 ),
-              // Escape hatch: everything, including generated instances.
-              S.documentTypeListItem("arrangement")
-                .title("Absolutt alle (inkl. instanser)")
-                .icon(icons.documents),
-              S.divider(),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "eventTaxonomyGroup",
-                id: "orderable-event-taxonomy-group",
-                title: "Kategorier",
-                icon: icons.tag,
-              }),
-              orderableDocumentListDeskItem({
-                S,
-                context,
-                type: "eventType",
-                id: "orderable-event-type-all",
-                title: "Arrangementtyper",
-                icon: icons.tag,
-              }),
+              S.listItem()
+                .id("arrangement-browse")
+                .title("Arrangementer")
+                .icon(icons.calendar)
+                .child(
+                  S.component()
+                    .id("arrangement-browser-pane")
+                    .title("Arrangementer")
+                    .component(ArrangementsPane),
+                ),
             ]),
         ),
 
@@ -403,12 +247,30 @@ export const structure: StructureResolver = (S, context) =>
         ),
 
       S.listItem()
-        .title("App og internt innhold")
-        .icon(icons["mobile-device"])
+        .id("settings")
+        .title("Innstillinger")
+        .icon(icons.cog)
         .child(
           S.list()
-            .title("App og internt innhold")
+            .id("settings-list")
+            .title("Innstillinger")
             .items([
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventTaxonomyGroup",
+                id: "orderable-event-taxonomy-group",
+                title: "Kategorier",
+                icon: icons.tag,
+              }),
+              orderableDocumentListDeskItem({
+                S,
+                context,
+                type: "eventType",
+                id: "orderable-event-type-all",
+                title: "Arrangementtyper",
+                icon: icons.tag,
+              }),
               S.documentTypeListItem("internbevisBenefit")
                 .title("Frivilligfordeler")
                 .icon(icons.star),

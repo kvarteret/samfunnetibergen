@@ -16,10 +16,6 @@ export {
 export const resolve: PresentationPluginOptions["resolve"] = {
   mainDocuments: defineDocuments([
     {
-      route: "/:locale/arrangementer",
-      filter: `_id == "eventsPage"`,
-    },
-    {
       route: "/:locale/arrangementer/:slug",
       filter: `_type == "arrangement" && slug.current == $slug`,
     },
@@ -115,15 +111,6 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       resolve: () => ({
         locations: [
           { title: "Sponsorer", href: `/${defaultLocale}/sponsorer` },
-        ],
-      }),
-    }),
-
-    eventsPage: defineLocations({
-      select: {},
-      resolve: () => ({
-        locations: [
-          { title: "Arrangementer", href: `/${defaultLocale}/arrangementer` },
         ],
       }),
     }),

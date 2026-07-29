@@ -18,24 +18,11 @@ export const eventType = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
-      name: "slug",
-      title: "Slug",
-      type: "slug",
-      options: { source: "name" },
-      validation: rule => rule.required(),
-    }),
-    defineField({
       name: "taxonomyGroup",
       title: "Kategori",
       type: "reference",
       to: [{ type: "eventTaxonomyGroup" }],
       validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
-      rows: 2,
     }),
     defineField({
       name: "isActive",

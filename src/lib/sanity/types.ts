@@ -2,7 +2,6 @@ export type {
   EventDetail,
   EventGroup,
   EventRoom,
-  EventsPageContent,
   EventType,
   GroupsPageContent,
   HomePageContent,
@@ -22,7 +21,6 @@ export type {
 } from "./fetch"
 export type {
   Arrangement,
-  EventsPage,
   Footer,
   GroupsPage,
   HomePage,

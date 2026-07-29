@@ -2,13 +2,6 @@ import { defineQuery } from "next-sanity"
 
 import { portableTextProjection } from "../fragments/portableText"
 
-export const eventsPageContentNbQuery =
-  defineQuery(`*[_type == "eventsPage" && _id == "eventsPage"][0] {
-    "eyebrow": coalesce(eyebrow, eyebrowNb),
-    "title": coalesce(title, titleNb, "[Mangler tittel]"),
-    "description": coalesce(description, descriptionNb)
-}`)
-
 export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
@@ -20,11 +13,9 @@ export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
     _id,
     "name": coalesce(name, ""),
-    "slug": coalesce(slug.current, ""),
     "taxonomyGroup": taxonomyGroup-> {
         _id,
-        "name": coalesce(name, ""),
-        "slug": coalesce(slug.current, "")
+        "name": coalesce(name, "")
     }
 }`)
 
@@ -53,8 +44,7 @@ const inheritableFieldsProjection = `
     "eventType": eventType-> {
         _id,
         "name": coalesce(name, ""),
-        "slug": coalesce(slug.current, ""),
-        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") }
+        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }
     },
     isFree,
     priceOrdinar,
@@ -81,13 +71,27 @@ const eventProjection = `{
     "approvalStatus": coalesce(approvalStatus, "pending"),
     "isPromoted": coalesce(isPromoted, false),
     "isRecurring": coalesce(isRecurring, false),
+    "useFestivalImage": coalesce(useFestivalImage, true),
     rrule,
-    "dates": coalesce(dates[] | order(startDate asc) {
+    "dates": coalesce(select(
+      eventKind == "festivalParent" => *[
+        _type == "arrangement" &&
+        eventKind == "festivalSession" &&
+        parentEvent._ref == ^._id &&
+        approvalStatus == "approved"
+      ].dates[] | order(startDate asc, startTime asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
         endTime
-    }, []),
+      },
+      dates[] | order(startDate asc) {
+        _key,
+        "startDate": coalesce(startDate, ""),
+        startTime,
+        endTime
+      }
+    ), []),
     "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },
     roomText,
     ${inheritableFieldsProjection}
@@ -109,7 +113,17 @@ export const promotedParentEventsQuery = defineQuery(`
         && approvalStatus == "approved"
         && isPromoted == true
         && ${PARENT_EVENT_KINDS}
-        && count(dates[startDate >= $today]) > 0
+        && select(
+          eventKind == "festivalParent" =>
+            count(*[
+              _type == "arrangement" &&
+              eventKind == "festivalSession" &&
+              parentEvent._ref == ^._id &&
+              approvalStatus == "approved" &&
+              count(dates[startDate >= $today]) > 0
+            ]) > 0,
+          count(dates[startDate >= $today]) > 0
+        )
     ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
 
 export const publishedEventSlugsQuery = defineQuery(`

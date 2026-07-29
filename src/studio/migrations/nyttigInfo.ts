@@ -134,18 +134,6 @@ type SourceLink = {
   externalUrl?: string
 }
 
-const internalPageLink = (
-  key: string,
-  label: string,
-  ref: string,
-): SourceLink => ({
-  _type: "sourceLink",
-  _key: key,
-  label,
-  linkType: "internalPage",
-  internalPage: { _type: "reference", _ref: ref },
-})
-
 const internalPathLink = (
   key: string,
   label: string,
@@ -175,7 +163,6 @@ function sourceLinkHref(link: SourceLink): string | null {
 
   const singletonPaths: Record<string, string> = {
     homePage: "/",
-    eventsPage: "/arrangementer",
     roomsPage: "/rom",
     groupsPage: "/grupper",
     sponsorsPage: "/sponsorer",
@@ -388,7 +375,13 @@ export function buildUsefulInfoPageDocument(
         [
           "Se hva som skjer på huset og finn oversikt over kommende arrangementer under Arrangementer. Billetter til arrangementene kjøpes direkte der.",
         ],
-        [internalPageLink("billetter-lenke", "Arrangementer", "eventsPage")],
+        [
+          internalPathLink(
+            "billetter-lenke",
+            "Arrangementer",
+            "/arrangementer",
+          ),
+        ],
       ),
       editorialSection(
         "vergeordningen",

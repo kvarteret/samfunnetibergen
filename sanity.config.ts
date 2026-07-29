@@ -5,12 +5,9 @@ import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/lib/sanity/env"
-import {
-  ApproveAction,
-  PauseAction,
-  RejectAction,
-  ResumeAction,
-} from "./src/studio/actions/approvalActions"
+import { arrangementApprovalActions } from "./src/studio/actions/approvalActions"
+import { CreateFestivalDayAction } from "./src/studio/actions/createFestivalDayAction"
+import { GenerateSeriesDaysAction } from "./src/studio/actions/generateSeriesDaysAction"
 import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
   resolve,
@@ -19,6 +16,7 @@ import {
 } from "./src/studio/presentation/resolve"
 import { schemaTypes } from "./src/studio/schemaTypes"
 import { structure } from "./src/studio/structure"
+import { festivalDayInitialValue } from "./src/studio/templates/arrangementTemplates"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -50,7 +48,9 @@ export default defineConfig({
         return prev
       }
       return prev.filter(
-        templateItem => !singletonTypes.has(templateItem.templateId),
+        templateItem =>
+          !singletonTypes.has(templateItem.templateId) &&
+          templateItem.templateId !== "festival-day",
       )
     },
     actions: (prev, { schemaType }) => {
@@ -58,7 +58,12 @@ export default defineConfig({
         const core = prev.filter(
           action => !["duplicate", "unpublish"].includes(action.action ?? ""),
         )
-        return [ApproveAction, RejectAction, PauseAction, ResumeAction, ...core]
+        return [
+          ...arrangementApprovalActions,
+          CreateFestivalDayAction,
+          GenerateSeriesDaysAction,
+          ...core,
+        ]
       }
       if (!singletonTypes.has(schemaType)) {
         return prev
@@ -73,5 +78,39 @@ export default defineConfig({
   },
   schema: {
     types: schemaTypes,
+    templates: previous => [
+      ...previous.filter(template => template.schemaType !== "arrangement"),
+      {
+        id: "arrangement",
+        title: "Nytt arrangement",
+        schemaType: "arrangement",
+        value: {
+          eventKind: "single",
+          approvalStatus: "approved",
+          eventStatus: "scheduled",
+          isRecurring: false,
+          isPromoted: false,
+        },
+      },
+      {
+        id: "festival",
+        title: "Ny festival",
+        schemaType: "arrangement",
+        value: {
+          eventKind: "festivalParent",
+          approvalStatus: "approved",
+          eventStatus: "scheduled",
+          isPromoted: false,
+        },
+      },
+      {
+        id: "festival-day",
+        title: "Ny festivaldag",
+        schemaType: "arrangement",
+        parameters: [{ name: "parentId", title: "Festival", type: "string" }],
+        value: ({ parentId }: { parentId: string }) =>
+          festivalDayInitialValue(parentId),
+      },
+    ],
   },
 })
