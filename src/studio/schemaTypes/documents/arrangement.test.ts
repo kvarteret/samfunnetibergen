@@ -58,10 +58,13 @@ describe("editorial arrangement schema", () => {
     expect(arrangement.orderings?.[0]?.name).toBe("ordered")
   })
 
-  it("explains the first and last dates of a recurring series", () => {
+  it("explains the seed date and program-period generation", () => {
     const dates = arrangement.fields?.find(field => field.name === "dates")
     expect(dates?.description).toContain("seriens første dag")
-    expect(dates?.description).toContain("Siste dag styres under Gjentakelse")
+    expect(dates?.description).toContain("Datoen forankrer mønsteret")
+    expect(dates?.description).toContain(
+      "Programperioden velges når dagene opprettes",
+    )
   })
 
   it("removes retired category and event type fields", () => {

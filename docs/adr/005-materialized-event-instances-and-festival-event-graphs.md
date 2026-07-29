@@ -137,9 +137,14 @@ as for any arrangement.
 Bulk generation is an editor/admin workflow:
 
 - a recurrence rule on a `seriesParent` expands from the seed date into child
-  `seriesInstance` documents up to **one semester, capped at six months** from
-  the seed date;
-- generation is a preview-then-confirm flow in Studio (or an admin script):
+  `seriesInstance` documents for one editor-selected program semester at a
+  time. `VYY` covers January 3 through May 29 and `HYY` covers August 17
+  through December 15. The seed anchors the pattern, the rule stores cadence,
+  and the selected semester is the sole materialization boundary. Legacy
+  `COUNT` and `UNTIL` options are ignored during generation;
+- Studio places semester generation beside the recurrence controls in the
+  arrangement's primary date view. It first asks the editor to choose a
+  semester such as `V26` or `H26`, then uses a preview-and-confirm flow:
   the editor sees which occurrences will be created, which already exist, and
   which existing children no longer match the rule, before anything is
   written;
@@ -164,14 +169,13 @@ Bulk generation is an editor/admin workflow:
   generation would produce (only generated fields set, `eventStatus:
   scheduled`), not by revision heuristics.
 
-**Horizon extension:** materialized series run dry when the six-month horizon
-passes. The Studio desk structure includes a "series needing regeneration"
-queue listing `seriesParent` documents whose last generated child date is less
-than a configurable lead time (default eight weeks) away. Regeneration remains
-a manual editor action in the first iteration; a scheduled Sanity Function that
-auto-extends approved series (creating children as `approved`, per the rule
-above) is a planned follow-up and fits the same idempotent generation code
-path.
+**Semester extension:** materialized series run dry when their last selected
+semester passes. The Studio desk structure includes a "series needing
+regeneration" queue listing `seriesParent` documents whose last generated child
+date is less than a configurable lead time (default eight weeks) away. An
+editor extends a series from the semester control beside its recurrence pattern
+and chooses the next semester. Each preview compares only children inside that
+semester, so valid days in other semesters are never presented as obsolete.
 
 ### Parent status semantics
 
@@ -331,8 +335,8 @@ edited or cancelled occurrences are never destroyed by a rule tweak.
 Strong parent references make parent deletion deliberate: children must be
 removed or detached first.
 
-Series must be regenerated as the horizon passes; until the scheduled-function
-follow-up ships, this depends on the Studio regeneration queue being checked.
+Editors must select and generate each new semester; this depends on the Studio
+regeneration queue being checked.
 
 ## Test Plan
 
@@ -340,7 +344,10 @@ Unit test recurrence generation:
 
 - weekly, biweekly, and monthly rules;
 - Europe/Oslo timezone safety across both DST transitions;
-- the six-month cap;
+- the `VYY` and `HYY` program boundaries, including expansion of a rule into a
+  later semester while preserving its original seed alignment;
+- legacy `COUNT` and `UNTIL` options being ignored so they cannot invisibly
+  shorten the selected semester;
 - deterministic `_id` and slug derivation, including two occurrences on the
   same date with different start times;
 - idempotency: rerunning generation creates nothing new and modifies nothing;
@@ -403,5 +410,5 @@ self-service publishing feature.
 Existing single events continue to behave as single arrangements, resolving to
 `eventKind: single` via the query contract until backfilled.
 
-Automatic horizon extension via a scheduled Sanity Function is a follow-up,
-not part of the initial implementation.
+Semester generation is an explicit editor action. Automatic semester creation
+is not part of the implementation.

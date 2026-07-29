@@ -8,7 +8,6 @@ import { ToggleGroup } from "@/components/ui/toggle-group"
 import {
   buildRecurrence,
   initialRecurrenceInput,
-  type RecurrenceEndType,
   type RecurrenceFrequency,
   type RecurrenceInput,
 } from "../domain/recurrence"
@@ -39,12 +38,6 @@ const weekdayOptions: WeekdayOption[] = [
   { label: "Fr", value: RRule.FR },
   { label: "Lø", value: RRule.SA },
   { label: "Sø", value: RRule.SU },
-]
-
-const endTypeOptions: Array<{ value: RecurrenceEndType; label: string }> = [
-  { value: "count", label: "Etter antall gjentagelser" },
-  { value: "until", label: "På en bestemt dato" },
-  { value: "never", label: "Aldri" },
 ]
 
 export function EventFormRecurrenceBuilder({
@@ -94,14 +87,9 @@ export function EventFormRecurrenceBuilder({
           />
         </fieldset>
       )}
-      <RecurrenceEndField
-        count={input.count}
-        endType={input.endType}
-        onCountChange={count => updateInput({ count })}
-        onEndTypeChange={endType => updateInput({ endType })}
-        onUntilDateChange={untilDate => updateInput({ untilDate })}
-        untilDate={input.untilDate}
-      />
+      <p className="text-sm text-foreground-muted">
+        Serien opprettes én programperiode om gangen av redaksjonen.
+      </p>
       <RecurrencePreview preview={recurrence?.preview} />{" "}
     </div>
   )
@@ -154,72 +142,6 @@ function getFrequencyUnitLabel(frequency: RecurrenceFrequency): string {
   }
 
   return "uke"
-}
-
-interface RecurrenceEndFieldProps {
-  count: number
-  endType: RecurrenceEndType
-  onCountChange: (count: number) => void
-  onEndTypeChange: (endType: RecurrenceEndType) => void
-  onUntilDateChange: (untilDate: string) => void
-  untilDate: string
-}
-
-function RecurrenceEndField({
-  count,
-  endType,
-  onCountChange,
-  onEndTypeChange,
-  onUntilDateChange,
-  untilDate,
-}: RecurrenceEndFieldProps) {
-  return (
-    <fieldset className="space-y-3">
-      <legend className=" text-foreground-muted">Avsluttes</legend>
-      <div className="space-y-2">
-        {endTypeOptions.map(option => (
-          <label
-            className="flex cursor-pointer items-center gap-3"
-            key={option.value}
-          >
-            <input
-              checked={endType === option.value}
-              className="accent-primary"
-              name="endType"
-              onChange={() => onEndTypeChange(option.value)}
-              type="radio"
-              value={option.value}
-            />
-            <span className=" text-foreground">{option.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {endType === "count" && (
-        <div className="flex items-center gap-2 pl-6 text-foreground-muted">
-          <NumberField
-            className="w-32"
-            max={365}
-            min={1}
-            onValueChange={value => onCountChange(value ?? 1)}
-            value={count}
-          />
-          <span>ganger</span>
-        </div>
-      )}
-
-      {endType === "until" && (
-        <div className="pl-6">
-          <input
-            className="border-2 border-border bg-background px-3 py-1.5 font-heading text-foreground focus-brutal"
-            onChange={event => onUntilDateChange(event.target.value)}
-            type="date"
-            value={untilDate}
-          />
-        </div>
-      )}
-    </fieldset>
-  )
 }
 
 interface RecurrencePreviewProps {

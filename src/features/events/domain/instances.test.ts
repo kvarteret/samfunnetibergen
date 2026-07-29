@@ -4,12 +4,15 @@ import {
   buildInstanceDocument,
   diffInstances,
   type ExistingInstance,
-  expandOccurrences,
+  expandOccurrencesInRange,
   type GenerationParent,
   instanceIdFor,
   instanceSlugFor,
   occurrenceToken,
   publishedIdOf,
+  semesterForCode,
+  semesterForDate,
+  semesterWindowsAround,
 } from "./instances"
 
 const parent: GenerationParent = {
@@ -21,12 +24,15 @@ const parent: GenerationParent = {
 const seed = { startDate: "2026-08-03", startTime: "19:00", endTime: "22:00" }
 
 describe("expandOccurrences", () => {
-  test("expands a weekly rule with COUNT and copies seed times", () => {
+  test("expands a weekly rule inside a range and copies seed times", () => {
     // Arrange: 2026-08-03 is a Monday
-    const rule = "FREQ=WEEKLY;BYDAY=MO;COUNT=4"
+    const rule = "FREQ=WEEKLY;BYDAY=MO"
 
     // Act
-    const occurrences = expandOccurrences(rule, seed)
+    const occurrences = expandOccurrencesInRange(rule, seed, {
+      startDate: "2026-08-03",
+      endDate: "2026-08-24",
+    })
 
     // Assert
     expect(occurrences.map(o => o.startDate)).toEqual([
@@ -43,9 +49,10 @@ describe("expandOccurrences", () => {
   })
 
   test("expands biweekly and monthly rules", () => {
-    const biweekly = expandOccurrences(
-      "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;COUNT=3",
+    const biweekly = expandOccurrencesInRange(
+      "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO",
       seed,
+      { startDate: "2026-08-03", endDate: "2026-08-31" },
     )
     expect(biweekly.map(o => o.startDate)).toEqual([
       "2026-08-03",
@@ -53,7 +60,10 @@ describe("expandOccurrences", () => {
       "2026-08-31",
     ])
 
-    const monthly = expandOccurrences("FREQ=MONTHLY;COUNT=3", seed)
+    const monthly = expandOccurrencesInRange("FREQ=MONTHLY", seed, {
+      startDate: "2026-08-03",
+      endDate: "2026-10-03",
+    })
     expect(monthly.map(o => o.startDate)).toEqual([
       "2026-08-03",
       "2026-09-03",
@@ -61,33 +71,31 @@ describe("expandOccurrences", () => {
     ])
   })
 
-  test("caps an unbounded weekly rule at six months from the seed date", () => {
-    const occurrences = expandOccurrences("FREQ=WEEKLY;BYDAY=MO", seed)
-
-    expect(occurrences.length).toBeGreaterThan(20)
-    const last = occurrences[occurrences.length - 1]
-    // Six months after 2026-08-03 is 2027-02-03; 2027-02-01 is the last Monday.
-    expect(last.startDate <= "2027-02-03").toBe(true)
-    expect(last.startDate > "2027-01-20").toBe(true)
-  })
-
-  test("respects UNTIL when it is tighter than the cap", () => {
-    const occurrences = expandOccurrences(
-      "FREQ=WEEKLY;BYDAY=MO;UNTIL=20260824T000000Z",
+  test("ignores legacy COUNT and UNTIL because the range is authoritative", () => {
+    const occurrences = expandOccurrencesInRange(
+      "FREQ=WEEKLY;BYDAY=MO;COUNT=1;UNTIL=20260803T235959Z",
       seed,
+      { startDate: "2026-08-03", endDate: "2026-08-24" },
     )
-    const last = occurrences[occurrences.length - 1]
-    expect(last.startDate <= "2026-08-24").toBe(true)
-    expect(occurrences.length).toBeLessThanOrEqual(4)
+    expect(occurrences.map(occurrence => occurrence.startDate)).toEqual([
+      "2026-08-03",
+      "2026-08-10",
+      "2026-08-17",
+      "2026-08-24",
+    ])
   })
 
   test("keeps the weekday across the October DST transition in Oslo", () => {
     // Oslo leaves CEST on 2026-10-25. Mondays before and after must stay Mondays.
-    const occurrences = expandOccurrences("FREQ=WEEKLY;BYDAY=MO;COUNT=14", {
-      startDate: "2026-10-05",
-      startTime: "19:00",
-      endTime: null,
-    })
+    const occurrences = expandOccurrencesInRange(
+      "FREQ=WEEKLY;BYDAY=MO",
+      {
+        startDate: "2026-10-05",
+        startTime: "19:00",
+        endTime: null,
+      },
+      { startDate: "2026-10-05", endDate: "2027-01-04" },
+    )
 
     for (const occurrence of occurrences) {
       const day = new Date(`${occurrence.startDate}T12:00:00Z`).getUTCDay()
@@ -98,11 +106,15 @@ describe("expandOccurrences", () => {
 
   test("keeps the weekday across the March DST transition in Oslo", () => {
     // Oslo enters CEST on 2027-03-28.
-    const occurrences = expandOccurrences("FREQ=WEEKLY;BYDAY=MO;COUNT=6", {
-      startDate: "2027-03-15",
-      startTime: null,
-      endTime: null,
-    })
+    const occurrences = expandOccurrencesInRange(
+      "FREQ=WEEKLY;BYDAY=MO",
+      {
+        startDate: "2027-03-15",
+        startTime: null,
+        endTime: null,
+      },
+      { startDate: "2027-03-15", endDate: "2027-04-19" },
+    )
 
     expect(occurrences.map(o => o.startDate)).toEqual([
       "2027-03-15",
@@ -115,9 +127,127 @@ describe("expandOccurrences", () => {
   })
 
   test("returns empty for invalid rules and invalid seed dates", () => {
-    expect(expandOccurrences("NOT-A-RULE", seed)).toEqual([])
     expect(
-      expandOccurrences("FREQ=WEEKLY", { startDate: "not-a-date" }),
+      expandOccurrencesInRange("NOT-A-RULE", seed, {
+        startDate: "2026-08-03",
+        endDate: "2026-08-24",
+      }),
+    ).toEqual([])
+    expect(
+      expandOccurrencesInRange(
+        "FREQ=WEEKLY",
+        { startDate: "not-a-date" },
+        { startDate: "2026-08-03", endDate: "2026-08-24" },
+      ),
+    ).toEqual([])
+  })
+})
+
+describe("semester-focused expansion", () => {
+  test("uses the configured program windows and compact labels", () => {
+    expect(semesterForDate("2026-01-03")).toMatchObject({
+      code: "V26",
+      label: "V26",
+      startDate: "2026-01-03",
+      endDate: "2026-05-29",
+    })
+    expect(semesterForDate("2026-08-17")).toMatchObject({
+      code: "H26",
+      label: "H26",
+      startDate: "2026-08-17",
+      endDate: "2026-12-15",
+    })
+    expect(semesterForDate("2026-07-29")?.code).toBe("H26")
+    expect(semesterForCode("V26")).toMatchObject({
+      code: "V26",
+      startDate: "2026-01-03",
+      endDate: "2026-05-29",
+    })
+    expect(semesterForCode("h26")).toMatchObject({
+      code: "H26",
+      startDate: "2026-08-17",
+      endDate: "2026-12-15",
+    })
+    expect(semesterForCode("X26")).toBeNull()
+    expect(semesterForDate("not-a-date")).toBeNull()
+    expect(semesterForDate("2026-13-01")).toBeNull()
+  })
+
+  test("lists one previous and two following semesters", () => {
+    expect(
+      semesterWindowsAround("2026-07-29").map(semester => semester.code),
+    ).toEqual(["V26", "H26", "V27", "H27"])
+    expect(semesterWindowsAround("not-a-date")).toEqual([])
+  })
+
+  test("expands an unbounded rule only inside the selected semester", () => {
+    const occurrences = expandOccurrencesInRange("FREQ=WEEKLY;BYDAY=MO", seed, {
+      startDate: "2027-01-03",
+      endDate: "2027-05-29",
+    })
+
+    expect(occurrences[0]?.startDate).toBe("2027-01-04")
+    expect(occurrences.at(-1)?.startDate).toBe("2027-05-24")
+  })
+
+  test("ignores COUNT and UNTIL inside a selected semester", () => {
+    const secondSemester = {
+      startDate: "2026-08-17",
+      endDate: "2026-12-15",
+    }
+    expect(
+      expandOccurrencesInRange(
+        "FREQ=WEEKLY;BYDAY=MO;COUNT=3",
+        seed,
+        secondSemester,
+      ).map(occurrence => occurrence.startDate),
+    ).toEqual([
+      "2026-08-17",
+      "2026-08-24",
+      "2026-08-31",
+      "2026-09-07",
+      "2026-09-14",
+      "2026-09-21",
+      "2026-09-28",
+      "2026-10-05",
+      "2026-10-12",
+      "2026-10-19",
+      "2026-10-26",
+      "2026-11-02",
+      "2026-11-09",
+      "2026-11-16",
+      "2026-11-23",
+      "2026-11-30",
+      "2026-12-07",
+      "2026-12-14",
+    ])
+    expect(
+      expandOccurrencesInRange(
+        "FREQ=WEEKLY;BYDAY=MO;UNTIL=20260817T235959Z",
+        seed,
+        secondSemester,
+      ).map(occurrence => occurrence.startDate),
+    ).toHaveLength(18)
+  })
+
+  test("returns no dates for invalid or pre-seed windows", () => {
+    expect(
+      expandOccurrencesInRange("FREQ=WEEKLY", seed, {
+        startDate: "2026-01-03",
+        endDate: "2026-05-29",
+      }),
+    ).toEqual([])
+    expect(
+      expandOccurrencesInRange("FREQ=WEEKLY", seed, {
+        startDate: "invalid",
+        endDate: "2026-12-15",
+      }),
+    ).toEqual([])
+    expect(
+      expandOccurrencesInRange("FREQ=WEEKLY", seed, {
+        startDate: "2026-12-15",
+        endDate: "2026-08-17",
+      }),
     ).toEqual([])
   })
 })

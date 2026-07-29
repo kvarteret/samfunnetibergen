@@ -1,4 +1,3 @@
-import { addMonths } from "date-fns"
 import { RRule } from "rrule"
 
 // Materialized-instance generation for recurring series (ADR 005).
@@ -71,7 +70,59 @@ export interface InstanceDiff {
   orphanedEdited: ExistingInstance[]
 }
 
-const GENERATION_HORIZON_MONTHS = 6
+export interface SemesterWindow {
+  code: string
+  label: string
+  startDate: string
+  endDate: string
+}
+
+export function semesterForCode(code: string): SemesterWindow | null {
+  const match = code.toUpperCase().match(/^([VH])(\d{2})$/)
+  if (!match) return null
+  const [, prefix, shortYear] = match
+  const year = 2000 + Number(shortYear)
+  return semesterFromIndex(year * 2 + (prefix === "H" ? 1 : 0))
+}
+
+function semesterFromIndex(index: number): SemesterWindow {
+  const year = Math.floor(index / 2)
+  const isSecondSemester = index % 2 === 1
+  const code = `${isSecondSemester ? "H" : "V"}${String(year).slice(-2)}`
+  return {
+    code,
+    label: code,
+    startDate: `${year}-${isSecondSemester ? "08-17" : "01-03"}`,
+    endDate: `${year}-${isSecondSemester ? "12-15" : "05-29"}`,
+  }
+}
+
+/** Return the nearest program semester for a YYYY-MM-DD date.
+ * Dates in the planned winter/summer gaps stay associated with the surrounding
+ * half of the year so the semester picker always has a stable center. */
+export function semesterForDate(date: string): SemesterWindow | null {
+  const match = date.match(/^(\d{4})-(\d{2})-\d{2}$/)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (month < 1 || month > 12) return null
+  return semesterFromIndex(year * 2 + (month >= 7 ? 1 : 0))
+}
+
+/** List adjacent semester windows in chronological order. */
+export function semesterWindowsAround(
+  date: string,
+  before = 1,
+  after = 2,
+): SemesterWindow[] {
+  const semester = semesterForDate(date)
+  if (!semester) return []
+  const year = Number(semester.startDate.slice(0, 4))
+  const center = year * 2 + (semester.code.startsWith("H") ? 1 : 0)
+  return Array.from({ length: before + after + 1 }, (_, offset) =>
+    semesterFromIndex(center - before + offset),
+  )
+}
 
 /** Strip a `drafts.` prefix so draft and published parents yield the same
  * child ids (Decision D3 in execplan 008). */
@@ -116,31 +167,42 @@ export function instanceSlugFor(
   return `${parentSlug}-${occurrenceToken(occurrence)}`
 }
 
-/** Expand an iCal RRULE from the seed date into concrete occurrences,
- * capped at six months after the seed date (inclusive of the seed
- * occurrence when the rule includes it).
- *
- * Date arithmetic is anchored at noon UTC: noon UTC is always 13:00 or
- * 14:00 in Europe/Oslo, so `toISOString().slice(0, 10)` never shifts a
- * calendar day across either DST transition. Times are copied from the
- * seed onto every occurrence — the rule only decides dates. */
-export function expandOccurrences(
+/** Expand a recurrence only inside an explicit inclusive date window.
+ * The rule stays anchored to the series seed, so selecting a later semester
+ * preserves weekly/monthly alignment. COUNT and UNTIL from legacy rules are
+ * deliberately ignored: the selected semester is the sole range
+ * authority, while the RRULE only describes cadence. */
+export function expandOccurrencesInRange(
   rrule: string,
   seed: GenerationSeed,
+  range: Pick<SemesterWindow, "startDate" | "endDate">,
 ): Occurrence[] {
   const dtstart = new Date(`${seed.startDate}T12:00:00Z`)
-  if (Number.isNaN(dtstart.getTime())) return []
+  const rangeStart = new Date(`${range.startDate}T12:00:00Z`)
+  const rangeEnd = new Date(`${range.endDate}T12:00:00Z`)
+  if (
+    [dtstart, rangeStart, rangeEnd].some(date =>
+      Number.isNaN(date.getTime()),
+    ) ||
+    rangeStart > rangeEnd ||
+    rangeEnd < dtstart
+  ) {
+    return []
+  }
 
   let rule: RRule
   try {
-    rule = new RRule({ ...RRule.parseString(rrule), dtstart })
+    const options = RRule.parseString(rrule)
+    delete options.count
+    delete options.until
+    rule = new RRule({ ...options, dtstart })
   } catch {
     return []
   }
 
-  const horizon = addMonths(dtstart, GENERATION_HORIZON_MONTHS)
+  const effectiveStart = rangeStart < dtstart ? dtstart : rangeStart
 
-  return rule.between(dtstart, horizon, true).map(date => ({
+  return rule.between(effectiveStart, rangeEnd, true).map(date => ({
     startDate: date.toISOString().slice(0, 10),
     startTime: seed.startTime ?? null,
     endTime: seed.endTime ?? null,

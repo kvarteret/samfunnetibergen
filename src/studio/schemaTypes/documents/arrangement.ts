@@ -10,6 +10,7 @@ import {
   defineType,
 } from "sanity"
 
+import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
 import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 
@@ -199,11 +200,12 @@ export const arrangement = defineType({
       name: "dates",
       title: "Datoer",
       description:
-        "For en gjentakende serie er dette seriens første dag. Klokkeslettene kopieres til nye seriedager. Siste dag styres under Gjentakelse.",
+        "For en gjentakende serie er dette seriens første dag. Datoen forankrer mønsteret, og klokkeslettene kopieres til nye seriedager. Programperioden velges når dagene opprettes.",
       type: "array",
       group: "dates",
       hidden: ({ document }) => eventKindOf(document) === "festivalParent",
       of: [defineArrayMember({ type: "arrangementDate" })],
+      components: { input: ArrangementDatesInput },
       validation: rule =>
         rule.custom((value, context) => {
           const kind = eventKindOf(context.document)

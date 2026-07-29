@@ -7,7 +7,6 @@ import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/lib/sanity/env"
 import { arrangementApprovalActions } from "./src/studio/actions/approvalActions"
 import { CreateFestivalDayAction } from "./src/studio/actions/createFestivalDayAction"
-import { GenerateSeriesDaysAction } from "./src/studio/actions/generateSeriesDaysAction"
 import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
   resolve,
@@ -58,12 +57,7 @@ export default defineConfig({
         const core = prev.filter(
           action => !["duplicate", "unpublish"].includes(action.action ?? ""),
         )
-        return [
-          ...arrangementApprovalActions,
-          CreateFestivalDayAction,
-          GenerateSeriesDaysAction,
-          ...core,
-        ]
+        return [...arrangementApprovalActions, CreateFestivalDayAction, ...core]
       }
       if (!singletonTypes.has(schemaType)) {
         return prev

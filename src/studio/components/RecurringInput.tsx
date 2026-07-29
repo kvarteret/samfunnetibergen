@@ -1,13 +1,4 @@
-import {
-  Box,
-  Card,
-  Checkbox,
-  Flex,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-} from "@sanity/ui"
+import { Card, Checkbox, Flex, Select, Stack, Text } from "@sanity/ui"
 import { useEffect, useMemo, useState } from "react"
 import { RRule } from "rrule"
 import type { BooleanInputProps } from "sanity"
@@ -18,6 +9,10 @@ import {
   useDocumentOperation,
   useFormValue,
 } from "sanity"
+
+import type { GenerationSeed } from "@/features/events/domain/instances"
+
+import { SeriesSemesterExpansion } from "./SeriesSemesterExpansion"
 
 const API_VERSION = "2026-07-29"
 const WEEKDAYS = [
@@ -32,13 +27,13 @@ const WEEKDAYS = [
 
 type RecurrenceFields = {
   frequency: "DAILY" | "WEEKLY" | "MONTHLY"
+  interval: number
   weekdays: string[]
-  until: string
 }
 
 function readRule(value: unknown): RecurrenceFields {
   if (typeof value !== "string" || !value) {
-    return { frequency: "WEEKLY", weekdays: ["MO"], until: "" }
+    return { frequency: "WEEKLY", interval: 1, weekdays: ["MO"] }
   }
   try {
     const parsed = RRule.parseString(value)
@@ -50,6 +45,7 @@ function readRule(value: unknown): RecurrenceFields {
           : "WEEKLY"
     return {
       frequency,
+      interval: parsed.interval ?? 1,
       weekdays: parsed.byweekday
         ? (Array.isArray(parsed.byweekday)
             ? parsed.byweekday
@@ -58,20 +54,19 @@ function readRule(value: unknown): RecurrenceFields {
             typeof day === "number" ? WEEKDAYS[day]?.[0] : String(day),
           )
         : ["MO"],
-      until: parsed.until?.toISOString().slice(0, 10) ?? "",
     }
   } catch {
-    return { frequency: "WEEKLY", weekdays: ["MO"], until: "" }
+    return { frequency: "WEEKLY", interval: 1, weekdays: ["MO"] }
   }
 }
 
 export function serializeEditorialRecurrence(fields: RecurrenceFields): string {
   const parts = [`FREQ=${fields.frequency}`]
+  if (fields.interval > 1) {
+    parts.push(`INTERVAL=${fields.interval}`)
+  }
   if (fields.frequency === "WEEKLY" && fields.weekdays.length > 0) {
     parts.push(`BYDAY=${fields.weekdays.join(",")}`)
-  }
-  if (fields.until) {
-    parts.push(`UNTIL=${fields.until.replaceAll("-", "")}T235959Z`)
   }
   return parts.join(";")
 }
@@ -84,10 +79,21 @@ export function RecurringInput(props: BooleanInputProps) {
   const id = String(useFormValue(["_id"]) ?? "")
   const operationId = documentOperationId(id)
   const storedRule = useFormValue(["rrule"])
+  const storedDates = useFormValue(["dates"])
+  const storedSlug = useFormValue(["slug"])
+  const approvalStatus = useFormValue(["approvalStatus"])
   const client = useClient({ apiVersion: API_VERSION })
   const operations = useDocumentOperation(operationId, "arrangement")
   const [childCount, setChildCount] = useState(0)
   const fields = useMemo(() => readRule(storedRule), [storedRule])
+  const seed = (
+    Array.isArray(storedDates) ? storedDates[0] : null
+  ) as GenerationSeed | null
+  const slug =
+    typeof (storedSlug as { current?: unknown } | undefined)?.current ===
+    "string"
+      ? (storedSlug as { current: string }).current
+      : ""
 
   useEffect(() => {
     if (!id) return
@@ -134,12 +140,12 @@ export function RecurringInput(props: BooleanInputProps) {
             disabled={Boolean(props.readOnly) || childCount > 0}
             onChange={event => toggle(event.currentTarget.checked)}
           />
-          <Box flex={1}>
+          <Stack flex={1} space={2}>
             <Text weight="semibold">Gjentakelse</Text>
             <Text muted size={1}>
               Opprett en serie med egne dager som kan redigeres hver for seg.
             </Text>
-          </Box>
+          </Stack>
         </Flex>
         {childCount > 0 ? (
           <Text muted size={1}>
@@ -149,21 +155,26 @@ export function RecurringInput(props: BooleanInputProps) {
         ) : null}
         {props.value ? (
           <Stack space={3}>
-            <Select
-              aria-label="Hvor ofte"
-              onChange={event =>
-                patchRule({
-                  ...fields,
-                  frequency: event.currentTarget
-                    .value as RecurrenceFields["frequency"],
-                })
-              }
-              value={fields.frequency}
-            >
-              <option value="DAILY">Hver dag</option>
-              <option value="WEEKLY">Hver uke</option>
-              <option value="MONTHLY">Hver måned</option>
-            </Select>
+            <Stack space={2}>
+              <Text size={1} weight="semibold">
+                Mønster
+              </Text>
+              <Select
+                aria-label="Hvor ofte"
+                onChange={event =>
+                  patchRule({
+                    ...fields,
+                    frequency: event.currentTarget
+                      .value as RecurrenceFields["frequency"],
+                  })
+                }
+                value={fields.frequency}
+              >
+                <option value="DAILY">Hver dag</option>
+                <option value="WEEKLY">Hver uke</option>
+                <option value="MONTHLY">Hver måned</option>
+              </Select>
+            </Stack>
             {fields.frequency === "WEEKLY" ? (
               <Flex gap={3} wrap="wrap">
                 {WEEKDAYS.map(([value, label]) => (
@@ -185,22 +196,19 @@ export function RecurringInput(props: BooleanInputProps) {
               </Flex>
             ) : null}
             <Stack space={2}>
-              <Text size={1} weight="semibold">
-                Siste dag i serien
-              </Text>
-              <TextInput
-                aria-label="Siste dag i serien"
-                onChange={event =>
-                  patchRule({ ...fields, until: event.currentTarget.value })
-                }
-                type="date"
-                value={fields.until}
-              />
               <Text muted size={1}>
-                Datoen er siste mulige seriedag. Uten en sluttdato opprettes
-                dager i maksimalt seks måneder fra første dato.
+                Første dato over forankrer mønsteret.
               </Text>
             </Stack>
+            <SeriesSemesterExpansion
+              approvalStatus={
+                approvalStatus === "approved" ? "approved" : "pending"
+              }
+              documentId={operationId}
+              rrule={typeof storedRule === "string" ? storedRule : ""}
+              seed={seed}
+              slug={slug}
+            />
           </Stack>
         ) : null}
       </Stack>

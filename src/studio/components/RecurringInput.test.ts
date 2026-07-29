@@ -10,10 +10,10 @@ describe("editorial recurrence", () => {
     expect(
       serializeEditorialRecurrence({
         frequency: "WEEKLY",
+        interval: 2,
         weekdays: ["MO", "WE"],
-        until: "2026-12-01",
       }),
-    ).toBe("FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20261201T235959Z")
+    ).toBe("FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE")
   })
 
   it("uses the published id for document operations", () => {
