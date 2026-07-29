@@ -3,12 +3,12 @@ import { Button, Card, Flex, Spinner, Stack, Text, TextInput } from "@sanity/ui"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useClient } from "sanity"
 
-import { PROMOTION_CANDIDATES_FILTER } from "./promotedArrangementFilter"
+import { PROMOTABLE_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
 
 const API_VERSION = "2026-07-29"
 const CANDIDATES_QUERY = `*[
   _type == "arrangement" &&
-  (${PROMOTION_CANDIDATES_FILTER})
+  (${PROMOTABLE_ARRANGEMENTS_FILTER})
 ] | order(title asc) {
   _id,
   title,
@@ -29,11 +29,11 @@ const KIND_LABELS: Record<PromotionCandidate["eventKind"], string> = {
 
 export function PromotedArrangementPicker({
   onAdded,
-  placeAboveLine,
+  selectedIds,
   today,
 }: {
   onAdded: () => Promise<void>
-  placeAboveLine: boolean
+  selectedIds: string[]
   today: string
 }) {
   const client = useClient({ apiVersion: API_VERSION })
@@ -62,7 +62,7 @@ export function PromotedArrangementPicker({
     if (!open) return
     const subscription = client
       .listen(
-        `*[_type == "arrangement" && (${PROMOTION_CANDIDATES_FILTER})]`,
+        `*[_type == "arrangement" && (${PROMOTABLE_ARRANGEMENTS_FILTER})]`,
         { today },
         { includeResult: false, visibility: "query" },
       )
@@ -78,6 +78,7 @@ export function PromotedArrangementPicker({
   const visibleCandidates = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("nb")
     return candidates
+      .filter(candidate => !selectedIds.includes(candidate._id))
       .filter(candidate =>
         normalizedQuery
           ? (candidate.title ?? "")
@@ -86,7 +87,7 @@ export function PromotedArrangementPicker({
           : true,
       )
       .slice(0, 8)
-  }, [candidates, query])
+  }, [candidates, query, selectedIds])
 
   const add = async (candidate: PromotionCandidate) => {
     setAddingId(candidate._id)
@@ -100,16 +101,16 @@ export function PromotedArrangementPicker({
       const transaction = client.transaction().patch(candidate._id, patch =>
         patch.set({
           isPromoted: true,
-          orderRank: "~",
-          promotedPlacement: placeAboveLine ? "top" : "pool",
+          promotedOrder: selectedIds.length,
+          promotedPlacement: "top",
         }),
       )
       if (hasDraft) {
         transaction.patch(draftId, patch =>
           patch.set({
             isPromoted: true,
-            orderRank: "~",
-            promotedPlacement: placeAboveLine ? "top" : "pool",
+            promotedOrder: selectedIds.length,
+            promotedPlacement: "top",
           }),
         )
       }

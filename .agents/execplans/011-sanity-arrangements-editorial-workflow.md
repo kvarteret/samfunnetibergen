@@ -99,6 +99,12 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   toppvalg; gruppen vokser fra én til to og fra to til tre.
 - [x] (2026-07-29 12:29Z) Verifiserte append-regelen med 12 fokuserte tester,
   TypeScript, lint og Sanity Studio-bygg.
+- [x] (2026-07-29) Undersøkte den vedvarende dra-og-slipp-feilen mot
+  ordningspluginens faktiske API og erstattet den simulerte skillelinjen med
+  en kontrollert liste på ett–tre fremhevede arrangementer.
+- [x] (2026-07-29) La til eksplisitt `promotedOrder`, migrering ved åpning,
+  søkbart tillegg som alltid appenderer, fjerning med minimumsvern og
+  dra-og-slipp som bare rangerer de valgte arrangementene.
 
 ## Surprises & Discoveries
 
@@ -187,6 +193,21 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `node_modules/@sanity/orderable-document-list/dist/index.d.ts` har bare
   `options` og `ref`. Studio-visningen fanger derfor identiteten til raden ved
   dragstart og avstemmer den mot den synkroniserte rangeringen.
+
+- Observation: Ordningspluginen har én lineær `orderRank` og kan ikke uttrykke
+  en separat, stabil underliste med eget medlemskap. Filtrerte ordningslister
+  rangeres fortsatt mot alle dokumenter, og pluginen advarer selv om
+  uventede resultater når flere filtrerte lister brukes.
+  Evidence: `OrderableDocumentListProps` i installert versjon mangler
+  `onDragEnd`, mens pluginens dokumentasjon beskriver global rangberegning for
+  filtrerte dokumentsett. Pointer-avlytting og etterfølgende reparasjon av
+  pluginens transaksjon kan derfor ikke gi atomisk gruppesemantikk.
+
+- Observation: Første versjon av den nye kandidatspørringen brukte en
+  GROQ-arrayfunksjon som ikke parses av det aktive Sanity-API-et.
+  Evidence: En direkte anonym datasettspørring feilet; projeksjon av
+  `dates[]{startDate}` og korrelerte `childDates` ble deretter validert mot
+  dagens datasett.
 
 - Observation: En tom toppgruppe og en ikke-tom pool gjør både søk og
   dra-og-slipp utilstrekkelig.
@@ -348,6 +369,26 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   to eller fra to til tre, mens den etablerte topprekkefølgen bevares.
   Date/Author: 2026-07-29, user/Codex.
 
+- Decision: Erstatt den tidligere pluginlisten og skillelinjen med en
+  kontrollert liste som bare inneholder de faktiske fremhevede valgene.
+  `Legg til arrangement` appenderer et valg, `Fjern` tar det ut, og
+  dra-og-slipp endrer bare rekkefølgen innenfor listen.
+  Rationale: Pluginen tilbyr ikke de hendelsene eller den todelte datamodellen
+  som kreves for trygg flytting mellom en toppgruppe og en pool. Den
+  kontrollerte listen gjør minimum én, maksimum tre og append-semantikken
+  entydig og atomisk.
+  Date/Author: 2026-07-29, Codex; supersederer beslutningene om en synlig
+  skillelinje og etterfølgende reparasjon av pluginens rangering.
+
+- Decision: Lagre rekkefølgen blant de valgte i `promotedOrder` og behold
+  `promotedPlacement` og `orderRank` bare som migrerings-/bakoverkompatible
+  felt.
+  Rationale: Arrangementenes øvrige administrative `orderRank` skal ikke
+  blandes med den korte, eksplisitte forsidelisten. Ved første åpning
+  normaliserer Studio eksisterende toppvalg, og når ingen finnes velges første
+  kvalifiserte arrangement automatisk.
+  Date/Author: 2026-07-29, Codex.
+
 ## Outcomes & Retrospective
 
 Kodeimplementeringen er fullført. Studio har den nye navigasjonen,
@@ -368,12 +409,14 @@ repositoryet, oppryddingsmigreringen kjøres i skrivemodus og de innloggede
 Studio-flytene kontrolleres visuelt. Dette ble ikke omgått eller simulert,
 fordi arbeidskopien mangler bruker-token og Studio stopper på innlogging.
 
-Fremhevede har nå også et stabilt skille: en rad som flyttes ned etterlater en
-ledig plass, en rad som flyttes opp fyller en ledig plass, og ingen annen rad
-bytter side som følge av flyttingen. Forsiden leser det samme medlemskapet og
-beholder de tre første som reserve for eldre dokumenter uten det nye feltet.
-Hvis alle lagrede toppvalg har forsvunnet, for eksempel fordi de er avsluttet,
-løfter Studio automatisk første gjenværende rad over linjen.
+Fremhevede er nå en egen, kontrollert liste på ett–tre valg i stedet for en
+lineær pluginliste med en simulert skillelinje. Søk og «Legg til» appenderer
+valget uten å erstatte eksisterende kort, «Fjern» er deaktivert ved ett valg,
+og dra-og-slipp rangerer bare de valgte kortene. Forsiden leser samme
+medlemskap og `promotedOrder`; eldre `orderRank` og `promotedPlacement`
+normaliseres automatisk ved første åpning. Hvis alle lagrede toppvalg har
+forsvunnet, for eksempel fordi de er avsluttet, velger Studio automatisk første
+gjenværende kvalifiserte arrangement.
 
 ## Context and Orientation
 
@@ -762,12 +805,14 @@ Arrangementsskjemaet får ett nytt lagret felt:
 
     useFestivalImage?: boolean
     promotedPlacement?: "top" | "pool"
+    promotedOrder?: number
 
 `useFestivalImage` er bare relevant for `festivalSession`, og `undefined`
 behandles som `true` for eksisterende data. `promotedPlacement` er et skjult
-redaksjonelt felt på fremhevede toppnivådokumenter. Når alle fremhevede
-dokumenter mangler feltet, behandles de tre første i `orderRank`-rekkefølge som
-`top`.
+redaksjonelt medlemsfelt på fremhevede toppnivådokumenter, og `promotedOrder`
+er den nullbaserte rekkefølgen i den kontrollerte listen. Når dokumentene
+mangler det nye rekkefølgefeltet, brukes eksisterende `orderRank` bare til å
+velge og normalisere inntil tre legacy-valg.
 
 Den egendefinerte arrangementsvisningen skal ha en intern filtermodell med
 disse stabile verdiene:
@@ -886,3 +931,8 @@ eksisterende toppvalg og maksimum tre.
 
 Plan revision note (2026-07-29 12:29Z): Append-regelen er verifisert med egne
 én-til-to- og to-til-tre-scenarier samt komplette Studio-kontroller.
+
+Plan revision note (2026-07-29): Den kroniske pluginfeilen er undersøkt mot
+installert API og offisiell dokumentasjon. Den simulerte todelingen er
+supersedert av en kontrollert én–tre-liste med dedikert `promotedOrder`,
+automatisk legacy-normalisering, søkbart append og intern dra-og-slipp.

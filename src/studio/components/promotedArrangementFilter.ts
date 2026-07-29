@@ -12,13 +12,3 @@ export const PROMOTABLE_ARRANGEMENTS_FILTER = `
     count(dates[startDate >= $today]) > 0
   )
 `
-
-export const PROMOTED_ARRANGEMENTS_FILTER = `
-  isPromoted == true &&
-  (${PROMOTABLE_ARRANGEMENTS_FILTER})
-`
-
-export const PROMOTION_CANDIDATES_FILTER = `
-  isPromoted != true &&
-  (${PROMOTABLE_ARRANGEMENTS_FILTER})
-`

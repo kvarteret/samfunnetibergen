@@ -174,6 +174,12 @@ export const arrangement = defineType({
         ],
       },
     }),
+    defineField({
+      name: "promotedOrder",
+      title: "Rekkefølge blant fremhevede",
+      type: "number",
+      hidden: true,
+    }),
     orderRankField({ type: "arrangement" }),
     defineField({
       name: "description",

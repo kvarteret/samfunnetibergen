@@ -1,5 +1,6 @@
 type PromotedOrderableEvent = {
   orderRank?: string | null
+  promotedOrder?: number | null
   promotedPlacement?: "top" | "pool" | null
   dates?: Array<{
     startDate: string
@@ -51,9 +52,12 @@ function promotedEventSortKey(
   event: PromotedOrderableEvent,
   today: string,
 ): string {
+  if (typeof event.promotedOrder === "number") {
+    return `0-${String(event.promotedOrder).padStart(3, "0")}`
+  }
   return event.orderRank
-    ? `0-${event.orderRank}`
-    : `1-${eventStartSortKey(event, today)}`
+    ? `1-${event.orderRank}`
+    : `2-${eventStartSortKey(event, today)}`
 }
 
 export function comparePromotedEvents(

@@ -57,6 +57,21 @@ describe("promoted event ordering", () => {
     ).toEqual(["0|a:", "0|b:"])
   })
 
+  it("uses the dedicated featured order before the legacy document rank", () => {
+    const events = [
+      { promotedOrder: 1, orderRank: "0|a:" },
+      { promotedOrder: 0, orderRank: "0|b:" },
+    ]
+
+    expect(
+      events
+        .sort((first, second) =>
+          comparePromotedEvents(first, second, "2026-07-29"),
+        )
+        .map(event => event.promotedOrder),
+    ).toEqual([0, 1])
+  })
+
   it("places unranked events after ranked events and orders them by date", () => {
     const events = [
       { dates: [{ startDate: "2026-09-01" }] },
