@@ -1,12 +1,17 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   getHandledExceptionProperties,
   getPostHogDistinctIdFromCookie,
   getPostHogEnvironment,
+  getPostHogReleaseProperties,
   toPostHogException,
 } from "./error-context"
 
 describe("PostHog error context", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it("extracts distinct_id from the PostHog project cookie", () => {
     const value = encodeURIComponent(JSON.stringify({ distinct_id: "abc-123" }))
     const cookie = `other=value; ph_phc_project_posthog=${value}; theme=dark`
@@ -45,7 +50,16 @@ describe("PostHog error context", () => {
       workflow: "feedback",
       handled: true,
     })
+  })
 
-    vi.unstubAllEnvs()
+  it("includes the production deployment tag and source commit", () => {
+    vi.stubEnv("NEXT_PUBLIC_DEPLOYMENT_TAG", "prod-2026.07.29.4")
+    vi.stubEnv("NEXT_PUBLIC_GIT_SHA", "70e3b2aec798")
+    vi.stubEnv("VERCEL_GIT_COMMIT_SHA", "fallback-sha")
+
+    expect(getPostHogReleaseProperties()).toMatchObject({
+      deployment_tag: "prod-2026.07.29.4",
+      git_sha: "70e3b2aec798",
+    })
   })
 })

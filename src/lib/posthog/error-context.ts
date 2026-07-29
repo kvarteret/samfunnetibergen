@@ -24,7 +24,9 @@ export function getPostHogReleaseProperties(): ErrorContext {
     environment: getPostHogEnvironment(),
     vercel_env: process.env.VERCEL_ENV,
     vercel_url: process.env.VERCEL_URL,
-    git_sha: process.env.VERCEL_GIT_COMMIT_SHA,
+    deployment_tag: process.env.NEXT_PUBLIC_DEPLOYMENT_TAG,
+    git_sha:
+      process.env.NEXT_PUBLIC_GIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA,
   }
 }
 

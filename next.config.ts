@@ -138,5 +138,10 @@ export default posthogApiKey && posthogProjectId
       personalApiKey: posthogApiKey,
       projectId: posthogProjectId,
       host: process.env.POSTHOG_CLI_HOST,
+      sourcemaps: {
+        releaseName: "samfunnetibergen",
+        releaseVersion: process.env.POSTHOG_RELEASE_VERSION,
+        build: process.env.POSTHOG_RELEASE_BUILD,
+      },
     })
   : config
