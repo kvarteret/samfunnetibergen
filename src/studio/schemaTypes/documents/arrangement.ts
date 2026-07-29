@@ -304,10 +304,9 @@ export const arrangement = defineType({
     // ─── Admin / approval ──────────────────────────────────────
     defineField({
       name: "eventStatus",
-      title: "Arrangementsstatus",
+      title: "Hva skjer med arrangementet?",
       description:
-        "Faktisk status i virkeligheten — uavhengig av godkjenningsstatus. " +
-        "Avlyste og utsatte arrangementer forblir synlige med merking.",
+        "Avlyste og utsatte arrangementer kan fortsatt være synlige på nettsiden, med tydelig merking.",
       type: "string",
       group: "admin",
       initialValue: "scheduled",
@@ -319,6 +318,7 @@ export const arrangement = defineType({
       type: "string",
       group: "admin",
       initialValue: "pending",
+      hidden: true,
       options: {
         list: APPROVAL_STATUS_OPTIONS,
         layout: "radio",

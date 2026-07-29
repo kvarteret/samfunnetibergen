@@ -48,9 +48,10 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
 - [x] (2026-07-29 10:12Z) Implementerte den nye menyen, en draft-bevisst teller
   og den filtrerbare
   arrangementsvisningen.
-- [ ] (2026-07-29 10:12Z) Implementer komplett og publiserende
+- [x] (2026-07-29 10:14Z) Implementerte komplett og publiserende
   request-arbeidsflyt.
-- [ ] Forenkle arrangementsskjemaet og serie-/festivalarbeidsflytene.
+- [ ] (2026-07-29 10:14Z) Forenkle arrangementsskjemaet og
+  serie-/festivalarbeidsflytene.
 - [ ] Endre offentlige spørringer slik at festivalperioden avledes fra
   festivaldagene og arrangementsidetekst kommer fra norske tekstfiler.
 - [ ] Legg til tørrkjørbar datamigrering, ta sikkerhetskopi og gjennomfør
@@ -585,3 +586,8 @@ planen alene.
 Plan revision note (2026-07-29 10:12Z): Milepæl 1 er implementert og verifisert
 med fire fokuserte tester samt `npx tsc --noEmit`. Progress viser at
 request-arbeidsflyten nå er aktiv.
+
+Plan revision note (2026-07-29 10:14Z): Milepæl 2 er implementert med én
+sentral overgangsmodell og transaksjonell publisering av siste utkast. Seks
+fokuserte tester og TypeScript-kontrollen passerer. Skjema- og
+serie-/festivalarbeidet er nå aktivt.

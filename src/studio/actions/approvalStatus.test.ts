@@ -5,26 +5,80 @@ import { getApprovalTransitions } from "./approvalStatus"
 describe("arrangement approval transitions", () => {
   it("allows pending arrangements to be approved or rejected", () => {
     expect(getApprovalTransitions("pending")).toEqual([
-      { label: "Godkjenn", status: "approved", tone: "positive" },
-      { label: "Avvis", status: "rejected", tone: "critical" },
+      {
+        from: "pending",
+        label: "Godkjenn og publiser",
+        status: "approved",
+        tone: "positive",
+      },
+      {
+        from: "pending",
+        label: "Avvis request",
+        status: "rejected",
+        tone: "critical",
+      },
     ])
   })
 
-  it("allows approved arrangements to be paused", () => {
+  it("allows approved arrangements to be hidden or archived", () => {
     expect(getApprovalTransitions("approved")).toEqual([
-      { label: "Sett på pause", status: "paused", tone: "caution" },
+      {
+        from: "approved",
+        label: "Skjul midlertidig",
+        status: "paused",
+        tone: "caution",
+      },
+      {
+        from: "approved",
+        label: "Arkiver",
+        status: "archived",
+        tone: "critical",
+      },
     ])
   })
 
-  it("allows paused arrangements to resume as approved", () => {
+  it("allows hidden and archived arrangements to return", () => {
     expect(getApprovalTransitions("paused")).toEqual([
-      { label: "Gjenoppta", status: "approved", tone: "positive" },
+      {
+        from: "paused",
+        label: "Gjør synlig",
+        status: "approved",
+        tone: "positive",
+      },
+      {
+        from: "paused",
+        label: "Arkiver",
+        status: "archived",
+        tone: "critical",
+      },
+    ])
+    expect(getApprovalTransitions("archived")).toEqual([
+      {
+        from: "archived",
+        label: "Gjenopprett og publiser",
+        status: "approved",
+        tone: "positive",
+      },
     ])
   })
 
-  it("does not offer transitions for final or unknown states", () => {
+  it("only lets editors and administrators reopen rejected requests", () => {
     expect(getApprovalTransitions("rejected")).toEqual([])
-    expect(getApprovalTransitions("archived")).toEqual([])
+    expect(getApprovalTransitions("rejected", ["viewer", "editor"])).toEqual([
+      {
+        from: "rejected",
+        label: "Gjenåpne request",
+        status: "pending",
+        tone: "caution",
+        roles: ["administrator", "editor"],
+      },
+    ])
+    expect(getApprovalTransitions("rejected", ["administrator"])).toHaveLength(
+      1,
+    )
+  })
+
+  it("does not offer transitions for unknown states", () => {
     expect(getApprovalTransitions(undefined)).toEqual([])
   })
 })

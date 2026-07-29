@@ -5,12 +5,7 @@ import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/lib/sanity/env"
-import {
-  ApproveAction,
-  PauseAction,
-  RejectAction,
-  ResumeAction,
-} from "./src/studio/actions/approvalActions"
+import { arrangementApprovalActions } from "./src/studio/actions/approvalActions"
 import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
   resolve,
@@ -58,7 +53,7 @@ export default defineConfig({
         const core = prev.filter(
           action => !["duplicate", "unpublish"].includes(action.action ?? ""),
         )
-        return [ApproveAction, RejectAction, PauseAction, ResumeAction, ...core]
+        return [...arrangementApprovalActions, ...core]
       }
       if (!singletonTypes.has(schemaType)) {
         return prev

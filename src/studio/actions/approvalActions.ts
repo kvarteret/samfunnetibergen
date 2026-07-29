@@ -1,71 +1,104 @@
 import { icons } from "@sanity/icons"
-import type { DocumentActionProps } from "sanity"
-import { useDocumentOperation } from "sanity"
+import { useToast } from "@sanity/ui"
+import type { IdentifiedSanityDocumentStub } from "@sanity/client"
+import { useState } from "react"
+import type { DocumentActionProps, SanityDocument } from "sanity"
+import { useClient, useCurrentUser } from "sanity"
 
-import type { ApprovalStatus } from "./approvalStatus"
+import {
+  type ApprovalStatus,
+  type ApprovalTransition,
+  approvalTransitions,
+} from "./approvalStatus"
 
-const getStatus = ({ published, draft }: DocumentActionProps) =>
-  (draft as Record<string, unknown> | null)?.approvalStatus ??
-  (published as Record<string, unknown> | null)?.approvalStatus
+const API_VERSION = "2026-07-29"
 
-function createStatusAction({
-  currentStatus,
-  icon,
-  label,
-  nextStatus,
-  tone,
-}: {
-  currentStatus: ApprovalStatus
-  icon: React.ComponentType
-  label: string
-  nextStatus: ApprovalStatus
-  tone: "positive" | "critical" | "caution"
-}) {
+const TRANSITION_ICONS: Record<ApprovalStatus, React.ComponentType> = {
+  pending: icons.reset,
+  approved: icons.checkmark,
+  paused: icons.pause,
+  rejected: icons.close,
+  archived: icons.archive,
+}
+
+export function publishableArrangement(
+  source: SanityDocument,
+  id: string,
+  status: ApprovalStatus,
+): IdentifiedSanityDocumentStub {
+  const {
+    _createdAt: _createdAt,
+    _rev: _rev,
+    _updatedAt: _updatedAt,
+    ...content
+  } = source
+  return {
+    ...content,
+    _id: id.replace(/^drafts\./, ""),
+    _type: "arrangement",
+    approvalStatus: status,
+  } as IdentifiedSanityDocumentStub
+}
+
+function getStatus({ published, draft }: DocumentActionProps) {
+  return (
+    (draft as Record<string, unknown> | null)?.approvalStatus ??
+    (published as Record<string, unknown> | null)?.approvalStatus
+  )
+}
+
+function createStatusAction(transition: ApprovalTransition) {
   return function StatusAction(props: DocumentActionProps) {
-    const operations = useDocumentOperation(props.id, props.type)
-    if (getStatus(props) !== currentStatus) return null
+    const client = useClient({ apiVersion: API_VERSION })
+    const currentUser = useCurrentUser()
+    const toast = useToast()
+    const [busy, setBusy] = useState(false)
+    const roles = currentUser?.roles.map(role => role.name) ?? []
+
+    if (
+      getStatus(props) !== transition.from ||
+      (transition.roles && !transition.roles.some(role => roles.includes(role)))
+    ) {
+      return null
+    }
+
+    const source = props.draft ?? props.published
+    if (!source) return null
 
     return {
-      label,
-      icon,
-      tone,
-      disabled: Boolean(operations.patch.disabled),
-      onHandle: () => {
-        operations.patch.execute([{ set: { approvalStatus: nextStatus } }])
-        props.onComplete()
+      label: busy ? "Lagrer …" : transition.label,
+      icon: TRANSITION_ICONS[transition.status],
+      tone: transition.tone,
+      disabled: busy,
+      onHandle: async () => {
+        setBusy(true)
+        try {
+          const publishedId = props.id.replace(/^drafts\./, "")
+          const transaction = client
+            .transaction()
+            .createOrReplace(
+              publishableArrangement(source, publishedId, transition.status),
+            )
+          if (props.draft) transaction.delete(`drafts.${publishedId}`)
+          await transaction.commit()
+          toast.push({
+            status: "success",
+            title: transition.label,
+          })
+          props.onComplete()
+        } catch (error) {
+          toast.push({
+            status: "error",
+            title: "Kunne ikke oppdatere arrangementet",
+            description: error instanceof Error ? error.message : "Ukjent feil",
+          })
+          setBusy(false)
+        }
       },
     }
   }
 }
 
-export const ApproveAction = createStatusAction({
-  currentStatus: "pending",
-  icon: icons.checkmark,
-  label: "Godkjenn",
-  nextStatus: "approved",
-  tone: "positive",
-})
-
-export const RejectAction = createStatusAction({
-  currentStatus: "pending",
-  icon: icons.close,
-  label: "Avvis",
-  nextStatus: "rejected",
-  tone: "critical",
-})
-
-export const PauseAction = createStatusAction({
-  currentStatus: "approved",
-  icon: icons.pause,
-  label: "Sett på pause",
-  nextStatus: "paused",
-  tone: "caution",
-})
-
-export const ResumeAction = createStatusAction({
-  currentStatus: "paused",
-  icon: icons.play,
-  label: "Gjenoppta",
-  nextStatus: "approved",
-  tone: "positive",
-})
+export const arrangementApprovalActions = Object.values(approvalTransitions)
+  .flat()
+  .map(createStatusAction)
