@@ -72,7 +72,7 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   `Alle` til standard feltgruppe og dokumenterte første og siste dato i en
   gjentakende serie.
 - [x] (2026-07-29 11:23Z) La «Legg til festivaldag» synlig øverst i
-  festivaldokumentet og gjorde `Fremhevede arrangementer` til en rangerbar
+  festivaldokumentet og gjorde `Fremhevede` til en rangerbar
   liste som styrer de tre arrangementene øverst på forsiden.
 - [x] (2026-07-29 11:28Z) Verifiserte oppfølgingen med 15 fokuserte tester,
   TypeScript, lint, Sanity TypeGen, Studio-bygg, Next.js-bygg og anonym
@@ -242,7 +242,7 @@ arrangementsfelt er fjernet fra både skjema og eksisterende data.
   mulige dag; uten sluttdato gjelder sikkerhetsgrensen på seks måneder.
   Date/Author: 2026-07-29, user/Codex.
 
-- Decision: Behold `Fremhevede arrangementer` som segment i den eksisterende
+- Decision: Behold `Fremhevede` som segment i den eksisterende
   arrangementsvisningen, men rendrer pluginens rangerbare dokumentliste i
   segmentet og lagrer rekkefølgen i `orderRank`.
   Rationale: Dette bevarer den flate, plassbesparende navigasjonen og gir
@@ -350,7 +350,7 @@ Komponenten skal ha følgende filtertilstand:
 
 Standardmenyen `Arrangementer` bruker godkjent synlighet, alle datoer og
 arrangementrollene enkeltarrangement og serie. `recurring` bruker samme visning
-med et låst filter for `isRecurring == true`. `Fremhevede arrangementer`
+med et låst filter for `isRecurring == true`. `Fremhevede`
 bruker et låst filter for `isPromoted == true`. Festivaler holdes utenfor disse
 tre og administreres under sin egen seksjon. Filtervisningen skal vise
 resultatantall, aktiv filtertilstand, en tydelig «Nullstill filtre»-handling og
@@ -739,7 +739,7 @@ skjemaet forklarer at seriens dato er første dag mens gjentakelsesfeltet styrer
 siste mulige dag.
 
 Plan revision note (2026-07-29 11:23Z): Festivaldagsnarveien er flyttet inn i
-selve festivaldokumentet. Fremhevede arrangementer bruker den installerte
+selve festivaldokumentet. `Fremhevede` bruker den installerte
 ordningspluginen, og nettsiden viser de tre første fremtidige arrangementene i
 den lagrede rekkefølgen.
 
@@ -747,3 +747,7 @@ Plan revision note (2026-07-29 11:28Z): Sluttverifisering og dagens
 datasettobservasjon er lagt inn. Innlogget visuell Studio-kontroll kunne ikke
 utføres fordi den lokale Studio-ruten stoppet ved Sanity-innlogging; begge
 produksjonsbygg og alle målrettede kontroller passerer.
+
+Plan revision note (2026-07-29): Segmentet heter nå `Fremhevede`, og den
+valgfrie «Vis flytteknapper»-kontrollen er fjernet etter produkteiers
+presisering. Dra-og-slipp og engangsklargjøring av manglende rangering består.

@@ -74,7 +74,7 @@ const PRESET_TITLES: Record<ArrangementPreset, string> = {
   arrangements: "Alle",
   recurring: "Recurring",
   festivals: "Festivaler",
-  promoted: "Fremhevede arrangementer",
+  promoted: "Fremhevede",
 }
 
 const PRESETS = [

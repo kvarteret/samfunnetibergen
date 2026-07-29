@@ -93,25 +93,18 @@ export function PromotedArrangementList({ today }: { today: string }) {
             arrangement markerer skillet. Avsluttede arrangementer fjernes
             automatisk fra listen og forsiden.
           </Text>
-          <Flex gap={2} wrap="wrap">
-            {unrankedCount > 0 ? (
-              <Button
-                disabled={initializing}
-                mode="ghost"
-                onClick={() => void initializeOrder()}
-                text={
-                  initializing
-                    ? "Klargjør …"
-                    : `Klargjør rekkefølge (${unrankedCount})`
-                }
-              />
-            ) : null}
+          {unrankedCount > 0 ? (
             <Button
+              disabled={initializing}
               mode="ghost"
-              onClick={() => listRef.current?.actionHandlers.showIncrements()}
-              text="Vis flytteknapper"
+              onClick={() => void initializeOrder()}
+              text={
+                initializing
+                  ? "Klargjør …"
+                  : `Klargjør rekkefølge (${unrankedCount})`
+              }
             />
-          </Flex>
+          ) : null}
         </Stack>
       </Card>
       <OrderedListFrame>
