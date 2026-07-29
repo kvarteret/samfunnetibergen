@@ -4,20 +4,23 @@ import {
   buildInstanceDocument,
   diffInstances,
   type ExistingInstance,
-  expandOccurrences,
+  expandOccurrencesInRange,
   type GenerationParent,
   type GenerationSeed,
   publishedIdOf,
+  type SemesterWindow,
+  semesterForCode,
+  semesterForDate,
 } from "../src/features/events/domain/instances"
 import { INHERITED_FIELDS } from "../src/features/events/domain/resolveEvent"
 
 // Materialize seriesInstance documents from seriesParent recurrence rules
 // (ADR 005, execplan 008 Milestone 5).
 //
-//   npm run sanity:generate:instances                      dry-run, all parents
-//   GENERATE_PARENT_ID=<id> npm run sanity:generate:instances        one parent
-//   npm run sanity:generate:instances:write                apply creations
-//   GENERATE_PARENT_ID=<id> npm run sanity:generate:instances:write  one parent
+//   npm run sanity:generate:instances                              current semester, dry-run
+//   GENERATE_SEMESTER=H26 npm run sanity:generate:instances        chosen semester
+//   GENERATE_PARENT_ID=<id> GENERATE_SEMESTER=H26 npm run sanity:generate:instances
+//   GENERATE_SEMESTER=H26 npm run sanity:generate:instances:write  apply creations
 //
 // Scope to one parent with the GENERATE_PARENT_ID env var — `sanity exec`
 // swallows a bare `--parent` flag before the script sees it.
@@ -60,6 +63,26 @@ function parentIdArgument(): string | null {
   return publishedIdOf(value)
 }
 
+function semesterArgument(): SemesterWindow {
+  const fromEnv = process.env.GENERATE_SEMESTER?.trim()
+  if (fromEnv) {
+    const semester = semesterForCode(fromEnv)
+    if (!semester) {
+      throw new Error(
+        `Invalid GENERATE_SEMESTER "${fromEnv}". Expected VYY or HYY, for example H26.`,
+      )
+    }
+    return semester
+  }
+
+  const today = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Oslo",
+  }).format(new Date())
+  const semester = semesterForDate(today)
+  if (!semester) throw new Error(`Could not resolve semester for ${today}`)
+  return semester
+}
+
 async function fetchParents(parentId: string | null): Promise<ParentRow[]> {
   const overrideChecks = OVERRIDE_FIELDS.map(field => `defined(${field})`).join(
     ", ",
@@ -91,7 +114,10 @@ async function fetchParents(parentId: string | null): Promise<ParentRow[]> {
   )
 }
 
-async function processParent(parent: ParentRow): Promise<void> {
+async function processParent(
+  parent: ParentRow,
+  semester: SemesterWindow,
+): Promise<void> {
   const label = `${parent.title ?? "(uten tittel)"} <${parent._id}>`
 
   if (!parent.rrule || !parent.seed?.startDate) {
@@ -103,23 +129,37 @@ async function processParent(parent: ParentRow): Promise<void> {
     return
   }
 
-  const occurrences = expandOccurrences(parent.rrule, parent.seed)
+  const occurrences = expandOccurrencesInRange(
+    parent.rrule,
+    parent.seed,
+    semester,
+  )
   if (occurrences.length === 0) {
     console.log(`SKIP ${label}: rule "${parent.rrule}" expands to nothing`)
     return
   }
 
-  const existing: ExistingInstance[] = parent.children.map(child => ({
-    ...child,
-    hasContentOverrides: child.overrideCount > 0,
-  }))
+  const existing: ExistingInstance[] = parent.children
+    .filter(child =>
+      child.dates?.some(
+        date =>
+          Boolean(date.startDate) &&
+          date.startDate! >= semester.startDate &&
+          date.startDate! <= semester.endDate,
+      ),
+    )
+    .map(child => ({
+      ...child,
+      hasContentOverrides: child.overrideCount > 0,
+    }))
 
   const diff = diffInstances(parent, occurrences, existing, parent.seed)
   const kept = occurrences.length - diff.toCreate.length
 
   console.log(`\n${label}`)
   console.log(
-    `  rule ${parent.rrule} from ${parent.seed.startDate}: ` +
+    `  ${semester.code} (${semester.startDate}–${semester.endDate}), ` +
+      `rule ${parent.rrule} from ${parent.seed.startDate}: ` +
       `${occurrences.length} occurrences — ${diff.toCreate.length} to create, ${kept} already exist`,
   )
 
@@ -162,6 +202,7 @@ async function processParent(parent: ParentRow): Promise<void> {
 
 async function main() {
   const parentId = parentIdArgument()
+  const semester = semesterArgument()
   const parents = await fetchParents(parentId)
 
   if (parents.length === 0) {
@@ -174,7 +215,7 @@ async function main() {
   }
 
   for (const parent of parents) {
-    await processParent(parent)
+    await processParent(parent, semester)
   }
 
   console.log(

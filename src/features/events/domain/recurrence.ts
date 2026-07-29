@@ -1,15 +1,11 @@
 import { RRule } from "rrule"
 
 export type RecurrenceFrequency = "WEEKLY" | "MONTHLY" | "DAILY"
-export type RecurrenceEndType = "count" | "until" | "never"
 
 export type RecurrenceInput = {
   frequency: RecurrenceFrequency
   interval: number
   weekdays: number[]
-  endType: RecurrenceEndType
-  count: number
-  untilDate: string
 }
 
 export type RecurrenceResult = {
@@ -31,9 +27,6 @@ export const initialRecurrenceInput: RecurrenceInput = {
   frequency: "WEEKLY",
   interval: 1,
   weekdays: [1],
-  endType: "count",
-  count: 8,
-  untilDate: "",
 }
 
 export const defaultRecurrenceRule =
@@ -50,12 +43,6 @@ export function buildRecurrence(
 
     if (input.frequency === "WEEKLY" && input.weekdays.length > 0) {
       options.byweekday = input.weekdays.map(day => weekdays[day])
-    }
-
-    if (input.endType === "count") {
-      options.count = input.count
-    } else if (input.endType === "until" && input.untilDate) {
-      options.until = new Date(input.untilDate)
     }
 
     const rule = new RRule(options)
