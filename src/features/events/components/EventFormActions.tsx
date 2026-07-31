@@ -8,15 +8,17 @@ import { Button } from "@/components/ui/button"
 import { useEventForm } from "./eventFormContext"
 
 interface EventFormActionsProps {
-  formError: string
+  formError?: string
 }
 
 export function EventFormActions({ formError }: EventFormActionsProps) {
   const form = useEventForm()
   const isPending = useStore(form.store, state => state.isSubmitting)
-  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
+  const errorMap = useStore(form.store, state => state.errorMap)
+  const submitError =
+    typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
 
-  const displayError = String(submitError || formError || "")
+  const displayError = submitError || formError || ""
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">

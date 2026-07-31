@@ -14,17 +14,16 @@ import {
 } from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { useFormErrors } from "@/lib/use-form-errors"
+import type { AppFormApi } from "@/lib/form-api"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import {
   buildPreviewEvent,
   type FormState,
   initialState,
 } from "../domain/formState"
+import { eventFormSchema } from "../domain/eventFormSchema"
 import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { useEventImage } from "../domain/useEventImage"
-import {
-  type EventValidationField,
-  getEventValidationIssues,
-} from "../domain/validation"
 import { EventFormActions } from "./EventFormActions"
 import { EventFormDetailsSection } from "./EventFormDetailsSection"
 import { EventFormImageSection } from "./EventFormImageSection"
@@ -56,7 +55,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
   const form = useForm({
     defaultValues: initialState as FormState,
-    onSubmit: async ({ value }) => {
+    validators: {
+      onChange: eventFormSchema,
+      onSubmit: eventFormSchema,
+    },
+    onSubmit: async ({ value, formApi }) => {
       // Upload the image only now, as part of submit, so abandoned forms never
       // leave orphaned assets in Sanity.
       let imageAssetId: string | undefined
@@ -64,46 +67,19 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         const formData = new FormData()
         formData.append("image", image.imageFile)
         const uploadResult = await uploadEventImage(formData)
-        if (!uploadResult.ok) throw new Error(uploadResult.error)
+        if (!uploadResult.ok) {
+          formApi.setErrorMap({ onServer: uploadResult.error as never })
+          throw new Error(uploadResult.error)
+        }
         imageAssetId = uploadResult.value
       }
 
-      const result = await submitEvent({
-        title: value.title,
-        description: value.description || undefined,
-        dates: value.dates
-          .filter(date => date.startDate)
-          .map(date => ({
-            startDate: date.startDate,
-            startTime: date.startTime || undefined,
-            endTime: date.endTime || undefined,
-          })),
-        isRecurring: value.isRecurring,
-        rrule: value.isRecurring ? value.rrule : undefined,
-        room: value.room || undefined,
-        roomText: value.roomText || undefined,
-        organizerGroup: value.organizerGroup || undefined,
-        organizerText: value.organizerText || undefined,
-        submittedByOrganization: value.submittedByOrganization || undefined,
-        eventTypeId: value.eventTypeId || undefined,
-        imageAssetId: imageAssetId || undefined,
-        isInternalEvent: value.isInternalEvent || undefined,
-        isFree: value.isFree,
-        priceOrdinar: value.priceOrdinar
-          ? Number(value.priceOrdinar)
-          : undefined,
-        priceStudent: value.priceStudent
-          ? Number(value.priceStudent)
-          : undefined,
-        priceMedlem: value.priceMedlem ? Number(value.priceMedlem) : undefined,
-        ticketUrl: value.ticketUrl || undefined,
-        facebookUrl: value.facebookUrl || undefined,
-        submittedBy: value.submittedBy,
-        submittedByEmail: value.submittedByEmail,
-        honeypot,
-      })
+      const result = await submitEvent({ ...value, imageAssetId, honeypot })
 
-      if (!result.ok) throw new Error(result.error)
+      if (!result.ok) {
+        formApi.setErrorMap({ onServer: result.error as never })
+        throw new Error(result.error)
+      }
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -137,16 +113,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     groups,
     eventTypes,
   )
-  const validationFieldToId: Record<EventValidationField, string> = {
-    title: fieldIds.title,
-    firstDate: fieldIds.firstDate,
-    submittedBy: fieldIds.submittedBy,
-    submittedByEmail: fieldIds.submittedByEmail,
-    rrule: "",
-  }
-  const issues = getEventValidationIssues(values)
-  const validationErrors: ErrorSummaryItem[] = issues.map(issue => ({
-    fieldId: validationFieldToId[issue.field] || fieldIds.title,
+  const errorMap = useStore(form.store, state => state.errorMap)
+  const submitError =
+    typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
+  const validationErrors: ErrorSummaryItem[] = collectEventSchemaIssues(
+    errorMap.onChange ?? errorMap.onSubmit,
+  ).map(issue => ({
+    fieldId: eventFieldId(issue.path, fieldIds),
     message: issue.message,
   }))
   const { visibleErrors, markSubmitAttempt, errorFor } =
@@ -169,7 +142,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   }
 
   return (
-    <EventFormContext.Provider value={form}>
+    <EventFormContext.Provider value={form as unknown as AppFormApi<FormState>}>
       <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
         <form
           className="min-w-0 space-y-14"
@@ -178,8 +151,19 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
-            if (validationErrors.length > 0) return
-            form.handleSubmit()
+            form.setErrorMap({ onServer: undefined })
+            void form.handleSubmit().catch(() => {
+              if (form.state.errorMap.onServer) return
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              posthog.captureException(
+                new Error("Unexpected event submission failure"),
+                {
+                  form_id: "event_submission",
+                  validation_stage: "client",
+                  failure_branch: "unexpected_submission_failure",
+                },
+              )
+            })
           }}
         >
           {visibleErrors.length > 0 && (
@@ -216,11 +200,49 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             submittedById={fieldIds.submittedBy}
             uid={uid}
           />
-          <EventFormActions formError="" />
+          <EventFormActions formError={submitError} />
         </form>
 
         <EventFormPreview event={previewEvent} />
       </div>
     </EventFormContext.Provider>
   )
+}
+
+type EventSchemaIssue = {
+  path: string
+  message: string
+}
+
+function collectEventSchemaIssues(errorMap: unknown): EventSchemaIssue[] {
+  if (!errorMap || typeof errorMap !== "object") return []
+
+  const issues: EventSchemaIssue[] = []
+  const seen = new Set<string>()
+  for (const [path, value] of Object.entries(
+    errorMap as Record<string, unknown>,
+  )) {
+    if (!Array.isArray(value)) continue
+    for (const issue of value) {
+      if (!issue || typeof issue !== "object") continue
+      const message = (issue as { message?: unknown }).message
+      if (typeof message !== "string") continue
+      const key = `${path}:${message}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      issues.push({ path, message })
+    }
+  }
+  return issues
+}
+
+function eventFieldId(path: string, fieldIds: Record<string, string>): string {
+  if (path === "title") return fieldIds.title
+  if (path === "submittedBy") return fieldIds.submittedBy
+  if (path === "submittedByEmail") return fieldIds.submittedByEmail
+  if (path === "dates" || path.startsWith("dates[")) {
+    return fieldIds.firstDate
+  }
+  if (path === "rrule") return fieldIds.firstDate
+  return fieldIds.title
 }

@@ -16,33 +16,7 @@ export async function submitPromotionEvent(
     imageAssetId = uploadResult.value
   }
 
-  const result = await submitEvent({
-    title: event.title,
-    description: event.description || undefined,
-    dates: event.dates
-      .filter(date => date.startDate)
-      .map(date => ({
-        startDate: date.startDate,
-        startTime: date.startTime || undefined,
-        endTime: date.endTime || undefined,
-      })),
-    room: event.room || undefined,
-    roomText: event.roomText || undefined,
-    organizerGroup: event.organizerGroup || undefined,
-    organizerText: event.organizerText || undefined,
-    submittedByOrganization: event.submittedByOrganization || undefined,
-    eventTypeId: event.eventTypeId || undefined,
-    imageAssetId,
-    isInternalEvent: event.isInternalEvent || undefined,
-    isFree: event.isFree,
-    priceOrdinar: event.priceOrdinar ? Number(event.priceOrdinar) : undefined,
-    priceStudent: event.priceStudent ? Number(event.priceStudent) : undefined,
-    priceMedlem: event.priceMedlem ? Number(event.priceMedlem) : undefined,
-    ticketUrl: event.ticketUrl || undefined,
-    facebookUrl: event.facebookUrl || undefined,
-    submittedBy: event.submittedBy,
-    submittedByEmail: event.submittedByEmail,
-  })
+  const result = await submitEvent({ ...event, imageAssetId })
   if (!result.ok) return result
   return { ok: true }
 }
