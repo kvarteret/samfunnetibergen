@@ -19,6 +19,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { useFieldAria } from "@/lib/use-field-aria"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -87,9 +88,8 @@ export function GroupVolunteerForm({
         body: JSON.stringify({ ...value, honeypot }),
       })
 
-      const data = await response.json().catch(() => null)
-
       if (!response.ok) {
+        const data = await response.json().catch(() => null)
         const detail =
           data && typeof data.detail === "string"
             ? data.detail
@@ -144,8 +144,9 @@ export function GroupVolunteerForm({
   const errorMap = useStore(form.store, state => state.errorMap)
   const submitError =
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
-  const validationErrors: ErrorSummaryItem[] = collectVolunteerSchemaIssues(
-    errorMap.onChange ?? errorMap.onSubmit,
+  const validationErrors: ErrorSummaryItem[] = getFormValidationIssues(
+    errorMap.onChange,
+    errorMap.onSubmit,
   ).map(issue => ({
     fieldId: volunteerFieldId(issue.path, fieldIds),
     message: issue.message,
@@ -487,35 +488,6 @@ export function GroupVolunteerForm({
       )}
     </FormSection>
   )
-}
-
-type VolunteerSchemaIssue = {
-  path: string
-  message: string
-}
-
-function collectVolunteerSchemaIssues(
-  errorMap: unknown,
-): VolunteerSchemaIssue[] {
-  if (!errorMap || typeof errorMap !== "object") return []
-
-  const issues: VolunteerSchemaIssue[] = []
-  const seen = new Set<string>()
-  for (const [path, value] of Object.entries(
-    errorMap as Record<string, unknown>,
-  )) {
-    if (!Array.isArray(value)) continue
-    for (const issue of value) {
-      if (!issue || typeof issue !== "object") continue
-      const message = (issue as { message?: unknown }).message
-      if (typeof message !== "string") continue
-      const key = `${path}:${message}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      issues.push({ path, message })
-    }
-  }
-  return issues
 }
 
 function volunteerFieldId(

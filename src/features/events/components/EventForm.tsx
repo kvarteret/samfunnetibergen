@@ -13,8 +13,8 @@ import {
   uploadEventImage,
 } from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { useFormErrors } from "@/lib/use-form-errors"
-import type { AppFormApi } from "@/lib/form-api"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import {
   buildPreviewEvent,
@@ -116,8 +116,9 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const errorMap = useStore(form.store, state => state.errorMap)
   const submitError =
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
-  const validationErrors: ErrorSummaryItem[] = collectEventSchemaIssues(
-    errorMap.onChange ?? errorMap.onSubmit,
+  const validationErrors: ErrorSummaryItem[] = getFormValidationIssues(
+    errorMap.onChange,
+    errorMap.onSubmit,
   ).map(issue => ({
     fieldId: eventFieldId(issue.path, fieldIds),
     message: issue.message,
@@ -142,7 +143,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   }
 
   return (
-    <EventFormContext.Provider value={form as unknown as AppFormApi<FormState>}>
+    <EventFormContext.Provider value={form}>
       <div className="grid grid-cols-1 items-start gap-12 xl:grid-cols-[minmax(0,1fr)_360px]">
         <form
           className="min-w-0 space-y-14"
@@ -207,33 +208,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       </div>
     </EventFormContext.Provider>
   )
-}
-
-type EventSchemaIssue = {
-  path: string
-  message: string
-}
-
-function collectEventSchemaIssues(errorMap: unknown): EventSchemaIssue[] {
-  if (!errorMap || typeof errorMap !== "object") return []
-
-  const issues: EventSchemaIssue[] = []
-  const seen = new Set<string>()
-  for (const [path, value] of Object.entries(
-    errorMap as Record<string, unknown>,
-  )) {
-    if (!Array.isArray(value)) continue
-    for (const issue of value) {
-      if (!issue || typeof issue !== "object") continue
-      const message = (issue as { message?: unknown }).message
-      if (typeof message !== "string") continue
-      const key = `${path}:${message}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      issues.push({ path, message })
-    }
-  }
-  return issues
 }
 
 function eventFieldId(path: string, fieldIds: Record<string, string>): string {

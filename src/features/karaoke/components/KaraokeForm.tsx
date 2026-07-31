@@ -13,9 +13,9 @@ import {
   slotRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
-import type { AppFormApi } from "@/lib/form-api"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
@@ -93,8 +93,9 @@ export function KaraokeForm({
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
 
   const derived = deriveKaraokeState(values)
-  const validationErrors = collectKaraokeSchemaIssues(
-    errorMap.onChange ?? errorMap.onSubmit,
+  const validationErrors = getFormValidationIssues(
+    errorMap.onChange,
+    errorMap.onSubmit,
   ).map(issue => ({
     fieldId: karaokeFieldId(issue.path, fieldIds),
     message: issue.message,
@@ -149,9 +150,7 @@ export function KaraokeForm({
   }
 
   return (
-    <KaraokeFormContext.Provider
-      value={form as unknown as AppFormApi<KaraokeFormState>}
-    >
+    <KaraokeFormContext.Provider value={form}>
       <div className="grid gap-12 items-start lg:grid-two-one">
         <form
           className="min-w-0 space-y-14"
@@ -234,11 +233,6 @@ export function KaraokeForm({
   )
 }
 
-type KaraokeSchemaIssue = {
-  path: string
-  message: string
-}
-
 type KaraokeFieldIds = Record<
   | "eventName"
   | "startDate"
@@ -249,28 +243,6 @@ type KaraokeFieldIds = Record<
   | "studentProof",
   string
 >
-
-function collectKaraokeSchemaIssues(errorMap: unknown): KaraokeSchemaIssue[] {
-  if (!errorMap || typeof errorMap !== "object") return []
-
-  const issues: KaraokeSchemaIssue[] = []
-  const seen = new Set<string>()
-  for (const [path, value] of Object.entries(
-    errorMap as Record<string, unknown>,
-  )) {
-    if (!Array.isArray(value)) continue
-    for (const issue of value) {
-      if (!issue || typeof issue !== "object") continue
-      const message = (issue as { message?: unknown }).message
-      if (typeof message !== "string") continue
-      const key = `${path}:${message}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      issues.push({ path, message })
-    }
-  }
-  return issues
-}
 
 function karaokeFieldId(path: string, fieldIds: KaraokeFieldIds): string {
   if (path === "startDate" || path === "startSlotMin") {

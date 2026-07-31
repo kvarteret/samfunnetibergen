@@ -160,7 +160,8 @@ export async function submitEvent(
           is_free: validatedInput.isFree,
           has_ticket_url: Boolean(validatedInput.ticketUrl),
           has_facebook_url: Boolean(validatedInput.facebookUrl),
-          date_count: validatedInput.dates.length,
+          date_count: validatedInput.dates.filter(date => date.startDate)
+            .length,
           sanity_document_id: created._id,
         },
       })
@@ -180,7 +181,7 @@ export async function submitEvent(
         is_free: validatedInput.isFree,
         has_ticket_url: Boolean(validatedInput.ticketUrl),
         has_facebook_url: Boolean(validatedInput.facebookUrl),
-        date_count: validatedInput.dates.length,
+        date_count: validatedInput.dates.filter(date => date.startDate).length,
       },
     )
     return err(GENERIC_SUBMIT_ERROR)
@@ -200,13 +201,15 @@ function buildEventDocument(input: SubmitEventInput) {
     eventKind: isRecurringSeries ? "seriesParent" : "single",
     eventStatus: "scheduled",
     approvalStatus: "pending",
-    dates: input.dates.map(d => ({
-      _key: nanoid(),
-      _type: "arrangementDate",
-      startDate: d.startDate,
-      ...(d.startTime ? { startTime: d.startTime } : {}),
-      ...(d.endTime ? { endTime: d.endTime } : {}),
-    })),
+    dates: input.dates
+      .filter(date => date.startDate)
+      .map(d => ({
+        _key: nanoid(),
+        _type: "arrangementDate",
+        startDate: d.startDate,
+        ...(d.startTime ? { startTime: d.startTime } : {}),
+        ...(d.endTime ? { endTime: d.endTime } : {}),
+      })),
     submittedBy: input.submittedBy.trim(),
     submittedByEmail: input.submittedByEmail.trim(),
   }

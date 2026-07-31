@@ -29,6 +29,9 @@ per form domain and is reused by the browser and its server boundary.
       failure telemetry.
 - [x] Final source audit: all four public TanStack submit promises are
       observed; Milestone 5 routes remain explicitly out of scope.
+- [x] Review follow-ups: shared client-safe submission copy, one validation
+      error-map adapter, cast-free form providers, analytics-safe booking
+      success, blank-date filtering, and focused regression tests.
 - [ ] Milestone 5: Slack feedback and `/api/feedback` — skipped by request.
 
 ## Surprises & Discoveries
@@ -41,10 +44,10 @@ per form domain and is reused by the browser and its server boundary.
 - TanStack Form maps Standard Schema issues into `errorMap.onChange` and
   `errorMap.onSubmit`, while `onServer` must be set explicitly for action or
   route results. The DOM boundary must observe the rejected submit promise.
-- The existing form context alias assumes a validator-free concrete form. The
-  migrated forms keep the existing context boundary and cast their more
-  specific validator instance at the provider boundary; no shared form helper
-  was introduced.
+- The existing form context alias sits at a React boundary shared by sections
+  whose validator generics differ. The follow-up keeps the form value type
+  visible, centralizes the unavoidable validator erasure in that alias, and
+  removes unsafe double casts from each provider.
 - The installed TanStack Form inference leaves the manually populated
   `onServer` slot typed as `undefined` when no server validator is configured.
   The forms therefore use the documented `setErrorMap` API with a narrow value
@@ -55,6 +58,14 @@ per form domain and is reused by the browser and its server boundary.
 - Success analytics and success-response JSON parsing are isolated from the
   destination write. A PostHog failure cannot turn an accepted booking,
   Sanity document, or Personal registration into a visible submission failure.
+- The event schema intentionally permits empty additional date rows while at
+  least one date is present, so the Sanity document builder must filter those
+  rows before persistence. The new action regression test observes the exact
+  document passed to the mocked Sanity client.
+- TanStack's validator generic parameters are invariant. A shared React form
+  context therefore needs one deliberately erased validator boundary; keeping
+  that erasure in `src/lib/form-api.ts` removes unsafe double casts from all
+  providers without pretending the child sections own validator configuration.
 
 ## Decision Log
 
@@ -69,6 +80,16 @@ per form domain and is reused by the browser and its server boundary.
 - Emit only value-free validation diagnostics (`form_id`, stage, branch, issue
   count, paths, codes, status, and safe feature flags) through the existing
   PostHog submission helper.
+- Keep the generic, rate-limit, and invalid-payload user messages together in
+  the client-safe `src/lib/submission-messages.ts`; re-export them from the
+  server-only submission helper so existing server imports remain stable.
+- Use one small `getFormValidationIssues` adapter for all four forms. It merges
+  the `onChange` and `onSubmit` Standard Schema error-map slots and de-duplicates
+  identical path/message pairs; an additional dependency is not warranted for
+  this narrow runtime-shape conversion.
+- The volunteer proxy's current camelCase browser request is the supported
+  public contract. Legacy snake_case clients, including old browsers, are out
+  of scope and do not require a compatibility branch.
 - Keep Milestone 5 unchanged. Slack feedback and `/api/feedback` are recorded
   as remaining work, not as an accidental omission.
 
@@ -98,13 +119,16 @@ Focused verification completed:
 - Booking action suite: 7 tests passed.
 - Schema, promotion, and volunteer route suites: 24 tests passed.
 - Targeted ESLint: no errors; one unused-variable warning was removed.
+- Review follow-up suites: 3 test files passed, 5 tests passed, including the
+  shared validation adapter and the event document blank-date regression.
+- Review follow-up TypeScript and ESLint checks: passed with no errors.
 
 Final repository verification completed:
 
-- Full Vitest coverage run: 47 test files passed, 1 skipped; 296 tests passed,
-  3 skipped.
+- Full Vitest coverage run: 49 test files passed, 1 skipped; 299 tests passed,
+  3 skipped (302 total).
 - Full ESLint: passed.
-- Configured Biome format check (`biome format .`): 383 files checked with no
+- Configured Biome format check (`biome format .`): 386 files checked with no
   changes.
 - TypeScript (`tsc --noEmit`): passed.
 - Production build (`next build`): compiled, type-checked, and generated all
@@ -123,10 +147,18 @@ Biome version; the repository-configured `biome format .` verification passed.
 
 ## Outcomes & Retrospective
 
-Milestones 1–4 now share the intended observable contract. No custom form or
-telemetry abstraction was needed. The final implementation keeps normalized
-integration payloads behind raw-state schemas, moves deterministic validation
-ahead of rate limiting, preserves expected server messages in `onServer`, and
-keeps destination success independent of analytics availability. Remaining
-work is exactly Milestone 5, which is intentionally not implemented in this
-task.
+Milestones 1–4 now share the intended observable contract. The review follow-up
+also keeps all three user-facing submission messages in one client-safe module,
+uses one narrow adapter for form validation presentation, removes provider-level
+double casts, prevents booking analytics from changing an accepted result, and
+keeps blank optional event dates out of Sanity. No remeda dependency was needed.
+The volunteer proxy continues to support its current camelCase public request;
+legacy snake_case compatibility is intentionally not part of this work.
+Remaining work is exactly Milestone 5, which is intentionally not implemented
+in this task.
+
+Revision note (2026-07-31): Added the post-review reliability and maintainability
+follow-ups after the implementation review identified duplicated error-map
+parsers, unsafe provider casts, analytics-induced booking failure, and blank
+event date persistence. Added focused regression tests and recorded that legacy
+volunteer request compatibility is out of scope per the user's clarification.

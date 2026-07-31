@@ -23,7 +23,6 @@ import {
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
-import type { AppFormApi } from "@/lib/form-api"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
@@ -38,6 +37,7 @@ import {
 } from "../domain/bookingFormSchema"
 import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
@@ -114,9 +114,14 @@ export function BookingForm({
         throw new Error(result.error)
       }
 
-      posthog.capture("room_booking_submitted", {
-        promote: value.promote === "ja",
-      })
+      try {
+        posthog.capture("room_booking_submitted", {
+          promote: value.promote === "ja",
+        })
+      } catch {
+        // A successful Crescat booking must not become a visible failure if
+        // client analytics is unavailable.
+      }
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -224,8 +229,9 @@ export function BookingForm({
     )
   })()
 
-  const schemaIssues = collectBookingSchemaIssues(
-    errorMap.onChange ?? errorMap.onSubmit,
+  const schemaIssues = getFormValidationIssues(
+    errorMap.onChange,
+    errorMap.onSubmit,
   )
   const validationErrors = [
     ...schemaIssues.map(issue => ({
@@ -272,9 +278,7 @@ export function BookingForm({
   const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
 
   return (
-    <BookingFormContext.Provider
-      value={form as unknown as AppFormApi<BookingFormValues>}
-    >
+    <BookingFormContext.Provider value={form}>
       <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <form
           className="min-w-0 space-y-14"
@@ -437,33 +441,6 @@ export function BookingForm({
       </div>
     </BookingFormContext.Provider>
   )
-}
-
-type BookingSchemaIssue = {
-  path: string
-  message: string
-}
-
-function collectBookingSchemaIssues(errorMap: unknown): BookingSchemaIssue[] {
-  if (!errorMap || typeof errorMap !== "object") return []
-
-  const issues: BookingSchemaIssue[] = []
-  const seen = new Set<string>()
-  for (const [path, value] of Object.entries(
-    errorMap as Record<string, unknown>,
-  )) {
-    if (!Array.isArray(value)) continue
-    for (const issue of value) {
-      if (!issue || typeof issue !== "object") continue
-      const message = (issue as { message?: unknown }).message
-      if (typeof message !== "string") continue
-      const key = `${path}:${message}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      issues.push({ path, message })
-    }
-  }
-  return issues
 }
 
 function bookingFieldId(

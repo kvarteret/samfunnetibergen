@@ -6,16 +6,16 @@ import {
 } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
-export { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+export {
+  GENERIC_SUBMIT_ERROR,
+  INVALID_PAYLOAD_ERROR,
+  RATE_LIMIT_ERROR,
+} from "@/lib/submission-messages"
 
 // Shared plumbing for the public, unauthenticated submission surfaces
 // (server actions and API routes): user-facing copy, rate limiting, and
 // failure telemetry. Internal error detail never crosses to the client; it
 // lives in the PostHog exception captures.
-
-export const RATE_LIMIT_ERROR = "For mange forsøk. Vent litt og prøv igjen."
-export const INVALID_PAYLOAD_ERROR =
-  "Skjemaet er ufullstendig eller inneholder ugyldige verdier."
 
 export const SUBMIT_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 export const DEFAULT_SUBMIT_LIMIT = 5
