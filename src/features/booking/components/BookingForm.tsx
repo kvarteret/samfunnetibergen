@@ -22,6 +22,8 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import type { AppFormApi } from "@/lib/form-api"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
@@ -31,11 +33,10 @@ import {
   occupiedMinuteRanges,
 } from "../domain/availability"
 import {
-  buildBookingPayload,
-  hasValidPaidTickets,
-  initialBookingState,
-  isExternalBooker,
-} from "../domain/formState"
+  type BookingFormState,
+  bookingFormSchema,
+} from "../domain/bookingFormSchema"
+import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
@@ -49,8 +50,7 @@ import { BookingFormTicketSection } from "./BookingFormTicketSection"
 import { BookingPromotionSection } from "./BookingPromotionSection"
 import { BookingFormContext } from "./bookingFormContext"
 
-// TODO: resolve form type when @tanstack/react-form stabilizes
-export type BookingFormValues = typeof initialBookingState
+export type BookingFormValues = BookingFormState
 
 const DATE_COUNT = 7
 const TIVOLI_CRESCAT_ROOM_ID = 95
@@ -90,7 +90,9 @@ export function BookingForm({
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
     invoiceAddress: `${uid}-invoiceAddress`,
+    orgNumber: `${uid}-orgNumber`,
     acceptTerms: `${uid}-acceptTerms`,
+    promote: `${uid}-promote`,
   }
   const form = useForm({
     defaultValues: {
@@ -101,16 +103,16 @@ export function BookingForm({
           ? [initialRoomId]
           : [],
     } as BookingFormValues,
-    onSubmit: async ({ value }) => {
-      const selectedRooms = rooms.filter(r =>
-        value.selectedRoomIds.includes(r.crescatRoomId),
-      )
-      if (!selectedRooms.length) throw new Error("Ingen rom valgt")
-      const result = await submitRoomBooking({
-        ...buildBookingPayload(value, selectedRooms),
-        honeypot,
-      })
-      if (!result.ok) throw new Error(result.error)
+    validators: {
+      onChange: bookingFormSchema,
+      onSubmit: bookingFormSchema,
+    },
+    onSubmit: async ({ value, formApi }) => {
+      const result = await submitRoomBooking({ ...value, honeypot })
+      if (!result.ok) {
+        formApi.setErrorMap({ onServer: result.error as never })
+        throw new Error(result.error)
+      }
 
       posthog.capture("room_booking_submitted", {
         promote: value.promote === "ja",
@@ -123,7 +125,9 @@ export function BookingForm({
     form.store,
     state => state.isSubmitSuccessful,
   )
-  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
+  const errorMap = useStore(form.store, state => state.errorMap)
+  const submitError =
+    typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
   const bookerType = values.bookerType
 
   const selectedRooms = rooms.filter(room =>
@@ -220,13 +224,21 @@ export function BookingForm({
     )
   })()
 
-  const validationErrors = getBookingValidationErrors({
-    values,
-    fieldIds,
-    roomsSelected: selectedRoomIds.length > 0,
-    hasConflict,
-    slotWithinHours,
-  })
+  const schemaIssues = collectBookingSchemaIssues(
+    errorMap.onChange ?? errorMap.onSubmit,
+  )
+  const validationErrors = [
+    ...schemaIssues.map(issue => ({
+      fieldId: bookingFieldId(issue.path, fieldIds),
+      message: issue.message,
+    })),
+    ...getBookingAvailabilityErrors({
+      hasConflict,
+      slotWithinHours,
+      startDate: values.startDate,
+      startDateId: fieldIds.startDate,
+    }),
+  ]
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -260,7 +272,9 @@ export function BookingForm({
   const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
 
   return (
-    <BookingFormContext.Provider value={form}>
+    <BookingFormContext.Provider
+      value={form as unknown as AppFormApi<BookingFormValues>}
+    >
       <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <form
           className="min-w-0 space-y-14"
@@ -269,8 +283,20 @@ export function BookingForm({
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
-            if (validationErrors.length > 0) return
-            form.handleSubmit()
+            form.setErrorMap({ onServer: undefined })
+            if (hasConflict || (!slotWithinHours && values.startDate)) return
+            void form.handleSubmit().catch(() => {
+              if (form.state.errorMap.onServer) return
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              posthog.captureException(
+                new Error("Unexpected room booking submission failure"),
+                {
+                  form_id: "room_booking",
+                  validation_stage: "client",
+                  failure_branch: "unexpected_submission_failure",
+                },
+              )
+            })
           }}
         >
           <BookingFormBookerTypeSection
@@ -313,6 +339,8 @@ export function BookingForm({
                 contactNameId={fieldIds.contactName}
                 invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
                 invoiceAddressId={fieldIds.invoiceAddress}
+                orgNumberError={errorFor(fieldIds.orgNumber)}
+                orgNumberId={fieldIds.orgNumber}
               />
               <BookingFormNeedsSection
                 furnitureError={errorFor(fieldIds.furniture)}
@@ -322,7 +350,10 @@ export function BookingForm({
                 }
               />
               <BookingFormCateringBarSection />
-              <BookingPromotionSection />
+              <BookingPromotionSection
+                error={errorFor(fieldIds.promote)}
+                errorId={fieldIds.promote}
+              />
               <BookingFormTermsSection
                 acceptTermsError={errorFor(fieldIds.acceptTerms)}
                 acceptTermsId={fieldIds.acceptTerms}
@@ -408,132 +439,89 @@ export function BookingForm({
   )
 }
 
-// Creates the pending event when the guest opted into promotion. Mirrors the
-// standalone event form's submit: upload the image (if any) only now, then write
-// the arrangement. Throws on failure so the caller can surface a warning without
-// failing the already-sent booking.
-interface BookingValidationOptions {
-  values: BookingFormValues
-  fieldIds: Record<
-    | "studentOrgName"
-    | "startDate"
-    | "eventName"
-    | "audienceCount"
-    | "tickets"
-    | "furniture"
-    | "contactName"
-    | "contactEmail"
-    | "invoiceAddress"
-    | "acceptTerms",
-    string
-  >
-  roomsSelected: boolean
-  hasConflict: boolean
-  slotWithinHours: boolean
+type BookingSchemaIssue = {
+  path: string
+  message: string
 }
 
-function getBookingValidationErrors({
-  values,
-  fieldIds,
-  roomsSelected,
+function collectBookingSchemaIssues(errorMap: unknown): BookingSchemaIssue[] {
+  if (!errorMap || typeof errorMap !== "object") return []
+
+  const issues: BookingSchemaIssue[] = []
+  const seen = new Set<string>()
+  for (const [path, value] of Object.entries(
+    errorMap as Record<string, unknown>,
+  )) {
+    if (!Array.isArray(value)) continue
+    for (const issue of value) {
+      if (!issue || typeof issue !== "object") continue
+      const message = (issue as { message?: unknown }).message
+      if (typeof message !== "string") continue
+      const key = `${path}:${message}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      issues.push({ path, message })
+    }
+  }
+  return issues
+}
+
+function bookingFieldId(
+  path: string,
+  fieldIds: Record<string, string>,
+): string {
+  if (
+    path === "selectedRoomIds" ||
+    path === "startDate" ||
+    path === "endDate" ||
+    path === "startTime" ||
+    path === "endTime" ||
+    path.startsWith("doorsTimes") ||
+    path.startsWith("estimatedEndTimes")
+  ) {
+    return path === "startTime" || path === "endTime"
+      ? `${fieldIds.startDate}-time`
+      : fieldIds.startDate
+  }
+  if (path === "studentOrgName") return fieldIds.studentOrgName
+  if (path === "eventName") return fieldIds.eventName
+  if (path === "audienceCount") return fieldIds.audienceCount
+  if (path === "ticketTypes" || path.startsWith("ticketTypes[")) {
+    return fieldIds.tickets
+  }
+  if (path === "furniture") return fieldIds.furniture
+  if (path === "contactName") return fieldIds.contactName
+  if (path === "contactEmail") return fieldIds.contactEmail
+  if (path === "invoiceAddress") return fieldIds.invoiceAddress
+  if (path === "orgNumber") return fieldIds.orgNumber
+  if (path === "acceptTerms") return fieldIds.acceptTerms
+  if (path === "promote") return fieldIds.promote
+  return fieldIds.startDate
+}
+
+function getBookingAvailabilityErrors({
   hasConflict,
   slotWithinHours,
-}: BookingValidationOptions): ErrorSummaryItem[] {
+  startDate,
+  startDateId,
+}: {
+  hasConflict: boolean
+  slotWithinHours: boolean
+  startDate: string
+  startDateId: string
+}): ErrorSummaryItem[] {
   const errors: ErrorSummaryItem[] = []
-  const isExternal = isExternalBooker(values.bookerType)
-
-  if (!roomsSelected) {
-    errors.push({
-      fieldId: fieldIds.startDate,
-      message: "Velg minst ett rom.",
-    })
-  }
-  if (values.bookerType === "studentorg" && !values.studentOrgName.trim()) {
-    errors.push({
-      fieldId: fieldIds.studentOrgName,
-      message: "Skriv inn navn på studentorganisasjonen.",
-    })
-  }
-  if (!values.startDate) {
-    errors.push({
-      fieldId: fieldIds.startDate,
-      message: "Velg dato.",
-    })
-  }
-  if (values.startDate && values.doorsTimes.length > 0) {
-    const missingDoors = values.doorsTimes.some(t => !t)
-    if (missingDoors) {
-      errors.push({
-        fieldId: fieldIds.startDate,
-        message: "Velg tidspunkt for dørene åpner for alle dager.",
-      })
-    }
-  } else if (values.startDate) {
-    errors.push({
-      fieldId: fieldIds.startDate,
-      message: "Velg tidspunkt for dørene åpner.",
-    })
-  }
   if (hasConflict) {
     errors.push({
-      fieldId: `${fieldIds.startDate}-time`,
+      fieldId: `${startDateId}-time`,
       message: "Velg et tidsrom som ikke overlapper en eksisterende booking.",
     })
   }
-  if (!slotWithinHours && values.startDate) {
+  if (!slotWithinHours && startDate) {
     errors.push({
-      fieldId: `${fieldIds.startDate}-time`,
+      fieldId: `${startDateId}-time`,
       message: "Velg et tidsrom innenfor åpningstiden.",
     })
   }
-  if (!values.eventName.trim()) {
-    errors.push({
-      fieldId: fieldIds.eventName,
-      message: "Skriv inn navn på arrangementet.",
-    })
-  }
-  if (!values.audienceCount.trim()) {
-    errors.push({
-      fieldId: fieldIds.audienceCount,
-      message: "Skriv inn estimert antall publikum.",
-    })
-  }
-  if (!hasValidPaidTickets(values)) {
-    errors.push({
-      fieldId: fieldIds.tickets,
-      message: "Legg til minst én billettype med pris for betalte arrangement.",
-    })
-  }
-  if (!values.furniture.trim()) {
-    errors.push({
-      fieldId: fieldIds.furniture,
-      message: "Skriv inn ønsket møblement.",
-    })
-  }
-  if (!values.contactName.trim()) {
-    errors.push({
-      fieldId: fieldIds.contactName,
-      message: "Skriv inn navn på kontaktperson.",
-    })
-  }
-  if (!values.contactEmail.trim()) {
-    errors.push({
-      fieldId: fieldIds.contactEmail,
-      message: "Skriv inn e-postadresse.",
-    })
-  }
-  if (isExternal && !values.invoiceAddress.trim()) {
-    errors.push({
-      fieldId: fieldIds.invoiceAddress,
-      message: "Skriv inn fakturaadresse.",
-    })
-  }
-  if (!values.acceptTerms) {
-    errors.push({
-      fieldId: fieldIds.acceptTerms,
-      message: "Bekreft at du har lest og godtar bookingvilkårene.",
-    })
-  }
-
   return errors
 }

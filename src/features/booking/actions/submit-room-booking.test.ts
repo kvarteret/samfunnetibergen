@@ -26,33 +26,34 @@ vi.mock("@/lib/sanity/fetch", () => ({
   fetchHouseHours: vi.fn().mockResolvedValue(null),
 }))
 
-import type { RoomBookingPayload } from "./submit-room-booking"
+import type { BookingFormState } from "../domain/bookingFormSchema"
+import { initialBookingState } from "../domain/formState"
 import { submitRoomBooking } from "./submit-room-booking"
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function standardPayload(
-  overrides: Partial<RoomBookingPayload> = {},
-): RoomBookingPayload {
+  overrides: Partial<BookingFormState> = {},
+): BookingFormState {
   return {
+    ...initialBookingState,
     bookerType: "ekstern",
     eventName: "Testarrangement",
-    roomIds: [95],
+    selectedRoomIds: [95],
     startDate: "2026-12-24",
     startTime: "20:00",
     endTime: "23:00",
+    doorsTimes: ["19:00"],
     description: "En test.",
-    audienceCount: 50,
+    audienceCount: "50",
     openOrClosed: "Åpent",
     furniture: "Bord og stoler",
-    techEquipment: "Projektor",
-    cateringWishes: "",
     freeOrPaid: "Gratis",
-    ticketTypes: "",
     contactName: "Test Testesen",
     contactEmail: "test@example.com",
     contactPhone: "12345678",
     acceptTerms: true,
+    invoiceAddress: "Testadresse 1",
     ...overrides,
   }
 }
