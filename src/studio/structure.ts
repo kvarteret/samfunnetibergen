@@ -3,6 +3,7 @@ import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list"
 import type { StructureBuilder, StructureResolver } from "sanity/structure"
 
 import { ArrangementsPane } from "./components/ArrangementBrowser"
+import { PromotedArrangementsPane } from "./components/PromotedArrangementList"
 import { RequestCountIcon } from "./components/RequestCountIcon"
 
 export { singletonTypeNames } from "./documentTypes"
@@ -126,6 +127,16 @@ export const structure: StructureResolver = (S, context) =>
                     .id("arrangement-browser-pane")
                     .title("Arrangementer")
                     .component(ArrangementsPane),
+                ),
+              S.listItem()
+                .id("arrangement-promoted")
+                .title("Fremhevede")
+                .icon(icons.star)
+                .child(
+                  S.component()
+                    .id("arrangement-promoted-pane")
+                    .title("Fremhevede arrangementer")
+                    .component(PromotedArrangementsPane),
                 ),
             ]),
         ),

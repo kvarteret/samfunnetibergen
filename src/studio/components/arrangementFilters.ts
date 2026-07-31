@@ -1,17 +1,12 @@
-export type ArrangementPreset =
-  | "arrangements"
-  | "recurring"
-  | "festivals"
-  | "promoted"
+export type ArrangementFormat = "all" | "single" | "recurring" | "festivals"
 
 export type ArrangementFilterState = {
   date: "all" | "upcoming" | "past"
-  visibility: "approved" | "paused" | "archived" | "all"
-  eventStatus: "all" | "scheduled" | "cancelled" | "postponed"
+  format: ArrangementFormat
+  status: "approved" | "paused" | "archived" | "cancelled" | "postponed" | "all"
   taxonomyGroupId: string | null
   eventTypeId: string | null
   query: string
-  preset: ArrangementPreset
 }
 
 export type ArrangementBrowserItem = {
@@ -21,7 +16,6 @@ export type ArrangementBrowserItem = {
   approvalStatus?: string | null
   eventStatus?: string | null
   isRecurring?: boolean | null
-  isPromoted?: boolean | null
   dates?: Array<{ startDate?: string | null; startTime?: string | null }> | null
   eventType?: {
     _id: string
@@ -31,16 +25,13 @@ export type ArrangementBrowserItem = {
   childDates?: string[] | null
 }
 
-export const defaultArrangementFilters = (
-  preset: ArrangementPreset,
-): ArrangementFilterState => ({
-  date: "all",
-  visibility: "approved",
-  eventStatus: "scheduled",
+export const defaultArrangementFilters = (): ArrangementFilterState => ({
+  date: "upcoming",
+  format: "all",
+  status: "approved",
   taxonomyGroupId: null,
   eventTypeId: null,
   query: "",
-  preset,
 })
 
 export function normalizeDocumentId(id: string): string {
@@ -77,6 +68,20 @@ function hasDate(
     : dates.length > 0 && dates.every(date => date < today)
 }
 
+function arrangementStatus(
+  item: ArrangementBrowserItem,
+): Exclude<ArrangementFilterState["status"], "all"> | "other" {
+  const approvalStatus = item.approvalStatus ?? "pending"
+  if (approvalStatus === "paused" || approvalStatus === "archived")
+    return approvalStatus
+  if (approvalStatus !== "approved") return "other"
+
+  const eventStatus = item.eventStatus ?? "scheduled"
+  if (eventStatus === "cancelled" || eventStatus === "postponed")
+    return eventStatus
+  return "approved"
+}
+
 export function filterArrangements(
   items: ArrangementBrowserItem[],
   filters: ArrangementFilterState,
@@ -88,28 +93,17 @@ export function filterArrangements(
       const kind = item.eventKind ?? "single"
       if (!["single", "seriesParent", "festivalParent"].includes(kind))
         return false
+      if (filters.format === "single" && kind !== "single") return false
       if (
-        filters.preset === "arrangements" &&
-        !["single", "seriesParent"].includes(kind)
-      )
-        return false
-      if (
-        filters.preset === "recurring" &&
+        filters.format === "recurring" &&
         (kind !== "seriesParent" || item.isRecurring !== true)
       )
         return false
-      if (filters.preset === "festivals" && kind !== "festivalParent")
-        return false
-      if (filters.preset === "promoted" && item.isPromoted !== true)
+      if (filters.format === "festivals" && kind !== "festivalParent")
         return false
       if (
-        filters.visibility !== "all" &&
-        (item.approvalStatus ?? "pending") !== filters.visibility
-      )
-        return false
-      if (
-        filters.eventStatus !== "all" &&
-        (item.eventStatus ?? "scheduled") !== filters.eventStatus
+        filters.status !== "all" &&
+        arrangementStatus(item) !== filters.status
       )
         return false
       if (
