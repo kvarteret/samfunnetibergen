@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Remote Codex development
+
+See [Set up Codex for remote work](docs/how-to/codex-environments.md) for the
+repository-specific setup for Codex Cloud, ChatGPT Remote Control, and local
+managed worktrees.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
