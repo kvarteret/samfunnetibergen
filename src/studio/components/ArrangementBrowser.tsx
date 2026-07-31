@@ -97,12 +97,21 @@ function ArrangementBrowser() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const refresh = () =>
-      fetchBrowserData(client).then(({ documents, taxonomyDocuments }) => {
+    let active = true
+    const refresh = async () => {
+      try {
+        const { documents, taxonomyDocuments } = await fetchBrowserData(client)
+        if (!active) return
         setItems(documents)
         setTaxonomy(taxonomyDocuments)
-        setLoading(false)
-      })
+      } catch {
+        // Keep transient Studio connectivity failures from becoming
+        // unhandled promise rejections.
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
     void refresh()
     const subscription = client
       .listen(
@@ -110,8 +119,15 @@ function ArrangementBrowser() {
         {},
         { includeResult: false, visibility: "query" },
       )
-      .subscribe(() => void refresh())
-    return () => subscription.unsubscribe()
+      .subscribe({
+        next: () => void refresh(),
+        error: () => undefined,
+      })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [client])
 
   const today = new Intl.DateTimeFormat("sv-SE", {
