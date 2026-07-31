@@ -19,7 +19,12 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { useFieldAria } from "@/lib/use-field-aria"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
+import {
+  type VolunteerFormValues,
+  volunteerFormSchema,
+} from "../domain/volunteerFormSchema"
 
 type SubGroup = {
   slug: string
@@ -38,16 +43,6 @@ type GroupVolunteerFormProps = {
   institutionOptions: InstitutionOption[]
 }
 
-type VolunteerFormValues = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  studyInstitution: string
-  backgroundDetails: string
-  friendEmails: string[]
-}
-
 const defaultValues: VolunteerFormValues = {
   firstName: "",
   lastName: "",
@@ -55,80 +50,13 @@ const defaultValues: VolunteerFormValues = {
   phone: "",
   studyInstitution: "",
   backgroundDetails: "",
+  firstChoiceGroupSlug: "",
+  secondChoiceGroupSlug: "",
   friendEmails: [],
-}
-
-function isEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 }
 
 function friendFieldId(index: number) {
   return index === 0 ? "gvf-friend-0" : "gvf-friend-1"
-}
-
-function getValidationErrors(
-  values: VolunteerFormValues,
-  fieldIds: Record<string, string>,
-  t: ReturnType<typeof useTranslations<"GroupVolunteerForm">>,
-): ErrorSummaryItem[] {
-  const errors: ErrorSummaryItem[] = []
-
-  if (!values.firstName.trim()) {
-    errors.push({
-      fieldId: fieldIds.firstName,
-      message: `${t("firstNameLabel")} er påkrevd`,
-    })
-  }
-  if (!values.lastName.trim()) {
-    errors.push({
-      fieldId: fieldIds.lastName,
-      message: `${t("lastNameLabel")} er påkrevd`,
-    })
-  }
-  if (!values.email.trim() || !isEmail(values.email)) {
-    errors.push({ fieldId: fieldIds.email, message: "Ugyldig e-postadresse" })
-  }
-  if (!values.phone.trim() || !/\d/.test(values.phone)) {
-    errors.push({
-      fieldId: fieldIds.phone,
-      message: "Telefonnummer er påkrevd",
-    })
-  }
-  if (!values.studyInstitution.trim()) {
-    errors.push({
-      fieldId: fieldIds.studyInstitution,
-      message: "Studiested er påkrevd",
-    })
-  }
-  const normalizedEmail = values.email.trim().toLowerCase()
-  const normalizedFriends = values.friendEmails.map(email =>
-    email.trim().toLowerCase(),
-  )
-  values.friendEmails.forEach((friendEmail, index) => {
-    const fieldId = friendFieldId(index)
-    if (!friendEmail.trim() || !isEmail(friendEmail)) {
-      errors.push({
-        fieldId,
-        message: t("friendEmailInvalid"),
-      })
-    } else if (friendEmail.trim().toLowerCase() === normalizedEmail) {
-      errors.push({
-        fieldId,
-        message: t("friendEmailDuplicate"),
-      })
-    } else if (
-      normalizedFriends.findIndex(
-        email => email === normalizedFriends[index],
-      ) !== index
-    ) {
-      errors.push({
-        fieldId,
-        message: t("friendEmailDuplicate"),
-      })
-    }
-  })
-
-  return errors
 }
 
 export function GroupVolunteerForm({
@@ -144,13 +72,48 @@ export function GroupVolunteerForm({
     ...(subGroups ?? []),
   ]
   const hasMultipleGroupChoices = groupChoices.length > 1
-  const [selectedSlug, setSelectedSlug] = useState(groupSlug)
-  const [secondChoiceSlug, setSecondChoiceSlug] = useState("")
   const [honeypot, setHoneypot] = useState("")
 
+  const form = useForm({
+    defaultValues: { ...defaultValues, firstChoiceGroupSlug: groupSlug },
+    validators: {
+      onChange: volunteerFormSchema,
+      onSubmit: volunteerFormSchema,
+    },
+    onSubmit: async ({ value, formApi }) => {
+      const response = await fetch("/api/volunteer-prospects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...value, honeypot }),
+      })
+
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        const detail =
+          data && typeof data.detail === "string"
+            ? data.detail
+            : t("submitErrorFallback")
+        formApi.setErrorMap({ onServer: detail })
+        throw new Error(detail)
+      }
+    },
+  })
+
+  const selectedSlug = useStore(
+    form.store,
+    state => state.values.firstChoiceGroupSlug,
+  )
+  const secondChoiceSlug = useStore(
+    form.store,
+    state => state.values.secondChoiceGroupSlug,
+  )
+
   const selectFirstChoice = (slug: string) => {
-    setSelectedSlug(slug)
-    if (slug === secondChoiceSlug) setSecondChoiceSlug("")
+    form.setFieldValue("firstChoiceGroupSlug", slug)
+    if (slug === form.state.values.secondChoiceGroupSlug) {
+      form.setFieldValue("secondChoiceGroupSlug", "")
+    }
   }
 
   const hasStartedRef = useRef(false)
@@ -162,41 +125,6 @@ export function GroupVolunteerForm({
     })
   }
 
-  const form = useForm({
-    defaultValues,
-    onSubmit: async ({ value }) => {
-      const payload = {
-        full_name: `${value.firstName.trim()} ${value.lastName.trim()}`,
-        email: value.email.trim().toLowerCase(),
-        phone: value.phone.trim().replace(/\D/g, ""),
-        study_institution: value.studyInstitution.trim(),
-        first_choice_group_slug: selectedSlug,
-        second_choice_group_slug: secondChoiceSlug || undefined,
-        background_details: value.backgroundDetails.trim() || undefined,
-        friend_emails:
-          value.friendEmails.length > 0
-            ? value.friendEmails.map(email => email.trim().toLowerCase())
-            : undefined,
-      }
-
-      const response = await fetch("/api/volunteer-prospects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, honeypot }),
-      })
-
-      const data = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        const detail =
-          data && typeof data.detail === "string"
-            ? data.detail
-            : t("submitErrorFallback")
-        throw new Error(detail)
-      }
-    },
-  })
-
   const fieldIds = {
     firstName: "gvf-firstName",
     lastName: "gvf-lastName",
@@ -204,16 +132,24 @@ export function GroupVolunteerForm({
     phone: "gvf-phone",
     studyInstitution: "gvf-institution",
     backgroundDetails: "gvf-background",
+    firstChoiceGroupSlug: "volunteer-first-choice",
+    secondChoiceGroupSlug: "volunteer-second-choice",
   }
 
-  const values = useStore(form.store, state => state.values)
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
   const isSubmitSuccessful = useStore(
     form.store,
     state => state.isSubmitSuccessful,
   )
-  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
-  const validationErrors = getValidationErrors(values, fieldIds, t)
+  const errorMap = useStore(form.store, state => state.errorMap)
+  const submitError =
+    typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
+  const validationErrors: ErrorSummaryItem[] = collectVolunteerSchemaIssues(
+    errorMap.onChange ?? errorMap.onSubmit,
+  ).map(issue => ({
+    fieldId: volunteerFieldId(issue.path, fieldIds),
+    message: issue.message,
+  }))
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -242,7 +178,10 @@ export function GroupVolunteerForm({
   return (
     <FormSection title={t("title")}>
       {hasMultipleGroupChoices && (
-        <FieldGroup>
+        <FieldGroup
+          error={errorFor(fieldIds.firstChoiceGroupSlug)}
+          errorId={`${fieldIds.firstChoiceGroupSlug}-error`}
+        >
           <p className="text-foreground-muted">{t("selectSubGroup")}</p>
           <SegmentedControl
             onValueChange={selectFirstChoice}
@@ -261,9 +200,11 @@ export function GroupVolunteerForm({
           </p>
           <SelectField
             className="max-w-72"
+            error={errorFor(fieldIds.secondChoiceGroupSlug)}
+            errorId={`${fieldIds.secondChoiceGroupSlug}-error`}
             id="volunteer-second-choice"
             label={t("secondChoiceLabel")}
-            onChange={setSecondChoiceSlug}
+            onChange={slug => form.setFieldValue("secondChoiceGroupSlug", slug)}
             options={groupChoices
               .filter(group => group.slug !== selectedSlug)
               .map(group => ({ value: group.slug, label: group.name }))}
@@ -281,8 +222,19 @@ export function GroupVolunteerForm({
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
-            if (validationErrors.length > 0) return
-            form.handleSubmit()
+            form.setErrorMap({ onServer: undefined })
+            void form.handleSubmit().catch(() => {
+              if (form.state.errorMap.onServer) return
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              posthog.captureException(
+                new Error("Unexpected volunteer application failure"),
+                {
+                  form_id: "volunteer_application",
+                  validation_stage: "client",
+                  failure_branch: "unexpected_submission_failure",
+                },
+              )
+            })
           }}
         >
           {visibleErrors.length > 0 && (
@@ -535,4 +487,49 @@ export function GroupVolunteerForm({
       )}
     </FormSection>
   )
+}
+
+type VolunteerSchemaIssue = {
+  path: string
+  message: string
+}
+
+function collectVolunteerSchemaIssues(
+  errorMap: unknown,
+): VolunteerSchemaIssue[] {
+  if (!errorMap || typeof errorMap !== "object") return []
+
+  const issues: VolunteerSchemaIssue[] = []
+  const seen = new Set<string>()
+  for (const [path, value] of Object.entries(
+    errorMap as Record<string, unknown>,
+  )) {
+    if (!Array.isArray(value)) continue
+    for (const issue of value) {
+      if (!issue || typeof issue !== "object") continue
+      const message = (issue as { message?: unknown }).message
+      if (typeof message !== "string") continue
+      const key = `${path}:${message}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      issues.push({ path, message })
+    }
+  }
+  return issues
+}
+
+function volunteerFieldId(
+  path: string,
+  fieldIds: Record<string, string>,
+): string {
+  if (path === "firstName") return fieldIds.firstName
+  if (path === "lastName") return fieldIds.lastName
+  if (path === "email") return fieldIds.email
+  if (path === "phone") return fieldIds.phone
+  if (path === "studyInstitution") return fieldIds.studyInstitution
+  if (path === "firstChoiceGroupSlug") return fieldIds.firstChoiceGroupSlug
+  if (path === "secondChoiceGroupSlug") return fieldIds.secondChoiceGroupSlug
+  const friendMatch = /^friendEmails\[(\d+)\]/.exec(path)
+  if (friendMatch) return friendFieldId(Number(friendMatch[1]))
+  return fieldIds.firstName
 }
