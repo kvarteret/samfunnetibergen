@@ -12,6 +12,7 @@ import {
   Button,
   Card,
   Flex,
+  Heading,
   Spinner,
   Stack,
   Text,
@@ -487,5 +488,20 @@ export function PromotedArrangementList({ today }: { today: string }) {
         today={today}
       />
     </Stack>
+  )
+}
+
+export function PromotedArrangementsPane() {
+  const today = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Oslo",
+  }).format(new Date())
+
+  return (
+    <Card height="fill" overflow="auto" padding={4}>
+      <Stack space={4}>
+        <Heading size={2}>Fremhevede arrangementer</Heading>
+        <PromotedArrangementList today={today} />
+      </Stack>
+    </Card>
   )
 }

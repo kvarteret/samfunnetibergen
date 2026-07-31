@@ -12,18 +12,16 @@ import {
   Text,
   TextInput,
 } from "@sanity/ui"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { useClient } from "sanity"
 import { IntentLink } from "sanity/router"
 
 import {
   type ArrangementBrowserItem,
   type ArrangementFilterState,
-  type ArrangementPreset,
   defaultArrangementFilters,
   filterArrangements,
 } from "./arrangementFilters"
-import { PromotedArrangementList } from "./PromotedArrangementList"
 
 const API_VERSION = "2026-07-29"
 const ARRANGEMENTS_QUERY = `*[
@@ -36,7 +34,6 @@ const ARRANGEMENTS_QUERY = `*[
   "approvalStatus": coalesce(approvalStatus, "pending"),
   "eventStatus": coalesce(eventStatus, "scheduled"),
   "isRecurring": coalesce(isRecurring, false),
-  "isPromoted": coalesce(isPromoted, false),
   dates[]{startDate, startTime},
   "eventType": eventType->{_id, name, "taxonomyGroup": taxonomyGroup->{_id, name}},
   "childDates": *[
@@ -70,29 +67,16 @@ async function fetchBrowserData(client: ReturnType<typeof useClient>): Promise<{
   return { documents, taxonomyDocuments }
 }
 
-const PRESET_TITLES: Record<ArrangementPreset, string> = {
-  arrangements: "Alle",
-  recurring: "Recurring",
-  festivals: "Festivaler",
-  promoted: "Fremhevede",
-}
-
-const PRESETS = [
-  "arrangements",
-  "recurring",
-  "festivals",
-  "promoted",
-] as const satisfies readonly ArrangementPreset[]
-
 function ArrangementBrowser() {
   const client = useClient({ apiVersion: API_VERSION })
+  const filterId = useId()
   const [items, setItems] = useState<ArrangementBrowserItem[]>([])
   const [taxonomy, setTaxonomy] = useState<Taxonomy>({
     groups: [],
     types: [],
   })
-  const [filters, setFilters] = useState<ArrangementFilterState>(() =>
-    defaultArrangementFilters("arrangements"),
+  const [filters, setFilters] = useState<ArrangementFilterState>(
+    defaultArrangementFilters,
   )
   const [loading, setLoading] = useState(true)
 
@@ -125,237 +109,265 @@ function ArrangementBrowser() {
     key: K,
     value: ArrangementFilterState[K],
   ) => setFilters(current => ({ ...current, [key]: value }))
-  const selectPreset = (preset: ArrangementPreset) =>
-    setFilters(current => ({ ...current, preset }))
-  const preset = filters.preset
 
   return (
     <Card height="fill" overflow="auto" padding={4}>
       <Stack space={4}>
         <Flex align="center" gap={3} justify="space-between" wrap="wrap">
           <Heading size={2}>Arrangementer</Heading>
-          {preset !== "promoted" ? (
-            <Button
-              icon={icons.reset}
-              mode="ghost"
-              onClick={() => setFilters(defaultArrangementFilters(preset))}
-              text="Nullstill filtre"
-            />
-          ) : null}
+          <Button
+            icon={icons.reset}
+            mode="ghost"
+            onClick={() => setFilters(defaultArrangementFilters())}
+            text="Nullstill filtre"
+          />
         </Flex>
-        <Flex
-          aria-label="Arrangementsvisning"
-          gap={1}
-          role="tablist"
-          wrap="wrap"
-        >
-          {PRESETS.map(candidate => (
-            <Button
-              aria-selected={preset === candidate}
-              key={candidate}
-              mode={preset === candidate ? "default" : "ghost"}
-              onClick={() => selectPreset(candidate)}
-              role="tab"
-              selected={preset === candidate}
-              text={PRESET_TITLES[candidate]}
+        <Grid columns={[1, 1, 3]} gap={3}>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-query`}
+              size={1}
+              weight="semibold"
+            >
+              Søk
+            </Text>
+            <TextInput
+              id={`${filterId}-query`}
+              icon={icons.search}
+              onChange={event => update("query", event.currentTarget.value)}
+              placeholder="Søk i titler"
+              value={filters.query}
             />
-          ))}
-        </Flex>
-        {preset === "promoted" ? (
-          <PromotedArrangementList today={today} />
-        ) : (
-          <>
-            <Grid columns={[1, 1, 3]} gap={3}>
-              <TextInput
-                aria-label="Søk i titler"
-                icon={icons.search}
-                onChange={event => update("query", event.currentTarget.value)}
-                placeholder="Søk i titler"
-                value={filters.query}
-              />
-              <Select
-                aria-label="Dato"
-                onChange={event =>
-                  update(
-                    "date",
-                    event.currentTarget.value as ArrangementFilterState["date"],
-                  )
-                }
-                value={filters.date}
-              >
-                <option value="all">Alle datoer</option>
-                <option value="upcoming">Kommende</option>
-                <option value="past">Tidligere</option>
-              </Select>
-              <Select
-                aria-label="Synlighet"
-                onChange={event =>
-                  update(
-                    "visibility",
-                    event.currentTarget
-                      .value as ArrangementFilterState["visibility"],
-                  )
-                }
-                value={filters.visibility}
-              >
-                <option value="approved">Godkjent</option>
-                <option value="paused">Skjult</option>
-                <option value="archived">Arkivert</option>
-                <option value="all">Alle</option>
-              </Select>
-              <Select
-                aria-label="Faktisk status"
-                onChange={event =>
-                  update(
-                    "eventStatus",
-                    event.currentTarget
-                      .value as ArrangementFilterState["eventStatus"],
-                  )
-                }
-                value={filters.eventStatus}
-              >
-                <option value="all">Alle statuser</option>
-                <option value="scheduled">Kommende</option>
-                <option value="cancelled">Avlyst</option>
-                <option value="postponed">Utsatt</option>
-              </Select>
-              <Select
-                aria-label="Kategori"
-                onChange={event =>
-                  update("taxonomyGroupId", event.currentTarget.value || null)
-                }
-                value={filters.taxonomyGroupId ?? ""}
-              >
-                <option value="">Alle kategorier</option>
-                {taxonomy.groups.map(group => (
-                  <option key={group._id} value={group._id}>
-                    {group.name ?? "Kategori uten navn"}
+          </Stack>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-date`}
+              size={1}
+              weight="semibold"
+            >
+              Dato
+            </Text>
+            <Select
+              id={`${filterId}-date`}
+              onChange={event =>
+                update(
+                  "date",
+                  event.currentTarget.value as ArrangementFilterState["date"],
+                )
+              }
+              value={filters.date}
+            >
+              <option value="all">Alle datoer</option>
+              <option value="upcoming">Kommende</option>
+              <option value="past">Tidligere</option>
+            </Select>
+          </Stack>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-format`}
+              size={1}
+              weight="semibold"
+            >
+              Format
+            </Text>
+            <Select
+              id={`${filterId}-format`}
+              onChange={event =>
+                update(
+                  "format",
+                  event.currentTarget.value as ArrangementFilterState["format"],
+                )
+              }
+              value={filters.format}
+            >
+              <option value="all">Alle</option>
+              <option value="single">Enkeltarrangementer</option>
+              <option value="recurring">Recurring</option>
+              <option value="festivals">Festivaler</option>
+            </Select>
+          </Stack>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-status`}
+              size={1}
+              weight="semibold"
+            >
+              Status
+            </Text>
+            <Select
+              id={`${filterId}-status`}
+              onChange={event =>
+                update(
+                  "status",
+                  event.currentTarget.value as ArrangementFilterState["status"],
+                )
+              }
+              value={filters.status}
+            >
+              <option value="approved">Godkjent</option>
+              <option value="paused">Skjult</option>
+              <option value="archived">Arkivert</option>
+              <option value="cancelled">Avlyst</option>
+              <option value="postponed">Utsatt</option>
+              <option value="all">Alle statuser</option>
+            </Select>
+          </Stack>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-category`}
+              size={1}
+              weight="semibold"
+            >
+              Kategori
+            </Text>
+            <Select
+              id={`${filterId}-category`}
+              onChange={event =>
+                update("taxonomyGroupId", event.currentTarget.value || null)
+              }
+              value={filters.taxonomyGroupId ?? ""}
+            >
+              <option value="">Alle kategorier</option>
+              {taxonomy.groups.map(group => (
+                <option key={group._id} value={group._id}>
+                  {group.name ?? "Kategori uten navn"}
+                </option>
+              ))}
+            </Select>
+          </Stack>
+          <Stack space={2}>
+            <Text
+              as="label"
+              htmlFor={`${filterId}-type`}
+              size={1}
+              weight="semibold"
+            >
+              Arrangementstype
+            </Text>
+            <Select
+              id={`${filterId}-type`}
+              onChange={event =>
+                update("eventTypeId", event.currentTarget.value || null)
+              }
+              value={filters.eventTypeId ?? ""}
+            >
+              <option value="">Alle arrangementstyper</option>
+              {taxonomy.types
+                .filter(
+                  type =>
+                    !filters.taxonomyGroupId ||
+                    type.groupId === filters.taxonomyGroupId,
+                )
+                .map(type => (
+                  <option key={type._id} value={type._id}>
+                    {type.name ?? "Type uten navn"}
                   </option>
                 ))}
-              </Select>
-              <Select
-                aria-label="Arrangementstype"
-                onChange={event =>
-                  update("eventTypeId", event.currentTarget.value || null)
-                }
-                value={filters.eventTypeId ?? ""}
-              >
-                <option value="">Alle arrangementstyper</option>
-                {taxonomy.types
-                  .filter(
-                    type =>
-                      !filters.taxonomyGroupId ||
-                      type.groupId === filters.taxonomyGroupId,
-                  )
-                  .map(type => (
-                    <option key={type._id} value={type._id}>
-                      {type.name ?? "Type uten navn"}
-                    </option>
-                  ))}
-              </Select>
-            </Grid>
-            <Text muted size={1}>
-              {loading
-                ? "Henter arrangementer …"
-                : `${results.length} ${results.length === 1 ? "resultat" : "resultater"}`}
-            </Text>
-            {loading ? (
-              <Flex align="center" gap={3} padding={5}>
-                <Spinner />
-                <Text>Laster arrangementer …</Text>
-              </Flex>
-            ) : results.length === 0 ? (
-              <Card border padding={5} radius={2} tone="transparent">
-                <Stack space={3}>
-                  <Heading size={1}>
-                    Ingen arrangementer passer filtrene
-                  </Heading>
-                  <Text muted>
-                    Prøv å nullstille eller endre ett av filtrene.
-                  </Text>
-                </Stack>
-              </Card>
-            ) : (
-              <Stack space={2}>
-                {results.map(item => {
-                  const nextDate = [
-                    ...(item.dates ?? []),
-                    ...(item.childDates ?? []).map(startDate => ({
-                      startDate,
-                    })),
-                  ]
-                    .map(date => date.startDate)
-                    .filter((date): date is string =>
-                      Boolean(date && date >= today),
-                    )
-                    .sort()[0]
-                  const needsDays =
-                    preset === "recurring" &&
-                    !(item.childDates ?? []).some(date => {
-                      const horizon = new Date()
-                      horizon.setDate(horizon.getDate() + 8 * 7)
-                      return date >= horizon.toISOString().slice(0, 10)
-                    })
-                  const isFestival = item.eventKind === "festivalParent"
-                  return (
-                    <Card border key={item._id} padding={3} radius={2}>
-                      <Flex align="center" gap={3} justify="space-between">
-                        <Stack space={2}>
-                          <IntentLink
-                            intent="edit"
-                            params={{
-                              id: item._id,
+            </Select>
+          </Stack>
+        </Grid>
+        <Text muted size={1}>
+          {loading
+            ? "Henter arrangementer …"
+            : `${results.length} ${results.length === 1 ? "resultat" : "resultater"}`}
+        </Text>
+        {loading ? (
+          <Flex align="center" gap={3} padding={5}>
+            <Spinner />
+            <Text>Laster arrangementer …</Text>
+          </Flex>
+        ) : results.length === 0 ? (
+          <Card border padding={5} radius={2} tone="transparent">
+            <Stack space={3}>
+              <Heading size={1}>Ingen arrangementer passer filtrene</Heading>
+              <Text muted>Prøv å nullstille eller endre ett av filtrene.</Text>
+            </Stack>
+          </Card>
+        ) : (
+          <Stack space={2}>
+            {results.map(item => {
+              const nextDate = [
+                ...(item.dates ?? []),
+                ...(item.childDates ?? []).map(startDate => ({
+                  startDate,
+                })),
+              ]
+                .map(date => date.startDate)
+                .filter((date): date is string =>
+                  Boolean(date && date >= today),
+                )
+                .sort()[0]
+              const needsDays =
+                item.eventKind === "seriesParent" &&
+                item.isRecurring === true &&
+                !(item.childDates ?? []).some(date => {
+                  const horizon = new Date()
+                  horizon.setDate(horizon.getDate() + 8 * 7)
+                  return date >= horizon.toISOString().slice(0, 10)
+                })
+              const isFestival = item.eventKind === "festivalParent"
+              return (
+                <Card border key={item._id} padding={3} radius={2}>
+                  <Flex align="center" gap={3} justify="space-between">
+                    <Stack space={2}>
+                      <IntentLink
+                        intent="edit"
+                        params={{
+                          id: item._id,
+                          mode: "structure",
+                          type: "arrangement",
+                        }}
+                        style={{ color: "inherit", textDecoration: "none" }}
+                      >
+                        <Text size={2} weight="semibold">
+                          {item.title ?? "Arrangement uten tittel"}
+                        </Text>
+                      </IntentLink>
+                      <Text muted size={1}>
+                        {[
+                          nextDate,
+                          item.eventType?.name,
+                          item.eventStatus === "cancelled"
+                            ? "Avlyst"
+                            : item.eventStatus === "postponed"
+                              ? "Utsatt"
+                              : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || "Ingen dato"}
+                      </Text>
+                    </Stack>
+                    <Flex align="center" gap={2}>
+                      {isFestival ? (
+                        <Button
+                          as={IntentLink}
+                          intent="create"
+                          mode="ghost"
+                          params={[
+                            {
                               mode: "structure",
+                              template: "festival-day",
                               type: "arrangement",
-                            }}
-                            style={{ color: "inherit", textDecoration: "none" }}
-                          >
-                            <Text size={2} weight="semibold">
-                              {item.title ?? "Arrangement uten tittel"}
-                            </Text>
-                          </IntentLink>
-                          <Text muted size={1}>
-                            {[
-                              nextDate,
-                              item.eventType?.name,
-                              item.eventStatus === "cancelled"
-                                ? "Avlyst"
-                                : item.eventStatus === "postponed"
-                                  ? "Utsatt"
-                                  : null,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ") || "Ingen dato"}
-                          </Text>
-                        </Stack>
-                        <Flex align="center" gap={2}>
-                          {isFestival ? (
-                            <Button
-                              as={IntentLink}
-                              intent="create"
-                              mode="ghost"
-                              params={[
-                                {
-                                  mode: "structure",
-                                  template: "festival-day",
-                                  type: "arrangement",
-                                },
-                                { parentId: item._id },
-                              ]}
-                              text="Legg til festivaldag"
-                            />
-                          ) : null}
-                          {needsDays ? (
-                            <Badge tone="caution">Mangler kommende dager</Badge>
-                          ) : null}
-                        </Flex>
-                      </Flex>
-                    </Card>
-                  )
-                })}
-              </Stack>
-            )}
-          </>
+                            },
+                            { parentId: item._id },
+                          ]}
+                          text="Legg til festivaldag"
+                        />
+                      ) : null}
+                      {needsDays ? (
+                        <Badge tone="caution">Mangler kommende dager</Badge>
+                      ) : null}
+                    </Flex>
+                  </Flex>
+                </Card>
+              )
+            })}
+          </Stack>
         )}
       </Stack>
     </Card>

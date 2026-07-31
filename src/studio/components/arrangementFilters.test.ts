@@ -46,16 +46,41 @@ const items = [
     approvalStatus: "approved",
     dates: [{ startDate: "2026-08-03" }],
   },
+  {
+    _id: "archived",
+    title: "Arkivert konsert",
+    eventKind: "single",
+    approvalStatus: "archived",
+    eventStatus: "scheduled",
+    dates: [{ startDate: "2026-06-01" }],
+  },
+  {
+    _id: "cancelled",
+    title: "Avlyst konsert",
+    eventKind: "single",
+    approvalStatus: "approved",
+    eventStatus: "cancelled",
+    dates: [{ startDate: "2026-08-04" }],
+  },
+  {
+    _id: "hidden-cancelled",
+    title: "Skjult avlyst konsert",
+    eventKind: "single",
+    approvalStatus: "paused",
+    eventStatus: "cancelled",
+    dates: [{ startDate: "2026-08-05" }],
+  },
 ]
 
 describe("arrangement filters", () => {
-  it("combines preset, date, taxonomy and search filters", () => {
+  it("combines format, date, taxonomy and search filters", () => {
     expect(
       filterArrangements(
         items,
         {
-          ...defaultArrangementFilters("promoted"),
-          eventStatus: "all",
+          ...defaultArrangementFilters(),
+          format: "single",
+          status: "all",
           date: "upcoming",
           taxonomyGroupId: "music",
           query: "kon",
@@ -69,26 +94,67 @@ describe("arrangement filters", () => {
     expect(
       filterArrangements(
         items,
-        { ...defaultArrangementFilters("recurring"), date: "past" },
+        {
+          ...defaultArrangementFilters(),
+          date: "past",
+          format: "recurring",
+        },
         "2026-07-29",
       ).map(item => item._id),
     ).toEqual(["series"])
   })
 
-  it("uses festivals as another preset over the same browser data", () => {
+  it("filters festivals by format", () => {
     expect(
       filterArrangements(
         items,
-        defaultArrangementFilters("festivals"),
+        { ...defaultArrangementFilters(), format: "festivals" },
         "2026-07-29",
       ).map(item => item._id),
     ).toEqual(["festival"])
   })
 
-  it("shows upcoming-status arrangements by default", () => {
-    expect(defaultArrangementFilters("arrangements").eventStatus).toBe(
-      "scheduled",
-    )
+  it("shows approved upcoming arrangements by default", () => {
+    expect(defaultArrangementFilters()).toMatchObject({
+      date: "upcoming",
+      format: "all",
+      status: "approved",
+    })
+  })
+
+  it("uses the date and status filters instead of an archive view", () => {
+    const filters = {
+      ...defaultArrangementFilters(),
+      date: "past" as const,
+      status: "all" as const,
+    }
+
+    expect(filters).toMatchObject({
+      date: "past",
+      status: "all",
+    })
+    expect(
+      filterArrangements(items, filters, "2026-07-29").map(item => item._id),
+    ).toEqual(["archived", "series"])
+  })
+
+  it("assigns each arrangement to one combined status", () => {
+    const defaults = defaultArrangementFilters()
+
+    expect(
+      filterArrangements(
+        items,
+        { ...defaults, status: "cancelled" },
+        "2026-07-29",
+      ).map(item => item._id),
+    ).toEqual(["cancelled"])
+    expect(
+      filterArrangements(
+        items,
+        { ...defaults, status: "paused" },
+        "2026-07-29",
+      ).map(item => item._id),
+    ).toEqual(["hidden-cancelled"])
   })
 
   it("prefers drafts while deduplicating preview results", () => {
