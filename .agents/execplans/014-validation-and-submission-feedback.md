@@ -32,6 +32,8 @@ per form domain and is reused by the browser and its server boundary.
 - [x] Review follow-ups: shared client-safe submission copy, one validation
       error-map adapter, cast-free form providers, analytics-safe booking
       success, blank-date filtering, and focused regression tests.
+- [x] CI follow-up: accept the `PropertyKey[]` path type emitted by the CI
+      Zod definitions in the event validation projection.
 - [ ] Milestone 5: Slack feedback and `/api/feedback` — skipped by request.
 
 ## Surprises & Discoveries
@@ -66,6 +68,11 @@ per form domain and is reused by the browser and its server boundary.
   context therefore needs one deliberately erased validator boundary; keeping
   that erasure in `src/lib/form-api.ts` removes unsafe double casts from all
   providers without pretending the child sections own validator configuration.
+- GitHub Actions exposed a stricter Zod issue-path type than the locally cached
+  incremental TypeScript check: `src/features/events/domain/validation.ts`
+  received `PropertyKey[]`, not only `(string | number)[]`. The adapter only
+  compares the first segment with string field names, so accepting the broader
+  property-key input is both safe and source-compatible.
 
 ## Decision Log
 
@@ -90,6 +97,8 @@ per form domain and is reused by the browser and its server boundary.
 - The volunteer proxy's current camelCase browser request is the supported
   public contract. Legacy snake_case clients, including old browsers, are out
   of scope and do not require a compatibility branch.
+- Keep the event validation adapter compatible with both local and CI Zod path
+  declarations by accepting `readonly PropertyKey[]` at its narrow boundary.
 - Keep Milestone 5 unchanged. Slack feedback and `/api/feedback` are recorded
   as remaining work, not as an accidental omission.
 
@@ -122,6 +131,8 @@ Focused verification completed:
 - Review follow-up suites: 3 test files passed, 5 tests passed, including the
   shared validation adapter and the event document blank-date regression.
 - Review follow-up TypeScript and ESLint checks: passed with no errors.
+- CI-equivalent TypeScript check with incremental state disabled: passed after
+  widening the event validation path parameter.
 
 Final repository verification completed:
 
@@ -162,3 +173,7 @@ follow-ups after the implementation review identified duplicated error-map
 parsers, unsafe provider casts, analytics-induced booking failure, and blank
 event date persistence. Added focused regression tests and recorded that legacy
 volunteer request compatibility is out of scope per the user's clarification.
+
+Revision note (2026-07-31): Added the CI TypeScript compatibility follow-up
+after GitHub Actions reported that Zod issue paths are `PropertyKey[]` in its
+clean install, while the local incremental check had not surfaced the mismatch.

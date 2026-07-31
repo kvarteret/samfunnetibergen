@@ -75,7 +75,7 @@ export function getEventValidationIssues(
 }
 
 function eventValidationField(
-  path: readonly (string | number)[],
+  path: readonly PropertyKey[],
 ): EventValidationField | undefined {
   const [first] = path
   if (first === "title") return "title"
