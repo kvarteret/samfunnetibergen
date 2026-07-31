@@ -2,7 +2,6 @@
 
 import { z } from "zod"
 
-import type { KaraokeBookingPayload } from "@/features/karaoke/types"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
@@ -15,6 +14,7 @@ import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import {
   captureSubmitFailure,
+  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
   INVALID_PAYLOAD_ERROR,
   isSubmissionRateLimited,
@@ -22,7 +22,16 @@ import {
   TIME_PATTERN as timeRegex,
 } from "@/lib/submission"
 import { slotOverlapsKaraokeBookings } from "../domain/availability"
-import { calcKaraokePrice, KARAOKE_PRICING } from "../domain/formState"
+import {
+  buildKaraokePayload,
+  calcKaraokePrice,
+  deriveKaraokeState,
+  KARAOKE_PRICING,
+} from "../domain/formState"
+import {
+  karaokeFormSchema,
+  type KaraokeFormState,
+} from "../domain/karaokeFormSchema"
 import { timeToMinutes } from "../domain/time"
 import type { PriceType } from "../types"
 import { fetchKaraokeAvailability } from "./karaoke-availability"
@@ -111,83 +120,133 @@ function enrichDescription(
 }
 
 export async function submitKaraokeBooking(
-  payload: KaraokeBookingPayload & { honeypot?: string },
+  input: KaraokeFormState & { honeypot?: string },
 ): Promise<Result<number>> {
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
-  if (payload.honeypot?.trim()) return ok(-1)
+  if (input.honeypot?.trim()) return ok(-1)
+
+  const formParsed = karaokeFormSchema.safeParse(input)
+  if (!formParsed.success) {
+    captureSubmitFailure(
+      "karaoke_booking",
+      new Error("Karaoke form schema validation failed"),
+      {
+        source: "submit-karaoke-booking",
+        validation_stage: "server",
+        failure_branch: "schema_validation_failed",
+        form_id: "karaoke_booking",
+        ...getValidationDiagnostics(formParsed.error.issues),
+      },
+    )
+    return err(INVALID_PAYLOAD_ERROR)
+  }
 
   if (await isSubmissionRateLimited("submitKaraokeBooking")) {
     return err(RATE_LIMIT_ERROR)
   }
 
-  const parsed = karaokePayloadSchema.safeParse(payload)
+  const parsed = karaokePayloadSchema.safeParse(
+    buildKaraokePayload(formParsed.data, deriveKaraokeState(formParsed.data)),
+  )
   if (!parsed.success) {
+    captureSubmitFailure(
+      "karaoke_booking",
+      new Error("Karaoke normalized payload validation failed"),
+      {
+        source: "submit-karaoke-booking",
+        validation_stage: "server",
+        failure_branch: "normalized_payload_mismatch",
+        form_id: "karaoke_booking",
+        ...getValidationDiagnostics(parsed.error.issues),
+      },
+    )
     return err(INVALID_PAYLOAD_ERROR)
   }
 
-  const houseHours = await fetchHouseHours()
-  const slotAllowed = isSlotAllowed(
-    parsed.data.startDate,
-    parsed.data.startTime,
-    parsed.data.duration,
-    houseHours?.operationsManagerHours,
-    houseHours?.houseClosedDates,
-    houseHours?.vacationMode,
-  )
-
-  if (!slotAllowed) {
-    return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
-  }
-
-  if (await hasKaraokeConflict(parsed.data)) {
-    return err(
-      "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+  try {
+    const houseHours = await fetchHouseHours()
+    const slotAllowed = isSlotAllowed(
+      parsed.data.startDate,
+      parsed.data.startTime,
+      parsed.data.duration,
+      houseHours?.operationsManagerHours,
+      houseHours?.houseClosedDates,
+      houseHours?.vacationMode,
     )
-  }
 
-  // Recompute price server-side — never trust the client.
-  const totalPrice = calcKaraokePrice(
-    parsed.data.priceType,
-    parsed.data.numberOfPeople,
-    parsed.data.duration,
-  )
+    if (!slotAllowed) {
+      return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
+    }
 
-  const body = buildKaraokeRequest({
-    eventName: parsed.data.eventName,
-    startDate: parsed.data.startDate,
-    startTime: parsed.data.startTime,
-    durationHours: parsed.data.duration,
-    description: enrichDescription(parsed.data, totalPrice),
-    contactName: parsed.data.contactName,
-    contactEmail: parsed.data.contactEmail,
-    contactPhone: parsed.data.contactPhone,
-    numberOfPeople: parsed.data.numberOfPeople,
-    priceType: parsed.data.priceType,
-  })
+    if (await hasKaraokeConflict(parsed.data)) {
+      return err(
+        "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+      )
+    }
 
-  const result = await postEventRequest(KARAOKE_SLUG, body)
+    // Recompute price server-side — never trust the client.
+    const totalPrice = calcKaraokePrice(
+      parsed.data.priceType,
+      parsed.data.numberOfPeople,
+      parsed.data.duration,
+    )
 
-  if (result.ok) {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "karaoke_booking_submitted",
-      properties: {
-        price_type: parsed.data.priceType,
-        number_of_people: parsed.data.numberOfPeople,
-        duration_hours: parsed.data.duration,
-        total_price: totalPrice,
-        start_date: parsed.data.startDate,
-        crescat_event_id: result.value,
-      },
+    const body = buildKaraokeRequest({
+      eventName: parsed.data.eventName,
+      startDate: parsed.data.startDate,
+      startTime: parsed.data.startTime,
+      durationHours: parsed.data.duration,
+      description: enrichDescription(parsed.data, totalPrice),
+      contactName: parsed.data.contactName,
+      contactEmail: parsed.data.contactEmail,
+      contactPhone: parsed.data.contactPhone,
+      numberOfPeople: parsed.data.numberOfPeople,
+      priceType: parsed.data.priceType,
     })
-    return result
-  }
 
-  captureSubmitFailure("karaoke_booking", result.error, {
-    source: "submit-karaoke-booking",
-    failure_branch: "crescat_request_failed",
-    price_type: parsed.data.priceType,
-    start_date: parsed.data.startDate,
-  })
-  return err(GENERIC_SUBMIT_ERROR)
+    const result = await postEventRequest(KARAOKE_SLUG, body)
+
+    if (result.ok) {
+      try {
+        getPostHogClient().capture({
+          distinctId: "anonymous",
+          event: "karaoke_booking_submitted",
+          properties: {
+            price_type: parsed.data.priceType,
+            number_of_people: parsed.data.numberOfPeople,
+            duration_hours: parsed.data.duration,
+            total_price: totalPrice,
+            start_date: parsed.data.startDate,
+            crescat_event_id: result.value,
+          },
+        })
+      } catch {
+        // A successful Crescat booking remains successful if analytics fails.
+      }
+      return result
+    }
+
+    captureSubmitFailure(
+      "karaoke_booking",
+      new Error("Crescat karaoke booking request failed"),
+      {
+        source: "submit-karaoke-booking",
+        failure_branch: "crescat_request_failed",
+        price_type: parsed.data.priceType,
+        start_date: parsed.data.startDate,
+      },
+    )
+    return err(GENERIC_SUBMIT_ERROR)
+  } catch {
+    captureSubmitFailure(
+      "karaoke_booking",
+      new Error("Unexpected karaoke booking submission failure"),
+      {
+        source: "submit-karaoke-booking",
+        failure_branch: "unexpected_submission_failure",
+        price_type: parsed.data.priceType,
+      },
+    )
+    return err(GENERIC_SUBMIT_ERROR)
+  }
 }
