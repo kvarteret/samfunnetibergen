@@ -19,9 +19,10 @@ staged smoke tests pass.
 
 Pull-request-specific Vercel Preview deployments are the normal place to review
 changes before merging. The release workflow still provides the integration
-gate for the complete `develop` state: it rebuilds that state as a production
+gate for the complete `develop` state: it rebuilds `apps/web` as a production
 artifact, deploys the artifact without assigning the public domain, smoke-tests
-it, and promotes that exact artifact.
+it, and promotes that exact artifact. Studio has a separate release workflow
+and is not moved by this website workflow.
 
 ## Release the merged `develop` branch
 
@@ -56,7 +57,7 @@ gh run watch "$run_id" --exit-status
 
 The workflow must finish successfully. It runs, in order:
 
-1. format, lint, route type generation, TypeScript, and test checks;
+1. format, lint, route and Sanity TypeGen, workspace TypeScript, and test checks;
 2. Vercel production environment pull and production build;
 3. staged Vercel deployment;
 4. HTTP smoke tests for the supplied paths;
@@ -85,7 +86,8 @@ staged deployment URL, and promotion result.
 - If repository checks fail, fix the source and dispatch the workflow again for
   the corrected ref.
 - If Vercel access fails, verify `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and
-  `VERCEL_PROJECT_ID` in the production environment.
+  `VERCEL_PROJECT_ID` in the website production environment. The Studio
+  project uses its own credentials and is never selected by this workflow.
 - If smoke tests receive a protected-deployment response, verify
   `VERCEL_AUTOMATION_BYPASS_SECRET` and the requested paths.
 - If the workflow is still running, keep watching it; do not treat dispatch or

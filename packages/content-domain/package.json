@@ -1,0 +1,24 @@
+{
+  "name": "@samfunnet/content-domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./instances": "./instances.ts",
+    "./resolve-event": "./resolve-event.ts"
+  },
+  "scripts": {
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "rrule": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@vitest/coverage-v8": "^4.1.8",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
+  }
+}

@@ -15,13 +15,20 @@
 
 # next.js
 /.next/
-/out/
+/apps/web/.next/
+/apps/web/out/
+/apps/studio/dist/
+/apps/studio/.sanity/
 /.sanity/
 
 # production
 /build
+/apps/web/build
+/apps/studio/build
 /storybook-static
 /dist
+/apps/web/dist
+/apps/studio/dist
 /tmp
 
 # misc

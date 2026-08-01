@@ -81,10 +81,16 @@ jobs:
         run: npm run lint
 
       - name: Generate Next.js route types
-        run: npx --no-install next typegen
+        run: npm run route-typegen
+
+      - name: Generate Sanity types
+        run: npm run sanity:typegen
+
+      - name: Verify generated Sanity types are clean
+        run: git diff --exit-code -- apps/web/src/lib/sanity/sanity.types.ts apps/studio/src/studio/sanity.types.ts
 
       - name: TypeScript check
-        run: npx --no-install tsc --noEmit
+        run: npm run typecheck
 
       - name: Tests
         run: npm run test
