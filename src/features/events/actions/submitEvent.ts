@@ -6,16 +6,19 @@ import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import {
   captureSubmitFailure,
+  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
   isSubmissionRateLimited,
+  INVALID_PAYLOAD_ERROR,
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
+import type { FormState } from "../domain/formState"
+import { eventFormSchema } from "../domain/eventFormSchema"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
-import { getEventValidationIssues } from "../domain/validation"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
@@ -42,28 +45,8 @@ export type EventDate = {
   endTime?: string
 }
 
-export type SubmitEventInput = {
-  title: string
-  description?: string
-  dates: EventDate[]
-  isRecurring?: boolean
-  rrule?: string
-  room?: string
-  roomText?: string
-  organizerGroup?: string
-  organizerText?: string
-  eventTypeId?: string
+export type SubmitEventInput = FormState & {
   imageAssetId?: string
-  isInternalEvent?: boolean
-  isFree?: boolean
-  priceOrdinar?: number
-  priceStudent?: number
-  priceMedlem?: number
-  ticketUrl?: string
-  facebookUrl?: string
-  submittedBy: string
-  submittedByEmail: string
-  submittedByOrganization?: string
   // Hidden anti-bot field; must stay empty for real submissions.
   honeypot?: string
 }
@@ -73,10 +56,6 @@ export type UploadImageResult = Result<string>
 export async function uploadEventImage(
   formData: FormData,
 ): Promise<UploadImageResult> {
-  if (await isSubmissionRateLimited("uploadEventImage", UPLOAD_LIMIT)) {
-    return err(RATE_LIMIT_ERROR)
-  }
-
   try {
     const file = formData.get("image")
     if (!(file instanceof File) || !file.size) {
@@ -88,6 +67,9 @@ export async function uploadEventImage(
     if (file.size > EVENT_IMAGE_MAX_SIZE_BYTES) {
       return err(`Bildet er for stort (maks ${formatEventImageMaxSize()})`)
     }
+    if (await isSubmissionRateLimited("uploadEventImage", UPLOAD_LIMIT)) {
+      return err(RATE_LIMIT_ERROR)
+    }
     const client = getWriteClient()
     const buffer = Buffer.from(await file.arrayBuffer())
     const asset = await client.assets.upload("image", buffer, {
@@ -95,11 +77,15 @@ export async function uploadEventImage(
       filename: file.name,
     })
     return ok(asset._id)
-  } catch (error) {
-    captureSubmitFailure("event_image_upload", error, {
-      source: "submit-event-image",
-      failure_branch: "sanity_asset_upload_failed",
-    })
+  } catch {
+    captureSubmitFailure(
+      "event_image_upload",
+      new Error("Event image upload failed"),
+      {
+        source: "submit-event-image",
+        failure_branch: "sanity_asset_upload_failed",
+      },
+    )
     return err(GENERIC_SUBMIT_ERROR)
   }
 }
@@ -135,49 +121,69 @@ export async function submitEvent(
     return ok("ignored")
   }
 
+  const formParsed = eventFormSchema.safeParse(input)
+  if (!formParsed.success) {
+    captureSubmitFailure(
+      "event_submission",
+      new Error("Event form schema validation failed"),
+      {
+        source: "submit-event",
+        validation_stage: "server",
+        failure_branch: "schema_validation_failed",
+        form_id: "event_submission",
+        ...getValidationDiagnostics(formParsed.error.issues),
+      },
+    )
+    return err(INVALID_PAYLOAD_ERROR)
+  }
+
   if (await isSubmissionRateLimited("submitEvent")) {
     return err(RATE_LIMIT_ERROR)
   }
 
-  const issues = getEventValidationIssues({
-    title: input.title ?? "",
-    dates: input.dates ?? [],
-    submittedBy: input.submittedBy ?? "",
-    submittedByEmail: input.submittedByEmail ?? "",
-    isRecurring: Boolean(input.isRecurring),
-    rrule: input.rrule ?? "",
-  })
-  if (issues.length > 0) return err(issues[0].message)
+  const validatedInput: SubmitEventInput = {
+    ...formParsed.data,
+    imageAssetId: input.imageAssetId,
+  }
 
   try {
-    const doc = buildEventDocument(input)
+    const doc = buildEventDocument(validatedInput)
     const created = await getWriteClient().create(doc)
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "event_submission_submitted",
-      properties: {
-        title: input.title,
-        is_recurring: Boolean(input.isRecurring),
-        is_internal: Boolean(input.isInternalEvent),
-        is_free: Boolean(input.isFree),
-        has_ticket_url: Boolean(input.ticketUrl),
-        has_facebook_url: Boolean(input.facebookUrl),
-        date_count: input.dates.length,
-        sanity_document_id: created._id,
-      },
-    })
+    try {
+      getPostHogClient().capture({
+        distinctId: "anonymous",
+        event: "event_submission_submitted",
+        properties: {
+          title: validatedInput.title,
+          is_recurring: validatedInput.isRecurring,
+          is_internal: validatedInput.isInternalEvent,
+          is_free: validatedInput.isFree,
+          has_ticket_url: Boolean(validatedInput.ticketUrl),
+          has_facebook_url: Boolean(validatedInput.facebookUrl),
+          date_count: validatedInput.dates.filter(date => date.startDate)
+            .length,
+          sanity_document_id: created._id,
+        },
+      })
+    } catch {
+      // A successful Sanity write remains successful if analytics fails.
+    }
     return ok(created._id)
-  } catch (error) {
-    captureSubmitFailure("event_submission", error, {
-      source: "submit-event",
-      failure_branch: "sanity_document_create_failed",
-      is_recurring: Boolean(input.isRecurring),
-      is_internal: Boolean(input.isInternalEvent),
-      is_free: Boolean(input.isFree),
-      has_ticket_url: Boolean(input.ticketUrl),
-      has_facebook_url: Boolean(input.facebookUrl),
-      date_count: input.dates.length,
-    })
+  } catch {
+    captureSubmitFailure(
+      "event_submission",
+      new Error("Sanity event document creation failed"),
+      {
+        source: "submit-event",
+        failure_branch: "sanity_document_create_failed",
+        is_recurring: validatedInput.isRecurring,
+        is_internal: validatedInput.isInternalEvent,
+        is_free: validatedInput.isFree,
+        has_ticket_url: Boolean(validatedInput.ticketUrl),
+        has_facebook_url: Boolean(validatedInput.facebookUrl),
+        date_count: validatedInput.dates.filter(date => date.startDate).length,
+      },
+    )
     return err(GENERIC_SUBMIT_ERROR)
   }
 }
@@ -195,13 +201,15 @@ function buildEventDocument(input: SubmitEventInput) {
     eventKind: isRecurringSeries ? "seriesParent" : "single",
     eventStatus: "scheduled",
     approvalStatus: "pending",
-    dates: input.dates.map(d => ({
-      _key: nanoid(),
-      _type: "arrangementDate",
-      startDate: d.startDate,
-      ...(d.startTime ? { startTime: d.startTime } : {}),
-      ...(d.endTime ? { endTime: d.endTime } : {}),
-    })),
+    dates: input.dates
+      .filter(date => date.startDate)
+      .map(d => ({
+        _key: nanoid(),
+        _type: "arrangementDate",
+        startDate: d.startDate,
+        ...(d.startTime ? { startTime: d.startTime } : {}),
+        ...(d.endTime ? { endTime: d.endTime } : {}),
+      })),
     submittedBy: input.submittedBy.trim(),
     submittedByEmail: input.submittedByEmail.trim(),
   }
@@ -263,9 +271,15 @@ function setOpt(doc: Record<string, unknown>, key: string, value?: string) {
 function setNum(
   doc: Record<string, unknown>,
   key: string,
-  value: number | undefined,
+  value: number | string | undefined,
 ) {
-  if (value !== undefined && value >= 0) doc[key] = value
+  if (value === undefined || (typeof value === "string" && !value.trim())) {
+    return
+  }
+  const numericValue = typeof value === "number" ? value : Number(value)
+  if (Number.isFinite(numericValue) && numericValue >= 0) {
+    doc[key] = numericValue
+  }
 }
 function setRef(
   doc: Record<string, unknown>,

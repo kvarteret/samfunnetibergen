@@ -4,10 +4,7 @@ import { useForm, useStore } from "@tanstack/react-form"
 import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
-import {
-  ErrorSummary,
-  type ErrorSummaryItem,
-} from "@/components/ui/error-summary"
+import { ErrorSummary } from "@/components/ui/error-summary"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -16,7 +13,9 @@ import {
   slotRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
@@ -24,11 +23,11 @@ import {
   slotOverlapsKaraokeBookings,
 } from "../domain/availability"
 import {
-  buildKaraokePayload,
   deriveKaraokeState,
   initialKaraokeState,
   type KaraokeFormState,
 } from "../domain/formState"
+import { karaokeFormSchema } from "../domain/karaokeFormSchema"
 import type { KaraokeRoom } from "../types"
 import { KaraokeFormContactSection } from "./KaraokeFormContactSection"
 import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
@@ -65,19 +64,23 @@ export function KaraokeForm({
     startDate: `${uid}-startDate`,
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
+    numberOfPeople: `${uid}-numberOfPeople`,
     acceptTerms: `${uid}-acceptTerms`,
     studentProof: `${uid}-studentProof`,
   }
 
   const form = useForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
-    onSubmit: async ({ value }) => {
-      const derived = deriveKaraokeState(value)
-      const result = await submitKaraokeBooking({
-        ...buildKaraokePayload(value, derived),
-        honeypot,
-      })
-      if (!result.ok) throw new Error(result.error)
+    validators: {
+      onChange: karaokeFormSchema,
+      onSubmit: karaokeFormSchema,
+    },
+    onSubmit: async ({ value, formApi }) => {
+      const result = await submitKaraokeBooking({ ...value, honeypot })
+      if (!result.ok) {
+        formApi.setErrorMap({ onServer: result.error as never })
+        throw new Error(result.error)
+      }
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -85,9 +88,18 @@ export function KaraokeForm({
     form.store,
     state => state.isSubmitSuccessful,
   )
+  const errorMap = useStore(form.store, state => state.errorMap)
+  const submitError =
+    typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
 
   const derived = deriveKaraokeState(values)
-  const validationErrors = getKaraokeValidationErrors(values, fieldIds)
+  const validationErrors = getFormValidationIssues(
+    errorMap.onChange,
+    errorMap.onSubmit,
+  ).map(issue => ({
+    fieldId: karaokeFieldId(issue.path, fieldIds),
+    message: issue.message,
+  }))
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
@@ -147,8 +159,19 @@ export function KaraokeForm({
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
-            if (validationErrors.length > 0) return
-            form.handleSubmit()
+            form.setErrorMap({ onServer: undefined })
+            void form.handleSubmit().catch(() => {
+              if (form.state.errorMap.onServer) return
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              posthog.captureException(
+                new Error("Unexpected karaoke booking submission failure"),
+                {
+                  form_id: "karaoke_booking",
+                  validation_stage: "client",
+                  failure_branch: "unexpected_submission_failure",
+                },
+              )
+            })
           }}
         >
           {visibleErrors.length > 0 && (
@@ -167,7 +190,12 @@ export function KaraokeForm({
             startDateError={errorFor(fieldIds.startDate)}
             startDateId={fieldIds.startDate}
           />
-          <KaraokeFormPackageSection uid={uid} derived={derived} />
+          <KaraokeFormPackageSection
+            derived={derived}
+            numberOfPeopleError={errorFor(fieldIds.numberOfPeople)}
+            numberOfPeopleId={fieldIds.numberOfPeople}
+            uid={uid}
+          />
           <KaraokeFormContactSection
             contactEmailError={errorFor(fieldIds.contactEmail)}
             contactEmailId={fieldIds.contactEmail}
@@ -193,7 +221,7 @@ export function KaraokeForm({
             type="text"
             value={honeypot}
           />
-          <KaraokeFormSubmitSection />
+          <KaraokeFormSubmitSection submitError={submitError} />
         </form>
 
         <aside className="space-y-5 lg:sticky lg:top-24">
@@ -210,53 +238,21 @@ type KaraokeFieldIds = Record<
   | "startDate"
   | "contactName"
   | "contactEmail"
+  | "numberOfPeople"
   | "acceptTerms"
   | "studentProof",
   string
 >
 
-function getKaraokeValidationErrors(
-  values: KaraokeFormState,
-  fieldIds: KaraokeFieldIds,
-): ErrorSummaryItem[] {
-  const errors: ErrorSummaryItem[] = []
-
-  if (!values.eventName.trim()) {
-    errors.push({
-      fieldId: fieldIds.eventName,
-      message: "Skriv inn navn på arrangementet.",
-    })
+function karaokeFieldId(path: string, fieldIds: KaraokeFieldIds): string {
+  if (path === "startDate" || path === "startSlotMin") {
+    return fieldIds.startDate
   }
-  if (!values.startDate || values.startSlotMin === null) {
-    errors.push({
-      fieldId: fieldIds.startDate,
-      message: "Velg dato og starttidspunkt.",
-    })
-  }
-  if (!values.contactName.trim()) {
-    errors.push({
-      fieldId: fieldIds.contactName,
-      message: "Skriv inn navn på kontaktperson.",
-    })
-  }
-  if (!values.contactEmail.trim()) {
-    errors.push({
-      fieldId: fieldIds.contactEmail,
-      message: "Skriv inn e-postadresse.",
-    })
-  }
-  if (!values.acceptTerms) {
-    errors.push({
-      fieldId: fieldIds.acceptTerms,
-      message: "Bekreft at du godtar bruksvilkårene.",
-    })
-  }
-  if (values.priceType === "student" && !values.studentProofAccepted) {
-    errors.push({
-      fieldId: fieldIds.studentProof,
-      message: "Bekreft at du tar med studentbevis.",
-    })
-  }
-
-  return errors
+  if (path === "eventName") return fieldIds.eventName
+  if (path === "contactName") return fieldIds.contactName
+  if (path === "contactEmail") return fieldIds.contactEmail
+  if (path === "numberOfPeople") return fieldIds.numberOfPeople
+  if (path === "acceptTerms") return fieldIds.acceptTerms
+  if (path === "studentProofAccepted") return fieldIds.studentProof
+  return fieldIds.startDate
 }

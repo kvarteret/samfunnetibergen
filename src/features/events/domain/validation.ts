@@ -1,15 +1,8 @@
-// Single source of truth for event-submission validation, shared by the client
-// form (EventForm) and the server action (submitEvent). Keeping the rules here
-// stops the two sides from diverging — notably the rrule-when-recurring rule,
-// which the client previously did not enforce.
+import { eventFormSchema, isValidEventDateString } from "./eventFormSchema"
 
 export const EVENT_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function isValidEventDateString(dateStr: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false
-  const d = new Date(`${dateStr}T00:00:00Z`)
-  return !Number.isNaN(d.getTime())
-}
+export { isValidEventDateString }
 
 export type EventValidationField =
   | "title"
@@ -23,10 +16,12 @@ export interface EventValidationIssue {
   message: string
 }
 
-// The minimal slice both FormState and SubmitEventInput can satisfy.
+// The minimal slice both the promotion flow and legacy callers can satisfy.
+// The actual rules live in eventFormSchema; this adapter only projects its
+// issues onto the older field names used by the embedded promotion flow.
 export interface EventValidationSubject {
   title: string
-  dates: { startDate: string }[]
+  dates: { startDate: string; startTime?: string; endTime?: string }[]
   submittedBy: string
   submittedByEmail: string
   isRecurring: boolean
@@ -36,45 +31,57 @@ export interface EventValidationSubject {
 export function getEventValidationIssues(
   subject: EventValidationSubject,
 ): EventValidationIssue[] {
+  const parsed = eventFormSchema.safeParse({
+    title: subject.title,
+    description: "",
+    dates: subject.dates.map((date, index) => ({
+      id: String(index),
+      startDate: date.startDate,
+      startTime: date.startTime ?? "",
+      endTime: date.endTime ?? "",
+    })),
+    isRecurring: subject.isRecurring,
+    rrule: subject.rrule,
+    room: "",
+    roomText: "",
+    organizerGroup: "",
+    organizerText: "",
+    submittedByOrganization: "",
+    eventTypeId: "",
+    isInternalEvent: false,
+    isFree: false,
+    priceOrdinar: "",
+    priceStudent: "",
+    priceMedlem: "",
+    ticketUrl: "",
+    facebookUrl: "",
+    submittedBy: subject.submittedBy,
+    submittedByEmail: subject.submittedByEmail,
+  })
+
+  if (parsed.success) return []
+
   const issues: EventValidationIssue[] = []
-
-  if (!subject.title.trim()) {
-    issues.push({ field: "title", message: "Skriv inn tittel." })
+  const seen = new Set<string>()
+  for (const issue of parsed.error.issues) {
+    const field = eventValidationField(issue.path)
+    if (!field) continue
+    const key = `${field}:${issue.message}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    issues.push({ field, message: issue.message })
   }
-
-  const hasValidDate = subject.dates.some(
-    date => date.startDate && isValidEventDateString(date.startDate),
-  )
-  if (!hasValidDate) {
-    issues.push({
-      field: "firstDate",
-      message: "Fyll ut minst én gyldig dato.",
-    })
-  }
-
-  if (!subject.submittedBy.trim()) {
-    issues.push({
-      field: "submittedBy",
-      message: "Skriv inn navn på kontaktperson.",
-    })
-  }
-
-  if (
-    !subject.submittedByEmail.trim() ||
-    !EVENT_EMAIL_RE.test(subject.submittedByEmail.trim())
-  ) {
-    issues.push({
-      field: "submittedByEmail",
-      message: "Skriv inn en gyldig e-postadresse.",
-    })
-  }
-
-  if (subject.isRecurring && !subject.rrule.trim()) {
-    issues.push({
-      field: "rrule",
-      message: "Velg et gjentakelsesmønster for det gjentagende arrangementet.",
-    })
-  }
-
   return issues
+}
+
+function eventValidationField(
+  path: readonly PropertyKey[],
+): EventValidationField | undefined {
+  const [first] = path
+  if (first === "title") return "title"
+  if (first === "dates") return "firstDate"
+  if (first === "submittedBy") return "submittedBy"
+  if (first === "submittedByEmail") return "submittedByEmail"
+  if (first === "rrule") return "rrule"
+  return undefined
 }

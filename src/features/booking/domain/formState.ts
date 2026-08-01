@@ -1,61 +1,13 @@
 import type { BookerType } from "@/lib/integrations/crescat/room-booking"
 import type { RoomBookingPayload } from "../actions/submit-room-booking"
-import type { BookingRoom } from "../types"
+import type {
+  BookingFormState as BookingFormSchemaState,
+  TicketType,
+} from "./bookingFormSchema"
 
 export type { BookerType }
-
-export interface TicketType {
-  name: string
-  price: string
-}
-
-export interface BookingFormState {
-  bookerType: BookerType
-  studentOrgName: string
-  selectedRoomIds: number[]
-  eventName: string
-  startDate: string
-  endDate: string
-  startTime: string
-  endTime: string
-  // One entry per day spanned by the booking, indexed from the start date.
-  // Each day's "doors open" time is mandatory for day 0, optional for others.
-  doorsTimes: string[]
-  // One entry per day. Estimated time the public event ends. Always optional.
-  estimatedEndTimes: string[]
-  audienceCount: string
-  openOrClosed: "Åpent" | "Lukket"
-  description: string
-  furniture: string
-  micEnabled: boolean
-  micQuantity: number
-  projector: boolean
-  music: boolean
-  soundTech: boolean
-  lightTech: boolean
-  riggingSetup: boolean
-  riggingTeardown: boolean
-  needsAmphi: boolean
-  cateringCustom: boolean
-  cateringText: string
-  barSelf: boolean
-  barKvarteret: boolean
-  freeOrPaid: "Gratis" | "Betalt"
-  ticketTypes: TicketType[]
-  // Paid events only: whether ticket sales run through the house register
-  // (free) or the organizer brings their own payment terminal.
-  ticketSalesMethod: "house" | "ownTerminal"
-  invoiceAddress: string
-  orgNumber: string
-  flexibleDates: boolean
-  acceptTerms: boolean
-  contactName: string
-  contactEmail: string
-  contactPhone: string
-  // Website-only: whether to also publish the booking as a promoted event.
-  // Never sent to Crescat.
-  promote: "" | "ja" | "nei"
-}
+export type BookingFormState = BookingFormSchemaState
+export type { TicketType }
 
 export const initialBookingState: BookingFormState = {
   bookerType: "ekstern",
@@ -134,13 +86,13 @@ export function composeCatering(state: BookingFormState): string {
 
 export function buildBookingPayload(
   state: BookingFormState,
-  rooms: BookingRoom[],
+  roomIds: number[],
 ): RoomBookingPayload {
   const isExternal = isExternalBooker(state.bookerType)
   return {
     bookerType: state.bookerType,
     eventName: state.eventName,
-    roomIds: rooms.map(r => r.crescatRoomId),
+    roomIds,
     startDate: state.startDate,
     endDate: state.endDate || undefined,
     startTime: state.startTime,
@@ -178,38 +130,4 @@ export function buildBookingPayload(
         ? Number(state.orgNumber)
         : undefined,
   }
-}
-
-// Paid events must list at least one ticket type with both a name and a price.
-// Free events have nothing to validate here.
-export function hasValidPaidTickets(state: BookingFormState): boolean {
-  if (state.freeOrPaid !== "Betalt") return true
-  return state.ticketTypes.some(
-    t => t.name.trim() !== "" && t.price.trim() !== "",
-  )
-}
-
-export function canSubmitBooking(
-  state: BookingFormState,
-  roomSelected: boolean,
-  hasConflict: boolean,
-): boolean {
-  const isExternal = isExternalBooker(state.bookerType)
-  const hasRooms = state.selectedRoomIds.length > 0
-  return (
-    hasRooms &&
-    !hasConflict &&
-    state.eventName.trim() !== "" &&
-    state.startDate !== "" &&
-    state.doorsTimes.length > 0 &&
-    state.doorsTimes.every(Boolean) &&
-    state.audienceCount.trim() !== "" &&
-    state.furniture.trim() !== "" &&
-    hasValidPaidTickets(state) &&
-    state.contactName.trim() !== "" &&
-    state.contactEmail.trim() !== "" &&
-    (!isExternal || state.invoiceAddress.trim() !== "") &&
-    (state.bookerType !== "studentorg" || state.studentOrgName.trim() !== "") &&
-    state.acceptTerms
-  )
 }

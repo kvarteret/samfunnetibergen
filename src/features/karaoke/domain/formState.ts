@@ -1,5 +1,8 @@
 import type { KaraokeBookingPayload, PriceType } from "../types"
 import { addHours, minutesToTimeOfDay, resolveSlotDate } from "./time"
+import type { KaraokeFormState } from "./karaokeFormSchema"
+
+export type { KaraokeFormState } from "./karaokeFormSchema"
 
 export const KARAOKE_DURATION_OPTIONS = [1, 2, 3, 4] as const
 
@@ -10,21 +13,6 @@ export const KARAOKE_PRICING: Record<
   ordinær: { perPerson: 79, minPerHour: 395 },
   student: { perPerson: 59, minPerHour: 295 },
   frivillig: { perPerson: 0, minPerHour: 0 },
-}
-
-export type KaraokeFormState = {
-  eventName: string
-  startDate: string
-  startSlotMin: number | null
-  duration: number
-  description: string
-  contactName: string
-  contactEmail: string
-  contactPhone: string
-  priceType: PriceType
-  numberOfPeople: string
-  acceptTerms: boolean
-  studentProofAccepted: boolean
 }
 
 export type KaraokeDerivedState = {
@@ -69,18 +57,6 @@ export function deriveKaraokeState(
       state.duration,
     ),
   }
-}
-
-export function canSubmitKaraokeBooking(state: KaraokeFormState): boolean {
-  return (
-    state.eventName.trim() !== "" &&
-    state.startDate !== "" &&
-    state.startSlotMin !== null &&
-    state.contactName.trim() !== "" &&
-    state.contactEmail.trim() !== "" &&
-    state.acceptTerms &&
-    (state.priceType !== "student" || state.studentProofAccepted)
-  )
 }
 
 export function buildKaraokePayload(

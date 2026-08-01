@@ -1,35 +1,9 @@
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import type { EventSummary } from "../components/EventCard"
+import type { EventFormDate, EventFormState } from "./eventFormSchema"
 
-export type DateEntry = {
-  id: string
-  startDate: string
-  startTime: string
-  endTime: string
-}
-
-export type FormState = {
-  title: string
-  description: string
-  dates: DateEntry[]
-  isRecurring: boolean
-  rrule: string
-  room: string
-  roomText: string
-  organizerGroup: string
-  organizerText: string
-  submittedByOrganization: string
-  eventTypeId: string
-  isInternalEvent: boolean
-  isFree: boolean
-  priceOrdinar: string
-  priceStudent: string
-  priceMedlem: string
-  ticketUrl: string
-  facebookUrl: string
-  submittedBy: string
-  submittedByEmail: string
-}
+export type DateEntry = EventFormDate
+export type FormState = EventFormState
 
 export type SelectOption = {
   value: string

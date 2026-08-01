@@ -17,6 +17,8 @@ interface BookingFormContactSectionProps {
   contactNameId: string
   invoiceAddressError?: string
   invoiceAddressId: string
+  orgNumberError?: string
+  orgNumberId: string
 }
 
 export function BookingFormContactSection({
@@ -26,6 +28,8 @@ export function BookingFormContactSection({
   contactNameId,
   invoiceAddressError,
   invoiceAddressId,
+  orgNumberError,
+  orgNumberId,
 }: BookingFormContactSectionProps) {
   const uid = useId()
   const form = useBookingForm()
@@ -34,6 +38,7 @@ export function BookingFormContactSection({
   const contactEmailErrorId = `${contactEmailId}-error`
   const contactNameErrorId = `${contactNameId}-error`
   const invoiceAddressErrorId = `${invoiceAddressId}-error`
+  const orgNumberErrorId = `${orgNumberId}-error`
 
   return (
     <FormSection number="05" title="Kontaktinformasjon">
@@ -116,10 +121,14 @@ export function BookingFormContactSection({
             </form.Field>
             <form.Field name="orgNumber">
               {(field: AnyFieldApi) => (
-                <FieldGroup>
-                  <Label htmlFor={`${uid}-orgNumber`}>Org.nr.</Label>
+                <FieldGroup error={orgNumberError} errorId={orgNumberErrorId}>
+                  <Label htmlFor={orgNumberId}>Org.nr.</Label>
                   <Input
-                    id={`${uid}-orgNumber`}
+                    aria-describedby={
+                      orgNumberError ? orgNumberErrorId : undefined
+                    }
+                    aria-invalid={!!orgNumberError}
+                    id={orgNumberId}
                     inputMode="numeric"
                     onChange={e => field.handleChange(e.target.value)}
                     placeholder="Valgfritt"

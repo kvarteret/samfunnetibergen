@@ -12,11 +12,15 @@ import { useKaraokeForm } from "./karaokeFormContext"
 interface KaraokeFormPackageSectionProps {
   uid: string
   derived: KaraokeDerivedState
+  numberOfPeopleError?: string
+  numberOfPeopleId: string
 }
 
 export function KaraokeFormPackageSection({
   uid,
   derived,
+  numberOfPeopleError,
+  numberOfPeopleId,
 }: KaraokeFormPackageSectionProps) {
   const form = useKaraokeForm()
 
@@ -41,7 +45,13 @@ export function KaraokeFormPackageSection({
               />
               <KaraokePackageNotice priceType={priceType} />
               {priceType !== "frivillig" && (
-                <KaraokePeopleField priceType={priceType} uid={uid} />
+                <KaraokePeopleField
+                  error={numberOfPeopleError}
+                  errorId={`${numberOfPeopleId}-error`}
+                  id={numberOfPeopleId}
+                  priceType={priceType}
+                  uid={uid}
+                />
               )}
               {derived.people > 0 && priceType !== "frivillig" && (
                 <KaraokeTotalPrice derived={derived} />
@@ -87,9 +97,15 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
 function KaraokePeopleField({
   uid,
   priceType,
+  error,
+  errorId,
+  id,
 }: {
   uid: string
   priceType: PriceType
+  error?: string
+  errorId: string
+  id: string
 }) {
   const form = useKaraokeForm()
 
@@ -98,8 +114,10 @@ function KaraokePeopleField({
       {(field: AnyFieldApi) => (
         <SelectField
           className="max-w-44"
+          error={error}
+          errorId={errorId}
           hint={`Minimumspris er ${KARAOKE_PRICING[priceType].minPerHour} kr per time.`}
-          id={`${uid}-people`}
+          id={id || `${uid}-people`}
           label="Antall personer *"
           onChange={field.handleChange}
           options={Array.from({ length: 25 }, (_, index) => index + 1).map(

@@ -15,6 +15,11 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
 
 import { durationHoursBetween } from "@/features/booking/domain/availability"
 import {
+  bookingFormSchema,
+  type BookingFormState,
+} from "@/features/booking/domain/bookingFormSchema"
+import { buildBookingPayload } from "@/features/booking/domain/formState"
+import {
   calendarSlugForBookerType,
   fetchVenueCalendar,
 } from "@/lib/integrations/crescat/calendar"
@@ -37,6 +42,7 @@ import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 import {
   captureSubmitFailure,
+  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
   INVALID_PAYLOAD_ERROR,
   isSubmissionRateLimited,
@@ -163,61 +169,112 @@ async function isAllowedByOpeningHours(
 }
 
 export async function submitRoomBooking(
-  payload: RoomBookingPayload & { honeypot?: string },
+  input: BookingFormState & { honeypot?: string },
 ): Promise<Result<number>> {
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
-  if (payload.honeypot?.trim()) return ok(-1)
+  if (input.honeypot?.trim()) return ok(-1)
+
+  const formParsed = bookingFormSchema.safeParse(input)
+  if (!formParsed.success) {
+    captureSubmitFailure(
+      "room_booking",
+      new Error("Room booking form schema validation failed"),
+      {
+        source: "submit-room-booking",
+        validation_stage: "server",
+        failure_branch: "schema_validation_failed",
+        form_id: "room_booking",
+        ...getValidationDiagnostics(formParsed.error.issues),
+      },
+    )
+    return err(INVALID_PAYLOAD_ERROR)
+  }
 
   if (await isSubmissionRateLimited("submitRoomBooking")) {
     return err(RATE_LIMIT_ERROR)
   }
 
-  const parsed = payloadSchema.safeParse(payload)
+  const parsed = payloadSchema.safeParse(
+    buildBookingPayload(formParsed.data, formParsed.data.selectedRoomIds),
+  )
   if (!parsed.success) {
+    captureSubmitFailure(
+      "room_booking",
+      new Error("Room booking normalized payload validation failed"),
+      {
+        source: "submit-room-booking",
+        validation_stage: "server",
+        failure_branch: "normalized_payload_mismatch",
+        form_id: "room_booking",
+        ...getValidationDiagnostics(parsed.error.issues),
+      },
+    )
     return err(INVALID_PAYLOAD_ERROR)
   }
 
-  if (!(await isAllowedByOpeningHours(parsed.data))) {
-    return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
-  }
+  try {
+    if (!(await isAllowedByOpeningHours(parsed.data))) {
+      return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
+    }
 
-  if (await hasVenueCalendarConflict(parsed.data)) {
-    return err(
-      "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+    if (await hasVenueCalendarConflict(parsed.data)) {
+      return err(
+        "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+      )
+    }
+
+    const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
+
+    const result = await postEventRequest(
+      slugForBookerType(parsed.data.bookerType),
+      body,
     )
-  }
 
-  const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
+    if (result.ok) {
+      try {
+        getPostHogClient().capture({
+          distinctId: "anonymous",
+          event: "room_booking_submitted",
+          properties: {
+            booker_type: parsed.data.bookerType,
+            room_id: parsed.data.roomIds[0],
+            start_date: parsed.data.startDate,
+            start_time: parsed.data.startTime,
+            end_time: parsed.data.endTime,
+            free_or_paid: parsed.data.freeOrPaid,
+            open_or_closed: parsed.data.openOrClosed,
+            crescat_event_id: result.value,
+          },
+        })
+      } catch {
+        // A successful Crescat booking remains successful if analytics fails.
+      }
+      return result
+    }
 
-  const result = await postEventRequest(
-    slugForBookerType(parsed.data.bookerType),
-    body,
-  )
-
-  if (result.ok) {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "room_booking_submitted",
-      properties: {
+    captureSubmitFailure(
+      "room_booking",
+      new Error("Crescat room booking request failed"),
+      {
+        source: "submit-room-booking",
+        failure_branch: "crescat_request_failed",
         booker_type: parsed.data.bookerType,
         room_id: parsed.data.roomIds[0],
         start_date: parsed.data.startDate,
-        start_time: parsed.data.startTime,
-        end_time: parsed.data.endTime,
-        free_or_paid: parsed.data.freeOrPaid,
-        open_or_closed: parsed.data.openOrClosed,
-        crescat_event_id: result.value,
       },
-    })
-    return result
+    )
+    return err(GENERIC_SUBMIT_ERROR)
+  } catch {
+    captureSubmitFailure(
+      "room_booking",
+      new Error("Unexpected room booking submission failure"),
+      {
+        source: "submit-room-booking",
+        failure_branch: "unexpected_submission_failure",
+        booker_type: parsed.data.bookerType,
+        room_id: parsed.data.roomIds[0],
+      },
+    )
+    return err(GENERIC_SUBMIT_ERROR)
   }
-
-  captureSubmitFailure("room_booking", result.error, {
-    source: "submit-room-booking",
-    failure_branch: "crescat_request_failed",
-    booker_type: parsed.data.bookerType,
-    room_id: parsed.data.roomIds[0],
-    start_date: parsed.data.startDate,
-  })
-  return err(GENERIC_SUBMIT_ERROR)
 }

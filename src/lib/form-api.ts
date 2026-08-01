@@ -1,23 +1,26 @@
-import type {
-  FormAsyncValidateOrFn,
-  FormValidateOrFn,
-  ReactFormExtendedApi,
-} from "@tanstack/react-form"
+import type { ReactFormExtendedApi } from "@tanstack/react-form"
 
-// The concrete instance type returned by useForm() when only defaultValues
-// and onSubmit are configured. One alias so each feature's form context does
-// not repeat TanStack Form's eleven type parameters.
+// Form sections share a context across forms whose validator generics differ.
+// Keep the value type visible while intentionally erasing only validator
+// details at that React context boundary; providers can pass their concrete
+// useForm result without unsafe double casts.
+// TanStack marks all validator parameters invariant, so a context cannot
+// express "any validator for these values" with unknown/union types. The
+// erasure is kept here, at the shared context boundary, instead of repeated
+// unsafe casts at every provider.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type AppFormApi<TValues> = ReactFormExtendedApi<
   TValues,
-  FormValidateOrFn<TValues> | undefined,
-  FormValidateOrFn<TValues> | undefined,
-  FormAsyncValidateOrFn<TValues> | undefined,
-  FormValidateOrFn<TValues> | undefined,
-  FormAsyncValidateOrFn<TValues> | undefined,
-  FormValidateOrFn<TValues> | undefined,
-  FormAsyncValidateOrFn<TValues> | undefined,
-  FormValidateOrFn<TValues> | undefined,
-  FormAsyncValidateOrFn<TValues> | undefined,
-  FormAsyncValidateOrFn<TValues> | undefined,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
   unknown
 >
+/* eslint-enable @typescript-eslint/no-explicit-any */

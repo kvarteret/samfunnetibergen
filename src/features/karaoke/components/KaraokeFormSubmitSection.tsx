@@ -7,10 +7,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useKaraokeForm } from "./karaokeFormContext"
 
-export function KaraokeFormSubmitSection() {
+export function KaraokeFormSubmitSection({
+  submitError,
+}: {
+  submitError?: string
+}) {
   const form = useKaraokeForm()
   const isPending = useStore(form.store, state => state.isSubmitting)
-  const submitError = useStore(form.store, state => state.errorMap.onSubmit)
 
   return (
     <section className="space-y-4 border-t-2 border-border pt-8">

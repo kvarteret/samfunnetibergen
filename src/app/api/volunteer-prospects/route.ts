@@ -1,80 +1,73 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
+  getValidationDiagnostics,
   isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
+import {
+  volunteerFormSchema,
+  type VolunteerFormValues,
+} from "@/features/grupper/domain/volunteerFormSchema"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
 const GENERIC_ERROR = "Kunne ikke registrere frivillig."
 
-const payloadSchema = z.object({
-  full_name: z.string().trim().min(1),
-  email: z.string().trim().toLowerCase().pipe(z.email()),
-  phone: z
-    .string()
-    .trim()
-    .regex(/\d/)
-    .transform(value => value.replace(/\D/g, "")),
-  study_institution: z.string().trim().min(1),
-  first_choice_group_slug: z
-    .string()
-    .trim()
-    .min(1)
-    .max(100)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  second_choice_group_slug: z
-    .string()
-    .trim()
-    .min(1)
-    .max(100)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-    .optional(),
-  background_details: z
-    .string()
-    .trim()
-    .optional()
-    .transform(value => value || undefined),
-  friend_emails: z
-    .array(z.string().trim().toLowerCase().pipe(z.email()))
-    .max(2)
-    .optional(),
-})
-
 export async function POST(request: Request) {
+  const body = await request.json().catch(() => null)
+
+  // Silently accept honeypot hits.
+  if (
+    body &&
+    typeof body === "object" &&
+    (body as Record<string, unknown>).honeypot &&
+    String((body as Record<string, unknown>).honeypot).trim() !== ""
+  ) {
+    return NextResponse.json({ registrationId: "ignored" }, { status: 201 })
+  }
+
+  const parsed = volunteerFormSchema.safeParse(body)
+  if (!parsed.success) {
+    captureSubmitFailure(
+      "volunteer_application",
+      new Error("Volunteer form schema validation failed"),
+      {
+        source: "volunteer-prospects-route",
+        validation_stage: "server",
+        failure_branch: "schema_validation_failed",
+        form_id: "volunteer_application",
+        ...getValidationDiagnostics(parsed.error.issues),
+      },
+    )
+    return NextResponse.json(
+      { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
+      { status: 400 },
+    )
+  }
+
   if (await isSubmissionRateLimited("volunteer-prospects")) {
     return NextResponse.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
   }
 
-  let submissionEmail: string | undefined
+  const values: VolunteerFormValues = parsed.data
+  const requestBody = {
+    full_name: `${values.firstName.trim()} ${values.lastName.trim()}`,
+    email: values.email.trim().toLowerCase(),
+    phone: values.phone.trim().replace(/\D/g, ""),
+    study_institution: values.studyInstitution.trim(),
+    first_choice_group_slug: values.firstChoiceGroupSlug.trim(),
+    second_choice_group_slug: values.secondChoiceGroupSlug.trim() || undefined,
+    background_details: values.backgroundDetails.trim() || undefined,
+    friend_emails:
+      values.friendEmails.length > 0
+        ? values.friendEmails.map(email => email.trim().toLowerCase())
+        : undefined,
+  }
 
   try {
-    const body = await request.json().catch(() => null)
-
-    // Silently accept honeypot hits.
-    if (
-      body &&
-      typeof body === "object" &&
-      (body as Record<string, unknown>).honeypot &&
-      String((body as Record<string, unknown>).honeypot).trim() !== ""
-    ) {
-      return NextResponse.json({ registrationId: "ignored" }, { status: 201 })
-    }
-
-    const parsed = payloadSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
-        { status: 400 },
-      )
-    }
-    const requestBody = parsed.data
-    submissionEmail = requestBody.email
-
     const response = await fetch(
       `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
       {
@@ -93,8 +86,6 @@ export async function POST(request: Request) {
       // when it is a plain string; anything structured stays server-side.
       const detail =
         typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
-      // POTENTIAL GDPR VIOLATION: This intentionally logs the applicant's email
-      // to PostHog so failed volunteer submissions can be followed up manually.
       captureSubmitFailure(
         "volunteer_application",
         new Error(
@@ -104,7 +95,6 @@ export async function POST(request: Request) {
           source: "volunteer-prospects-route",
           failure_branch: "personal_backend_rejected",
           status: response.status,
-          email: requestBody.email,
           first_choice_group_slug: requestBody.first_choice_group_slug,
           has_second_choice: Boolean(requestBody.second_choice_group_slug),
         },
@@ -112,28 +102,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail }, { status: 422 })
     }
 
-    const data = await response.json()
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "volunteer_application_submitted",
-      properties: {
-        first_choice_group_slug: requestBody.first_choice_group_slug,
-        has_second_choice: Boolean(requestBody.second_choice_group_slug),
-        has_friend_referrals: (requestBody.friend_emails?.length ?? 0) > 0,
-      },
-    })
+    const data = (await response.json().catch(() => null)) as {
+      registrationId?: string
+    } | null
+    try {
+      getPostHogClient().capture({
+        distinctId: "anonymous",
+        event: "volunteer_application_submitted",
+        properties: {
+          first_choice_group_slug: requestBody.first_choice_group_slug,
+          has_second_choice: Boolean(requestBody.second_choice_group_slug),
+          has_friend_referrals: (requestBody.friend_emails?.length ?? 0) > 0,
+        },
+      })
+    } catch {
+      // A successful Personal registration remains successful if analytics fails.
+    }
     return NextResponse.json(
-      { registrationId: (data as { registrationId?: string }).registrationId },
+      { registrationId: data?.registrationId },
       { status: 201 },
     )
-  } catch (error) {
-    // POTENTIAL GDPR VIOLATION: This intentionally logs the applicant's email
-    // to PostHog so failed volunteer submissions can be followed up manually.
-    captureSubmitFailure("volunteer_application", error, {
-      source: "volunteer-prospects-route",
-      failure_branch: "personal_backend_request_failed",
-      email: submissionEmail,
-    })
+  } catch {
+    captureSubmitFailure(
+      "volunteer_application",
+      new Error("Personal volunteer prospect request failed"),
+      {
+        source: "volunteer-prospects-route",
+        failure_branch: "personal_backend_request_failed",
+        first_choice_group_slug: requestBody.first_choice_group_slug,
+        has_second_choice: Boolean(requestBody.second_choice_group_slug),
+      },
+    )
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }
 }
