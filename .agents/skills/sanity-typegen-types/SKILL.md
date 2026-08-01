@@ -20,8 +20,8 @@ The script extracts `.sanity/schema.json` with
 `--enforce-required-fields`, generates frontend and Studio outputs using
 `sanity.cli.ts`, and formats both generated files:
 
-- `src/lib/sanity/sanity.types.ts`
-- `src/studio/sanity.types.ts`
+- `apps/web/src/lib/sanity/sanity.types.ts`
+- `apps/studio/src/studio/sanity.types.ts`
 
 ## Draft-safe required types
 
@@ -39,7 +39,7 @@ fallback prose, references, URLs, images, or nested objects.
 
 ## Fetch boundary
 
-Components import domain aliases from `src/lib/sanity/fetch`, not generated
+Components import domain aliases from `apps/web/src/lib/sanity/fetch`, not generated
 query names. Keep raw generated types internal. Use the fetch boundary for
 small TypeGen normalization where an empty-array fallback produces
 `Array<T> | Array<never>`.
@@ -53,7 +53,7 @@ After schema, query, or fetch changes run:
 ```bash
 npm run sanity:typegen
 npm test
-npx tsc --noEmit
+npm run typecheck
 ```
 
 Review generated diffs for contract changes rather than editing them.

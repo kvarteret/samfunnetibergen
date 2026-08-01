@@ -26,14 +26,14 @@ rm -rf .cache/tmp
 """
 
 [[actions]]
-name = "Dev"
+name = "Website"
 icon = "run"
-command = "npm run dev"
+command = "npm run dev:web"
 
 [[actions]]
 name = "Studio"
 icon = "run"
-command = "npm run studio"
+command = "npm run dev:studio"
 
 [[actions]]
 name = "Test"

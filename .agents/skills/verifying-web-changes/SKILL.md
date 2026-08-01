@@ -9,7 +9,8 @@ Use source-specific verification instead of broad noisy sweeps.
 
 ## Commands
 
-- Build: `npm run build`
+- Website build: `npm run build:web`
+- Studio build: `npm run build:studio`
 - Lint: `npm run lint`
 - Sanity TypeGen after schema/query changes: `npm run sanity:typegen`
 - Generated personal client sync only when intentionally using that client:
@@ -18,9 +19,10 @@ Use source-specific verification instead of broad noisy sweeps.
 ## Source-Specific Checks
 
 - Arrangement pages and feeds: inspect Sanity queries in
-  `lib/sanity/queries/events.ts`, then verify the affected route under
-  `app/[locale]/arrangementer/`, `app/api/ical/route.ts`, or
-  `app/api/events/feed/route.ts`.
+  `apps/web/src/lib/sanity/queries/events.ts`, then verify the affected route
+  under `apps/web/src/app/[locale]/arrangementer/`,
+  `apps/web/src/app/api/ical/route.ts`, or
+  `apps/web/src/app/api/events/feed/route.ts`.
 - Volunteer prospect flow: verify `features/blifrivillig/prospect.ts`,
   `features/blifrivillig/components/GroupVolunteerForm.tsx`, and
   `app/api/volunteer-prospects/route.ts`.

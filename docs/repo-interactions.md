@@ -9,13 +9,13 @@ Update it when a source-backed boundary changes.
 
 Verified source:
 
-- `src/studio/schemaTypes/documents/arrangement.ts`
-- `src/lib/sanity/queries/events.ts`
-- `src/lib/sanity/fetch/events.ts`
-- `src/app/[locale]/arrangementer/page.tsx`
-- `src/app/[locale]/arrangementer/[event]/page.tsx`
-- `src/app/api/ical/route.ts`
-- `src/app/api/events/feed/route.ts`
+- `apps/studio/src/studio/schemaTypes/documents/arrangement.ts`
+- `apps/web/src/lib/sanity/queries/events.ts`
+- `apps/web/src/lib/sanity/fetch/events.ts`
+- `apps/web/src/app/[locale]/arrangementer/page.tsx`
+- `apps/web/src/app/[locale]/arrangementer/[event]/page.tsx`
+- `apps/web/src/app/api/ical/route.ts`
+- `apps/web/src/app/api/events/feed/route.ts`
 
 Do not document `kvarteret-personal` as the public arrangement source for this
 site unless these call paths change.
@@ -32,14 +32,13 @@ while creating a new group.
 
 Verified source:
 
-- `src/features/grupper/components/GroupVolunteerForm.tsx`
-- `src/app/[locale]/grupper/[slug]/page.tsx`
-- `src/app/api/volunteer-prospects/route.ts`
+- `apps/web/src/features/grupper/components/GroupVolunteerForm.tsx`
+- `apps/web/src/app/[locale]/grupper/[slug]/page.tsx`
+- `apps/web/src/app/api/volunteer-prospects/route.ts`
 
 ## Generated Personal Client
 
-`package.json` contains `api:generate` and `api:sync` scripts for the
-`kvarteret-personal` OpenAPI client, but `.gitignore` ignores
-`src/lib/integrations/kvarteret-personal-api/`. Do not add deploy-critical
-imports from that generated directory unless the generated-file boundary is
-deliberately changed.
+The generated `kvarteret-personal` OpenAPI client directory is ignored by
+`.gitignore` at `apps/web/src/lib/integrations/kvarteret-personal-api/`. Do not
+add deploy-critical imports from that generated directory unless the
+generated-file boundary is deliberately changed.

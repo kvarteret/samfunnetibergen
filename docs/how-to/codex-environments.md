@@ -29,11 +29,11 @@ environment, the setup uses `npm ci` directly. It does not require the sibling
 
 The available actions are:
 
-- `Dev`: `npm run dev` at `http://localhost:3187`
-- `Studio`: `npm run studio` at the Sanity Studio development URL
+- `Website`: `npm run dev:web` at `http://localhost:3187`
+- `Studio`: `npm run dev:studio` at the Sanity Studio development URL
 - `Test`: `npm run test`
 - `Lint`: `npm run lint`
-- `Build`: `npm run build`
+- `Build`: `npm run build` (website followed by Studio)
 
 The cleanup script removes only `.cache/tmp` from the current worktree. This
 repository has no Docker Compose development stack, so the environment does not
@@ -73,9 +73,10 @@ Use the following setup and maintenance commands:
 
 Cloud checks out only this repository, so do not run an `../infra` bootstrap
 there. The repository's public Sanity identifiers have safe fallbacks in
-`src/lib/sanity/env.ts`; the baseline tests and lint do not require a copied
-secret file. A production build may contact published Sanity content through
-`src/lib/sanity/client.ts`, so allow the relevant Sanity hosts in the Cloud
+`apps/web/src/lib/sanity/env.ts` and `apps/studio/src/env.ts`; the baseline
+tests and lint do not require a copied secret file. A production build may
+contact published Sanity content through `apps/web/src/lib/sanity/client.ts`,
+so allow the relevant Sanity hosts in the Cloud
 environment if the build is run with restricted agent internet access.
 
 Do not add `.env.local` to `.worktreeinclude` by default. Do not commit values
@@ -93,11 +94,14 @@ From the repository root, run:
     npm ci
     npm run format:check
     npm run lint
-    npx --no-install next typegen
-    npx --no-install tsc --noEmit
+    npm run route-typegen
+    npm run sanity:typegen
+    npm run typecheck
     npm run test
-    npm run build
+    npm run build:web
+    npm run build:studio
 
-Start `npm run dev`, request `http://localhost:3187/nb`, and expect HTTP 200.
+Start `npm run dev:web`, request `http://localhost:3187/nb`, and expect HTTP
+200. Start `npm run dev:studio` separately when Studio behavior is in scope.
 Stop the server when finished. GitHub Actions and the production release
 workflow run the same npm install and check commands before Vercel deployment.

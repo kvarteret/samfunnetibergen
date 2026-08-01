@@ -12,13 +12,13 @@ missing on mobile or desktop.
 ## Source path
 
 The global locale layout fetches the house-hours content in
-`src/app/[locale]/layout.tsx` through `fetchHouseHours()`. The fetch helper is
-`src/lib/sanity/fetch/pages.ts`, and `houseHoursQuery` in
-`src/lib/sanity/queries/pages.ts` reads the published `siteMetadata` singleton:
+`apps/web/src/app/[locale]/layout.tsx` through `fetchHouseHours()`. The fetch
+helper is `apps/web/src/lib/sanity/fetch/pages.ts`, and `houseHoursQuery` in
+`apps/web/src/lib/sanity/queries/pages.ts` reads the published `siteMetadata` singleton:
 shared opening hours, vacation mode, and closed dates.
 
-`src/components/navbar/Navbar.tsx` passes those values to the client component
-`src/components/navbar/NavbarOpenStatus.tsx`. That component calls
+`apps/web/src/components/navbar/Navbar.tsx` passes those values to the client
+component `apps/web/src/components/navbar/NavbarOpenStatus.tsx`. That component calls
 `openingHoursStatusAt()` and renders the status plus a detail such as
 `Stenger kl. 21` or `Åpner fredag kl. 10`. The popover lists the next seven days.
 
@@ -29,7 +29,7 @@ trigger may truncate the detail to avoid pushing the logo or mobile menu out of
 the viewport, but it must not use responsive `hidden` classes to remove the
 opening or closing information on mobile.
 
-Keep opening-hours calculations in `src/lib/opening-hours.ts`. They are wall-
+Keep opening-hours calculations in `apps/web/src/lib/opening-hours.ts`. They are wall-
 clock calculations for Europe/Oslo, not the machine's local timezone. Do not
 move Sanity fetching into the client component or duplicate the Sanity query.
 
@@ -43,16 +43,16 @@ When changing the text, preserve the distinction between:
 
 From the repository root, run the focused test in both timezone environments:
 
-    TZ=UTC npx vitest run src/lib/opening-hours.test.ts
-    TZ=Europe/Oslo npx vitest run src/lib/opening-hours.test.ts
+    TZ=UTC npm --workspace @samfunnet/web exec vitest run src/lib/opening-hours.test.ts
+    TZ=Europe/Oslo npm --workspace @samfunnet/web exec vitest run src/lib/opening-hours.test.ts
 
 Then run the repository checks:
 
     npm run lint
-    npx next typegen && npx tsc --noEmit
-    POSTHOG_CLI_API_KEY= POSTHOG_CLI_PROJECT_ID= npm run build
+    npm run route-typegen && npm run typecheck
+    POSTHOG_CLI_API_KEY= POSTHOG_CLI_PROJECT_ID= npm run build:web
 
-For a visual check, start `npm run dev` and inspect `/nb` at a narrow mobile
+For a visual check, start `npm run dev:web` and inspect `/nb` at a narrow mobile
 viewport and a desktop viewport. Confirm that both `Åpent`/`Stengt` and the
 `Stenger ...`/`Åpner ...` detail are visible in the navbar. Open the trigger and
 confirm that the seven-day opening-hours list still appears.
