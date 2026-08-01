@@ -12,6 +12,9 @@ export default defineCliConfig({
   project: {
     basePath: "/",
   },
+  deployment: {
+    appId: "r7kax3ojhq4892odvrwpjt93",
+  },
   server: {
     port: 3333,
   },

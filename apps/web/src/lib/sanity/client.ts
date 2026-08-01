@@ -9,6 +9,6 @@ export const sanityClient = createClient({
   useCdn: true,
   perspective: "published",
   stega: {
-    studioUrl: "/studio",
+    studioUrl: "https://studio.samfunnetibergen.no",
   },
 })

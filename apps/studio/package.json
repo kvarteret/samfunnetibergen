@@ -2,9 +2,6 @@
   "name": "@samfunnet/studio",
   "version": "0.1.0",
   "private": true,
-  "exports": {
-    "./config": "./sanity.config.ts"
-  },
   "scripts": {
     "dev": "sanity dev",
     "build": "sanity build",

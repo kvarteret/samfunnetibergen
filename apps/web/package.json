@@ -26,7 +26,6 @@
     "@portabletext/toolkit": "^5.0.2",
     "@sanity/client": "^7.25.0",
     "@samfunnet/content-domain": "0.1.0",
-    "@samfunnet/studio": "0.1.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.1",
     "@tanstack/react-form": "^1.28.6",

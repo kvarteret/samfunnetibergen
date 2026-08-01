@@ -109,8 +109,4 @@ const config = defineConfig({
   },
 })
 
-// The website keeps this adapter only during the external-host cutover. The
-// standalone Studio is rooted at `/`; the temporary embedded route needs its
-// historical `/studio` base path to keep old links working until then.
-export const embeddedConfig = { ...config, basePath: "/studio" }
 export default config
