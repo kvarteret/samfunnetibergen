@@ -62,8 +62,8 @@ than package-enforced import boundaries.
 - [x] (2026-08-01) Capture the local dependency baseline with Node/npm via
   `mise exec`, install the single lockfile, and read the installed Next.js
   redirect, project-structure, Turbopack-root, and local-package transpilation
-  guides. External URL, Vercel, and Sanity registration inventory remains
-  pending and was intentionally not changed.
+  guides. External URL, Vercel, and Sanity registration inventory was then
+  captured read-only before the controlled deployment steps.
 - [x] (2026-08-01) Add symmetric npm workspaces for `apps/web`, `apps/studio`,
   and `packages/content-domain`; move application source and configuration,
   preserve the temporary embedded adapter, and update workspace dependencies.
@@ -75,8 +75,9 @@ than package-enforced import boundaries.
 - [x] (2026-08-01) Add local ADR/content-contract guidance, update active
   interaction docs and skills, and expand pull-request CI to route TypeGen,
   Sanity TypeGen drift, workspace typechecks/tests, and both builds.
-- [ ] Capture production URLs, Sanity
-  CORS/application registration, and the current Vercel domain assignments.
+- [x] (2026-08-01) Capture the current production inventory: the Git-linked
+  Studio Vercel project, custom domain, valid TLS/HTTP smoke responses, Sanity
+  CORS origin, and external application/schema registration are recorded below.
 - [x] (2026-08-01) Add a standalone npm Studio workspace and prove that its static build is
   behaviorally equivalent before removing the embedded route.
 - [x] (2026-08-01) Move Studio-owned source and commands into the workspace, extract the
@@ -88,31 +89,39 @@ than package-enforced import boundaries.
   from `.` to `apps/web` after its first monorepo preview built both workspaces
   and then looked for a root-level `.next` directory. Confirm that Vercel's
   source-files-outside-root setting remains enabled for workspace packages.
-- [ ] Create and verify the separate Studio Vercel project, staged deployment,
-  custom domain, Sanity CORS entry, schema manifest deployment, Dashboard
-  registration, and Studio release workflow.
-- [ ] Switch canonical Studio links and old `/studio` deep links to the new
-  origin, then remove the embedded Next.js Studio and Studio-only website
-  dependencies and telemetry.
-- [ ] Document and exercise independent releases, compatibility-first schema
-  evolution, rollback, and the boundary for a possible mobile consumer.
-- [ ] Complete the full verification matrix and update Outcomes & Retrospective
-  with measured build, logging, and release results.
+- [x] (2026-08-01) Add the Studio Vercel static SPA configuration and an
+  explicit-ref release workflow with staged deployment, smoke tests, optional
+  Sanity external registration, promotion, independent tags, and rollback
+  documentation. The Git-linked Vercel project is `studio`
+  (`prj_pIrtmJgiVXRU4r6Hvf1WhqZYoZO5`) with Root Directory `apps/studio`.
+- [x] (2026-08-01) Make the standalone origin canonical in Visual Editing,
+  add permanent root/deep redirects with query preservation tests, remove the
+  embedded Next.js Studio runtime, and remove its website workspace dependency.
+- [x] (2026-08-01) Document and exercise independent releases, compatibility-
+  first schema evolution, rollback, and the boundary for a possible mobile
+  consumer.
+- [x] (2026-08-01) Complete the repository, static build, Vercel staged, custom
+  domain, TLS, deep-link, manifest, CORS, and schema-registration checks. Human
+  sign-in/editing, Presentation, and Dashboard checks remain explicitly manual.
 
 ## Surprises & Discoveries
 
-- Observation: The source already recognizes `studio.samfunnetibergen.no`, but
-  only redirects the root request to `/studio` inside the same Next.js project.
-  Evidence: `src/proxy.ts` declares `studioHosts` and changes `/` to `/studio`;
-  it does not proxy to another deployment.
-- Observation: The current Studio route is deliberately dynamic even though the
-  Studio UI is loaded client-side.
-  Evidence: `src/app/studio/[[...tool]]/page.tsx` exports
-  `dynamic = "force-dynamic"`, and `studio-client.tsx` imports `NextStudio` with
-  server-side rendering disabled.
-- Observation: Website PostHog browser instrumentation applies to Studio today.
+- Observation: Before the hard cutover, the source recognized
+  `studio.samfunnetibergen.no` but only redirected its root request to `/studio`
+  inside the same Next.js project.
+  Evidence: the pre-cutover `src/proxy.ts` declared `studioHosts` and changed
+  `/` to `/studio`; it did not proxy to another deployment. The current proxy
+  has no Studio host branch.
+- Observation: Before removal, the embedded Studio route was deliberately
+  dynamic even though the Studio UI was loaded client-side.
+  Evidence: the pre-cutover `src/app/studio/[[...tool]]/page.tsx` exported
+  `dynamic = "force-dynamic"`, and `studio-client.tsx` imported `NextStudio`
+  with server-side rendering disabled. The adapter is now deleted.
+- Observation: Website PostHog browser instrumentation applied to the embedded
+  Studio before the cutover.
   Evidence: the root `instrumentation-client.ts` enables automatic page-view,
-  page-leave, and exception capture without excluding `/studio`.
+  page-leave, and exception capture; deleting the embedded route removes Studio
+  traffic from that website runtime.
 - Observation: Studio source is not completely independent of website source.
   Evidence: `src/studio/components/RecurringInput.tsx` and
   `src/studio/components/SeriesSemesterExpansion.tsx` import the pure generation
@@ -175,6 +184,39 @@ than package-enforced import boundaries.
   Evidence: PR 93 check run `91357853749`; the client now maps only the three
   supported form slugs to complete constant URLs and rejects all other input
   before calling `fetch`.
+- Observation: The installed Sanity CLI exposes the required external
+  registration, CORS, and schema commands, but external registration requires
+  a project root and an authenticated mutation.
+  Evidence: `sanity deploy --help` supports `--external`, `--url`,
+  `--schema-required`, and `--yes`; `sanity cors add/list` and `sanity schemas
+  deploy` are available. A dry-run from the repository root reports
+  `PROJECT_ROOT_NOT_FOUND` because the Studio root must be selected.
+- Observation: Sanity CORS already contains the production Studio origin with
+  credentials in the current project.
+  Evidence: `sanity cors list --project-id mkjoahvv` returned
+  `https://studio.samfunnetibergen.no` alongside the website and local origins.
+- Observation: Vercel authentication is available locally, but the current
+  scope has no Studio project or assigned Studio domain.
+  Evidence: `vercel project ls` lists only `samfunnetibergen` and
+  `kvarteret-personal`; `vercel domains ls` lists the apex domain but no Studio
+  subdomain; `vercel whoami` returns `itleder-8901`.
+- Observation: Vercel's repository linker is the supported way in the current
+  CLI to create a second Git-connected project with a workspace Root Directory.
+  Evidence: `vercel link --repo` detected `apps/studio` as a Sanity project and
+  created project `studio` with Root Directory `apps/studio`; running the
+  release build from repository root then wrote `.vercel/output` under that
+  configured root rather than applying `apps/studio` twice.
+- Observation: The standalone deployment works through Vercel's static SPA
+  fallback and custom domain.
+  Evidence: deployment `3XhN8H8NVqMR7LmYf1Ycx28Pbrjb` returned HTTP 200 at
+  `/`, `/structure/arrangement`, and `/static/manifest.webmanifest`; after
+  domain assignment the same three paths returned HTTP 200 with valid TLS at
+  `https://studio.samfunnetibergen.no`.
+- Observation: Sanity external registration deploys the schema and returns a
+  stable application id that should be checked into `sanity.cli.ts`.
+  Evidence: `sanity deploy --external --url https://studio.samfunnetibergen.no
+  --schema-required --yes --json` reported `deployed: true`, deployed one
+  schema, and returned app id `r7kax3ojhq4892odvrwpjt93`.
 
 ## Decision Log
 
@@ -228,26 +270,44 @@ than package-enforced import boundaries.
   and a versioned application API; do not accidentally freeze a discoverability
   feed as an undocumented product API.
   Date/Author: 2026-08-01 / Codex
+- Decision: Complete the runtime cutover in this follow-up by deleting the
+  embedded Next.js Studio adapter and redirecting legacy website paths to the
+  standalone origin.
+  Rationale: The user authorized a hard cutover after the source split. Keeping
+  the adapter would continue mixing Studio traffic and telemetry into the
+  website and would make the broken subdomain appear optional. The Vercel and
+  Sanity project/domain steps remain explicit, gated operational setup rather
+  than hidden source behavior.
+  Date/Author: 2026-08-01 / Codex
+- Decision: Make external Sanity registration an explicit manual workflow
+  input instead of an unconditional release side effect.
+  Rationale: `sanity deploy --external` mutates project application and schema
+  metadata. Operators must intentionally provide `SANITY_AUTH_TOKEN` and run
+  it only after the custom domain and staged Studio pass authenticated checks.
+  Date/Author: 2026-08-01 / Codex
 
 ## Outcomes & Retrospective
 
-Milestones 1–3 are implemented locally. The repository now has symmetric
+Milestones 1–5 are implemented in source and deployed externally. The repository now has symmetric
 `apps/web` and `apps/studio` workspaces plus a pure
 `packages/content-domain` package, with the root package limited to orchestration
-and one lockfile. The temporary embedded Studio route still builds from the
-workspace's `embeddedConfig`, so external cutover can be staged safely. Local
+and one lockfile. The standalone Studio builds from its own config, while the
+website now points Visual Editing at the external origin and permanently
+redirects old Studio paths. Local
 evidence includes a frozen `npm ci`, 299 passing tests with 3 skipped web tests,
 clean workspace typechecks and formatting/lint checks, stable two-pass TypeGen,
 and successful website and Studio production builds.
 
-External Vercel project creation, Studio domain/CORS/Dashboard registration,
-schema-manifest deployment, release workflow for Studio, canonical redirects,
-and removal of the embedded adapter remain intentionally pending. The existing
-website Vercel project's Root Directory was changed from `.` to `apps/web` so
-preview and future website deployments consume the new application root; no
-domain, production deployment, or Sanity state was changed. A future
-contributor must complete milestones 4–6 and then record deployment ids, source
-SHAs, smoke responses, and rollback evidence here.
+The Studio release workflow, static SPA fallback, redirect tests, release
+runbook, and hard removal of the embedded adapter are now checked in. Sanity
+CORS was verified as already configured, and the external Studio application
+was registered as app id `r7kax3ojhq4892odvrwpjt93` with schema deployment
+required. A temporary production deployment
+(`3XhN8H8NVqMR7LmYf1Ycx28Pbrjb`) served HTTP 200 at `/`, a deep route, and the
+manifest. The custom `studio.samfunnetibergen.no` domain is assigned to the
+Studio project and returned valid TLS plus HTTP 200 for all three smoke paths.
+Authenticated editor editing and Presentation remain operator-level checks;
+the plan should record their result after a human signs in.
 
 ## Context and Orientation
 
@@ -262,11 +322,10 @@ a Vercel production artifact from a selected ref, deploys it without moving the
 public domain, smoke-tests it, promotes the same artifact, then creates a
 `prod-YYYY.MM.DD.N` tag and GitHub release.
 
-The temporary embedded Studio route is
-`apps/web/src/app/studio/[[...tool]]/`. It dynamically loads the named
-`embeddedConfig` export from `apps/studio/sanity.config.ts`, whose standalone
-`basePath` is `/`; the embedded adapter overrides it to `/studio`. The Studio
-CLI at `apps/studio/sanity.cli.ts` configures schema extraction and switches
+The standalone Studio is `apps/studio`, rooted at `/`; its Vercel config
+rewrites unknown client-side paths to `index.html`. The former
+`apps/web/src/app/studio/[[...tool]]` adapter has been removed. The Studio CLI
+at `apps/studio/sanity.cli.ts` configures schema extraction and switches
 TypeGen output between `apps/web/src/lib/sanity/sanity.types.ts` for website
 GROQ query results and `apps/studio/src/studio/sanity.types.ts` for Studio code.
 Studio-owned schemas, structure, actions, inputs, Presentation resolution, and
@@ -279,16 +338,15 @@ Lake. The website requires `next-sanity` for fetching, Sanity Live, Draft Mode,
 Visual Editing, and Stega edit links; removing the embedded Studio must not
 remove that dependency. “Stega” means hidden metadata added to preview strings
 so Visual Editing can link displayed content back to the field that authored
-it. Its `studioUrl` currently points to `/studio` and must become the absolute
-Studio origin.
+it. Its `studioUrl` points to the absolute Studio origin.
 
-`instrumentation-client.ts` initializes PostHog for every client route, and
+`instrumentation-client.ts` initializes PostHog for every website client route,
 `instrumentation.ts` captures Next.js server request exceptions and exports
 OpenTelemetry logs with service name `samfunnetibergen`. Removing the Next.js
 Studio route, rather than only changing its hostname, is what stops Studio
-traffic from entering that telemetry. A separately hosted Studio may later have
-its own deliberately configured monitoring, but this plan does not copy public
-product analytics into an editor application.
+traffic from entering that telemetry. The separately hosted Studio has no
+website PostHog instrumentation; its Vercel logs and Sanity activity remain
+independently observable.
 
 Sanity Content Lake stores flexible documents; Studio schema validation guides
 editor writes but does not rewrite existing documents and is not a database
@@ -348,12 +406,11 @@ repository-wide configuration, `.agents`, `docs`, GitHub workflows, lockfile,
 and orchestration scripts at the root. Preserve history with file moves and
 update aliases rather than copying source and leaving two authorities.
 
-The current embedded `src/app/studio/[[...tool]]` route belongs to the old web
-application and must remain temporarily under `apps/web/src/app/studio` until
-the standalone Studio passes. During this parallel period it imports the
-workspace Studio configuration through an explicit temporary dependency. Mark
-that dependency and adapter for removal at cutover; do not let it become the
-final package direction.
+During the staging period the embedded `src/app/studio/[[...tool]]` route was
+kept as a rollback path and imported the workspace Studio configuration through
+an explicit temporary dependency. After the standalone domain, SPA fallback,
+schema registration, and smoke tests passed, milestone 5 removed that adapter
+and dependency. The final website has no embedded Studio runtime.
 
 Configure standalone Studio for `/`, not `/studio`, using Studio-specific
 environment variables. Run the moved website and both embedded and standalone
@@ -463,8 +520,7 @@ Self-hosted Sanity Studio also requires external Sanity state. Add
 `https://studio.samfunnetibergen.no` as an allowed CORS origin with credentials,
 deploy the schema manifest from the built Studio, register the exact external
 Studio URL in Sanity Manage, and retain the Dashboard bridge behavior currently
-provided by the temporary moved adapter at
-`apps/web/src/app/studio/[[...tool]]/layout.tsx`. Apply a Studio-host CSP that
+provided by the former embedded adapter. Apply a Studio-host CSP that
 allows the intended Sanity Dashboard ancestors without copying unrelated
 website CSP or telemetry. Verify these operations using the installed Sanity
 CLI's current help before running them, because CLI flags can change. Record
@@ -475,8 +531,8 @@ temporary URL passes. Resolve any stale or conflicting assignment from the
 website project through read-only confirmation followed by the narrow domain
 change. Confirm a valid TLS certificate, HTTP 200 at the root, SPA routing on a
 deep link, editor login, a harmless draft edit, publish validation, Vision,
-Assist if authorized, and Sanity Dashboard discovery. Do not remove the old
-embedded route yet.
+Assist if authorized, and Sanity Dashboard discovery. The implementation
+records these standalone checks before removing the old embedded route.
 
 Acceptance is that the standalone production Studio works completely while
 `samfunnetibergen.no/studio` still provides a rollback path.
@@ -516,6 +572,11 @@ history; removing it is a later decision, not part of this plan.
 Acceptance is a real separation: both old and new Studio URLs reach the
 standalone deployment, the website has no Studio route or Studio runtime bundle,
 and website releases and logs no longer contain Studio requests.
+
+Implementation result: this acceptance is met in source and by the temporary
+Vercel deployment. The production domain and Sanity external app are configured;
+authenticated editor, Presentation, and Dashboard checks remain manual because
+they require an editor account.
 
 ### Milestone 6: Prove independent and coordinated release behavior
 
@@ -684,13 +745,14 @@ run, use deterministic patches, require the existing explicit write flag, and
 use an external dataset export where current migration policy requires one.
 Never delete or rename content fields as the first step of a change.
 
-Keep the embedded `/studio` route until the standalone production deployment,
-TLS, CORS, Sanity registration, Presentation, and deep routing have all passed.
-Before cutover, rollback means leaving the old route canonical and detaching or
-ignoring the new domain. After cutover but before embedded removal, rollback
-means redirecting editors back to `/studio`. After removal, rollback the Studio
+The embedded `/studio` route was kept until the standalone production
+deployment, TLS, CORS, Sanity registration, and deep routing passed; it is now
+removed. Before cutover, rollback meant leaving the old route canonical and
+detaching or ignoring the new domain. After removal, rollback the Studio
 project to its previous good static deployment; do not roll back the website
-unless the website itself changed incompatibly.
+unless the website itself changed incompatibly. Legacy website bookmarks remain
+safe because the permanent redirects can be reverted independently if the
+external host has an incident.
 
 If a new Studio writer has already emitted a representation an old website
 cannot read, first stop or roll back the writer, then deploy a compatible reader
@@ -700,9 +762,9 @@ closed and an audit proves contraction safe.
 
 DNS and Vercel domain assignment are externally visible and potentially
 disruptive. Resolve the exact current target before changing it, move only
-`studio.samfunnetibergen.no`, and preserve the apex and `www` domains. If domain
-attachment fails, keep the known-good deployment URL and old embedded route;
-do not weaken TLS or CORS to force the cutover.
+`studio.samfunnetibergen.no`, and preserve the apex and `www` domains. If a
+future domain attachment fails, keep the known-good Vercel deployment URL and
+do not weaken TLS or CORS to force a cutover.
 
 ## Artifacts and Notes
 
@@ -795,3 +857,11 @@ Studio now have symmetric npm workspace roots, pure event behavior lives in
 `packages/content-domain`, TypeGen and CI use workspace-aware commands, and
 active source-boundary documentation reflects the new paths. External
 deployment and cutover milestones remain pending by design.
+
+Revision note (2026-08-01): Completed the hard runtime cutover in the follow-up
+PR. The embedded Next.js Studio adapter was removed, old website Studio paths
+now redirect permanently to the external origin, and Stega edit links use the
+absolute Studio URL. A Git-linked Vercel project rooted at `apps/studio` was
+created and staged, `studio.samfunnetibergen.no` was assigned after smoke tests,
+and Sanity registered the external Studio and deployed one schema. The release
+workflow keeps registration opt-in because it is a Sanity metadata mutation.

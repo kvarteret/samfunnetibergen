@@ -4,6 +4,8 @@ import createNextIntlPlugin from "next-intl/plugin"
 import { resolve } from "node:path"
 import { networkInterfaces } from "os"
 
+import { legacyStudioRedirects } from "./src/lib/studio-url"
+
 const withNextIntl = createNextIntlPlugin()
 
 function localNetworkOrigins(): string[] {
@@ -29,7 +31,6 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: [
     "@samfunnet/content-domain",
-    "@samfunnet/studio",
     "sanity",
     "next-sanity",
     "@sanity/vision",
@@ -48,6 +49,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      ...legacyStudioRedirects,
       {
         source: "/:path*",
         has: [
@@ -109,19 +111,6 @@ const nextConfig: NextConfig = {
       {
         source: "/ingest/:path*",
         destination: "https://eu.i.posthog.com/:path*",
-      },
-    ]
-  },
-  async headers() {
-    return [
-      {
-        source: "/studio/:path*",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value: "frame-ancestors https://*.sanity.io",
-          },
-        ],
       },
     ]
   },
