@@ -84,6 +84,10 @@ than package-enforced import boundaries.
   reproducible from the repository root.
 - [x] (2026-08-01) Add pull-request validation for both applications and the cross-consumer
   content contract without introducing Turborepo.
+- [x] (2026-08-01) Update the existing website Vercel project's Root Directory
+  from `.` to `apps/web` after its first monorepo preview built both workspaces
+  and then looked for a root-level `.next` directory. Confirm that Vercel's
+  source-files-outside-root setting remains enabled for workspace packages.
 - [ ] Create and verify the separate Studio Vercel project, staged deployment,
   custom domain, Sanity CORS entry, schema manifest deployment, Dashboard
   registration, and Studio release workflow.
@@ -157,6 +161,20 @@ than package-enforced import boundaries.
   158 tests without an empty coverage report, while the Studio and
   `content-domain` workspaces retain explicit coverage thresholds for the same
   source sets the former aggregate gate measured.
+- Observation: The first Vercel preview still used repository root `.` and ran
+  the orchestration `build` command, successfully building both applications
+  before failing because the Next.js adapter expected
+  `/vercel/path0/.next/routes-manifest.json`. Evidence: deployment
+  `dpl_EHuEQYVRz67nKxABrESUDcQbULRr`; changing only the existing website
+  project's Root Directory to `apps/web` aligns Vercel's framework output with
+  `apps/web/.next` while its source-files-outside-root setting keeps workspace
+  dependencies available.
+- Observation: Moving the Crescat request client caused CodeQL to re-evaluate
+  two pre-existing dynamic URL constructions as SSRF findings. The outbound
+  origin was constant, but the URL path accepted an unchecked form slug.
+  Evidence: PR 93 check run `91357853749`; the client now maps only the three
+  supported form slugs to complete constant URLs and rejects all other input
+  before calling `fetch`.
 
 ## Decision Log
 
@@ -224,10 +242,12 @@ and successful website and Studio production builds.
 
 External Vercel project creation, Studio domain/CORS/Dashboard registration,
 schema-manifest deployment, release workflow for Studio, canonical redirects,
-and removal of the embedded adapter remain intentionally pending. No external
-production state was changed. A future contributor must complete milestones
-4–6 and then record deployment ids, source SHAs, smoke responses, and rollback
-evidence here.
+and removal of the embedded adapter remain intentionally pending. The existing
+website Vercel project's Root Directory was changed from `.` to `apps/web` so
+preview and future website deployments consume the new application root; no
+domain, production deployment, or Sanity state was changed. A future
+contributor must complete milestones 4–6 and then record deployment ids, source
+SHAs, smoke responses, and rollback evidence here.
 
 ## Context and Orientation
 

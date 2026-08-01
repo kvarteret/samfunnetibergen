@@ -5,13 +5,29 @@ import type { CresatResult, EventRequestBody } from "./types"
 
 const BASE_URL = "https://app.crescat.io"
 
+// These are the only public Crescat forms this server is allowed to contact.
+// Return complete constant URLs so request input can never influence the
+// outbound origin or path.
+function eventRequestUrl(slug: string): string | null {
+  switch (slug) {
+    case "studentersamfunnet-i-bergen-bookingskjema-standard":
+      return "https://app.crescat.io/event-requests/studentersamfunnet-i-bergen-bookingskjema-standard"
+    case "studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne":
+      return "https://app.crescat.io/event-requests/studentersamfunnet-i-bergen-bookingskjema-dorger-borger-og-interne"
+    case "studentersamfunnet-i-bergen-booking-av-karoke":
+      return "https://app.crescat.io/event-requests/studentersamfunnet-i-bergen-booking-av-karoke"
+    default:
+      return null
+  }
+}
+
 // Fetch a fresh XSRF-TOKEN cookie from the public form page.
 // Crescat uses Laravel's CSRF pattern: the cookie value (URL-decoded) is
 // sent back as the x-xsrf-token header.
 async function fetchXsrfSession(
-  slug: string,
+  url: string,
 ): Promise<{ cookie: string; token: string } | null> {
-  const res = await fetch(`${BASE_URL}/event-requests/${slug}`, {
+  const res = await fetch(url, {
     headers: {
       "user-agent":
         "Mozilla/5.0 (compatible; SamfunnetBot/1.0; +https://samfunnetibergen.no)",
@@ -51,12 +67,17 @@ export async function postEventRequest(
   slug: string,
   body: EventRequestBody,
 ): Promise<CresatResult> {
-  const session = await fetchXsrfSession(slug)
+  const url = eventRequestUrl(slug)
+  if (!url) {
+    return err("Ugyldig bookingskjema.")
+  }
+
+  const session = await fetchXsrfSession(url)
   if (!session) {
     return err("Klarte ikke å opprette sesjon mot bookingsystemet.")
   }
 
-  const res = await fetch(`${BASE_URL}/event-requests/${slug}`, {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       accept: "application/json, text/plain, */*",
@@ -65,7 +86,7 @@ export async function postEventRequest(
       "x-xsrf-token": session.token,
       cookie: session.cookie,
       origin: BASE_URL,
-      referer: `${BASE_URL}/event-requests/${slug}`,
+      referer: url,
     },
     body: JSON.stringify(body),
   })
