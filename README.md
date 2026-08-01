@@ -6,15 +6,18 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3187](http://localhost:3187) with your browser to see the result.
+
+The repository uses Node 24.16.0 and npm for dependency installation and
+command execution. `package-lock.json` is the authoritative dependency lockfile;
+Bun is not part of the current local, CI, or production setup.
+
+## Remote Codex development
+
+See [Set up Codex for remote work](docs/how-to/codex-environments.md) for the
+repository-specific setup for local worktrees, Remote Control, and Codex Cloud.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

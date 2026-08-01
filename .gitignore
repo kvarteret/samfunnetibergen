@@ -28,7 +28,11 @@
 .DS_Store
 *.pem
 /.claude/
-/.codex/
+/.codex/*
+!/.codex/agents/
+!/.codex/agents/*.toml
+!/.codex/environments/
+!/.codex/environments/environment.toml
 
 # debug
 npm-debug.log*

@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24.16.0
           cache: npm
 
       - name: Install dependencies
@@ -81,13 +81,13 @@ jobs:
         run: npm run lint
 
       - name: Generate Next.js route types
-        run: npx next typegen
+        run: npx --no-install next typegen
 
       - name: TypeScript check
-        run: npx tsc --noEmit
+        run: npx --no-install tsc --noEmit
 
       - name: Tests
-        run: npm test
+        run: npm run test
 
       - name: Install Vercel CLI
         run: npm install --global vercel@48
