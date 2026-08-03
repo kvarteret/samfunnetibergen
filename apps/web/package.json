@@ -36,7 +36,7 @@
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.7.0",
     "nanoid": "^5.1.11",
-    "next": "16.2.12",
+    "next": "16.3.0",
     "next-intl": "^4.9.0",
     "next-sanity": "^13.2.3",
     "posthog-js": "^1.386.8",
@@ -52,12 +52,12 @@
     "zod": "^4.4.3"
   },
   "overrides": {
-    "fast-uri": "3.1.4",
+    "fast-uri": "3.1.5",
     "ws": "8.21.0",
     "qs": "6.15.3",
     "postcss": "8.5.18",
     "hono": "4.12.27",
-    "dompurify": "3.4.12",
+    "dompurify": "3.4.13",
     "ip-address": "10.2.0",
     "sharp": "0.35.3",
     "prismjs": "1.30.0",
