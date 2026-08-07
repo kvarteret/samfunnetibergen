@@ -4,7 +4,8 @@ type SanityDocument = {
   [key: string]: unknown
 }
 
-const retiredVolunteerPath = "/blifrivillig"
+const retiredVolunteerPaths = new Set(["/blifrivillig", "/grupper"])
+const canonicalVolunteerPath = "/bli-frivillig"
 
 export function buildRetiredVolunteerLinkPatch(document: SanityDocument) {
   if (document._type === "homePage") {
@@ -31,13 +32,13 @@ export function buildRetiredVolunteerLinkPatch(document: SanityDocument) {
           item === null ||
           !("_key" in item) ||
           !("href" in item) ||
-          item.href !== retiredVolunteerPath ||
+          !retiredVolunteerPaths.has(item.href) ||
           typeof item._key !== "string"
         ) {
           return []
         }
 
-        return [[`items[_key=="${item._key}"].href`, "/grupper"]]
+        return [[`items[_key=="${item._key}"].href`, canonicalVolunteerPath]]
       }),
     )
   }

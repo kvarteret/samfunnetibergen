@@ -43,11 +43,11 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   const locale = await resolvePageLocale(params)
   const homePage = await fetchHomePageContent(locale, { stega: false })
-  const title = homePage?.title ?? "Samfunnet i Bergen"
   const description = homePage?.description ?? undefined
   return buildPageMetadata({
     canonicalPath: `/${locale}`,
-    title,
+    title: "Samfunnet i Bergen – studentkultur på Kvarteret",
+    absoluteTitle: true,
     description,
   })
 }

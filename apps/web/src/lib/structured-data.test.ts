@@ -57,6 +57,7 @@ describe("structured data", () => {
           "@type": "Organization",
           "@id": "https://example.com#organization",
           name: "Samfunnet i Bergen",
+          alternateName: "Studentersamfunnet i Bergen",
           url: "https://example.com",
           sameAs: [
             "https://www.facebook.com/studentersamfunnet/",
@@ -68,6 +69,7 @@ describe("structured data", () => {
           "@type": "Place",
           "@id": "https://example.com#place",
           name: "Det Akademiske Kvarter",
+          alternateName: "Kvarteret",
           url: "https://example.com/nb",
           hasMap: expect.stringContaining(
             "google.com/maps/place/Det+Akademiske+Kvarter",

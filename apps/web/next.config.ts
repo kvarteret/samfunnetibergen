@@ -5,6 +5,7 @@ import { resolve } from "node:path"
 import { networkInterfaces } from "os"
 
 import { legacyStudioRedirects } from "./src/lib/studio-url"
+import { VOLUNTEER_REDIRECTS } from "./src/lib/volunteer-routes"
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -50,17 +51,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       ...legacyStudioRedirects,
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "(?:www\\.)?blifrivillig\\.no",
-          },
-        ],
-        destination: "https://www.samfunnetibergen.no/blifrivillig",
-        permanent: true,
-      },
+      ...VOLUNTEER_REDIRECTS,
       {
         source: "/program",
         destination: "/nb/arrangementer",
@@ -72,18 +63,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/komiteer",
-        destination: "/nb/grupper",
-        permanent: true,
-      },
-      {
         source: "/komiteer/:group",
         destination: "/nb/grupper/:group",
-        permanent: true,
-      },
-      {
-        source: "/bli-aktiv",
-        destination: "/nb/blifrivillig",
         permanent: true,
       },
       {

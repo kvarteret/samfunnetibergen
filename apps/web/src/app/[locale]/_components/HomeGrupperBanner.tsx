@@ -32,7 +32,7 @@ export function HomeGrupperBanner({
       <p className="mt-4 max-w-lg text-lg text-primary-foreground/75">{body}</p>
       <Button
         className="group mt-6"
-        render={<Link href="/grupper" />}
+        render={<Link href="/bli-frivillig" />}
         size="lg"
         variant="neutral"
       >
