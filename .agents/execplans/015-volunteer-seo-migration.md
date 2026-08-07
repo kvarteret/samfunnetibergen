@@ -18,7 +18,7 @@ People looking to volunteer in Bergen should land directly on one clearly named 
 - [x] (2026-08-07 19:36Z) Add and update focused regression tests and regenerate route and Sanity types without writing content.
 - [x] (2026-08-07 19:38Z) Run focused and full tests, formatting, lint, type checks, both production builds, and built-app runtime smoke checks.
 - [x] (2026-08-07 19:42Z) Inspect the complete tracked and untracked diff, confirm all residual `/grupper` links are intentional group-detail routes or migration inputs, and confirm every changed file belongs to the requested scope.
-- [ ] Commit intentionally, push the branch, and open a draft pull request with deployment and Search Console follow-up.
+- [x] (2026-08-07 19:41Z) Commit intentionally as `9259414`, push `codex/volunteer-seo-migration`, and open draft pull request `#96` with deployment, external redirect, and Search Console follow-up.
 
 ## Surprises & Discoveries
 
@@ -50,7 +50,7 @@ People looking to volunteer in Bergen should land directly on one clearly named 
 
 The application work is complete and verified. `/nb/bli-frivillig` is the sole listing canonical, carries a route-owned recruitment H1 and Bergen-focused lead, and continues to render the groups singleton's supporting title, description, and FAQ. Retired paths and the volunteer domain now point directly to the canonical, while all 28 current group detail URLs remain under `/nb/grupper/{slug}`. The sitemap, Sanity link projection and generated types, Studio Presentation mapping, reserved slugs, migrations, homepage title, and JSON-LD identities agree with that route contract.
 
-No external state was changed. The remaining work at this point is publishing the draft pull request. After deployment, the owner of the external Kvarteret apex redirect must normalize the two malformed legacy destinations described in this plan, and the site owner must perform the documented Search Console migration checks.
+No Vercel/domain configuration, Search Console property, or production Sanity content was changed. Draft pull request `https://github.com/kvarteret/samfunnetibergen/pull/96` contains the implementation and remains intentionally not ready for review. After deployment, the owner of the external Kvarteret apex redirect must normalize the two malformed legacy destinations described in this plan, and the site owner must perform the documented Search Console migration checks.
 
 ## Context and Orientation
 
@@ -137,10 +137,16 @@ Final sitemap evidence:
     /nb/grupper retired listing entries: 0
     /nb/grupper/{slug} detail entries: 28
 
+Publication evidence:
+
+    branch: codex/volunteer-seo-migration
+    implementation commit: 92594148e071f425764f9d5e3e5ae6e2fae83adb
+    draft pull request: https://github.com/kvarteret/samfunnetibergen/pull/96
+
 ## Interfaces and Dependencies
 
 The public listing page remains backed by `fetchGroupsPageContent()` and `fetchStudentGroups()` from `apps/web/src/lib/sanity/fetch/groups.ts`. `buildPageMetadata()` remains the route metadata helper and receives the new canonical path and route-owned title. `permanentRedirect()` from `next/navigation` remains the page-level redirect API and returns HTTP 308 in the installed Next.js version.
 
 The source-link projection must resolve `groupsPage` and the retired `blifrivilligPage` reference to `/bli-frivillig`, while `studentGroup` references must continue resolving to `/grupper/{slug}`. Studio Presentation must map `/:locale/bli-frivillig` to `_id == "groupsPage"` and keep `/:locale/grupper/:slug` mapped to student groups.
 
-Revision note (2026-08-07 19:42Z): Recorded the completed full-diff audit. All remaining `/grupper` route references serve individual group profiles or regression inputs; no unrelated worktree changes were found. Draft pull request publication is the only remaining step.
+Revision note (2026-08-07 19:42Z): Recorded the completed full-diff audit and publication. All remaining `/grupper` route references serve individual group profiles or regression inputs; no unrelated worktree changes were found. The branch is pushed and draft pull request #96 exists, so only the explicitly external post-deployment actions remain.
