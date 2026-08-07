@@ -35,15 +35,15 @@ describe("page metadata", () => {
 
   it("uses the generated social image when a route has no image", () => {
     const metadata = buildPageMetadata({
-      canonicalPath: "/nb/bli-frivillig",
-      title: "Bli frivillig",
-      description: "Finn en studentgruppe i Bergen.",
+      canonicalPath: "/nb/grupper",
+      title: "Grupper",
+      description: "Se gruppene.",
     })
 
     expect(metadata).toMatchObject({
-      title: "Bli frivillig",
+      title: "Grupper",
       description: expect.any(String),
-      alternates: { canonical: "/nb/bli-frivillig" },
+      alternates: { canonical: "/nb/grupper" },
       openGraph: { images: [{ url: "/opengraph-image" }] },
       twitter: { images: ["/opengraph-image"] },
     })
@@ -65,23 +65,6 @@ describe("page metadata", () => {
       twitter: {
         card: "summary_large_image",
         images: ["/opengraph-image"],
-      },
-    })
-  })
-
-  it("can keep a homepage entity title absolute under the root template", () => {
-    expect(
-      buildPageMetadata({
-        canonicalPath: "/nb",
-        title: "Samfunnet i Bergen – studentkultur på Kvarteret",
-        absoluteTitle: true,
-      }),
-    ).toMatchObject({
-      title: {
-        absolute: "Samfunnet i Bergen – studentkultur på Kvarteret",
-      },
-      openGraph: {
-        title: "Samfunnet i Bergen – studentkultur på Kvarteret",
       },
     })
   })

@@ -26,7 +26,6 @@ export const houseHoursQuery =
 export const homePageNbQuery =
   defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
     eyebrow,
-    "title": coalesce(title, "[Mangler tittel]"),
     description,
     primaryCta ${sourceLinkProjection}
 }`)
@@ -58,8 +57,6 @@ export const sponsorsPageQuery =
 export const groupsPageQuery =
   defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
     eyebrow,
-    "title": coalesce(title, "[Mangler tittel]"),
-    description,
     "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     "faq": coalesce(faq[] {
         _key,
@@ -71,7 +68,7 @@ export const groupsPageQuery =
 export const pageSlugsQuery = defineQuery(`*[
     _type == "page"
     && defined(slug.current)
-    && !(slug.current in ["arrangementer", "bli-frivillig", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
+    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
   ] {
     "slug": slug.current
 }`)
@@ -79,7 +76,7 @@ export const pageSlugsQuery = defineQuery(`*[
 export const pageBySlugQuery = defineQuery(`*[
     _type == "page"
     && slug.current == $slug
-    && !(slug.current in ["arrangementer", "bli-frivillig", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
+    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
   ][0] {
     _id,
     "title": coalesce(title, "[Mangler tittel]"),

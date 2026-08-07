@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next"
 export const PUBLIC_STATIC_PATHS = [
   "/",
   "/arrangementer",
-  "/bli-frivillig",
+  "/grupper",
   "/kontakt",
   "/nyttig",
   "/rom",
@@ -14,7 +14,6 @@ export const PUBLIC_STATIC_PATHS = [
 
 export const SITEMAP_EXCLUDED_PATHS = new Set([
   "/blifrivillig",
-  "/grupper",
   "/tilgjengelighet",
 ])
 

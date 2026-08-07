@@ -1,6 +1,5 @@
 export const RESERVED_PAGE_SLUGS = [
   "arrangementer",
-  "bli-frivillig",
   "grupper",
   "karaoke",
   "kontakt",

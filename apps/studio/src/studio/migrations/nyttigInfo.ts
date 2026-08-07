@@ -164,7 +164,7 @@ function sourceLinkHref(link: SourceLink): string | null {
   const singletonPaths: Record<string, string> = {
     homePage: "/",
     roomsPage: "/rom",
-    groupsPage: "/bli-frivillig",
+    groupsPage: "/grupper",
     sponsorsPage: "/sponsorer",
     usefulInfoPage: "/nyttig",
     kontaktPage: "/kontakt",

@@ -8,7 +8,6 @@ export const DEFAULT_SITE_DESCRIPTION =
 export type PageMetadataOptions = {
   canonicalPath: string
   title: string
-  absoluteTitle?: boolean
   description?: string | null
   imageUrl?: string | null
   openGraphType?: "website" | "article"
@@ -17,7 +16,6 @@ export type PageMetadataOptions = {
 export function buildPageMetadata({
   canonicalPath,
   title,
-  absoluteTitle = false,
   description,
   imageUrl,
   openGraphType = "website",
@@ -26,7 +24,7 @@ export function buildPageMetadata({
   const resolvedImageUrl = imageUrl || DEFAULT_SOCIAL_IMAGE_PATH
 
   return {
-    title: absoluteTitle ? { absolute: title } : title,
+    title,
     description: resolvedDescription,
     alternates: {
       canonical: canonicalPath,

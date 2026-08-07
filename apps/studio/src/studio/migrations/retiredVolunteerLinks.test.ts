@@ -20,7 +20,7 @@ describe("retired volunteer links migration", () => {
     })
   })
 
-  it("rewrites retired navbar paths and is idempotent afterward", () => {
+  it("rewrites navbar paths and is idempotent afterward", () => {
     expect(
       buildRetiredVolunteerLinkPatch({
         _id: "navbar",
@@ -28,22 +28,13 @@ describe("retired volunteer links migration", () => {
         items: [{ _key: "volunteer", href: "/blifrivillig" }],
       }),
     ).toEqual({
-      'items[_key=="volunteer"].href': "/bli-frivillig",
+      'items[_key=="volunteer"].href': "/grupper",
     })
     expect(
       buildRetiredVolunteerLinkPatch({
         _id: "navbar",
         _type: "navbar",
         items: [{ _key: "volunteer", href: "/grupper" }],
-      }),
-    ).toEqual({
-      'items[_key=="volunteer"].href': "/bli-frivillig",
-    })
-    expect(
-      buildRetiredVolunteerLinkPatch({
-        _id: "navbar",
-        _type: "navbar",
-        items: [{ _key: "volunteer", href: "/bli-frivillig" }],
       }),
     ).toEqual({})
   })

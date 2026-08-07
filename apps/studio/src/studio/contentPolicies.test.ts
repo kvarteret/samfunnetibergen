@@ -10,7 +10,6 @@ describe("Studio content policies", () => {
   it("reserves slugs owned by code routes", () => {
     expect(isReservedPageSlug("karaoke")).toBe(true)
     expect(isReservedPageSlug("arrangementer")).toBe(true)
-    expect(isReservedPageSlug("bli-frivillig")).toBe(true)
     expect(isReservedPageSlug("new-information-page")).toBe(false)
   })
 

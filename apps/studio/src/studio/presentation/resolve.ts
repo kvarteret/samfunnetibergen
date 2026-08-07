@@ -7,8 +7,6 @@ import {
 import { documentLocation } from "./routing"
 
 const defaultLocale = "nb"
-export const volunteerListingRoute = "/:locale/bli-frivillig"
-export const volunteerListingHref = `/${defaultLocale}/bli-frivillig`
 
 export {
   resolvePresentationInitialUrl,
@@ -42,7 +40,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
       filter: `_type == "room" && slug.current == $slug`,
     },
     {
-      route: volunteerListingRoute,
+      route: "/:locale/grupper",
       filter: `_id == "groupsPage"`,
     },
     {
@@ -51,7 +49,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     },
     {
       route: "/:locale/:slug",
-      filter: `_type == "page" && slug.current == $slug && !(slug.current in ["arrangementer", "bli-frivillig", "grupper", "karaoke", "kontakt", "nyttig", "rom", "sponsorer", "tilgjengelighet"])`,
+      filter: `_type == "page" && slug.current == $slug && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "nyttig", "rom", "sponsorer", "tilgjengelighet"])`,
     },
   ]),
   locations: {
@@ -75,7 +73,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
             "grupper",
             "Ukjent gruppe",
           ),
-          { title: "Bli frivillig", href: volunteerListingHref },
+          { title: "Alle grupper", href: `/${defaultLocale}/grupper` },
         ],
       }),
     }),
@@ -104,7 +102,7 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     groupsPage: defineLocations({
       select: {},
       resolve: () => ({
-        locations: [{ title: "Bli frivillig", href: volunteerListingHref }],
+        locations: [{ title: "Grupper", href: `/${defaultLocale}/grupper` }],
       }),
     }),
 

@@ -9,17 +9,16 @@ import {
 
 describe("sitemap entries", () => {
   it("includes public fixed routes and excludes retired or internal routes", () => {
-    expect(PUBLIC_STATIC_PATHS).toContain("/bli-frivillig")
+    expect(PUBLIC_STATIC_PATHS).toContain("/grupper")
     expect(PUBLIC_STATIC_PATHS).toContain("/arrangementer")
     expect(PUBLIC_STATIC_PATHS).toContain("/nyttig")
     expect(PUBLIC_STATIC_PATHS).toContain("/rom/book")
-    expect(PUBLIC_STATIC_PATHS).not.toContain("/grupper")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/blifrivillig")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/design")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/studio")
     expect(PUBLIC_STATIC_PATHS).not.toContain("/arrangementer/ny")
     expect(SITEMAP_EXCLUDED_PATHS).toEqual(
-      new Set(["/blifrivillig", "/grupper", "/tilgjengelighet"]),
+      new Set(["/blifrivillig", "/tilgjengelighet"]),
     )
   })
 
@@ -28,12 +27,10 @@ describe("sitemap entries", () => {
     expect(
       filterSitemapDynamicPaths([
         "/blifrivillig",
-        "/grupper",
-        "/grupper/quiz-gruppen",
         "/tilgjengelighet",
         "/public-page",
       ]),
-    ).toEqual(["/grupper/quiz-gruppen", "/public-page"])
+    ).toEqual(["/public-page"])
   })
 
   it("builds localized URLs and language alternates", () => {

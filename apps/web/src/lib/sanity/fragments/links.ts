@@ -9,8 +9,8 @@ export const sourceLinkProjection = `{
     "href": select(
         linkType == "internalPage" && internalPage->_type == "homePage" => "/",
         linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",
-        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/bli-frivillig",
-        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/bli-frivillig",
+        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",
+        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",
         linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",
         linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",
         linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",

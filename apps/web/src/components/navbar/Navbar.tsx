@@ -81,7 +81,7 @@ const bookingItem: NavItem = {
 const volunteerItem: NavItem = {
   _key: "static-volunteer",
   label: "Bli frivillig",
-  href: "/bli-frivillig",
+  href: "/grupper",
   externalUrl: null,
   children: [],
 }

@@ -4,7 +4,6 @@ import {
   resolvePresentationInitialUrl,
   resolvePresentationOrigins,
 } from "./routing"
-import { volunteerListingHref, volunteerListingRoute } from "./resolve"
 
 const originalPreviewUrl = process.env.SANITY_STUDIO_PREVIEW_URL
 const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -68,11 +67,6 @@ describe("Presentation URL configuration", () => {
 })
 
 describe("Presentation document locations", () => {
-  it("uses the canonical volunteer listing route", () => {
-    expect(volunteerListingRoute).toBe("/:locale/bli-frivillig")
-    expect(volunteerListingHref).toBe("/nb/bli-frivillig")
-  })
-
   it("builds localized detail routes", () => {
     expect(documentLocation("Tivoli", "tivoli", "rom", "Ukjent rom")).toEqual([
       { title: "Tivoli", href: "/nb/rom/tivoli" },
