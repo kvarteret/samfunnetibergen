@@ -58,8 +58,8 @@ const nextConfig: NextConfig = {
             value: "(?:www\\.)?blifrivillig\\.no",
           },
         ],
-        destination: "https://www.samfunnetibergen.no/blifrivillig",
-        permanent: true,
+        destination: "https://samfunnetibergen.no/nb/grupper",
+        permanent: false,
       },
       {
         source: "/program",
@@ -83,8 +83,8 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/bli-aktiv",
-        destination: "/nb/blifrivillig",
-        permanent: true,
+        destination: "/nb/grupper",
+        permanent: false,
       },
       {
         source: "/kontakt-oss",

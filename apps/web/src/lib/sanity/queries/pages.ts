@@ -26,7 +26,6 @@ export const houseHoursQuery =
 export const homePageNbQuery =
   defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
     eyebrow,
-    "title": coalesce(title, "[Mangler tittel]"),
     description,
     primaryCta ${sourceLinkProjection}
 }`)
@@ -58,8 +57,6 @@ export const sponsorsPageQuery =
 export const groupsPageQuery =
   defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
     eyebrow,
-    "title": coalesce(title, "[Mangler tittel]"),
-    description,
     "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     "faq": coalesce(faq[] {
         _key,

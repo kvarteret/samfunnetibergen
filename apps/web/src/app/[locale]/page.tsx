@@ -43,13 +43,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   const locale = await resolvePageLocale(params)
   const homePage = await fetchHomePageContent(locale, { stega: false })
-  const title = homePage?.title ?? "Samfunnet i Bergen"
+  const title = "Samfunnet i Bergen – studentkultur på Kvarteret"
   const description = homePage?.description ?? undefined
-  return buildPageMetadata({
-    canonicalPath: `/${locale}`,
-    title,
-    description,
-  })
+  return {
+    ...buildPageMetadata({ canonicalPath: `/${locale}`, title, description }),
+    title: { absolute: title },
+  }
 }
 
 type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]

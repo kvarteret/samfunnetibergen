@@ -16,6 +16,12 @@ import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
+const PAGE_TITLE = "Bli frivillig"
+const PAGE_DESCRIPTION =
+  "Bli frivillig i Bergen og finn studentgruppen som passer for deg. Se mulighetene i Samfunnet i Bergen og meld interesse i dag."
+const PAGE_INTRO =
+  "Vil du bli frivillig i Bergen? Finn en studentgruppe som passer interessene dine, bli kjent med studentmiljøet og meld interesse."
+
 type GroupCategory = NonNullable<StudentGroupSummary["category"]>
 
 type GroupSection = {
@@ -61,12 +67,11 @@ type GroupsPageProps = {
 
 export async function generateMetadata({ params }: GroupsPageProps) {
   const locale = await resolvePageLocale(params)
-  const content = await fetchGroupsPageContent({ stega: false })
 
   return buildPageMetadata({
     canonicalPath: `/${locale}/grupper`,
-    title: content?.title ?? "Grupper",
-    description: content?.description ?? "Se gruppene i Samfunnet.",
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
   })
 }
 
@@ -98,13 +103,11 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
             </p>
           ) : null}
           <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-            {content?.title ?? "Grupper"}
+            {PAGE_TITLE}
           </h1>
-          {content?.description ? (
-            <p className="max-w-3xl text-xl leading-8 text-foreground">
-              {content.description}
-            </p>
-          ) : null}
+          <p className="max-w-3xl text-xl leading-8 text-foreground">
+            {PAGE_INTRO}
+          </p>
         </header>
         <ValgomatenInfobox />
       </div>
