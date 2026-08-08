@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
           },
         ],
         destination: "https://samfunnetibergen.no/nb/grupper",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/program",
@@ -84,7 +84,7 @@ const nextConfig: NextConfig = {
       {
         source: "/bli-aktiv",
         destination: "/nb/grupper",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/kontakt-oss",
