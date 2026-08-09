@@ -71,6 +71,7 @@ export default async function KaraokePage({
     <article className="flex w-full flex-col gap-10">
       <KaraokePageIntro />
       <KaraokeForm
+        initialNow={new Date().toISOString()}
         room={room}
         operationsManagerHours={houseHours?.operationsManagerHours}
         houseClosedDates={houseHours?.houseClosedDates}

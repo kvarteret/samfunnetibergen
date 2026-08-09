@@ -22,6 +22,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { useCurrentTime } from "@/lib/use-current-time"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
@@ -63,6 +64,7 @@ interface BookingFormProps {
   vacationMode?: VacationMode | null
   rentalTermsContent: string | null
   cancellationTermsContent: string | null
+  initialNow: string
 }
 
 export function BookingForm({
@@ -73,13 +75,14 @@ export function BookingForm({
   vacationMode,
   rentalTermsContent,
   cancellationTermsContent,
+  initialNow,
 }: BookingFormProps) {
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
   const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
-  const today = isoDate(new Date())
+  const today = isoDate(useCurrentTime(initialNow))
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
     startDate: `${uid}-startDate`,
@@ -312,6 +315,7 @@ export function BookingForm({
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}
             openingHours={openingHours}
+            today={today}
             closedDates={closedDates}
             vacationMode={vacationMode}
             startDateError={

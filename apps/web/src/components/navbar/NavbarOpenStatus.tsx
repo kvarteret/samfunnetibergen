@@ -2,7 +2,7 @@
 
 import { Popover } from "@base-ui/react/popover"
 import { ChevronDown } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import {
   type ClosedDate,
   formatOpeningDate,
@@ -14,11 +14,13 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
+import { useCurrentTime } from "@/lib/use-current-time"
 
 type NavbarOpenStatusProps = {
   openingHours?: OpeningHours | null
   closedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
+  initialNow: string
 }
 
 const DAY_COUNT = 7
@@ -27,13 +29,9 @@ export function NavbarOpenStatus({
   openingHours,
   closedDates,
   vacationMode,
+  initialNow,
 }: NavbarOpenStatusProps) {
-  const [now, setNow] = useState(() => new Date())
-
-  useEffect(() => {
-    const tick = window.setInterval(() => setNow(new Date()), 60_000)
-    return () => window.clearInterval(tick)
-  }, [])
+  const now = useCurrentTime(initialNow)
 
   const status = useMemo(
     () => openingHoursStatusAt(now, openingHours, closedDates, vacationMode),

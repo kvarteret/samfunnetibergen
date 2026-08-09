@@ -1,7 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
 import { Tag } from "@/components/ui/tag"
 import {
   type ClosedDate,
@@ -11,6 +9,7 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { useCurrentTime } from "@/lib/use-current-time"
 
 export interface OpenStatusRoom {
   openingHours?: OpeningHours | null
@@ -22,6 +21,7 @@ interface OpenStatusProps {
   operationsManagerHours?: OpeningHours | null
   vacationMode?: VacationMode | null
   variant?: "status" | "announcement"
+  initialNow: string
 }
 
 export function OpenStatus({
@@ -30,13 +30,9 @@ export function OpenStatus({
   operationsManagerHours,
   vacationMode,
   variant = "status",
+  initialNow,
 }: OpenStatusProps) {
-  const [now, setNow] = useState(() => new Date())
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(new Date()), 60_000)
-    return () => window.clearInterval(interval)
-  }, [])
+  const now = useCurrentTime(initialNow)
 
   if (isHouseClosed(isoDate(now), houseClosedDates, vacationMode)) {
     if (variant === "announcement") return null

@@ -302,16 +302,18 @@ function OpeningHoursColumn({
   houseClosedDates,
   operationsManagerHours,
   vacationMode,
+  initialNow,
 }: {
   rooms: RoomHours[]
   houseClosedDates: FooterData["houseClosedDates"]
   operationsManagerHours: FooterData["operationsManagerHours"]
   vacationMode: FooterData["vacationMode"]
+  initialNow: string
 }) {
   const roomsWithHours = rooms.filter(r => (r.hours?.rows?.length ?? 0) > 0)
   if (!roomsWithHours.length) return null
   const vacationNotice = formatVacationModeNotice(
-    isoDate(new Date()),
+    isoDate(new Date(initialNow)),
     vacationMode,
   )
   return (
@@ -327,6 +329,7 @@ function OpeningHoursColumn({
               <OpenStatus
                 rooms={[{ openingHours: room.hours }]}
                 houseClosedDates={houseClosedDates}
+                initialNow={initialNow}
                 operationsManagerHours={operationsManagerHours}
                 vacationMode={vacationMode}
               />
@@ -358,9 +361,10 @@ function OpeningHoursColumn({
 interface FooterProps {
   data: FooterData | null
   locale: string
+  initialNow: string
 }
 
-export function Footer({ data, locale }: FooterProps) {
+export function Footer({ data, initialNow, locale }: FooterProps) {
   if (!data) return null
 
   const socialLinks = data.socialLinks ?? []
@@ -381,6 +385,7 @@ export function Footer({ data, locale }: FooterProps) {
             houseClosedDates={data.houseClosedDates}
             operationsManagerHours={data.operationsManagerHours}
             vacationMode={data.vacationMode}
+            initialNow={initialNow}
           />
         </div>
 

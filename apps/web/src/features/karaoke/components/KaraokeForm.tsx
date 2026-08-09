@@ -15,6 +15,7 @@ import {
 } from "@/lib/opening-hours"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { useCurrentTime } from "@/lib/use-current-time"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
@@ -46,6 +47,7 @@ interface KaraokeFormProps {
   operationsManagerHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
+  initialNow: string
 }
 
 export function KaraokeForm({
@@ -53,12 +55,13 @@ export function KaraokeForm({
   operationsManagerHours,
   houseClosedDates,
   vacationMode,
+  initialNow,
 }: KaraokeFormProps) {
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
   const honeypotId = `${uid}-hp`
-  const today = isoDate(new Date())
+  const today = isoDate(useCurrentTime(initialNow))
   const fieldIds = {
     eventName: `${uid}-eventName`,
     startDate: `${uid}-startDate`,

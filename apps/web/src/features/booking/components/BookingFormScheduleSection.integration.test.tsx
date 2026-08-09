@@ -63,6 +63,7 @@ function ScheduleHarness() {
         roomOccupancy={new Map([[95, ["3. jun 07:00 – 28. aug 13:00"]]])}
         rooms={[TIVOLI]}
         startDateId="booking-date"
+        today="2026-08-09"
       />
     </BookingFormContext.Provider>
   )

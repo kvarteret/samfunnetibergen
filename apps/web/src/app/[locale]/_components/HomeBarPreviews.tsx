@@ -14,6 +14,7 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { useCurrentTime } from "@/lib/use-current-time"
 
 interface NowPlayingState {
   authorized: boolean
@@ -45,6 +46,7 @@ interface HomeBarPreviewsProps {
   operationsManagerHours?: OpeningHours | null
   vacationMode?: VacationMode | null
   locale: AppLocale
+  initialNow: string
 }
 
 function hasSpotifyTrack(
@@ -65,14 +67,10 @@ export function HomeBarPreviews({
   operationsManagerHours,
   vacationMode,
   locale,
+  initialNow,
 }: HomeBarPreviewsProps) {
-  const [now, setNow] = useState(() => new Date())
+  const now = useCurrentTime(initialNow)
   const [nowPlaying, setNowPlaying] = useState<NowPlayingState | null>(null)
-
-  useEffect(() => {
-    const tick = window.setInterval(() => setNow(new Date()), 60_000)
-    return () => window.clearInterval(tick)
-  }, [])
 
   useEffect(() => {
     const controller = new AbortController()

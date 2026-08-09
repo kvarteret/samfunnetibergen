@@ -130,8 +130,10 @@ function isExternal(item: {
 
 export function Navbar({
   houseHours,
+  initialNow,
 }: {
   houseHours?: HouseHoursContent | null
+  initialNow: string
 }) {
   const items = orderedNavItems()
 
@@ -159,6 +161,7 @@ export function Navbar({
 
           <NavbarOpenStatus
             closedDates={houseHours?.houseClosedDates}
+            initialNow={initialNow}
             openingHours={houseHours?.operationsManagerHours}
             vacationMode={houseHours?.vacationMode}
           />
