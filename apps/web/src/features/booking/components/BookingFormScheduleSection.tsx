@@ -24,7 +24,6 @@ import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import {
   type ClosedDate,
-  isoDate,
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
@@ -44,6 +43,7 @@ interface BookingFormScheduleSectionProps {
   vacationMode?: VacationMode | null
   startDateError?: string
   startDateId: string
+  today: string
 }
 
 export function BookingFormScheduleSection({
@@ -55,11 +55,10 @@ export function BookingFormScheduleSection({
   vacationMode,
   startDateError,
   startDateId,
+  today,
 }: BookingFormScheduleSectionProps) {
   const form = useBookingForm()
   const startDateErrorId = `${startDateId}-error`
-
-  const today = isoDate(new Date())
 
   return (
     <FormSection id="booking-schedule" number="02" title="Rom og tidspunkt">

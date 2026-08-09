@@ -109,6 +109,27 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Verify PostHog source-map credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=()
+          for name in POSTHOG_CLI_API_KEY POSTHOG_CLI_PROJECT_ID POSTHOG_CLI_HOST; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("${name}")
+            fi
+          done
+
+          if (( ${#missing[@]} > 0 )); then
+            echo "Missing required production source-map secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+        env:
+          POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
+          POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}
+          POSTHOG_CLI_HOST: ${{ secrets.POSTHOG_CLI_HOST }}
+
       - name: Build production artifact
         run: |
           set -euo pipefail

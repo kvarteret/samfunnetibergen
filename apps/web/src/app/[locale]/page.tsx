@@ -208,6 +208,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       getTranslations({ locale, namespace: "HomePage" }),
     ])
   const today = getOsloDateString()
+  const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
     .filter(event => event.isPromoted)
@@ -257,6 +258,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       </div>
       <HomeBarPreviews
         houseClosedDates={barPreviews?.houseClosedDates}
+        initialNow={initialNow}
         locale={locale}
         operationsManagerHours={barPreviews?.operationsManagerHours}
         rooms={barPreviews?.rooms ?? []}
