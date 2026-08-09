@@ -1,3 +1,5 @@
+const CANONICAL_PRODUCTION_ORIGIN = "https://www.samfunnetibergen.no"
+
 export function resolveSiteUrl() {
   const configuredSiteUrl =
     process.env.SITE_URL ||
@@ -9,6 +11,15 @@ export function resolveSiteUrl() {
   const normalizedSiteUrl = configuredSiteUrl.startsWith("http")
     ? configuredSiteUrl
     : `https://${configuredSiteUrl}`
+
+  const hostname = new URL(normalizedSiteUrl).hostname
+
+  if (
+    hostname === "samfunnetibergen.no" ||
+    hostname === "www.samfunnetibergen.no"
+  ) {
+    return CANONICAL_PRODUCTION_ORIGIN
+  }
 
   return normalizedSiteUrl.replace(/\/+$/, "")
 }

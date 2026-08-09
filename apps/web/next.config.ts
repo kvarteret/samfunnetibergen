@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
             value: "(?:www\\.)?blifrivillig\\.no",
           },
         ],
-        destination: "https://samfunnetibergen.no/nb/grupper",
+        destination: "https://www.samfunnetibergen.no/nb/grupper",
         permanent: false,
       },
       {
