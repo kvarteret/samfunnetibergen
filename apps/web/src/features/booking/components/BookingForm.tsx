@@ -11,6 +11,7 @@ import {
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
 import { Link } from "@/i18n/navigation"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
@@ -21,9 +22,9 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
-import { useFormErrors } from "@/lib/use-form-errors"
-import { useCurrentTime } from "@/lib/use-current-time"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import { useCurrentTime } from "@/lib/use-current-time"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
@@ -38,7 +39,6 @@ import {
 } from "../domain/bookingFormSchema"
 import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
-import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
 import { BookingFormContactSection } from "./BookingFormContactSection"
@@ -92,6 +92,7 @@ export function BookingForm({
     furniture: `${uid}-furniture`,
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
+    contactPhone: `${uid}-contactPhone`,
     invoiceAddress: `${uid}-invoiceAddress`,
     orgNumber: `${uid}-orgNumber`,
     acceptTerms: `${uid}-acceptTerms`,
@@ -345,6 +346,8 @@ export function BookingForm({
                 contactEmailId={fieldIds.contactEmail}
                 contactNameError={errorFor(fieldIds.contactName)}
                 contactNameId={fieldIds.contactName}
+                contactPhoneError={errorFor(fieldIds.contactPhone)}
+                contactPhoneId={fieldIds.contactPhone}
                 invoiceAddressError={errorFor(fieldIds.invoiceAddress)}
                 invoiceAddressId={fieldIds.invoiceAddress}
                 orgNumberError={errorFor(fieldIds.orgNumber)}
@@ -473,6 +476,7 @@ function bookingFieldId(
   if (path === "furniture") return fieldIds.furniture
   if (path === "contactName") return fieldIds.contactName
   if (path === "contactEmail") return fieldIds.contactEmail
+  if (path === "contactPhone") return fieldIds.contactPhone
   if (path === "invoiceAddress") return fieldIds.invoiceAddress
   if (path === "orgNumber") return fieldIds.orgNumber
   if (path === "acceptTerms") return fieldIds.acceptTerms

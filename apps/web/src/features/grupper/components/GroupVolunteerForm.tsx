@@ -15,12 +15,13 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
-import { useFieldAria } from "@/lib/use-field-aria"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
   type VolunteerFormValues,
@@ -261,7 +262,8 @@ export function GroupVolunteerForm({
               <form.Field name="firstName">
                 {(field: AnyFieldApi) => (
                   <Input
-                    {...aria.firstName}
+                    aria-describedby={aria.firstName.describedby}
+                    aria-invalid={aria.firstName.invalid}
                     autoComplete="given-name"
                     id={fieldIds.firstName}
                     onBlur={field.handleBlur}
@@ -283,7 +285,8 @@ export function GroupVolunteerForm({
               <form.Field name="lastName">
                 {(field: AnyFieldApi) => (
                   <Input
-                    {...aria.lastName}
+                    aria-describedby={aria.lastName.describedby}
+                    aria-invalid={aria.lastName.invalid}
                     autoComplete="family-name"
                     id={fieldIds.lastName}
                     onBlur={field.handleBlur}
@@ -295,6 +298,7 @@ export function GroupVolunteerForm({
             </FieldGroup>
 
             <FieldGroup
+              className="col-span-2"
               error={errorFor(fieldIds.email)}
               errorId={`${fieldIds.email}-error`}
             >
@@ -305,7 +309,8 @@ export function GroupVolunteerForm({
               <form.Field name="email">
                 {(field: AnyFieldApi) => (
                   <Input
-                    {...aria.email}
+                    aria-describedby={aria.email.describedby}
+                    aria-invalid={aria.email.invalid}
                     autoComplete="email"
                     id={fieldIds.email}
                     onBlur={field.handleBlur}
@@ -319,6 +324,7 @@ export function GroupVolunteerForm({
             </FieldGroup>
 
             <FieldGroup
+              className="col-span-2"
               error={errorFor(fieldIds.phone)}
               errorId={`${fieldIds.phone}-error`}
             >
@@ -328,16 +334,14 @@ export function GroupVolunteerForm({
               </div>
               <form.Field name="phone">
                 {(field: AnyFieldApi) => (
-                  <Input
-                    {...aria.phone}
-                    autoComplete="tel"
-                    className="max-w-48"
+                  <PhoneNumberField
+                    describedBy={aria.phone.describedby}
+                    error={aria.phone.invalid}
                     id={fieldIds.phone}
-                    inputMode="tel"
                     onBlur={field.handleBlur}
-                    onChange={e => field.handleChange(e.target.value)}
+                    onChange={value => field.handleChange(value)}
                     placeholder={t("phonePlaceholder")}
-                    type="tel"
+                    required
                     value={field.state.value as string}
                   />
                 )}

@@ -80,8 +80,8 @@ export function ComboboxField({
         <Combobox.Portal>
           <Combobox.Positioner className="z-50 outline-none" sideOffset={6}>
             <Combobox.Popup className="rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
-              <Combobox.Empty className="px-3 py-4 text-sm text-foreground-muted">
-                Ingen treff
+              <Combobox.Empty className="text-sm text-foreground-muted">
+                <div className="px-3 py-4">Ingen treff</div>
               </Combobox.Empty>
               <Combobox.List className="max-h-[min(22.5rem,var(--available-height))] overflow-y-auto p-1 outline-none">
                 {(option: SelectOption) => (

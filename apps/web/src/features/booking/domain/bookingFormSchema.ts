@@ -1,6 +1,6 @@
 import { z } from "zod"
-
 import type { BookerType } from "@/lib/integrations/crescat/room-booking"
+import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -73,7 +73,9 @@ export const bookingFormSchema = z
     }),
     contactName: z.string().trim().min(1, "Skriv inn navn på kontaktperson."),
     contactEmail: z.string().trim().email("Skriv inn en gyldig e-postadresse."),
-    contactPhone: z.string(),
+    contactPhone: z
+      .string()
+      .refine(isOptionalE164PhoneNumber, "Skriv inn et gyldig telefonnummer."),
     promote: z.enum(["", "ja", "nei"]),
   })
   .superRefine((value, context) => {

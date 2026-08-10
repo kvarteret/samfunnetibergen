@@ -9,13 +9,14 @@ import {
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
+import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import {
   captureSubmitFailure,
-  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
+  getValidationDiagnostics,
   INVALID_PAYLOAD_ERROR,
   isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
@@ -29,8 +30,8 @@ import {
   KARAOKE_PRICING,
 } from "../domain/formState"
 import {
-  karaokeFormSchema,
   type KaraokeFormState,
+  karaokeFormSchema,
 } from "../domain/karaokeFormSchema"
 import { timeToMinutes } from "../domain/time"
 import type { PriceType } from "../types"
@@ -45,7 +46,7 @@ const karaokePayloadSchema = z.object({
   description: z.string().trim().default(""),
   contactName: z.string().trim().min(1),
   contactEmail: z.string().trim().email(),
-  contactPhone: z.string().trim().default(""),
+  contactPhone: z.string().trim().refine(isOptionalE164PhoneNumber).default(""),
   priceType: z.enum(["ordinær", "student", "frivillig"]),
   numberOfPeople: z.number().int().min(0),
   totalPrice: z.number().min(0),

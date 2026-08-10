@@ -43,6 +43,22 @@ The generated `kvarteret-personal` OpenAPI client directory is ignored by
 add deploy-critical imports from that generated directory unless the
 generated-file boundary is deliberately changed.
 
+## Phone-number boundaries
+
+The website keeps submitted phone numbers in E.164 format, including the
+leading `+` and country calling code. The volunteer-prospect route forwards
+that canonical value to `kvarteret-personal`. Crescat uses separate fields for
+the national number and country calling code, so the Crescat adapter splits the
+E.164 value only while constructing its external request.
+
+Verified source:
+
+- `apps/web/src/components/ui/phone-number-field.tsx`
+- `apps/web/src/app/api/volunteer-prospects/route.ts`
+- `apps/web/src/lib/integrations/crescat/phone.ts`
+- `apps/web/src/lib/integrations/crescat/room-booking.ts`
+- `apps/web/src/lib/integrations/crescat/karaoke.ts`
+
 ## Sanity Studio deployment boundary
 
 `apps/studio` is the editor application. It writes to the same Sanity project

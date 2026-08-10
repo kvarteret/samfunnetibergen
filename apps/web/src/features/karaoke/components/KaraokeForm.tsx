@@ -5,6 +5,7 @@ import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
 import { ErrorSummary } from "@/components/ui/error-summary"
+import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -14,9 +15,8 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
-import { useFormErrors } from "@/lib/use-form-errors"
 import { useCurrentTime } from "@/lib/use-current-time"
-import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
 import {
@@ -67,6 +67,7 @@ export function KaraokeForm({
     startDate: `${uid}-startDate`,
     contactName: `${uid}-contactName`,
     contactEmail: `${uid}-contactEmail`,
+    contactPhone: `${uid}-contactPhone`,
     numberOfPeople: `${uid}-numberOfPeople`,
     acceptTerms: `${uid}-acceptTerms`,
     studentProof: `${uid}-studentProof`,
@@ -204,7 +205,8 @@ export function KaraokeForm({
             contactEmailId={fieldIds.contactEmail}
             contactNameError={errorFor(fieldIds.contactName)}
             contactNameId={fieldIds.contactName}
-            uid={uid}
+            contactPhoneError={errorFor(fieldIds.contactPhone)}
+            contactPhoneId={fieldIds.contactPhone}
           />
           <KaraokeFormTermsSection
             acceptTermsError={errorFor(fieldIds.acceptTerms)}
@@ -241,6 +243,7 @@ type KaraokeFieldIds = Record<
   | "startDate"
   | "contactName"
   | "contactEmail"
+  | "contactPhone"
   | "numberOfPeople"
   | "acceptTerms"
   | "studentProof",
@@ -254,6 +257,7 @@ function karaokeFieldId(path: string, fieldIds: KaraokeFieldIds): string {
   if (path === "eventName") return fieldIds.eventName
   if (path === "contactName") return fieldIds.contactName
   if (path === "contactEmail") return fieldIds.contactEmail
+  if (path === "contactPhone") return fieldIds.contactPhone
   if (path === "numberOfPeople") return fieldIds.numberOfPeople
   if (path === "acceptTerms") return fieldIds.acceptTerms
   if (path === "studentProofAccepted") return fieldIds.studentProof

@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
@@ -23,7 +24,9 @@ export const karaokeFormSchema = z
     description: z.string(),
     contactName: z.string().trim().min(1, "Skriv inn navn på kontaktperson."),
     contactEmail: z.string().trim().email("Skriv inn en gyldig e-postadresse."),
-    contactPhone: z.string(),
+    contactPhone: z
+      .string()
+      .refine(isOptionalE164PhoneNumber, "Skriv inn et gyldig telefonnummer."),
     priceType: z.enum(["ordinær", "student", "frivillig"]),
     numberOfPeople: z.string().trim().regex(/^\d+$/, "Velg antall personer."),
     acceptTerms: z.boolean().refine(value => value, {

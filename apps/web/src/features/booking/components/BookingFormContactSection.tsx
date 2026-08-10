@@ -1,11 +1,11 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
-import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
 import type { BookerType } from "../domain/formState"
 import { isExternalBooker } from "../domain/formState"
 import { useBookingForm } from "./bookingFormContext"
@@ -15,6 +15,8 @@ interface BookingFormContactSectionProps {
   contactEmailId: string
   contactNameError?: string
   contactNameId: string
+  contactPhoneError?: string
+  contactPhoneId: string
   invoiceAddressError?: string
   invoiceAddressId: string
   orgNumberError?: string
@@ -26,17 +28,19 @@ export function BookingFormContactSection({
   contactEmailId,
   contactNameError,
   contactNameId,
+  contactPhoneError,
+  contactPhoneId,
   invoiceAddressError,
   invoiceAddressId,
   orgNumberError,
   orgNumberId,
 }: BookingFormContactSectionProps) {
-  const uid = useId()
   const form = useBookingForm()
   const bookerType = form.state.values.bookerType as BookerType
   const isExternal = isExternalBooker(bookerType)
   const contactEmailErrorId = `${contactEmailId}-error`
   const contactNameErrorId = `${contactNameId}-error`
+  const contactPhoneErrorId = `${contactPhoneId}-error`
   const invoiceAddressErrorId = `${invoiceAddressId}-error`
   const orgNumberErrorId = `${orgNumberId}-error`
 
@@ -80,17 +84,17 @@ export function BookingFormContactSection({
             )}
           </form.Field>
         </FieldGroup>
-        <FieldGroup>
-          <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
+        <FieldGroup error={contactPhoneError} errorId={contactPhoneErrorId}>
+          <Label htmlFor={contactPhoneId}>Telefon</Label>
           <form.Field name="contactPhone">
             {(field: AnyFieldApi) => (
-              <Input
-                autoComplete="tel"
-                id={`${uid}-contactPhone`}
-                inputMode="tel"
-                onChange={e => field.handleChange(e.target.value)}
-                placeholder="+47 55 55 55 55"
-                type="tel"
+              <PhoneNumberField
+                describedBy={
+                  contactPhoneError ? contactPhoneErrorId : undefined
+                }
+                error={!!contactPhoneError}
+                id={contactPhoneId}
+                onChange={value => field.handleChange(value)}
                 value={field.state.value as string}
               />
             )}

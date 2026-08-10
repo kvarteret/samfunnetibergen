@@ -12,12 +12,14 @@ describe("buildKaraokeRequest", () => {
       description: "Test.",
       contactName: "Test",
       contactEmail: "test@ex.com",
-      contactPhone: "000",
+      contactPhone: "+447400123456",
       numberOfPeople: 23,
       priceType: "ordinær",
     })
 
     const metaSection = body.sections.find(s => s.type === "metaData")
+    expect(body.request_by_phone).toBe("7400123456")
+    expect(body.request_by_country_code).toBe("+44")
     expect(metaSection).toBeDefined()
     if (metaSection && "fields" in metaSection.content) {
       const peopleField = metaSection.content.fields.find(

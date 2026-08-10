@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { isE164PhoneNumber } from "@/lib/phone-number"
 
 const GROUP_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -14,7 +15,10 @@ export const volunteerFormSchema = z
     firstName: z.string().trim().min(1, "Fornavn er påkrevd."),
     lastName: z.string().trim().min(1, "Etternavn er påkrevd."),
     email: z.string().trim().email("Ugyldig e-postadresse."),
-    phone: z.string().trim().regex(/\d/, "Telefonnummer er påkrevd."),
+    phone: z
+      .string()
+      .trim()
+      .refine(isE164PhoneNumber, "Skriv inn et gyldig telefonnummer."),
     studyInstitution: z.string().trim().min(1, "Studiested er påkrevd."),
     backgroundDetails: z.string(),
     firstChoiceGroupSlug: z

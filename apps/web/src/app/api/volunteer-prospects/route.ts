@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
+import {
+  type VolunteerFormValues,
+  volunteerFormSchema,
+} from "@/features/grupper/domain/volunteerFormSchema"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
   getValidationDiagnostics,
 } from "@/lib/submission"
-import {
-  volunteerFormSchema,
-  type VolunteerFormValues,
-} from "@/features/grupper/domain/volunteerFormSchema"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const requestBody = {
     full_name: `${values.firstName.trim()} ${values.lastName.trim()}`,
     email: values.email.trim().toLowerCase(),
-    phone: values.phone.trim().replace(/\D/g, ""),
+    phone: values.phone,
     study_institution: values.studyInstitution.trim(),
     first_choice_group_slug: values.firstChoiceGroupSlug.trim(),
     second_choice_group_slug: values.secondChoiceGroupSlug.trim() || undefined,
