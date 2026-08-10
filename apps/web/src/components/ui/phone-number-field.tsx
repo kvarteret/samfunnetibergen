@@ -26,10 +26,8 @@ function normalizeCountrySearch(value: string) {
     .trim()
 }
 
-interface CountrySelectProps extends Omit<
-  ComponentProps<"select">,
-  "onChange" | "value"
-> {
+interface CountrySelectProps
+  extends Omit<ComponentProps<"select">, "onChange" | "value"> {
   value?: Country
   onChange: (value?: Country) => void
   options: CountryOption[]
