@@ -5,26 +5,30 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
 import { useKaraokeForm } from "./karaokeFormContext"
 
 interface KaraokeFormContactSectionProps {
-  uid: string
   contactEmailError?: string
   contactEmailId: string
   contactNameError?: string
   contactNameId: string
+  contactPhoneError?: string
+  contactPhoneId: string
 }
 
 export function KaraokeFormContactSection({
-  uid,
   contactEmailError,
   contactEmailId,
   contactNameError,
   contactNameId,
+  contactPhoneError,
+  contactPhoneId,
 }: KaraokeFormContactSectionProps) {
   const form = useKaraokeForm()
   const contactEmailErrorId = `${contactEmailId}-error`
   const contactNameErrorId = `${contactNameId}-error`
+  const contactPhoneErrorId = `${contactPhoneId}-error`
 
   return (
     <FormSection number="03" title="Kontaktinformasjon">
@@ -71,18 +75,15 @@ export function KaraokeFormContactSection({
         </FieldGroup>
       </div>
 
-      <FieldGroup>
-        <Label htmlFor={`${uid}-contactPhone`}>Telefon</Label>
+      <FieldGroup error={contactPhoneError} errorId={contactPhoneErrorId}>
+        <Label htmlFor={contactPhoneId}>Telefon</Label>
         <form.Field name="contactPhone">
           {(field: AnyFieldApi) => (
-            <Input
-              className="max-w-48"
-              autoComplete="tel"
-              id={`${uid}-contactPhone`}
-              inputMode="tel"
-              onChange={event => field.handleChange(event.target.value)}
-              placeholder="+47 55 55 55 55"
-              type="tel"
+            <PhoneNumberField
+              describedBy={contactPhoneError ? contactPhoneErrorId : undefined}
+              error={!!contactPhoneError}
+              id={contactPhoneId}
+              onChange={value => field.handleChange(value)}
               value={field.state.value as string}
             />
           )}

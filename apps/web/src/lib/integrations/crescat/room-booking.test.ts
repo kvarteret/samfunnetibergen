@@ -26,7 +26,7 @@ const BASE_INPUT: RoomBookingInput = {
   ticketTypes: "",
   contactName: "Test Testesen",
   contactEmail: "test@example.com",
-  contactPhone: "12345678",
+  contactPhone: "+4740612345",
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -229,26 +229,35 @@ describe("buildInternalBooking", () => {
           name: "Alice",
           role: "Lyd",
           email: "alice@ex.com",
-          phone: "111",
+          phone: "+4740612345",
           country_code: "+47",
         },
         {
           name: "Bob",
           role: "Lys",
           email: "bob@ex.com",
-          phone: "222",
-          country_code: "+47",
+          phone: "+447400123456",
+          country_code: "+44",
         },
       ],
     })
     const kc = body.sections.find(s => s.type === "keyContacts")
     expect(kc).toBeDefined()
     if (kc && "content" in kc) {
-      const contacts = kc.content as Array<{ name: string; role: string }>
+      const contacts = kc.content as Array<{
+        name: string
+        role: string
+        phone: string
+        country_code: string
+      }>
       expect(contacts).toHaveLength(2)
       expect(contacts[0].name).toBe("Alice")
       expect(contacts[0].role).toBe("Lyd")
+      expect(contacts[0].phone).toBe("40612345")
+      expect(contacts[0].country_code).toBe("+47")
       expect(contacts[1].name).toBe("Bob")
+      expect(contacts[1].phone).toBe("7400123456")
+      expect(contacts[1].country_code).toBe("+44")
     }
   })
 

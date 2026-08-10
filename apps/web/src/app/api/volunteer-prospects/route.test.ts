@@ -31,7 +31,7 @@ const validPayload = {
   firstName: "Kari",
   lastName: "Nordmann",
   email: "kari@example.com",
-  phone: "412 34 567",
+  phone: "+4740612345",
   studyInstitution: "UiB",
   firstChoiceGroupSlug: "kraftetaten",
   secondChoiceGroupSlug: "",
@@ -65,6 +65,7 @@ describe("POST /api/volunteer-prospects", () => {
     const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit
     expect(JSON.parse(requestInit.body as string)).toMatchObject({
       first_choice_group_slug: "kraftetaten",
+      phone: "+4740612345",
     })
   })
 

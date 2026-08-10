@@ -42,7 +42,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
       ticketTypes: "Ordinær: 200 kr, Student: 150 kr, VIP: 400 kr",
       contactName: "E-Tjenesten",
       contactEmail: "e@samfunnetibergen.no",
-      contactPhone: "00000000",
+      contactPhone: "+4740612345",
       needsAmphi: true, // Tivoli
       barSelf: false,
       barKvarteret: true,
@@ -58,7 +58,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
           name: "E-Tjenesten",
           role: "Arrangør",
           email: "e@samfunnetibergen.no",
-          phone: "00000000",
+          phone: "+4740612345",
           country_code: "+47",
         },
       ],
@@ -97,7 +97,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
       ticketTypes: "",
       contactName: "E-Tjenesten",
       contactEmail: "e@samfunnetibergen.no",
-      contactPhone: "00000000",
+      contactPhone: "+4740612345",
       needsAmphi: false,
       roomIds: [95, 23, 117], // Tivoli + Storelogen + Støy
       recurringDates: ["2030-01-21", "2030-01-28", "2030-02-04"],
@@ -151,7 +151,7 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
         "GODTATT BETINGELSER?: nei",
       contactName: "E-Tjenesten",
       contactEmail: "e@samfunnetibergen.no",
-      contactPhone: "00000000",
+      contactPhone: "+4740612345",
     })
 
     const result = await postEventRequest(KARAOKE_SLUG, body)

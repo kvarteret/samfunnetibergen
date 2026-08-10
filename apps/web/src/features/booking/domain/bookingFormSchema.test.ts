@@ -39,6 +39,21 @@ describe("bookingFormSchema", () => {
     }
   })
 
+  test("accepts only E.164 when an optional phone number is provided", () => {
+    expect(
+      bookingFormSchema.safeParse({
+        ...validBooking,
+        contactPhone: "+447400123456",
+      }).success,
+    ).toBe(true)
+    expect(
+      bookingFormSchema.safeParse({
+        ...validBooking,
+        contactPhone: "7400 123456",
+      }).success,
+    ).toBe(false)
+  })
+
   test("keeps conditional student organization and ticket rules in the schema", () => {
     const studentOrg = bookingFormSchema.safeParse({
       ...validBooking,

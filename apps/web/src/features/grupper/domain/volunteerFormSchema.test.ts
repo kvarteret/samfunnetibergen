@@ -5,7 +5,7 @@ const validVolunteer = {
   firstName: "Kari",
   lastName: "Nordmann",
   email: "kari@example.com",
-  phone: "412 34 567",
+  phone: "+4740612345",
   studyInstitution: "UiB",
   backgroundDetails: "",
   firstChoiceGroupSlug: "kraftetaten",
@@ -14,8 +14,23 @@ const validVolunteer = {
 }
 
 describe("volunteerFormSchema", () => {
-  test("accepts the raw browser state", () => {
+  test("accepts the E.164 value emitted by the phone field", () => {
     expect(volunteerFormSchema.safeParse(validVolunteer).success).toBe(true)
+  })
+
+  test("rejects national and malformed values", () => {
+    expect(
+      volunteerFormSchema.safeParse({
+        ...validVolunteer,
+        phone: "406 12 345",
+      }).success,
+    ).toBe(false)
+    expect(
+      volunteerFormSchema.safeParse({
+        ...validVolunteer,
+        phone: "+47123",
+      }).success,
+    ).toBe(false)
   })
 
   test("rejects self-referrals and duplicate friend emails", () => {

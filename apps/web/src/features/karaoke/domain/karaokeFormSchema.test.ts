@@ -33,4 +33,19 @@ describe("karaokeFormSchema", () => {
       ).toBe(true)
     }
   })
+
+  test("accepts only E.164 when an optional phone number is provided", () => {
+    expect(
+      karaokeFormSchema.safeParse({
+        ...validKaraoke,
+        contactPhone: "+4740612345",
+      }).success,
+    ).toBe(true)
+    expect(
+      karaokeFormSchema.safeParse({
+        ...validKaraoke,
+        contactPhone: "406 12 345",
+      }).success,
+    ).toBe(false)
+  })
 })

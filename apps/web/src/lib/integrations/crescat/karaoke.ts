@@ -1,4 +1,5 @@
 import { addHoursToDateTime, toDateTime } from "./datetime"
+import { splitE164ForCrescat } from "./phone"
 import type { EventRequestBody } from "./types"
 
 // IDs from the live Crescat form (reverse-engineered from HAR)
@@ -31,6 +32,7 @@ export function buildKaraokeRequest(
     input.startTime,
     input.durationHours,
   )
+  const phone = splitE164ForCrescat(input.contactPhone)
 
   const packageDescription = [
     "Vi tilbyr flere pakkeløsninger.",
@@ -52,8 +54,8 @@ export function buildKaraokeRequest(
     description: input.description,
     request_by_email: input.contactEmail,
     request_by_name: input.contactName,
-    request_by_phone: input.contactPhone,
-    request_by_country_code: "+47",
+    request_by_phone: phone.phone,
+    request_by_country_code: phone.countryCode,
     model_id: null,
     model_type: null,
     sections: [

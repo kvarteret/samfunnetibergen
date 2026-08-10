@@ -15,8 +15,8 @@ const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
 
 import { durationHoursBetween } from "@/features/booking/domain/availability"
 import {
-  bookingFormSchema,
   type BookingFormState,
+  bookingFormSchema,
 } from "@/features/booking/domain/bookingFormSchema"
 import { buildBookingPayload } from "@/features/booking/domain/formState"
 import {
@@ -37,13 +37,14 @@ import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
+import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 import {
   captureSubmitFailure,
-  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
+  getValidationDiagnostics,
   INVALID_PAYLOAD_ERROR,
   isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
@@ -80,7 +81,7 @@ const payloadSchema = z.object({
   ticketSalesMethod: z.enum(["house", "ownTerminal"]).optional(),
   contactName: z.string().trim().min(1),
   contactEmail: z.string().trim().email(),
-  contactPhone: z.string().trim().default(""),
+  contactPhone: z.string().trim().refine(isOptionalE164PhoneNumber).default(""),
   acceptTerms: z.literal(true),
   flexibleDates: z.boolean().optional(),
   // Ekstern / studentorg only
@@ -101,7 +102,7 @@ const payloadSchema = z.object({
         name: z.string().trim().min(1),
         role: z.string().trim().default(""),
         email: z.string().trim().email(),
-        phone: z.string().trim().default(""),
+        phone: z.string().trim().refine(isOptionalE164PhoneNumber).default(""),
         country_code: z.string().trim().default("+47"),
       }),
     )

@@ -28,6 +28,7 @@ import {
   TICKET_TYPES,
   TICKETING_PARENT_ID,
 } from "./fields"
+import { splitE164ForCrescat } from "./phone"
 import type { Assignment, EventRequestBody, KeyContact } from "./types"
 
 // The two venue forms behind this integration. Both slugs were verified at
@@ -116,6 +117,8 @@ function baseBody(
   start: string,
   end: string,
 ): Omit<EventRequestBody, "sections"> {
+  const phone = splitE164ForCrescat(input.contactPhone)
+
   return {
     name: input.eventName,
     start,
@@ -123,8 +126,8 @@ function baseBody(
     description: input.description,
     request_by_email: input.contactEmail,
     request_by_name: input.contactName,
-    request_by_phone: input.contactPhone,
-    request_by_country_code: "+47",
+    request_by_phone: phone.phone,
+    request_by_country_code: phone.countryCode,
     model_id: null,
     model_type: null,
   }
@@ -138,6 +141,15 @@ const ticketTypesOrNA = (input: RoomBookingInput) =>
     : input.ticketTypes.trim()
 const cateringOrNo = (input: RoomBookingInput) =>
   input.cateringWishes.trim() ? input.cateringWishes.trim() : "Nei"
+
+function splitKeyContactPhone(contact: KeyContact): KeyContact {
+  const phone = splitE164ForCrescat(contact.phone)
+  return {
+    ...contact,
+    phone: phone.phone,
+    country_code: phone.countryCode,
+  }
+}
 
 // 0-minute timeline entries for "Doors" and "Antatt slutt" per day.
 function timelineAssignments(input: RoomBookingInput): Assignment[] {
@@ -360,18 +372,15 @@ export function buildInternalBooking(
         description: "Fyll ut kontaktpersoner for arrangementet her.",
         type: "keyContacts",
         content: input.keyContacts?.length
-          ? input.keyContacts.map(k => ({
-              ...k,
-              country_code: k.country_code || "+47",
-            }))
+          ? input.keyContacts.map(splitKeyContactPhone)
           : [
-              {
+              splitKeyContactPhone({
                 name: input.contactName,
                 role: input.contactRole ?? "",
                 email: input.contactEmail,
                 phone: input.contactPhone,
                 country_code: "+47",
-              },
+              }),
             ],
       },
       {

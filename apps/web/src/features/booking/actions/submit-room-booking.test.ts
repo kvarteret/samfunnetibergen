@@ -51,7 +51,7 @@ function standardPayload(
     freeOrPaid: "Gratis",
     contactName: "Test Testesen",
     contactEmail: "test@example.com",
-    contactPhone: "12345678",
+    contactPhone: "+4740612345",
     acceptTerms: true,
     invoiceAddress: "Testadresse 1",
     ...overrides,
