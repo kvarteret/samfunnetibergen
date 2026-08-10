@@ -3,8 +3,6 @@ import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
   getValidationDiagnostics,
-  isSubmissionRateLimited,
-  RATE_LIMIT_ERROR,
 } from "@/lib/submission"
 import {
   volunteerFormSchema,
@@ -48,10 +46,8 @@ export async function POST(request: Request) {
     )
   }
 
-  if (await isSubmissionRateLimited("volunteer-prospects")) {
-    return NextResponse.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
-  }
-
+  // Volunteer retries are intentionally not rate-limited while Personal
+  // intake failures are being stabilized.
   const values: VolunteerFormValues = parsed.data
   const requestBody = {
     full_name: `${values.firstName.trim()} ${values.lastName.trim()}`,
@@ -86,20 +82,25 @@ export async function POST(request: Request) {
       // when it is a plain string; anything structured stays server-side.
       const detail =
         typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
-      captureSubmitFailure(
-        "volunteer_application",
-        new Error(
-          `Volunteer prospect forwarding failed with ${response.status}`,
-        ),
-        {
-          source: "volunteer-prospects-route",
-          failure_branch: "personal_backend_rejected",
-          status: response.status,
-          first_choice_group_slug: requestBody.first_choice_group_slug,
-          has_second_choice: Boolean(requestBody.second_choice_group_slug),
-        },
+      if (response.status !== 409) {
+        captureSubmitFailure(
+          "volunteer_application",
+          new Error(
+            `Volunteer prospect forwarding failed with ${response.status}`,
+          ),
+          {
+            source: "volunteer-prospects-route",
+            failure_branch: "personal_backend_rejected",
+            status: response.status,
+            first_choice_group_slug: requestBody.first_choice_group_slug,
+            has_second_choice: Boolean(requestBody.second_choice_group_slug),
+          },
+        )
+      }
+      return NextResponse.json(
+        { detail },
+        { status: response.status === 409 ? 409 : 422 },
       )
-      return NextResponse.json({ detail }, { status: 422 })
     }
 
     const data = (await response.json().catch(() => null)) as {

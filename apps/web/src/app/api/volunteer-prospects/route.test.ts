@@ -68,7 +68,25 @@ describe("POST /api/volunteer-prospects", () => {
     })
   })
 
-  it("parses invalid input before invoking the rate limiter", async () => {
+  it("forwards valid submissions without checking the local rate limiter", async () => {
+    rateLimitMock.mockResolvedValue(true)
+    fetchMock.mockResolvedValue(
+      Response.json({ registrationId: 44 }, { status: 201 }),
+    )
+
+    const response = await POST(
+      new Request("http://localhost/api/volunteer-prospects", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+    expect(rateLimitMock).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it("rejects invalid input before forwarding to Personal", async () => {
     const response = await POST(
       new Request("http://localhost/api/volunteer-prospects", {
         method: "POST",
@@ -129,6 +147,28 @@ describe("POST /api/volunteer-prospects", () => {
       }),
     )
     expect(captureMock.mock.calls[0]?.[2]).not.toHaveProperty("email")
+  })
+
+  it("returns expected Personal conflicts without reporting an exception", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json(
+        { detail: "En aktiv søknad med denne e-postadressen finnes allerede." },
+        { status: 409 },
+      ),
+    )
+
+    const response = await POST(
+      new Request("http://localhost/api/volunteer-prospects", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+      }),
+    )
+
+    expect(response.status).toBe(409)
+    expect(await response.json()).toEqual({
+      detail: "En aktiv søknad med denne e-postadressen finnes allerede.",
+    })
+    expect(captureMock).not.toHaveBeenCalled()
   })
 
   it("does not include the applicant email when forwarding fails", async () => {
