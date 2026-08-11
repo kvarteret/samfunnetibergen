@@ -1,5 +1,6 @@
 "use server"
 
+import { randomUUID } from "node:crypto"
 import { z } from "zod"
 
 const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
@@ -33,6 +34,11 @@ import {
   buildRoomBooking,
   slugForBookerType,
 } from "@/lib/integrations/crescat/room-booking"
+import {
+  currentTraceFields,
+  emitOperationalEvent,
+  withOperationalSpan,
+} from "@/lib/observability"
 import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
@@ -172,6 +178,18 @@ async function isAllowedByOpeningHours(
 export async function submitRoomBooking(
   input: BookingFormState & { honeypot?: string },
 ): Promise<Result<number>> {
+  const bookingSubmissionId = randomUUID()
+  return withOperationalSpan("booking.submit", async span => {
+    span.setAttribute("booking_submission_id", bookingSubmissionId)
+    return submitRoomBookingWithinSpan(input, bookingSubmissionId)
+  })
+}
+
+async function submitRoomBookingWithinSpan(
+  input: BookingFormState & { honeypot?: string },
+  bookingSubmissionId: string,
+): Promise<Result<number>> {
+  const startedAt = performance.now()
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
   if (input.honeypot?.trim()) return ok(-1)
 
@@ -185,6 +203,7 @@ export async function submitRoomBooking(
         validation_stage: "server",
         failure_branch: "schema_validation_failed",
         form_id: "room_booking",
+        booking_submission_id: bookingSubmissionId,
         ...getValidationDiagnostics(formParsed.error.issues),
       },
     )
@@ -207,6 +226,7 @@ export async function submitRoomBooking(
         validation_stage: "server",
         failure_branch: "normalized_payload_mismatch",
         form_id: "room_booking",
+        booking_submission_id: bookingSubmissionId,
         ...getValidationDiagnostics(parsed.error.issues),
       },
     )
@@ -233,10 +253,19 @@ export async function submitRoomBooking(
 
     if (result.ok) {
       try {
+        const traceFields = currentTraceFields()
+        emitOperationalEvent("booking.submitted", {
+          booking_submission_id: bookingSubmissionId,
+          crescat_event_id: result.value,
+          duration_ms: Math.round(performance.now() - startedAt),
+          outcome: "accepted",
+        })
         getPostHogClient().capture({
           distinctId: "anonymous",
           event: "room_booking_submitted",
           properties: {
+            $process_person_profile: false,
+            booking_submission_id: bookingSubmissionId,
             booker_type: parsed.data.bookerType,
             room_id: parsed.data.roomIds[0],
             start_date: parsed.data.startDate,
@@ -245,6 +274,7 @@ export async function submitRoomBooking(
             free_or_paid: parsed.data.freeOrPaid,
             open_or_closed: parsed.data.openOrClosed,
             crescat_event_id: result.value,
+            trace_id: traceFields.trace_id,
           },
         })
       } catch {
@@ -259,11 +289,18 @@ export async function submitRoomBooking(
       {
         source: "submit-room-booking",
         failure_branch: "crescat_request_failed",
+        booking_submission_id: bookingSubmissionId,
         booker_type: parsed.data.bookerType,
         room_id: parsed.data.roomIds[0],
         start_date: parsed.data.startDate,
       },
     )
+    emitOperationalEvent("booking.failed", {
+      booking_submission_id: bookingSubmissionId,
+      duration_ms: Math.round(performance.now() - startedAt),
+      failure_stage: "crescat",
+      outcome: "failed",
+    })
     return err(GENERIC_SUBMIT_ERROR)
   } catch {
     captureSubmitFailure(
@@ -272,10 +309,17 @@ export async function submitRoomBooking(
       {
         source: "submit-room-booking",
         failure_branch: "unexpected_submission_failure",
+        booking_submission_id: bookingSubmissionId,
         booker_type: parsed.data.bookerType,
         room_id: parsed.data.roomIds[0],
       },
     )
+    emitOperationalEvent("booking.failed", {
+      booking_submission_id: bookingSubmissionId,
+      duration_ms: Math.round(performance.now() - startedAt),
+      failure_stage: "unexpected",
+      outcome: "failed",
+    })
     return err(GENERIC_SUBMIT_ERROR)
   }
 }

@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { captureMock, fetchMock, posthogCaptureMock, rateLimitMock } =
-  vi.hoisted(() => ({
-    captureMock: vi.fn(),
-    fetchMock: vi.fn(),
-    posthogCaptureMock: vi.fn(),
-    rateLimitMock: vi.fn().mockResolvedValue(false),
-  }))
+const {
+  captureMock,
+  emitOperationalEventMock,
+  fetchMock,
+  posthogCaptureMock,
+  rateLimitMock,
+} = vi.hoisted(() => ({
+  captureMock: vi.fn(),
+  emitOperationalEventMock: vi.fn(),
+  fetchMock: vi.fn(),
+  posthogCaptureMock: vi.fn(),
+  rateLimitMock: vi.fn().mockResolvedValue(false),
+}))
 
 vi.stubGlobal("fetch", fetchMock)
 
@@ -23,6 +29,19 @@ vi.mock("@/lib/submission", () => ({
 
 vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: () => ({ capture: posthogCaptureMock }),
+}))
+
+vi.mock("@/lib/observability", () => ({
+  currentTraceFields: () => ({
+    trace_id: "0123456789abcdef0123456789abcdef",
+    span_id: "0123456789abcdef",
+  }),
+  emitOperationalEvent: emitOperationalEventMock,
+  injectActiveTraceContext: (headers: Record<string, string>) => {
+    headers.traceparent =
+      "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01"
+    headers.tracestate = "vendor=test"
+  },
 }))
 
 import { POST } from "./route"
@@ -42,6 +61,7 @@ const validPayload = {
 describe("POST /api/volunteer-prospects", () => {
   beforeEach(() => {
     captureMock.mockReset()
+    emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
     posthogCaptureMock.mockReset()
     rateLimitMock.mockReset()
@@ -67,6 +87,26 @@ describe("POST /api/volunteer-prospects", () => {
       first_choice_group_slug: "kraftetaten",
       phone: "+4740612345",
     })
+    expect(requestInit.headers).toMatchObject({
+      traceparent: "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01",
+      tracestate: "vendor=test",
+    })
+    expect(posthogCaptureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          $process_person_profile: false,
+          registration_id: 42,
+          trace_id: "0123456789abcdef0123456789abcdef",
+        }),
+      }),
+    )
+    expect(emitOperationalEventMock).toHaveBeenCalledWith(
+      "volunteer.application.submitted",
+      expect.objectContaining({
+        registration_id: 42,
+        outcome: "accepted",
+      }),
+    )
   })
 
   it("forwards valid submissions without checking the local rate limiter", async () => {
@@ -147,7 +187,9 @@ describe("POST /api/volunteer-prospects", () => {
         failure_branch: "personal_backend_rejected",
       }),
     )
-    expect(captureMock.mock.calls[0]?.[2]).not.toHaveProperty("email")
+    const capturedProperties = captureMock.mock.calls[0]?.[2]
+    expect(capturedProperties).not.toHaveProperty("email")
+    expect(JSON.stringify(capturedProperties)).not.toContain("kari@example.com")
   })
 
   it("returns expected Personal conflicts without reporting an exception", async () => {
@@ -190,6 +232,8 @@ describe("POST /api/volunteer-prospects", () => {
         failure_branch: "personal_backend_request_failed",
       }),
     )
-    expect(captureMock.mock.calls[0]?.[2]).not.toHaveProperty("email")
+    const capturedProperties = captureMock.mock.calls[0]?.[2]
+    expect(capturedProperties).not.toHaveProperty("email")
+    expect(JSON.stringify(capturedProperties)).not.toContain("kari@example.com")
   })
 })
