@@ -1,5 +1,6 @@
 "use server"
 
+import { injectActiveTraceContext } from "@/lib/observability"
 import { err, ok } from "@/lib/result"
 import type { CresatResult, EventRequestBody } from "./types"
 
@@ -27,11 +28,13 @@ function eventRequestUrl(slug: string): string | null {
 async function fetchXsrfSession(
   url: string,
 ): Promise<{ cookie: string; token: string } | null> {
+  const headers: Record<string, string> = {
+    "user-agent":
+      "Mozilla/5.0 (compatible; SamfunnetBot/1.0; +https://samfunnetibergen.no)",
+  }
+  injectActiveTraceContext(headers)
   const res = await fetch(url, {
-    headers: {
-      "user-agent":
-        "Mozilla/5.0 (compatible; SamfunnetBot/1.0; +https://samfunnetibergen.no)",
-    },
+    headers,
   })
 
   if (!res.ok) return null
@@ -77,17 +80,19 @@ export async function postEventRequest(
     return err("Klarte ikke å opprette sesjon mot bookingsystemet.")
   }
 
+  const headers: Record<string, string> = {
+    accept: "application/json, text/plain, */*",
+    "content-type": "application/json",
+    "x-requested-with": "XMLHttpRequest",
+    "x-xsrf-token": session.token,
+    cookie: session.cookie,
+    origin: BASE_URL,
+    referer: url,
+  }
+  injectActiveTraceContext(headers)
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      accept: "application/json, text/plain, */*",
-      "content-type": "application/json",
-      "x-requested-with": "XMLHttpRequest",
-      "x-xsrf-token": session.token,
-      cookie: session.cookie,
-      origin: BASE_URL,
-      referer: url,
-    },
+    headers,
     body: JSON.stringify(body),
   })
 
@@ -95,14 +100,8 @@ export async function postEventRequest(
     return ok(res.status)
   }
 
-  let detail = ""
-  try {
-    const json = await res.json()
-    detail = JSON.stringify(json)
-  } catch {
-    detail = await res.text().catch(() => "")
-  }
-
-  const detailPart = detail ? `: ${detail}` : ""
-  return err(`Bookingsystemet svarte med status ${res.status}${detailPart}.`)
+  // Crescat may echo submitted contact or booking values in its response.
+  // Keep failures status-only so downstream exception capture cannot send
+  // those direct identifiers to PostHog.
+  return err(`Bookingsystemet svarte med status ${res.status}.`)
 }

@@ -3,6 +3,11 @@ import {
   type VolunteerFormValues,
   volunteerFormSchema,
 } from "@/features/grupper/domain/volunteerFormSchema"
+import {
+  currentTraceFields,
+  emitOperationalEvent,
+  injectActiveTraceContext,
+} from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
@@ -64,11 +69,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    const outboundHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    }
+    injectActiveTraceContext(outboundHeaders)
     const response = await fetch(
       `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: outboundHeaders,
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(10_000),
       },
@@ -104,25 +113,31 @@ export async function POST(request: Request) {
     }
 
     const data = (await response.json().catch(() => null)) as {
-      registrationId?: string
+      registrationId?: number | string
     } | null
+    const registrationId = data?.registrationId
+    const traceFields = currentTraceFields()
+    emitOperationalEvent("volunteer.application.submitted", {
+      registration_id: registrationId,
+      outcome: "accepted",
+    })
     try {
       getPostHogClient().capture({
         distinctId: "anonymous",
         event: "volunteer_application_submitted",
         properties: {
+          $process_person_profile: false,
           first_choice_group_slug: requestBody.first_choice_group_slug,
           has_second_choice: Boolean(requestBody.second_choice_group_slug),
           has_friend_referrals: (requestBody.friend_emails?.length ?? 0) > 0,
+          registration_id: registrationId,
+          trace_id: traceFields.trace_id,
         },
       })
     } catch {
       // A successful Personal registration remains successful if analytics fails.
     }
-    return NextResponse.json(
-      { registrationId: data?.registrationId },
-      { status: 201 },
-    )
+    return NextResponse.json({ registrationId }, { status: 201 })
   } catch {
     captureSubmitFailure(
       "volunteer_application",

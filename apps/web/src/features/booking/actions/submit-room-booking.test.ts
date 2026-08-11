@@ -1,5 +1,42 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
 
+const {
+  captureExceptionMock,
+  emitOperationalEventMock,
+  posthogCaptureMock,
+  spanSetAttributeMock,
+} = vi.hoisted(() => ({
+  captureExceptionMock: vi.fn(),
+  emitOperationalEventMock: vi.fn(),
+  posthogCaptureMock: vi.fn(),
+  spanSetAttributeMock: vi.fn(),
+}))
+
+vi.mock("@/lib/posthog-server", () => ({
+  getPostHogClient: () => ({
+    capture: posthogCaptureMock,
+    captureException: captureExceptionMock,
+  }),
+}))
+
+vi.mock("@/lib/observability", () => ({
+  currentTraceFields: () => ({
+    trace_id: "abcdef0123456789abcdef0123456789",
+    span_id: "abcdef0123456789",
+  }),
+  emitOperationalEvent: emitOperationalEventMock,
+  injectActiveTraceContext: (headers: Record<string, string>) => {
+    headers.traceparent =
+      "00-abcdef0123456789abcdef0123456789-abcdef0123456789-01"
+  },
+  withOperationalSpan: async (
+    _name: string,
+    run: (span: {
+      setAttribute: typeof spanSetAttributeMock
+    }) => Promise<unknown>,
+  ) => run({ setAttribute: spanSetAttributeMock }),
+}))
+
 // ── Mock rate-limit (Next.js headers() unavailable in vitest) ──────────────
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -62,7 +99,11 @@ function standardPayload(
 
 describe("submitRoomBooking", () => {
   beforeEach(() => {
+    captureExceptionMock.mockReset()
+    emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
+    posthogCaptureMock.mockReset()
+    spanSetAttributeMock.mockReset()
   })
 
   test("rejects payload with missing required field", async () => {
@@ -105,6 +146,23 @@ describe("submitRoomBooking", () => {
     const calls = fetchMock.mock.calls as Array<[string, RequestInit]>
     expect(calls.some(([url]) => url.includes("bookingskjema-standard"))).toBe(
       true,
+    )
+    const postHeaders = calls[1]?.[1].headers as Record<string, string>
+    expect(postHeaders.traceparent).toBe(
+      "00-abcdef0123456789abcdef0123456789-abcdef0123456789-01",
+    )
+    const successProperties = posthogCaptureMock.mock.calls[0]?.[0].properties
+    expect(successProperties.booking_submission_id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
+    expect(successProperties.trace_id).toBe("abcdef0123456789abcdef0123456789")
+    expect(emitOperationalEventMock).toHaveBeenCalledWith(
+      "booking.submitted",
+      expect.objectContaining({
+        booking_submission_id: successProperties.booking_submission_id,
+        crescat_event_id: 201,
+        outcome: "accepted",
+      }),
     )
   })
 
