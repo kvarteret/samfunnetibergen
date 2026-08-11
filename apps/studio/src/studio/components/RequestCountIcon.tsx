@@ -1,41 +1,31 @@
 import { icons } from "@sanity/icons"
 import { Badge, Box } from "@sanity/ui"
-import { useEffect, useState } from "react"
-import { useClient } from "sanity"
 
 import { countPendingRequests } from "./arrangementFilters"
+import { useListeningQuery } from "./useListeningQuery"
 
-const API_VERSION = "2026-07-29"
 const REQUEST_QUERY = `*[
   _type == "arrangement" &&
   defined(submittedByEmail)
 ] {_id, approvalStatus, submittedByEmail}`
+const REQUEST_LISTEN_QUERY =
+  '*[_type == "arrangement" && defined(submittedByEmail)]'
+
+type RequestDocument = {
+  _id: string
+  approvalStatus?: string | null
+  submittedByEmail?: string | null
+}
+
+const EMPTY_REQUESTS: RequestDocument[] = []
 
 export function RequestCountIcon() {
-  const client = useClient({ apiVersion: API_VERSION })
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    let active = true
-    const refresh = async () => {
-      const requests = await client.fetch(REQUEST_QUERY, undefined, {
-        perspective: "previewDrafts",
-      })
-      if (active) setCount(countPendingRequests(requests))
-    }
-    void refresh()
-    const subscription = client
-      .listen(
-        '*[_type == "arrangement" && defined(submittedByEmail)]',
-        {},
-        { includeResult: false, visibility: "query" },
-      )
-      .subscribe(() => void refresh())
-    return () => {
-      active = false
-      subscription.unsubscribe()
-    }
-  }, [client])
+  const { data: requests } = useListeningQuery({
+    initialValue: EMPTY_REQUESTS,
+    listenQuery: REQUEST_LISTEN_QUERY,
+    query: REQUEST_QUERY,
+  })
+  const count = countPendingRequests(requests)
 
   return (
     <Box style={{ position: "relative" }}>

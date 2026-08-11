@@ -27,6 +27,9 @@ describe("editorial arrangement schema", () => {
     expect(fields.find(field => field.name === "approvalStatus")?.hidden).toBe(
       true,
     )
+    expect(fields.find(field => field.name === "eventStatus")?.hidden).toBe(
+      true,
+    )
     expect(fieldNames(arrangement)).not.toContain("adminNote")
   })
 

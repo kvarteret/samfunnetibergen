@@ -461,7 +461,7 @@ describe("diffInstances", () => {
     const diff = diffInstances(
       parent,
       [],
-      [existingFor(occurrenceA, { approvalStatus: "paused" })],
+      [existingFor(occurrenceA, { approvalStatus: "rejected" })],
     )
     expect(diff.orphanedEdited).toHaveLength(1)
   })

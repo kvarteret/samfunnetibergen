@@ -106,11 +106,7 @@ export default async function EventsPage({
           ? getRecurringLabel(event.rrule, recurringLabels)
           : null
     const statusLabel =
-      event.eventStatus === "cancelled"
-        ? cardT("statusCancelled")
-        : event.eventStatus === "postponed"
-          ? cardT("statusPostponed")
-          : null
+      event.eventStatus === "cancelled" ? cardT("statusCancelled") : null
     precomputedDates.set(event._id, {
       resolvedDates,
       recurringLabel,

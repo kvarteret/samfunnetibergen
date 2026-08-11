@@ -12,20 +12,24 @@ import {
   Text,
   TextInput,
 } from "@sanity/ui"
-import { useEffect, useId, useMemo, useState } from "react"
-import { useClient } from "sanity"
+import { useId, useMemo, useState } from "react"
 import { IntentLink } from "sanity/router"
 
 import {
+  ARRANGEMENT_LIST_STATUS_LABELS,
   type ArrangementBrowserItem,
   type ArrangementFilterState,
+  arrangementListStatus,
   defaultArrangementFilters,
   filterArrangements,
+  latestArrangementDate,
+  todayInOslo,
 } from "./arrangementFilters"
+import { useListeningQuery } from "./useListeningQuery"
 
-const API_VERSION = "2026-07-29"
 const ARRANGEMENTS_QUERY = `*[
   _type == "arrangement" &&
+  approvalStatus == "approved" &&
   coalesce(eventKind, "single") in ["single", "seriesParent", "festivalParent"]
 ] {
   _id,
@@ -39,6 +43,7 @@ const ARRANGEMENTS_QUERY = `*[
   "childDates": *[
     _type == "arrangement" &&
     parentEvent._ref == ^._id &&
+    approvalStatus == "approved" &&
     defined(dates[0].startDate)
   ].dates[0].startDate
 }`
@@ -46,77 +51,46 @@ const TAXONOMY_QUERY = `{
   "groups": *[_type == "eventTaxonomyGroup"] | order(orderRank asc){_id, name},
   "types": *[_type == "eventType"] | order(orderRank asc){_id, name, "groupId": taxonomyGroup._ref}
 }`
+const BROWSER_DATA_QUERY = `{
+  "documents": ${ARRANGEMENTS_QUERY},
+  "taxonomyDocuments": ${TAXONOMY_QUERY}
+}`
+const BROWSER_LISTEN_QUERY =
+  '*[_type in ["arrangement", "eventType", "eventTaxonomyGroup"]]'
 
 type Taxonomy = {
   groups: Array<{ _id: string; name?: string }>
   types: Array<{ _id: string; name?: string; groupId?: string }>
 }
 
-async function fetchBrowserData(client: ReturnType<typeof useClient>): Promise<{
+type BrowserData = {
   documents: ArrangementBrowserItem[]
   taxonomyDocuments: Taxonomy
-}> {
-  const [documents, taxonomyDocuments] = await Promise.all([
-    client.fetch<ArrangementBrowserItem[]>(
-      ARRANGEMENTS_QUERY,
-      {},
-      { perspective: "previewDrafts" },
-    ),
-    client.fetch<Taxonomy>(TAXONOMY_QUERY),
-  ])
-  return { documents, taxonomyDocuments }
+}
+
+const EMPTY_BROWSER_DATA: BrowserData = {
+  documents: [],
+  taxonomyDocuments: {
+    groups: [],
+    types: [],
+  },
 }
 
 function ArrangementBrowser() {
-  const client = useClient({ apiVersion: API_VERSION })
   const filterId = useId()
-  const [items, setItems] = useState<ArrangementBrowserItem[]>([])
-  const [taxonomy, setTaxonomy] = useState<Taxonomy>({
-    groups: [],
-    types: [],
-  })
   const [filters, setFilters] = useState<ArrangementFilterState>(
     defaultArrangementFilters,
   )
-  const [loading, setLoading] = useState(true)
+  const {
+    data: { documents: items, taxonomyDocuments: taxonomy },
+    loading,
+  } = useListeningQuery({
+    initialValue: EMPTY_BROWSER_DATA,
+    listenQuery: BROWSER_LISTEN_QUERY,
+    query: BROWSER_DATA_QUERY,
+  })
 
-  useEffect(() => {
-    let active = true
-    const refresh = async () => {
-      try {
-        const { documents, taxonomyDocuments } = await fetchBrowserData(client)
-        if (!active) return
-        setItems(documents)
-        setTaxonomy(taxonomyDocuments)
-      } catch {
-        // Keep transient Studio connectivity failures from becoming
-        // unhandled promise rejections.
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    void refresh()
-    const subscription = client
-      .listen(
-        '*[_type in ["arrangement", "eventType", "eventTaxonomyGroup"]]',
-        {},
-        { includeResult: false, visibility: "query" },
-      )
-      .subscribe({
-        next: () => void refresh(),
-        error: () => undefined,
-      })
-
-    return () => {
-      active = false
-      subscription.unsubscribe()
-    }
-  }, [client])
-
-  const today = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "Europe/Oslo",
-  }).format(new Date())
+  const today = todayInOslo()
   const results = useMemo(
     () => filterArrangements(items, filters, today),
     [filters, items, today],
@@ -155,30 +129,6 @@ function ArrangementBrowser() {
               placeholder="Søk i titler"
               value={filters.query}
             />
-          </Stack>
-          <Stack space={2}>
-            <Text
-              as="label"
-              htmlFor={`${filterId}-date`}
-              size={1}
-              weight="semibold"
-            >
-              Dato
-            </Text>
-            <Select
-              id={`${filterId}-date`}
-              onChange={event =>
-                update(
-                  "date",
-                  event.currentTarget.value as ArrangementFilterState["date"],
-                )
-              }
-              value={filters.date}
-            >
-              <option value="all">Alle datoer</option>
-              <option value="upcoming">Kommende</option>
-              <option value="past">Tidligere</option>
-            </Select>
           </Stack>
           <Stack space={2}>
             <Text
@@ -225,11 +175,9 @@ function ArrangementBrowser() {
               value={filters.status}
             >
               <option value="approved">Godkjent</option>
-              <option value="paused">Skjult</option>
+              <option value="completed">Gjennomført</option>
               <option value="archived">Arkivert</option>
-              <option value="cancelled">Avlyst</option>
-              <option value="postponed">Utsatt</option>
-              <option value="all">Alle statuser</option>
+              <option value="cancelled">Kansellert</option>
             </Select>
           </Stack>
           <Stack space={2}>
@@ -307,17 +255,20 @@ function ArrangementBrowser() {
         ) : (
           <Stack space={2}>
             {results.map(item => {
-              const nextDate = [
-                ...(item.dates ?? []),
-                ...(item.childDates ?? []).map(startDate => ({
-                  startDate,
-                })),
-              ]
-                .map(date => date.startDate)
-                .filter((date): date is string =>
-                  Boolean(date && date >= today),
-                )
-                .sort()[0]
+              const status = arrangementListStatus(item, today)
+              const statusLabel = ARRANGEMENT_LIST_STATUS_LABELS[status]
+              const nextDate =
+                [
+                  ...(item.dates ?? []),
+                  ...(item.childDates ?? []).map(startDate => ({
+                    startDate,
+                  })),
+                ]
+                  .map(date => date.startDate)
+                  .filter((date): date is string =>
+                    Boolean(date && date >= today),
+                  )
+                  .sort()[0] ?? latestArrangementDate(item)
               const needsDays =
                 item.eventKind === "seriesParent" &&
                 item.isRecurring === true &&
@@ -345,20 +296,25 @@ function ArrangementBrowser() {
                         </Text>
                       </IntentLink>
                       <Text muted size={1}>
-                        {[
-                          nextDate,
-                          item.eventType?.name,
-                          item.eventStatus === "cancelled"
-                            ? "Avlyst"
-                            : item.eventStatus === "postponed"
-                              ? "Utsatt"
-                              : null,
-                        ]
+                        {[nextDate, item.eventType?.name]
                           .filter(Boolean)
                           .join(" · ") || "Ingen dato"}
                       </Text>
                     </Stack>
                     <Flex align="center" gap={2}>
+                      <Badge
+                        tone={
+                          status === "cancelled"
+                            ? "critical"
+                            : status === "completed"
+                              ? "positive"
+                              : status === "archived"
+                                ? "default"
+                                : "primary"
+                        }
+                      >
+                        {statusLabel}
+                      </Badge>
                       {isFestival ? (
                         <Button
                           as={IntentLink}

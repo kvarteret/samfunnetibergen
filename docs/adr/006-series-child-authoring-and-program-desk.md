@@ -4,14 +4,24 @@
 **Date:** 2026-07-08
 **Relates to:** ADR 005 (materialized event instances) — this refines the Studio/authoring layer without changing ADR 005's content model.
 
+## Superseding implementation note (2026-08-11)
+
+Studio now uses one custom Arrangementer browser rather than the historical
+collection of date and visibility lists described below. It still excludes
+`seriesInstance` and `festivalSession` from the top level and reaches those
+documents through their parents. The browser has no separate date filter and
+shows exactly Godkjent, Gjennomført, Arkivert, and Kansellert, derived according
+to ADR 005. The stored event state is only `scheduled` or `cancelled`; Utsatt,
+Satt på pause, and manual archive are retired. Requests and rejected requests
+remain separate approval queues.
+
 ## Implementation note (2026-07-08)
 
 The recommended path (keep materialized instances; make them desk-second-class)
 landed in `src/studio/structure.ts`:
 
 - `BROWSE_EVENT_KINDS` (`single`, `seriesParent`, `festivalParent`) is applied
-  to every browse list (Venter på godkjenning, Kommende, Promotert, Tidligere,
-  Satt på pause, Avvist, Arkivert, Avlyst/utsatt). Generated instances no
+  to every historical browse list. Generated instances no
   longer appear in any of them.
 - `parentWithChildren` renders **Serier** and **Festivaler** as drill-ins:
   select a parent → **Rediger** (the parent editor) + **Instanser** (its
@@ -19,8 +29,7 @@ landed in `src/studio/structure.ts`:
   the parent.
 - The Program menu is regrouped into *Trenger handling* / *Innhold* /
   *Visninger* + an "Absolutt alle (inkl. instanser)" escape hatch, matching
-  section D. The four rarely-opened states (Tidligere, Satt på pause, Avvist,
-  Arkivert) are tucked under one "Arkiv og skjulte" submenu so the top level
+  section D. Rarely-opened historical states were tucked under one submenu so the top level
   stays scannable (~8 rows instead of 13); Kommende and Promotert stay
   top-level. Each row has a distinct icon.
 - The old flat "Genererte – venter på godkjenning" queue was removed; pending
@@ -60,8 +69,8 @@ The consequence is now visible in Studio and it is a real problem:
    discoverable or parent-centric.
 
 3. **The Program menu was designed for the pre-series world.** Its lists
-   (Venter på godkjenning, Kommende, Promotert, Satt på pause, Tidligere,
-   Avvist, Arkivert, Alle arrangementer) all assume every arrangement is a
+   (Venter på godkjenning, Kommende, Promotert, Tidligere,
+   Avvist, Alle arrangementer) all assume every arrangement is a
    peer. With parents and instances now in the mix, the information
    architecture needs to distinguish *things you author* (singles, series
    parents, festival parents) from *things that are generated* (instances).
@@ -180,7 +189,7 @@ Program
 ├─ ── Trenger handling ──
 │   ├─ Venter på godkjenning             singles + parents, pending
 │   ├─ Serier som må forlenges           seriesParent, horizon < 8 uker
-│   └─ Avlyst eller utsatt               eventStatus in [cancelled, postponed]
+│   └─ Kansellert                        eventStatus == cancelled
 │
 ├─ ── Innhold ──
 │   ├─ Enkeltarrangementer               eventKind == single
@@ -191,7 +200,6 @@ Program
 │   ├─ Kommende
 │   ├─ Promotert på forsiden
 │   ├─ Tidligere
-│   ├─ Satt på pause
 │   ├─ Avvist
 │   └─ Arkivert
 │
