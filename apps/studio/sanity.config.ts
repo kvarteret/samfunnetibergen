@@ -1,12 +1,11 @@
 import { assist } from "@sanity/assist"
 import { visionTool } from "@sanity/vision"
-import { defineConfig } from "sanity"
+import { defineConfig, defineLocaleResourceBundle } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/env"
-import { arrangementApprovalActions } from "./src/studio/actions/approvalActions"
-import { CreateFestivalDayAction } from "./src/studio/actions/createFestivalDayAction"
+import { arrangementDocumentActions } from "./src/studio/actions/arrangementDocumentActions"
 import { singletonTypeNames } from "./src/studio/documentTypes"
 import {
   resolve,
@@ -24,6 +23,21 @@ const config = defineConfig({
   dataset,
   basePath: "/",
   title: "Samfunnet i Bergen",
+  i18n: {
+    bundles: previous => [
+      ...previous,
+      ...["en-US", "nb-NO"].map(locale =>
+        defineLocaleResourceBundle({
+          locale,
+          namespace: "structure",
+          resources: {
+            "buttons.action-menu-button.aria-label": "Actions",
+            "buttons.action-menu-button.tooltip": "Actions",
+          },
+        }),
+      ),
+    ],
+  },
   plugins: [
     structureTool({ structure }),
     presentationTool({
@@ -54,10 +68,7 @@ const config = defineConfig({
     },
     actions: (prev, { schemaType }) => {
       if (schemaType === "arrangement") {
-        const core = prev.filter(
-          action => !["duplicate", "unpublish"].includes(action.action ?? ""),
-        )
-        return [...arrangementApprovalActions, CreateFestivalDayAction, ...core]
+        return arrangementDocumentActions(prev)
       }
       if (!singletonTypes.has(schemaType)) {
         return prev

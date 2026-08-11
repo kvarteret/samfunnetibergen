@@ -133,7 +133,7 @@ export const publishedEventSlugsQuery = defineQuery(`
         && ${CONCRETE_EVENT_KINDS}
         && (
             count(dates[startDate >= $today]) > 0
-            || eventStatus in ["cancelled", "postponed"]
+            || eventStatus == "cancelled"
         )
     ] {
         "slug": slug.current

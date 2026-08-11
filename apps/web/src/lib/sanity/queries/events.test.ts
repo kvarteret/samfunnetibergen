@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   eventBySlugQuery,
   promotedParentEventsQuery,
+  publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "./events"
 
@@ -11,6 +12,13 @@ describe("event detail query", () => {
     expect(eventBySlugQuery).toContain('approvalStatus == "approved"')
     expect(eventBySlugQuery).toContain("$preview == true")
     expect(eventBySlugQuery).not.toContain("count(dates[startDate >= $today])")
+  })
+})
+
+describe("event status query contract", () => {
+  it("keeps cancelled slugs reachable without supporting postponed", () => {
+    expect(publishedEventSlugsQuery).toContain('eventStatus == "cancelled"')
+    expect(publishedEventSlugsQuery).not.toContain("postponed")
   })
 })
 

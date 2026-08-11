@@ -113,9 +113,7 @@ function EventStatusNotice({
       className="border-2 border-destructive bg-destructive px-4 py-3 font-heading uppercase tracking-widest text-destructive-foreground"
       role="status"
     >
-      {event.eventStatus === "cancelled"
-        ? t("cancelledNotice")
-        : t("postponedNotice")}
+      {t("cancelledNotice")}
     </p>
   )
 }
@@ -378,9 +376,7 @@ function EventChildList({
               </span>
               {child.eventStatus !== "scheduled" && (
                 <span className="font-heading uppercase tracking-widest text-destructive">
-                  {child.eventStatus === "cancelled"
-                    ? t("statusCancelled")
-                    : t("statusPostponed")}
+                  {t("statusCancelled")}
                 </span>
               )}
             </Link>

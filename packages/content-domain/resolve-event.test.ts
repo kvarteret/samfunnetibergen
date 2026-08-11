@@ -109,12 +109,10 @@ describe("resolveEventContent", () => {
 describe("resolveEffectiveStatus", () => {
   test("child non-scheduled status always wins", () => {
     expect(resolveEffectiveStatus("cancelled", "scheduled")).toBe("cancelled")
-    expect(resolveEffectiveStatus("postponed", "cancelled")).toBe("postponed")
   })
 
   test("parent non-scheduled status applies to a scheduled child", () => {
     expect(resolveEffectiveStatus("scheduled", "cancelled")).toBe("cancelled")
-    expect(resolveEffectiveStatus(null, "postponed")).toBe("postponed")
   })
 
   test("both scheduled or missing yields scheduled", () => {
@@ -131,9 +129,6 @@ describe("schemaOrgEventStatus", () => {
     )
     expect(schemaOrgEventStatus("cancelled")).toBe(
       "https://schema.org/EventCancelled",
-    )
-    expect(schemaOrgEventStatus("postponed")).toBe(
-      "https://schema.org/EventPostponed",
     )
   })
 })

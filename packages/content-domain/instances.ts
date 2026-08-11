@@ -4,13 +4,8 @@ import { RRule } from "rrule"
 // Everything in this module is pure: no Sanity client, no I/O, no deletion.
 // The generation script, a future Studio action, and tests all share it.
 
-export type EventStatus = "scheduled" | "cancelled" | "postponed"
-export type ApprovalStatus =
-  | "pending"
-  | "approved"
-  | "paused"
-  | "rejected"
-  | "archived"
+export type EventStatus = "scheduled" | "cancelled"
+export type ApprovalStatus = "pending" | "approved" | "rejected"
 
 export interface Occurrence {
   startDate: string

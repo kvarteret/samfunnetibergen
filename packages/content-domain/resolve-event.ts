@@ -3,7 +3,7 @@
 // this module is the single place that defines which fields a child may
 // inherit from its parent and how real-world status resolves.
 
-export type EventStatus = "scheduled" | "cancelled" | "postponed"
+export type EventStatus = "scheduled" | "cancelled"
 
 /** The complete set of fields a child may inherit from its parent
  * (execplan 008, Decision D7). Everything else — isPromoted, eventStatus,
@@ -70,7 +70,6 @@ export function resolveEffectiveStatus(
 const SCHEMA_ORG_EVENT_STATUS: Record<EventStatus, string> = {
   scheduled: "https://schema.org/EventScheduled",
   cancelled: "https://schema.org/EventCancelled",
-  postponed: "https://schema.org/EventPostponed",
 }
 
 export function schemaOrgEventStatus(status: EventStatus): string {

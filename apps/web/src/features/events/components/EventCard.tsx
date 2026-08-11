@@ -29,7 +29,7 @@ export type EventSummary = {
   recurringLabel?: string | null
   /** Precomputed server-side label for the primary date (e.g. "I dag, kl. 21:00–02:00"). */
   primaryDateLabel?: string | null
-  /** Precomputed server-side label when the event is cancelled or postponed. */
+  /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
   isFree?: boolean
   priceOrdinar?: number | null

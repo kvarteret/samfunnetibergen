@@ -12,6 +12,7 @@ describe("Sanity default migration", () => {
 
     expect(patch).toEqual({
       approvalStatus: "pending",
+      eventStatus: "scheduled",
       isInternalEvent: false,
       isPromoted: false,
       isRecurring: false,
@@ -102,6 +103,8 @@ describe("required content audit", () => {
         title: "Event",
         slug: { current: "event" },
         dates: [{ startDate: "2026-06-12" }],
+        approvalStatus: "approved",
+        eventStatus: "scheduled",
       }),
     ).toEqual([])
   })
@@ -115,7 +118,7 @@ describe("required content audit", () => {
         slug: { current: "event" },
         dates: [{}],
       }),
-    ).toEqual(["dates[].startDate"])
+    ).toEqual(["approvalStatus", "eventStatus", "dates[].startDate"])
   })
 
   it.each([

@@ -33,8 +33,7 @@
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
     "recurringGeneric": "Gjentagende",
-    "statusCancelled": "Avlyst",
-    "statusPostponed": "Utsatt"
+    "statusCancelled": "Kansellert"
   },
   "EventsPage": {
     "title": "Arrangementer",
@@ -60,12 +59,10 @@
     "facebook": "Gå til Facebook-event",
     "addToGoogleCalendar": "Legg til i Google Kalender",
     "addToCalendar": "Last ned .ics-fil",
-    "cancelledNotice": "Dette arrangementet er avlyst.",
-    "postponedNotice": "Dette arrangementet er utsatt. Ny dato kommer.",
+    "cancelledNotice": "Dette arrangementet er kansellert.",
     "partOf": "Del av",
     "childEvents": "Program",
-    "statusCancelled": "Avlyst",
-    "statusPostponed": "Utsatt"
+    "statusCancelled": "Kansellert"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",

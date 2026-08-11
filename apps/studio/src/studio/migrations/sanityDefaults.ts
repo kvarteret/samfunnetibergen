@@ -7,6 +7,7 @@ type SanityDocument = {
 const defaultsByType: Record<string, Record<string, unknown>> = {
   arrangement: {
     approvalStatus: "pending",
+    eventStatus: "scheduled",
     isFree: false,
     isInternalEvent: false,
     isPromoted: false,
@@ -93,6 +94,8 @@ export function findRequiredViolations(document: SanityDocument): string[] {
   if (document._type === "arrangement") {
     requireString("title")
     requireSlug()
+    requireString("approvalStatus")
+    requireString("eventStatus")
     if (!Array.isArray(document.dates) || document.dates.length === 0) {
       missing.push("dates")
     } else if (

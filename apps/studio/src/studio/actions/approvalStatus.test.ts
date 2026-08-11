@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { getApprovalTransitions } from "./approvalStatus"
+import {
+  getApprovalTransitions,
+  getEventStatusTransitions,
+} from "./approvalStatus"
 
 describe("arrangement approval transitions", () => {
   it("allows pending arrangements to be approved or rejected", () => {
@@ -20,46 +23,8 @@ describe("arrangement approval transitions", () => {
     ])
   })
 
-  it("allows approved arrangements to be hidden or archived", () => {
-    expect(getApprovalTransitions("approved")).toEqual([
-      {
-        from: "approved",
-        label: "Skjul midlertidig",
-        status: "paused",
-        tone: "caution",
-      },
-      {
-        from: "approved",
-        label: "Arkiver",
-        status: "archived",
-        tone: "critical",
-      },
-    ])
-  })
-
-  it("allows hidden and archived arrangements to return", () => {
-    expect(getApprovalTransitions("paused")).toEqual([
-      {
-        from: "paused",
-        label: "Gjør synlig",
-        status: "approved",
-        tone: "positive",
-      },
-      {
-        from: "paused",
-        label: "Arkiver",
-        status: "archived",
-        tone: "critical",
-      },
-    ])
-    expect(getApprovalTransitions("archived")).toEqual([
-      {
-        from: "archived",
-        label: "Gjenopprett og publiser",
-        status: "approved",
-        tone: "positive",
-      },
-    ])
+  it("does not change approval status after approval", () => {
+    expect(getApprovalTransitions("approved")).toEqual([])
   })
 
   it("only lets editors and administrators reopen rejected requests", () => {
@@ -80,5 +45,35 @@ describe("arrangement approval transitions", () => {
 
   it("does not offer transitions for unknown states", () => {
     expect(getApprovalTransitions(undefined)).toEqual([])
+  })
+})
+
+describe("arrangement event status transitions", () => {
+  it("only allows approved arrangements to be cancelled", () => {
+    expect(getEventStatusTransitions("approved", "scheduled")).toEqual([
+      {
+        from: "scheduled",
+        label: "Kanseller arrangement",
+        status: "cancelled",
+        tone: "critical",
+      },
+    ])
+    expect(getEventStatusTransitions("pending", "scheduled")).toEqual([])
+  })
+
+  it("only allows cancelled arrangements to return to approved", () => {
+    expect(getEventStatusTransitions("approved", "cancelled")).toEqual([
+      {
+        from: "cancelled",
+        label: "Gjenopprett som godkjent",
+        status: "scheduled",
+        tone: "positive",
+      },
+    ])
+    expect(getEventStatusTransitions("approved", "postponed")).toEqual([])
+  })
+
+  it("treats a missing legacy event status as scheduled", () => {
+    expect(getEventStatusTransitions("approved", undefined)).toHaveLength(1)
   })
 })

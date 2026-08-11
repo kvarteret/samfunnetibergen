@@ -47,14 +47,38 @@ Add relationship and status fields to `arrangement`:
   strong reference means Sanity blocks deleting a parent while children exist,
   which is the behavior we want: removing a series or festival is an explicit
   act of first deleting or detaching its children.
-- `eventStatus`: `scheduled`, `cancelled`, or `postponed`. All three values are
-  fully supported end to end (schema, queries, UI states, feed). Defaults to
-  `scheduled`.
+- `eventStatus`: `scheduled` or `cancelled`. Both values are required and
+  supported end to end (schema, queries, UI states, feed). The field defaults
+  to `scheduled` and is changed through constrained Studio actions rather than
+  direct field editing.
 
 Keep `approvalStatus` as the editorial publication workflow state. Use
 `eventStatus` for the real-world state of the event. The two are orthogonal: a
 cancelled event can still be approved and publicly visible with a cancelled
 state.
+
+### Derived editorial lifecycle (2026-08-11)
+
+The Arrangementer browser presents exactly four mutually exclusive statuses
+for approved top-level events. These are view-time classifications, not four
+stored values:
+
+- `Godkjent`: scheduled and its latest approved own/child start date is today
+  or later, or no date exists;
+- `Kansellert`: cancelled and its latest date is today or later, or no date
+  exists;
+- `Gjennomført`: scheduled and its latest date is earlier than today but still
+  inside the current calendar half-year;
+- `Arkivert`: scheduled with its latest date before the current half-year, or
+  any cancelled event whose latest date is in the past.
+
+The current half-year begins on January 1 or July 1, evaluated using the
+Europe/Oslo date. For a multi-date single, series parent, or festival parent,
+the latest approved own or child date is authoritative. Editors do not write
+completed or archived state. After request approval, the only real-world
+transition is `scheduled` to `cancelled`, and a cancelled event may only return
+to `scheduled` (presented as Godkjent, Gjennomført, or Arkivert according to
+its date).
 
 ### Graph shape constraints
 
@@ -162,8 +186,8 @@ Bulk generation is an editor/admin workflow:
 - existing children whose occurrence is no longer in the rule are flagged in
   the confirm step. Untouched generated children (never edited by a human,
   still `scheduled`, no child-specific field overrides) may be deleted by the
-  editor from that flow. Children that have been edited, cancelled, postponed,
-  or individually approved are **never auto-deleted**; the flow lists them and
+  editor from that flow. Children that have been edited, cancelled, or
+  individually approved are **never auto-deleted**; the flow lists them and
   the editor decides per document (keep as a one-off, cancel, or delete);
 - "untouched" is determined by comparing the child against the exact shape
   generation would produce (only generated fields set, `eventStatus:
@@ -181,9 +205,8 @@ semester, so valid days in other semesters are never presented as obsolete.
 
 Parent `eventStatus` does **not** cascade by writing to children. Instead:
 
-- setting a parent to `cancelled` or `postponed` is surfaced in Studio with a
-  bulk action offering to apply the same status to all future `scheduled`
-  children — an explicit editor choice, not an automatic write;
+- setting a parent to `cancelled` is an explicit Studio action and does not
+  rewrite children;
 - read contracts expose the parent status alongside each child (the child
   projection includes `parentEvent->eventStatus`) so consumers can render a
   "part of cancelled festival" state even when an individual session was not
@@ -234,9 +257,9 @@ page acts as the festival overview and lists all child sessions with links.
 
 Every child event has its own canonical URL and detail page.
 
-Cancelled and postponed events remain queryable. Public surfaces show them with
-a cancelled/postponed badge or detail state instead of silently removing them.
-Approved cancelled and postponed child detail pages bypass the normal
+Cancelled events remain queryable. Public surfaces show them with a Kansellert
+badge or detail state instead of silently removing them. Approved cancelled
+child detail pages bypass the normal
 upcoming-date filter so previously shared canonical URLs do not turn into 404s
 only because the real-world status changed. Listings may filter or de-rank
 cancelled events, but detail routes must stay resolvable.
@@ -249,7 +272,6 @@ to Schema.org:
 
 - `scheduled` → `https://schema.org/EventScheduled`;
 - `cancelled` → `https://schema.org/EventCancelled`;
-- `postponed` → `https://schema.org/EventPostponed`.
 
 Because each occurrence is its own document with its own URL, the current
 `#<date._key>` fragment-id disambiguation in the feed becomes unnecessary for
@@ -286,8 +308,8 @@ fallback in desk lists. The preview must select `parentEvent->title` as a
 fallback and show the event kind and `eventStatus` in the subtitle.
 
 Update Studio desk structure with editorial queues: series parents, festival
-parents, children per parent, pending generated children, cancelled/postponed
-events, and the "series needing regeneration" queue.
+parents, children per parent, pending generated children, cancelled events,
+and the "series needing regeneration" queue.
 
 Update frontend queries under `src/lib/sanity/queries/events.ts`:
 
@@ -389,9 +411,9 @@ Verify public routes and feeds:
   date/location/status;
 - festival parent pages list child sessions;
 - promoted parent renders without promoting or duplicating children;
-- approved cancelled and postponed child detail pages remain accessible by
+- approved cancelled child detail pages remain accessible by
   slug;
-- the JSON-LD feed emits concrete scheduled, cancelled, and postponed entries
+- the JSON-LD feed emits concrete scheduled and cancelled entries
   with Schema.org status URLs and no `rrule` extension.
 
 Run `npm run sanity:typegen` after schema/query changes and `npm run build`

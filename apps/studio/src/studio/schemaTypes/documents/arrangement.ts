@@ -11,6 +11,7 @@ import {
 } from "sanity"
 
 import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
+import { ArrangementDocumentInput } from "../../components/ArrangementDocumentInput"
 import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 
@@ -24,8 +25,7 @@ const EVENT_KIND_OPTIONS = [
 
 const EVENT_STATUS_OPTIONS = [
   { title: "Planlagt", value: "scheduled" },
-  { title: "Avlyst", value: "cancelled" },
-  { title: "Utsatt", value: "postponed" },
+  { title: "Kansellert", value: "cancelled" },
 ]
 
 const KIND_LABELS: Record<string, string> = Object.fromEntries(
@@ -47,6 +47,7 @@ export const arrangement = defineType({
   title: "Arrangement",
   type: "document",
   icon: icons.calendar,
+  components: { input: ArrangementDocumentInput },
   groups: [
     {
       ...ALL_FIELDS_GROUP,
@@ -366,13 +367,13 @@ export const arrangement = defineType({
     // ─── Admin / approval ──────────────────────────────────────
     defineField({
       name: "eventStatus",
-      title: "Hva skjer med arrangementet?",
-      description:
-        "Avlyste og utsatte arrangementer kan fortsatt være synlige på nettsiden, med tydelig merking.",
+      title: "Arrangementstatus",
       type: "string",
       group: "admin",
       initialValue: "scheduled",
+      hidden: true,
       options: { list: EVENT_STATUS_OPTIONS, layout: "radio" },
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "approvalStatus",
@@ -381,6 +382,7 @@ export const arrangement = defineType({
       group: "admin",
       initialValue: "pending",
       hidden: true,
+      validation: rule => rule.required(),
     }),
     defineField({
       name: "submittedBy",
@@ -423,13 +425,10 @@ export const arrangement = defineType({
       const statusLabel: Record<string, string> = {
         pending: "⏳ Venter",
         approved: "✅ Godkjent",
-        paused: "⏸ Satt på pause",
         rejected: "❌ Avvist",
-        archived: "📦 Arkivert",
       }
       const eventStatusLabel: Record<string, string> = {
-        cancelled: "🚫 Avlyst",
-        postponed: "⏭ Utsatt",
+        cancelled: "🚫 Kansellert",
       }
       const kindLabel =
         eventKind && eventKind !== "single" ? KIND_LABELS[eventKind] : undefined

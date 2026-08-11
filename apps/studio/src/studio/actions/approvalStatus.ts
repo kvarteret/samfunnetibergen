@@ -1,9 +1,5 @@
-export type ApprovalStatus =
-  | "pending"
-  | "approved"
-  | "paused"
-  | "rejected"
-  | "archived"
+export type ApprovalStatus = "pending" | "approved" | "rejected"
+export type EventStatus = "scheduled" | "cancelled"
 
 export type ApprovalTransition = {
   from: ApprovalStatus
@@ -11,6 +7,13 @@ export type ApprovalTransition = {
   status: ApprovalStatus
   tone: "positive" | "critical" | "caution"
   roles?: string[]
+}
+
+export type EventStatusTransition = {
+  from: EventStatus
+  label: string
+  status: EventStatus
+  tone: "positive" | "critical"
 }
 
 export const approvalTransitions: Record<ApprovalStatus, ApprovalTransition[]> =
@@ -38,43 +41,30 @@ export const approvalTransitions: Record<ApprovalStatus, ApprovalTransition[]> =
         roles: ["administrator", "editor"],
       },
     ],
-    approved: [
-      {
-        from: "approved",
-        label: "Skjul midlertidig",
-        status: "paused",
-        tone: "caution",
-      },
-      {
-        from: "approved",
-        label: "Arkiver",
-        status: "archived",
-        tone: "critical",
-      },
-    ],
-    paused: [
-      {
-        from: "paused",
-        label: "Gjør synlig",
-        status: "approved",
-        tone: "positive",
-      },
-      {
-        from: "paused",
-        label: "Arkiver",
-        status: "archived",
-        tone: "critical",
-      },
-    ],
-    archived: [
-      {
-        from: "archived",
-        label: "Gjenopprett og publiser",
-        status: "approved",
-        tone: "positive",
-      },
-    ],
+    approved: [],
   }
+
+export const eventStatusTransitions: Record<
+  EventStatus,
+  EventStatusTransition[]
+> = {
+  scheduled: [
+    {
+      from: "scheduled",
+      label: "Kanseller arrangement",
+      status: "cancelled",
+      tone: "critical",
+    },
+  ],
+  cancelled: [
+    {
+      from: "cancelled",
+      label: "Gjenopprett som godkjent",
+      status: "scheduled",
+      tone: "positive",
+    },
+  ],
+}
 
 export function getApprovalTransitions(
   status: string | undefined,
@@ -86,4 +76,14 @@ export function getApprovalTransitions(
       !transition.roles ||
       transition.roles.some(role => roleNames.includes(role)),
   )
+}
+
+export function getEventStatusTransitions(
+  approvalStatus: string | undefined,
+  eventStatus: string | undefined,
+): EventStatusTransition[] {
+  if (approvalStatus !== "approved") return []
+  const effectiveStatus = eventStatus ?? "scheduled"
+  if (!(effectiveStatus in eventStatusTransitions)) return []
+  return eventStatusTransitions[effectiveStatus as EventStatus]
 }

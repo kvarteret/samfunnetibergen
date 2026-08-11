@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  arrangementListStatus,
   countPendingRequests,
   deduplicatePreviewDocuments,
   defaultArrangementFilters,
@@ -47,28 +48,28 @@ const items = [
     dates: [{ startDate: "2026-08-03" }],
   },
   {
-    _id: "archived",
-    title: "Arkivert konsert",
+    _id: "completed",
+    title: "Gjennomført konsert",
     eventKind: "single",
-    approvalStatus: "archived",
+    approvalStatus: "approved",
     eventStatus: "scheduled",
-    dates: [{ startDate: "2026-06-01" }],
+    dates: [{ startDate: "2026-07-01" }],
   },
   {
     _id: "cancelled",
-    title: "Avlyst konsert",
+    title: "Kansellert konsert",
     eventKind: "single",
     approvalStatus: "approved",
     eventStatus: "cancelled",
     dates: [{ startDate: "2026-08-04" }],
   },
   {
-    _id: "hidden-cancelled",
-    title: "Skjult avlyst konsert",
+    _id: "archived",
+    title: "Arkivert konsert",
     eventKind: "single",
-    approvalStatus: "paused",
-    eventStatus: "cancelled",
-    dates: [{ startDate: "2026-08-05" }],
+    approvalStatus: "approved",
+    eventStatus: "scheduled",
+    dates: [{ startDate: "2026-06-01" }],
   },
 ]
 
@@ -80,8 +81,6 @@ describe("arrangement filters", () => {
         {
           ...defaultArrangementFilters(),
           format: "single",
-          status: "all",
-          date: "upcoming",
           taxonomyGroupId: "music",
           query: "kon",
         },
@@ -96,8 +95,8 @@ describe("arrangement filters", () => {
         items,
         {
           ...defaultArrangementFilters(),
-          date: "past",
           format: "recurring",
+          status: "completed",
         },
         "2026-07-29",
       ).map(item => item._id),
@@ -116,31 +115,21 @@ describe("arrangement filters", () => {
 
   it("shows approved upcoming arrangements by default", () => {
     expect(defaultArrangementFilters()).toMatchObject({
-      date: "upcoming",
       format: "all",
       status: "approved",
     })
   })
 
-  it("uses the date and status filters instead of an archive view", () => {
-    const filters = {
-      ...defaultArrangementFilters(),
-      date: "past" as const,
-      status: "all" as const,
-    }
-
-    expect(filters).toMatchObject({
-      date: "past",
-      status: "all",
-    })
-    expect(
-      filterArrangements(items, filters, "2026-07-29").map(item => item._id),
-    ).toEqual(["archived", "series"])
-  })
-
-  it("assigns each arrangement to one combined status", () => {
+  it("assigns each arrangement to exactly one derived status", () => {
     const defaults = defaultArrangementFilters()
 
+    expect(
+      filterArrangements(
+        items,
+        { ...defaults, status: "completed" },
+        "2026-07-29",
+      ).map(item => item._id),
+    ).toEqual(["completed", "series"])
     expect(
       filterArrangements(
         items,
@@ -151,10 +140,81 @@ describe("arrangement filters", () => {
     expect(
       filterArrangements(
         items,
-        { ...defaults, status: "paused" },
+        { ...defaults, status: "archived" },
         "2026-07-29",
       ).map(item => item._id),
-    ).toEqual(["hidden-cancelled"])
+    ).toEqual(["archived"])
+  })
+
+  it.each([
+    ["future scheduled", { dates: [{ startDate: "2026-08-01" }] }, "approved"],
+    ["today scheduled", { dates: [{ startDate: "2026-07-29" }] }, "approved"],
+    [
+      "past this half-year",
+      { dates: [{ startDate: "2026-07-01" }] },
+      "completed",
+    ],
+    [
+      "past previous half-year",
+      { dates: [{ startDate: "2026-06-30" }] },
+      "archived",
+    ],
+    [
+      "future cancelled",
+      { eventStatus: "cancelled", dates: [{ startDate: "2026-08-01" }] },
+      "cancelled",
+    ],
+    [
+      "today cancelled",
+      { eventStatus: "cancelled", dates: [{ startDate: "2026-07-29" }] },
+      "cancelled",
+    ],
+    [
+      "past cancelled",
+      { eventStatus: "cancelled", dates: [{ startDate: "2026-07-28" }] },
+      "archived",
+    ],
+    ["missing date", { dates: [] }, "approved"],
+    [
+      "missing cancelled date",
+      { eventStatus: "cancelled", dates: [] },
+      "cancelled",
+    ],
+  ])("derives %s", (_label, item, expected) => {
+    expect(
+      arrangementListStatus(
+        { _id: "matrix", approvalStatus: "approved", ...item },
+        "2026-07-29",
+      ),
+    ).toBe(expected)
+  })
+
+  it("switches half-years on January 1 and July 1", () => {
+    expect(
+      arrangementListStatus(
+        { _id: "new-year", dates: [{ startDate: "2026-12-31" }] },
+        "2027-01-01",
+      ),
+    ).toBe("archived")
+    expect(
+      arrangementListStatus(
+        { _id: "summer", dates: [{ startDate: "2026-06-30" }] },
+        "2026-07-01",
+      ),
+    ).toBe("archived")
+  })
+
+  it("uses the latest own or approved child date", () => {
+    expect(
+      arrangementListStatus(
+        {
+          _id: "multi",
+          dates: [{ startDate: "2026-01-01" }],
+          childDates: ["2026-07-28", "2026-08-02"],
+        },
+        "2026-07-29",
+      ),
+    ).toBe("approved")
   })
 
   it("prefers drafts while deduplicating preview results", () => {

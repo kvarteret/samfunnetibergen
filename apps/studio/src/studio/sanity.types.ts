@@ -507,8 +507,8 @@ export type Arrangement = {
   priceMedlem?: number
   ticketUrl?: string
   facebookUrl?: string
-  eventStatus?: "scheduled" | "cancelled" | "postponed"
-  approvalStatus?: string
+  eventStatus: "scheduled" | "cancelled"
+  approvalStatus: string
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string

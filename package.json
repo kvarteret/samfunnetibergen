@@ -46,6 +46,8 @@
     "sanity:migrate:private-event-children:write": "npm --workspace @samfunnet/studio run sanity:migrate:private-event-children:write",
     "sanity:migrate:arrangement-editorial-cleanup": "npm --workspace @samfunnet/studio run sanity:migrate:arrangement-editorial-cleanup",
     "sanity:migrate:arrangement-editorial-cleanup:write": "npm --workspace @samfunnet/studio run sanity:migrate:arrangement-editorial-cleanup:write",
+    "sanity:migrate:arrangement-statuses": "npm --workspace @samfunnet/studio run sanity:migrate:arrangement-statuses",
+    "sanity:migrate:arrangement-statuses:write": "npm --workspace @samfunnet/studio run sanity:migrate:arrangement-statuses:write",
     "crescat:introspect": "npm --workspace @samfunnet/web run crescat:introspect",
     "crescat:cleanup": "npm --workspace @samfunnet/web run crescat:cleanup",
     "typecheck": "npm run typecheck:web && npm run typecheck:studio && npm run typecheck:domain",
