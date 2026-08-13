@@ -4,9 +4,9 @@ import { sourcedImageProjection } from "../fragments/images"
 
 export const studentGroupsQuery =
   defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
-    "name": coalesce(name, "[Mangler gruppenavn]"),
+    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),
     "slug": coalesce(slug.current, ""),
-    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
+    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),
     email,
     website,
     "links": coalesce(links[] {
@@ -19,7 +19,7 @@ export const studentGroupsQuery =
     "logoUrl": logo.asset->url,
     "image": image ${sourcedImageProjection},
     "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
-        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),
         "slug": coalesce(slug.current, "")
     }, [])
 }`)
@@ -31,10 +31,10 @@ export const studentGroupSlugsQuery =
 
 export const studentGroupBySlugQuery =
   defineQuery(`*[_type == "studentGroup" && slug.current == $slug][0] {
-    "name": coalesce(name, "[Mangler gruppenavn]"),
+    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),
     "slug": coalesce(slug.current, ""),
-    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
-    "body": coalesce(body, []),
+    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),
+    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body, []),
     email,
     website,
     "links": coalesce(links[] {
@@ -45,13 +45,13 @@ export const studentGroupBySlugQuery =
     "category": coalesce(category, "arbeidsgruppe"),
     "logoUrl": logo.asset->url,
     "parentGroup": parentGroup-> {
-        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),
         "slug": coalesce(slug.current, "")
     },
     "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
-        "name": coalesce(name, "[Mangler gruppenavn]"),
+        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),
         "slug": coalesce(slug.current, ""),
-        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),
+        "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),
         "category": coalesce(category, "arbeidsgruppe"),
         "image": image ${sourcedImageProjection}
     }, []),

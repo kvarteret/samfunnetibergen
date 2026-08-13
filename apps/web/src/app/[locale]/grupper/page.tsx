@@ -13,40 +13,37 @@ import {
 import { buildPageMetadata } from "@/lib/page-metadata"
 import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
+import { getTranslations } from "next-intl/server"
 
 export const revalidate = 300
 
-const PAGE_TITLE = "Bli frivillig"
-const PAGE_DESCRIPTION =
-  "Bli frivillig i Bergen og finn studentgruppen som passer for deg. Se mulighetene i Samfunnet i Bergen og meld interesse i dag."
-const PAGE_INTRO =
-  "Vil du bli frivillig i Bergen? Finn en studentgruppe som passer interessene dine, bli kjent med studentmiljøet og meld interesse."
-
 type GroupCategory = NonNullable<StudentGroupSummary["category"]>
 
-type GroupSection = {
-  title: string
+const GROUP_SECTION_CATEGORIES: Array<{
+  key: "categoryWork" | "categoryPartners"
   categories: GroupCategory[]
-}
-
-const GROUP_SECTIONS: GroupSection[] = [
+}> = [
   {
-    title: "Arbeidsgrupper & Komiteer",
+    key: "categoryWork",
     categories: ["arbeidsgruppe", "komitee"],
   },
   {
-    title: "Samarbeidspartnere",
+    key: "categoryPartners",
     categories: ["dorg", "borg"],
   },
 ]
 
 const groupCategories = new Set<string>(
-  GROUP_SECTIONS.flatMap(section => section.categories),
+  GROUP_SECTION_CATEGORIES.flatMap(section => section.categories),
 )
 
-const groupBySection = (groups: StudentGroupSummary[]) =>
-  GROUP_SECTIONS.map(section => ({
-    ...section,
+const groupBySection = (
+  groups: StudentGroupSummary[],
+  t: (key: string) => string,
+) =>
+  GROUP_SECTION_CATEGORIES.map(section => ({
+    title: t(section.key),
+    categories: section.categories,
     groups: groups.filter(
       group => group.category && section.categories.includes(group.category),
     ),
@@ -69,24 +66,29 @@ export async function generateMetadata({ params }: GroupsPageProps) {
   const locale = await resolvePageLocale(params)
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/grupper`,
-    title: PAGE_TITLE,
-    description: PAGE_DESCRIPTION,
+    title: locale === "en" ? "Volunteer" : "Bli frivillig",
+    description:
+      locale === "en"
+        ? "Find a student group that matches your interests and register your interest in volunteering."
+        : "Bli frivillig i Bergen og finn studentgruppen som passer for deg.",
   })
 }
 
 export default async function GroupsPage({ params }: GroupsPageProps) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
+  const t = await getTranslations("GroupsPage")
 
   const [content, groups] = await Promise.all([
-    fetchGroupsPageContent(),
-    fetchStudentGroups(),
+    fetchGroupsPageContent(locale),
+    fetchStudentGroups(locale),
   ])
 
   const sections = [
-    ...groupBySection(groups),
-    { title: "Andre grupper", groups: uncategorizedGroups(groups) },
+    ...groupBySection(groups, t),
+    { title: t("categoryOther"), groups: uncategorizedGroups(groups) },
   ].filter(section => section.groups.length > 0)
 
   const allLabels = Array.from(
@@ -97,31 +99,43 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
     <div className="space-y-12">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <header className="space-y-5">
-          {content?.eyebrow ? (
+          {content?.eyebrow &&
+          (locale === "nb" || content.hasEnglishTranslation) ? (
             <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
               {content.eyebrow}
             </p>
           ) : null}
           <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-            {PAGE_TITLE}
+            {locale === "nb" || content?.hasEnglishTranslation
+              ? (content?.title ?? t("title"))
+              : t("title")}
           </h1>
           <p className="max-w-3xl text-xl leading-8 text-foreground">
-            {PAGE_INTRO}
+            {locale === "nb" || content?.hasEnglishTranslation
+              ? (content?.description ?? t("intro"))
+              : t("intro")}
           </p>
         </header>
         <ValgomatenInfobox />
       </div>
 
-      <GroupsFilter allLabels={allLabels} sections={sections} />
+      <GroupsFilter
+        allLabel={t("all")}
+        allLabels={allLabels}
+        sections={sections}
+      />
 
-      {content?.faq?.length ? (
+      {content?.faq?.filter(
+        item => locale === "nb" || item.hasEnglishTranslation,
+      ).length ? (
         <section className="space-y-5">
           <h2 className="font-heading text-4xl leading-none text-foreground">
-            Ofte stilte spørsmål
+            {t("faq")}
           </h2>
           <Accordion>
-            {content.faq.map(
-              (item: NonNullable<GroupsPageContent["faq"]>[number]) => (
+            {content.faq
+              .filter(item => locale === "nb" || item.hasEnglishTranslation)
+              .map((item: NonNullable<GroupsPageContent["faq"]>[number]) => (
                 <AccordionItem key={item._key} value={item._key}>
                   <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionPanel>
@@ -132,8 +146,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
                     </div>
                   </AccordionPanel>
                 </AccordionItem>
-              ),
-            )}
+              ))}
           </Accordion>
         </section>
       ) : null}

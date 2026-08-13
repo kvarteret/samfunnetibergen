@@ -4,6 +4,7 @@ import { defineConfig, defineLocaleResourceBundle } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { markdownSchema } from "sanity-plugin-markdown"
+import { internationalizedArray } from "sanity-plugin-internationalized-array"
 import { dataset, projectId } from "./src/env"
 import { arrangementDocumentActions } from "./src/studio/actions/arrangementDocumentActions"
 import { singletonTypeNames } from "./src/studio/documentTypes"
@@ -53,6 +54,17 @@ const config = defineConfig({
     }),
     visionTool(),
     markdownSchema(),
+    internationalizedArray({
+      languages: [
+        { id: "nb", title: "Norsk" },
+        { id: "en", title: "English" },
+      ],
+      defaultLanguages: ["nb"],
+      fieldTypes: ["string", "text", "portableTextContent"],
+      languageFilter: {
+        documentTypes: ["groupsPage", "studentGroup"],
+      },
+    }),
     assist(),
   ],
   document: {

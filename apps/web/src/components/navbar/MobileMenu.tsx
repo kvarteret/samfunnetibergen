@@ -8,6 +8,8 @@ import { useState } from "react"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { PaperMenuSection } from "./PaperPicker"
+import { LanguageSwitcher } from "./LanguageSwitcher"
+import { useTranslations } from "next-intl"
 
 type MobileMenuProps = {
   items: NavItem[]
@@ -18,6 +20,7 @@ const navShellClass =
 const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 
 export function MobileMenu({ items }: MobileMenuProps) {
+  const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
 
   const close = () => setOpen(false)
@@ -25,7 +28,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
   return (
     <Dialog.Root onOpenChange={setOpen} open={open}>
       <Dialog.Trigger
-        aria-label="Åpne meny"
+        aria-label={t("openMenu")}
         className="p-3 text-foreground focus-brutal lg:hidden"
       >
         <Menu aria-hidden className="size-6" />
@@ -33,7 +36,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
 
       <Dialog.Portal>
         <Dialog.Popup className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden">
-          <Dialog.Title className="sr-only">Hovedmeny</Dialog.Title>
+          <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
           <div className="shrink-0">
             <div className={navShellClass}>
@@ -53,7 +56,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 />
               </Link>
               <Dialog.Close
-                aria-label="Lukk meny"
+                aria-label={t("closeMenu")}
                 className="p-3 text-foreground focus-brutal"
               >
                 <X aria-hidden className="size-6" />
@@ -62,13 +65,16 @@ export function MobileMenu({ items }: MobileMenuProps) {
           </div>
 
           <nav
-            aria-label="Mobilnavigasjon"
+            aria-label={t("mobileAriaLabel")}
             className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
           >
             {items.map(item => (
               <MobileNavItem item={item} key={item._key} onClose={close} />
             ))}
           </nav>
+          <div className="border-t-2 border-border p-4">
+            <LanguageSwitcher />
+          </div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

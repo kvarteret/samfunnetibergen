@@ -56,12 +56,20 @@ export const sponsorsPageQuery =
 
 export const groupsPageQuery =
   defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
-    eyebrow,
+    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
+    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),
+    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),
+    "hasEnglishTranslation": defined(localizedTitle[language == "en"][0].value),
     "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     "faq": coalesce(faq[] {
         _key,
-        "question": coalesce(question, "[Mangler spørsmål]"),
-        "answer": coalesce(answer, [])
+        "hasEnglishTranslation": defined(localizedQuestion[language == "en"][0].value),
+        "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, question, "[Mangler spørsmål]"),
+        "answer": select(
+          defined(localizedAnswer[language == $locale][0].value) => string::split(localizedAnswer[language == $locale][0].value, "\n"),
+          defined(localizedAnswer[language == "nb"][0].value) => string::split(localizedAnswer[language == "nb"][0].value, "\n"),
+          coalesce(answer, [])
+        )
     }, [])
 }`)
 

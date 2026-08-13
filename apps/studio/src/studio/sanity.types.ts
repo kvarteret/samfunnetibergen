@@ -521,11 +521,14 @@ export type StudentGroup = {
   _updatedAt: string
   _rev: string
   name: string
+  localizedName?: InternationalizedArrayString
   slug: Slug
   category: "arbeidsgruppe" | "komitee" | "dorg" | "borg"
   parentGroup?: StudentGroupReference
   summary: string
+  localizedSummary?: InternationalizedArrayText
   body?: PortableTextContent
+  localizedBody?: InternationalizedArrayPortableTextContent
   recruitmentLabel?: string
   recruitmentLead?: string
   recruitmentSections?: Array<{
@@ -562,11 +565,29 @@ export type StudentGroup = {
   orderRank?: string
 }
 
+export type InternationalizedArrayPortableTextContent = Array<
+  {
+    _key: string
+  } & InternationalizedArrayPortableTextContentValue
+>
+
+export type InternationalizedArrayText = Array<
+  {
+    _key: string
+  } & InternationalizedArrayTextValue
+>
+
 export type Slug = {
   _type: "slug"
   current: string
   source?: string
 }
+
+export type InternationalizedArrayString = Array<
+  {
+    _key: string
+  } & InternationalizedArrayStringValue
+>
 
 export type Room = {
   _id: string
@@ -719,8 +740,11 @@ export type GroupsPage = {
   _updatedAt: string
   _rev: string
   eyebrow?: string
+  localizedEyebrow?: InternationalizedArrayString
   title: string
+  localizedTitle?: InternationalizedArrayString
   description?: string
+  localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
       _key: string
@@ -728,7 +752,9 @@ export type GroupsPage = {
   >
   faq?: Array<{
     question: string
+    localizedQuestion?: InternationalizedArrayString
     answer: Array<string>
+    localizedAnswer?: InternationalizedArrayText
     _type: "faqItem"
     _key: string
   }>
@@ -918,6 +944,24 @@ export type SanityAssistSchemaTypeField = {
   >
 }
 
+export type InternationalizedArrayPortableTextContentValue = {
+  _type: "internationalizedArrayPortableTextContentValue"
+  value?: PortableTextContent
+  language: string
+}
+
+export type InternationalizedArrayTextValue = {
+  _type: "internationalizedArrayTextValue"
+  value?: string
+  language: string
+}
+
+export type InternationalizedArrayStringValue = {
+  _type: "internationalizedArrayStringValue"
+  value?: string
+  language: string
+}
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch"
   background?: string
@@ -1056,7 +1100,10 @@ export type AllSanitySchemaTypes =
   | EventTypeReference
   | Arrangement
   | StudentGroup
+  | InternationalizedArrayPortableTextContent
+  | InternationalizedArrayText
   | Slug
+  | InternationalizedArrayString
   | Room
   | EventTaxonomyGroupReference
   | EventType
@@ -1083,6 +1130,9 @@ export type AllSanitySchemaTypes =
   | SanityAssistInstructionFieldRef
   | SanityAssistInstruction
   | SanityAssistSchemaTypeField
+  | InternationalizedArrayPortableTextContentValue
+  | InternationalizedArrayTextValue
+  | InternationalizedArrayStringValue
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions

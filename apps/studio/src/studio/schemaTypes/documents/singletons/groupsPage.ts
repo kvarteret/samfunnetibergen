@@ -19,6 +19,13 @@ export const groupsPage = defineType({
       group: "hero",
     }),
     defineField({
+      name: "localizedEyebrow",
+      title: "Eyebrow (oversettelser)",
+      description: "Oversett denne korte teksten per språk.",
+      type: "internationalizedArrayString",
+      group: "hero",
+    }),
+    defineField({
       name: "title",
       title: "Tittel",
       type: "string",
@@ -26,10 +33,22 @@ export const groupsPage = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "hero",
+    }),
+    defineField({
       name: "description",
       title: "Beskrivelse",
       type: "text",
       rows: 4,
+      group: "hero",
+    }),
+    defineField({
+      name: "localizedDescription",
+      title: "Beskrivelse (oversettelser)",
+      type: "internationalizedArrayText",
       group: "hero",
     }),
     defineField({
@@ -57,11 +76,23 @@ export const groupsPage = defineType({
               validation: rule => rule.required(),
             }),
             defineField({
+              name: "localizedQuestion",
+              title: "Spørsmål (oversettelser)",
+              type: "internationalizedArrayString",
+            }),
+            defineField({
               name: "answer",
               title: "Svar",
               type: "array",
               of: [defineArrayMember({ type: "text" })],
               validation: rule => rule.required().min(1),
+            }),
+            defineField({
+              name: "localizedAnswer",
+              title: "Svar (oversettelser)",
+              description:
+                "Skriv ett avsnitt per linje. Linjeskift brukes som avsnitt på nettsiden.",
+              type: "internationalizedArrayText",
             }),
           ],
           preview: { select: { title: "question" } },

@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,6 +17,7 @@ import { MobileMenu } from "./MobileMenu"
 import { NavbarScrollShell } from "./NavbarScrollShell"
 import { NavbarOpenStatus } from "./NavbarOpenStatus"
 import { PaperMenuSection } from "./PaperPicker"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 
 const moreItem: NavItem = {
   _key: "static-more",
@@ -102,13 +104,37 @@ const usefulInfoItem: NavItem = {
   children: [],
 }
 
-function orderedNavItems() {
+function orderedNavItems(t: (key: string) => string) {
   return [
-    volunteerItem,
-    arrangementerItem,
-    bookingItem,
-    usefulInfoItem,
-    moreItem,
+    { ...volunteerItem, label: t("volunteer") },
+    { ...arrangementerItem, label: t("events") },
+    {
+      ...bookingItem,
+      label: t("booking"),
+      children: bookingItem.children?.map(group => ({
+        ...group,
+        items: group.items?.map(item => ({ ...item, label: t("karaoke") })),
+      })),
+    },
+    { ...usefulInfoItem, label: t("useful") },
+    {
+      ...moreItem,
+      label: t("more"),
+      children: moreItem.children?.map(group => ({
+        ...group,
+        items: group.items?.map(item => ({
+          ...item,
+          label:
+            item._key === "static-contact"
+              ? t("contact")
+              : item._key === "static-sponsors"
+                ? t("sponsors")
+                : item._key === "static-link-in-bio"
+                  ? t("linkInBio")
+                  : t("publicDocuments"),
+        })),
+      })),
+    },
   ]
 }
 
@@ -135,12 +161,13 @@ export function Navbar({
   houseHours?: HouseHoursContent | null
   initialNow: string
 }) {
-  const items = orderedNavItems()
+  const t = useTranslations("Navigation")
+  const items = orderedNavItems(t)
 
   return (
     <NavbarScrollShell>
       <nav
-        aria-label="Hovednavigasjon"
+        aria-label={t("ariaLabel")}
         className="mx-auto flex max-w-7xl items-center justify-between px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
       >
         <div className="flex min-w-0 items-center gap-4">
@@ -167,7 +194,10 @@ export function Navbar({
           />
         </div>
 
-        <DesktopNav items={items} />
+        <div className="flex items-center gap-3">
+          <DesktopNav items={items} />
+          <LanguageSwitcher />
+        </div>
 
         <MobileMenu items={items} />
       </nav>

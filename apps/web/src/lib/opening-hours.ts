@@ -42,11 +42,6 @@ export interface OpeningHoursDaySummary {
   ranges: SlotRange[]
 }
 
-const vacationReopenDateFormatter = new Intl.DateTimeFormat("nb-NO", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-})
 const osloDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
   hour: "2-digit",
@@ -56,30 +51,7 @@ const osloDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Europe/Oslo",
   year: "numeric",
 })
-const openingDateFormatter = new Intl.DateTimeFormat("nb-NO", {
-  day: "numeric",
-  month: "long",
-})
-
 const MINUTES_IN_DAY = 24 * 60
-const WEEKDAY_SHORT_LABELS: Record<number, string> = {
-  1: "Man",
-  2: "Tir",
-  3: "Ons",
-  4: "Tor",
-  5: "Fre",
-  6: "Lør",
-  7: "Søn",
-}
-const WEEKDAY_LONG_LABELS: Record<number, string> = {
-  1: "mandag",
-  2: "tirsdag",
-  3: "onsdag",
-  4: "torsdag",
-  5: "fredag",
-  6: "lørdag",
-  7: "søndag",
-}
 
 function osloDateTimeParts(date: Date) {
   const parts = osloDateTimeFormatter.formatToParts(date)
@@ -138,16 +110,26 @@ export function isVacationModeActive(
 export function formatVacationModeNotice(
   dateStr: string,
   vacationMode?: VacationMode | null,
+  locale: "nb" | "en" = "nb",
 ): string | null {
   if (!isVacationModeActive(dateStr, vacationMode)) return null
-  if (!vacationMode?.to) return "STENGT."
-  return `Vi åpner igjen ${vacationReopenDateFormatter.format(
-    new Date(`${vacationMode.to}T00:00:00`),
-  )}`
+  if (!vacationMode?.to) return locale === "en" ? "Closed." : "STENGT."
+  const date = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${vacationMode.to}T00:00:00`))
+  return `${locale === "en" ? "We reopen" : "Vi åpner igjen"} ${date}`
 }
 
-export function formatOpeningDate(dateStr: string): string {
-  return openingDateFormatter.format(new Date(`${dateStr}T00:00:00`))
+export function formatOpeningDate(
+  dateStr: string,
+  locale: "nb" | "en" = "nb",
+): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${dateStr}T00:00:00`))
 }
 
 export function timeToMinutes(time?: string | null): number | null {
@@ -168,20 +150,25 @@ export function formatOpeningHoursTime(minutes: number): string {
 
 export function formatWeekdays(
   weekdays?: Array<number | null> | null,
+  locale: "nb" | "en" = "nb",
 ): string | null {
   const days = [
     ...new Set((weekdays ?? []).filter((day): day is number => day !== null)),
   ].sort((a, b) => a - b)
   if (!days.length) return null
 
+  const labels =
+    locale === "en"
+      ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      : ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"]
   const isContiguous = days.every(
     (day, index) => index === 0 || day === days[index - 1] + 1,
   )
   if (isContiguous && days.length > 1) {
-    return `${WEEKDAY_SHORT_LABELS[days[0]]}-${WEEKDAY_SHORT_LABELS[days[days.length - 1]]}`
+    return `${labels[days[0] - 1]}-${labels[days[days.length - 1] - 1]}`
   }
 
-  return days.map(day => WEEKDAY_SHORT_LABELS[day]).join(", ")
+  return days.map(day => labels[day - 1]).join(", ")
 }
 
 export function formatOpeningHoursRow(row: OpeningHoursRow): string | null {
@@ -321,10 +308,23 @@ export function openingHoursDaySummaries(
   hours?: OpeningHours | null,
   closedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
+  locale: "nb" | "en" = "nb",
 ): OpeningHoursDaySummary[] {
+  const labels =
+    locale === "en"
+      ? [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ]
+      : ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"]
   return buildDateSequence(isoDate(startDate), count).map(date => ({
     date,
-    dayLabel: WEEKDAY_LONG_LABELS[isoWeekday(date)],
+    dayLabel: labels[isoWeekday(date) - 1],
     ranges: openingRangesForDate(date, hours, closedDates, vacationMode),
   }))
 }
