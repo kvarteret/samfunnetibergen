@@ -30,11 +30,19 @@ Both repositories use the same deterministic slug rule without aliases. In
 Studio, an existing group slug is hidden and read-only; it is only generated
 while creating a new group.
 
+The `quiz-gruppen` Sanity child group is an intentional exception to the
+one-slug rule: Personal resolves that public slug to its active `kultur` group
+(group ID 289) and keeps `Quiz-gruppen` as the displayed choice label. This
+lets the child page use the parent group's operational volunteer records while
+keeping the public choice specific.
+
 Verified source:
 
 - `apps/web/src/features/grupper/components/GroupVolunteerForm.tsx`
 - `apps/web/src/app/[locale]/grupper/[slug]/page.tsx`
 - `apps/web/src/app/api/volunteer-prospects/route.ts`
+- `../kvarteret-personal/app/domain/volunteer_applications/service.py`
+- `../kvarteret-personal/tests/unit/domain/test_data_services.py`
 
 ## Generated Personal Client
 
