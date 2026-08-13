@@ -9,11 +9,21 @@ export const editorialSection = defineType({
   fields: [
     defineField({ name: "title", title: "Tittel", type: "string" }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
       name: "body",
       title: "Innhold",
       type: "portableTextContent",
       description: "Bruk dette for tekst med lenker i løpende innhold.",
       validation: rule => rule.required(),
+    }),
+    defineField({
+      name: "localizedBody",
+      title: "Innhold (oversettelser)",
+      type: "internationalizedArrayPortableTextContent",
     }),
   ],
   preview: {

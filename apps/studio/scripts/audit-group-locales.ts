@@ -8,6 +8,7 @@ async function main() {
     `*[!(_id in path("drafts.**")) && _type in ["groupsPage", "studentGroup"]]{
       _id, _type, localizedName, localizedSummary, localizedBody,
       localizedTitle, localizedDescription,
+      sections[]{_key, title, body, localizedTitle, localizedBody},
       faq[]{_key, localizedQuestion, localizedAnswer}
     }`,
   )

@@ -156,18 +156,22 @@ function toEventSummary(
   }
 }
 
-const promotedDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+function dateFormatter(locale: AppLocale, options: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", options)
+}
+
+const promotedDateOptions: Intl.DateTimeFormatOptions = {
   day: "numeric",
   month: "long",
   timeZone: "Europe/Oslo",
-})
+}
 
-const upcomingDateFormatter = new Intl.DateTimeFormat("nb-NO", {
+const upcomingDateOptions: Intl.DateTimeFormatOptions = {
   day: "2-digit",
   month: "2-digit",
   timeZone: "Europe/Oslo",
   weekday: "long",
-})
+}
 
 function parseEventDate(dateStr: string) {
   if (!dateStr) return null
@@ -179,16 +183,22 @@ function capitalize(value: string) {
   return value ? `${value[0]?.toUpperCase()}${value.slice(1)}` : value
 }
 
-function formatPromotedDate(date: EventDateEntry) {
+function formatPromotedDate(date: EventDateEntry, locale: AppLocale) {
   const parsed = parseEventDate(date.startDate)
-  return parsed ? promotedDateFormatter.format(parsed) : null
+  return parsed
+    ? dateFormatter(locale, promotedDateOptions).format(parsed)
+    : null
 }
 
-function formatUpcomingDateTime(date: EventDateEntry) {
+function formatUpcomingDateTime(date: EventDateEntry, locale: AppLocale) {
   const parsed = parseEventDate(date.startDate)
   if (!parsed) return null
-  const dateLabel = capitalize(upcomingDateFormatter.format(parsed))
-  return date.startTime ? `${dateLabel}, kl. ${date.startTime}` : dateLabel
+  const dateLabel = capitalize(
+    dateFormatter(locale, upcomingDateOptions).format(parsed),
+  )
+  return date.startTime
+    ? `${dateLabel}, ${locale === "en" ? "at" : "kl."} ${date.startTime}`
+    : dateLabel
 }
 
 function eventHref(event: EventSummary, locale: AppLocale) {
@@ -235,11 +245,15 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         events={promotedEvents}
         labels={eventCardLabels}
         locale={locale}
+        sectionLabel={undefined}
+        linkLabel={homeT("eventsAll")}
       />
       <HomeUpcomingEvents
         events={upcomingEvents}
         labels={eventCardLabels}
         locale={locale}
+        sectionLabel={homeT("eventsTitle")}
+        linkLabel={homeT("calendar")}
       />
       <HomeGrupperBanner
         body={homeT("grupperBannerBody")}
@@ -294,12 +308,15 @@ interface HomeEventsSectionProps {
   events: SanityEvent[]
   labels: EventCardLabels
   locale: AppLocale
+  sectionLabel?: string
+  linkLabel: string
 }
 
 function HomePromotedEvents({
   events,
   labels,
   locale,
+  linkLabel,
 }: HomeEventsSectionProps) {
   if (!events.length) return null
 
@@ -307,7 +324,7 @@ function HomePromotedEvents({
     <section className="space-y-6">
       <HomeEventsHeader
         href={`/${locale}/arrangementer`}
-        linkLabel="Se alle arrangementer"
+        linkLabel={linkLabel}
       />
       <div className="grid grid-cols-1 gap-7 md:grid-cols-6">
         {events.map((event, index) => (
@@ -334,6 +351,8 @@ function HomeUpcomingEvents({
   events,
   labels,
   locale,
+  sectionLabel,
+  linkLabel,
 }: HomeEventsSectionProps) {
   if (!events.length) return null
 
@@ -342,8 +361,8 @@ function HomeUpcomingEvents({
       <div className="mx-auto w-full max-w-7xl space-y-6 px-6 sm:px-10 lg:px-14">
         <HomeEventsHeader
           href={`/${locale}/arrangementer`}
-          label="Arrangementer"
-          linkLabel="Vis kalender"
+          label={sectionLabel}
+          linkLabel={linkLabel}
           onPrimary
         />
         <HorizontalScrollRow className="gap-3 sm:gap-4">
@@ -429,7 +448,10 @@ function HomePromotedEventCard({
   locale: AppLocale
 }) {
   const dates = event.resolvedDates ?? event.dates
-  const visibleDates = dates.slice(0, 3).map(formatPromotedDate).filter(Boolean)
+  const visibleDates = dates
+    .slice(0, 3)
+    .map(date => formatPromotedDate(date, locale))
+    .filter(Boolean)
   const extraDates = Math.max(0, dates.length - visibleDates.length)
   const imageUrl = event.imageUrl
     ? sanityImageUrl(event.imageUrl, { height: 900, width: 1200 })
@@ -493,7 +515,9 @@ function HomeUpcomingEventCard({
   locale: AppLocale
 }) {
   const primaryDate = (event.resolvedDates ?? event.dates)[0]
-  const dateLabel = primaryDate ? formatUpcomingDateTime(primaryDate) : null
+  const dateLabel = primaryDate
+    ? formatUpcomingDateTime(primaryDate, locale)
+    : null
   const imageUrl = event.imageUrl
     ? sanityImageUrl(event.imageUrl, { height: 480, width: 640 })
     : null

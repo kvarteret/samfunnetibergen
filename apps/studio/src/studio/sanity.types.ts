@@ -134,6 +134,7 @@ export type StudentGroupReference = {
 export type SourceLink = {
   _type: "sourceLink"
   label: string
+  localizedLabel?: InternationalizedArrayString
   linkType: string
   internalPage?:
     | HomePageReference
@@ -435,7 +436,9 @@ export type InfoAddressBlock = {
 export type EditorialSection = {
   _type: "editorialSection"
   title?: string
+  localizedTitle?: InternationalizedArrayString
   body: PortableTextContent
+  localizedBody?: InternationalizedArrayPortableTextContent
 }
 
 export type SourcedImage = {
@@ -660,8 +663,10 @@ export type Page = {
   _updatedAt: string
   _rev: string
   title: string
+  localizedTitle?: InternationalizedArrayString
   slug: Slug
   content?: Markdown
+  localizedContent?: InternationalizedArrayText
 }
 
 export type Markdown = string
@@ -693,8 +698,11 @@ export type UsefulInfoPage = {
   _updatedAt: string
   _rev: string
   eyebrow?: string
+  localizedEyebrow?: InternationalizedArrayString
   title: string
+  localizedTitle?: InternationalizedArrayString
   intro?: string
+  localizedIntro?: InternationalizedArrayText
   sections?: Array<
     | ({
         _key: string
@@ -715,8 +723,11 @@ export type SponsorsPage = {
   _updatedAt: string
   _rev: string
   eyebrow?: string
+  localizedEyebrow?: InternationalizedArrayString
   title: string
+  localizedTitle?: InternationalizedArrayString
   description?: string
+  localizedDescription?: InternationalizedArrayText
   sponsors?: Array<{
     logo?: {
       asset?: SanityImageAssetReference
@@ -726,6 +737,7 @@ export type SponsorsPage = {
       _type: "image"
     }
     title: string
+    localizedTitle?: InternationalizedArrayString
     description?: PortableTextContent
     website?: string
     _type: "sponsor"
@@ -774,8 +786,11 @@ export type RoomsPage = {
   _updatedAt: string
   _rev: string
   eyebrow?: string
+  localizedEyebrow?: InternationalizedArrayString
   title: string
+  localizedTitle?: InternationalizedArrayString
   description?: string
+  localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
       _key: string
@@ -802,8 +817,11 @@ export type HomePage = {
   _updatedAt: string
   _rev: string
   eyebrow?: string
+  localizedEyebrow?: InternationalizedArrayString
   title: string
+  localizedTitle?: InternationalizedArrayString
   description?: string
+  localizedDescription?: InternationalizedArrayText
   primaryCta?: SourceLink
 }
 

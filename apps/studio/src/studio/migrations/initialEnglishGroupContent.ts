@@ -140,12 +140,6 @@ export const initialEnglishGroupContent: Record<string, EnglishGroupContent> = {
     description:
       "The Communications Department helps Kvarteret reach students. Volunteers work with marketing, content and communication to make the house, its events and its opportunities visible across Bergen's student community.",
   },
-  "studentGroup-quiz-gruppen": {
-    name: "Quiz Team",
-    summary: "The Quiz Team organises quizzes in Stjernesalen at the house.",
-    description:
-      "The Quiz Team creates quiz nights in Stjernesalen. Volunteers develop questions, host the event and help make each quiz a welcoming part of the social life at Kvarteret.",
-  },
   "studentGroup-rettsvesenet": {
     name: "Legal Team",
     summary:
@@ -202,6 +196,19 @@ export const initialEnglishGroupContent: Record<string, EnglishGroupContent> = {
     description:
       "The Security Team helps keep Kvarteret safe and welcoming. Volunteers work with stewarding, safety and guest care so that everyone at the house can enjoy events and volunteering with confidence.",
   },
+  "0b2efc42-cb05-4f82-8ec4-01d257b14081": {
+    name: "Disco Department",
+    summary:
+      "The Disco Department is part of Kvarteret's production department, where you can gain DJ experience and contribute to the club and concert programme.",
+    description:
+      "The Disco Department creates club nights and supports concerts at Kvarteret. Volunteers get hands-on DJ experience and help shape the music programme.",
+  },
+  "studentGroup-quiz-gruppen": {
+    name: "Quiz Team",
+    summary: "The Quiz Team organises quizzes in Stjernesalen at the house.",
+    description:
+      "Every Tuesday at 19:00, the Quiz Team hosts a quiz in Stjernesalen at the house. This group is for anyone with lots of fun facts up their sleeve!",
+  },
 }
 
 const initialEnglishGroupsPageContent = {
@@ -209,6 +216,21 @@ const initialEnglishGroupsPageContent = {
   title: "Meet the groups",
   description:
     "Meet Studentersamfunnet's working groups, committees and partner organisations — the people who fill the house with events, food and drink, safety, technology and a strong volunteer community!",
+  sections: {
+    arbeidsgrupper: {
+      title: "Working groups and volunteering",
+      body: [
+        "Working groups keep the house running day to day. You will find everything from bars, kitchen, security and technical production to IT, marketing, production and people-focused work.",
+        "Some groups recruit brand-new volunteers, while others are a better fit once you already have experience at the house. Browse the group pages to find out where you would like to start.",
+      ],
+    },
+    samarbeidspartnere: {
+      title: "Committees and partners",
+      body: [
+        "Alongside Kvarteret's own working groups, the house is home to committees, operating organisations and user organisations that arrange concerts, debates, theatre, film, quizzes and other student-cultural activities.",
+      ],
+    },
+  },
   faq: {
     "groups-faq-1": {
       question: "What does it take to join Studentersamfunnet?",
@@ -305,6 +327,31 @@ export function buildInitialEnglishGroupPatch(document: GroupDocument) {
   if (eyebrow) patch.localizedEyebrow = eyebrow
   if (title) patch.localizedTitle = title
   if (description) patch.localizedDescription = description
+
+  for (const section of document.sections ?? []) {
+    const content =
+      initialEnglishGroupsPageContent.sections[
+        section._key as keyof typeof initialEnglishGroupsPageContent.sections
+      ]
+    if (!content) continue
+
+    const title = appendEnglish(
+      section.localizedTitle,
+      "localizedTitle",
+      content.title,
+    )
+    const body = appendEnglish(
+      section.localizedBody,
+      "localizedBody",
+      content.body.flatMap(paragraph => portableText(paragraph)),
+    )
+    if (title) {
+      patch[`sections[_key == "${section._key}"].localizedTitle`] = title
+    }
+    if (body) {
+      patch[`sections[_key == "${section._key}"].localizedBody`] = body
+    }
+  }
 
   for (const item of document.faq ?? []) {
     const content =

@@ -19,6 +19,12 @@ export const roomsPage = defineType({
       group: "hero",
     }),
     defineField({
+      name: "localizedEyebrow",
+      title: "Eyebrow (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "hero",
+    }),
+    defineField({
       name: "title",
       title: "Tittel",
       type: "string",
@@ -26,10 +32,22 @@ export const roomsPage = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "hero",
+    }),
+    defineField({
       name: "description",
       title: "Beskrivelse",
       type: "text",
       rows: 4,
+      group: "hero",
+    }),
+    defineField({
+      name: "localizedDescription",
+      title: "Beskrivelse (oversettelser)",
+      type: "internationalizedArrayText",
       group: "hero",
     }),
     defineField({

@@ -10,8 +10,13 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import type { RoomSummary, SourcedImage } from "@/lib/sanity/fetch"
+import type {
+  EditorialSection,
+  RoomSummary,
+  SourcedImage,
+} from "@/lib/sanity/fetch"
 import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
+import { getTranslations } from "next-intl/server"
 
 export const revalidate = 300
 
@@ -25,7 +30,7 @@ type RoomsPageProps = {
 
 export async function generateMetadata({ params }: RoomsPageProps) {
   const locale = await resolvePageLocale(params)
-  const content = await fetchRoomsPageContent({ stega: false })
+  const content = await fetchRoomsPageContent(locale, { stega: false })
 
   return buildPageMetadata({
     canonicalPath: `/${locale}/rom`,
@@ -64,13 +69,16 @@ function RoomImage({
 export default async function RoomsPage({ params }: RoomsPageProps) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: "RoomsPage" })
 
   const [content, rooms] = await Promise.all([
-    fetchRoomsPageContent(),
+    fetchRoomsPageContent(locale),
     fetchRooms(),
   ])
 
-  const leietiderSection = content?.sections?.find(s => s.title === "Leietider")
+  const leietiderSection = content?.sections?.find(
+    (s: EditorialSection) => s.title === "Leietider",
+  )
 
   return (
     <div className="space-y-16">
@@ -78,7 +86,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
         <div className="flex flex-col justify-between gap-6">
           <div className="space-y-4">
             <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
-              Booking
+              {t("booking")}
             </h1>
             {content?.description ? (
               <p className="max-w-3xl text-xl leading-8 text-foreground">
@@ -91,7 +99,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             render={<Link href="/rom/book" />}
             size="lg"
           >
-            Book rom her
+            {content?.bookingLink?.label ?? t("bookRoom")}
           </Button>
         </div>
         <LeietiderSection
@@ -105,10 +113,10 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
           className="font-heading text-3xl text-foreground"
           id="rooms-heading"
         >
-          Våre rom
+          {t("ourRooms")}
         </h2>
         <div
-          aria-label="Tilgjengelige rom"
+          aria-label={t("availableRooms")}
           className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
         >
           {rooms.map(room => {
@@ -138,13 +146,13 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     room.capacitySeated != null ? (
                       <div className="flex items-center gap-2">
                         <Users aria-hidden="true" className="size-4" />
-                        <dt className="font-heading">Kapasitet</dt>
+                        <dt className="font-heading">{t("capacity")}</dt>
                         <dd>
                           {[
                             room.capacityStanding != null &&
-                              `${room.capacityStanding} stående`,
+                              `${room.capacityStanding} ${t("standing")}`,
                             room.capacitySeated != null &&
-                              `${room.capacitySeated} sittende`,
+                              `${room.capacitySeated} ${t("seated")}`,
                           ]
                             .filter(Boolean)
                             .join(" / ")}
@@ -153,7 +161,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                     ) : null}
                     {room.suitedPurposes?.length ? (
                       <div className="space-y-1">
-                        <dt className="font-heading">Passer til</dt>
+                        <dt className="font-heading">{t("suitedFor")}</dt>
                         <dd>{room.suitedPurposes.join(", ")}</dd>
                       </div>
                     ) : null}

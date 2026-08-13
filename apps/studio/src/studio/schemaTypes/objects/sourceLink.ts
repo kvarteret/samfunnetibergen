@@ -21,6 +21,11 @@ export const sourceLink = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedLabel",
+      title: "Label (oversettelser)",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
       type: "string",
       name: "linkType",
       title: "Lenketype",

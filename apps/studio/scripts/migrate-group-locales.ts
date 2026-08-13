@@ -14,6 +14,7 @@ async function main() {
       _id, _type, name, summary, body, eyebrow, title, description,
       localizedName, localizedSummary, localizedBody,
       localizedEyebrow, localizedTitle, localizedDescription,
+      sections[]{_key, title, body, localizedTitle, localizedBody},
       faq[]{_key, question, answer, localizedQuestion, localizedAnswer}
     }`,
   )

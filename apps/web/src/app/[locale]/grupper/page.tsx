@@ -11,6 +11,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
+import { PortableTextContent } from "@/lib/portable-text-components"
 import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
 import { getTranslations } from "next-intl/server"
@@ -118,6 +119,21 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
         </header>
         <ValgomatenInfobox />
       </div>
+
+      {content?.sections?.length ? (
+        <section className="grid gap-6 md:grid-cols-2">
+          {content.sections.map(section => (
+            <article className="panel space-y-4" key={section._key}>
+              {section.title ? (
+                <h2 className="font-heading text-3xl leading-none text-foreground">
+                  {section.title}
+                </h2>
+              ) : null}
+              <PortableTextContent value={section.body} />
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       <GroupsFilter
         allLabel={t("all")}

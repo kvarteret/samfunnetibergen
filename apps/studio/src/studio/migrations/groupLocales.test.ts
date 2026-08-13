@@ -39,6 +39,23 @@ describe("group locale migration", () => {
     ).toEqual(["localizedName.en", "localizedSummary.en", "localizedBody.en"])
   })
 
+  it("repairs a locale entry that exists without a value", () => {
+    expect(
+      buildGroupLocalePatch({
+        _id: "group-1",
+        _type: "studentGroup",
+        name: "Kraftetaten",
+        localizedName: [
+          { _key: "nb-existing", language: "nb", value: null as never },
+        ],
+      }),
+    ).toEqual({
+      localizedName: [
+        { _key: "nb-existing", language: "nb", value: "Kraftetaten" },
+      ],
+    })
+  })
+
   it("adds the authored English content without replacing Norwegian values", () => {
     const patch = buildInitialEnglishGroupPatch({
       _id: "studentGroup-kraftetaten",
