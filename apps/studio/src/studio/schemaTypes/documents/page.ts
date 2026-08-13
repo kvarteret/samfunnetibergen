@@ -19,6 +19,12 @@ export const page = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "content",
+    }),
+    defineField({
       name: "slug",
       title: "URL-slug",
       type: "slug",
@@ -37,6 +43,12 @@ export const page = defineType({
       name: "content",
       title: "Innhold",
       type: "markdown",
+      group: "content",
+    }),
+    defineField({
+      name: "localizedContent",
+      title: "Innhold (oversettelser)",
+      type: "internationalizedArrayText",
       group: "content",
     }),
   ],

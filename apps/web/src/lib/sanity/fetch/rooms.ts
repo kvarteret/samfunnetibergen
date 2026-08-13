@@ -2,6 +2,7 @@ import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
 import { stegaClean } from "@sanity/client/stega"
+import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
@@ -40,10 +41,12 @@ export type BarPreviewsContent = NonNullable<
 export type BarPreviewRoom = NonNullable<BarPreviewsContent["rooms"]>[number]
 
 export async function fetchRoomsPageContent(
+  locale: AppLocale = "nb",
   options: FetchOptions = {},
 ): Promise<RoomsPageContent | null> {
   const { data } = await sanityFetch({
     query: roomsPageQuery,
+    params: { locale },
     stega: options.stega,
   })
   return data
@@ -52,10 +55,12 @@ export async function fetchRoomsPageContent(
 // The booking route is already dynamic because room availability is fetched
 // per request. Read its supporting content without the Live Content cache so
 // newly published terms and help links cannot be shadowed by an older result.
-export async function fetchPublishedRoomsPageContent(): Promise<RoomsPageContent | null> {
+export async function fetchPublishedRoomsPageContent(
+  locale: AppLocale = "nb",
+): Promise<RoomsPageContent | null> {
   return sanityClient.fetch(
     roomsPageQuery,
-    {},
+    { locale },
     {
       cache: "no-store",
       perspective: "published",

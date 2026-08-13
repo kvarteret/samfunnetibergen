@@ -130,19 +130,19 @@ export default async function BookRoomPage({
   ] = await Promise.all([
     fetchBookableRoomsForBooker("ekstern"),
     fetchHouseHours(),
-    fetchPublishedRoomsPageContent(),
-    fetchPageBySlug("leievilkaar"),
-    fetchPageBySlug("avbestillingsvilkar"),
+    fetchPublishedRoomsPageContent(locale),
+    fetchPageBySlug("leievilkaar", { locale }),
+    fetchPageBySlug("avbestillingsvilkar", { locale }),
   ])
 
   const howToSection = roomsPageContent?.sections?.find(
-    s => s.title === "Slik booker du",
+    (s: EditorialSection) => s.title === "Slik booker du",
   )
   const leietiderSection = roomsPageContent?.sections?.find(
-    s => s.title === "Leietider",
+    (s: EditorialSection) => s.title === "Leietider",
   )
   const questionsSection = roomsPageContent?.sections?.find(
-    s => s.title === "Spørsmål og vilkår",
+    (s: EditorialSection) => s.title === "Spørsmål og vilkår",
   )
 
   return (

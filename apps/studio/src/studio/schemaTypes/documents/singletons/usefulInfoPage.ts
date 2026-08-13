@@ -18,6 +18,12 @@ export const usefulInfoPage = defineType({
       group: "content",
     }),
     defineField({
+      name: "localizedEyebrow",
+      title: "Eyebrow (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "content",
+    }),
+    defineField({
       name: "title",
       title: "Tittel",
       type: "string",
@@ -26,10 +32,22 @@ export const usefulInfoPage = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+      group: "content",
+    }),
+    defineField({
       name: "intro",
       title: "Ingress",
       type: "text",
       rows: 3,
+      group: "content",
+    }),
+    defineField({
+      name: "localizedIntro",
+      title: "Ingress (oversettelser)",
+      type: "internationalizedArrayText",
       group: "content",
     }),
     defineField({

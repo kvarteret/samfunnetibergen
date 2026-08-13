@@ -103,9 +103,6 @@ jobs:
       - name: Tests
         run: npm run test
 
-      - name: Build standalone Studio
-        run: npm run build:studio
-
       - name: Install Vercel CLI
         run: npm install --global vercel@58.4.4
 
@@ -121,6 +118,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
+      # This is the authoritative production Studio build. Do not add a
+      # separate npm run build:studio step before it; Vercel would build the
+      # same artifact a second time.
       - name: Build production artifact
         run: |
           set -euo pipefail

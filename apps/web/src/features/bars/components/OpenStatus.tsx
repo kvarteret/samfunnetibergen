@@ -10,7 +10,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useCurrentTime } from "@/lib/use-current-time"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 
 export interface OpenStatusRoom {
   openingHours?: OpeningHours | null
@@ -34,7 +34,6 @@ export function OpenStatus({
   initialNow,
 }: OpenStatusProps) {
   const now = useCurrentTime(initialNow)
-  const locale = useLocale() as "nb" | "en"
   const t = useTranslations("OpeningHours")
 
   if (isHouseClosed(isoDate(now), houseClosedDates, vacationMode)) {
@@ -55,7 +54,7 @@ export function OpenStatus({
     if (!isOpen) return null
     return (
       <p className="mt-2 font-heading uppercase tracking-widest text-primary">
-        {locale === "en" ? "Open now!!" : "er åpent!!"}
+        {t("openNowAnnouncement")}
       </p>
     )
   }

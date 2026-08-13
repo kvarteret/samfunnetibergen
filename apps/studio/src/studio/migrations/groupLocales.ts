@@ -15,6 +15,13 @@ export type GroupDocument = {
   localizedEyebrow?: LocalizedItem<string>[]
   localizedTitle?: LocalizedItem<string>[]
   localizedDescription?: LocalizedItem<string>[]
+  sections?: Array<{
+    _key: string
+    title?: string
+    body?: unknown[]
+    localizedTitle?: LocalizedItem<string>[]
+    localizedBody?: LocalizedItem<unknown[]>[]
+  }>
   faq?: Array<{
     _key: string
     question?: string
@@ -29,8 +36,17 @@ function seed<T>(
   field: string,
   value: T | undefined,
 ) {
-  if (value == null || current?.some(item => item.language === "nb")) {
+  if (value == null) {
     return {}
+  }
+  const norwegian = current?.find(item => item.language === "nb")
+  if (norwegian) {
+    if (norwegian.value != null) return {}
+    return {
+      [field]: current?.map(item =>
+        item === norwegian ? { ...item, value } : item,
+      ),
+    }
   }
   return {
     [field]: [
@@ -57,6 +73,25 @@ export function buildGroupLocalePatch(document: GroupDocument) {
       "localizedDescription",
       document.description,
     ),
+  }
+
+  for (const section of document.sections ?? []) {
+    const title = seed(
+      section.localizedTitle,
+      "localizedTitle",
+      section.title,
+    ).localizedTitle
+    const body = seed(
+      section.localizedBody,
+      "localizedBody",
+      section.body,
+    ).localizedBody
+    if (title) {
+      patch[`sections[_key == "${section._key}"].localizedTitle`] = title
+    }
+    if (body) {
+      patch[`sections[_key == "${section._key}"].localizedBody`] = body
+    }
   }
 
   for (const item of document.faq ?? []) {
@@ -121,6 +156,13 @@ export type PublishedGroupLocaleDocument = {
   localizedBody?: LocalizedItem<unknown[]>[]
   localizedTitle?: LocalizedItem<string>[]
   localizedDescription?: LocalizedItem<string>[]
+  sections?: Array<{
+    _key: string
+    title?: string
+    body?: unknown[]
+    localizedTitle?: LocalizedItem<string>[]
+    localizedBody?: LocalizedItem<unknown[]>[]
+  }>
   faq?: Array<{
     _key: string
     localizedQuestion?: LocalizedItem<string>[]
@@ -147,6 +189,14 @@ export function findMissingEnglishGroupFields(
   if (!hasEnglish(document.localizedTitle)) missing.push("localizedTitle.en")
   if (!hasEnglish(document.localizedDescription)) {
     missing.push("localizedDescription.en")
+  }
+  for (const section of document.sections ?? []) {
+    if (section.title && !hasEnglish(section.localizedTitle)) {
+      missing.push(`sections[${section._key}].localizedTitle.en`)
+    }
+    if (section.body && !hasEnglish(section.localizedBody)) {
+      missing.push(`sections[${section._key}].localizedBody.en`)
+    }
   }
   for (const item of document.faq ?? []) {
     if (!hasEnglish(item.localizedQuestion)) {

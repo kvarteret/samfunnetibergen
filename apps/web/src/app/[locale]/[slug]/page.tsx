@@ -24,12 +24,14 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug, locale: localeParam } = await params
-  await resolvePageLocale(Promise.resolve({ locale: localeParam }))
-  const page = await fetchPageBySlug(slug, { stega: false })
+  const locale = await resolvePageLocale(
+    Promise.resolve({ locale: localeParam }),
+  )
+  const page = await fetchPageBySlug(slug, { locale, stega: false })
   if (!page) return {}
 
   return buildPageMetadata({
-    canonicalPath: `/${localeParam}/${slug}`,
+    canonicalPath: `/${locale}/${slug}`,
     title: page.title,
   })
 }
@@ -41,7 +43,7 @@ export default async function DynamicPage({ params }: PageProps) {
   )
   activateRequestLocale(locale)
 
-  const page = await fetchPageBySlug(slug)
+  const page = await fetchPageBySlug(slug, { locale })
   if (!page) notFound()
 
   return (

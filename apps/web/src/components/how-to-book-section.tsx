@@ -14,19 +14,21 @@ export function HowToBookSection({ section }: HowToBookSectionProps) {
         {section.title}
       </h2>
       <ol className="grid gap-4 sm:grid-cols-3">
-        {section.body.map((block, i) => (
-          <li
-            className="flex gap-4 border-l-2 border-border pl-4"
-            key={block._key}
-          >
-            <span className="mt-0.5 shrink-0 font-heading text-foreground-muted">
-              {i + 1}
-            </span>
-            <div className="leading-6 text-foreground">
-              <PortableTextContent value={[block]} />
-            </div>
-          </li>
-        ))}
+        {section.body.map(
+          (block: NonNullable<EditorialSection["body"]>[number], i: number) => (
+            <li
+              className="flex gap-4 border-l-2 border-border pl-4"
+              key={block._key}
+            >
+              <span className="mt-0.5 shrink-0 font-heading text-foreground-muted">
+                {i + 1}
+              </span>
+              <div className="leading-6 text-foreground">
+                <PortableTextContent value={[block]} />
+              </div>
+            </li>
+          ),
+        )}
       </ol>
     </section>
   )
