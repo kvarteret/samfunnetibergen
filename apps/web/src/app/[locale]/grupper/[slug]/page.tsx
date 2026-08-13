@@ -110,6 +110,24 @@ export default async function GroupPage({ params }: GroupPageProps) {
       </div>
 
       <aside className="space-y-6">
+        {group.slug && (
+          <section className="panel">
+            <GroupVolunteerForm
+              groupSlug={group.slug}
+              groupName={group.name ?? group.slug}
+              institutionOptions={institutionOptions}
+              subGroups={
+                group.subGroups?.flatMap(
+                  (sg: { slug?: string; name?: string }) =>
+                    sg.slug && sg.name
+                      ? [{ slug: sg.slug, name: sg.name }]
+                      : [],
+                ) ?? []
+              }
+            />
+          </section>
+        )}
+
         {(hasLinks || group.email || group.website) && (
           <AsideSection title="Kontakt">
             {hasLinks ? (
@@ -178,24 +196,6 @@ export default async function GroupPage({ params }: GroupPageProps) {
               <p className="text-foreground">{group.parentGroup.name}</p>
             )}
           </AsideSection>
-        )}
-
-        {group.slug && (
-          <section className="panel">
-            <GroupVolunteerForm
-              groupSlug={group.slug}
-              groupName={group.name ?? group.slug}
-              institutionOptions={institutionOptions}
-              subGroups={
-                group.subGroups?.flatMap(
-                  (sg: { slug?: string; name?: string }) =>
-                    sg.slug && sg.name
-                      ? [{ slug: sg.slug, name: sg.name }]
-                      : [],
-                ) ?? []
-              }
-            />
-          </section>
         )}
       </aside>
     </article>
