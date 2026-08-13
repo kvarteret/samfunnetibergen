@@ -20,7 +20,6 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
-import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -69,6 +68,7 @@ export function GroupVolunteerForm({
 }: GroupVolunteerFormProps) {
   const uid = useId()
   const t = useTranslations("GroupVolunteerForm")
+  const tv = useTranslations("Validation")
   const groupChoices = [
     { slug: groupSlug, name: groupName },
     ...(subGroups ?? []),
@@ -150,7 +150,7 @@ export function GroupVolunteerForm({
     errorMap.onSubmit,
   ).map(issue => ({
     fieldId: volunteerFieldId(issue.path, fieldIds),
-    message: issue.message,
+    message: translateValidationMessage(issue.message, tv),
   }))
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
@@ -227,7 +227,7 @@ export function GroupVolunteerForm({
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
-              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              form.setErrorMap({ onServer: t("submitErrorFallback") as never })
               posthog.captureException(
                 new Error("Unexpected volunteer application failure"),
                 {
@@ -508,4 +508,23 @@ function volunteerFieldId(
   const friendMatch = /^friendEmails\[(\d+)\]/.exec(path)
   if (friendMatch) return friendFieldId(Number(friendMatch[1]))
   return fieldIds.firstName
+}
+
+function translateValidationMessage(
+  message: string,
+  t: (key: string) => string,
+): string {
+  const keyByMessage: Record<string, string> = {
+    "Fornavn er påkrevd.": "firstNameRequired",
+    "Etternavn er påkrevd.": "lastNameRequired",
+    "Ugyldig e-postadresse.": "emailInvalid",
+    "Skriv inn et gyldig telefonnummer.": "phoneRequired",
+    "Studiested er påkrevd.": "studyInstitutionRequired",
+    "Velg en gruppe du vil søke til.": "firstChoiceRequired",
+    "Andrevalget må være en annen gruppe.": "secondChoiceConflict",
+    "E-postadressene må være ulike.": "friendEmailDuplicate",
+    "Du kan melde på maksimalt to venner.": "friendEmailMax",
+  }
+  const key = keyByMessage[message]
+  return key ? t(key) : message
 }

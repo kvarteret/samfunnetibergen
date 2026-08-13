@@ -3,9 +3,11 @@
 import { HelpCircle } from "lucide-react"
 import posthog from "posthog-js"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 
 export function ValgomatenInfobox() {
+  const t = useTranslations("GroupsPage")
   const [clicked, setClicked] = useState(false)
 
   const handleClick = () => {
@@ -24,27 +26,27 @@ export function ValgomatenInfobox() {
               className="mt-0.5 size-5 shrink-0 text-primary"
             />
             <p className="font-heading text-lg leading-tight text-foreground">
-              Vil du bli frivillig, men er usikker på hva gruppe du bør velge?
+              {t("quizPrompt")}
             </p>
           </div>
           <Button onClick={handleClick} type="button" variant="default">
-            Ta Valgomaten
+            {t("quizButton")}
           </Button>
         </>
       ) : (
         <div className="space-y-3">
           <p className="font-heading text-lg leading-tight text-foreground">
-            Valgomaten er ikke ferdig ennå :(
+            {t("quizNotReady")}
           </p>
           <p className="leading-7 text-foreground">
-            Ta kontakt med{" "}
+            {t("quizContactBefore")}{" "}
             <a
               className="underline underline-offset-4 hover:text-primary focus-brutal"
               href="mailto:frivillig@samfunnetibergen.no"
             >
               frivillig@samfunnetibergen.no
             </a>{" "}
-            for å høre mer om hva som kan passe deg!
+            {t("quizContactAfter")}
           </p>
         </div>
       )}

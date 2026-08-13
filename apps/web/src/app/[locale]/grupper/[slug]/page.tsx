@@ -2,6 +2,7 @@ import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import type { ComponentType, ReactNode } from "react"
+import { getTranslations } from "next-intl/server"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
@@ -16,18 +17,9 @@ import {
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
 import nbMessages from "@/messages/nb.json"
+import enMessages from "@/messages/en.json"
 
 export const revalidate = 300
-
-const platformNames: Record<string, string> = {
-  email: "E-post",
-  website: "Hjemmeside",
-  facebook: "Facebook",
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  studentbergen: "Studentbergen",
-  other: "Annet",
-}
 
 const platformIcons: Record<string, ComponentType<{ className?: string }>> = {
   email: Mail,
@@ -47,12 +39,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: GroupPageProps) {
   const { slug, locale: localeParam } = await params
   await resolvePageLocale(Promise.resolve({ locale: localeParam }))
-  const group = await fetchStudentGroupBySlug(slug, { stega: false })
+  const locale = await resolvePageLocale(
+    Promise.resolve({ locale: localeParam }),
+  )
+  const group = await fetchStudentGroupBySlug(slug, locale, { stega: false })
   if (!group) return {}
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${localeParam}/grupper/${slug}`,
-    title: `${group.name} | Grupper`,
+    title: `${group.name} | ${locale === "en" ? "Groups" : "Grupper"}`,
     description: group.summary,
     imageUrl: group.image?.assetUrl,
   })
@@ -64,14 +60,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
     Promise.resolve({ locale: localeParam }),
   )
   activateRequestLocale(locale)
+  const t = await getTranslations("GroupPage")
 
-  const group = await fetchStudentGroupBySlug(slug)
+  const group = await fetchStudentGroupBySlug(slug, locale)
   if (!group) notFound()
 
   const hasLinks =
     "links" in group && Array.isArray(group.links) && group.links.length > 0
 
-  const institutionOptions = nbMessages.InstitutionOptions as Array<{
+  const institutionOptions = (locale === "en" ? enMessages : nbMessages)
+    .InstitutionOptions as Array<{
     value: string
     label: string
   }>
@@ -89,7 +87,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
           <figure className="space-y-2">
             <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
               <Image
-                alt={group.image.alt ?? group.name ?? ""}
+                alt={
+                  group.image.alt ?? t("logoAlt", { group: group.name ?? "" })
+                }
                 className="object-cover"
                 fill
                 sizes="(min-width: 1024px) 60vw, 100vw"
@@ -129,13 +129,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
 
         {(hasLinks || group.email || group.website) && (
-          <AsideSection title="Kontakt">
+          <AsideSection title={t("contact")}>
             {hasLinks ? (
               group.links.map((link, i) => {
-                const platformLabel =
-                  link.customLabel ||
-                  platformNames[link.platform] ||
-                  link.platform
+                const platformKey = `platform${link.platform.charAt(0).toUpperCase()}${link.platform.slice(1)}`
+                const platformLabel = link.customLabel || t(platformKey)
                 const isEmail = link.platform === "email"
                 const href = isEmail ? `mailto:${link.url}` : link.url
                 const Icon = platformIcons[link.platform] || ExternalLink
@@ -174,7 +172,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     target="_blank"
                   >
                     <Globe aria-hidden className="size-4 shrink-0" />
-                    Nettside
+                    {t("website")}
                     <ExternalLink aria-hidden className="size-3 shrink-0" />
                   </a>
                 )}
@@ -184,7 +182,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
 
         {group.parentGroup && (
-          <AsideSection title="Del av">
+          <AsideSection title={t("partOf")}>
             {group.parentGroup.slug ? (
               <a
                 className="text-foreground underline underline-offset-4 hover:text-primary focus-brutal"

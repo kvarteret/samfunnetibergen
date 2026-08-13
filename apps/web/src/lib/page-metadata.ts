@@ -6,6 +6,7 @@ export const DEFAULT_SITE_DESCRIPTION =
   "Opplev arrangementer, rom, grupper og studentkultur på Det Akademiske Kvarter i Bergen."
 
 export type PageMetadataOptions = {
+  locale?: "nb" | "en"
   canonicalPath: string
   title: string
   description?: string | null
@@ -14,6 +15,7 @@ export type PageMetadataOptions = {
 }
 
 export function buildPageMetadata({
+  locale = "nb",
   canonicalPath,
   title,
   description,
@@ -34,7 +36,7 @@ export function buildPageMetadata({
       description: resolvedDescription,
       url: canonicalPath,
       siteName: SITE_NAME,
-      locale: "nb_NO",
+      locale: locale === "en" ? "en_GB" : "nb_NO",
       type: openGraphType,
       images: [{ url: resolvedImageUrl }],
     },

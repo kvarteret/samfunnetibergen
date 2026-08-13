@@ -3,6 +3,7 @@
 import { Popover } from "@base-ui/react/popover"
 import { ChevronDown } from "lucide-react"
 import { useMemo } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   type ClosedDate,
   formatOpeningDate,
@@ -32,6 +33,8 @@ export function NavbarOpenStatus({
   initialNow,
 }: NavbarOpenStatusProps) {
   const now = useCurrentTime(initialNow)
+  const locale = useLocale() as "nb" | "en"
+  const t = useTranslations("OpeningHours")
 
   const status = useMemo(
     () => openingHoursStatusAt(now, openingHours, closedDates, vacationMode),
@@ -45,17 +48,25 @@ export function NavbarOpenStatus({
         openingHours,
         closedDates,
         vacationMode,
+        locale,
       ),
-    [now, openingHours, closedDates, vacationMode],
+    [now, openingHours, closedDates, vacationMode, locale],
   )
 
+  const nextOpening = status.nextRange
+    ? formatNextOpening(now, status.nextDate, status.nextRange.startMin, locale)
+    : null
   const detail = status.isOpen
     ? status.currentRange
-      ? `Stenger kl. ${formatOpeningHoursTime(status.currentRange.endMin)}`
+      ? t("closesAt", {
+          time: formatOpeningHoursTime(status.currentRange.endMin),
+        })
       : null
-    : status.nextRange
-      ? `Åpner ${formatNextOpening(now, status.nextDate, status.nextRange.startMin)}`
-      : "Ingen åpningstid funnet"
+    : nextOpening
+      ? nextOpening.day
+        ? t("opensAt", nextOpening)
+        : t("opensAtTime", nextOpening)
+      : t("noOpeningHours")
 
   return (
     <Popover.Root>
@@ -66,7 +77,7 @@ export function NavbarOpenStatus({
             status.isOpen ? "text-success" : "text-destructive",
           )}
         >
-          {status.isOpen ? "Åpent" : "Stengt"}
+          {status.isOpen ? t("open") : t("closed")}
         </span>
         {detail ? (
           <>
@@ -93,7 +104,7 @@ export function NavbarOpenStatus({
           sideOffset={12}
         >
           <Popover.Popup className="w-[min(24rem,var(--available-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] border-2 border-border bg-card p-4 shadow-shadow outline-none sm:p-5">
-            <p className="sr-only">Åpningstider</p>
+            <p className="sr-only">{t("title")}</p>
             <dl className="space-y-1.5">
               {days.map((day, index) => (
                 <div
@@ -118,7 +129,7 @@ export function NavbarOpenStatus({
                       day.ranges.length === 0 && "text-foreground-muted",
                     )}
                   >
-                    {formatRanges(day.ranges)}
+                    {formatRanges(day.ranges, t("closedShort"))}
                   </dd>
                 </div>
               ))}
@@ -134,16 +145,21 @@ function formatNextOpening(
   now: Date,
   nextDate: string | undefined,
   nextStartMin: number,
+  locale: "nb" | "en",
 ) {
   const time = formatOpeningHoursTime(nextStartMin)
   const today = isoDate(now)
-  if (!nextDate || nextDate === today) return `kl. ${time}`
-  if (daysBetween(today, nextDate) > 7) return formatOpeningDate(nextDate)
-  return `${weekdayLabel(nextDate)} kl. ${time}`
+  if (!nextDate || nextDate === today) return { day: "", time }
+  if (daysBetween(today, nextDate) > 7)
+    return { day: formatOpeningDate(nextDate, locale), time }
+  return { day: weekdayLabel(nextDate, locale), time }
 }
 
-function formatRanges(ranges: Array<{ startMin: number; endMin: number }>) {
-  if (!ranges.length) return "Stengt"
+function formatRanges(
+  ranges: Array<{ startMin: number; endMin: number }>,
+  closedLabel: string,
+) {
+  if (!ranges.length) return closedLabel
   return ranges
     .map(
       range =>
@@ -152,16 +168,19 @@ function formatRanges(ranges: Array<{ startMin: number; endMin: number }>) {
     .join(", ")
 }
 
-function weekdayLabel(dateStr: string) {
-  const labels = [
-    "søndag",
-    "mandag",
-    "tirsdag",
-    "onsdag",
-    "torsdag",
-    "fredag",
-    "lørdag",
-  ]
+function weekdayLabel(dateStr: string, locale: "nb" | "en") {
+  const labels =
+    locale === "en"
+      ? [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ]
+      : ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"]
   return labels[new Date(`${dateStr}T00:00:00`).getDay()]
 }
 

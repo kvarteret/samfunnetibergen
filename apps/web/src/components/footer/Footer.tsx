@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { OpenStatus } from "@/features/bars"
 import {
   formatVacationModeNotice,
@@ -36,9 +37,10 @@ function IconAndroid() {
 }
 
 function AppColumn() {
+  const t = useTranslations("Footer")
   return (
     <div>
-      <ColumnHeading>Skaff deg appen</ColumnHeading>
+      <ColumnHeading>{t("app")}</ColumnHeading>
       <ul className="space-y-2">
         <li>
           <Link
@@ -143,10 +145,11 @@ function ColumnHeading({ children }: { children: React.ReactNode }) {
 }
 
 function SocialColumn({ links }: { links: SocialLink[] }) {
+  const t = useTranslations("Footer")
   if (!links.length) return null
   return (
     <div>
-      <ColumnHeading>Følg oss</ColumnHeading>
+      <ColumnHeading>{t("follow")}</ColumnHeading>
       <ul className="space-y-2">
         {links.map(link => {
           const Icon = PLATFORM_ICONS[link.platform ?? ""] ?? IconLink
@@ -251,10 +254,11 @@ function LinkedContactText({ text }: { text: string }) {
 }
 
 function ContactColumn({ generalContact }: { generalContact?: string | null }) {
+  const t = useTranslations("Footer")
   if (!generalContact) return null
   return (
     <div>
-      <ColumnHeading>Kontakt oss</ColumnHeading>
+      <ColumnHeading>{t("contact")}</ColumnHeading>
       <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         <LinkedContactText text={generalContact} />
       </p>
@@ -263,10 +267,11 @@ function ContactColumn({ generalContact }: { generalContact?: string | null }) {
 }
 
 function AddressColumn({ address }: { address?: string | null }) {
+  const t = useTranslations("Footer")
   if (!address) return null
   return (
     <div>
-      <ColumnHeading>Besøk oss</ColumnHeading>
+      <ColumnHeading>{t("visit")}</ColumnHeading>
       <p className=" text-foreground-muted whitespace-pre-line leading-relaxed">
         {address}
       </p>
@@ -274,11 +279,19 @@ function AddressColumn({ address }: { address?: string | null }) {
   )
 }
 
-function HoursRow({ row }: { row: HoursRow }) {
-  const dayLabel = formatWeekdays(row.weekdays)
+function HoursRow({
+  row,
+  locale,
+  closedLabel,
+}: {
+  row: HoursRow
+  locale: "nb" | "en"
+  closedLabel: string
+}) {
+  const dayLabel = formatWeekdays(row.weekdays, locale)
   if (!dayLabel) return null
 
-  const time = formatOpeningTimeLabel(row)
+  const time = formatOpeningTimeLabel(row, closedLabel)
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-foreground-muted">{dayLabel}</dt>
@@ -289,8 +302,11 @@ function HoursRow({ row }: { row: HoursRow }) {
   )
 }
 
-function formatOpeningTimeLabel(row: HoursRow): string | null {
-  if (row.status === "closed") return "Stengt"
+function formatOpeningTimeLabel(
+  row: HoursRow,
+  closedLabel: string,
+): string | null {
+  if (row.status === "closed") return closedLabel
   if (row.duration?.start && row.duration?.end) {
     return `${row.duration.start}–${row.duration.end}`
   }
@@ -303,22 +319,26 @@ function OpeningHoursColumn({
   operationsManagerHours,
   vacationMode,
   initialNow,
+  locale,
 }: {
   rooms: RoomHours[]
   houseClosedDates: FooterData["houseClosedDates"]
   operationsManagerHours: FooterData["operationsManagerHours"]
   vacationMode: FooterData["vacationMode"]
   initialNow: string
+  locale: "nb" | "en"
 }) {
+  const t = useTranslations("Footer")
   const roomsWithHours = rooms.filter(r => (r.hours?.rows?.length ?? 0) > 0)
   if (!roomsWithHours.length) return null
   const vacationNotice = formatVacationModeNotice(
     isoDate(new Date(initialNow)),
     vacationMode,
+    locale,
   )
   return (
     <div>
-      <ColumnHeading>Åpningstider</ColumnHeading>
+      <ColumnHeading>{t("openingHours")}</ColumnHeading>
       <div className="space-y-4">
         {roomsWithHours.map(room => (
           <div key={room.slug}>
@@ -337,12 +357,19 @@ function OpeningHoursColumn({
             <dl className="space-y-1">
               {vacationNotice ? (
                 <div className="flex justify-between gap-4">
-                  <dt className="text-foreground-muted">Feriemodus</dt>
-                  <dd className="shrink-0 text-foreground-muted">Stengt</dd>
+                  <dt className="text-foreground-muted">{t("vacationMode")}</dt>
+                  <dd className="shrink-0 text-foreground-muted">
+                    {t("closed")}
+                  </dd>
                 </div>
               ) : (
                 (room.hours?.rows ?? []).map((row: HoursRow) => (
-                  <HoursRow key={row._key} row={row} />
+                  <HoursRow
+                    closedLabel={t("closed")}
+                    key={row._key}
+                    locale={locale}
+                    row={row}
+                  />
                 ))
               )}
             </dl>
@@ -365,6 +392,7 @@ interface FooterProps {
 }
 
 export function Footer({ data, initialNow, locale }: FooterProps) {
+  const t = useTranslations("Footer")
   if (!data) return null
 
   const socialLinks = data.socialLinks ?? []
@@ -386,6 +414,7 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
             operationsManagerHours={data.operationsManagerHours}
             vacationMode={data.vacationMode}
             initialNow={initialNow}
+            locale={locale as "nb" | "en"}
           />
         </div>
 
@@ -394,7 +423,7 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
             className="text-sm text-foreground hover:text-foreground-muted transition-colors focus-brutal"
             href={`/${locale}/grupper/e-tjenesten`}
           >
-            Med 💛 fra E-tjenesten
+            {t("credit")}
           </Link>
         </div>
       </div>

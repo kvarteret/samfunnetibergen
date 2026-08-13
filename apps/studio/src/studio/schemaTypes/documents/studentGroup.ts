@@ -38,6 +38,13 @@ export const studentGroup = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedName",
+      title: "Navn (oversettelser)",
+      description: "La stå tomt for egennavn som skal være like på alle språk.",
+      type: "internationalizedArrayString",
+      group: "identity",
+    }),
+    defineField({
       name: "slug",
       title: "Slug",
       description:
@@ -107,9 +114,21 @@ export const studentGroup = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedSummary",
+      title: "Kort beskrivelse (oversettelser)",
+      type: "internationalizedArrayText",
+      group: "identity",
+    }),
+    defineField({
       name: "body",
       title: "Fullstendig beskrivelse",
       type: "portableTextContent",
+      group: "identity",
+    }),
+    defineField({
+      name: "localizedBody",
+      title: "Fullstendig beskrivelse (oversettelser)",
+      type: "internationalizedArrayPortableTextContent",
       group: "identity",
     }),
     defineField({

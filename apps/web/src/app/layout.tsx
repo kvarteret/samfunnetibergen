@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { DM_Mono, Lora, Source_Serif_4 } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
+import { getLocale } from "next-intl/server"
 import Script from "next/script"
 import { VisualEditing } from "next-sanity/visual-editing"
 import { JsonLd } from "@/components/JsonLd"
@@ -63,12 +64,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { isEnabled: isDraftMode } = await draftMode()
   const siteUrl = resolveSiteUrl()
+  const locale = await getLocale()
 
   return (
     <html
       data-paper="grid"
       data-theme="hs"
-      lang="nb"
+      lang={locale}
       className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

@@ -14,9 +14,14 @@ type GroupSection = {
 interface GroupsFilterProps {
   sections: GroupSection[]
   allLabels: string[]
+  allLabel: string
 }
 
-export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
+export function GroupsFilter({
+  sections,
+  allLabels,
+  allLabel,
+}: GroupsFilterProps) {
   const [activeLabel, setActiveLabel] = useState<string | null>(null)
 
   const filteredSections = activeLabel
@@ -38,7 +43,7 @@ export function GroupsFilter({ sections, allLabels }: GroupsFilterProps) {
               setActiveLabel(value === "all" ? null : value)
             }
             options={[
-              { value: "all", label: "Alle" },
+              { value: "all", label: allLabel },
               ...allLabels.map(label => ({ value: label, label })),
             ]}
             value={activeLabel ?? "all"}
