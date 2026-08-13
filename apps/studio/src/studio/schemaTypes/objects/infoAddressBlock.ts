@@ -14,9 +14,19 @@ export const infoAddressBlock = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedHeading",
+      title: "Overskrift (oversettelser)",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
       name: "body",
       title: "Tekst",
       type: "portableTextContent",
+    }),
+    defineField({
+      name: "localizedBody",
+      title: "Tekst (oversettelser)",
+      type: "internationalizedArrayPortableTextContent",
     }),
     defineField({
       name: "address",

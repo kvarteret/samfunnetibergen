@@ -17,8 +17,8 @@ export const localizedEditorialSectionProjection = `{
 export const infoAddressBlockProjection = `{
     _key,
     _type,
-    heading,
-    "body": coalesce(body[] ${portableTextProjection}, []),
+    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),
+    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] ${portableTextProjection}, []),
     address,
     mapUrl
 }`
@@ -26,11 +26,11 @@ export const infoAddressBlockProjection = `{
 export const infoAccordionBlockProjection = `{
     _key,
     _type,
-    heading,
-    intro,
+    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),
+    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),
     "items": coalesce(items[] {
         _key,
-        title,
-        "body": coalesce(body[] ${portableTextProjection}, [])
+        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),
+        "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] ${portableTextProjection}, [])
     }, [])
 }`

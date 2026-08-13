@@ -6,7 +6,6 @@ import {
 import { portableTextProjection } from "../fragments/portableText"
 import { openingHoursProjection } from "../fragments/rooms"
 import {
-  editorialSectionProjection,
   infoAccordionBlockProjection,
   infoAddressBlockProjection,
   localizedEditorialSectionProjection,
@@ -55,7 +54,7 @@ export const sponsorsPageQuery =
         website,
         "logoUrl": logo.asset->url,
         "logoAlt": coalesce(logo.alt, title),
-        description[] ${portableTextProjection}
+        "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description[] ${portableTextProjection}, [])
     }, [])
 }`)
 
@@ -126,7 +125,7 @@ export const usefulInfoPageQuery =
     "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "Nyttig info"),
     "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),
     "sections": coalesce(sections[] {
-        _type == "editorialSection" => ${editorialSectionProjection},
+        _type == "editorialSection" => ${localizedEditorialSectionProjection},
         _type == "infoAddressBlock" => ${infoAddressBlockProjection},
         _type == "infoAccordionBlock" => ${infoAccordionBlockProjection}
     }, [])

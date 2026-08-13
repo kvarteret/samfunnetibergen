@@ -13,10 +13,20 @@ export const infoAccordionItem = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedTitle",
+      title: "Tittel (oversettelser)",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
       name: "body",
       title: "Innhold",
       type: "portableTextContent",
       validation: rule => rule.required(),
+    }),
+    defineField({
+      name: "localizedBody",
+      title: "Innhold (oversettelser)",
+      type: "internationalizedArrayPortableTextContent",
     }),
   ],
   preview: {
@@ -40,10 +50,20 @@ export const infoAccordionBlock = defineType({
       validation: rule => rule.required(),
     }),
     defineField({
+      name: "localizedHeading",
+      title: "Overskrift (oversettelser)",
+      type: "internationalizedArrayString",
+    }),
+    defineField({
       name: "intro",
       title: "Ingress",
       type: "text",
       rows: 3,
+    }),
+    defineField({
+      name: "localizedIntro",
+      title: "Ingress (oversettelser)",
+      type: "internationalizedArrayText",
     }),
     defineField({
       name: "items",

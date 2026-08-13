@@ -411,7 +411,9 @@ export type TimeValue =
 export type InfoAccordionBlock = {
   _type: "infoAccordionBlock"
   heading: string
+  localizedHeading?: InternationalizedArrayString
   intro?: string
+  localizedIntro?: InternationalizedArrayText
   items: Array<
     {
       _key: string
@@ -422,13 +424,17 @@ export type InfoAccordionBlock = {
 export type InfoAccordionItem = {
   _type: "infoAccordionItem"
   title: string
+  localizedTitle?: InternationalizedArrayString
   body: PortableTextContent
+  localizedBody?: InternationalizedArrayPortableTextContent
 }
 
 export type InfoAddressBlock = {
   _type: "infoAddressBlock"
   heading: string
+  localizedHeading?: InternationalizedArrayString
   body?: PortableTextContent
+  localizedBody?: InternationalizedArrayPortableTextContent
   address?: string
   mapUrl?: string
 }
@@ -739,6 +745,7 @@ export type SponsorsPage = {
     title: string
     localizedTitle?: InternationalizedArrayString
     description?: PortableTextContent
+    localizedDescription?: InternationalizedArrayPortableTextContent
     website?: string
     _type: "sponsor"
     _key: string

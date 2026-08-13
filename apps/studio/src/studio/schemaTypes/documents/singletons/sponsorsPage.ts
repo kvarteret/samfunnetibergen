@@ -83,6 +83,11 @@ export const sponsorsPage = defineType({
               type: "portableTextContent",
             }),
             defineField({
+              name: "localizedDescription",
+              title: "Beskrivelse (oversettelser)",
+              type: "internationalizedArrayPortableTextContent",
+            }),
+            defineField({
               name: "website",
               title: "Nettsted",
               type: "url",
