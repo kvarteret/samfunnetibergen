@@ -23,11 +23,7 @@ export default function proxy(request: NextRequest) {
   )
   const savedLocale = request.cookies.get("NEXT_LOCALE")?.value
 
-  if (
-    !hasLocalePrefix &&
-    savedLocale !== "nb" &&
-    savedLocale !== "en"
-  ) {
+  if (!hasLocalePrefix && savedLocale !== "nb" && savedLocale !== "en") {
     const locale = localeFromAcceptLanguage(
       request.headers.get("accept-language"),
     )

@@ -24,7 +24,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug, locale: localeParam } = await params
-  const locale = await resolvePageLocale(Promise.resolve({ locale: localeParam }))
+  const locale = await resolvePageLocale(
+    Promise.resolve({ locale: localeParam }),
+  )
   const page = await fetchPageBySlug(slug, { locale, stega: false })
   if (!page) return {}
 
