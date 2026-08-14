@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+const HMAC_SECRET = "test-shared-secret-0123456789abcdef"
+
 const {
   captureMock,
   emitOperationalEventMock,
@@ -60,6 +62,7 @@ const validPayload = {
 
 describe("POST /api/volunteer-prospects", () => {
   beforeEach(() => {
+    process.env.VOLUNTEER_PROSPECT_HMAC_SECRET = HMAC_SECRET
     captureMock.mockReset()
     emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
@@ -88,6 +91,9 @@ describe("POST /api/volunteer-prospects", () => {
       phone: "+4740612345",
     })
     expect(requestInit.headers).toMatchObject({
+      "X-Kvarteret-Timestamp": expect.stringMatching(/^\d+$/),
+      "X-Kvarteret-Nonce": expect.stringMatching(/^[0-9a-f-]{36}$/),
+      "X-Kvarteret-Signature": expect.stringMatching(/^v1=[0-9a-f]{64}$/),
       traceparent: "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01",
       tracestate: "vendor=test",
     })
@@ -138,6 +144,27 @@ describe("POST /api/volunteer-prospects", () => {
     expect(response.status).toBe(400)
     expect(rateLimitMock).not.toHaveBeenCalled()
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("fails closed when the HMAC secret is missing", async () => {
+    delete process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
+
+    const response = await POST(
+      new Request("http://localhost/api/volunteer-prospects", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+      }),
+    )
+
+    expect(response.status).toBe(503)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(captureMock).toHaveBeenCalledWith(
+      "volunteer_application",
+      expect.any(Error),
+      expect.objectContaining({
+        failure_branch: "hmac_configuration_invalid",
+      }),
+    )
   })
 
   it("forwards groups that were not in the former launch allowlist", async () => {

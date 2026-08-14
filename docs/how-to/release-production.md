@@ -16,6 +16,12 @@ staged smoke tests pass.
   uses Vercel credentials, Sanity build variables, PostHog source-map
   variables, and `VERCEL_AUTOMATION_BYPASS_SECRET` for protected smoke-test
   deployments.
+- The website Vercel project has a server-only
+  `VOLUNTEER_PROSPECT_HMAC_SECRET` of at least 32 characters, matching Personal's
+  active value. Do not prefix it with `NEXT_PUBLIC_`. For the initial cutover,
+  provision both projects and release website signing before Personal starts
+  enforcing signatures. During later secret rotations, update Personal to
+  accept the new and previous values before switching the website.
 
 Pull-request-specific Vercel Preview deployments are the normal place to review
 changes before merging. The release workflow still provides the integration

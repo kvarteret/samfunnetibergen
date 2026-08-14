@@ -3,6 +3,7 @@ import {
   type VolunteerFormValues,
   volunteerFormSchema,
 } from "@/features/grupper/domain/volunteerFormSchema"
+import { createVolunteerProspectAuthHeaders } from "@/lib/integrations/kvarteret-personal/volunteer-prospect-signing"
 import {
   currentTraceFields,
   emitOperationalEvent,
@@ -67,10 +68,32 @@ export async function POST(request: Request) {
         ? values.friendEmails.map(email => email.trim().toLowerCase())
         : undefined,
   }
+  const serializedRequestBody = JSON.stringify(requestBody)
+
+  let authenticationHeaders: Record<string, string>
+  try {
+    authenticationHeaders = createVolunteerProspectAuthHeaders(
+      serializedRequestBody,
+      process.env.VOLUNTEER_PROSPECT_HMAC_SECRET,
+    )
+  } catch {
+    captureSubmitFailure(
+      "volunteer_application",
+      new Error("Volunteer prospect HMAC signing is not configured"),
+      {
+        source: "volunteer-prospects-route",
+        failure_branch: "hmac_configuration_invalid",
+        first_choice_group_slug: requestBody.first_choice_group_slug,
+        has_second_choice: Boolean(requestBody.second_choice_group_slug),
+      },
+    )
+    return NextResponse.json({ detail: GENERIC_ERROR }, { status: 503 })
+  }
 
   try {
     const outboundHeaders: Record<string, string> = {
       "Content-Type": "application/json",
+      ...authenticationHeaders,
     }
     injectActiveTraceContext(outboundHeaders)
     const response = await fetch(
@@ -78,7 +101,7 @@ export async function POST(request: Request) {
       {
         method: "POST",
         headers: outboundHeaders,
-        body: JSON.stringify(requestBody),
+        body: serializedRequestBody,
         signal: AbortSignal.timeout(10_000),
       },
     )

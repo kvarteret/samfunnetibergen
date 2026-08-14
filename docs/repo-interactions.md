@@ -23,7 +23,13 @@ site unless these call paths change.
 ## Volunteer Prospects
 
 The public volunteer form submits to this repo first. The route validates the
-payload and proxies accepted submissions to `kvarteret-personal`. Every
+payload and proxies accepted submissions to `kvarteret-personal`. The server
+serializes the normalized Personal payload once and authenticates that exact
+body with HMAC-SHA256 using the server-only
+`VOLUNTEER_PROSPECT_HMAC_SECRET`. Personal rejects unsigned, altered, stale, and
+replayed requests before application processing. HMAC proves that the request
+came from a server holding the shared secret; it does not prove that the public
+form was completed by a human. Every
 published group can use the form. Sanity group slugs are forwarded unchanged;
 Personal owns the stable group-slug lookup and resolves them to its group IDs.
 Both repositories use the same deterministic slug rule without aliases. In
@@ -41,8 +47,21 @@ Verified source:
 - `apps/web/src/features/grupper/components/GroupVolunteerForm.tsx`
 - `apps/web/src/app/[locale]/grupper/[slug]/page.tsx`
 - `apps/web/src/app/api/volunteer-prospects/route.ts`
+- `apps/web/src/lib/integrations/kvarteret-personal/volunteer-prospect-signing.ts`
 - `../kvarteret-personal/app/domain/volunteer_applications/service.py`
+- `../kvarteret-personal/app/api/request_auth.py`
+- `../kvarteret-personal/app/api/v1/volunteer_prospects.py`
 - `../kvarteret-personal/tests/unit/domain/test_data_services.py`
+
+The website Vercel project and Personal must contain the same active secret. For
+the initial cutover, provision both projects, deploy website signing first, and
+then deploy Personal enforcement; the old Personal route ignores the added
+headers. For later rotation, Personal temporarily accepts both its active
+`VOLUNTEER_PROSPECT_HMAC_SECRET` and
+`VOLUNTEER_PROSPECT_HMAC_PREVIOUS_SECRET`; switch the website to the new active
+value before removing the previous value from Personal. Secrets must remain in
+Vercel environment configuration and must not be committed or prefixed with
+`NEXT_PUBLIC_`.
 
 ## Generated Personal Client
 
