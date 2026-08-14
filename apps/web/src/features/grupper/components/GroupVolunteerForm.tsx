@@ -23,6 +23,7 @@ import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
+  VOLUNTEER_FORM_LIMITS,
   type VolunteerFormValues,
   volunteerFormSchema,
 } from "../domain/volunteerFormSchema"
@@ -56,6 +57,11 @@ const defaultValues: VolunteerFormValues = {
   friendEmails: [],
 }
 
+type SubmissionIdentity = {
+  fingerprint: string
+  idempotencyKey: string
+}
+
 function friendFieldId(index: number) {
   return index === 0 ? "gvf-friend-0" : "gvf-friend-1"
 }
@@ -75,6 +81,7 @@ export function GroupVolunteerForm({
   ]
   const hasMultipleGroupChoices = groupChoices.length > 1
   const [honeypot, setHoneypot] = useState("")
+  const submissionIdentityRef = useRef<SubmissionIdentity | null>(null)
 
   const form = useForm({
     defaultValues: { ...defaultValues, firstChoiceGroupSlug: groupSlug },
@@ -83,10 +90,21 @@ export function GroupVolunteerForm({
       onSubmit: volunteerFormSchema,
     },
     onSubmit: async ({ value, formApi }) => {
+      const body = JSON.stringify({ ...value, honeypot })
+      if (submissionIdentityRef.current?.fingerprint !== body) {
+        submissionIdentityRef.current = {
+          fingerprint: body,
+          idempotencyKey: crypto.randomUUID(),
+        }
+      }
       const response = await fetch("/api/volunteer-prospects", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, honeypot }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Kvarteret-Idempotency-Key":
+            submissionIdentityRef.current.idempotencyKey,
+        },
+        body,
       })
 
       if (!response.ok) {
@@ -163,6 +181,10 @@ export function GroupVolunteerForm({
     studyInstitution: useFieldAria(
       fieldIds.studyInstitution,
       errorFor(fieldIds.studyInstitution),
+    ),
+    backgroundDetails: useFieldAria(
+      fieldIds.backgroundDetails,
+      errorFor(fieldIds.backgroundDetails),
     ),
   }
 
@@ -266,6 +288,7 @@ export function GroupVolunteerForm({
                     aria-invalid={aria.firstName.invalid}
                     autoComplete="given-name"
                     id={fieldIds.firstName}
+                    maxLength={VOLUNTEER_FORM_LIMITS.firstName}
                     onBlur={field.handleBlur}
                     onChange={e => field.handleChange(e.target.value)}
                     value={field.state.value as string}
@@ -289,6 +312,7 @@ export function GroupVolunteerForm({
                     aria-invalid={aria.lastName.invalid}
                     autoComplete="family-name"
                     id={fieldIds.lastName}
+                    maxLength={VOLUNTEER_FORM_LIMITS.lastName}
                     onBlur={field.handleBlur}
                     onChange={e => field.handleChange(e.target.value)}
                     value={field.state.value as string}
@@ -313,6 +337,7 @@ export function GroupVolunteerForm({
                     aria-invalid={aria.email.invalid}
                     autoComplete="email"
                     id={fieldIds.email}
+                    maxLength={VOLUNTEER_FORM_LIMITS.email}
                     onBlur={field.handleBlur}
                     onChange={e => field.handleChange(e.target.value)}
                     placeholder={t("emailPlaceholder")}
@@ -366,12 +391,18 @@ export function GroupVolunteerForm({
 
           <form.Field name="backgroundDetails">
             {(field: AnyFieldApi) => (
-              <FieldGroup>
+              <FieldGroup
+                error={errorFor(fieldIds.backgroundDetails)}
+                errorId={`${fieldIds.backgroundDetails}-error`}
+              >
                 <Label htmlFor={fieldIds.backgroundDetails}>
                   {t("backgroundDetailsLabel")}
                 </Label>
                 <Textarea
+                  aria-describedby={aria.backgroundDetails.describedby}
+                  aria-invalid={aria.backgroundDetails.invalid}
                   id={fieldIds.backgroundDetails}
+                  maxLength={VOLUNTEER_FORM_LIMITS.backgroundDetails}
                   onChange={e => field.handleChange(e.target.value)}
                   placeholder={t("backgroundDetailsPlaceholder")}
                   rows={4}
@@ -418,6 +449,7 @@ export function GroupVolunteerForm({
                               aria-invalid={!!error}
                               autoComplete="email"
                               id={fieldId}
+                              maxLength={VOLUNTEER_FORM_LIMITS.email}
                               onChange={event =>
                                 field.handleChange(
                                   friendEmails.map((email, emailIndex) =>
@@ -471,6 +503,7 @@ export function GroupVolunteerForm({
             autoComplete="off"
             className="absolute opacity-0 pointer-events-none h-0 w-0"
             id={`${uid}-hp`}
+            maxLength={VOLUNTEER_FORM_LIMITS.honeypot}
             name="honeypot"
             onChange={e => setHoneypot(e.target.value)}
             tabIndex={-1}
@@ -503,6 +536,7 @@ function volunteerFieldId(
   if (path === "email") return fieldIds.email
   if (path === "phone") return fieldIds.phone
   if (path === "studyInstitution") return fieldIds.studyInstitution
+  if (path === "backgroundDetails") return fieldIds.backgroundDetails
   if (path === "firstChoiceGroupSlug") return fieldIds.firstChoiceGroupSlug
   if (path === "secondChoiceGroupSlug") return fieldIds.secondChoiceGroupSlug
   const friendMatch = /^friendEmails\[(\d+)\]/.exec(path)
@@ -524,6 +558,13 @@ function translateValidationMessage(
     "Andrevalget må være en annen gruppe.": "secondChoiceConflict",
     "E-postadressene må være ulike.": "friendEmailDuplicate",
     "Du kan melde på maksimalt to venner.": "friendEmailMax",
+    "Fornavnet er for langt.": "firstNameMax",
+    "Etternavnet er for langt.": "lastNameMax",
+    "E-postadressen er for lang.": "emailMax",
+    "Telefonnummeret er for langt.": "phoneMax",
+    "Studiestedet er for langt.": "studyInstitutionMax",
+    "Bakgrunnsteksten er for lang.": "backgroundDetailsMax",
+    "Gruppenavnet er for langt.": "groupSlugMax",
   }
   const key = keyByMessage[message]
   return key ? t(key) : message
