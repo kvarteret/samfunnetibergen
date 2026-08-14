@@ -214,7 +214,14 @@
     "secondChoiceConflict": "Andrevalg må være forskjellig fra førstevalg.",
     "friendEmailInvalid": "Skriv inn en gyldig e-postadresse.",
     "friendEmailDuplicate": "E-postadressene må være ulike.",
-    "friendEmailMax": "Du kan legge til maks to venner."
+    "friendEmailMax": "Du kan legge til maks to venner.",
+    "firstNameMax": "Fornavnet er for langt.",
+    "lastNameMax": "Etternavnet er for langt.",
+    "emailMax": "E-postadressen er for lang.",
+    "phoneMax": "Telefonnummeret er for langt.",
+    "studyInstitutionMax": "Studiestedet er for langt.",
+    "backgroundDetailsMax": "Bakgrunnsteksten er for lang.",
+    "groupSlugMax": "Gruppevalget er for langt."
   },
   "Api": {
     "invalidRequest": "Ugyldig forespørsel.",

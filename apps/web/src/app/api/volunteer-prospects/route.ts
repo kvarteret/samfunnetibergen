@@ -2,8 +2,13 @@ import { NextResponse } from "next/server"
 import {
   type VolunteerFormValues,
   volunteerFormSchema,
+  volunteerHoneypotSchema,
 } from "@/features/grupper/domain/volunteerFormSchema"
-import { createVolunteerProspectAuthHeaders } from "@/lib/integrations/kvarteret-personal/volunteer-prospect-signing"
+import {
+  createVolunteerProspectAuthHeaders,
+  createVolunteerProspectClientKey,
+  resolveVolunteerProspectIdempotencyKey,
+} from "@/lib/integrations/kvarteret-personal/volunteer-prospect-signing"
 import {
   currentTraceFields,
   emitOperationalEvent,
@@ -19,17 +24,38 @@ const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
 
 const GENERIC_ERROR = "Kunne ikke registrere frivillig."
+const REQUEST_BODY_LIMIT_BYTES = 16 * 1_024
+
+class RequestBodyTooLargeError extends Error {}
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null)
+  let body: unknown = null
+  try {
+    const rawBody = await readRequestBodyWithinLimit(request)
+    body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(rawBody))
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { detail: "Forespørselen er for stor." },
+        { status: 413 },
+      )
+    }
+  }
 
-  // Silently accept honeypot hits.
-  if (
-    body &&
-    typeof body === "object" &&
-    (body as Record<string, unknown>).honeypot &&
-    String((body as Record<string, unknown>).honeypot).trim() !== ""
-  ) {
+  const honeypotValue =
+    body && typeof body === "object"
+      ? (body as Record<string, unknown>).honeypot
+      : undefined
+  const parsedHoneypot = volunteerHoneypotSchema.safeParse(honeypotValue ?? "")
+  if (!parsedHoneypot.success) {
+    return NextResponse.json(
+      { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
+      { status: 400 },
+    )
+  }
+
+  // Silently accept bounded honeypot hits.
+  if (parsedHoneypot.data.trim() !== "") {
     return NextResponse.json({ registrationId: "ignored" }, { status: 201 })
   }
 
@@ -52,9 +78,39 @@ export async function POST(request: Request) {
     )
   }
 
-  // Volunteer retries are intentionally not rate-limited while Personal
-  // intake failures are being stabilized.
+  // Personal owns the durable route, client-key, and email counters. This
+  // stateless proxy supplies the signed dimensions after local validation.
   const values: VolunteerFormValues = parsed.data
+  let idempotencyKey: string
+  try {
+    idempotencyKey = resolveVolunteerProspectIdempotencyKey(
+      request.headers.get("X-Kvarteret-Idempotency-Key"),
+    )
+  } catch {
+    return NextResponse.json(
+      { detail: "Ugyldig idempotensnøkkel." },
+      { status: 400 },
+    )
+  }
+
+  let clientKey: string
+  try {
+    clientKey = createVolunteerProspectClientKey(
+      request.headers,
+      process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET,
+    )
+  } catch {
+    captureSubmitFailure(
+      "volunteer_application",
+      new Error("Volunteer prospect client key is unavailable"),
+      {
+        source: "volunteer-prospects-route",
+        failure_branch: "client_key_unavailable",
+      },
+    )
+    return NextResponse.json({ detail: GENERIC_ERROR }, { status: 503 })
+  }
+
   const requestBody = {
     full_name: `${values.firstName.trim()} ${values.lastName.trim()}`,
     email: values.email.trim().toLowerCase(),
@@ -75,6 +131,7 @@ export async function POST(request: Request) {
     authenticationHeaders = createVolunteerProspectAuthHeaders(
       serializedRequestBody,
       process.env.VOLUNTEER_PROSPECT_HMAC_SECRET,
+      { idempotencyKey, clientKey },
     )
   } catch {
     captureSubmitFailure(
@@ -173,5 +230,61 @@ export async function POST(request: Request) {
       },
     )
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
+  }
+}
+
+async function readRequestBodyWithinLimit(
+  request: Request,
+): Promise<Uint8Array> {
+  const contentLength = request.headers.get("content-length")
+  if (
+    contentLength &&
+    /^\d+$/.test(contentLength) &&
+    Number(contentLength) > REQUEST_BODY_LIMIT_BYTES
+  ) {
+    await cancelRequestBody(request.body)
+    throw new RequestBodyTooLargeError()
+  }
+
+  if (!request.body) return new Uint8Array()
+
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  let bytesRead = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      bytesRead += value.byteLength
+      if (bytesRead > REQUEST_BODY_LIMIT_BYTES) {
+        try {
+          await reader.cancel()
+        } catch {
+          // The 413 response is still authoritative if upstream cancellation fails.
+        }
+        throw new RequestBodyTooLargeError()
+      }
+      chunks.push(value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  const body = new Uint8Array(bytesRead)
+  let offset = 0
+  for (const chunk of chunks) {
+    body.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return body
+}
+
+async function cancelRequestBody(
+  body: ReadableStream<Uint8Array> | null,
+): Promise<void> {
+  try {
+    await body?.cancel()
+  } catch {
+    // The declared byte length is already sufficient to reject this request.
   }
 }

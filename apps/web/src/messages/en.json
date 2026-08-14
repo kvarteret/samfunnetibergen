@@ -202,7 +202,14 @@
     "secondChoiceConflict": "Your second choice must be a different group.",
     "friendEmailInvalid": "Enter a valid email address.",
     "friendEmailDuplicate": "Email addresses must be different.",
-    "friendEmailMax": "You can add up to two friends."
+    "friendEmailMax": "You can add up to two friends.",
+    "firstNameMax": "Your first name is too long.",
+    "lastNameMax": "Your last name is too long.",
+    "emailMax": "The email address is too long.",
+    "phoneMax": "The phone number is too long.",
+    "studyInstitutionMax": "The place of study is too long.",
+    "backgroundDetailsMax": "The background text is too long.",
+    "groupSlugMax": "The group choice is too long."
   },
   "Api": {
     "invalidRequest": "Ugyldig forespørsel.",
