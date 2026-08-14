@@ -1,23 +1,29 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 export const infoAccordionItem = defineType({
   name: "infoAccordionItem",
   title: "Trekkspill-seksjon",
   type: "object",
   fields: [
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "body",
-      title: "Innhold",
-      type: "portableTextContent",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("title", "Tittel (legacy)", "string"),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      { required: true, legacyField: "title" },
+    ),
+    deprecatedLegacyField("body", "Innhold (legacy)", "portableTextContent"),
+    localizedArrayField(
+      "localizedBody",
+      "Innhold",
+      "internationalizedArrayPortableTextContent",
+      { required: true, legacyField: "body" },
+    ),
   ],
   preview: {
     select: { title: "title" },
@@ -33,18 +39,23 @@ export const infoAccordionBlock = defineType({
   type: "object",
   icon: icons["chevron-down"],
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "intro",
-      title: "Ingress",
-      type: "text",
-      rows: 3,
-    }),
+    deprecatedLegacyField("heading", "Overskrift (legacy)", "string"),
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true, legacyField: "heading" },
+    ),
+    deprecatedLegacyField("intro", "Ingress (legacy)", "text", { rows: 3 }),
+    localizedArrayField(
+      "localizedIntro",
+      "Ingress",
+      "internationalizedArrayText",
+      {
+        legacyField: "intro",
+        rows: 3,
+      },
+    ),
     defineField({
       name: "items",
       title: "Seksjoner",

@@ -1,6 +1,6 @@
 export const sourceLinkProjection = `{
     _key,
-    "label": coalesce(label, "Lenke uten navn"),
+    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, label, "Lenke uten navn"),
     "kind": select(
         linkType == "internalPage" => "internalDocument",
         linkType == "internalPath" => "internalPath",

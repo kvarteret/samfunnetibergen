@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../../shared/localizedFields"
 
 export const roomsPage = defineType({
   name: "roomsPage",
@@ -12,26 +16,41 @@ export const roomsPage = defineType({
     { name: "floorPlans", title: "Plantegninger" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
+    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
       group: "hero",
     }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        legacyField: "eyebrow",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
       group: "hero",
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "title",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("description", "Beskrivelse (legacy)", "text", {
       rows: 4,
       group: "hero",
     }),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { legacyField: "description", rows: 4, group: "hero" },
+    ),
     defineField({
       name: "sections",
       title: "Bestillingsinformasjon",
@@ -67,11 +86,13 @@ export const roomsPage = defineType({
               type: "number",
               validation: rule => rule.required(),
             }),
-            defineField({
-              name: "title",
-              title: "Tittel",
-              type: "string",
-            }),
+            deprecatedLegacyField("title", "Tittel (legacy)", "string"),
+            localizedArrayField(
+              "localizedTitle",
+              "Tittel",
+              "internationalizedArrayString",
+              { legacyField: "title" },
+            ),
             defineField({
               name: "file",
               title: "SVG-fil",

@@ -30,6 +30,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Metadata" })
 
   const metadata = buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/arrangementer`,
     title: t("eventsTitle"),
     description: t("eventsDescription"),
@@ -60,7 +61,7 @@ export default async function EventsPage({
 
   const [t, arrangements, resolvedSearchParams, cardT] = await Promise.all([
     getTranslations({ locale, namespace: "EventsPage" }),
-    fetchPublishedEvents(),
+    fetchPublishedEvents(locale),
     searchParams,
     getTranslations({ locale, namespace: "EventCard" }),
   ])

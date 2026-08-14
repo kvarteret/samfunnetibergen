@@ -17,6 +17,7 @@ import {
   usefulInfoPageQuery,
 } from "../queries"
 import { compact, type FetchOptions } from "./shared"
+import { DEFAULT_LOCALE } from "../localized"
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
@@ -39,26 +40,31 @@ export type NavGroup = NonNullable<NavItem["children"]>[number]
 export type NavLeaf = NonNullable<NavGroup["items"]>[number]
 
 export async function fetchHomePageContent(
-  _locale: AppLocale,
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<HomePageContent | null> {
   const { data } = await sanityFetch({
     query: homePageNbQuery,
+    params: { locale },
     stega: options.stega,
   })
   return data
 }
 
-export async function fetchNavbar(): Promise<NavbarContent | null> {
-  const { data } = await sanityFetch({ query: navbarQuery })
+export async function fetchNavbar(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<NavbarContent | null> {
+  const { data } = await sanityFetch({ query: navbarQuery, params: { locale } })
   return data
 }
 
 export async function fetchSponsorsPageContent(
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<SponsorsPageContent | null> {
   const { data } = await sanityFetch({
     query: sponsorsPageQuery,
+    params: { locale },
     stega: options.stega,
   })
   return data
@@ -78,38 +84,44 @@ export async function fetchPageSlugs(): Promise<string[]> {
 
 export async function fetchPageBySlug(
   slug: string,
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<PageContent | null> {
   const { data } = await sanityFetch({
     query: pageBySlugQuery,
-    params: { slug },
+    params: { slug, locale },
     stega: options.stega,
   })
   return data
 }
 
-export async function fetchKontaktPage() {
+export async function fetchKontaktPage(locale: AppLocale = DEFAULT_LOCALE) {
   const { data } = await sanityFetch({
     query: kontaktPageQuery,
+    params: { locale },
   })
   return data
 }
 
-export async function fetchFooter() {
-  const { data } = await sanityFetch({ query: footerQuery })
+export async function fetchFooter(locale: AppLocale = DEFAULT_LOCALE) {
+  const { data } = await sanityFetch({ query: footerQuery, params: { locale } })
   return data
 }
 
-export async function fetchHouseHours(): Promise<HouseHoursContent | null> {
+export async function fetchHouseHours(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<HouseHoursContent | null> {
   const { data } = await sanityFetch({
     query: houseHoursQuery,
+    params: { locale },
   })
   return data
 }
 
-export async function fetchLinkInBio() {
+export async function fetchLinkInBio(locale: AppLocale = DEFAULT_LOCALE) {
   const { data } = await sanityFetch({
     query: linkInBioQuery,
+    params: { locale },
   })
   return data
 }
@@ -118,9 +130,12 @@ export type UsefulInfoPage = NonNullable<
   ClientReturn<typeof usefulInfoPageQuery>
 >
 
-export async function fetchUsefulInfoPage(): Promise<UsefulInfoPage | null> {
+export async function fetchUsefulInfoPage(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<UsefulInfoPage | null> {
   const { data } = await sanityFetch({
     query: usefulInfoPageQuery,
+    params: { locale },
   })
   return data
 }

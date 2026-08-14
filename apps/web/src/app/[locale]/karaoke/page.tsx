@@ -23,6 +23,7 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/karaoke`,
     title: "Booking av karaoke",
     description:
@@ -48,8 +49,8 @@ export default async function KaraokePage({
   activateRequestLocale(locale)
 
   const [roomData, houseHours] = await Promise.all([
-    fetchRoomBySlug("maos"),
-    fetchHouseHours(),
+    fetchRoomBySlug("maos", locale),
+    fetchHouseHours(locale),
   ])
   const room: KaraokeRoom = roomData
     ? {

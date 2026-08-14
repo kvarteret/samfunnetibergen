@@ -71,9 +71,14 @@ describe("editorial arrangement schema", () => {
   })
 
   it("removes retired category and event type fields", () => {
-    expect(fieldNames(eventTaxonomyGroup)).toEqual(["name", "orderRank"])
+    expect(fieldNames(eventTaxonomyGroup)).toEqual([
+      "name",
+      "localizedName",
+      "orderRank",
+    ])
     expect(fieldNames(eventType)).toEqual([
       "name",
+      "localizedName",
       "taxonomyGroup",
       "isActive",
       "orderRank",

@@ -1,22 +1,29 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 const contactPerson = defineType({
   name: "contactPerson",
   title: "Kontaktperson",
   type: "object",
   fields: [
-    defineField({
-      name: "name",
-      title: "Navn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "rolle",
-      title: "Rolle",
-      type: "string",
-    }),
+    deprecatedLegacyField("name", "Navn (legacy)", "string"),
+    localizedArrayField(
+      "localizedName",
+      "Navn",
+      "internationalizedArrayString",
+      { required: true, legacyField: "name" },
+    ),
+    deprecatedLegacyField("rolle", "Rolle (legacy)", "string"),
+    localizedArrayField(
+      "localizedRole",
+      "Rolle",
+      "internationalizedArrayString",
+      { legacyField: "rolle" },
+    ),
     defineField({ name: "email", title: "E-post", type: "string" }),
     defineField({ name: "phone", title: "Telefon", type: "string" }),
     defineField({
@@ -36,12 +43,13 @@ const contactGroup = defineType({
   title: "Kontaktgruppe",
   type: "object",
   fields: [
-    defineField({
-      name: "title",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("title", "Overskrift (legacy)", "string"),
+    localizedArrayField(
+      "localizedTitle",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true, legacyField: "title" },
+    ),
     defineField({
       name: "persons",
       title: "Kontaktpersoner",
@@ -75,27 +83,48 @@ export const kontaktPage = defineType({
     { name: "page", title: "Kontaktside" },
   ],
   fields: [
-    defineField({
-      name: "visitAddress",
-      title: "Besøksadresse",
-      type: "text",
+    deprecatedLegacyField("visitAddress", "Besøksadresse (legacy)", "text", {
       rows: 3,
       group: "org",
     }),
-    defineField({
-      name: "postAddress",
-      title: "Postadresse",
-      type: "text",
+    localizedArrayField(
+      "localizedVisitAddress",
+      "Besøksadresse",
+      "internationalizedArrayText",
+      {
+        legacyField: "visitAddress",
+        rows: 3,
+        group: "org",
+      },
+    ),
+    deprecatedLegacyField("postAddress", "Postadresse (legacy)", "text", {
       rows: 3,
       group: "org",
     }),
-    defineField({
-      name: "invoiceAddress",
-      title: "Fakturaadresse",
-      type: "text",
+    localizedArrayField(
+      "localizedPostAddress",
+      "Postadresse",
+      "internationalizedArrayText",
+      {
+        legacyField: "postAddress",
+        rows: 3,
+        group: "org",
+      },
+    ),
+    deprecatedLegacyField("invoiceAddress", "Fakturaadresse (legacy)", "text", {
       rows: 4,
       group: "org",
     }),
+    localizedArrayField(
+      "localizedInvoiceAddress",
+      "Fakturaadresse",
+      "internationalizedArrayText",
+      {
+        legacyField: "invoiceAddress",
+        rows: 4,
+        group: "org",
+      },
+    ),
     defineField({
       name: "invoiceEmail",
       title: "Faktura e-post",
@@ -108,20 +137,39 @@ export const kontaktPage = defineType({
       type: "string",
       group: "org",
     }),
-    defineField({
-      name: "generalContact",
-      title: "Generell kontakt (e-post / tlf)",
-      type: "text",
+    deprecatedLegacyField(
+      "generalContact",
+      "Generell kontakt (legacy)",
+      "text",
+      {
+        rows: 2,
+        group: "org",
+      },
+    ),
+    localizedArrayField(
+      "localizedGeneralContact",
+      "Generell kontakt (e-post / tlf)",
+      "internationalizedArrayText",
+      {
+        legacyField: "generalContact",
+        rows: 2,
+        group: "org",
+      },
+    ),
+    deprecatedLegacyField("pressContact", "Pressekontakt (legacy)", "text", {
       rows: 2,
       group: "org",
     }),
-    defineField({
-      name: "pressContact",
-      title: "Pressekontakt (e-post / tlf)",
-      type: "text",
-      rows: 2,
-      group: "org",
-    }),
+    localizedArrayField(
+      "localizedPressContact",
+      "Pressekontakt (e-post / tlf)",
+      "internationalizedArrayText",
+      {
+        legacyField: "pressContact",
+        rows: 2,
+        group: "org",
+      },
+    ),
     defineField({
       name: "contactGroups",
       title: "Kontaktgrupper",

@@ -22,8 +22,8 @@ export default async function LocaleLayout({
   activateRequestLocale(locale)
   const [messages, footer, houseHours] = await Promise.all([
     getMessages(),
-    fetchFooter(),
-    fetchHouseHours(),
+    fetchFooter(locale),
+    fetchHouseHours(locale),
   ])
   const initialNow = new Date().toISOString()
 

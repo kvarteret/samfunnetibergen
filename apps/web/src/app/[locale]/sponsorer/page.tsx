@@ -22,9 +22,10 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: SponsorsPageProps) {
   const locale = await resolvePageLocale(params)
-  const content = await fetchSponsorsPageContent({ stega: false })
+  const content = await fetchSponsorsPageContent(locale, { stega: false })
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/sponsorer`,
     title: content?.title ?? "Sponsorer",
     description: content?.description ?? "Se sponsorer for Samfunnet i Bergen.",
@@ -35,7 +36,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
 
-  const content = await fetchSponsorsPageContent()
+  const content = await fetchSponsorsPageContent(locale)
   const sponsors = content?.sponsors ?? []
 
   return (

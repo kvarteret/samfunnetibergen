@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../../shared/localizedFields"
 
 export const linkInBio = defineType({
   name: "linkInBio",
@@ -7,20 +11,25 @@ export const linkInBio = defineType({
   type: "document",
   icon: icons.link,
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
+    deprecatedLegacyField("heading", "Overskrift (legacy)", "string", {
       description: "Vises øverst på siden, f.eks. «Kvarteret»",
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "bio",
-      title: "Bio-tekst",
-      type: "text",
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true, legacyField: "heading" },
+    ),
+    deprecatedLegacyField("bio", "Bio-tekst (legacy)", "text", {
       rows: 2,
       description: "Kort tekst under overskriften (valgfri)",
     }),
+    localizedArrayField(
+      "localizedBio",
+      "Bio-tekst",
+      "internationalizedArrayText",
+      { legacyField: "bio" },
+    ),
     defineField({
       name: "links",
       title: "Lenker",

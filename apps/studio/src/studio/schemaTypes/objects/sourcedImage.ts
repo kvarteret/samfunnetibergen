@@ -1,5 +1,10 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+  validateLocalizedArray,
+} from "../shared/localizedFields"
 
 export const sourcedImage = defineType({
   name: "sourcedImage",
@@ -13,23 +18,31 @@ export const sourcedImage = defineType({
       type: "image",
       options: { hotspot: true },
     }),
-    defineField({
-      name: "alt",
-      title: "Alt Text",
-      type: "string",
-      validation: rule =>
-        rule.custom((alt, ctx) => {
-          const parent = ctx.parent as { image?: unknown } | undefined
-          if (parent?.image && !alt)
-            return "Alt-tekst er påkrevd når bilde er lastet opp."
-          return true
+    deprecatedLegacyField("alt", "Alt Text (legacy)", "string"),
+    {
+      ...localizedArrayField(
+        "localizedAlt",
+        "Alt Text",
+        "internationalizedArrayString",
+        { legacyField: "alt" },
+      ),
+      validation: (rule: any) =>
+        rule.custom((value: unknown, context: any) => {
+          const parent = context.parent as { image?: unknown } | undefined
+          return validateLocalizedArray(value, {
+            required: Boolean(parent?.image),
+            legacyField: "alt",
+            context,
+          })
         }),
-    }),
-    defineField({
-      name: "caption",
-      title: "Caption",
-      type: "string",
-    }),
+    },
+    deprecatedLegacyField("caption", "Caption (legacy)", "string"),
+    localizedArrayField(
+      "localizedCaption",
+      "Caption",
+      "internationalizedArrayString",
+      { legacyField: "caption" },
+    ),
   ],
   preview: {
     select: { title: "alt", media: "image" },

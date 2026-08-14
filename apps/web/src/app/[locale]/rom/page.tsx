@@ -25,9 +25,10 @@ type RoomsPageProps = {
 
 export async function generateMetadata({ params }: RoomsPageProps) {
   const locale = await resolvePageLocale(params)
-  const content = await fetchRoomsPageContent({ stega: false })
+  const content = await fetchRoomsPageContent(locale, { stega: false })
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/rom`,
     title: content?.title ?? "Rom",
     description:
@@ -66,8 +67,8 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
   activateRequestLocale(locale)
 
   const [content, rooms] = await Promise.all([
-    fetchRoomsPageContent(),
-    fetchRooms(),
+    fetchRoomsPageContent(locale),
+    fetchRooms(locale),
   ])
 
   const leietiderSection = content?.sections?.find(s => s.title === "Leietider")

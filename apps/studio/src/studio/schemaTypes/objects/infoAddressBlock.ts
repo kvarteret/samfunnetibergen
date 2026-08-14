@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 export const infoAddressBlock = defineType({
   name: "infoAddressBlock",
@@ -7,22 +11,27 @@ export const infoAddressBlock = defineType({
   type: "object",
   icon: icons.pin,
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "body",
-      title: "Tekst",
-      type: "portableTextContent",
-    }),
-    defineField({
-      name: "address",
-      title: "Adresse",
-      type: "string",
-    }),
+    deprecatedLegacyField("heading", "Overskrift (legacy)", "string"),
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true, legacyField: "heading" },
+    ),
+    deprecatedLegacyField("body", "Tekst (legacy)", "portableTextContent"),
+    localizedArrayField(
+      "localizedBody",
+      "Tekst",
+      "internationalizedArrayPortableTextContent",
+      { legacyField: "body" },
+    ),
+    deprecatedLegacyField("address", "Adresse (legacy)", "string"),
+    localizedArrayField(
+      "localizedAddress",
+      "Adresse",
+      "internationalizedArrayString",
+      { legacyField: "address" },
+    ),
     defineField({
       name: "mapUrl",
       title: "Kart-lenke",

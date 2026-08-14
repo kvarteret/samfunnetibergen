@@ -9,6 +9,10 @@ import {
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
 import { studentGroupSlugFromName } from "../../groupSlugs"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 export const STUDENT_GROUP_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
@@ -30,20 +34,21 @@ export const studentGroup = defineType({
     { name: "contact", title: "Kontakt" },
   ],
   fields: [
-    defineField({
-      name: "name",
-      title: "Navn",
-      type: "string",
-      group: "identity",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedName",
-      title: "Navn (oversettelser)",
-      description: "La stå tomt for egennavn som skal være like på alle språk.",
-      type: "internationalizedArrayString",
+    deprecatedLegacyField("name", "Navn (legacy)", "string", {
       group: "identity",
     }),
+    localizedArrayField(
+      "localizedName",
+      "Navn",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "name",
+        description:
+          "Kanonisk navn per språk. Legg bare til engelsk når navnet faktisk oversettes.",
+        group: "identity",
+      },
+    ),
     defineField({
       name: "slug",
       title: "Slug",
@@ -56,7 +61,16 @@ export const studentGroup = defineType({
       readOnly: ({ document }) =>
         Boolean((document?.slug as { current?: string } | undefined)?.current),
       options: {
-        source: "name",
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedName as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.name as string | undefined) ??
+            ""
+          )
+        },
         slugify: studentGroupSlugFromName,
       },
       validation: rule => rule.required(),
@@ -105,32 +119,28 @@ export const studentGroup = defineType({
           return hasCycle ? "En gruppe kan ikke være sin egen forfader." : true
         }),
     }),
-    defineField({
-      name: "summary",
-      title: "Kort beskrivelse",
-      type: "text",
+    deprecatedLegacyField("summary", "Kort beskrivelse (legacy)", "text", {
       group: "identity",
       rows: 3,
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "localizedSummary",
-      title: "Kort beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "identity",
-    }),
-    defineField({
-      name: "body",
-      title: "Fullstendig beskrivelse",
-      type: "portableTextContent",
-      group: "identity",
-    }),
-    defineField({
-      name: "localizedBody",
-      title: "Fullstendig beskrivelse (oversettelser)",
-      type: "internationalizedArrayPortableTextContent",
-      group: "identity",
-    }),
+    localizedArrayField(
+      "localizedSummary",
+      "Kort beskrivelse",
+      "internationalizedArrayText",
+      { required: true, legacyField: "summary", group: "identity" },
+    ),
+    deprecatedLegacyField(
+      "body",
+      "Fullstendig beskrivelse (legacy)",
+      "portableTextContent",
+      { group: "identity" },
+    ),
+    localizedArrayField(
+      "localizedBody",
+      "Fullstendig beskrivelse",
+      "internationalizedArrayPortableTextContent",
+      { legacyField: "body", group: "identity" },
+    ),
     defineField({
       name: "recruitmentLabel",
       title: "Rekrutteringskategori",
@@ -214,11 +224,17 @@ export const studentGroup = defineType({
               type: "string",
               validation: rule => rule.required(),
             }),
-            defineField({
-              name: "customLabel",
-              title: "Egendefinert label (overstyrer plattformnavn)",
-              type: "string",
-            }),
+            deprecatedLegacyField(
+              "customLabel",
+              "Egendefinert label (legacy)",
+              "string",
+            ),
+            localizedArrayField(
+              "localizedCustomLabel",
+              "Egendefinert label",
+              "internationalizedArrayString",
+              { legacyField: "customLabel" },
+            ),
           ],
           preview: {
             select: {
@@ -271,16 +287,18 @@ export const studentGroup = defineType({
       group: "identity",
       options: { hotspot: false },
     }),
-    defineField({
-      name: "labels",
-      title: "Etiketter",
+    deprecatedLegacyField("labels", "Etiketter (legacy)", "array", {
       description:
-        "Opptil 3 etiketter for filtrering (f.eks. «Bar», «Kultur», «Teknikk»)",
-      type: "array",
+        "Bruk etiketter per språk nedenfor. Feltet fjernes etter migreringen.",
       group: "identity",
       of: [defineArrayMember({ type: "string" })],
-      validation: rule => rule.max(3),
     }),
+    localizedArrayField(
+      "localizedLabels",
+      "Etiketter (oversettelser)",
+      "internationalizedArrayText",
+      { legacyField: "labels", group: "identity" },
+    ),
     defineField({
       name: "image",
       title: "Bilde",
@@ -292,11 +310,12 @@ export const studentGroup = defineType({
   orderings: [orderRankOrdering],
   preview: {
     select: {
-      title: "name",
+      title: "localizedName",
+      legacyTitle: "name",
       subtitle: "category",
       media: "image.image",
     },
-    prepare({ title, subtitle, media }) {
+    prepare({ title, legacyTitle, subtitle, media }) {
       const categoryLabel: Record<string, string> = {
         arbeidsgruppe: "Arbeidsgruppe (Arg)",
         komitee: "Komité (Arg)",
@@ -304,7 +323,12 @@ export const studentGroup = defineType({
         borg: "Brukerorganisasjon",
       }
       return {
-        title: title ?? "Gruppe",
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ??
+          legacyTitle ??
+          "Gruppe",
         subtitle: categoryLabel[subtitle] ?? subtitle,
         media,
       }

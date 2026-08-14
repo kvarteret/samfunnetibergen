@@ -24,12 +24,23 @@ export function buildPageMetadata({
 }: PageMetadataOptions): Metadata {
   const resolvedDescription = description?.trim() || DEFAULT_SITE_DESCRIPTION
   const resolvedImageUrl = imageUrl || DEFAULT_SOCIAL_IMAGE_PATH
+  const pathWithoutLocale =
+    canonicalPath.replace(/^\/(?:nb|en)(?=\/|$)/, "") || "/"
+  const localizedPath = (targetLocale: "nb" | "en") =>
+    pathWithoutLocale === "/"
+      ? `/${targetLocale}`
+      : `/${targetLocale}${pathWithoutLocale}`
 
   return {
     title,
     description: resolvedDescription,
     alternates: {
       canonical: canonicalPath,
+      languages: {
+        nb: localizedPath("nb"),
+        en: localizedPath("en"),
+        "x-default": localizedPath("nb"),
+      },
     },
     openGraph: {
       title,

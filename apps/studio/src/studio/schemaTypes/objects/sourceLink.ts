@@ -2,6 +2,10 @@ import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 import { SourceLinkInput } from "./SourceLinkInput"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 const internalPathPattern = /^\/(?!\/)/
 
@@ -14,12 +18,13 @@ export const sourceLink = defineType({
     input: SourceLinkInput,
   },
   fields: [
-    defineField({
-      name: "label",
-      title: "Label",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("label", "Label (legacy)", "string"),
+    localizedArrayField(
+      "localizedLabel",
+      "Label",
+      "internationalizedArrayString",
+      { required: true, legacyField: "label" },
+    ),
     defineField({
       type: "string",
       name: "linkType",
@@ -88,7 +93,8 @@ export const sourceLink = defineType({
     }),
   preview: {
     select: {
-      title: "label",
+      title: "localizedLabel",
+      legacyTitle: "label",
       linkType: "linkType",
       pageTitle: "internalPage.title",
       pageName: "internalPage.name",
@@ -99,6 +105,7 @@ export const sourceLink = defineType({
     },
     prepare({
       title,
+      legacyTitle,
       linkType,
       pageTitle,
       pageName,
@@ -119,7 +126,10 @@ export const sourceLink = defineType({
       }
 
       return {
-        title,
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ?? legacyTitle,
         subtitle,
       }
     },

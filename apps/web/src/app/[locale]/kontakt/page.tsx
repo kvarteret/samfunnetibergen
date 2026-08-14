@@ -19,6 +19,7 @@ export async function generateMetadata({
 }: PageProps<"/[locale]/kontakt">) {
   const locale = await resolvePageLocale(params)
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/kontakt`,
     title: "Kontakt",
     description: "Kontaktinformasjon for Samfunnet i Bergen.",
@@ -91,7 +92,7 @@ export default async function KontaktPage({
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
 
-  const page = await fetchKontaktPage()
+  const page = await fetchKontaktPage(locale)
 
   return (
     <article className="flex w-full flex-col gap-12">

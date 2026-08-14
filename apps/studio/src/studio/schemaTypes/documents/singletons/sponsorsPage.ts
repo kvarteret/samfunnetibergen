@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../../shared/localizedFields"
 
 export const sponsorsPage = defineType({
   name: "sponsorsPage",
@@ -11,26 +15,41 @@ export const sponsorsPage = defineType({
     { name: "sponsors", title: "Sponsorer" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
+    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
       group: "hero",
     }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        legacyField: "eyebrow",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
       group: "hero",
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "title",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("description", "Beskrivelse (legacy)", "text", {
       rows: 4,
       group: "hero",
     }),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { legacyField: "description", rows: 4, group: "hero" },
+    ),
     defineField({
       name: "sponsors",
       title: "Sponsorer",
@@ -48,17 +67,32 @@ export const sponsorsPage = defineType({
               type: "image",
               options: { hotspot: true },
             }),
-            defineField({
-              name: "title",
-              title: "Tittel",
-              type: "string",
-              validation: rule => rule.required(),
-            }),
-            defineField({
-              name: "description",
-              title: "Beskrivelse",
-              type: "portableTextContent",
-            }),
+            localizedArrayField(
+              "localizedLogoAlt",
+              "Logo alt-tekst",
+              "internationalizedArrayString",
+              {
+                description: "Beskriv logoen per språk for tilgjengelighet.",
+              },
+            ),
+            deprecatedLegacyField("title", "Tittel (legacy)", "string"),
+            localizedArrayField(
+              "localizedTitle",
+              "Tittel",
+              "internationalizedArrayString",
+              { required: true, legacyField: "title" },
+            ),
+            deprecatedLegacyField(
+              "description",
+              "Beskrivelse (legacy)",
+              "portableTextContent",
+            ),
+            localizedArrayField(
+              "localizedDescription",
+              "Beskrivelse",
+              "internationalizedArrayPortableTextContent",
+              { legacyField: "description" },
+            ),
             defineField({
               name: "website",
               title: "Nettsted",

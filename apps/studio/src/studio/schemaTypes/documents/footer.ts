@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 const socialLinkSchema = defineType({
   name: "footerSocialLink",
@@ -24,12 +28,13 @@ const socialLinkSchema = defineType({
       },
       validation: rule => rule.required(),
     }),
-    defineField({
-      name: "label",
-      title: "Visningsnavn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("label", "Visningsnavn (legacy)", "string"),
+    localizedArrayField(
+      "localizedLabel",
+      "Visningsnavn",
+      "internationalizedArrayString",
+      { required: true, legacyField: "label" },
+    ),
     defineField({
       name: "url",
       title: "URL",

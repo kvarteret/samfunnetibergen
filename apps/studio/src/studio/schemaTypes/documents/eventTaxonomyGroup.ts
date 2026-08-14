@@ -4,6 +4,10 @@ import {
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
 import { defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 export const eventTaxonomyGroup = defineType({
   name: "eventTaxonomyGroup",
@@ -11,20 +15,29 @@ export const eventTaxonomyGroup = defineType({
   type: "document",
   icon: icons.tag,
   fields: [
-    defineField({
-      name: "name",
-      title: "Navn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("name", "Navn (legacy)", "string"),
+    localizedArrayField(
+      "localizedName",
+      "Navn",
+      "internationalizedArrayString",
+      { required: true, legacyField: "name" },
+    ),
     orderRankField({ type: "eventTaxonomyGroup" }),
   ],
   preview: {
     select: {
-      title: "name",
+      title: "localizedName",
+      legacyTitle: "name",
     },
-    prepare({ title }) {
-      return { title: title ?? "Gruppe" }
+    prepare({ title, legacyTitle }) {
+      return {
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ??
+          legacyTitle ??
+          "Gruppe",
+      }
     },
   },
   orderings: [orderRankOrdering],

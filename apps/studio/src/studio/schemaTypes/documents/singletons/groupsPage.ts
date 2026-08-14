@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../../shared/localizedFields"
 
 export const groupsPage = defineType({
   name: "groupsPage",
@@ -12,45 +16,42 @@ export const groupsPage = defineType({
     { name: "faq", title: "FAQ" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
+    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
       group: "hero",
     }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      description: "Oversett denne korte teksten per språk.",
-      type: "internationalizedArrayString",
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        legacyField: "eyebrow",
+        description: "Kanonisk tekst per språk.",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
       group: "hero",
     }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "hero",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "title",
+        group: "hero",
+      },
+    ),
+    deprecatedLegacyField("description", "Beskrivelse (legacy)", "text", {
       rows: 4,
       group: "hero",
     }),
-    defineField({
-      name: "localizedDescription",
-      title: "Beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "hero",
-    }),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { legacyField: "description", group: "hero" },
+    ),
     defineField({
       name: "sections",
       title: "Introduksjon",
@@ -69,31 +70,27 @@ export const groupsPage = defineType({
           name: "faqItem",
           type: "object",
           fields: [
-            defineField({
-              name: "question",
-              title: "Spørsmål",
-              type: "string",
-              validation: rule => rule.required(),
-            }),
-            defineField({
-              name: "localizedQuestion",
-              title: "Spørsmål (oversettelser)",
-              type: "internationalizedArrayString",
-            }),
-            defineField({
-              name: "answer",
-              title: "Svar",
-              type: "array",
+            deprecatedLegacyField("question", "Spørsmål (legacy)", "string"),
+            localizedArrayField(
+              "localizedQuestion",
+              "Spørsmål",
+              "internationalizedArrayString",
+              { required: true, legacyField: "question" },
+            ),
+            deprecatedLegacyField("answer", "Svar (legacy)", "array", {
               of: [defineArrayMember({ type: "text" })],
-              validation: rule => rule.required().min(1),
             }),
-            defineField({
-              name: "localizedAnswer",
-              title: "Svar (oversettelser)",
-              description:
-                "Skriv ett avsnitt per linje. Linjeskift brukes som avsnitt på nettsiden.",
-              type: "internationalizedArrayText",
-            }),
+            localizedArrayField(
+              "localizedAnswer",
+              "Svar",
+              "internationalizedArrayText",
+              {
+                required: true,
+                legacyField: "answer",
+                description:
+                  "Skriv ett avsnitt per linje. Linjeskift brukes som avsnitt på nettsiden.",
+              },
+            ),
           ],
           preview: { select: { title: "question" } },
         }),

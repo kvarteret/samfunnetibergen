@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 const navItem = defineType({
   name: "navItem",
@@ -7,12 +11,13 @@ const navItem = defineType({
   type: "object",
   icon: icons.link,
   fields: [
-    defineField({
-      name: "label",
-      title: "Tekst",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    deprecatedLegacyField("label", "Tekst (legacy)", "string"),
+    localizedArrayField(
+      "localizedLabel",
+      "Tekst",
+      "internationalizedArrayString",
+      { required: true, legacyField: "label" },
+    ),
     defineField({
       name: "href",
       title: "Intern lenke",
@@ -36,12 +41,21 @@ const navItem = defineType({
           title: "Undermenygruppe",
           type: "object",
           fields: [
-            defineField({
-              name: "groupLabel",
-              title: "Gruppeoverskrift",
-              description: "Valgfri overskrift for gruppen (vises i dropdown)",
-              type: "string",
-            }),
+            deprecatedLegacyField(
+              "groupLabel",
+              "Gruppeoverskrift (legacy)",
+              "string",
+              {
+                description:
+                  "Valgfri overskrift for gruppen (vises i dropdown)",
+              },
+            ),
+            localizedArrayField(
+              "localizedGroupLabel",
+              "Gruppeoverskrift",
+              "internationalizedArrayString",
+              { legacyField: "groupLabel" },
+            ),
             defineField({
               name: "items",
               title: "Lenker",
@@ -53,12 +67,13 @@ const navItem = defineType({
                   type: "object",
                   icon: icons.link,
                   fields: [
-                    defineField({
-                      name: "label",
-                      title: "Tekst",
-                      type: "string",
-                      validation: rule => rule.required(),
-                    }),
+                    deprecatedLegacyField("label", "Tekst (legacy)", "string"),
+                    localizedArrayField(
+                      "localizedLabel",
+                      "Tekst",
+                      "internationalizedArrayString",
+                      { required: true, legacyField: "label" },
+                    ),
                     defineField({
                       name: "href",
                       title: "Intern lenke",

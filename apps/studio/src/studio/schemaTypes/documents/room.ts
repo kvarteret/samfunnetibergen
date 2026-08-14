@@ -1,6 +1,10 @@
 import { icons } from "@sanity/icons"
 import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../shared/localizedFields"
 
 export const room = defineType({
   name: "room",
@@ -16,36 +20,68 @@ export const room = defineType({
   ],
   fields: [
     // — Core info —
-    defineField({
-      name: "title",
-      title: "Navn",
-      type: "string",
+    deprecatedLegacyField("title", "Navn (legacy)", "string", {
       group: "info",
-      validation: rule => rule.required(),
     }),
+    localizedArrayField(
+      "localizedTitle",
+      "Navn",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "title",
+        group: "info",
+      },
+    ),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
       group: "info",
-      options: { source: "title" },
+      options: {
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedTitle as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.title as string | undefined) ??
+            ""
+          )
+        },
+      },
       validation: rule => rule.required(),
     }),
-    defineField({
-      name: "summary",
-      title: "Kort beskrivelse",
-      type: "text",
+    deprecatedLegacyField("summary", "Kort beskrivelse (legacy)", "text", {
       rows: 3,
       group: "info",
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "body",
-      title: "Fullstendig beskrivelse",
-      description: "Utdypende tekst om rommet",
-      type: "portableTextContent",
-      group: "info",
-    }),
+    localizedArrayField(
+      "localizedSummary",
+      "Kort beskrivelse",
+      "internationalizedArrayText",
+      {
+        required: true,
+        legacyField: "summary",
+        rows: 3,
+        group: "info",
+      },
+    ),
+    deprecatedLegacyField(
+      "body",
+      "Fullstendig beskrivelse (legacy)",
+      "portableTextContent",
+      {
+        description: "Utdypende tekst om rommet",
+        group: "info",
+      },
+    ),
+    localizedArrayField(
+      "localizedBody",
+      "Fullstendig beskrivelse",
+      "internationalizedArrayPortableTextContent",
+      { legacyField: "body", group: "info" },
+    ),
     defineField({
       name: "crescatRoomId",
       title: "Crescat rom-ID",
@@ -104,11 +140,24 @@ export const room = defineType({
         layout: "tags",
       },
     }),
-    defineField({
-      name: "bar",
-      title: "Bar",
+    localizedArrayField(
+      "localizedSuitedPurposes",
+      "Passer til (per språk)",
+      "internationalizedArrayText",
+      {
+        legacyField: "suitedPurposes",
+        description:
+          "Ett bruksområde per linje. Brukes på nettsiden i valgt språk.",
+        rows: 3,
+        group: "specs",
+      },
+    ),
+    deprecatedLegacyField("bar", "Bar (legacy)", "string", {
       description: "Navn på baren i rommet, eller tomt om det ikke er bar",
-      type: "string",
+      group: "specs",
+    }),
+    localizedArrayField("localizedBar", "Bar", "internationalizedArrayString", {
+      legacyField: "bar",
       group: "specs",
     }),
     defineField({
@@ -118,14 +167,24 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "soundDetails",
-      title: "Detaljer om lyd",
-      description: "Valgfri tekst som vises sammen med «Lyd: Ja».",
-      type: "string",
-      group: "specs",
-      hidden: ({ document }) => document?.hasSound !== true,
-    }),
+    deprecatedLegacyField(
+      "soundDetails",
+      "Detaljer om lyd (legacy)",
+      "string",
+      {
+        description: "Valgfri tekst som vises sammen med «Lyd: Ja».",
+        group: "specs",
+      },
+    ),
+    localizedArrayField(
+      "localizedSoundDetails",
+      "Detaljer om lyd",
+      "internationalizedArrayString",
+      {
+        legacyField: "soundDetails",
+        group: "specs",
+      },
+    ),
     defineField({
       name: "hasLighting",
       title: "Lys",
@@ -133,14 +192,24 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "lightingDetails",
-      title: "Detaljer om lys",
-      description: "Valgfri tekst som vises sammen med «Lys: Ja».",
-      type: "string",
-      group: "specs",
-      hidden: ({ document }) => document?.hasLighting !== true,
-    }),
+    deprecatedLegacyField(
+      "lightingDetails",
+      "Detaljer om lys (legacy)",
+      "string",
+      {
+        description: "Valgfri tekst som vises sammen med «Lys: Ja».",
+        group: "specs",
+      },
+    ),
+    localizedArrayField(
+      "localizedLightingDetails",
+      "Detaljer om lys",
+      "internationalizedArrayString",
+      {
+        legacyField: "lightingDetails",
+        group: "specs",
+      },
+    ),
     defineField({
       name: "hasAV",
       title: "A/V",
@@ -148,14 +217,19 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "avDetails",
-      title: "Detaljer om A/V",
+    deprecatedLegacyField("avDetails", "Detaljer om A/V (legacy)", "string", {
       description: "Valgfri tekst som vises sammen med «A/V: Ja».",
-      type: "string",
       group: "specs",
-      hidden: ({ document }) => document?.hasAV !== true,
     }),
+    localizedArrayField(
+      "localizedAvDetails",
+      "Detaljer om A/V",
+      "internationalizedArrayString",
+      {
+        legacyField: "avDetails",
+        group: "specs",
+      },
+    ),
     defineField({
       name: "specsUrl",
       title: "Tekniske spesifikasjoner (lenke)",
@@ -193,13 +267,14 @@ export const room = defineType({
   ],
   preview: {
     select: {
-      title: "title",
+      title: "localizedTitle",
+      legacyTitle: "title",
       standing: "capacityStanding",
       seated: "capacitySeated",
       pricePerHour: "pricePerHour",
       media: "images.0.image",
     },
-    prepare({ title, standing, seated, pricePerHour, media }) {
+    prepare({ title, legacyTitle, standing, seated, pricePerHour, media }) {
       const parts: string[] = []
       if (standing || seated) {
         parts.push(`${standing ?? "?"} stående / ${seated ?? "?"} sittende`)
@@ -208,7 +283,16 @@ export const room = defineType({
         parts.push(`${pricePerHour} kr/t`)
       }
       const subtitle = parts.join(" · ")
-      return { title: title ?? "Rom", subtitle, media }
+      return {
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ??
+          legacyTitle ??
+          "Rom",
+        subtitle,
+        media,
+      }
     },
   },
 })

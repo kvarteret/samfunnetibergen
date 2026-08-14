@@ -59,7 +59,10 @@ const config = defineConfig({
         { id: "nb", title: "Norsk" },
         { id: "en", title: "English" },
       ],
-      defaultLanguages: ["nb"],
+      // Keep both public locales visible on every new localized field. The
+      // Norwegian value is the canonical source, while English is the required
+      // public translation; legacy scalar fields are deprecated separately.
+      defaultLanguages: ["nb", "en"],
       fieldTypes: ["string", "text", "portableTextContent"],
       languageFilter: {
         documentTypes: ["groupsPage", "studentGroup"],

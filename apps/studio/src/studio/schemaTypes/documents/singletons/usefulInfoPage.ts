@@ -1,5 +1,9 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import {
+  deprecatedLegacyField,
+  localizedArrayField,
+} from "../../shared/localizedFields"
 
 export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
@@ -11,27 +15,45 @@ export const usefulInfoPage = defineType({
   __experimental_actions: ["update", "publish"],
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
+    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
       group: "content",
     }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        legacyField: "eyebrow",
+        group: "content",
+      },
+    ),
+    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
       group: "content",
-      initialValue: "Nyttig info",
-      validation: rule => rule.required(),
     }),
-    defineField({
-      name: "intro",
-      title: "Ingress",
-      type: "text",
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        legacyField: "title",
+        group: "content",
+      },
+    ),
+    deprecatedLegacyField("intro", "Ingress (legacy)", "text", {
       rows: 3,
       group: "content",
     }),
+    localizedArrayField(
+      "localizedIntro",
+      "Ingress",
+      "internationalizedArrayText",
+      {
+        legacyField: "intro",
+        rows: 3,
+        group: "content",
+      },
+    ),
     defineField({
       name: "sections",
       title: "Seksjoner",
