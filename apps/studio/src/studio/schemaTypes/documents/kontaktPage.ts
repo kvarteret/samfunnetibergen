@@ -1,28 +1,23 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const contactPerson = defineType({
   name: "contactPerson",
   title: "Kontaktperson",
   type: "object",
   fields: [
-    deprecatedLegacyField("name", "Navn (legacy)", "string"),
     localizedArrayField(
       "localizedName",
       "Navn",
       "internationalizedArrayString",
-      { required: true, legacyField: "name" },
+      { required: true },
     ),
-    deprecatedLegacyField("rolle", "Rolle (legacy)", "string"),
     localizedArrayField(
       "localizedRole",
       "Rolle",
       "internationalizedArrayString",
-      { legacyField: "rolle" },
+      {},
     ),
     defineField({ name: "email", title: "E-post", type: "string" }),
     defineField({ name: "phone", title: "Telefon", type: "string" }),
@@ -34,7 +29,15 @@ const contactPerson = defineType({
     }),
   ],
   preview: {
-    select: { title: "name", subtitle: "email" },
+    select: { title: "localizedName", subtitle: "email" },
+    prepare({ title, subtitle }) {
+      return {
+        title: Array.isArray(title)
+          ? title.find(item => item?.language === "nb")?.value
+          : title,
+        subtitle,
+      }
+    },
   },
 })
 
@@ -43,12 +46,11 @@ const contactGroup = defineType({
   title: "Kontaktgruppe",
   type: "object",
   fields: [
-    deprecatedLegacyField("title", "Overskrift (legacy)", "string"),
     localizedArrayField(
       "localizedTitle",
       "Overskrift",
       "internationalizedArrayString",
-      { required: true, legacyField: "title" },
+      { required: true },
     ),
     defineField({
       name: "persons",
@@ -58,10 +60,12 @@ const contactGroup = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", persons: "persons" },
+    select: { title: "localizedTitle", persons: "persons" },
     prepare({ title, persons }) {
       return {
-        title,
+        title: Array.isArray(title)
+          ? title.find(item => item?.language === "nb")?.value
+          : title,
         subtitle: `${Array.isArray(persons) ? persons.length : 0} person(er)`,
       }
     },
@@ -83,44 +87,29 @@ export const kontaktPage = defineType({
     { name: "page", title: "Kontaktside" },
   ],
   fields: [
-    deprecatedLegacyField("visitAddress", "Besøksadresse (legacy)", "text", {
-      rows: 3,
-      group: "org",
-    }),
     localizedArrayField(
       "localizedVisitAddress",
       "Besøksadresse",
       "internationalizedArrayText",
       {
-        legacyField: "visitAddress",
         rows: 3,
         group: "org",
       },
     ),
-    deprecatedLegacyField("postAddress", "Postadresse (legacy)", "text", {
-      rows: 3,
-      group: "org",
-    }),
     localizedArrayField(
       "localizedPostAddress",
       "Postadresse",
       "internationalizedArrayText",
       {
-        legacyField: "postAddress",
         rows: 3,
         group: "org",
       },
     ),
-    deprecatedLegacyField("invoiceAddress", "Fakturaadresse (legacy)", "text", {
-      rows: 4,
-      group: "org",
-    }),
     localizedArrayField(
       "localizedInvoiceAddress",
       "Fakturaadresse",
       "internationalizedArrayText",
       {
-        legacyField: "invoiceAddress",
         rows: 4,
         group: "org",
       },
@@ -137,35 +126,20 @@ export const kontaktPage = defineType({
       type: "string",
       group: "org",
     }),
-    deprecatedLegacyField(
-      "generalContact",
-      "Generell kontakt (legacy)",
-      "text",
-      {
-        rows: 2,
-        group: "org",
-      },
-    ),
     localizedArrayField(
       "localizedGeneralContact",
       "Generell kontakt (e-post / tlf)",
       "internationalizedArrayText",
       {
-        legacyField: "generalContact",
         rows: 2,
         group: "org",
       },
     ),
-    deprecatedLegacyField("pressContact", "Pressekontakt (legacy)", "text", {
-      rows: 2,
-      group: "org",
-    }),
     localizedArrayField(
       "localizedPressContact",
       "Pressekontakt (e-post / tlf)",
       "internationalizedArrayText",
       {
-        legacyField: "pressContact",
         rows: 2,
         group: "org",
       },

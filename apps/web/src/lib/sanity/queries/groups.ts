@@ -1,10 +1,10 @@
 import { defineQuery } from "next-sanity"
 
 import { sourcedImageProjection } from "../fragments/images"
-const groupName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, name, "[Mangler gruppenavn]")`
-const groupSummary = `coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, summary, "[Mangler kort beskrivelse]")`
-const groupBody = `coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, body, [])`
-const groupLabels = `coalesce(string::split(localizedLabels[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedLabels[language == "nb" && defined(value) && value != ""][0].value, "\\n"), labels, [])`
+const groupName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]")`
+const groupSummary = `coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]")`
+const groupBody = `coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])`
+const groupLabels = `coalesce(string::split(localizedLabels[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedLabels[language == "nb" && defined(value) && value != ""][0].value, "\\n"), [])`
 
 export const studentGroupsQuery =
   defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {

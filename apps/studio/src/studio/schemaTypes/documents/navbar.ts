@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const navItem = defineType({
   name: "navItem",
@@ -11,12 +8,11 @@ const navItem = defineType({
   type: "object",
   icon: icons.link,
   fields: [
-    deprecatedLegacyField("label", "Tekst (legacy)", "string"),
     localizedArrayField(
       "localizedLabel",
       "Tekst",
       "internationalizedArrayString",
-      { required: true, legacyField: "label" },
+      { required: true },
     ),
     defineField({
       name: "href",
@@ -41,20 +37,11 @@ const navItem = defineType({
           title: "Undermenygruppe",
           type: "object",
           fields: [
-            deprecatedLegacyField(
-              "groupLabel",
-              "Gruppeoverskrift (legacy)",
-              "string",
-              {
-                description:
-                  "Valgfri overskrift for gruppen (vises i dropdown)",
-              },
-            ),
             localizedArrayField(
               "localizedGroupLabel",
               "Gruppeoverskrift",
               "internationalizedArrayString",
-              { legacyField: "groupLabel" },
+              {},
             ),
             defineField({
               name: "items",
@@ -67,12 +54,11 @@ const navItem = defineType({
                   type: "object",
                   icon: icons.link,
                   fields: [
-                    deprecatedLegacyField("label", "Tekst (legacy)", "string"),
                     localizedArrayField(
                       "localizedLabel",
                       "Tekst",
                       "internationalizedArrayString",
-                      { required: true, legacyField: "label" },
+                      { required: true },
                     ),
                     defineField({
                       name: "href",

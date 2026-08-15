@@ -1,10 +1,7 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const page = defineType({
   name: "page",
@@ -15,16 +12,12 @@ export const page = defineType({
   icon: icons.document,
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
-    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
-      group: "content",
-    }),
     localizedArrayField(
       "localizedTitle",
       "Tittel",
       "internationalizedArrayString",
       {
         required: true,
-        legacyField: "title",
         group: "content",
       },
     ),
@@ -54,16 +47,12 @@ export const page = defineType({
               : true,
           ),
     }),
-    deprecatedLegacyField("content", "Innhold (legacy)", "markdown", {
-      group: "content",
-    }),
     localizedArrayField(
       "localizedContent",
       "Innhold",
       "internationalizedArrayText",
       {
         description: "Markdown-innhold per språk.",
-        legacyField: "content",
         group: "content",
       },
     ),
@@ -71,17 +60,14 @@ export const page = defineType({
   preview: {
     select: {
       title: "localizedTitle",
-      legacyTitle: "title",
       slug: "slug.current",
     },
-    prepare({ title, legacyTitle, slug }) {
+    prepare({ title, slug }) {
       return {
         title:
           (Array.isArray(title)
             ? title.find(item => item?.language === "nb")?.value
-            : title) ??
-          legacyTitle ??
-          "Side",
+            : title) ?? "Side",
         subtitle: slug ? `/${slug}` : "Mangler slug",
       }
     },

@@ -4,10 +4,7 @@ import {
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
 import { defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const eventType = defineType({
   name: "eventType",
@@ -15,12 +12,11 @@ export const eventType = defineType({
   type: "document",
   icon: icons.tag,
   fields: [
-    deprecatedLegacyField("name", "Navn (legacy)", "string"),
     localizedArrayField(
       "localizedName",
       "Navn",
       "internationalizedArrayString",
-      { required: true, legacyField: "name" },
+      { required: true },
     ),
     defineField({
       name: "taxonomyGroup",
@@ -40,18 +36,16 @@ export const eventType = defineType({
   preview: {
     select: {
       title: "localizedName",
-      legacyTitle: "name",
-      group: "taxonomyGroup.name",
+      group: "taxonomyGroup.localizedName",
     },
-    prepare({ title, legacyTitle, group }) {
+    prepare({ title, group }) {
+      const localized = (value: unknown) =>
+        Array.isArray(value)
+          ? value.find(item => item?.language === "nb")?.value
+          : value
       return {
-        title:
-          (Array.isArray(title)
-            ? title.find(item => item?.language === "nb")?.value
-            : title) ??
-          legacyTitle ??
-          "Type",
-        subtitle: group,
+        title: localized(title) ?? "Type",
+        subtitle: localized(group),
       }
     },
   },

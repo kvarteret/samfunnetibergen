@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../../shared/localizedFields"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const sponsorsPage = defineType({
   name: "sponsorsPage",
@@ -15,40 +12,28 @@ export const sponsorsPage = defineType({
     { name: "sponsors", title: "Sponsorer" },
   ],
   fields: [
-    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedEyebrow",
       "Eyebrow",
       "internationalizedArrayString",
       {
-        legacyField: "eyebrow",
         group: "hero",
       },
     ),
-    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedTitle",
       "Tittel",
       "internationalizedArrayString",
       {
         required: true,
-        legacyField: "title",
         group: "hero",
       },
     ),
-    deprecatedLegacyField("description", "Beskrivelse (legacy)", "text", {
-      rows: 4,
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedDescription",
       "Beskrivelse",
       "internationalizedArrayText",
-      { legacyField: "description", rows: 4, group: "hero" },
+      { rows: 4, group: "hero" },
     ),
     defineField({
       name: "sponsors",
@@ -75,23 +60,17 @@ export const sponsorsPage = defineType({
                 description: "Beskriv logoen per språk for tilgjengelighet.",
               },
             ),
-            deprecatedLegacyField("title", "Tittel (legacy)", "string"),
             localizedArrayField(
               "localizedTitle",
               "Tittel",
               "internationalizedArrayString",
-              { required: true, legacyField: "title" },
-            ),
-            deprecatedLegacyField(
-              "description",
-              "Beskrivelse (legacy)",
-              "portableTextContent",
+              { required: true },
             ),
             localizedArrayField(
               "localizedDescription",
               "Beskrivelse",
               "internationalizedArrayPortableTextContent",
-              { legacyField: "description" },
+              {},
             ),
             defineField({
               name: "website",
@@ -101,16 +80,29 @@ export const sponsorsPage = defineType({
             }),
           ],
           preview: {
-            select: { title: "title", media: "logo" },
+            select: { title: "localizedTitle", media: "logo" },
+            prepare({ title, media }) {
+              return {
+                title: Array.isArray(title)
+                  ? title.find(item => item?.language === "nb")?.value
+                  : title,
+                media,
+              }
+            },
           },
         }),
       ],
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Sponsorer-side" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ??
+            "Sponsorer-side")
+          : (title ?? "Sponsorer-side"),
+      }
     },
   },
 })

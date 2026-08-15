@@ -9,9 +9,9 @@ const API_VERSION = "2026-07-29"
 const CANDIDATES_QUERY = `*[
   _type == "arrangement" &&
   (${PROMOTABLE_ARRANGEMENTS_FILTER})
-] | order(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title) asc) {
+] | order(localizedTitle[language == "nb" && defined(value) && value != ""][0].value asc) {
   _id,
-  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title),
+  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "Arrangement uten tittel"),
   "eventKind": coalesce(eventKind, "single")
 }`
 

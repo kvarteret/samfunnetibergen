@@ -47,7 +47,7 @@ const documentSearchQuery = `*[
   _type in $types &&
   !(_id in path("versions.**")) &&
   (
-    lower(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, title, name, "")) match $search ||
+    lower(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")) match $search ||
     lower(coalesce(slug.current, "")) match $search
   )
 ][0...30] | order(coalesce(title, name) asc) {
@@ -55,7 +55,7 @@ const documentSearchQuery = `*[
     _id in path("drafts.**") => string::split(_id, "drafts.")[1],
     _id
   ),
-  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, title, name, "Dokument uten tittel"),
+  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "Dokument uten tittel"),
   "subtitle": select(
     defined(slug.current) => "/" + slug.current,
     _type
@@ -108,7 +108,7 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
 
     client
       .fetch<string | null>(
-        `coalesce(*[_id == $id][0].localizedTitle[language == "nb" && defined(value) && value != ""][0].value, *[_id == $id][0].localizedName[language == "nb" && defined(value) && value != ""][0].value, *[_id == $id][0].title, *[_id == $id][0].name)`,
+        `coalesce(*[_id == $id][0].localizedTitle[language == "nb" && defined(value) && value != ""][0].value, *[_id == $id][0].localizedName[language == "nb" && defined(value) && value != ""][0].value)`,
         { id: documentId },
       )
       .then(title => setDocumentTitleResult({ documentId, title }))

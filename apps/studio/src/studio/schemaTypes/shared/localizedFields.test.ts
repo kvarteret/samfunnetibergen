@@ -20,15 +20,9 @@ describe("localized array validation", () => {
     ).toBe(true)
   })
 
-  it("requires English when an optional Norwegian/legacy source exists", () => {
+  it("requires English when an optional Norwegian source exists", () => {
     expect(
       validateLocalizedArray([{ language: "nb", value: "Norsk" }]),
-    ).toContain("engelsk")
-    expect(
-      validateLocalizedArray([], {
-        legacyField: "title",
-        context: { parent: { title: "Legacy" } },
-      }),
     ).toContain("engelsk")
     expect(validateLocalizedArray([{ language: "en", value: "English" }])).toBe(
       true,

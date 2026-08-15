@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const infoAddressBlock = defineType({
   name: "infoAddressBlock",
@@ -11,26 +8,23 @@ export const infoAddressBlock = defineType({
   type: "object",
   icon: icons.pin,
   fields: [
-    deprecatedLegacyField("heading", "Overskrift (legacy)", "string"),
     localizedArrayField(
       "localizedHeading",
       "Overskrift",
       "internationalizedArrayString",
-      { required: true, legacyField: "heading" },
+      { required: true },
     ),
-    deprecatedLegacyField("body", "Tekst (legacy)", "portableTextContent"),
     localizedArrayField(
       "localizedBody",
       "Tekst",
       "internationalizedArrayPortableTextContent",
-      { legacyField: "body" },
+      {},
     ),
-    deprecatedLegacyField("address", "Adresse (legacy)", "string"),
     localizedArrayField(
       "localizedAddress",
       "Adresse",
       "internationalizedArrayString",
-      { legacyField: "address" },
+      {},
     ),
     defineField({
       name: "mapUrl",
@@ -40,9 +34,16 @@ export const infoAddressBlock = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading", subtitle: "address" },
+    select: { title: "localizedHeading", subtitle: "localizedAddress" },
     prepare({ title, subtitle }) {
-      return { title: title ?? "Adkomst", subtitle }
+      const localized = (value: unknown) =>
+        Array.isArray(value)
+          ? value.find(item => item?.language === "nb")?.value
+          : value
+      return {
+        title: localized(title) ?? "Adkomst",
+        subtitle: localized(subtitle),
+      }
     },
   },
 })

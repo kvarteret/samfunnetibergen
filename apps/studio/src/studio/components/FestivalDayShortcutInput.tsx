@@ -9,9 +9,9 @@ const FESTIVAL_DAYS_QUERY = `*[
   _type == "arrangement" &&
   eventKind == "festivalSession" &&
   parentEvent._ref == $parentId
-] | order(dates[0].startDate asc, coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title) asc) {
+] | order(dates[0].startDate asc, localizedTitle[language == "nb" && defined(value) && value != ""][0].value asc) {
   _id,
-  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title),
+  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "Festivaldag uten tittel"),
   "date": dates[0].startDate,
   "time": dates[0].startTime
 }`

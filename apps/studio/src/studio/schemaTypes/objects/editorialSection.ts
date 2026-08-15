@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const editorialSection = defineType({
   name: "editorialSection",
@@ -11,32 +8,33 @@ export const editorialSection = defineType({
   type: "object",
   icon: icons["document-text"],
   fields: [
-    deprecatedLegacyField("title", "Tittel (legacy)", "string"),
     localizedArrayField(
       "localizedTitle",
       "Tittel",
       "internationalizedArrayString",
-      { legacyField: "title" },
+      {},
     ),
-    deprecatedLegacyField("body", "Innhold (legacy)", "portableTextContent", {
-      description: "Bruk det lokaliserte innholdsfeltet nedenfor.",
-    }),
     localizedArrayField(
       "localizedBody",
       "Innhold",
       "internationalizedArrayPortableTextContent",
       {
         required: true,
-        legacyField: "body",
         description: "Tekst med lenker i løpende innhold.",
       },
     ),
   ],
   preview: {
-    select: { title: "title", body: "body" },
+    select: { title: "localizedTitle", body: "localizedBody" },
     prepare({ title, body }) {
-      const bodyPreview = Array.isArray(body)
-        ? body
+      const localizedTitle = Array.isArray(title)
+        ? title.find(item => item?.language === "nb")?.value
+        : title
+      const localizedBody = Array.isArray(body)
+        ? body.find(item => item?.language === "nb")?.value
+        : body
+      const bodyPreview = Array.isArray(localizedBody)
+        ? localizedBody
             .flatMap(block =>
               Array.isArray(block?.children)
                 ? block.children.map((child: { text?: string }) => child.text)
@@ -46,7 +44,7 @@ export const editorialSection = defineType({
             .join(" ")
         : undefined
       return {
-        title: title || bodyPreview || "Tekstseksjon",
+        title: localizedTitle || bodyPreview || "Tekstseksjon",
       }
     },
   },

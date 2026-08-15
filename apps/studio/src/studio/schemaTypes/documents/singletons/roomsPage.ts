@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../../shared/localizedFields"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const roomsPage = defineType({
   name: "roomsPage",
@@ -16,40 +13,28 @@ export const roomsPage = defineType({
     { name: "floorPlans", title: "Plantegninger" },
   ],
   fields: [
-    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedEyebrow",
       "Eyebrow",
       "internationalizedArrayString",
       {
-        legacyField: "eyebrow",
         group: "hero",
       },
     ),
-    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedTitle",
       "Tittel",
       "internationalizedArrayString",
       {
         required: true,
-        legacyField: "title",
         group: "hero",
       },
     ),
-    deprecatedLegacyField("description", "Beskrivelse (legacy)", "text", {
-      rows: 4,
-      group: "hero",
-    }),
     localizedArrayField(
       "localizedDescription",
       "Beskrivelse",
       "internationalizedArrayText",
-      { legacyField: "description", rows: 4, group: "hero" },
+      { rows: 4, group: "hero" },
     ),
     defineField({
       name: "sections",
@@ -86,12 +71,11 @@ export const roomsPage = defineType({
               type: "number",
               validation: rule => rule.required(),
             }),
-            deprecatedLegacyField("title", "Tittel (legacy)", "string"),
             localizedArrayField(
               "localizedTitle",
               "Tittel",
               "internationalizedArrayString",
-              { legacyField: "title" },
+              {},
             ),
             defineField({
               name: "file",
@@ -104,10 +88,15 @@ export const roomsPage = defineType({
             }),
           ],
           preview: {
-            select: { floor: "floor", title: "title" },
+            select: { floor: "floor", title: "localizedTitle" },
             prepare({ floor, title }) {
+              const localizedTitle = Array.isArray(title)
+                ? title.find(item => item?.language === "nb")?.value
+                : title
               return {
-                title: title ?? (floor ? `${floor}. etasje` : "Plantegning"),
+                title:
+                  localizedTitle ??
+                  (floor ? `${floor}. etasje` : "Plantegning"),
               }
             },
           },
@@ -116,9 +105,13 @@ export const roomsPage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Rom-side" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ?? "Rom-side")
+          : (title ?? "Rom-side"),
+      }
     },
   },
 })

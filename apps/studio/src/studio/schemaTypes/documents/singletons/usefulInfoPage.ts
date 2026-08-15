@@ -1,9 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../../shared/localizedFields"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
@@ -15,41 +12,28 @@ export const usefulInfoPage = defineType({
   __experimental_actions: ["update", "publish"],
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
-    deprecatedLegacyField("eyebrow", "Eyebrow (legacy)", "string", {
-      group: "content",
-    }),
     localizedArrayField(
       "localizedEyebrow",
       "Eyebrow",
       "internationalizedArrayString",
       {
-        legacyField: "eyebrow",
         group: "content",
       },
     ),
-    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
-      group: "content",
-    }),
     localizedArrayField(
       "localizedTitle",
       "Tittel",
       "internationalizedArrayString",
       {
         required: true,
-        legacyField: "title",
         group: "content",
       },
     ),
-    deprecatedLegacyField("intro", "Ingress (legacy)", "text", {
-      rows: 3,
-      group: "content",
-    }),
     localizedArrayField(
       "localizedIntro",
       "Ingress",
       "internationalizedArrayText",
       {
-        legacyField: "intro",
         rows: 3,
         group: "content",
       },
@@ -69,9 +53,14 @@ export const usefulInfoPage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Nyttig info" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ??
+            "Nyttig info")
+          : (title ?? "Nyttig info"),
+      }
     },
   },
 })

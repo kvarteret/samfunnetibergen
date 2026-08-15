@@ -33,13 +33,13 @@ const ARRANGEMENTS_QUERY = `*[
   coalesce(eventKind, "single") in ["single", "seriesParent", "festivalParent"]
 ] {
   _id,
-  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title),
+  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "Arrangement uten tittel"),
   "eventKind": coalesce(eventKind, "single"),
   "approvalStatus": coalesce(approvalStatus, "pending"),
   "eventStatus": coalesce(eventStatus, "scheduled"),
   "isRecurring": coalesce(isRecurring, false),
   dates[]{startDate, startTime},
-  "eventType": eventType->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, name), "taxonomyGroup": taxonomyGroup->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, name)}},
+  "eventType": eventType->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Type uten navn"), "taxonomyGroup": taxonomyGroup->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Gruppe uten navn")}},
   "childDates": *[
     _type == "arrangement" &&
     parentEvent._ref == ^._id &&
@@ -48,8 +48,8 @@ const ARRANGEMENTS_QUERY = `*[
   ].dates[0].startDate
 }`
 const TAXONOMY_QUERY = `{
-  "groups": *[_type == "eventTaxonomyGroup"] | order(orderRank asc){_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, name)},
-  "types": *[_type == "eventType"] | order(orderRank asc){_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, name), "groupId": taxonomyGroup._ref}
+  "groups": *[_type == "eventTaxonomyGroup"] | order(orderRank asc){_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Gruppe uten navn")},
+  "types": *[_type == "eventType"] | order(orderRank asc){_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Type uten navn"), "groupId": taxonomyGroup._ref}
 }`
 const BROWSER_DATA_QUERY = `{
   "documents": ${ARRANGEMENTS_QUERY},

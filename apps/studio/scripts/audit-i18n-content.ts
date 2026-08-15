@@ -48,20 +48,14 @@ async function main() {
       2,
     ),
   )
-  if (missing.length || duplicateOrConflict.length) {
+  if (missing.length || duplicateOrConflict.length || legacy.length) {
     console.error(
-      `i18n audit failed: ${missing.length} missing canonical values, ${duplicateOrConflict.length} duplicate/conflicting language entries.`,
+      `i18n audit failed: ${missing.length} missing canonical values, ${duplicateOrConflict.length} duplicate/conflicting language entries, ${legacy.length} populated legacy values.`,
     )
     process.exitCode = 1
     return
   }
-  if (legacy.length) {
-    console.warn(
-      `i18n audit passed canonical coverage but found ${legacy.length} populated legacy fields. Run the reviewed cleanup migration only after editorial sign-off.`,
-    )
-  } else {
-    console.log("i18n audit passed with no populated legacy fields.")
-  }
+  console.log("i18n audit passed with no populated legacy fields.")
 }
 
 main().catch(error => {

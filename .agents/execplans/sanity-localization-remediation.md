@@ -42,6 +42,17 @@ that the canonical localized values are complete.
   source is populated. Approval and event-status `createOrReplace` paths use
   the same pure completeness check and expose a disabled tooltip/toast rather
   than publishing nb-only drafts.
+- [x] (2026-08-14 18:00Z) Complete the requested hard cutover in code: remove
+  legacy scalar fields from Studio schemas, remove legacy fallbacks from web
+  and Studio readers/previews, and add an explicitly confirmed cleanup command.
+- [x] (2026-08-14 18:10Z) Repair two newly published legacy-only documents
+  (`Velkomstuken 2026` and `kontaktPage`) with a reviewed additive catalog
+  write. It applied two patches with zero failures and restored complete,
+  conflict-free canonical coverage.
+- [ ] Deploy the canonical-only readers from PR #105, observe the deployment,
+  then run the destructive cleanup and require the audit to report zero legacy
+  values. The current default-branch frontend still reads legacy scalars, so a
+  pre-deploy unset would cause a live content outage.
 
 ## Surprises & Discoveries
 
@@ -84,6 +95,14 @@ that the canonical localized values are complete.
   page/singleton titles, taxonomy/group names, source-link/nav/footer labels,
   nested FAQ/accordion/contact fields). These are explicitly restored without
   preventing pending drafts from being saved.
+- Observation: after the original migration, editors published a new festival
+  parent and the contact singleton without canonical localized values. Cleanup
+  preflight refused to unset anything. Both documents now have reviewed
+  `nb`/`en` values; dry-run cleanup identifies 509 legacy values across 143
+  published documents.
+- Observation: `origin/develop` still projects arrangement `title` and
+  `description` directly. The legacy-value deletion must therefore execute
+  only after this PR's canonical-only reader is deployed.
 
 ## Decision Log
 
@@ -99,10 +118,12 @@ that the canonical localized values are complete.
   missing content. Empty strings are not considered translations. Rationale:
   `coalesce()` otherwise selects empty strings and silently hides fallback
   behavior.
-- Decision: Deprecate legacy fields with `deprecated`, `readOnly`, and
-  value-aware hiding before unsetting them in a later migration. Rationale:
-  Sanity's safe schema update lifecycle forbids deleting production fields
-  prematurely.
+- Decision: Complete the schema and reader cutover in this PR, but keep the
+  production unset as a post-deploy operation. Legacy fields are no longer
+  exposed in Studio or consumed by readers. Cleanup refuses writes unless every
+  published document has conflict-free canonical replacements and the operator
+  supplies an explicit confirmation token. Rationale: this removes the legacy
+  model without breaking the currently deployed reader.
 - Decision: Translation migrations are additive and idempotent. They print
   document IDs, field paths, source hashes and proposed values in dry-run mode;
   writes require `SANITY_MIGRATION_WRITE=1`. Rationale: production content may
@@ -140,20 +161,24 @@ non-empty mappings. Current verification:
 - Catalog dry-run proposed 143 additive patches; the authorized write applied
   all 143 with zero failures. No `unset`, delete, or legacy overwrite was
   issued.
-- Post-write `npm run sanity:audit:i18n` exits zero for 179 documents: no
-  missing canonical values and no duplicate/conflicting language entries. It
-  reports 510 populated legacy fields, which remain staged, read-only
-  compatibility values pending separate editorial sign-off and cleanup.
+- Post-write canonical checks cover 179 documents with no missing canonical
+  values and no duplicate/conflicting language entries. A later content edit
+  created two legacy-only documents; the preflight found them and a reviewed
+  additive catalog write repaired both with zero failures.
 - A frozen-catalog post-write dry-run reports `Would apply 0 i18n patches; 0
   documents failed translation.`
-- The post-hardening read-only `npm run sanity:audit:i18n` still exits zero for
-  all 179 published documents (`missing: []`, `duplicateOrConflict: []`); the
-  510 populated legacy fields remain read-only compatibility data. No
-  production migration, unset, delete, or cleanup ran in the final validation
-  pass.
+- The guarded cleanup dry-run reports 509 legacy values across 143 documents
+  and zero canonical blockers. No production unset or delete has run. Cleanup
+  writes require both `SANITY_I18N_CLEANUP_WRITE=1` and
+  `SANITY_I18N_CLEANUP_CONFIRM=drop-legacy-i18n`.
+- Hard-cutover verification passed: schema extraction/TypeGen (29 web queries,
+  81 schema types), root typecheck/lint/format checks, web tests (35 files plus
+  1 skipped; 195 tests plus 3 skipped), Studio tests (25 files/150 tests),
+  domain tests (2 files/35 tests), and both production builds.
 
-Only after editorial sign-off should a separate cleanup migration unset the
-510 legacy fields. The cleanup is intentionally not part of this change.
+Only after PR #105 is deployed and observed should the cleanup write execute.
+Afterward `npm run sanity:audit:i18n` must report zero missing, conflicting, and
+legacy values; legacy values are now a failing audit condition.
 
 ## Context and Orientation
 
@@ -169,9 +194,9 @@ Sanity Studio lives in `apps/studio`; schemas are under
 An internationalized array is an array whose entries contain a language code
 and a value, for example `{language: "en", value: "..."}`. The canonical
 localized field is the only field editors should change for translated copy.
-Legacy fields remain temporarily in the schema as read-only/deprecated values
-so old drafts and rollback remain safe; the frontend never prefers them once a
-canonical base-language entry exists.
+Legacy fields are absent from the updated schema and canonical-only readers.
+They remain stored in the production dataset solely until the matching code is
+deployed, after which the guarded cleanup removes them.
 
 ## Plan of Work
 
@@ -185,11 +210,11 @@ fields use those projections.
 
 Next update Studio schemas. Public translated properties become canonical
 `internationalizedArray*` fields (including nested objects and reusable
-sections). Existing legacy Norwegian properties are marked deprecated/read-only
-and hidden only when unset. Existing localized arrays keep their names where
-already deployed to avoid a destructive rename; new fields use a consistent
-`localized*` naming convention. Add validation that prevents duplicate language
-entries and rejects blank translation values.
+sections). Existing localized arrays keep their names where already deployed
+to avoid a destructive rename; new fields use a consistent `localized*` naming
+convention. Add validation that prevents duplicate language entries and rejects
+blank translation values. After canonical coverage is proven, remove the
+legacy fields from the schema and reader projections.
 
 Then add an audit and migration script. The script fetches published documents,
 reports missing English paths and duplicate language entries, generates only
@@ -229,6 +254,13 @@ Review every printed document/path/value. Only an authorized operator may then
 run the same migration with `SANITY_MIGRATION_WRITE=1`; repeat the audit until
 it reports no duplicate language entries and no missing required English path.
 
+After the canonical-only web and Studio builds are deployed, inspect the
+cleanup plan, run it with the explicit confirmation token, and repeat the audit:
+
+    npm run sanity:cleanup:i18n:legacy
+    SANITY_I18N_CLEANUP_WRITE=1 SANITY_I18N_CLEANUP_CONFIRM=drop-legacy-i18n npm run sanity:cleanup:i18n:legacy
+    npm run sanity:audit:i18n
+
 ## Validation and Acceptance
 
 The unit suite must pass with tests proving that requested `en` values are
@@ -244,9 +276,9 @@ published public content or print a precise, documented exception list.
 All migrations default to dry-run and are safe to repeat. Writes use
 `setIfMissing`/language-key replacement rather than blind array appends, preserve
 unknown fields, and emit a JSON report that can be reviewed or used to reverse a
-patch. Do not unset legacy fields until a separate cleanup command is explicitly
-approved. If a write fails, rerun the dry-run; already-completed documents must
-produce no further patch.
+patch. Do not unset legacy fields until the canonical-only code is deployed and
+the cleanup command is explicitly confirmed. If a write fails, rerun the
+dry-run; already-completed documents must produce no further patch.
 
 ## Artifacts and Notes
 
@@ -269,3 +301,7 @@ generated TypeScript output.
 Revision note (2026-08-14): finalized after the reviewed catalog write,
 post-write audit, required-field/approval hardening, full tests/typechecks/
 lint/builds, and idempotence check.
+
+Revision note (2026-08-14): extended for the requested hard cutover, guarded
+legacy cleanup, canonical repair of two newly published documents, and the
+post-deploy execution order required to avoid breaking the live legacy reader.

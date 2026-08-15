@@ -15,7 +15,6 @@ import { ArrangementDocumentInput } from "../../components/ArrangementDocumentIn
 import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 import {
-  deprecatedLegacyField,
   localizedArrayField,
   validateLocalizedArray,
 } from "../shared/localizedFields"
@@ -121,20 +120,12 @@ export const arrangement = defineType({
       hidden: ({ document }) => eventKindOf(document) !== "festivalParent",
       components: { field: FestivalDayShortcutInput },
     }),
-
-    // ─── Core info ─────────────────────────────────────────────
-    deprecatedLegacyField("title", "Tittel (legacy)", "string", {
-      description:
-        "Kan stå tom på serie- og festivaldager. Bruk Tittel per språk nedenfor.",
-      group: "core",
-    }),
     {
       ...localizedArrayField(
         "localizedTitle",
         "Tittel",
         "internationalizedArrayString",
         {
-          legacyField: "title",
           description:
             "Kan stå tom på serie- og festivaldager. Da brukes tittelen fra serien eller festivalen.",
           group: "core",
@@ -142,17 +133,12 @@ export const arrangement = defineType({
       ),
       validation: (rule: any) =>
         rule.custom((value: unknown, context: any) => {
-          const base = validateLocalizedArray(value, {
-            legacyField: "title",
-            context,
-          })
+          const base = validateLocalizedArray(value)
           if (base !== true) return base
           const kind = eventKindOf(context.document)
           if (CHILD_KINDS.includes(kind)) return true
           return validateLocalizedArray(value, {
             required: true,
-            legacyField: "title",
-            context,
           })
         }),
     },
@@ -218,34 +204,20 @@ export const arrangement = defineType({
       hidden: true,
     }),
     orderRankField({ type: "arrangement" }),
-    deprecatedLegacyField(
-      "description",
-      "Beskrivelse (legacy)",
-      "portableTextContent",
-      {
-        description: "Rik tekst — bruk Beskrivelse per språk nedenfor.",
-        group: "core",
-      },
-    ),
     {
       ...localizedArrayField(
         "localizedDescription",
         "Beskrivelse",
         "internationalizedArrayPortableTextContent",
-        { legacyField: "description", group: "core" },
+        { group: "core" },
       ),
       validation: (rule: any) =>
         rule.custom((value: unknown, context: any) => {
-          const base = validateLocalizedArray(value, {
-            legacyField: "description",
-            context,
-          })
+          const base = validateLocalizedArray(value)
           if (base !== true) return base
           if (eventKindOf(context.document) !== "festivalParent") return true
           return validateLocalizedArray(value, {
             required: true,
-            legacyField: "description",
-            context,
           })
         }),
     },
@@ -325,14 +297,11 @@ export const arrangement = defineType({
       initialValue: true,
       hidden: ({ document }) => eventKindOf(document) !== "festivalSession",
     }),
-    deprecatedLegacyField("imageCaption", "Bildetekst (legacy)", "string", {
-      group: "media",
-    }),
     localizedArrayField(
       "localizedImageCaption",
       "Bildetekst",
       "internationalizedArrayString",
-      { legacyField: "imageCaption", group: "media" },
+      { group: "media" },
     ),
 
     // ─── Location ──────────────────────────────────────────────
@@ -344,17 +313,11 @@ export const arrangement = defineType({
       to: [{ type: "room" }],
       group: "location",
     }),
-    deprecatedLegacyField("roomText", "Sted (fritekst, legacy)", "string", {
-      description:
-        "Brukes om stedet ikke er et registrert rom. Bruk Sted per språk nedenfor.",
-      group: "location",
-    }),
     localizedArrayField(
       "localizedRoomText",
       "Sted (fritekst)",
       "internationalizedArrayString",
       {
-        legacyField: "roomText",
         group: "location",
       },
     ),
@@ -368,20 +331,11 @@ export const arrangement = defineType({
       to: [{ type: "studentGroup" }],
       group: "organizer",
     }),
-    deprecatedLegacyField(
-      "organizerText",
-      "Arrangør (fritekst, legacy)",
-      "string",
-      {
-        description: "Brukes om arrangøren ikke er i lista.",
-        group: "organizer",
-      },
-    ),
     localizedArrayField(
       "localizedOrganizerText",
       "Arrangør (fritekst)",
       "internationalizedArrayString",
-      { legacyField: "organizerText", group: "organizer" },
+      { group: "organizer" },
     ),
 
     // ─── Pricing ───────────────────────────────────────────────
@@ -474,9 +428,7 @@ export const arrangement = defineType({
   ],
   preview: {
     select: {
-      title: "title",
       localizedTitle: "localizedTitle",
-      parentTitle: "parentEvent.title",
       parentLocalizedTitle: "parentEvent.localizedTitle",
       status: "approvalStatus",
       eventKind: "eventKind",
@@ -485,9 +437,7 @@ export const arrangement = defineType({
       image: "image",
     },
     prepare({
-      title,
       localizedTitle,
-      parentTitle,
       parentLocalizedTitle,
       status,
       eventKind,
@@ -512,9 +462,7 @@ export const arrangement = defineType({
       return {
         title:
           localizedValue(localizedTitle) ??
-          title ??
           localizedValue(parentLocalizedTitle) ??
-          parentTitle ??
           "Arrangement",
         subtitle: [
           startDate,

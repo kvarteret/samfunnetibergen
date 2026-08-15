@@ -5,14 +5,14 @@ import { sourceLinkProjection } from "../fragments/links"
 import { portableTextProjection } from "../fragments/portableText"
 import { openingHoursProjection } from "../fragments/rooms"
 
-const localizedRoomTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title, "[Mangler romnavn]")`
-const localizedRoomSummary = `coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, summary, "[Mangler kort beskrivelse]")`
-const localizedRoomBody = `coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, body, [])`
-const localizedSoundDetails = `coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value, soundDetails)`
-const localizedLightingDetails = `coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value, lightingDetails)`
-const localizedAvDetails = `coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value, avDetails)`
-const localizedBar = `coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value, bar)`
-const localizedSuitedPurposes = `coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\\n"), suitedPurposes, [])`
+const localizedRoomTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]")`
+const localizedRoomSummary = `coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]")`
+const localizedRoomBody = `coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])`
+const localizedSoundDetails = `coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedLightingDetails = `coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedAvDetails = `coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedBar = `coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedSuitedPurposes = `coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\\n"), [])`
 
 export const roomsQuery =
   defineQuery(`*[_type == "room"] | order(orderRank asc) {
@@ -111,7 +111,7 @@ export const roomBySlugQuery =
     "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {
         _key,
         "floor": coalesce(floor, 0),
-        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title, "[Mangler tittel]"),
+        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler tittel]"),
         "assetUrl": file.asset->url,
         "mimeType": file.asset->mimeType,
         "originalFilename": file.asset->originalFilename

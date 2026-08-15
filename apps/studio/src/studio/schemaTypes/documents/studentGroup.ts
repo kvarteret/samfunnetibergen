@@ -9,10 +9,7 @@ import {
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
 import { studentGroupSlugFromName } from "../../groupSlugs"
-import {
-  deprecatedLegacyField,
-  localizedArrayField,
-} from "../shared/localizedFields"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const STUDENT_GROUP_CATEGORIES = [
   { title: "Arbeidsgruppe (Arg)", value: "arbeidsgruppe" },
@@ -34,16 +31,12 @@ export const studentGroup = defineType({
     { name: "contact", title: "Kontakt" },
   ],
   fields: [
-    deprecatedLegacyField("name", "Navn (legacy)", "string", {
-      group: "identity",
-    }),
     localizedArrayField(
       "localizedName",
       "Navn",
       "internationalizedArrayString",
       {
         required: true,
-        legacyField: "name",
         description:
           "Kanonisk navn per språk. Legg bare til engelsk når navnet faktisk oversettes.",
         group: "identity",
@@ -119,27 +112,17 @@ export const studentGroup = defineType({
           return hasCycle ? "En gruppe kan ikke være sin egen forfader." : true
         }),
     }),
-    deprecatedLegacyField("summary", "Kort beskrivelse (legacy)", "text", {
-      group: "identity",
-      rows: 3,
-    }),
     localizedArrayField(
       "localizedSummary",
       "Kort beskrivelse",
       "internationalizedArrayText",
-      { required: true, legacyField: "summary", group: "identity" },
-    ),
-    deprecatedLegacyField(
-      "body",
-      "Fullstendig beskrivelse (legacy)",
-      "portableTextContent",
-      { group: "identity" },
+      { required: true, group: "identity" },
     ),
     localizedArrayField(
       "localizedBody",
       "Fullstendig beskrivelse",
       "internationalizedArrayPortableTextContent",
-      { legacyField: "body", group: "identity" },
+      { group: "identity" },
     ),
     defineField({
       name: "recruitmentLabel",
@@ -224,16 +207,11 @@ export const studentGroup = defineType({
               type: "string",
               validation: rule => rule.required(),
             }),
-            deprecatedLegacyField(
-              "customLabel",
-              "Egendefinert label (legacy)",
-              "string",
-            ),
             localizedArrayField(
               "localizedCustomLabel",
               "Egendefinert label",
               "internationalizedArrayString",
-              { legacyField: "customLabel" },
+              {},
             ),
           ],
           preview: {
@@ -287,17 +265,11 @@ export const studentGroup = defineType({
       group: "identity",
       options: { hotspot: false },
     }),
-    deprecatedLegacyField("labels", "Etiketter (legacy)", "array", {
-      description:
-        "Bruk etiketter per språk nedenfor. Feltet fjernes etter migreringen.",
-      group: "identity",
-      of: [defineArrayMember({ type: "string" })],
-    }),
     localizedArrayField(
       "localizedLabels",
       "Etiketter (oversettelser)",
       "internationalizedArrayText",
-      { legacyField: "labels", group: "identity" },
+      { group: "identity" },
     ),
     defineField({
       name: "image",
@@ -311,11 +283,10 @@ export const studentGroup = defineType({
   preview: {
     select: {
       title: "localizedName",
-      legacyTitle: "name",
       subtitle: "category",
       media: "image.image",
     },
-    prepare({ title, legacyTitle, subtitle, media }) {
+    prepare({ title, subtitle, media }) {
       const categoryLabel: Record<string, string> = {
         arbeidsgruppe: "Arbeidsgruppe (Arg)",
         komitee: "Komité (Arg)",
@@ -326,9 +297,7 @@ export const studentGroup = defineType({
         title:
           (Array.isArray(title)
             ? title.find(item => item?.language === "nb")?.value
-            : title) ??
-          legacyTitle ??
-          "Gruppe",
+            : title) ?? "Gruppe",
         subtitle: categoryLabel[subtitle] ?? subtitle,
         media,
       }
