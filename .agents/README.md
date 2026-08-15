@@ -24,6 +24,32 @@ Current verified boundaries:
   generated files are intentionally committed or the deployment path is
   otherwise verified.
 
+## Verification and Full-Cycle Checks
+
+Choose verification based on the current source and the checks that already
+ran; do not run a full build-and-test cycle by habit.
+
+- First inspect the working tree, touched paths, and the current PR or CI
+  check result. A passing check for an older commit does not cover newer local
+  changes.
+- If the exact current commit has a successful `Workspace checks` run and no
+  relevant files changed afterward, do not repeat the full test and production
+  build cycle locally solely for confirmation. Run the narrowest relevant
+  checks instead, and report that the broader checks are covered by CI.
+- Run the full cycle when checks are absent, queued, failed, or stale; when
+  dependency or lock files, build configuration, workflows, routing, Sanity
+  schema/query/type generation, or deployment-sensitive code changed; or when
+  the user explicitly requests release-level verification.
+- For focused web changes, prefer the commands and source-specific checks in
+  `verifying-web-changes`. Include `npm run sanity:typegen` for schema/query
+  changes and review generated type drift.
+- Production release workflows may retain their own validation because they
+  release the merged `develop` commit into production. Do not remove release
+  gates merely because a PR check passed unless the merge/release process
+  proves that the exact release source was validated.
+- In the final report, name the checks that ran, identify checks supplied by
+  CI, and explain any intentionally skipped full-cycle checks.
+
 ## Skills
 
 - `documenting-repo-interactions`: verify and document source-backed repo

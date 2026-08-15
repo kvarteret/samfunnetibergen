@@ -15,6 +15,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useCurrentTime } from "@/lib/use-current-time"
+import { useTranslations } from "next-intl"
 
 interface NowPlayingState {
   authorized: boolean
@@ -70,6 +71,7 @@ export function HomeBarPreviews({
   initialNow,
 }: HomeBarPreviewsProps) {
   const now = useCurrentTime(initialNow)
+  const t = useTranslations("HomePage")
   const [nowPlaying, setNowPlaying] = useState<NowPlayingState | null>(null)
 
   useEffect(() => {
@@ -101,7 +103,9 @@ export function HomeBarPreviews({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">Barer</p>
+        <p className="font-heading text-xl text-foreground-muted">
+          {t("bars")}
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
@@ -113,6 +117,7 @@ export function HomeBarPreviews({
             nowPlaying={nowPlaying}
             operationsManagerHours={operationsManagerHours}
             room={room}
+            translations={t}
             vacationMode={vacationMode}
           />
         ))}
@@ -129,6 +134,7 @@ function HomeBarPreviewCard({
   now,
   nowPlaying,
   locale,
+  translations,
 }: {
   room: HomeBarPreviewRoom
   houseClosedDates?: ClosedDate[] | null
@@ -137,6 +143,7 @@ function HomeBarPreviewCard({
   now: Date
   nowPlaying: NowPlayingState | null
   locale: AppLocale
+  translations: ReturnType<typeof useTranslations<"HomePage">>
 }) {
   const spotifyTrack = hasSpotifyTrack(nowPlaying, room)
   const isOpen = isOpenAtForCombinedHours(
@@ -146,19 +153,25 @@ function HomeBarPreviewCard({
     houseClosedDates,
     vacationMode,
   )
-  const vacationNotice = formatVacationModeNotice(isoDate(now), vacationMode)
+  const vacationNotice = formatVacationModeNotice(
+    isoDate(now),
+    vacationMode,
+    locale,
+  )
   const imageUrl = room.image?.assetUrl
   const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 
   return (
     <Link
-      aria-label={`Gå til ${room.title ?? "bar"}`}
+      aria-label={translations("goToBar", {
+        bar: room.title ?? translations("barFallback"),
+      })}
       className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden panel p-0 transition-colors hover:border-primary focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">
         <ImageWithFallback
-          alt={room.image?.alt ?? room.title ?? "Bar"}
+          alt={room.image?.alt ?? room.title ?? translations("barImageAlt")}
           aspectRatio=""
           className="min-h-full"
           fallback={
@@ -176,7 +189,7 @@ function HomeBarPreviewCard({
             </p>
             {isOpen ? (
               <p className="mt-1 font-heading uppercase tracking-widest text-primary">
-                Åpen
+                {translations("barOpen")}
               </p>
             ) : null}
           </div>
@@ -185,13 +198,14 @@ function HomeBarPreviewCard({
             spotifyTrack={spotifyTrack}
             nowPlaying={nowPlaying}
             summary={room.summary}
+            translations={translations}
           />
         </div>
 
         {room.openingHours?.rows?.length ? (
           <dl className="space-y-1 border-t border-border pt-4">
             {room.openingHours.rows.slice(0, 3).map(row => {
-              const label = row ? formatOpeningHoursRow(row) : null
+              const label = row ? formatOpeningHoursRow(row, locale) : null
               if (!label) return null
 
               return (
@@ -219,10 +233,12 @@ function BarPreviewBody({
   spotifyTrack,
   nowPlaying,
   summary,
+  translations,
 }: {
   spotifyTrack: boolean
   nowPlaying: NowPlayingState | null
   summary?: string | null
+  translations: ReturnType<typeof useTranslations<"HomePage">>
 }) {
   if (spotifyTrack && nowPlaying) {
     return (
@@ -231,7 +247,7 @@ function BarPreviewBody({
           Spotify
         </p>
         <p className="line-clamp-1 font-heading text-foreground">
-          {nowPlaying.name ?? "Spiller nå"}
+          {nowPlaying.name ?? translations("nowPlaying")}
         </p>
         {nowPlaying.artists && (
           <p className="line-clamp-1 text-foreground-muted">

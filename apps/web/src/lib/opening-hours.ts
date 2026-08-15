@@ -171,10 +171,15 @@ export function formatWeekdays(
   return days.map(day => labels[day - 1]).join(", ")
 }
 
-export function formatOpeningHoursRow(row: OpeningHoursRow): string | null {
-  const dayLabel = formatWeekdays(row.weekdays)
+export function formatOpeningHoursRow(
+  row: OpeningHoursRow,
+  locale: "nb" | "en" = "nb",
+): string | null {
+  const dayLabel = formatWeekdays(row.weekdays, locale)
   if (!dayLabel) return null
-  if (row.status === "closed") return `${dayLabel}: Stengt`
+  if (row.status === "closed") {
+    return `${dayLabel}: ${locale === "en" ? "Closed" : "Stengt"}`
+  }
   if (!row.duration?.start || !row.duration.end) return dayLabel
   return `${dayLabel}: ${row.duration.start}-${row.duration.end}`
 }

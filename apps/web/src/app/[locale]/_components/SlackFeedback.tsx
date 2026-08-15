@@ -6,11 +6,13 @@ import { type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field-group"
 import { Textarea } from "@/components/ui/textarea"
+import { useTranslations } from "next-intl"
 
 const FIELD_ID = "slack-feedback-message"
 const ERROR_ID = "slack-feedback-error"
 
 export function SlackFeedback() {
+  const t = useTranslations("HomePage")
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
@@ -40,9 +42,9 @@ export function SlackFeedback() {
     return (
       <section className="bg-[#f54b4b] p-8 text-white shadow-hard-lg sm:p-12">
         <p className="font-heading text-2xl text-white">
-          Takk for at du delte.
+          {t("feedbackThanks")}
         </p>
-        <p className="mt-1 text-lg text-white/75">Vi leser alt.</p>
+        <p className="mt-1 text-lg text-white/75">{t("feedbackReadAll")}</p>
       </section>
     )
   }
@@ -50,15 +52,13 @@ export function SlackFeedback() {
   return (
     <section className="bg-[#f54b4b] p-8 text-white shadow-hard-lg sm:p-12">
       <h2 className="font-heading text-3xl leading-none text-white sm:text-4xl">
-        Noe på hjertet?
+        {t("feedbackHeading")}
       </h2>
-      <p className="mt-1 text-sm text-white/60">E-tjenesten lytter</p>
+      <p className="mt-1 text-sm text-white/60">{t("feedbackSubtitle")}</p>
       <form className="mt-4 space-y-3" onSubmit={submit}>
         <FieldGroup
           className="max-w-xl"
-          error={
-            status === "error" ? "Something went wrong. Try again." : undefined
-          }
+          error={status === "error" ? t("feedbackError") : undefined}
           errorId={ERROR_ID}
         >
           <Textarea
@@ -66,7 +66,7 @@ export function SlackFeedback() {
             aria-invalid={status === "error"}
             id={FIELD_ID}
             onChange={e => setMessage(e.target.value)}
-            placeholder="I dag så var jeg på 'the place to be', og der..."
+            placeholder={t("feedbackPlaceholder")}
             rows={2}
             value={message}
           />
@@ -80,12 +80,12 @@ export function SlackFeedback() {
           {status === "sending" ? (
             <>
               <Loader2 aria-hidden className="animate-spin" />
-              Sending...
+              {t("sending")}
             </>
           ) : (
             <>
               <Send aria-hidden />
-              Send
+              {t("send")}
             </>
           )}
         </Button>
