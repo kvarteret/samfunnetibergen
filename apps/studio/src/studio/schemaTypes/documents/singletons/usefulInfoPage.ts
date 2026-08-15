@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const usefulInfoPage = defineType({
   name: "usefulInfoPage",
@@ -11,45 +12,32 @@ export const usefulInfoPage = defineType({
   __experimental_actions: ["update", "publish"],
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
-      group: "content",
-    }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "content",
-    }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "content",
-      initialValue: "Nyttig info",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "content",
-    }),
-    defineField({
-      name: "intro",
-      title: "Ingress",
-      type: "text",
-      rows: 3,
-      group: "content",
-    }),
-    defineField({
-      name: "localizedIntro",
-      title: "Ingress (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "content",
-    }),
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        group: "content",
+      },
+    ),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "content",
+      },
+    ),
+    localizedArrayField(
+      "localizedIntro",
+      "Ingress",
+      "internationalizedArrayText",
+      {
+        rows: 3,
+        group: "content",
+      },
+    ),
     defineField({
       name: "sections",
       title: "Seksjoner",
@@ -65,9 +53,14 @@ export const usefulInfoPage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Nyttig info" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ??
+            "Nyttig info")
+          : (title ?? "Nyttig info"),
+      }
     },
   },
 })

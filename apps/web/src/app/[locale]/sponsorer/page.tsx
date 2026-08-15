@@ -25,6 +25,7 @@ export async function generateMetadata({ params }: SponsorsPageProps) {
   const content = await fetchSponsorsPageContent(locale, { stega: false })
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/sponsorer`,
     title: content?.title ?? "Sponsorer",
     description: content?.description ?? "Se sponsorer for Samfunnet i Bergen.",

@@ -47,7 +47,12 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     homePage?.title ?? "Samfunnet i Bergen – studentkultur på Kvarteret"
   const description = homePage?.description ?? undefined
   return {
-    ...buildPageMetadata({ canonicalPath: `/${locale}`, title, description }),
+    ...buildPageMetadata({
+      locale,
+      canonicalPath: `/${locale}`,
+      title,
+      description,
+    }),
     title: { absolute: title },
   }
 }
@@ -212,9 +217,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
   const [events, promotedParentEvents, barPreviews, t, homeT] =
     await Promise.all([
-      fetchPublishedEvents(),
-      fetchPromotedParentEvents(),
-      fetchBarPreviews(),
+      fetchPublishedEvents(locale),
+      fetchPromotedParentEvents(locale),
+      fetchBarPreviews(locale),
       getTranslations({ locale, namespace: "EventCard" }),
       getTranslations({ locale, namespace: "HomePage" }),
     ])

@@ -11,7 +11,7 @@ type AddressBlockData = Extract<
 >
 
 export const AddressBlock = ({ block }: { block: AddressBlockData }) => (
-  <InfoSection icon={MapPin} id={block._key} title={block.heading}>
+  <InfoSection icon={MapPin} id={block._key} title={block.heading ?? "Adkomst"}>
     <div className="space-y-4">
       {block.body.length > 0 ? (
         <div className="max-w-2xl text-foreground">

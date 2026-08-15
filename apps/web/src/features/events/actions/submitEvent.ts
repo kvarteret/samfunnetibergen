@@ -196,7 +196,9 @@ function buildEventDocument(input: SubmitEventInput) {
   const isRecurringSeries = Boolean(input.isRecurring && input.rrule)
   const doc: { _type: string; [key: string]: unknown } = {
     _type: "arrangement",
-    title: input.title.trim(),
+    localizedTitle: [
+      { _key: nanoid(), language: "nb", value: input.title.trim() },
+    ],
     slug: { _type: "slug", current: slug },
     eventKind: isRecurringSeries ? "seriesParent" : "single",
     eventStatus: "scheduled",
@@ -215,15 +217,21 @@ function buildEventDocument(input: SubmitEventInput) {
   }
 
   if (input.description?.trim()) {
-    doc.description = [
+    doc.localizedDescription = [
       {
         _key: nanoid(),
-        _type: "block",
-        style: "normal",
-        children: [
-          { _key: nanoid(), _type: "span", text: input.description.trim() },
+        language: "nb",
+        value: [
+          {
+            _key: nanoid(),
+            _type: "block",
+            style: "normal",
+            children: [
+              { _key: nanoid(), _type: "span", text: input.description.trim() },
+            ],
+            markDefs: [],
+          },
         ],
-        markDefs: [],
       },
     ]
   }
@@ -233,8 +241,8 @@ function buildEventDocument(input: SubmitEventInput) {
     doc.rrule = input.rrule
   }
 
-  setOpt(doc, "roomText", input.roomText?.trim())
-  setOpt(doc, "organizerText", input.organizerText?.trim())
+  setLocalizedOpt(doc, "localizedRoomText", input.roomText?.trim())
+  setLocalizedOpt(doc, "localizedOrganizerText", input.organizerText?.trim())
   setOpt(doc, "submittedByOrganization", input.submittedByOrganization?.trim())
 
   if (input.isInternalEvent) doc.isInternalEvent = true
@@ -267,6 +275,14 @@ function buildEventDocument(input: SubmitEventInput) {
 
 function setOpt(doc: Record<string, unknown>, key: string, value?: string) {
   if (value) doc[key] = value
+}
+
+function setLocalizedOpt(
+  doc: Record<string, unknown>,
+  key: string,
+  value?: string,
+) {
+  if (value) doc[key] = [{ _key: nanoid(), language: "nb", value }]
 }
 function setNum(
   doc: Record<string, unknown>,

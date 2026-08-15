@@ -17,7 +17,7 @@ export const sectionMeta = (block: InfoSectionData): SectionNavItem => ({
   title:
     block._type === "editorialSection"
       ? (block.title ?? "Informasjon")
-      : block.heading,
+      : (block.heading ?? "Informasjon"),
 })
 
 export const SectionBlock = ({ block }: { block: InfoSectionData }) => {

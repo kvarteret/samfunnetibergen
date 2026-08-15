@@ -35,7 +35,7 @@ function resolveFeedEvent(raw: RawFeedEvent): StructuredEvent {
 
 async function fetchEvents() {
   const today = getOsloDateString()
-  return client.fetch(feedEventsQuery, { today })
+  return client.fetch(feedEventsQuery, { today, locale: "nb" })
 }
 
 export async function GET() {

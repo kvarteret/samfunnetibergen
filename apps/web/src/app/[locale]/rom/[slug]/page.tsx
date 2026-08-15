@@ -47,14 +47,17 @@ const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 export async function generateMetadata({ params }: RoomPageProps) {
   const { slug, locale: localeParam } = await params
-  await resolvePageLocale(Promise.resolve({ locale: localeParam }))
-  const room = await fetchRoomBySlug(slug, { stega: false })
+  const locale = await resolvePageLocale(
+    Promise.resolve({ locale: localeParam }),
+  )
+  const room = await fetchRoomBySlug(slug, locale, { stega: false })
   if (!room) return {}
 
   const title = room.title ?? slug
   const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${localeParam}/rom/${slug}`,
     title: `${title} | Rom`,
     description: room.summary,
@@ -70,8 +73,8 @@ export default async function RoomPage({ params }: RoomPageProps) {
   activateRequestLocale(locale)
 
   const [room, houseHours] = await Promise.all([
-    fetchRoomBySlug(slug),
-    fetchHouseHours(),
+    fetchRoomBySlug(slug, locale),
+    fetchHouseHours(locale),
   ])
   if (!room) notFound()
 

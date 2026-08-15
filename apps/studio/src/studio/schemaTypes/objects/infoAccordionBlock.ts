@@ -1,38 +1,33 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const infoAccordionItem = defineType({
   name: "infoAccordionItem",
   title: "Trekkspill-seksjon",
   type: "object",
   fields: [
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-    }),
-    defineField({
-      name: "body",
-      title: "Innhold",
-      type: "portableTextContent",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedBody",
-      title: "Innhold (oversettelser)",
-      type: "internationalizedArrayPortableTextContent",
-    }),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedBody",
+      "Innhold",
+      "internationalizedArrayPortableTextContent",
+      { required: true },
+    ),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Seksjon" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ?? "Seksjon")
+          : (title ?? "Seksjon"),
+      }
     },
   },
 })
@@ -43,28 +38,20 @@ export const infoAccordionBlock = defineType({
   type: "object",
   icon: icons["chevron-down"],
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedHeading",
-      title: "Overskrift (oversettelser)",
-      type: "internationalizedArrayString",
-    }),
-    defineField({
-      name: "intro",
-      title: "Ingress",
-      type: "text",
-      rows: 3,
-    }),
-    defineField({
-      name: "localizedIntro",
-      title: "Ingress (oversettelser)",
-      type: "internationalizedArrayText",
-    }),
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedIntro",
+      "Ingress",
+      "internationalizedArrayText",
+      {
+        rows: 3,
+      },
+    ),
     defineField({
       name: "items",
       title: "Seksjoner",
@@ -74,10 +61,16 @@ export const infoAccordionBlock = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading", items: "items" },
+    select: { title: "localizedHeading", items: "items" },
     prepare({ title, items }) {
       const count = Array.isArray(items) ? items.length : 0
-      return { title: title ?? "Trekkspill", subtitle: `${count} seksjoner` }
+      const localizedTitle = Array.isArray(title)
+        ? title.find(item => item?.language === "nb")?.value
+        : title
+      return {
+        title: localizedTitle ?? "Trekkspill",
+        subtitle: `${count} seksjoner`,
+      }
     },
   },
 })

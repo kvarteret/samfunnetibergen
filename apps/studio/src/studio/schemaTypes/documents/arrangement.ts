@@ -14,6 +14,10 @@ import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
 import { ArrangementDocumentInput } from "../../components/ArrangementDocumentInput"
 import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
+import {
+  localizedArrayField,
+  validateLocalizedArray,
+} from "../shared/localizedFields"
 
 const EVENT_KIND_OPTIONS = [
   { title: "Enkeltarrangement", value: "single" },
@@ -116,28 +120,45 @@ export const arrangement = defineType({
       hidden: ({ document }) => eventKindOf(document) !== "festivalParent",
       components: { field: FestivalDayShortcutInput },
     }),
-
-    // ─── Core info ─────────────────────────────────────────────
-    defineField({
-      name: "title",
-      title: "Tittel",
-      description:
-        "Kan stå tom på serie- og festivaldager. Da brukes tittelen fra serien eller festivalen.",
-      type: "string",
-      group: "core",
-      validation: rule =>
-        rule.custom((value, context) => {
-          if (value) return true
-          if (CHILD_KINDS.includes(eventKindOf(context.document))) return true
-          return "Tittel er påkrevd"
+    {
+      ...localizedArrayField(
+        "localizedTitle",
+        "Tittel",
+        "internationalizedArrayString",
+        {
+          description:
+            "Kan stå tom på serie- og festivaldager. Da brukes tittelen fra serien eller festivalen.",
+          group: "core",
+        },
+      ),
+      validation: (rule: any) =>
+        rule.custom((value: unknown, context: any) => {
+          const base = validateLocalizedArray(value)
+          if (base !== true) return base
+          const kind = eventKindOf(context.document)
+          if (CHILD_KINDS.includes(kind)) return true
+          return validateLocalizedArray(value, {
+            required: true,
+          })
         }),
-    }),
+    },
     defineField({
       name: "slug",
       title: "Nettadresse",
       type: "slug",
       group: "core",
-      options: { source: "title" },
+      options: {
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedTitle as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.title as string | undefined) ??
+            ""
+          )
+        },
+      },
       validation: rule => rule.required(),
     }),
     defineField({
@@ -183,19 +204,23 @@ export const arrangement = defineType({
       hidden: true,
     }),
     orderRankField({ type: "arrangement" }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      description: "Rik tekst — formatering, bilder og lenker støttes",
-      type: "portableTextContent",
-      group: "core",
-      validation: rule =>
-        rule.custom((value, context) =>
-          eventKindOf(context.document) === "festivalParent" && !value
-            ? "Festivalen må ha en beskrivelse"
-            : true,
-        ),
-    }),
+    {
+      ...localizedArrayField(
+        "localizedDescription",
+        "Beskrivelse",
+        "internationalizedArrayPortableTextContent",
+        { group: "core" },
+      ),
+      validation: (rule: any) =>
+        rule.custom((value: unknown, context: any) => {
+          const base = validateLocalizedArray(value)
+          if (base !== true) return base
+          if (eventKindOf(context.document) !== "festivalParent") return true
+          return validateLocalizedArray(value, {
+            required: true,
+          })
+        }),
+    },
     // ─── Dates ─────────────────────────────────────────────────
     defineField({
       name: "dates",
@@ -272,12 +297,12 @@ export const arrangement = defineType({
       initialValue: true,
       hidden: ({ document }) => eventKindOf(document) !== "festivalSession",
     }),
-    defineField({
-      name: "imageCaption",
-      title: "Bildetekst",
-      type: "string",
-      group: "media",
-    }),
+    localizedArrayField(
+      "localizedImageCaption",
+      "Bildetekst",
+      "internationalizedArrayString",
+      { group: "media" },
+    ),
 
     // ─── Location ──────────────────────────────────────────────
     defineField({
@@ -288,15 +313,14 @@ export const arrangement = defineType({
       to: [{ type: "room" }],
       group: "location",
     }),
-    defineField({
-      name: "roomText",
-      title: "Sted (fritekst)",
-      description:
-        "Brukes om stedet ikke er et registrert rom — f.eks. 'Uteområdet'. " +
-        "For steder utenfor Kvarteret må full gateadresse tas med.",
-      type: "string",
-      group: "location",
-    }),
+    localizedArrayField(
+      "localizedRoomText",
+      "Sted (fritekst)",
+      "internationalizedArrayString",
+      {
+        group: "location",
+      },
+    ),
 
     // ─── Organizer ─────────────────────────────────────────────
     defineField({
@@ -307,13 +331,12 @@ export const arrangement = defineType({
       to: [{ type: "studentGroup" }],
       group: "organizer",
     }),
-    defineField({
-      name: "organizerText",
-      title: "Arrangør (fritekst)",
-      description: "Brukes om arrangøren ikke er i lista",
-      type: "string",
-      group: "organizer",
-    }),
+    localizedArrayField(
+      "localizedOrganizerText",
+      "Arrangør (fritekst)",
+      "internationalizedArrayString",
+      { group: "organizer" },
+    ),
 
     // ─── Pricing ───────────────────────────────────────────────
     defineField({
@@ -405,8 +428,8 @@ export const arrangement = defineType({
   ],
   preview: {
     select: {
-      title: "title",
-      parentTitle: "parentEvent.title",
+      localizedTitle: "localizedTitle",
+      parentLocalizedTitle: "parentEvent.localizedTitle",
       status: "approvalStatus",
       eventKind: "eventKind",
       eventStatus: "eventStatus",
@@ -414,8 +437,8 @@ export const arrangement = defineType({
       image: "image",
     },
     prepare({
-      title,
-      parentTitle,
+      localizedTitle,
+      parentLocalizedTitle,
       status,
       eventKind,
       eventStatus,
@@ -432,8 +455,15 @@ export const arrangement = defineType({
       }
       const kindLabel =
         eventKind && eventKind !== "single" ? KIND_LABELS[eventKind] : undefined
+      const localizedValue = (value: unknown) =>
+        Array.isArray(value)
+          ? value.find(item => item?.language === "nb")?.value
+          : undefined
       return {
-        title: title ?? parentTitle ?? "Arrangement",
+        title:
+          localizedValue(localizedTitle) ??
+          localizedValue(parentLocalizedTitle) ??
+          "Arrangement",
         subtitle: [
           startDate,
           kindLabel,

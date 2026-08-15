@@ -22,7 +22,11 @@ export const AccessibilityAccordionBlock = ({
 }: {
   block: AccordionBlockData
 }) => (
-  <InfoSection icon={Accessibility} id={block._key} title={block.heading}>
+  <InfoSection
+    icon={Accessibility}
+    id={block._key}
+    title={block.heading ?? "Tilgjengelighet"}
+  >
     <div className="space-y-6">
       {block.intro ? (
         <p className="max-w-2xl text-lg leading-7 text-foreground-muted">

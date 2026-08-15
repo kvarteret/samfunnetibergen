@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const socialLinkSchema = defineType({
   name: "footerSocialLink",
@@ -24,12 +25,12 @@ const socialLinkSchema = defineType({
       },
       validation: rule => rule.required(),
     }),
-    defineField({
-      name: "label",
-      title: "Visningsnavn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    localizedArrayField(
+      "localizedLabel",
+      "Visningsnavn",
+      "internationalizedArrayString",
+      { required: true },
+    ),
     defineField({
       name: "url",
       title: "URL",

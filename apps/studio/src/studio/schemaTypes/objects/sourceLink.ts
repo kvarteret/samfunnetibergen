@@ -2,6 +2,7 @@ import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 
 import { SourceLinkInput } from "./SourceLinkInput"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const internalPathPattern = /^\/(?!\/)/
 
@@ -14,17 +15,12 @@ export const sourceLink = defineType({
     input: SourceLinkInput,
   },
   fields: [
-    defineField({
-      name: "label",
-      title: "Label",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedLabel",
-      title: "Label (oversettelser)",
-      type: "internationalizedArrayString",
-    }),
+    localizedArrayField(
+      "localizedLabel",
+      "Label",
+      "internationalizedArrayString",
+      { required: true },
+    ),
     defineField({
       type: "string",
       name: "linkType",
@@ -93,10 +89,10 @@ export const sourceLink = defineType({
     }),
   preview: {
     select: {
-      title: "label",
+      title: "localizedLabel",
       linkType: "linkType",
-      pageTitle: "internalPage.title",
-      pageName: "internalPage.name",
+      pageTitle: "internalPage.localizedTitle",
+      pageName: "internalPage.localizedName",
       pageSlug: "internalPage.slug.current",
       pageType: "internalPage._type",
       internalPath: "internalPath",
@@ -112,11 +108,18 @@ export const sourceLink = defineType({
       internalPath,
       externalUrl,
     }) {
+      const localized = (value: unknown) =>
+        Array.isArray(value)
+          ? value.find(item => item?.language === "nb")?.value
+          : value
       let subtitle = "Mangler lenke"
       if (linkType === "internalPage") {
         subtitle = pageSlug
           ? `/${pageSlug}`
-          : (pageTitle ?? pageName ?? pageType ?? "Velg dokument")
+          : (localized(pageTitle) ??
+            localized(pageName) ??
+            pageType ??
+            "Velg dokument")
       } else if (linkType === "internalPath") {
         subtitle = internalPath ?? "Mangler intern sti"
       } else if (linkType === "external") {
@@ -124,7 +127,7 @@ export const sourceLink = defineType({
       }
 
       return {
-        title,
+        title: localized(title),
         subtitle,
       }
     },

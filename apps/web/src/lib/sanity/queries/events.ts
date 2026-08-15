@@ -1,28 +1,35 @@
 import { defineQuery } from "next-sanity"
 
 import { portableTextProjection } from "../fragments/portableText"
+const localizedName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")`
+const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "")`
+const localizedNullableTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])`
+const localizedNullableImageCaption = `coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedNullableOrganizerText = `coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedNullableRoomText = `coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value)`
 
 export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
-    "title": coalesce(title, ""),
+    "title": ${localizedTitle},
     "slug": coalesce(slug.current, "")
 }`)
 
 export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
     _id,
-    "name": coalesce(name, ""),
+    "name": ${localizedName},
     "taxonomyGroup": taxonomyGroup-> {
         _id,
-        "name": coalesce(name, "")
+        "name": ${localizedName}
     }
 }`)
 
 export const eventGroupsQuery = defineQuery(`
     *[_type == "studentGroup"] | order(orderRank asc, name asc) {
     _id,
-    "name": coalesce(name, ""),
+    "name": ${localizedName},
     "category": coalesce(category, "")
 }`)
 
@@ -35,16 +42,16 @@ const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "f
 // must survive to the domain resolver so it can fall back to the parent.
 // Display defaults are applied after resolution in apps/web/src/lib/sanity/fetch/events.ts.
 const inheritableFieldsProjection = `
-    title,
-    "description": description[] ${portableTextProjection},
+    "title": ${localizedNullableTitle},
+    "description": ${localizedDescription}[] ${portableTextProjection},
     "imageUrl": image.asset->url,
-    imageCaption,
-    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },
-    organizerText,
+    "imageCaption": ${localizedNullableImageCaption},
+    "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
+    "organizerText": ${localizedNullableOrganizerText},
     "eventType": eventType-> {
         _id,
-        "name": coalesce(name, ""),
-        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }
+        "name": ${localizedName},
+        "taxonomyGroup": taxonomyGroup-> { _id, "name": ${localizedName} }
     },
     isFree,
     priceOrdinar,
@@ -95,8 +102,8 @@ const eventProjection = `{
         endTime
       }
     ), []),
-    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },
-    roomText,
+    "room": room-> { _id, "title": ${localizedTitle}, "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },
+    "roomText": ${localizedNullableRoomText},
     ${inheritableFieldsProjection}
 }`
 
@@ -183,7 +190,7 @@ export const feedEventsQuery = defineQuery(`
             startTime,
             endTime
         }, []),
-        "room": room-> { "title": coalesce(title, "") },
-        roomText,
+        "room": room-> { "title": ${localizedTitle} },
+        "roomText": ${localizedNullableRoomText},
         ${inheritableFieldsProjection}
     }`)

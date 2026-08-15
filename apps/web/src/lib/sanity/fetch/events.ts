@@ -2,6 +2,7 @@ import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
 import { draftMode } from "next/headers"
+import type { AppLocale } from "@/i18n/routing"
 import {
   type EventStatus,
   resolveEffectiveStatus,
@@ -20,6 +21,7 @@ import {
   publishedEventsQuery,
 } from "../queries"
 import { compact, type FetchOptions, getOsloDateString } from "./shared"
+import { DEFAULT_LOCALE } from "../localized"
 
 type RawPublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
 type RawPromotedParentEvent = ClientReturn<
@@ -98,18 +100,22 @@ export type EventType = ClientReturn<typeof eventTypesQuery>[number]
 
 export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
 
-export async function fetchPublishedEvents(): Promise<PublishedEvent[]> {
+export async function fetchPublishedEvents(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({
     query: publishedEventsQuery,
-    params: { today: getOsloDateString() },
+    params: { locale, today: getOsloDateString() },
   })
   return data.map(resolvePublishedEvent)
 }
 
-export async function fetchPromotedParentEvents(): Promise<PublishedEvent[]> {
+export async function fetchPromotedParentEvents(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({
     query: promotedParentEventsQuery,
-    params: { today: getOsloDateString() },
+    params: { locale, today: getOsloDateString() },
   })
   return data.map(resolvePublishedEvent)
 }
@@ -128,12 +134,13 @@ export async function fetchPublishedEventSlugs(): Promise<string[]> {
 
 export async function fetchEventBySlug(
   slug: string,
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<EventDetail | null> {
   const { isEnabled: preview } = await draftMode()
   const { data } = await sanityFetch({
     query: eventBySlugQuery,
-    params: { preview, slug },
+    params: { preview, slug, locale },
     stega: options.stega,
   })
   return data ? resolveEventDetail(data) : null
@@ -143,27 +150,43 @@ export async function fetchEventBySlug(
  * used by parent detail pages to render the series/festival overview. */
 export async function fetchEventChildren(
   parentId: string,
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<PublishedEvent[]> {
   const { data } = await sanityFetch({
     query: eventChildrenQuery,
-    params: { parentId },
+    params: { parentId, locale },
     stega: options.stega,
   })
   return data.map(resolvePublishedEvent)
 }
 
-export async function fetchEventRooms(): Promise<EventRoom[]> {
-  const { data } = await sanityFetch({ query: eventRoomsQuery })
+export async function fetchEventRooms(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<EventRoom[]> {
+  const { data } = await sanityFetch({
+    query: eventRoomsQuery,
+    params: { locale },
+  })
   return data
 }
 
-export async function fetchEventTypes(): Promise<EventType[]> {
-  const { data } = await sanityFetch({ query: eventTypesQuery })
+export async function fetchEventTypes(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<EventType[]> {
+  const { data } = await sanityFetch({
+    query: eventTypesQuery,
+    params: { locale },
+  })
   return data
 }
 
-export async function fetchEventGroups(): Promise<EventGroup[]> {
-  const { data } = await sanityFetch({ query: eventGroupsQuery })
+export async function fetchEventGroups(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<EventGroup[]> {
+  const { data } = await sanityFetch({
+    query: eventGroupsQuery,
+    params: { locale },
+  })
   return data
 }

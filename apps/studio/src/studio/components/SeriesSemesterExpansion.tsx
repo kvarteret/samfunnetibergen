@@ -26,8 +26,8 @@ const EXISTING_DAYS_QUERY = `*[
   approvalStatus,
   dates[]{startDate, startTime, endTime},
   "hasContentOverrides": count([
-    defined(title), defined(description), defined(image),
-    defined(imageCaption), defined(organizerGroup), defined(organizerText),
+    defined(localizedTitle), defined(localizedDescription), defined(image),
+    defined(localizedImageCaption), defined(organizerGroup), defined(localizedOrganizerText),
     defined(eventType), defined(isFree), defined(priceOrdinar),
     defined(priceStudent), defined(priceMedlem), defined(ticketUrl),
     defined(facebookUrl), defined(isInternalEvent)

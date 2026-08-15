@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const navItem = defineType({
   name: "navItem",
@@ -7,12 +8,12 @@ const navItem = defineType({
   type: "object",
   icon: icons.link,
   fields: [
-    defineField({
-      name: "label",
-      title: "Tekst",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    localizedArrayField(
+      "localizedLabel",
+      "Tekst",
+      "internationalizedArrayString",
+      { required: true },
+    ),
     defineField({
       name: "href",
       title: "Intern lenke",
@@ -36,12 +37,12 @@ const navItem = defineType({
           title: "Undermenygruppe",
           type: "object",
           fields: [
-            defineField({
-              name: "groupLabel",
-              title: "Gruppeoverskrift",
-              description: "Valgfri overskrift for gruppen (vises i dropdown)",
-              type: "string",
-            }),
+            localizedArrayField(
+              "localizedGroupLabel",
+              "Gruppeoverskrift",
+              "internationalizedArrayString",
+              {},
+            ),
             defineField({
               name: "items",
               title: "Lenker",
@@ -53,12 +54,12 @@ const navItem = defineType({
                   type: "object",
                   icon: icons.link,
                   fields: [
-                    defineField({
-                      name: "label",
-                      title: "Tekst",
-                      type: "string",
-                      validation: rule => rule.required(),
-                    }),
+                    localizedArrayField(
+                      "localizedLabel",
+                      "Tekst",
+                      "internationalizedArrayString",
+                      { required: true },
+                    ),
                     defineField({
                       name: "href",
                       title: "Intern lenke",

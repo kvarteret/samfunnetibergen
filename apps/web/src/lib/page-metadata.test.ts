@@ -49,6 +49,27 @@ describe("page metadata", () => {
     })
   })
 
+  it("emits locale-aware alternates and Open Graph locale", () => {
+    const metadata = buildPageMetadata({
+      locale: "en",
+      canonicalPath: "/en/grupper",
+      title: "Groups",
+      description: "Find student groups.",
+    })
+
+    expect(metadata).toMatchObject({
+      alternates: {
+        canonical: "/en/grupper",
+        languages: {
+          nb: "/nb/grupper",
+          en: "/en/grupper",
+          "x-default": "/nb/grupper",
+        },
+      },
+      openGraph: { locale: "en_GB", url: "/en/grupper" },
+    })
+  })
+
   it("keeps the root title template and site defaults in one contract", () => {
     expect(buildRootMetadata("https://example.com")).toMatchObject({
       metadataBase: new URL("https://example.com"),

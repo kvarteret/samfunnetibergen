@@ -4,6 +4,7 @@ import {
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
 import { defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const eventTaxonomyGroup = defineType({
   name: "eventTaxonomyGroup",
@@ -11,20 +12,25 @@ export const eventTaxonomyGroup = defineType({
   type: "document",
   icon: icons.tag,
   fields: [
-    defineField({
-      name: "name",
-      title: "Navn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    localizedArrayField(
+      "localizedName",
+      "Navn",
+      "internationalizedArrayString",
+      { required: true },
+    ),
     orderRankField({ type: "eventTaxonomyGroup" }),
   ],
   preview: {
     select: {
-      title: "name",
+      title: "localizedName",
     },
     prepare({ title }) {
-      return { title: title ?? "Gruppe" }
+      return {
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ?? "Gruppe",
+      }
     },
   },
   orderings: [orderRankOrdering],

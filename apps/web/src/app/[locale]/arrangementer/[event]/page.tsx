@@ -41,7 +41,7 @@ export default async function EventPage({ params }: EventPageProps) {
   activateRequestLocale(locale)
 
   const [eventData, t] = await Promise.all([
-    fetchEventBySlug(resolvedParams.event, { stega: false }),
+    fetchEventBySlug(resolvedParams.event, locale, { stega: false }),
     getTranslations({ locale, namespace: "EventPage" }),
   ])
 
@@ -49,7 +49,7 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
   const childEvents = isParentEvent
-    ? await fetchEventChildren(eventData._id, { stega: false })
+    ? await fetchEventChildren(eventData._id, locale, { stega: false })
     : []
   const eventJsonLd = buildEventStructuredData(eventData, {
     siteUrl: resolveSiteUrl(),
@@ -84,12 +84,16 @@ export default async function EventPage({ params }: EventPageProps) {
 
 export async function generateMetadata({ params }: EventPageProps) {
   const resolvedParams = await params
-  const eventData = await fetchEventBySlug(resolvedParams.event)
+  const locale = await resolvePageLocale(
+    Promise.resolve({ locale: resolvedParams.locale }),
+  )
+  const eventData = await fetchEventBySlug(resolvedParams.event, locale)
 
   if (!eventData) return {}
 
   const metadata = buildPageMetadata({
-    canonicalPath: `/${resolvedParams.locale}/arrangementer/${resolvedParams.event}`,
+    locale,
+    canonicalPath: `/${locale}/arrangementer/${resolvedParams.event}`,
     title: eventData.title,
     description: toPlainTextContent(eventData.description),
     imageUrl: eventData.imageUrl,

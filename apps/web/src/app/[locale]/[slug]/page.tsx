@@ -27,10 +27,11 @@ export async function generateMetadata({ params }: PageProps) {
   const locale = await resolvePageLocale(
     Promise.resolve({ locale: localeParam }),
   )
-  const page = await fetchPageBySlug(slug, { locale, stega: false })
+  const page = await fetchPageBySlug(slug, locale, { stega: false })
   if (!page) return {}
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/${slug}`,
     title: page.title,
   })
@@ -43,7 +44,7 @@ export default async function DynamicPage({ params }: PageProps) {
   )
   activateRequestLocale(locale)
 
-  const page = await fetchPageBySlug(slug, { locale })
+  const page = await fetchPageBySlug(slug, locale)
   if (!page) notFound()
 
   return (

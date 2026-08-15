@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const homePage = defineType({
   name: "homePage",
@@ -8,44 +9,29 @@ export const homePage = defineType({
   icon: icons.document,
   groups: [{ name: "hero", title: "Hero", default: true }],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "hero",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
-      rows: 4,
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedDescription",
-      title: "Beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "hero",
-    }),
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { rows: 4, group: "hero" },
+    ),
     defineField({
       name: "primaryCta",
       title: "Primærknapp",
@@ -54,9 +40,13 @@ export const homePage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Hovedside" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ?? "Hovedside")
+          : (title ?? "Hovedside"),
+      }
     },
   },
 })

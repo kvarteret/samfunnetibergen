@@ -18,6 +18,7 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/arrangementer/ny`,
     title: "Legg til arrangement",
     description:
@@ -34,9 +35,9 @@ export default async function NyttArrangementPage({
   activateRequestLocale(locale)
 
   const [rooms, eventTypes, groups] = await Promise.all([
-    fetchEventRooms(),
-    fetchEventTypes(),
-    fetchEventGroups(),
+    fetchEventRooms(locale),
+    fetchEventTypes(locale),
+    fetchEventGroups(locale),
   ])
 
   return (

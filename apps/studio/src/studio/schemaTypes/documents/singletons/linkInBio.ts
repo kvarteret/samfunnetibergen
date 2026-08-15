@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const linkInBio = defineType({
   name: "linkInBio",
@@ -7,20 +8,18 @@ export const linkInBio = defineType({
   type: "document",
   icon: icons.link,
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
-      description: "Vises øverst på siden, f.eks. «Kvarteret»",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "bio",
-      title: "Bio-tekst",
-      type: "text",
-      rows: 2,
-      description: "Kort tekst under overskriften (valgfri)",
-    }),
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedBio",
+      "Bio-tekst",
+      "internationalizedArrayText",
+      {},
+    ),
     defineField({
       name: "links",
       title: "Lenker",
@@ -61,17 +60,23 @@ export const linkInBio = defineType({
           ],
           preview: {
             select: {
-              title: "link.label",
-              subtitle: "link.internalPage.title",
+              title: "link.localizedLabel",
+              subtitle: "link.internalPage.localizedTitle",
               href: "link.internalPath",
               externalUrl: "link.externalUrl",
               emoji: "emoji",
               media: "emojiImage",
             },
             prepare({ title, subtitle, href, externalUrl, emoji, media }) {
+              const localized = (value: unknown) =>
+                Array.isArray(value)
+                  ? value.find(item => item?.language === "nb")?.value
+                  : value
               return {
-                title: emoji ? `${emoji}  ${title}` : title,
-                subtitle: subtitle ?? href ?? externalUrl,
+                title: emoji
+                  ? `${emoji}  ${localized(title) ?? ""}`
+                  : localized(title),
+                subtitle: localized(subtitle) ?? href ?? externalUrl,
                 media,
               }
             },
@@ -81,9 +86,13 @@ export const linkInBio = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading" },
+    select: { title: "localizedHeading" },
     prepare({ title }) {
-      return { title: title ?? "Link-i-bio" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ?? "Link-i-bio")
+          : (title ?? "Link-i-bio"),
+      }
     },
   },
 })

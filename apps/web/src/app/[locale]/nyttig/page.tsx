@@ -23,6 +23,7 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
   const page = await fetchUsefulInfoPage(locale)
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/nyttig`,
     title: page?.title ?? "Nyttig info",
     description:

@@ -1,6 +1,7 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const page = defineType({
   name: "page",
@@ -11,25 +12,32 @@ export const page = defineType({
   icon: icons.document,
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "content",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "content",
-    }),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "content",
+      },
+    ),
     defineField({
       name: "slug",
       title: "URL-slug",
       type: "slug",
       group: "content",
-      options: { source: "title" },
+      options: {
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedTitle as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.title as string | undefined) ??
+            ""
+          )
+        },
+      },
       validation: rule =>
         rule
           .required()
@@ -39,24 +47,27 @@ export const page = defineType({
               : true,
           ),
     }),
-    defineField({
-      name: "content",
-      title: "Innhold",
-      type: "markdown",
-      group: "content",
-    }),
-    defineField({
-      name: "localizedContent",
-      title: "Innhold (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "content",
-    }),
+    localizedArrayField(
+      "localizedContent",
+      "Innhold",
+      "internationalizedArrayText",
+      {
+        description: "Markdown-innhold per språk.",
+        group: "content",
+      },
+    ),
   ],
   preview: {
-    select: { title: "title", slug: "slug.current" },
+    select: {
+      title: "localizedTitle",
+      slug: "slug.current",
+    },
     prepare({ title, slug }) {
       return {
-        title: title ?? "Side",
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ?? "Side",
         subtitle: slug ? `/${slug}` : "Mangler slug",
       }
     },

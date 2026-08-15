@@ -28,8 +28,8 @@ export type LinkInBio = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  heading: string
-  bio?: string
+  localizedHeading: InternationalizedArrayString
+  localizedBio?: InternationalizedArrayText
   links?: Array<{
     link: SourceLink
     emoji?: string
@@ -133,8 +133,7 @@ export type StudentGroupReference = {
 
 export type SourceLink = {
   _type: "sourceLink"
-  label: string
-  localizedLabel?: InternationalizedArrayString
+  localizedLabel: InternationalizedArrayString
   linkType: string
   internalPage?:
     | HomePageReference
@@ -150,6 +149,18 @@ export type SourceLink = {
   internalPath?: string
   externalUrl?: string
 }
+
+export type InternationalizedArrayText = Array<
+  {
+    _key: string
+  } & InternationalizedArrayTextValue
+>
+
+export type InternationalizedArrayString = Array<
+  {
+    _key: string
+  } & InternationalizedArrayStringValue
+>
 
 export type SiteMetadata = {
   _id: string
@@ -234,13 +245,13 @@ export type FooterSocialLink = {
     | "snapchat"
     | "flickr"
     | "other"
-  label: string
+  localizedLabel: InternationalizedArrayString
   url: string
 }
 
 export type ContactGroup = {
   _type: "contactGroup"
-  title: string
+  localizedTitle: InternationalizedArrayString
   persons?: Array<
     {
       _key: string
@@ -250,8 +261,8 @@ export type ContactGroup = {
 
 export type ContactPerson = {
   _type: "contactPerson"
-  name: string
-  rolle?: string
+  localizedName: InternationalizedArrayString
+  localizedRole?: InternationalizedArrayString
   email?: string
   phone?: string
   image?: {
@@ -294,13 +305,13 @@ export type MenuItem = {
 
 export type NavItem = {
   _type: "navItem"
-  label: string
+  localizedLabel: InternationalizedArrayString
   href?: string
   externalUrl?: string
   children?: Array<{
-    groupLabel?: string
+    localizedGroupLabel?: InternationalizedArrayString
     items: Array<{
-      label: string
+      localizedLabel: InternationalizedArrayString
       href?: string
       externalUrl?: string
       _type: "navLeaf"
@@ -410,9 +421,7 @@ export type TimeValue =
 
 export type InfoAccordionBlock = {
   _type: "infoAccordionBlock"
-  heading: string
-  localizedHeading?: InternationalizedArrayString
-  intro?: string
+  localizedHeading: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
   items: Array<
     {
@@ -423,28 +432,22 @@ export type InfoAccordionBlock = {
 
 export type InfoAccordionItem = {
   _type: "infoAccordionItem"
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  body: PortableTextContent
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedTitle: InternationalizedArrayString
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type InfoAddressBlock = {
   _type: "infoAddressBlock"
-  heading: string
-  localizedHeading?: InternationalizedArrayString
-  body?: PortableTextContent
+  localizedHeading: InternationalizedArrayString
   localizedBody?: InternationalizedArrayPortableTextContent
-  address?: string
+  localizedAddress?: InternationalizedArrayString
   mapUrl?: string
 }
 
 export type EditorialSection = {
   _type: "editorialSection"
-  title?: string
   localizedTitle?: InternationalizedArrayString
-  body: PortableTextContent
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type SourcedImage = {
@@ -456,8 +459,8 @@ export type SourcedImage = {
     crop?: SanityImageCrop
     _type: "image"
   }
-  alt?: string
-  caption?: string
+  localizedAlt?: InternationalizedArrayString
+  localizedCaption?: InternationalizedArrayString
 }
 
 export type EventTypeReference = {
@@ -481,7 +484,7 @@ export type Arrangement = {
     | "festivalSession"
   parentEvent?: ArrangementReference
   festivalDayShortcut?: string
-  title?: string
+  localizedTitle?: InternationalizedArrayString
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
@@ -489,7 +492,7 @@ export type Arrangement = {
   promotedPlacement?: "top" | "pool"
   promotedOrder?: number
   orderRank?: string
-  description?: PortableTextContent
+  localizedDescription?: InternationalizedArrayPortableTextContent
   dates?: Array<
     {
       _key: string
@@ -505,11 +508,11 @@ export type Arrangement = {
     _type: "image"
   }
   useFestivalImage?: boolean
-  imageCaption?: string
+  localizedImageCaption?: InternationalizedArrayString
   room?: RoomReference
-  roomText?: string
+  localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
-  organizerText?: string
+  localizedOrganizerText?: InternationalizedArrayString
   isFree?: boolean
   priceOrdinar?: number
   priceStudent?: number
@@ -529,14 +532,11 @@ export type StudentGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
-  localizedName?: InternationalizedArrayString
+  localizedName: InternationalizedArrayString
   slug: Slug
   category: "arbeidsgruppe" | "komitee" | "dorg" | "borg"
   parentGroup?: StudentGroupReference
-  summary: string
-  localizedSummary?: InternationalizedArrayText
-  body?: PortableTextContent
+  localizedSummary: InternationalizedArrayText
   localizedBody?: InternationalizedArrayPortableTextContent
   recruitmentLabel?: string
   recruitmentLead?: string
@@ -556,7 +556,7 @@ export type StudentGroup = {
       | "studentbergen"
       | "other"
     url: string
-    customLabel?: string
+    localizedCustomLabel?: InternationalizedArrayString
     _type: "groupLink"
     _key: string
   }>
@@ -569,7 +569,7 @@ export type StudentGroup = {
     crop?: SanityImageCrop
     _type: "image"
   }
-  labels?: Array<string>
+  localizedLabels?: InternationalizedArrayText
   image?: SourcedImage
   orderRank?: string
 }
@@ -580,23 +580,11 @@ export type InternationalizedArrayPortableTextContent = Array<
   } & InternationalizedArrayPortableTextContentValue
 >
 
-export type InternationalizedArrayText = Array<
-  {
-    _key: string
-  } & InternationalizedArrayTextValue
->
-
 export type Slug = {
   _type: "slug"
   current: string
   source?: string
 }
-
-export type InternationalizedArrayString = Array<
-  {
-    _key: string
-  } & InternationalizedArrayStringValue
->
 
 export type Room = {
   _id: string
@@ -604,10 +592,10 @@ export type Room = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
+  localizedTitle: InternationalizedArrayString
   slug: Slug
-  summary: string
-  body?: PortableTextContent
+  localizedSummary: InternationalizedArrayText
+  localizedBody?: InternationalizedArrayPortableTextContent
   crescatRoomId?: number
   pricePerHour?: number
   menu?: Menu
@@ -616,13 +604,14 @@ export type Room = {
   capacityStanding?: number
   capacitySeated?: number
   suitedPurposes?: Array<string>
-  bar?: string
+  localizedSuitedPurposes?: InternationalizedArrayText
+  localizedBar?: InternationalizedArrayString
   hasSound?: boolean
-  soundDetails?: string
+  localizedSoundDetails?: InternationalizedArrayString
   hasLighting?: boolean
-  lightingDetails?: string
+  localizedLightingDetails?: InternationalizedArrayString
   hasAV?: boolean
-  avDetails?: string
+  localizedAvDetails?: InternationalizedArrayString
   specsUrl?: string
   openingHours?: OpeningHours
   panoramaUrl?: string
@@ -646,7 +635,7 @@ export type EventType = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
+  localizedName: InternationalizedArrayString
   taxonomyGroup: EventTaxonomyGroupReference
   isActive?: boolean
   orderRank?: string
@@ -658,7 +647,7 @@ export type EventTaxonomyGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
+  localizedName: InternationalizedArrayString
   orderRank?: string
 }
 
@@ -668,14 +657,10 @@ export type Page = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   slug: Slug
-  content?: Markdown
   localizedContent?: InternationalizedArrayText
 }
-
-export type Markdown = string
 
 export type KontaktPage = {
   _id: string
@@ -683,13 +668,13 @@ export type KontaktPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  visitAddress?: string
-  postAddress?: string
-  invoiceAddress?: string
+  localizedVisitAddress?: InternationalizedArrayText
+  localizedPostAddress?: InternationalizedArrayText
+  localizedInvoiceAddress?: InternationalizedArrayText
   invoiceEmail?: string
   ehf?: string
-  generalContact?: string
-  pressContact?: string
+  localizedGeneralContact?: InternationalizedArrayText
+  localizedPressContact?: InternationalizedArrayText
   contactGroups?: Array<
     {
       _key: string
@@ -703,11 +688,8 @@ export type UsefulInfoPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  intro?: string
+  localizedTitle: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
   sections?: Array<
     | ({
@@ -728,11 +710,8 @@ export type SponsorsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sponsors?: Array<{
     logo?: {
@@ -742,9 +721,8 @@ export type SponsorsPage = {
       crop?: SanityImageCrop
       _type: "image"
     }
-    title: string
-    localizedTitle?: InternationalizedArrayString
-    description?: PortableTextContent
+    localizedLogoAlt?: InternationalizedArrayString
+    localizedTitle: InternationalizedArrayString
     localizedDescription?: InternationalizedArrayPortableTextContent
     website?: string
     _type: "sponsor"
@@ -758,11 +736,8 @@ export type GroupsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -770,10 +745,8 @@ export type GroupsPage = {
     } & EditorialSection
   >
   faq?: Array<{
-    question: string
-    localizedQuestion?: InternationalizedArrayString
-    answer: Array<string>
-    localizedAnswer?: InternationalizedArrayText
+    localizedQuestion: InternationalizedArrayString
+    localizedAnswer: InternationalizedArrayText
     _type: "faqItem"
     _key: string
   }>
@@ -792,11 +765,8 @@ export type RoomsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -806,7 +776,7 @@ export type RoomsPage = {
   bookingLink?: SourceLink
   floorPlans?: Array<{
     floor: number
-    title?: string
+    localizedTitle?: InternationalizedArrayString
     file: {
       asset?: SanityFileAssetReference
       media?: unknown
@@ -823,11 +793,8 @@ export type HomePage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   primaryCta?: SourceLink
 }
@@ -987,6 +954,8 @@ export type InternationalizedArrayStringValue = {
   language: string
 }
 
+export type Markdown = string
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch"
   background?: string
@@ -1100,6 +1069,8 @@ export type AllSanitySchemaTypes =
   | RoomReference
   | StudentGroupReference
   | SourceLink
+  | InternationalizedArrayText
+  | InternationalizedArrayString
   | SiteMetadata
   | OpeningHours
   | Footer
@@ -1126,15 +1097,12 @@ export type AllSanitySchemaTypes =
   | Arrangement
   | StudentGroup
   | InternationalizedArrayPortableTextContent
-  | InternationalizedArrayText
   | Slug
-  | InternationalizedArrayString
   | Room
   | EventTaxonomyGroupReference
   | EventType
   | EventTaxonomyGroup
   | Page
-  | Markdown
   | KontaktPage
   | UsefulInfoPage
   | SponsorsPage
@@ -1158,6 +1126,7 @@ export type AllSanitySchemaTypes =
   | InternationalizedArrayPortableTextContentValue
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue
+  | Markdown
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions

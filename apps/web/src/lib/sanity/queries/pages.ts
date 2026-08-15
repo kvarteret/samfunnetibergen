@@ -1,14 +1,16 @@
 import { defineQuery } from "next-sanity"
-import {
-  localizedSourceLinkProjection,
-  sourceLinkProjection,
-} from "../fragments/links"
+import { sourceLinkProjection } from "../fragments/links"
 import { portableTextProjection } from "../fragments/portableText"
 import { openingHoursProjection } from "../fragments/rooms"
+
+const localizedEyebrow = `coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)`
+const localizedAnswer = `coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)`
 import {
+  editorialSectionProjection,
   infoAccordionBlockProjection,
   infoAddressBlockProjection,
-  localizedEditorialSectionProjection,
 } from "../fragments/sections"
 
 export const houseHoursQuery =
@@ -26,53 +28,52 @@ export const houseHoursQuery =
     }, [])
 }`)
 
-export const homePageQuery =
+export const homePageNbQuery =
   defineQuery(`*[_type == "homePage" && _id == "homePage"][0] {
-    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),
-    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),
-    primaryCta ${localizedSourceLinkProjection()}
+    "eyebrow": ${localizedEyebrow},
+    "title": ${localizedTitle},
+    "description": ${localizedDescription},
+    primaryCta ${sourceLinkProjection}
 }`)
 
 export const roomsPageQuery =
   defineQuery(`*[_type == "roomsPage" && _id == "roomsPage"][0] {
-    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),
-    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),
-    "sections": coalesce(sections[] ${localizedEditorialSectionProjection}, []),
-    bookingLink ${localizedSourceLinkProjection()}
+    "eyebrow": ${localizedEyebrow},
+    "title": coalesce(${localizedTitle}, "[Mangler tittel]"),
+    "description": ${localizedDescription},
+    "sections": coalesce(sections[] ${editorialSectionProjection}, []),
+    bookingLink ${sourceLinkProjection}
 }`)
 
 export const sponsorsPageQuery =
   defineQuery(`*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {
-    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),
-    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),
+    "eyebrow": ${localizedEyebrow},
+    "title": coalesce(${localizedTitle}, "[Mangler tittel]"),
+    "description": ${localizedDescription},
     "sponsors": coalesce(sponsors[] {
         _key,
-        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler sponsornavn]"),
+        "title": coalesce(${localizedTitle}, "[Mangler sponsornavn]"),
         website,
         "logoUrl": logo.asset->url,
-        "logoAlt": coalesce(logo.alt, title),
-        "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description[] ${portableTextProjection}, [])
+        "logoAlt": coalesce(localizedLogoAlt[language == $locale && defined(value) && value != ""][0].value, localizedLogoAlt[language == "nb" && defined(value) && value != ""][0].value, ${localizedTitle}),
+        "description": coalesce(coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] ${portableTextProjection}, [])
     }, [])
 }`)
 
 export const groupsPageQuery =
   defineQuery(`*[_type == "groupsPage" && _id == "groupsPage"][0] {
-    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),
-    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),
-    "hasEnglishTranslation": defined(localizedTitle[language == "en"][0].value),
-    "sections": coalesce(sections[] ${localizedEditorialSectionProjection}, []),
+    "eyebrow": ${localizedEyebrow},
+    "title": ${localizedTitle},
+    "description": ${localizedDescription},
+    "hasEnglishTranslation": defined(localizedEyebrow[language == "en" && defined(value) && value != ""][0].value) && defined(localizedTitle[language == "en" && defined(value) && value != ""][0].value) && defined(localizedDescription[language == "en" && defined(value) && value != ""][0].value),
+    "sections": coalesce(sections[] ${editorialSectionProjection}, []),
     "faq": coalesce(faq[] {
         _key,
-        "hasEnglishTranslation": defined(localizedQuestion[language == "en"][0].value),
-        "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, question, "[Mangler spørsmål]"),
+        "hasEnglishTranslation": defined(localizedQuestion[language == "en" && defined(value) && value != ""][0].value) && defined(localizedAnswer[language == "en" && defined(value) && value != ""][0].value),
+        "question": coalesce(localizedQuestion[language == $locale && defined(value) && value != ""][0].value, localizedQuestion[language == "nb" && defined(value) && value != ""][0].value, "[Mangler spørsmål]"),
         "answer": select(
-          defined(localizedAnswer[language == $locale][0].value) => string::split(localizedAnswer[language == $locale][0].value, "\n"),
-          defined(localizedAnswer[language == "nb"][0].value) => string::split(localizedAnswer[language == "nb"][0].value, "\n"),
-          coalesce(answer, [])
+          defined(${localizedAnswer}) => string::split(${localizedAnswer}, "\n"),
+          []
         )
     }, [])
 }`)
@@ -91,27 +92,27 @@ export const pageBySlugQuery = defineQuery(`*[
     && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])
   ][0] {
     _id,
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),
+    "title": coalesce(${localizedTitle}, "[Mangler tittel]"),
     "slug": coalesce(slug.current, ""),
-    "content": coalesce(localizedContent[language == $locale][0].value, localizedContent[language == "nb"][0].value, content)
+    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")
 }`)
 
 export const kontaktPageQuery =
   defineQuery(`*[_type == "kontaktPage" && _id == "kontaktPage"][0] {
-    visitAddress,
-    postAddress,
-    invoiceAddress,
+    "visitAddress": coalesce(localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),
+    "postAddress": coalesce(localizedPostAddress[language == $locale && defined(value) && value != ""][0].value, localizedPostAddress[language == "nb" && defined(value) && value != ""][0].value),
+    "invoiceAddress": coalesce(localizedInvoiceAddress[language == $locale && defined(value) && value != ""][0].value, localizedInvoiceAddress[language == "nb" && defined(value) && value != ""][0].value),
     invoiceEmail,
     ehf,
-    generalContact,
-    pressContact,
+    "generalContact": coalesce(localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),
+    "pressContact": coalesce(localizedPressContact[language == $locale && defined(value) && value != ""][0].value, localizedPressContact[language == "nb" && defined(value) && value != ""][0].value),
     "contactGroups": coalesce(contactGroups[] {
         _key,
-        "title": coalesce(title, "[Mangler gruppenavn]"),
+        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),
         "persons": coalesce(persons[] {
             _key,
-            "name": coalesce(name, "[Mangler navn]"),
-            rolle,
+            "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),
+            "rolle": coalesce(localizedRole[language == $locale && defined(value) && value != ""][0].value, localizedRole[language == "nb" && defined(value) && value != ""][0].value),
             email,
             phone,
             "imageUrl": image.asset->url
@@ -121,11 +122,11 @@ export const kontaktPageQuery =
 
 export const usefulInfoPageQuery =
   defineQuery(`*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {
-    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),
-    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "Nyttig info"),
-    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),
+    "eyebrow": ${localizedEyebrow},
+    "title": coalesce(${localizedTitle}, "Nyttig info"),
+    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),
     "sections": coalesce(sections[] {
-        _type == "editorialSection" => ${localizedEditorialSectionProjection},
+        _type == "editorialSection" => ${editorialSectionProjection},
         _type == "infoAddressBlock" => ${infoAddressBlockProjection},
         _type == "infoAccordionBlock" => ${infoAccordionBlockProjection}
     }, [])
@@ -133,8 +134,8 @@ export const usefulInfoPageQuery =
 
 export const linkInBioQuery =
   defineQuery(`*[_type == "linkInBio" && _id == "linkInBio"][0] {
-    "heading": coalesce(heading, "[Mangler overskrift]"),
-    bio,
+    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, "[Mangler overskrift]"),
+    "bio": coalesce(localizedBio[language == $locale && defined(value) && value != ""][0].value, localizedBio[language == "nb" && defined(value) && value != ""][0].value),
     "links": coalesce(links[] {
         _key,
         link ${sourceLinkProjection},

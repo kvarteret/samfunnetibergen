@@ -1,6 +1,7 @@
 import { icons } from "@sanity/icons"
 import { orderRankField } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const room = defineType({
   name: "room",
@@ -15,37 +16,50 @@ export const room = defineType({
     { name: "media", title: "Bilder" },
   ],
   fields: [
-    // — Core info —
-    defineField({
-      name: "title",
-      title: "Navn",
-      type: "string",
-      group: "info",
-      validation: rule => rule.required(),
-    }),
+    localizedArrayField(
+      "localizedTitle",
+      "Navn",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "info",
+      },
+    ),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
       group: "info",
-      options: { source: "title" },
+      options: {
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedTitle as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.title as string | undefined) ??
+            ""
+          )
+        },
+      },
       validation: rule => rule.required(),
     }),
-    defineField({
-      name: "summary",
-      title: "Kort beskrivelse",
-      type: "text",
-      rows: 3,
-      group: "info",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "body",
-      title: "Fullstendig beskrivelse",
-      description: "Utdypende tekst om rommet",
-      type: "portableTextContent",
-      group: "info",
-    }),
+    localizedArrayField(
+      "localizedSummary",
+      "Kort beskrivelse",
+      "internationalizedArrayText",
+      {
+        required: true,
+        rows: 3,
+        group: "info",
+      },
+    ),
+    localizedArrayField(
+      "localizedBody",
+      "Fullstendig beskrivelse",
+      "internationalizedArrayPortableTextContent",
+      { group: "info" },
+    ),
     defineField({
       name: "crescatRoomId",
       title: "Crescat rom-ID",
@@ -104,11 +118,18 @@ export const room = defineType({
         layout: "tags",
       },
     }),
-    defineField({
-      name: "bar",
-      title: "Bar",
-      description: "Navn på baren i rommet, eller tomt om det ikke er bar",
-      type: "string",
+    localizedArrayField(
+      "localizedSuitedPurposes",
+      "Passer til (per språk)",
+      "internationalizedArrayText",
+      {
+        description:
+          "Ett bruksområde per linje. Brukes på nettsiden i valgt språk.",
+        rows: 3,
+        group: "specs",
+      },
+    ),
+    localizedArrayField("localizedBar", "Bar", "internationalizedArrayString", {
       group: "specs",
     }),
     defineField({
@@ -118,14 +139,14 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "soundDetails",
-      title: "Detaljer om lyd",
-      description: "Valgfri tekst som vises sammen med «Lyd: Ja».",
-      type: "string",
-      group: "specs",
-      hidden: ({ document }) => document?.hasSound !== true,
-    }),
+    localizedArrayField(
+      "localizedSoundDetails",
+      "Detaljer om lyd",
+      "internationalizedArrayString",
+      {
+        group: "specs",
+      },
+    ),
     defineField({
       name: "hasLighting",
       title: "Lys",
@@ -133,14 +154,14 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "lightingDetails",
-      title: "Detaljer om lys",
-      description: "Valgfri tekst som vises sammen med «Lys: Ja».",
-      type: "string",
-      group: "specs",
-      hidden: ({ document }) => document?.hasLighting !== true,
-    }),
+    localizedArrayField(
+      "localizedLightingDetails",
+      "Detaljer om lys",
+      "internationalizedArrayString",
+      {
+        group: "specs",
+      },
+    ),
     defineField({
       name: "hasAV",
       title: "A/V",
@@ -148,14 +169,14 @@ export const room = defineType({
       initialValue: false,
       group: "specs",
     }),
-    defineField({
-      name: "avDetails",
-      title: "Detaljer om A/V",
-      description: "Valgfri tekst som vises sammen med «A/V: Ja».",
-      type: "string",
-      group: "specs",
-      hidden: ({ document }) => document?.hasAV !== true,
-    }),
+    localizedArrayField(
+      "localizedAvDetails",
+      "Detaljer om A/V",
+      "internationalizedArrayString",
+      {
+        group: "specs",
+      },
+    ),
     defineField({
       name: "specsUrl",
       title: "Tekniske spesifikasjoner (lenke)",
@@ -193,7 +214,7 @@ export const room = defineType({
   ],
   preview: {
     select: {
-      title: "title",
+      title: "localizedTitle",
       standing: "capacityStanding",
       seated: "capacitySeated",
       pricePerHour: "pricePerHour",
@@ -208,7 +229,14 @@ export const room = defineType({
         parts.push(`${pricePerHour} kr/t`)
       }
       const subtitle = parts.join(" · ")
-      return { title: title ?? "Rom", subtitle, media }
+      return {
+        title:
+          (Array.isArray(title)
+            ? title.find(item => item?.language === "nb")?.value
+            : title) ?? "Rom",
+        subtitle,
+        media,
+      }
     },
   },
 })

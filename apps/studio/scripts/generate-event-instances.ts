@@ -97,7 +97,7 @@ async function fetchParents(parentId: string | null): Promise<ParentRow[]> {
         && ($parentId == null || _id == $parentId)
     ] {
         _id,
-        title,
+        "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, title),
         "slug": slug.current,
         "approvalStatus": coalesce(approvalStatus, "pending"),
         rrule,

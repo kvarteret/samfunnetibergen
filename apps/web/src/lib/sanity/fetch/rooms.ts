@@ -14,6 +14,7 @@ import {
   roomsQuery,
 } from "../queries"
 import { compact, type FetchOptions, withRequiredKeys } from "./shared"
+import { DEFAULT_LOCALE } from "../localized"
 
 export type EditorialSection = NonNullable<
   NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]
@@ -41,7 +42,7 @@ export type BarPreviewsContent = NonNullable<
 export type BarPreviewRoom = NonNullable<BarPreviewsContent["rooms"]>[number]
 
 export async function fetchRoomsPageContent(
-  locale: AppLocale = "nb",
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<RoomsPageContent | null> {
   const { data } = await sanityFetch({
@@ -56,7 +57,7 @@ export async function fetchRoomsPageContent(
 // per request. Read its supporting content without the Live Content cache so
 // newly published terms and help links cannot be shadowed by an older result.
 export async function fetchPublishedRoomsPageContent(
-  locale: AppLocale = "nb",
+  locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<RoomsPageContent | null> {
   return sanityClient.fetch(
     roomsPageQuery,
@@ -69,9 +70,12 @@ export async function fetchPublishedRoomsPageContent(
   )
 }
 
-export async function fetchRooms(): Promise<RoomSummary[]> {
+export async function fetchRooms(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<RoomSummary[]> {
   const { data: rooms } = await sanityFetch({
     query: roomsQuery,
+    params: { locale },
   })
   return withRequiredKeys(rooms, "slug").map(room => ({
     ...room,
@@ -79,9 +83,12 @@ export async function fetchRooms(): Promise<RoomSummary[]> {
   }))
 }
 
-export async function fetchBookableRooms(): Promise<BookableRoom[]> {
+export async function fetchBookableRooms(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<BookableRoom[]> {
   const { data: rooms } = await sanityFetch({
     query: bookableRoomsQuery,
+    params: { locale },
   })
   return withRequiredKeys(rooms, "slug", "crescatRoomId").map(room => ({
     ...room,
@@ -89,9 +96,12 @@ export async function fetchBookableRooms(): Promise<BookableRoom[]> {
   }))
 }
 
-export async function fetchBarPreviews(): Promise<BarPreviewsContent | null> {
+export async function fetchBarPreviews(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<BarPreviewsContent | null> {
   const { data } = await sanityFetch({
     query: barPreviewsQuery,
+    params: { locale },
   })
   return data
 }
@@ -110,11 +120,12 @@ export async function fetchRoomSlugs(): Promise<string[]> {
 
 export async function fetchRoomBySlug(
   slug: string,
+  locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<RoomDetail | null> {
   const { data } = await sanityFetch({
     query: roomBySlugQuery,
-    params: { slug },
+    params: { slug, locale },
     stega: options.stega,
   })
   return data

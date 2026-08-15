@@ -38,6 +38,7 @@ export async function generateMetadata({
   const locale = await resolvePageLocale(params)
 
   return buildPageMetadata({
+    locale,
     canonicalPath: `/${locale}/rom/book`,
     title: "Book rom",
     description:
@@ -129,20 +130,20 @@ export default async function BookRoomPage({
     cancellationPage,
   ] = await Promise.all([
     fetchBookableRoomsForBooker("ekstern"),
-    fetchHouseHours(),
+    fetchHouseHours(locale),
     fetchPublishedRoomsPageContent(locale),
-    fetchPageBySlug("leievilkaar", { locale }),
-    fetchPageBySlug("avbestillingsvilkar", { locale }),
+    fetchPageBySlug("leievilkaar", locale),
+    fetchPageBySlug("avbestillingsvilkar", locale),
   ])
 
   const howToSection = roomsPageContent?.sections?.find(
-    (s: EditorialSection) => s.title === "Slik booker du",
+    s => s.title === "Slik booker du",
   )
   const leietiderSection = roomsPageContent?.sections?.find(
-    (s: EditorialSection) => s.title === "Leietider",
+    s => s.title === "Leietider",
   )
   const questionsSection = roomsPageContent?.sections?.find(
-    (s: EditorialSection) => s.title === "Spørsmål og vilkår",
+    s => s.title === "Spørsmål og vilkår",
   )
 
   return (

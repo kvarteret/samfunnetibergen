@@ -8,6 +8,25 @@ import { documentLocation } from "./routing"
 
 const defaultLocale = "nb"
 
+function localizedNb(
+  value: unknown,
+  fallback?: string | null,
+): string | undefined {
+  if (Array.isArray(value)) {
+    const item = value.find(
+      candidate =>
+        candidate &&
+        typeof candidate === "object" &&
+        "language" in candidate &&
+        candidate.language === "nb" &&
+        "value" in candidate &&
+        typeof candidate.value === "string",
+    ) as { value?: string } | undefined
+    return item?.value ?? fallback ?? undefined
+  }
+  return typeof value === "string" ? value : (fallback ?? undefined)
+}
+
 export {
   resolvePresentationInitialUrl,
   resolvePresentationOrigins,
@@ -54,21 +73,34 @@ export const resolve: PresentationPluginOptions["resolve"] = {
   ]),
   locations: {
     room: defineLocations({
-      select: { title: "title", slug: "slug.current" },
+      select: {
+        title: "localizedTitle",
+        legacyTitle: "title",
+        slug: "slug.current",
+      },
       resolve: doc => ({
         locations: [
-          ...documentLocation(doc?.title, doc?.slug, "rom", "Ukjent rom"),
+          ...documentLocation(
+            localizedNb(doc?.title, doc?.legacyTitle),
+            doc?.slug,
+            "rom",
+            "Ukjent rom",
+          ),
           { title: "Alle rom", href: `/${defaultLocale}/rom` },
         ],
       }),
     }),
 
     studentGroup: defineLocations({
-      select: { title: "name", slug: "slug.current" },
+      select: {
+        title: "localizedName",
+        legacyTitle: "name",
+        slug: "slug.current",
+      },
       resolve: doc => ({
         locations: [
           ...documentLocation(
-            doc?.title,
+            localizedNb(doc?.title, doc?.legacyTitle),
             doc?.slug,
             "grupper",
             "Ukjent gruppe",
@@ -79,12 +111,17 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     }),
 
     page: defineLocations({
-      select: { title: "title", slug: "slug.current" },
+      select: {
+        title: "localizedTitle",
+        legacyTitle: "title",
+        slug: "slug.current",
+      },
       resolve: doc => ({
         locations: doc?.slug
           ? [
               {
-                title: doc.title ?? "Ukjent side",
+                title:
+                  localizedNb(doc?.title, doc?.legacyTitle) ?? "Ukjent side",
                 href: `/${defaultLocale}/${doc.slug}`,
               },
             ]
@@ -116,11 +153,15 @@ export const resolve: PresentationPluginOptions["resolve"] = {
     }),
 
     arrangement: defineLocations({
-      select: { title: "title", slug: "slug.current" },
+      select: {
+        title: "localizedTitle",
+        legacyTitle: "title",
+        slug: "slug.current",
+      },
       resolve: doc => ({
         locations: [
           ...documentLocation(
-            doc?.title,
+            localizedNb(doc?.title, doc?.legacyTitle),
             doc?.slug,
             "arrangementer",
             "Ukjent arrangement",

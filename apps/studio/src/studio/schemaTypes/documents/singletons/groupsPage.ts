@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const groupsPage = defineType({
   name: "groupsPage",
@@ -12,45 +13,30 @@ export const groupsPage = defineType({
     { name: "faq", title: "FAQ" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      description: "Oversett denne korte teksten per språk.",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "hero",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
-      rows: 4,
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedDescription",
-      title: "Beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "hero",
-    }),
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        description: "Kanonisk tekst per språk.",
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { group: "hero" },
+    ),
     defineField({
       name: "sections",
       title: "Introduksjon",
@@ -69,41 +55,46 @@ export const groupsPage = defineType({
           name: "faqItem",
           type: "object",
           fields: [
-            defineField({
-              name: "question",
-              title: "Spørsmål",
-              type: "string",
-              validation: rule => rule.required(),
-            }),
-            defineField({
-              name: "localizedQuestion",
-              title: "Spørsmål (oversettelser)",
-              type: "internationalizedArrayString",
-            }),
-            defineField({
-              name: "answer",
-              title: "Svar",
-              type: "array",
-              of: [defineArrayMember({ type: "text" })],
-              validation: rule => rule.required().min(1),
-            }),
-            defineField({
-              name: "localizedAnswer",
-              title: "Svar (oversettelser)",
-              description:
-                "Skriv ett avsnitt per linje. Linjeskift brukes som avsnitt på nettsiden.",
-              type: "internationalizedArrayText",
-            }),
+            localizedArrayField(
+              "localizedQuestion",
+              "Spørsmål",
+              "internationalizedArrayString",
+              { required: true },
+            ),
+            localizedArrayField(
+              "localizedAnswer",
+              "Svar",
+              "internationalizedArrayText",
+              {
+                required: true,
+                description:
+                  "Skriv ett avsnitt per linje. Linjeskift brukes som avsnitt på nettsiden.",
+              },
+            ),
           ],
-          preview: { select: { title: "question" } },
+          preview: {
+            select: { title: "localizedQuestion" },
+            prepare({ title }) {
+              return {
+                title: Array.isArray(title)
+                  ? title.find(item => item?.language === "nb")?.value
+                  : title,
+              }
+            },
+          },
         }),
       ],
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Grupper-side" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ??
+            "Grupper-side")
+          : (title ?? "Grupper-side"),
+      }
     },
   },
 })

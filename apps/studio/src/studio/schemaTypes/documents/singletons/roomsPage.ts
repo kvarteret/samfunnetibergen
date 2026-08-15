@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const roomsPage = defineType({
   name: "roomsPage",
@@ -12,44 +13,29 @@ export const roomsPage = defineType({
     { name: "floorPlans", title: "Plantegninger" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "hero",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
-      rows: 4,
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedDescription",
-      title: "Beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "hero",
-    }),
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { rows: 4, group: "hero" },
+    ),
     defineField({
       name: "sections",
       title: "Bestillingsinformasjon",
@@ -85,11 +71,12 @@ export const roomsPage = defineType({
               type: "number",
               validation: rule => rule.required(),
             }),
-            defineField({
-              name: "title",
-              title: "Tittel",
-              type: "string",
-            }),
+            localizedArrayField(
+              "localizedTitle",
+              "Tittel",
+              "internationalizedArrayString",
+              {},
+            ),
             defineField({
               name: "file",
               title: "SVG-fil",
@@ -101,10 +88,15 @@ export const roomsPage = defineType({
             }),
           ],
           preview: {
-            select: { floor: "floor", title: "title" },
+            select: { floor: "floor", title: "localizedTitle" },
             prepare({ floor, title }) {
+              const localizedTitle = Array.isArray(title)
+                ? title.find(item => item?.language === "nb")?.value
+                : title
               return {
-                title: title ?? (floor ? `${floor}. etasje` : "Plantegning"),
+                title:
+                  localizedTitle ??
+                  (floor ? `${floor}. etasje` : "Plantegning"),
               }
             },
           },
@@ -113,9 +105,13 @@ export const roomsPage = defineType({
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Rom-side" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ?? "Rom-side")
+          : (title ?? "Rom-side"),
+      }
     },
   },
 })

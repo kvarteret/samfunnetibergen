@@ -1,22 +1,24 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 const contactPerson = defineType({
   name: "contactPerson",
   title: "Kontaktperson",
   type: "object",
   fields: [
-    defineField({
-      name: "name",
-      title: "Navn",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "rolle",
-      title: "Rolle",
-      type: "string",
-    }),
+    localizedArrayField(
+      "localizedName",
+      "Navn",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedRole",
+      "Rolle",
+      "internationalizedArrayString",
+      {},
+    ),
     defineField({ name: "email", title: "E-post", type: "string" }),
     defineField({ name: "phone", title: "Telefon", type: "string" }),
     defineField({
@@ -27,7 +29,15 @@ const contactPerson = defineType({
     }),
   ],
   preview: {
-    select: { title: "name", subtitle: "email" },
+    select: { title: "localizedName", subtitle: "email" },
+    prepare({ title, subtitle }) {
+      return {
+        title: Array.isArray(title)
+          ? title.find(item => item?.language === "nb")?.value
+          : title,
+        subtitle,
+      }
+    },
   },
 })
 
@@ -36,12 +46,12 @@ const contactGroup = defineType({
   title: "Kontaktgruppe",
   type: "object",
   fields: [
-    defineField({
-      name: "title",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
+    localizedArrayField(
+      "localizedTitle",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true },
+    ),
     defineField({
       name: "persons",
       title: "Kontaktpersoner",
@@ -50,10 +60,12 @@ const contactGroup = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", persons: "persons" },
+    select: { title: "localizedTitle", persons: "persons" },
     prepare({ title, persons }) {
       return {
-        title,
+        title: Array.isArray(title)
+          ? title.find(item => item?.language === "nb")?.value
+          : title,
         subtitle: `${Array.isArray(persons) ? persons.length : 0} person(er)`,
       }
     },
@@ -75,27 +87,33 @@ export const kontaktPage = defineType({
     { name: "page", title: "Kontaktside" },
   ],
   fields: [
-    defineField({
-      name: "visitAddress",
-      title: "Besøksadresse",
-      type: "text",
-      rows: 3,
-      group: "org",
-    }),
-    defineField({
-      name: "postAddress",
-      title: "Postadresse",
-      type: "text",
-      rows: 3,
-      group: "org",
-    }),
-    defineField({
-      name: "invoiceAddress",
-      title: "Fakturaadresse",
-      type: "text",
-      rows: 4,
-      group: "org",
-    }),
+    localizedArrayField(
+      "localizedVisitAddress",
+      "Besøksadresse",
+      "internationalizedArrayText",
+      {
+        rows: 3,
+        group: "org",
+      },
+    ),
+    localizedArrayField(
+      "localizedPostAddress",
+      "Postadresse",
+      "internationalizedArrayText",
+      {
+        rows: 3,
+        group: "org",
+      },
+    ),
+    localizedArrayField(
+      "localizedInvoiceAddress",
+      "Fakturaadresse",
+      "internationalizedArrayText",
+      {
+        rows: 4,
+        group: "org",
+      },
+    ),
     defineField({
       name: "invoiceEmail",
       title: "Faktura e-post",
@@ -108,20 +126,24 @@ export const kontaktPage = defineType({
       type: "string",
       group: "org",
     }),
-    defineField({
-      name: "generalContact",
-      title: "Generell kontakt (e-post / tlf)",
-      type: "text",
-      rows: 2,
-      group: "org",
-    }),
-    defineField({
-      name: "pressContact",
-      title: "Pressekontakt (e-post / tlf)",
-      type: "text",
-      rows: 2,
-      group: "org",
-    }),
+    localizedArrayField(
+      "localizedGeneralContact",
+      "Generell kontakt (e-post / tlf)",
+      "internationalizedArrayText",
+      {
+        rows: 2,
+        group: "org",
+      },
+    ),
+    localizedArrayField(
+      "localizedPressContact",
+      "Pressekontakt (e-post / tlf)",
+      "internationalizedArrayText",
+      {
+        rows: 2,
+        group: "org",
+      },
+    ),
     defineField({
       name: "contactGroups",
       title: "Kontaktgrupper",

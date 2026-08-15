@@ -28,8 +28,8 @@ export type LinkInBio = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  heading: string
-  bio?: string
+  localizedHeading: InternationalizedArrayString
+  localizedBio?: InternationalizedArrayText
   links?: Array<{
     link: SourceLink
     emoji?: string
@@ -133,8 +133,7 @@ export type StudentGroupReference = {
 
 export type SourceLink = {
   _type: "sourceLink"
-  label: string
-  localizedLabel?: InternationalizedArrayString
+  localizedLabel: InternationalizedArrayString
   linkType: string
   internalPage?:
     | HomePageReference
@@ -150,6 +149,18 @@ export type SourceLink = {
   internalPath?: string
   externalUrl?: string
 }
+
+export type InternationalizedArrayText = Array<
+  {
+    _key: string
+  } & InternationalizedArrayTextValue
+>
+
+export type InternationalizedArrayString = Array<
+  {
+    _key: string
+  } & InternationalizedArrayStringValue
+>
 
 export type SiteMetadata = {
   _id: string
@@ -234,13 +245,13 @@ export type FooterSocialLink = {
     | "snapchat"
     | "flickr"
     | "other"
-  label: string
+  localizedLabel: InternationalizedArrayString
   url: string
 }
 
 export type ContactGroup = {
   _type: "contactGroup"
-  title: string
+  localizedTitle: InternationalizedArrayString
   persons?: Array<
     {
       _key: string
@@ -250,8 +261,8 @@ export type ContactGroup = {
 
 export type ContactPerson = {
   _type: "contactPerson"
-  name: string
-  rolle?: string
+  localizedName: InternationalizedArrayString
+  localizedRole?: InternationalizedArrayString
   email?: string
   phone?: string
   image?: {
@@ -294,13 +305,13 @@ export type MenuItem = {
 
 export type NavItem = {
   _type: "navItem"
-  label: string
+  localizedLabel: InternationalizedArrayString
   href?: string
   externalUrl?: string
   children?: Array<{
-    groupLabel?: string
+    localizedGroupLabel?: InternationalizedArrayString
     items: Array<{
-      label: string
+      localizedLabel: InternationalizedArrayString
       href?: string
       externalUrl?: string
       _type: "navLeaf"
@@ -410,9 +421,7 @@ export type TimeValue =
 
 export type InfoAccordionBlock = {
   _type: "infoAccordionBlock"
-  heading: string
-  localizedHeading?: InternationalizedArrayString
-  intro?: string
+  localizedHeading: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
   items: Array<
     {
@@ -423,28 +432,22 @@ export type InfoAccordionBlock = {
 
 export type InfoAccordionItem = {
   _type: "infoAccordionItem"
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  body: PortableTextContent
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedTitle: InternationalizedArrayString
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type InfoAddressBlock = {
   _type: "infoAddressBlock"
-  heading: string
-  localizedHeading?: InternationalizedArrayString
-  body?: PortableTextContent
+  localizedHeading: InternationalizedArrayString
   localizedBody?: InternationalizedArrayPortableTextContent
-  address?: string
+  localizedAddress?: InternationalizedArrayString
   mapUrl?: string
 }
 
 export type EditorialSection = {
   _type: "editorialSection"
-  title?: string
   localizedTitle?: InternationalizedArrayString
-  body: PortableTextContent
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type SourcedImage = {
@@ -456,8 +459,8 @@ export type SourcedImage = {
     crop?: SanityImageCrop
     _type: "image"
   }
-  alt?: string
-  caption?: string
+  localizedAlt?: InternationalizedArrayString
+  localizedCaption?: InternationalizedArrayString
 }
 
 export type EventTypeReference = {
@@ -481,7 +484,7 @@ export type Arrangement = {
     | "festivalSession"
   parentEvent?: ArrangementReference
   festivalDayShortcut?: string
-  title?: string
+  localizedTitle?: InternationalizedArrayString
   slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
@@ -489,7 +492,7 @@ export type Arrangement = {
   promotedPlacement?: "top" | "pool"
   promotedOrder?: number
   orderRank?: string
-  description?: PortableTextContent
+  localizedDescription?: InternationalizedArrayPortableTextContent
   dates?: Array<
     {
       _key: string
@@ -505,11 +508,11 @@ export type Arrangement = {
     _type: "image"
   }
   useFestivalImage?: boolean
-  imageCaption?: string
+  localizedImageCaption?: InternationalizedArrayString
   room?: RoomReference
-  roomText?: string
+  localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
-  organizerText?: string
+  localizedOrganizerText?: InternationalizedArrayString
   isFree?: boolean
   priceOrdinar?: number
   priceStudent?: number
@@ -529,14 +532,11 @@ export type StudentGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
-  localizedName?: InternationalizedArrayString
+  localizedName: InternationalizedArrayString
   slug: Slug
   category: "arbeidsgruppe" | "komitee" | "dorg" | "borg"
   parentGroup?: StudentGroupReference
-  summary: string
-  localizedSummary?: InternationalizedArrayText
-  body?: PortableTextContent
+  localizedSummary: InternationalizedArrayText
   localizedBody?: InternationalizedArrayPortableTextContent
   recruitmentLabel?: string
   recruitmentLead?: string
@@ -556,7 +556,7 @@ export type StudentGroup = {
       | "studentbergen"
       | "other"
     url: string
-    customLabel?: string
+    localizedCustomLabel?: InternationalizedArrayString
     _type: "groupLink"
     _key: string
   }>
@@ -569,7 +569,7 @@ export type StudentGroup = {
     crop?: SanityImageCrop
     _type: "image"
   }
-  labels?: Array<string>
+  localizedLabels?: InternationalizedArrayText
   image?: SourcedImage
   orderRank?: string
 }
@@ -580,23 +580,11 @@ export type InternationalizedArrayPortableTextContent = Array<
   } & InternationalizedArrayPortableTextContentValue
 >
 
-export type InternationalizedArrayText = Array<
-  {
-    _key: string
-  } & InternationalizedArrayTextValue
->
-
 export type Slug = {
   _type: "slug"
   current: string
   source?: string
 }
-
-export type InternationalizedArrayString = Array<
-  {
-    _key: string
-  } & InternationalizedArrayStringValue
->
 
 export type Room = {
   _id: string
@@ -604,10 +592,10 @@ export type Room = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
+  localizedTitle: InternationalizedArrayString
   slug: Slug
-  summary: string
-  body?: PortableTextContent
+  localizedSummary: InternationalizedArrayText
+  localizedBody?: InternationalizedArrayPortableTextContent
   crescatRoomId?: number
   pricePerHour?: number
   menu?: Menu
@@ -616,13 +604,14 @@ export type Room = {
   capacityStanding?: number
   capacitySeated?: number
   suitedPurposes?: Array<string>
-  bar?: string
+  localizedSuitedPurposes?: InternationalizedArrayText
+  localizedBar?: InternationalizedArrayString
   hasSound?: boolean
-  soundDetails?: string
+  localizedSoundDetails?: InternationalizedArrayString
   hasLighting?: boolean
-  lightingDetails?: string
+  localizedLightingDetails?: InternationalizedArrayString
   hasAV?: boolean
-  avDetails?: string
+  localizedAvDetails?: InternationalizedArrayString
   specsUrl?: string
   openingHours?: OpeningHours
   panoramaUrl?: string
@@ -646,7 +635,7 @@ export type EventType = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
+  localizedName: InternationalizedArrayString
   taxonomyGroup: EventTaxonomyGroupReference
   isActive?: boolean
   orderRank?: string
@@ -658,7 +647,7 @@ export type EventTaxonomyGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name: string
+  localizedName: InternationalizedArrayString
   orderRank?: string
 }
 
@@ -668,14 +657,10 @@ export type Page = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  title: string
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   slug: Slug
-  content?: Markdown
   localizedContent?: InternationalizedArrayText
 }
-
-export type Markdown = string
 
 export type KontaktPage = {
   _id: string
@@ -683,13 +668,13 @@ export type KontaktPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  visitAddress?: string
-  postAddress?: string
-  invoiceAddress?: string
+  localizedVisitAddress?: InternationalizedArrayText
+  localizedPostAddress?: InternationalizedArrayText
+  localizedInvoiceAddress?: InternationalizedArrayText
   invoiceEmail?: string
   ehf?: string
-  generalContact?: string
-  pressContact?: string
+  localizedGeneralContact?: InternationalizedArrayText
+  localizedPressContact?: InternationalizedArrayText
   contactGroups?: Array<
     {
       _key: string
@@ -703,11 +688,8 @@ export type UsefulInfoPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  intro?: string
+  localizedTitle: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
   sections?: Array<
     | ({
@@ -728,11 +710,8 @@ export type SponsorsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sponsors?: Array<{
     logo?: {
@@ -742,9 +721,8 @@ export type SponsorsPage = {
       crop?: SanityImageCrop
       _type: "image"
     }
-    title: string
-    localizedTitle?: InternationalizedArrayString
-    description?: PortableTextContent
+    localizedLogoAlt?: InternationalizedArrayString
+    localizedTitle: InternationalizedArrayString
     localizedDescription?: InternationalizedArrayPortableTextContent
     website?: string
     _type: "sponsor"
@@ -758,11 +736,8 @@ export type GroupsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -770,10 +745,8 @@ export type GroupsPage = {
     } & EditorialSection
   >
   faq?: Array<{
-    question: string
-    localizedQuestion?: InternationalizedArrayString
-    answer: Array<string>
-    localizedAnswer?: InternationalizedArrayText
+    localizedQuestion: InternationalizedArrayString
+    localizedAnswer: InternationalizedArrayText
     _type: "faqItem"
     _key: string
   }>
@@ -792,11 +765,8 @@ export type RoomsPage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -806,7 +776,7 @@ export type RoomsPage = {
   bookingLink?: SourceLink
   floorPlans?: Array<{
     floor: number
-    title?: string
+    localizedTitle?: InternationalizedArrayString
     file: {
       asset?: SanityFileAssetReference
       media?: unknown
@@ -823,11 +793,8 @@ export type HomePage = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  eyebrow?: string
   localizedEyebrow?: InternationalizedArrayString
-  title: string
-  localizedTitle?: InternationalizedArrayString
-  description?: string
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   primaryCta?: SourceLink
 }
@@ -987,6 +954,8 @@ export type InternationalizedArrayStringValue = {
   language: string
 }
 
+export type Markdown = string
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch"
   background?: string
@@ -1100,6 +1069,8 @@ export type AllSanitySchemaTypes =
   | RoomReference
   | StudentGroupReference
   | SourceLink
+  | InternationalizedArrayText
+  | InternationalizedArrayString
   | SiteMetadata
   | OpeningHours
   | Footer
@@ -1126,15 +1097,12 @@ export type AllSanitySchemaTypes =
   | Arrangement
   | StudentGroup
   | InternationalizedArrayPortableTextContent
-  | InternationalizedArrayText
   | Slug
-  | InternationalizedArrayString
   | Room
   | EventTaxonomyGroupReference
   | EventType
   | EventTaxonomyGroup
   | Page
-  | Markdown
   | KontaktPage
   | UsefulInfoPage
   | SponsorsPage
@@ -1158,6 +1126,7 @@ export type AllSanitySchemaTypes =
   | InternationalizedArrayPortableTextContentValue
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue
+  | Markdown
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -1169,37 +1138,37 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: eventRoomsQuery
-// Query: *[_type == "room"] | order(orderRank asc) {    _id,    "title": coalesce(title, ""),    "slug": coalesce(slug.current, "")}
+// Query: *[_type == "room"] | order(orderRank asc) {    _id,    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),    "slug": coalesce(slug.current, "")}
 export type EventRoomsQueryResult = Array<{
   _id: string
-  title: string
+  title: string | ""
   slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: eventTypesQuery
-// Query: *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    "taxonomyGroup": taxonomyGroup-> {        _id,        "name": coalesce(name, "")    }}
+// Query: *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {    _id,    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),    "taxonomyGroup": taxonomyGroup-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")    }}
 export type EventTypesQueryResult = Array<{
   _id: string
-  name: string
+  name: string | ""
   taxonomyGroup: {
     _id: string
-    name: string
+    name: string | ""
   }
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: eventGroupsQuery
-// Query: *[_type == "studentGroup"] | order(orderRank asc, name asc) {    _id,    "name": coalesce(name, ""),    "category": coalesce(category, "")}
+// Query: *[_type == "studentGroup"] | order(orderRank asc, name asc) {    _id,    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),    "category": coalesce(category, "")}
 export type EventGroupsQueryResult = Array<{
   _id: string
-  name: string
+  name: string | ""
   category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: publishedEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && count(dates[startDate >= $today]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && count(dates[startDate >= $today]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PublishedEventsQueryResult = Array<{
   _id: string
   eventKind:
@@ -1220,54 +1189,56 @@ export type PublishedEventsQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            style?: "cta" | "inline"
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
+    description:
+      | Array<never>
+      | Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                style?: "cta" | "inline"
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        >
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
       _id: string
-      name: string
+      name: string | ""
       slug: string
     } | null
     organizerText: string | null
     eventType: {
       _id: string
-      name: string
+      name: string | ""
       taxonomyGroup: {
         _id: string
-        name: string
+        name: string | ""
       }
     } | null
     isFree: boolean | null
@@ -1303,61 +1274,63 @@ export type PublishedEventsQueryResult = Array<{
       } | null>
   room: {
     _id: string
-    title: string
+    title: string | ""
     slug: string
     floor: number | null
     imageUrl: string | null
   } | null
   roomText: string | null
   title: string | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          style?: "cta" | "inline"
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              style?: "cta" | "inline"
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
     _id: string
-    name: string
+    name: string | ""
     slug: string
   } | null
   organizerText: string | null
   eventType: {
     _id: string
-    name: string
+    name: string | ""
     taxonomyGroup: {
       _id: string
-      name: string
+      name: string | ""
     }
   } | null
   isFree: boolean | null
@@ -1371,7 +1344,7 @@ export type PublishedEventsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: promotedParentEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isPromoted == true        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]        && count(*[          _type == "arrangement" &&          eventKind in ["seriesInstance", "festivalSession"] &&          parentEvent._ref == ^._id &&          approvalStatus == "approved" &&          count(dates[startDate >= $today]) > 0        ]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isPromoted == true        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]        && count(*[          _type == "arrangement" &&          eventKind in ["seriesInstance", "festivalSession"] &&          parentEvent._ref == ^._id &&          approvalStatus == "approved" &&          count(dates[startDate >= $today]) > 0        ]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PromotedParentEventsQueryResult = Array<{
   _id: string
   eventKind:
@@ -1392,54 +1365,56 @@ export type PromotedParentEventsQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            style?: "cta" | "inline"
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
+    description:
+      | Array<never>
+      | Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                style?: "cta" | "inline"
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        >
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
       _id: string
-      name: string
+      name: string | ""
       slug: string
     } | null
     organizerText: string | null
     eventType: {
       _id: string
-      name: string
+      name: string | ""
       taxonomyGroup: {
         _id: string
-        name: string
+        name: string | ""
       }
     } | null
     isFree: boolean | null
@@ -1475,61 +1450,63 @@ export type PromotedParentEventsQueryResult = Array<{
       } | null>
   room: {
     _id: string
-    title: string
+    title: string | ""
     slug: string
     floor: number | null
     imageUrl: string | null
   } | null
   roomText: string | null
   title: string | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          style?: "cta" | "inline"
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              style?: "cta" | "inline"
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
     _id: string
-    name: string
+    name: string | ""
     slug: string
   } | null
   organizerText: string | null
   eventType: {
     _id: string
-    name: string
+    name: string | ""
     taxonomyGroup: {
       _id: string
-      name: string
+      name: string | ""
     }
   } | null
   isFree: boolean | null
@@ -1550,7 +1527,7 @@ export type PublishedEventSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: eventBySlugQuery
-// Query: *[_type == "arrangement" && slug.current == $slug && (        $preview == true        || (            approvalStatus == "approved"        )    )][0] {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[_type == "arrangement" && slug.current == $slug && (        $preview == true        || (            approvalStatus == "approved"        )    )][0] {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type EventBySlugQueryResult = {
   _id: string
   eventKind:
@@ -1571,54 +1548,56 @@ export type EventBySlugQueryResult = {
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            style?: "cta" | "inline"
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
+    description:
+      | Array<never>
+      | Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                style?: "cta" | "inline"
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        >
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
       _id: string
-      name: string
+      name: string | ""
       slug: string
     } | null
     organizerText: string | null
     eventType: {
       _id: string
-      name: string
+      name: string | ""
       taxonomyGroup: {
         _id: string
-        name: string
+        name: string | ""
       }
     } | null
     isFree: boolean | null
@@ -1654,61 +1633,63 @@ export type EventBySlugQueryResult = {
       } | null>
   room: {
     _id: string
-    title: string
+    title: string | ""
     slug: string
     floor: number | null
     imageUrl: string | null
   } | null
   roomText: string | null
   title: string | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          style?: "cta" | "inline"
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              style?: "cta" | "inline"
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
     _id: string
-    name: string
+    name: string | ""
     slug: string
   } | null
   organizerText: string | null
   eventType: {
     _id: string
-    name: string
+    name: string | ""
     taxonomyGroup: {
       _id: string
-      name: string
+      name: string | ""
     }
   } | null
   isFree: boolean | null
@@ -1722,7 +1703,7 @@ export type EventBySlugQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: eventChildrenQuery
-// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"    ] | order(dates[0].startDate asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    roomText,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"    ] | order(dates[0].startDate asc) {    _id,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "approvalStatus": coalesce(approvalStatus, "pending"),    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    "useFestivalImage": coalesce(useFestivalImage, true),    rrule,    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved"      ].dates[] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[] | order(startDate asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type EventChildrenQueryResult = Array<{
   _id: string
   eventKind:
@@ -1743,54 +1724,56 @@ export type EventChildrenQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            style?: "cta" | "inline"
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
+    description:
+      | Array<never>
+      | Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                style?: "cta" | "inline"
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        >
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
       _id: string
-      name: string
+      name: string | ""
       slug: string
     } | null
     organizerText: string | null
     eventType: {
       _id: string
-      name: string
+      name: string | ""
       taxonomyGroup: {
         _id: string
-        name: string
+        name: string | ""
       }
     } | null
     isFree: boolean | null
@@ -1826,61 +1809,63 @@ export type EventChildrenQueryResult = Array<{
       } | null>
   room: {
     _id: string
-    title: string
+    title: string | ""
     slug: string
     floor: number | null
     imageUrl: string | null
   } | null
   roomText: string | null
   title: string | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          style?: "cta" | "inline"
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              style?: "cta" | "inline"
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
     _id: string
-    name: string
+    name: string | ""
     slug: string
   } | null
   organizerText: string | null
   eventType: {
     _id: string
-    name: string
+    name: string | ""
     taxonomyGroup: {
       _id: string
-      name: string
+      name: string | ""
     }
   } | null
   isFree: boolean | null
@@ -1894,7 +1879,7 @@ export type EventChildrenQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: feedEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && count(dates[startDate >= $today]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {        _id,        _updatedAt,        "eventKind": coalesce(eventKind, "single"),        eventStatus,        "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},        "slug": coalesce(slug.current, ""),        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {            _key,            "startDate": coalesce(startDate, ""),            startTime,            endTime        }, []),        "room": room-> { "title": coalesce(title, "") },        roomText,            title,    "description": description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    imageCaption,    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },    organizerText,    "eventType": eventType-> {        _id,        "name": coalesce(name, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent    }
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && count(dates[startDate >= $today]) > 0    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {        _id,        _updatedAt,        "eventKind": coalesce(eventKind, "single"),        eventStatus,        "parent": parentEvent-> {    _id,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},        "slug": coalesce(slug.current, ""),        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {            _key,            "startDate": coalesce(startDate, ""),            startTime,            endTime        }, []),        "room": room-> { "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "") },        "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),            "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent    }
 export type FeedEventsQueryResult = Array<{
   _id: string
   _updatedAt: string
@@ -1916,54 +1901,56 @@ export type FeedEventsQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description: Array<
-      | {
-          _key: string
-          _type: "block"
-          children?: Array<{
-            marks?: Array<string>
-            text?: string
-            _type: "span"
-            _key: string
-          }>
-          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-          listItem?: "bullet" | "number"
-          markDefs: Array<{
-            href?: string
-            style?: "cta" | "inline"
-            target: "blank" | "self"
-            _type: "link"
-            _key: string
-          }> | null
-          level?: number
-        }
-      | {
-          _key: string
-          _type: "image"
-          asset?: SanityImageAssetReference
-          media?: unknown
-          hotspot?: SanityImageHotspot
-          crop?: SanityImageCrop
-          alt: string
-          caption: string | null
-          markDefs: null
-          imageUrl: string | null
-        }
-    > | null
+    description:
+      | Array<never>
+      | Array<
+          | {
+              _key: string
+              _type: "block"
+              children?: Array<{
+                marks?: Array<string>
+                text?: string
+                _type: "span"
+                _key: string
+              }>
+              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+              listItem?: "bullet" | "number"
+              markDefs: Array<{
+                href?: string
+                style?: "cta" | "inline"
+                target: "blank" | "self"
+                _type: "link"
+                _key: string
+              }> | null
+              level?: number
+            }
+          | {
+              _key: string
+              _type: "image"
+              asset?: SanityImageAssetReference
+              media?: unknown
+              hotspot?: SanityImageHotspot
+              crop?: SanityImageCrop
+              alt: string
+              caption: string | null
+              markDefs: null
+              imageUrl: string | null
+            }
+        >
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
       _id: string
-      name: string
+      name: string | ""
       slug: string
     } | null
     organizerText: string | null
     eventType: {
       _id: string
-      name: string
+      name: string | ""
       taxonomyGroup: {
         _id: string
-        name: string
+        name: string | ""
       }
     } | null
     isFree: boolean | null
@@ -1984,58 +1971,60 @@ export type FeedEventsQueryResult = Array<{
       }>
     | Array<never>
   room: {
-    title: string
+    title: string | ""
   } | null
   roomText: string | null
   title: string | null
-  description: Array<
-    | {
-        _key: string
-        _type: "block"
-        children?: Array<{
-          marks?: Array<string>
-          text?: string
-          _type: "span"
-          _key: string
-        }>
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-        listItem?: "bullet" | "number"
-        markDefs: Array<{
-          href?: string
-          style?: "cta" | "inline"
-          target: "blank" | "self"
-          _type: "link"
-          _key: string
-        }> | null
-        level?: number
-      }
-    | {
-        _key: string
-        _type: "image"
-        asset?: SanityImageAssetReference
-        media?: unknown
-        hotspot?: SanityImageHotspot
-        crop?: SanityImageCrop
-        alt: string
-        caption: string | null
-        markDefs: null
-        imageUrl: string | null
-      }
-  > | null
+  description:
+    | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "block"
+            children?: Array<{
+              marks?: Array<string>
+              text?: string
+              _type: "span"
+              _key: string
+            }>
+            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+            listItem?: "bullet" | "number"
+            markDefs: Array<{
+              href?: string
+              style?: "cta" | "inline"
+              target: "blank" | "self"
+              _type: "link"
+              _key: string
+            }> | null
+            level?: number
+          }
+        | {
+            _key: string
+            _type: "image"
+            asset?: SanityImageAssetReference
+            media?: unknown
+            hotspot?: SanityImageHotspot
+            crop?: SanityImageCrop
+            alt: string
+            caption: string | null
+            markDefs: null
+            imageUrl: string | null
+          }
+      >
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
     _id: string
-    name: string
+    name: string | ""
     slug: string
   } | null
   organizerText: string | null
   eventType: {
     _id: string
-    name: string
+    name: string | ""
     taxonomyGroup: {
       _id: string
-      name: string
+      name: string | ""
     }
   } | null
   isFree: boolean | null
@@ -2049,11 +2038,11 @@ export type FeedEventsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/groups.ts
 // Variable: studentGroupsQuery
-// Query: *[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),    email,    website,    "links": coalesce(links[] {      platform,      url,      customLabel    }, []),    "category": coalesce(category, "arbeidsgruppe"),    "labels": coalesce(labels, []),    "logoUrl": logo.asset->url,    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    }, [])}
+// Query: *[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    email,    website,    "links": coalesce(links[] {      platform,      url,      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)    }, []),    "category": coalesce(category, "arbeidsgruppe"),    "labels": coalesce(string::split(localizedLabels[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedLabels[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    "logoUrl": logo.asset->url,    "image": image {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)},    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    }, [])}
 export type StudentGroupsQueryResult = Array<{
-  name: string
+  name: string | "[Mangler gruppenavn]"
   slug: string
-  summary: string
+  summary: string | "[Mangler kort beskrivelse]"
   email: string | null
   website: string | null
   links:
@@ -2080,7 +2069,7 @@ export type StudentGroupsQueryResult = Array<{
     caption: string | null
   } | null
   subGroups: Array<{
-    name: string
+    name: string | "[Mangler gruppenavn]"
     slug: string
   }>
 }>
@@ -2094,11 +2083,11 @@ export type StudentGroupSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/groups.ts
 // Variable: studentGroupBySlugQuery
-// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body, []),    email,    website,    "links": coalesce(links[] {      platform,      url,      customLabel    }, []),    "category": coalesce(category, "arbeidsgruppe"),    "logoUrl": logo.asset->url,    "parentGroup": parentGroup-> {        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    },    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),        "category": coalesce(category, "arbeidsgruppe"),        "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }, []),    "image": image {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "studentGroup" && slug.current == $slug][0] {    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    "body": coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, []),    email,    website,    "links": coalesce(links[] {      platform,      url,      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)    }, []),    "category": coalesce(category, "arbeidsgruppe"),    "logoUrl": logo.asset->url,    "parentGroup": parentGroup-> {        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, "")    },    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),        "category": coalesce(category, "arbeidsgruppe"),        "image": image {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}    }, []),    "image": image {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}}
 export type StudentGroupBySlugQueryResult = {
-  name: string
+  name: string | "[Mangler gruppenavn]"
   slug: string
-  summary: string
+  summary: string | "[Mangler kort beskrivelse]"
   body: Array<never> | PortableTextContent
   email: string | null
   website: string | null
@@ -2119,13 +2108,13 @@ export type StudentGroupBySlugQueryResult = {
   category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
   logoUrl: string | null
   parentGroup: {
-    name: string
+    name: string | "[Mangler gruppenavn]"
     slug: string
   } | null
   subGroups: Array<{
-    name: string
+    name: string | "[Mangler gruppenavn]"
     slug: string
-    summary: string
+    summary: string | "[Mangler kort beskrivelse]"
     category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
     image: {
       _key: null
@@ -2144,7 +2133,7 @@ export type StudentGroupBySlugQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/navigation.ts
 // Variable: footerQuery
-// Query: {    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        "platform": coalesce(platform, "website"),        "label": coalesce(label, "[Mangler navn]"),        "url": coalesce(url, "#")    }, []),    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "vacationMode": {        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,        "to": coalesce(            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt        )    },    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(title, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "hours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }, [])}
+// Query: {    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {        _key,        "platform": coalesce(platform, "website"),        "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),        "url": coalesce(url, "#")    }, []),    "visitAddress": coalesce(*[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, *[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),    "generalContact": coalesce(*[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, *[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "vacationMode": {        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,        "to": coalesce(            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt        )    },    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "hours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }}    }, [])}
 export type FooterQueryResult = {
   socialLinks:
     | Array<{
@@ -2157,7 +2146,7 @@ export type FooterQueryResult = {
           | "snapchat"
           | "tiktok"
           | "youtube"
-        label: string
+        label: string | "[Mangler navn]"
         url: string
       }>
     | Array<never>
@@ -2188,7 +2177,7 @@ export type FooterQueryResult = {
     }> | null
   } | null
   roomHours: Array<{
-    title: string
+    title: string | "[Mangler romnavn]"
     slug: string
     hours: {
       rows: Array<{
@@ -2207,11 +2196,11 @@ export type FooterQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/navigation.ts
 // Variable: navbarQuery
-// Query: *[_type == "navbar" && _id == "navbar"][0] {    "items": coalesce(items[] {        _key,        "label": coalesce(label, "[Mangler navn]"),        href,        externalUrl,        "children": coalesce(children[] {            _key,            groupLabel,            "items": coalesce(items[] {                _key,                "label": coalesce(label, "[Mangler navn]"),                href,                externalUrl            }, [])        }, [])    }, [])}
+// Query: *[_type == "navbar" && _id == "navbar"][0] {    "items": coalesce(items[] {        _key,                "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),        href,        externalUrl,        "children": coalesce(children[] {            _key,            "groupLabel": coalesce(localizedGroupLabel[language == $locale && defined(value) && value != ""][0].value, localizedGroupLabel[language == "nb" && defined(value) && value != ""][0].value),            "items": coalesce(items[] {                _key,                    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),                href,                externalUrl            }, [])        }, [])    }, [])}
 export type NavbarQueryResult = {
   items: Array<{
     _key: string
-    label: string
+    label: string | "[Mangler navn]"
     href: string | null
     externalUrl: string | null
     children:
@@ -2220,7 +2209,7 @@ export type NavbarQueryResult = {
           groupLabel: string | null
           items: Array<{
             _key: string
-            label: string
+            label: string | "[Mangler navn]"
             href: string | null
             externalUrl: string | null
           }>
@@ -2260,15 +2249,15 @@ export type HouseHoursQueryResult = {
 } | null
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
-// Variable: homePageQuery
-// Query: *[_type == "homePage" && _id == "homePage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),    primaryCta {    _key,    "label": coalesce(localizedLabel[language == $locale][0].value, localizedLabel[language == "nb"][0].value, label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
-export type HomePageQueryResult = {
+// Variable: homePageNbQuery
+// Query: *[_type == "homePage" && _id == "homePage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),    primaryCta {    _key,    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+export type HomePageNbQueryResult = {
   eyebrow: string | null
-  title: string
+  title: string | null
   description: string | null
   primaryCta: {
     _key: null
-    label: string
+    label: string | "Lenke uten navn"
     kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
@@ -2284,10 +2273,10 @@ export type HomePageQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: roomsPageQuery
-// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),    "sections": coalesce(sections[] {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}, []),    bookingLink {    _key,    "label": coalesce(localizedLabel[language == $locale][0].value, localizedLabel[language == "nb"][0].value, label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+// Query: *[_type == "roomsPage" && _id == "roomsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),    "sections": coalesce(sections[] {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}, []),    bookingLink {    _key,    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
 export type RoomsPageQueryResult = {
   eyebrow: string | null
-  title: string
+  title: string | "[Mangler tittel]"
   description: string | null
   sections:
     | Array<{
@@ -2295,6 +2284,7 @@ export type RoomsPageQueryResult = {
         _type: "editorialSection"
         title: string | null
         body:
+          | Array<never>
           | Array<
               | {
                   _key: string
@@ -2329,12 +2319,11 @@ export type RoomsPageQueryResult = {
                   imageUrl: string | null
                 }
             >
-          | PortableTextContent
       }>
     | Array<never>
   bookingLink: {
     _key: null
-    label: string
+    label: string | "Lenke uten navn"
     kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
@@ -2350,18 +2339,18 @@ export type RoomsPageQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: sponsorsPageQuery
-// Query: *[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),    "sponsors": coalesce(sponsors[] {        _key,        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler sponsornavn]"),        website,        "logoUrl": logo.asset->url,        "logoAlt": coalesce(logo.alt, title),        "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])    }, [])}
+// Query: *[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),    "sponsors": coalesce(sponsors[] {        _key,        "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler sponsornavn]"),        website,        "logoUrl": logo.asset->url,        "logoAlt": coalesce(localizedLogoAlt[language == $locale && defined(value) && value != ""][0].value, localizedLogoAlt[language == "nb" && defined(value) && value != ""][0].value, coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)),        "description": coalesce(coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])    }, [])}
 export type SponsorsPageQueryResult = {
   eyebrow: string | null
-  title: string
+  title: string | "[Mangler tittel]"
   description: string | null
   sponsors:
     | Array<{
         _key: string
-        title: string
+        title: string | "[Mangler sponsornavn]"
         website: string | null
         logoUrl: string | null
-        logoAlt: string
+        logoAlt: string | null
         description:
           | Array<never>
           | Array<
@@ -2398,17 +2387,16 @@ export type SponsorsPageQueryResult = {
                   imageUrl: string | null
                 }
             >
-          | PortableTextContent
       }>
     | Array<never>
 } | null
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: groupsPageQuery
-// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),    "hasEnglishTranslation": defined(localizedTitle[language == "en"][0].value),    "sections": coalesce(sections[] {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}, []),    "faq": coalesce(faq[] {        _key,        "hasEnglishTranslation": defined(localizedQuestion[language == "en"][0].value),        "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, question, "[Mangler spørsmål]"),        "answer": select(          defined(localizedAnswer[language == $locale][0].value) => string::split(localizedAnswer[language == $locale][0].value, ""),          defined(localizedAnswer[language == "nb"][0].value) => string::split(localizedAnswer[language == "nb"][0].value, ""),          coalesce(answer, [])        )    }, [])}
+// Query: *[_type == "groupsPage" && _id == "groupsPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),    "hasEnglishTranslation": defined(localizedEyebrow[language == "en" && defined(value) && value != ""][0].value) && defined(localizedTitle[language == "en" && defined(value) && value != ""][0].value) && defined(localizedDescription[language == "en" && defined(value) && value != ""][0].value),    "sections": coalesce(sections[] {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])}, []),    "faq": coalesce(faq[] {        _key,        "hasEnglishTranslation": defined(localizedQuestion[language == "en" && defined(value) && value != ""][0].value) && defined(localizedAnswer[language == "en" && defined(value) && value != ""][0].value),        "question": coalesce(localizedQuestion[language == $locale && defined(value) && value != ""][0].value, localizedQuestion[language == "nb" && defined(value) && value != ""][0].value, "[Mangler spørsmål]"),        "answer": select(          defined(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)) => string::split(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null), ""),          []        )    }, [])}
 export type GroupsPageQueryResult = {
   eyebrow: string | null
-  title: string
+  title: string | null
   description: string | null
   hasEnglishTranslation: false | true
   sections:
@@ -2417,6 +2405,7 @@ export type GroupsPageQueryResult = {
         _type: "editorialSection"
         title: string | null
         body:
+          | Array<never>
           | Array<
               | {
                   _key: string
@@ -2451,15 +2440,14 @@ export type GroupsPageQueryResult = {
                   imageUrl: string | null
                 }
             >
-          | PortableTextContent
       }>
     | Array<never>
   faq:
     | Array<{
         _key: string
         hasEnglishTranslation: false | true
-        question: string
-        answer: Array<string> | null
+        question: string | "[Mangler sp\xF8rsm\xE5l]"
+        answer: Array<string> | Array<never> | null
       }>
     | Array<never>
 } | null
@@ -2473,17 +2461,17 @@ export type PageSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: pageBySlugQuery
-// Query: *[    _type == "page"    && slug.current == $slug    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ][0] {    _id,    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),    "slug": coalesce(slug.current, ""),    "content": coalesce(localizedContent[language == $locale][0].value, localizedContent[language == "nb"][0].value, content)}
+// Query: *[    _type == "page"    && slug.current == $slug    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ][0] {    _id,    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),    "slug": coalesce(slug.current, ""),    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")}
 export type PageBySlugQueryResult = {
   _id: string
-  title: string
+  title: string | "[Mangler tittel]"
   slug: string
-  content: Markdown | string | null
+  content: string | ""
 } | null
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: kontaktPageQuery
-// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    visitAddress,    postAddress,    invoiceAddress,    invoiceEmail,    ehf,    generalContact,    pressContact,    "contactGroups": coalesce(contactGroups[] {        _key,        "title": coalesce(title, "[Mangler gruppenavn]"),        "persons": coalesce(persons[] {            _key,            "name": coalesce(name, "[Mangler navn]"),            rolle,            email,            phone,            "imageUrl": image.asset->url        }, [])    }, [])}
+// Query: *[_type == "kontaktPage" && _id == "kontaktPage"][0] {    "visitAddress": coalesce(localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),    "postAddress": coalesce(localizedPostAddress[language == $locale && defined(value) && value != ""][0].value, localizedPostAddress[language == "nb" && defined(value) && value != ""][0].value),    "invoiceAddress": coalesce(localizedInvoiceAddress[language == $locale && defined(value) && value != ""][0].value, localizedInvoiceAddress[language == "nb" && defined(value) && value != ""][0].value),    invoiceEmail,    ehf,    "generalContact": coalesce(localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),    "pressContact": coalesce(localizedPressContact[language == $locale && defined(value) && value != ""][0].value, localizedPressContact[language == "nb" && defined(value) && value != ""][0].value),    "contactGroups": coalesce(contactGroups[] {        _key,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),        "persons": coalesce(persons[] {            _key,            "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),            "rolle": coalesce(localizedRole[language == $locale && defined(value) && value != ""][0].value, localizedRole[language == "nb" && defined(value) && value != ""][0].value),            email,            phone,            "imageUrl": image.asset->url        }, [])    }, [])}
 export type KontaktPageQueryResult = {
   visitAddress: string | null
   postAddress: string | null
@@ -2495,11 +2483,11 @@ export type KontaktPageQueryResult = {
   contactGroups:
     | Array<{
         _key: string
-        title: string
+        title: string | "[Mangler gruppenavn]"
         persons:
           | Array<{
               _key: string
-              name: string
+              name: string | "[Mangler navn]"
               rolle: string | null
               email: string | null
               phone: string | null
@@ -2512,10 +2500,10 @@ export type KontaktPageQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: usefulInfoPageQuery
-// Query: *[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "Nyttig info"),    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),    "sections": coalesce(sections[] {        _type == "editorialSection" => {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])},        _type == "infoAddressBlock" => {    _key,    _type,    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, []),    address,    mapUrl},        _type == "infoAccordionBlock" => {    _key,    _type,    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),    "items": coalesce(items[] {        _key,        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),        "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])    }, [])}    }, [])}
+// Query: *[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "Nyttig info"),    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),    "sections": coalesce(sections[] {        _type == "editorialSection" => {    _key,    _type,    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])},        _type == "infoAddressBlock" => {    _key,    _type,    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, []),    "address": coalesce(localizedAddress[language == $locale && defined(value) && value != ""][0].value, localizedAddress[language == "nb" && defined(value) && value != ""][0].value),    mapUrl},        _type == "infoAccordionBlock" => {    _key,    _type,    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),    "items": coalesce(items[] {        _key,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),        "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, [])    }, [])}    }, [])}
 export type UsefulInfoPageQueryResult = {
   eyebrow: string | null
-  title: string
+  title: string | "Nyttig info"
   intro: string | null
   sections:
     | Array<never>
@@ -2524,93 +2512,6 @@ export type UsefulInfoPageQueryResult = {
             _key: string
             _type: "editorialSection"
             title: string | null
-            body:
-              | Array<
-                  | {
-                      _key: string
-                      _type: "block"
-                      children?: Array<{
-                        marks?: Array<string>
-                        text?: string
-                        _type: "span"
-                        _key: string
-                      }>
-                      style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-                      listItem?: "bullet" | "number"
-                      markDefs: Array<{
-                        href?: string
-                        style?: "cta" | "inline"
-                        target: "blank" | "self"
-                        _type: "link"
-                        _key: string
-                      }> | null
-                      level?: number
-                    }
-                  | {
-                      _key: string
-                      _type: "image"
-                      asset?: SanityImageAssetReference
-                      media?: unknown
-                      hotspot?: SanityImageHotspot
-                      crop?: SanityImageCrop
-                      alt: string
-                      caption: string | null
-                      markDefs: null
-                      imageUrl: string | null
-                    }
-                >
-              | PortableTextContent
-          }
-        | {
-            _key: string
-            _type: "infoAccordionBlock"
-            heading: string
-            intro: string | null
-            items: Array<{
-              _key: string
-              title: string
-              body:
-                | Array<
-                    | {
-                        _key: string
-                        _type: "block"
-                        children?: Array<{
-                          marks?: Array<string>
-                          text?: string
-                          _type: "span"
-                          _key: string
-                        }>
-                        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-                        listItem?: "bullet" | "number"
-                        markDefs: Array<{
-                          href?: string
-                          style?: "cta" | "inline"
-                          target: "blank" | "self"
-                          _type: "link"
-                          _key: string
-                        }> | null
-                        level?: number
-                      }
-                    | {
-                        _key: string
-                        _type: "image"
-                        asset?: SanityImageAssetReference
-                        media?: unknown
-                        hotspot?: SanityImageHotspot
-                        crop?: SanityImageCrop
-                        alt: string
-                        caption: string | null
-                        markDefs: null
-                        imageUrl: string | null
-                      }
-                  >
-                | PortableTextContent
-            }>
-          }
-        | {
-            _key: string
-            _type: "infoAddressBlock"
-            heading: string
             body:
               | Array<never>
               | Array<
@@ -2647,7 +2548,93 @@ export type UsefulInfoPageQueryResult = {
                       imageUrl: string | null
                     }
                 >
-              | PortableTextContent
+          }
+        | {
+            _key: string
+            _type: "infoAccordionBlock"
+            heading: string | null
+            intro: string | null
+            items: Array<{
+              _key: string
+              title: string | null
+              body:
+                | Array<never>
+                | Array<
+                    | {
+                        _key: string
+                        _type: "block"
+                        children?: Array<{
+                          marks?: Array<string>
+                          text?: string
+                          _type: "span"
+                          _key: string
+                        }>
+                        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+                        listItem?: "bullet" | "number"
+                        markDefs: Array<{
+                          href?: string
+                          style?: "cta" | "inline"
+                          target: "blank" | "self"
+                          _type: "link"
+                          _key: string
+                        }> | null
+                        level?: number
+                      }
+                    | {
+                        _key: string
+                        _type: "image"
+                        asset?: SanityImageAssetReference
+                        media?: unknown
+                        hotspot?: SanityImageHotspot
+                        crop?: SanityImageCrop
+                        alt: string
+                        caption: string | null
+                        markDefs: null
+                        imageUrl: string | null
+                      }
+                  >
+            }>
+          }
+        | {
+            _key: string
+            _type: "infoAddressBlock"
+            heading: string | null
+            body:
+              | Array<never>
+              | Array<
+                  | {
+                      _key: string
+                      _type: "block"
+                      children?: Array<{
+                        marks?: Array<string>
+                        text?: string
+                        _type: "span"
+                        _key: string
+                      }>
+                      style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+                      listItem?: "bullet" | "number"
+                      markDefs: Array<{
+                        href?: string
+                        style?: "cta" | "inline"
+                        target: "blank" | "self"
+                        _type: "link"
+                        _key: string
+                      }> | null
+                      level?: number
+                    }
+                  | {
+                      _key: string
+                      _type: "image"
+                      asset?: SanityImageAssetReference
+                      media?: unknown
+                      hotspot?: SanityImageHotspot
+                      crop?: SanityImageCrop
+                      alt: string
+                      caption: string | null
+                      markDefs: null
+                      imageUrl: string | null
+                    }
+                >
             address: string | null
             mapUrl: string | null
           }
@@ -2656,16 +2643,16 @@ export type UsefulInfoPageQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: linkInBioQuery
-// Query: *[_type == "linkInBio" && _id == "linkInBio"][0] {    "heading": coalesce(heading, "[Mangler overskrift]"),    bio,    "links": coalesce(links[] {        _key,        link {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},        emoji,        "emojiImageUrl": emojiImage.asset->url,        "highlight": coalesce(highlight, false)    }, [])}
+// Query: *[_type == "linkInBio" && _id == "linkInBio"][0] {    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, "[Mangler overskrift]"),    "bio": coalesce(localizedBio[language == $locale && defined(value) && value != ""][0].value, localizedBio[language == "nb" && defined(value) && value != ""][0].value),    "links": coalesce(links[] {        _key,        link {    _key,    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )},        emoji,        "emojiImageUrl": emojiImage.asset->url,        "highlight": coalesce(highlight, false)    }, [])}
 export type LinkInBioQueryResult = {
-  heading: string
+  heading: string | "[Mangler overskrift]"
   bio: string | null
   links:
     | Array<{
         _key: string
         link: {
           _key: null
-          label: string
+          label: string | "Lenke uten navn"
           kind: "external" | "internalDocument" | "internalPath"
           href:
             | string
@@ -2686,11 +2673,11 @@ export type LinkInBioQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/rooms.ts
 // Variable: roomsQuery
-// Query: *[_type == "room"] | order(orderRank asc) {    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(suitedPurposes, []),    floor,    bar,    "hasSound": coalesce(hasSound, false),    soundDetails,    "hasLighting": coalesce(hasLighting, false),    lightingDetails,    "hasAV": coalesce(hasAV, false),    avDetails,    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}}
+// Query: *[_type == "room"] | order(orderRank asc) {    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    floor,    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),    "hasSound": coalesce(hasSound, false),    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasLighting": coalesce(hasLighting, false),    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasAV": coalesce(hasAV, false),    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value),    "image": images[0] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}}
 export type RoomsQueryResult = Array<{
-  title: string
+  title: string | "[Mangler romnavn]"
   slug: string
-  summary: string
+  summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
   suitedPurposes: Array<string> | Array<never>
@@ -2712,7 +2699,7 @@ export type RoomsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/rooms.ts
 // Variable: barPreviewsQuery
-// Query: {    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "vacationMode": {        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,        "to": coalesce(            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt        )    },    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {        "title": coalesce(title, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),        bar,        "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},        "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption}    }, [])}
+// Query: {    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {        _key,        "date": coalesce(date, ""),        note    }, []),    "vacationMode": {        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,        "to": coalesce(            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt        )    },    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),        "slug": coalesce(slug.current, ""),        "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),        "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),        "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},        "image": images[0] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}    }, [])}
 export type BarPreviewsQueryResult = {
   houseClosedDates:
     | Array<{
@@ -2739,9 +2726,9 @@ export type BarPreviewsQueryResult = {
     }> | null
   } | null
   rooms: Array<{
-    title: string
+    title: string | "[Mangler romnavn]"
     slug: string
-    summary: string
+    summary: string | "[Mangler kort beskrivelse]"
     bar: string | null
     openingHours: {
       rows: Array<{
@@ -2773,11 +2760,11 @@ export type RoomSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/rooms.ts
 // Variable: bookableRoomsQuery
-// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    crescatRoomId,    pricePerHour,    floor,    "suitedPurposes": coalesce(suitedPurposes, []),    bar,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    alt,    caption},    "hasSound": coalesce(hasSound, false),    soundDetails,    "hasLighting": coalesce(hasLighting, false),    lightingDetails,    "hasAV": coalesce(hasAV, false),    avDetails}
+// Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    crescatRoomId,    pricePerHour,    floor,    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)},    "hasSound": coalesce(hasSound, false),    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasLighting": coalesce(hasLighting, false),    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasAV": coalesce(hasAV, false),    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value)}
 export type BookableRoomsQueryResult = Array<{
-  title: string
+  title: string | "[Mangler romnavn]"
   slug: string
-  summary: string
+  summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
   crescatRoomId: number
@@ -2813,12 +2800,12 @@ export type BookableRoomsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/rooms.ts
 // Variable: roomBySlugQuery
-// Query: *[_type == "room" && slug.current == $slug][0] {    crescatRoomId,    "title": coalesce(title, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(suitedPurposes, []),    floor,    bar,    pricePerHour,    panoramaUrl,    "hasSound": coalesce(hasSound, false),    soundDetails,    "hasLighting": coalesce(hasLighting, false),    lightingDetails,    "hasAV": coalesce(hasAV, false),    avDetails,    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "body": coalesce(body[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, []),    "images": coalesce(images[] {    _key,    "assetUrl": image.asset->url,    alt,    caption}, []),    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        "floor": coalesce(floor, 0),        "title": coalesce(title, "[Mangler tittel]"),        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    }, []),    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    "label": coalesce(label, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
+// Query: *[_type == "room" && slug.current == $slug][0] {    crescatRoomId,    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    floor,    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),    pricePerHour,    panoramaUrl,    "hasSound": coalesce(hasSound, false),    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasLighting": coalesce(hasLighting, false),    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasAV": coalesce(hasAV, false),    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value),    specsUrl,    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }}, []),    "images": coalesce(images[] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}, []),    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {        _key,        "floor": coalesce(floor, 0),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler tittel]"),        "assetUrl": file.asset->url,        "mimeType": file.asset->mimeType,        "originalFilename": file.asset->originalFilename    }, []),    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {    _key,    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),    "kind": select(        linkType == "internalPage" => "internalDocument",        linkType == "internalPath" => "internalPath",        linkType == "external" => "external"    ),    "href": select(        linkType == "internalPage" && internalPage->_type == "homePage" => "/",        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,        linkType == "internalPath" => internalPath,        linkType == "external" => externalUrl    )}}
 export type RoomBySlugQueryResult = {
   crescatRoomId: number | null
-  title: string
+  title: string | "[Mangler romnavn]"
   slug: string
-  summary: string
+  summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
   suitedPurposes: Array<string> | Array<never>
@@ -2901,7 +2888,7 @@ export type RoomBySlugQueryResult = {
     | Array<never>
   bookingLink: {
     _key: null
-    label: string
+    label: string | "Lenke uten navn"
     kind: "external" | "internalDocument" | "internalPath"
     href:
       | string
@@ -2919,34 +2906,34 @@ export type RoomBySlugQueryResult = {
 import "@sanity/client"
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n    *[_type == "room"] | order(orderRank asc) {\n    _id,\n    "title": coalesce(title, ""),\n    "slug": coalesce(slug.current, "")\n}': EventRoomsQueryResult
-    '\n    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "taxonomyGroup": taxonomyGroup-> {\n        _id,\n        "name": coalesce(name, "")\n    }\n}': EventTypesQueryResult
-    '\n    *[_type == "studentGroup"] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(name, ""),\n    "category": coalesce(category, "")\n}': EventGroupsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && count(dates[startDate >= $today]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublishedEventsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isPromoted == true\n        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]\n        && count(*[\n          _type == "arrangement" &&\n          eventKind in ["seriesInstance", "festivalSession"] &&\n          parentEvent._ref == ^._id &&\n          approvalStatus == "approved" &&\n          count(dates[startDate >= $today]) > 0\n        ]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PromotedParentEventsQueryResult
+    '\n    *[_type == "room"] | order(orderRank asc) {\n    _id,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n    "slug": coalesce(slug.current, "")\n}': EventRoomsQueryResult
+    '\n    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n    "taxonomyGroup": taxonomyGroup-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")\n    }\n}': EventTypesQueryResult
+    '\n    *[_type == "studentGroup"] | order(orderRank asc, name asc) {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n    "category": coalesce(category, "")\n}': EventGroupsQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && count(dates[startDate >= $today]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublishedEventsQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isPromoted == true\n        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]\n        && count(*[\n          _type == "arrangement" &&\n          eventKind in ["seriesInstance", "festivalSession"] &&\n          parentEvent._ref == ^._id &&\n          approvalStatus == "approved" &&\n          count(dates[startDate >= $today]) > 0\n        ]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PromotedParentEventsQueryResult
     '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && defined(slug.current)\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && (\n            count(dates[startDate >= $today]) > 0\n            || eventStatus == "cancelled"\n        )\n    ] {\n        "slug": slug.current\n    }': PublishedEventSlugsQueryResult
-    '\n    *[_type == "arrangement" && slug.current == $slug && (\n        $preview == true\n        || (\n            approvalStatus == "approved"\n        )\n    )][0] {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': EventBySlugQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n    ] | order(dates[0].startDate asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(title, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    roomText,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': EventChildrenQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && count(dates[startDate >= $today]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n        _id,\n        _updatedAt,\n        "eventKind": coalesce(eventKind, "single"),\n        eventStatus,\n        "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n        "slug": coalesce(slug.current, ""),\n        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {\n            _key,\n            "startDate": coalesce(startDate, ""),\n            startTime,\n            endTime\n        }, []),\n        "room": room-> { "title": coalesce(title, "") },\n        roomText,\n        \n    title,\n    "description": description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    imageCaption,\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(name, ""), "slug": coalesce(slug.current, "") },\n    organizerText,\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(name, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(name, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n    }': FeedEventsQueryResult
-    '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      customLabel\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "labels": coalesce(labels, []),\n    "logoUrl": logo.asset->url,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    }, [])\n}': StudentGroupsQueryResult
+    '\n    *[_type == "arrangement" && slug.current == $slug && (\n        $preview == true\n        || (\n            approvalStatus == "approved"\n        )\n    )][0] {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': EventBySlugQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n    ] | order(dates[0].startDate asc) {\n    _id,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "approvalStatus": coalesce(approvalStatus, "pending"),\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    rrule,\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved"\n      ].dates[] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[] | order(startDate asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> { _id, "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': EventChildrenQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && count(dates[startDate >= $today]) > 0\n    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {\n        _id,\n        _updatedAt,\n        "eventKind": coalesce(eventKind, "single"),\n        eventStatus,\n        "parent": parentEvent-> {\n    _id,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n        "slug": coalesce(slug.current, ""),\n        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {\n            _key,\n            "startDate": coalesce(startDate, ""),\n            startTime,\n            endTime\n        }, []),\n        "room": room-> { "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "") },\n        "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n        \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n    }': FeedEventsQueryResult
+    '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "labels": coalesce(string::split(localizedLabels[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedLabels[language == "nb" && defined(value) && value != ""][0].value, "\\n"), []),\n    "logoUrl": logo.asset->url,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n},\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    }, [])\n}': StudentGroupsQueryResult
     '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
-    '*[_type == "studentGroup" && slug.current == $slug][0] {\n    "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),\n    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body, []),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      customLabel\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "logoUrl": logo.asset->url,\n    "parentGroup": parentGroup-> {\n        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    },\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(localizedName[language == $locale][0].value, localizedName[language == "nb"][0].value, name, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(localizedSummary[language == $locale][0].value, localizedSummary[language == "nb"][0].value, summary, "[Mangler kort beskrivelse]"),\n        "category": coalesce(category, "arbeidsgruppe"),\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }, []),\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': StudentGroupBySlugQueryResult
-    '{\n    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        "platform": coalesce(platform, "website"),\n        "label": coalesce(label, "[Mangler navn]"),\n        "url": coalesce(url, "#")\n    }, []),\n    "visitAddress": *[_type == "kontaktPage" && _id == "kontaktPage"][0].visitAddress,\n    "generalContact": *[_type == "kontaktPage" && _id == "kontaktPage"][0].generalContact,\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "vacationMode": {\n        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),\n        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,\n        "to": coalesce(\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt\n        )\n    },\n    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(title, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "hours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }, [])\n}': FooterQueryResult
-    '*[_type == "navbar" && _id == "navbar"][0] {\n    "items": coalesce(items[] {\n        _key,\n        "label": coalesce(label, "[Mangler navn]"),\n        href,\n        externalUrl,\n        "children": coalesce(children[] {\n            _key,\n            groupLabel,\n            "items": coalesce(items[] {\n                _key,\n                "label": coalesce(label, "[Mangler navn]"),\n                href,\n                externalUrl\n            }, [])\n        }, [])\n    }, [])\n}': NavbarQueryResult
+    '*[_type == "studentGroup" && slug.current == $slug][0] {\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    "body": coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, []),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "logoUrl": logo.asset->url,\n    "parentGroup": parentGroup-> {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    },\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n        "category": coalesce(category, "arbeidsgruppe"),\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n    }, []),\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n}': StudentGroupBySlugQueryResult
+    '{\n    "socialLinks": coalesce(*[_type == "footer" && _id == "footer"][0].socialLinks[] {\n        _key,\n        "platform": coalesce(platform, "website"),\n        "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),\n        "url": coalesce(url, "#")\n    }, []),\n    "visitAddress": coalesce(*[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, *[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),\n    "generalContact": coalesce(*[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, *[_type == "kontaktPage" && _id == "kontaktPage"][0].localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "vacationMode": {\n        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),\n        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,\n        "to": coalesce(\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt\n        )\n    },\n    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "hours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n}\n    }, [])\n}': FooterQueryResult
+    '*[_type == "navbar" && _id == "navbar"][0] {\n    "items": coalesce(items[] {\n        _key,\n                "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),\n        href,\n        externalUrl,\n        "children": coalesce(children[] {\n            _key,\n            "groupLabel": coalesce(localizedGroupLabel[language == $locale && defined(value) && value != ""][0].value, localizedGroupLabel[language == "nb" && defined(value) && value != ""][0].value),\n            "items": coalesce(items[] {\n                _key,\n                    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),\n                href,\n                externalUrl\n            }, [])\n        }, [])\n    }, [])\n}': NavbarQueryResult
     '*[_type == "siteMetadata" && _id == "siteMetadata"][0] {\n    "operationsManagerHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "vacationMode": {\n        "enabled": coalesce(vacationMode.enabled, false),\n        "from": vacationMode.from,\n        "to": coalesce(vacationMode.to, vacationMode.reopensAt)\n    },\n    "houseClosedDates": coalesce(houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, [])\n}': HouseHoursQueryResult
-    '*[_type == "homePage" && _id == "homePage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),\n    primaryCta {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale][0].value, localizedLabel[language == "nb"][0].value, label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': HomePageQueryResult
-    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),\n    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),\n    "sections": coalesce(sections[] {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}, []),\n    bookingLink {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale][0].value, localizedLabel[language == "nb"][0].value, label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomsPageQueryResult
-    '*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),\n    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),\n    "sponsors": coalesce(sponsors[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler sponsornavn]"),\n        website,\n        "logoUrl": logo.asset->url,\n        "logoAlt": coalesce(logo.alt, title),\n        "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}': SponsorsPageQueryResult
-    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n    "description": coalesce(localizedDescription[language == $locale][0].value, localizedDescription[language == "nb"][0].value, description),\n    "hasEnglishTranslation": defined(localizedTitle[language == "en"][0].value),\n    "sections": coalesce(sections[] {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}, []),\n    "faq": coalesce(faq[] {\n        _key,\n        "hasEnglishTranslation": defined(localizedQuestion[language == "en"][0].value),\n        "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, question, "[Mangler sp\xF8rsm\xE5l]"),\n        "answer": select(\n          defined(localizedAnswer[language == $locale][0].value) => string::split(localizedAnswer[language == $locale][0].value, "\n"),\n          defined(localizedAnswer[language == "nb"][0].value) => string::split(localizedAnswer[language == "nb"][0].value, "\n"),\n          coalesce(answer, [])\n        )\n    }, [])\n}': GroupsPageQueryResult
+    '*[_type == "homePage" && _id == "homePage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    primaryCta {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': HomePageNbQueryResult
+    '*[_type == "roomsPage" && _id == "roomsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    "sections": coalesce(sections[] {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}, []),\n    bookingLink {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomsPageQueryResult
+    '*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    "sponsors": coalesce(sponsors[] {\n        _key,\n        "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler sponsornavn]"),\n        website,\n        "logoUrl": logo.asset->url,\n        "logoAlt": coalesce(localizedLogoAlt[language == $locale && defined(value) && value != ""][0].value, localizedLogoAlt[language == "nb" && defined(value) && value != ""][0].value, coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)),\n        "description": coalesce(coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}': SponsorsPageQueryResult
+    '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    "hasEnglishTranslation": defined(localizedEyebrow[language == "en" && defined(value) && value != ""][0].value) && defined(localizedTitle[language == "en" && defined(value) && value != ""][0].value) && defined(localizedDescription[language == "en" && defined(value) && value != ""][0].value),\n    "sections": coalesce(sections[] {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n}, []),\n    "faq": coalesce(faq[] {\n        _key,\n        "hasEnglishTranslation": defined(localizedQuestion[language == "en" && defined(value) && value != ""][0].value) && defined(localizedAnswer[language == "en" && defined(value) && value != ""][0].value),\n        "question": coalesce(localizedQuestion[language == $locale && defined(value) && value != ""][0].value, localizedQuestion[language == "nb" && defined(value) && value != ""][0].value, "[Mangler sp\xF8rsm\xE5l]"),\n        "answer": select(\n          defined(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)) => string::split(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null), "\n"),\n          []\n        )\n    }, [])\n}': GroupsPageQueryResult
     '*[\n    _type == "page"\n    && defined(slug.current)\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ] {\n    "slug": slug.current\n}': PageSlugsQueryResult
-    '*[\n    _type == "page"\n    && slug.current == $slug\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ][0] {\n    _id,\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "[Mangler tittel]"),\n    "slug": coalesce(slug.current, ""),\n    "content": coalesce(localizedContent[language == $locale][0].value, localizedContent[language == "nb"][0].value, content)\n}': PageBySlugQueryResult
-    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    visitAddress,\n    postAddress,\n    invoiceAddress,\n    invoiceEmail,\n    ehf,\n    generalContact,\n    pressContact,\n    "contactGroups": coalesce(contactGroups[] {\n        _key,\n        "title": coalesce(title, "[Mangler gruppenavn]"),\n        "persons": coalesce(persons[] {\n            _key,\n            "name": coalesce(name, "[Mangler navn]"),\n            rolle,\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }, [])\n    }, [])\n}': KontaktPageQueryResult
-    '*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale][0].value, localizedEyebrow[language == "nb"][0].value, eyebrow),\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title, "Nyttig info"),\n    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),\n    "sections": coalesce(sections[] {\n        _type == "editorialSection" => {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n},\n        _type == "infoAddressBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),\n    "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, []),\n    address,\n    mapUrl\n},\n        _type == "infoAccordionBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale][0].value, localizedHeading[language == "nb"][0].value, heading),\n    "intro": coalesce(localizedIntro[language == $locale][0].value, localizedIntro[language == "nb"][0].value, intro),\n    "items": coalesce(items[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale][0].value, localizedTitle[language == "nb"][0].value, title),\n        "body": coalesce(localizedBody[language == $locale][0].value, localizedBody[language == "nb"][0].value, body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}\n    }, [])\n}': UsefulInfoPageQueryResult
-    '*[_type == "linkInBio" && _id == "linkInBio"][0] {\n    "heading": coalesce(heading, "[Mangler overskrift]"),\n    bio,\n    "links": coalesce(links[] {\n        _key,\n        link {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n        emoji,\n        "emojiImageUrl": emojiImage.asset->url,\n        "highlight": coalesce(highlight, false)\n    }, [])\n}': LinkInBioQueryResult
-    '*[_type == "room"] | order(orderRank asc) {\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(suitedPurposes, []),\n    floor,\n    bar,\n    "hasSound": coalesce(hasSound, false),\n    soundDetails,\n    "hasLighting": coalesce(hasLighting, false),\n    lightingDetails,\n    "hasAV": coalesce(hasAV, false),\n    avDetails,\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n}': RoomsQueryResult
-    '{\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "vacationMode": {\n        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),\n        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,\n        "to": coalesce(\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt\n        )\n    },\n    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(title, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n        bar,\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}\n    }, [])\n}': BarPreviewsQueryResult
+    '*[\n    _type == "page"\n    && slug.current == $slug\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ][0] {\n    _id,\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "slug": coalesce(slug.current, ""),\n    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")\n}': PageBySlugQueryResult
+    '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    "visitAddress": coalesce(localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),\n    "postAddress": coalesce(localizedPostAddress[language == $locale && defined(value) && value != ""][0].value, localizedPostAddress[language == "nb" && defined(value) && value != ""][0].value),\n    "invoiceAddress": coalesce(localizedInvoiceAddress[language == $locale && defined(value) && value != ""][0].value, localizedInvoiceAddress[language == "nb" && defined(value) && value != ""][0].value),\n    invoiceEmail,\n    ehf,\n    "generalContact": coalesce(localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),\n    "pressContact": coalesce(localizedPressContact[language == $locale && defined(value) && value != ""][0].value, localizedPressContact[language == "nb" && defined(value) && value != ""][0].value),\n    "contactGroups": coalesce(contactGroups[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "persons": coalesce(persons[] {\n            _key,\n            "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),\n            "rolle": coalesce(localizedRole[language == $locale && defined(value) && value != ""][0].value, localizedRole[language == "nb" && defined(value) && value != ""][0].value),\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }, [])\n    }, [])\n}': KontaktPageQueryResult
+    '*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "Nyttig info"),\n    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),\n    "sections": coalesce(sections[] {\n        _type == "editorialSection" => {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n},\n        _type == "infoAddressBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, []),\n    "address": coalesce(localizedAddress[language == $locale && defined(value) && value != ""][0].value, localizedAddress[language == "nb" && defined(value) && value != ""][0].value),\n    mapUrl\n},\n        _type == "infoAccordionBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),\n    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),\n    "items": coalesce(items[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n        "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}\n    }, [])\n}': UsefulInfoPageQueryResult
+    '*[_type == "linkInBio" && _id == "linkInBio"][0] {\n    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, "[Mangler overskrift]"),\n    "bio": coalesce(localizedBio[language == $locale && defined(value) && value != ""][0].value, localizedBio[language == "nb" && defined(value) && value != ""][0].value),\n    "links": coalesce(links[] {\n        _key,\n        link {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n},\n        emoji,\n        "emojiImageUrl": emojiImage.asset->url,\n        "highlight": coalesce(highlight, false)\n    }, [])\n}': LinkInBioQueryResult
+    '*[_type == "room"] | order(orderRank asc) {\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\\n"), []),\n    floor,\n    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),\n    "hasSound": coalesce(hasSound, false),\n    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasLighting": coalesce(hasLighting, false),\n    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasAV": coalesce(hasAV, false),\n    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n}': RoomsQueryResult
+    '{\n    "houseClosedDates": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].houseClosedDates[] {\n        _key,\n        "date": coalesce(date, ""),\n        note\n    }, []),\n    "vacationMode": {\n        "enabled": coalesce(*[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.enabled, false),\n        "from": *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.from,\n        "to": coalesce(\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.to,\n            *[_type == "siteMetadata" && _id == "siteMetadata"][0].vacationMode.reopensAt\n        )\n    },\n    "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n        "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),\n        "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n        "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n    }, [])\n}': BarPreviewsQueryResult
     '*[_type == "room" && defined(slug.current)] {\n    "slug": slug.current\n}': RoomSlugsQueryResult
-    '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    pricePerHour,\n    floor,\n    "suitedPurposes": coalesce(suitedPurposes, []),\n    bar,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n},\n    "hasSound": coalesce(hasSound, false),\n    soundDetails,\n    "hasLighting": coalesce(hasLighting, false),\n    lightingDetails,\n    "hasAV": coalesce(hasAV, false),\n    avDetails\n}': BookableRoomsQueryResult
-    '*[_type == "room" && slug.current == $slug][0] {\n    crescatRoomId,\n    "title": coalesce(title, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(summary, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(suitedPurposes, []),\n    floor,\n    bar,\n    pricePerHour,\n    panoramaUrl,\n    "hasSound": coalesce(hasSound, false),\n    soundDetails,\n    "hasLighting": coalesce(hasLighting, false),\n    lightingDetails,\n    "hasAV": coalesce(hasAV, false),\n    avDetails,\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "body": coalesce(body[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, []),\n    "images": coalesce(images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    alt,\n    caption\n}, []),\n    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        "floor": coalesce(floor, 0),\n        "title": coalesce(title, "[Mangler tittel]"),\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    }, []),\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    "label": coalesce(label, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
+    '*[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    crescatRoomId,\n    pricePerHour,\n    floor,\n    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\\n"), []),\n    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "image": images[0] {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n},\n    "hasSound": coalesce(hasSound, false),\n    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasLighting": coalesce(hasLighting, false),\n    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasAV": coalesce(hasAV, false),\n    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value)\n}': BookableRoomsQueryResult
+    '*[_type == "room" && slug.current == $slug][0] {\n    crescatRoomId,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    capacityStanding,\n    capacitySeated,\n    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\\n"), []),\n    floor,\n    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),\n    pricePerHour,\n    panoramaUrl,\n    "hasSound": coalesce(hasSound, false),\n    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasLighting": coalesce(hasLighting, false),\n    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),\n    "hasAV": coalesce(hasAV, false),\n    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value),\n    specsUrl,\n    "openingHours": openingHours {\n    rows[] {\n        _key,\n        weekdays,\n        "status": coalesce(status, select(closed == true => "closed", "open")),\n        note,\n        "duration": duration {\n    start,\n    end\n}\n    }\n},\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n}, []),\n    "images": coalesce(images[] {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}, []),\n    "floorPlans": coalesce(*[_type == "roomsPage" && _id == "roomsPage"][0].floorPlans[] {\n        _key,\n        "floor": coalesce(floor, 0),\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler tittel]"),\n        "assetUrl": file.asset->url,\n        "mimeType": file.asset->mimeType,\n        "originalFilename": file.asset->originalFilename\n    }, []),\n    "bookingLink": *[_type == "roomsPage" && _id == "roomsPage"][0].bookingLink {\n    _key,\n    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "Lenke uten navn"),\n    "kind": select(\n        linkType == "internalPage" => "internalDocument",\n        linkType == "internalPath" => "internalPath",\n        linkType == "external" => "external"\n    ),\n    "href": select(\n        linkType == "internalPage" && internalPage->_type == "homePage" => "/",\n        linkType == "internalPage" && internalPage->_type == "roomsPage" => "/rom",\n        linkType == "internalPage" && internalPage->_type == "groupsPage" => "/grupper",\n        linkType == "internalPage" && internalPage._ref == "blifrivilligPage" => "/grupper",\n        linkType == "internalPage" && internalPage->_type == "sponsorsPage" => "/sponsorer",\n        linkType == "internalPage" && internalPage->_type == "kontaktPage" => "/kontakt",\n        linkType == "internalPage" && internalPage->_type == "usefulInfoPage" => "/nyttig",\n        linkType == "internalPage" && internalPage->_type == "page" && defined(internalPage->slug.current) => "/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "arrangement" && defined(internalPage->slug.current) => "/arrangementer/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "room" && defined(internalPage->slug.current) => "/rom/" + internalPage->slug.current,\n        linkType == "internalPage" && internalPage->_type == "studentGroup" && defined(internalPage->slug.current) => "/grupper/" + internalPage->slug.current,\n        linkType == "internalPath" => internalPath,\n        linkType == "external" => externalUrl\n    )\n}\n}': RoomBySlugQueryResult
   }
 }

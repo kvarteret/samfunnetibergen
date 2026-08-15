@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { localizedArrayField } from "../../shared/localizedFields"
 
 export const sponsorsPage = defineType({
   name: "sponsorsPage",
@@ -11,44 +12,29 @@ export const sponsorsPage = defineType({
     { name: "sponsors", title: "Sponsorer" },
   ],
   fields: [
-    defineField({
-      name: "eyebrow",
-      title: "Eyebrow",
-      type: "string",
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedEyebrow",
-      title: "Eyebrow (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "title",
-      title: "Tittel",
-      type: "string",
-      group: "hero",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedTitle",
-      title: "Tittel (oversettelser)",
-      type: "internationalizedArrayString",
-      group: "hero",
-    }),
-    defineField({
-      name: "description",
-      title: "Beskrivelse",
-      type: "text",
-      rows: 4,
-      group: "hero",
-    }),
-    defineField({
-      name: "localizedDescription",
-      title: "Beskrivelse (oversettelser)",
-      type: "internationalizedArrayText",
-      group: "hero",
-    }),
+    localizedArrayField(
+      "localizedEyebrow",
+      "Eyebrow",
+      "internationalizedArrayString",
+      {
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedTitle",
+      "Tittel",
+      "internationalizedArrayString",
+      {
+        required: true,
+        group: "hero",
+      },
+    ),
+    localizedArrayField(
+      "localizedDescription",
+      "Beskrivelse",
+      "internationalizedArrayText",
+      { rows: 4, group: "hero" },
+    ),
     defineField({
       name: "sponsors",
       title: "Sponsorer",
@@ -66,27 +52,26 @@ export const sponsorsPage = defineType({
               type: "image",
               options: { hotspot: true },
             }),
-            defineField({
-              name: "title",
-              title: "Tittel",
-              type: "string",
-              validation: rule => rule.required(),
-            }),
-            defineField({
-              name: "localizedTitle",
-              title: "Tittel (oversettelser)",
-              type: "internationalizedArrayString",
-            }),
-            defineField({
-              name: "description",
-              title: "Beskrivelse",
-              type: "portableTextContent",
-            }),
-            defineField({
-              name: "localizedDescription",
-              title: "Beskrivelse (oversettelser)",
-              type: "internationalizedArrayPortableTextContent",
-            }),
+            localizedArrayField(
+              "localizedLogoAlt",
+              "Logo alt-tekst",
+              "internationalizedArrayString",
+              {
+                description: "Beskriv logoen per språk for tilgjengelighet.",
+              },
+            ),
+            localizedArrayField(
+              "localizedTitle",
+              "Tittel",
+              "internationalizedArrayString",
+              { required: true },
+            ),
+            localizedArrayField(
+              "localizedDescription",
+              "Beskrivelse",
+              "internationalizedArrayPortableTextContent",
+              {},
+            ),
             defineField({
               name: "website",
               title: "Nettsted",
@@ -95,16 +80,29 @@ export const sponsorsPage = defineType({
             }),
           ],
           preview: {
-            select: { title: "title", media: "logo" },
+            select: { title: "localizedTitle", media: "logo" },
+            prepare({ title, media }) {
+              return {
+                title: Array.isArray(title)
+                  ? title.find(item => item?.language === "nb")?.value
+                  : title,
+                media,
+              }
+            },
           },
         }),
       ],
     }),
   ],
   preview: {
-    select: { title: "title" },
+    select: { title: "localizedTitle" },
     prepare({ title }) {
-      return { title: title ?? "Sponsorer-side" }
+      return {
+        title: Array.isArray(title)
+          ? (title.find(item => item?.language === "nb")?.value ??
+            "Sponsorer-side")
+          : (title ?? "Sponsorer-side"),
+      }
     },
   },
 })

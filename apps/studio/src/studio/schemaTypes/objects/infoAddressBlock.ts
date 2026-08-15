@@ -1,5 +1,6 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
+import { localizedArrayField } from "../shared/localizedFields"
 
 export const infoAddressBlock = defineType({
   name: "infoAddressBlock",
@@ -7,32 +8,24 @@ export const infoAddressBlock = defineType({
   type: "object",
   icon: icons.pin,
   fields: [
-    defineField({
-      name: "heading",
-      title: "Overskrift",
-      type: "string",
-      validation: rule => rule.required(),
-    }),
-    defineField({
-      name: "localizedHeading",
-      title: "Overskrift (oversettelser)",
-      type: "internationalizedArrayString",
-    }),
-    defineField({
-      name: "body",
-      title: "Tekst",
-      type: "portableTextContent",
-    }),
-    defineField({
-      name: "localizedBody",
-      title: "Tekst (oversettelser)",
-      type: "internationalizedArrayPortableTextContent",
-    }),
-    defineField({
-      name: "address",
-      title: "Adresse",
-      type: "string",
-    }),
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedBody",
+      "Tekst",
+      "internationalizedArrayPortableTextContent",
+      {},
+    ),
+    localizedArrayField(
+      "localizedAddress",
+      "Adresse",
+      "internationalizedArrayString",
+      {},
+    ),
     defineField({
       name: "mapUrl",
       title: "Kart-lenke",
@@ -41,9 +34,16 @@ export const infoAddressBlock = defineType({
     }),
   ],
   preview: {
-    select: { title: "heading", subtitle: "address" },
+    select: { title: "localizedHeading", subtitle: "localizedAddress" },
     prepare({ title, subtitle }) {
-      return { title: title ?? "Adkomst", subtitle }
+      const localized = (value: unknown) =>
+        Array.isArray(value)
+          ? value.find(item => item?.language === "nb")?.value
+          : value
+      return {
+        title: localized(title) ?? "Adkomst",
+        subtitle: localized(subtitle),
+      }
     },
   },
 })
