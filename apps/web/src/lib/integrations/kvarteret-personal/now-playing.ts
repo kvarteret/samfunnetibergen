@@ -1,5 +1,7 @@
 import "server-only"
 
+import { injectActiveTraceContext } from "@/lib/observability"
+
 export interface NowPlayingState {
   authorized: boolean
   hasTrack: boolean
@@ -52,8 +54,10 @@ function parseNowPlaying(payload: unknown): NowPlayingState {
 }
 
 export async function fetchNowPlaying(): Promise<NowPlayingState | null> {
+  const headers: Record<string, string> = { Accept: "application/json" }
+  injectActiveTraceContext(headers)
   const response = await fetch(`${PERSONAL_APP_BASE_URL}/api/now-playing`, {
-    headers: { Accept: "application/json" },
+    headers,
     cache: "no-store",
   })
 

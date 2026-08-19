@@ -1,3 +1,4 @@
+import { injectActiveTraceContext } from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
@@ -46,9 +47,13 @@ export async function POST(request: Request) {
     typeof raw.contactEmail === "string" ? raw.contactEmail.trim() : null
 
   try {
+    const outboundHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    }
+    injectActiveTraceContext(outboundHeaders)
     await fetch(`${PERSONAL_APP_BASE_URL}/api/v1/feedback`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: outboundHeaders,
       body: JSON.stringify({
         source: "nettside",
         feedback_type: feedbackType,
