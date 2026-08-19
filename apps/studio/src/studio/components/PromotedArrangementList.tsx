@@ -41,7 +41,11 @@ const FEATURED_DOCUMENTS_QUERY = `*[
   (${PROMOTABLE_ARRANGEMENTS_FILTER})
 ] {
   _id,
-  title,
+  "title": coalesce(
+    localizedTitle[language == "nb" && defined(value) && value != ""][0].value,
+    localizedTitle[language == "en" && defined(value) && value != ""][0].value,
+    "Arrangement uten tittel"
+  ),
   "eventKind": coalesce(eventKind, "single"),
   "approvalStatus": coalesce(approvalStatus, "pending"),
   isPromoted,
