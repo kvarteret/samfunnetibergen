@@ -26,7 +26,7 @@ export const footerQuery = defineQuery(`{
         )
     },
     "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours ${openingHoursProjection},
-    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(title asc) {
+    "roomHours": coalesce(*[_type == "room" && slug.current in ["grondahls", "stjernesalen"]] | order(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value) asc) {
         "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),
         "slug": coalesce(slug.current, ""),
         "hours": openingHours ${openingHoursProjection}

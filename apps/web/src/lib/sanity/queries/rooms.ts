@@ -48,7 +48,7 @@ export const barPreviewsQuery = defineQuery(`{
         )
     },
     "operationsManagerHours": *[_type == "siteMetadata" && _id == "siteMetadata"][0].openingHours ${openingHoursProjection},
-    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(title asc) {
+    "rooms": coalesce(*[_type == "room" && slug.current in ["stjernesalen", "grondahls"]] | order(${localizedRoomTitle} asc) {
         "title": ${localizedRoomTitle},
         "slug": coalesce(slug.current, ""),
         "summary": ${localizedRoomSummary},

@@ -17,7 +17,7 @@ export const eventRoomsQuery = defineQuery(`
 }`)
 
 export const eventTypesQuery = defineQuery(`
-    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, name asc) {
+    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, ${localizedName} asc) {
     _id,
     "name": ${localizedName},
     "taxonomyGroup": taxonomyGroup-> {
@@ -27,7 +27,7 @@ export const eventTypesQuery = defineQuery(`
 }`)
 
 export const eventGroupsQuery = defineQuery(`
-    *[_type == "studentGroup"] | order(orderRank asc, name asc) {
+    *[_type == "studentGroup"] | order(orderRank asc, ${localizedName} asc) {
     _id,
     "name": ${localizedName},
     "category": coalesce(category, "")

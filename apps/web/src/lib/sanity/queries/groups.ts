@@ -22,7 +22,7 @@ export const studentGroupsQuery =
     "labels": ${groupLabels},
     "logoUrl": logo.asset->url,
     "image": image ${sourcedImageProjection},
-    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
+    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, ${groupName} asc) {
         "name": ${groupName},
         "slug": coalesce(slug.current, "")
     }, [])
@@ -52,7 +52,7 @@ export const studentGroupBySlugQuery =
         "name": ${groupName},
         "slug": coalesce(slug.current, "")
     },
-    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, name asc) {
+    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, ${groupName} asc) {
         "name": ${groupName},
         "slug": coalesce(slug.current, ""),
         "summary": ${groupSummary},
