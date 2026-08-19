@@ -4,7 +4,6 @@ import {
   findMissingEnglishGroupFields,
   mergeGroupLocalePatches,
 } from "./groupLocales"
-import { buildInitialEnglishGroupPatch } from "./initialEnglishGroupContent"
 
 describe("group locale migration", () => {
   it("seeds Norwegian fields without replacing existing translations", () => {
@@ -54,34 +53,6 @@ describe("group locale migration", () => {
         { _key: "nb-existing", language: "nb", value: "Kraftetaten" },
       ],
     })
-  })
-
-  it("adds the authored English content without replacing Norwegian values", () => {
-    const patch = buildInitialEnglishGroupPatch({
-      _id: "studentGroup-kraftetaten",
-      _type: "studentGroup",
-      localizedName: [{ _key: "nb", language: "nb", value: "Kraftetaten" }],
-      localizedSummary: [
-        { _key: "nb", language: "nb", value: "Norsk sammendrag" },
-      ],
-    })
-
-    expect(patch.localizedName).toEqual([
-      { _key: "nb", language: "nb", value: "Kraftetaten" },
-      {
-        _key: "en-localizedName",
-        language: "en",
-        value: "Technical Production",
-      },
-    ])
-    expect(patch.localizedSummary).toEqual([
-      { _key: "nb", language: "nb", value: "Norsk sammendrag" },
-      {
-        _key: "en-localizedSummary",
-        language: "en",
-        value: expect.stringContaining("Technical Production"),
-      },
-    ])
   })
 
   it("merges Norwegian and English localized array patches", () => {

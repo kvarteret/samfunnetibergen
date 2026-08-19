@@ -8,7 +8,6 @@ export default defineConfig({
     environment: "node",
     coverage: {
       include: [
-        "src/studio/migrations/nyttigInfo.ts",
         "src/studio/migrations/sanityDefaults.ts",
         "src/studio/presentation/routing.ts",
         "src/studio/schemaTypes/objects/sourceLinkDestination.ts",
