@@ -10,6 +10,13 @@ import {
 } from "@opentelemetry/sdk-logs"
 import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
+import {
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+  ATTR_SERVICE_INSTANCE_ID,
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_VERSION,
+  SEMRESATTRS_CLOUD_REGION,
+} from "@opentelemetry/semantic-conventions"
 
 const INFO_SEVERITY = 9
 const POSTHOG_OTLP_BASE_URL = "https://eu.i.posthog.com/i/v1"
@@ -40,14 +47,14 @@ if (projectToken) {
     "Content-Type": "application/json",
   }
   const resource = resourceFromAttributes({
-    "service.name": "samfunnetibergen",
-    "deployment.environment.name": process.env.VERCEL_ENV ?? "development",
-    "service.version":
+    [ATTR_SERVICE_NAME]: "samfunnetibergen",
+    [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.VERCEL_ENV ?? "development",
+    [ATTR_SERVICE_VERSION]:
       process.env.NEXT_PUBLIC_GIT_SHA ??
       process.env.VERCEL_GIT_COMMIT_SHA ??
       "unknown",
-    "cloud.region": process.env.VERCEL_REGION ?? "local",
-    "service.instance.id": process.env.VERCEL_DEPLOYMENT_ID ?? "local",
+    [SEMRESATTRS_CLOUD_REGION]: process.env.VERCEL_REGION ?? "local",
+    [ATTR_SERVICE_INSTANCE_ID]: process.env.VERCEL_DEPLOYMENT_ID ?? "local",
   })
 
   const tracerProvider = new NodeTracerProvider({
@@ -67,12 +74,12 @@ if (projectToken) {
     resource,
     processors: [
       new InfoAndAboveProcessor(
-        new SimpleLogRecordProcessor(
-          new OTLPLogExporter({
+        new SimpleLogRecordProcessor({
+          exporter: new OTLPLogExporter({
             url: `${POSTHOG_OTLP_BASE_URL}/logs`,
             headers,
           }),
-        ),
+        }),
       ),
     ],
   })

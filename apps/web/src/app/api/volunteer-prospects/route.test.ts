@@ -13,12 +13,16 @@ const {
   fetchMock,
   posthogCaptureMock,
   rateLimitMock,
+  spanSetAttributeMock,
+  withOperationalSpanMock,
 } = vi.hoisted(() => ({
   captureMock: vi.fn(),
   emitOperationalEventMock: vi.fn(),
   fetchMock: vi.fn(),
   posthogCaptureMock: vi.fn(),
   rateLimitMock: vi.fn().mockResolvedValue(false),
+  spanSetAttributeMock: vi.fn(),
+  withOperationalSpanMock: vi.fn(),
 }))
 
 vi.stubGlobal("fetch", fetchMock)
@@ -49,6 +53,14 @@ vi.mock("@/lib/observability", () => ({
       "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01"
     headers.tracestate = "vendor=test"
   },
+  withOperationalSpan: withOperationalSpanMock.mockImplementation(
+    async (
+      _name: string,
+      run: (span: {
+        setAttribute: typeof spanSetAttributeMock
+      }) => Promise<unknown>,
+    ) => run({ setAttribute: spanSetAttributeMock }),
+  ),
 }))
 
 import { POST } from "./route"
@@ -89,6 +101,8 @@ describe("POST /api/volunteer-prospects", () => {
     posthogCaptureMock.mockReset()
     rateLimitMock.mockReset()
     rateLimitMock.mockResolvedValue(false)
+    spanSetAttributeMock.mockClear()
+    withOperationalSpanMock.mockClear()
   })
 
   it("forwards the Sanity group slug unchanged", async () => {
@@ -131,6 +145,11 @@ describe("POST /api/volunteer-prospects", () => {
         outcome: "accepted",
       }),
     )
+    expect(withOperationalSpanMock).toHaveBeenCalledWith(
+      "volunteer.prospect.submit",
+      expect.any(Function),
+    )
+    expect(spanSetAttributeMock).toHaveBeenCalledWith("registration_id", 42)
   })
 
   it("forwards valid submissions without checking the local rate limiter", async () => {

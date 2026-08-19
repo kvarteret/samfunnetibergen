@@ -13,6 +13,7 @@ import {
   currentTraceFields,
   emitOperationalEvent,
   injectActiveTraceContext,
+  withOperationalSpan,
 } from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
@@ -153,71 +154,82 @@ export async function POST(request: Request) {
       ...authenticationHeaders,
     }
     injectActiveTraceContext(outboundHeaders)
-    const response = await fetch(
-      `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
-      {
-        method: "POST",
-        headers: outboundHeaders,
-        body: serializedRequestBody,
-        signal: AbortSignal.timeout(10_000),
-      },
-    )
-
-    if (!response.ok) {
-      const errorBody = (await response.json().catch(() => null)) as {
-        detail?: unknown
-      } | null
-      // Forward the Personal backend's own message (e.g. duplicate email)
-      // when it is a plain string; anything structured stays server-side.
-      const detail =
-        typeof errorBody?.detail === "string" ? errorBody.detail : GENERIC_ERROR
-      if (response.status !== 409) {
-        captureSubmitFailure(
-          "volunteer_application",
-          new Error(
-            `Volunteer prospect forwarding failed with ${response.status}`,
-          ),
+    return await withOperationalSpan(
+      "volunteer.prospect.submit",
+      async span => {
+        const response = await fetch(
+          `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
           {
-            source: "volunteer-prospects-route",
-            failure_branch: "personal_backend_rejected",
-            status: response.status,
-            first_choice_group_slug: requestBody.first_choice_group_slug,
-            has_second_choice: Boolean(requestBody.second_choice_group_slug),
+            method: "POST",
+            headers: outboundHeaders,
+            body: serializedRequestBody,
+            signal: AbortSignal.timeout(10_000),
           },
         )
-      }
-      return NextResponse.json(
-        { detail },
-        { status: response.status === 409 ? 409 : 422 },
-      )
-    }
 
-    const data = (await response.json().catch(() => null)) as {
-      registrationId?: number | string
-    } | null
-    const registrationId = data?.registrationId
-    const traceFields = currentTraceFields()
-    emitOperationalEvent("volunteer.application.submitted", {
-      registration_id: registrationId,
-      outcome: "accepted",
-    })
-    try {
-      getPostHogClient().capture({
-        distinctId: "anonymous",
-        event: "volunteer_application_submitted",
-        properties: {
-          $process_person_profile: false,
-          first_choice_group_slug: requestBody.first_choice_group_slug,
-          has_second_choice: Boolean(requestBody.second_choice_group_slug),
-          has_friend_referrals: (requestBody.friend_emails?.length ?? 0) > 0,
+        if (!response.ok) {
+          const errorBody = (await response.json().catch(() => null)) as {
+            detail?: unknown
+          } | null
+          // Forward the Personal backend's own message (e.g. duplicate email)
+          // when it is a plain string; anything structured stays server-side.
+          const detail =
+            typeof errorBody?.detail === "string"
+              ? errorBody.detail
+              : GENERIC_ERROR
+          if (response.status !== 409) {
+            captureSubmitFailure(
+              "volunteer_application",
+              new Error(
+                `Volunteer prospect forwarding failed with ${response.status}`,
+              ),
+              {
+                source: "volunteer-prospects-route",
+                failure_branch: "personal_backend_rejected",
+                status: response.status,
+                first_choice_group_slug: requestBody.first_choice_group_slug,
+                has_second_choice: Boolean(
+                  requestBody.second_choice_group_slug,
+                ),
+              },
+            )
+          }
+          return NextResponse.json(
+            { detail },
+            { status: response.status === 409 ? 409 : 422 },
+          )
+        }
+
+        const data = (await response.json().catch(() => null)) as {
+          registrationId?: number | string
+        } | null
+        const registrationId = data?.registrationId
+        span.setAttribute("registration_id", registrationId ?? "")
+        const traceFields = currentTraceFields()
+        emitOperationalEvent("volunteer.application.submitted", {
           registration_id: registrationId,
-          trace_id: traceFields.trace_id,
-        },
-      })
-    } catch {
-      // A successful Personal registration remains successful if analytics fails.
-    }
-    return NextResponse.json({ registrationId }, { status: 201 })
+          outcome: "accepted",
+        })
+        try {
+          getPostHogClient().capture({
+            distinctId: "anonymous",
+            event: "volunteer_application_submitted",
+            properties: {
+              $process_person_profile: false,
+              first_choice_group_slug: requestBody.first_choice_group_slug,
+              has_second_choice: Boolean(requestBody.second_choice_group_slug),
+              has_friend_referrals:
+                (requestBody.friend_emails?.length ?? 0) > 0,
+              registration_id: registrationId,
+              trace_id: traceFields.trace_id,
+            },
+          })
+        } catch {
+          // A successful Personal registration remains successful if analytics fails.
+        }
+        return NextResponse.json({ registrationId }, { status: 201 })
+      },
+    )
   } catch {
     captureSubmitFailure(
       "volunteer_application",
