@@ -65,6 +65,8 @@ You can verify this in the PostHog UI after deploy (traces view) or locally via 
   Rationale: "only significant requests or specific changes" — each span maps to a business operation a user performs daily; lower-volume admin transitions (`start_trial`, `reject`, `reopen`, `restore_volunteer`, `contact`) stay unspanned to keep the signal focused. The auto-instrumented HTTP spans remain because they are the trace's root spans and the join points between systems. Date/Author: 2026-08-19 / Pi.
 - Decision: The public prospect registration gets its span at the API endpoint (`volunteer.prospect.register` in `app/api/v1/volunteer_prospects.py`), not also inside the workflow's `register_public_prospect` method, to avoid double-wrapping the same operation.
   Rationale: The endpoint is the single entry point for this operation and already sets `registration_id` on the current span. Date/Author: 2026-08-19 / Pi.
+- Decision (revised after review): Wrap workflow method bodies directly with `with with_named_span(...):` rather than splitting each into a public wrapper plus `_<name>_impl` private method.
+  Rationale: The `_impl` split changes method structure, stack traces, and patch/mock targets solely for instrumentation; a maintainer review on PR #42 rejected it. Direct wrapping is mechanically simpler even though it re-indents large bodies. `registration_id` attributes land on the named spans via the existing `_record_lifecycle` calls, so no result-derived attributes are lost. Date/Author: 2026-08-19 / Pi (after kvarteret/kvarteret-personal#42 review).
 - Decision: Add explicit `injectActiveTraceContext` calls to the web's now-playing and feedback outbound fetches.
   Rationale: Next.js likely injects `traceparent` automatically, but explicit injection matches the house pattern used for volunteer-prospects and Crescat and makes the join deterministic. Date/Author: 2026-08-19 / Pi.
 
@@ -131,17 +133,7 @@ Span names follow a `domain.operation` convention. Attributes are domain fields 
 
    (Keep the existing `except` chain unchanged; the helper marks the span ERROR on any raised exception before the `except` block runs.) Import `with_named_span` from `app.observability`.
 
-4. `app/domain/volunteer_applications/workflow.py`: wrap the state-changing methods in named spans. Each method body becomes:
-
-   ```python
-   async def submit(self, ...) -> ...:
-       with with_named_span("volunteer.application.submit"):
-           return await self._submit_impl(...)
-   ```
-
-   To keep the diff small, rename the existing method body into a private `_<name>_impl` method (e.g. `_invite_impl`, `_submit_impl`, `_approve_impl`, `_delete_impl`, `_resend_invitation_impl`) and have the public method delegate inside the span. Apply to: `invite` -> `volunteer.application.invite`, `submit` -> `volunteer.application.submit`, `approve` -> `volunteer.application.approve`, `delete` -> `volunteer.application.delete`, `resend_invitation` -> `volunteer.application.resend_invitation`. Add a `registration_id` attribute where the value is available after the operation (read from the returned detail). Do not wrap `register_public_prospect` (see Decision Log), `contact`, `start_trial`, `reject`, `reopen`, or `restore_volunteer`.
-
-   Note the `approve` method calls `_approve_one` internally; wrapping `approve` covers the whole approval including per-application `_approve_one` iterations.
+4. `app/domain/volunteer_applications/workflow.py`: wrap the state-changing methods in named spans by placing the context manager directly around the existing method bodies (re-indenting the body by four spaces inside `with with_named_span(...):`). Apply to: `invite` -> `volunteer.application.invite`, `submit` -> `volunteer.application.submit`, `approve` -> `volunteer.application.approve`, `delete` -> `volunteer.application.delete`, `resend_invitation` -> `volunteer.application.resend_invitation`. Do NOT split methods into `_<name>_impl` helpers: reviewer feedback on PR #42 rejected that pattern because it changes method structure, stack traces, and patch/mock targets purely for instrumentation. Registration-id attributes flow onto the named spans via the existing `_record_lifecycle` calls inside the wrapped bodies, so no explicit `set_attribute` calls are needed. Do not wrap `register_public_prospect` (see Decision Log), `contact`, `start_trial`, `reject`, `reopen`, or `restore_volunteer`.
 
 5. `app/api/v1/mobile_card.py`: wrap the `service.request_access_code(...)` call in `request_access_code` with `mobile_card.access_code.request`, and the `service.create_session(...)` call in `create_session` with `mobile_card.session.create`. Keep the existing `except` chains.
 
@@ -246,10 +238,12 @@ Auto-instrumented spans (HTTP root spans, Next.js route/fetch spans, HTTPX clien
 ## Outcomes & Retrospective
 
 - (2026-08-19) Both PRs are implemented and locally verified. kvarteret-personal gained a `with_named_span` helper, nine named business-domain spans, three new tests (including the traceparent-join proof), and OTel 1.44.0/0.65b0 pins. samfunnetibergen gained latest OTel packages, semantic-convention resource attributes, a `volunteer.prospect.submit` span, and trace-context injection on all three web-to-personal fetches.
+- (2026-08-19) After review of PR #42, the workflow spans were re-worked from an `_impl` split pattern to the context manager placed directly around the existing method bodies; tests and lint remain green.
 - Remaining: deploy both PRs and confirm in PostHog Traces that a volunteer form submission shows the connected `samfunnetibergen -> kvarteret-personal` trace. The 146 kvarteret-personal test failures and 10 web typecheck errors are pre-existing environmental/typegen issues, not introduced here.
-- Lessons: the Python OTel global provider is set-once, so test fixtures must be module-scoped; `sdk-logs` 0.221 changed its processor constructors while `sdk-trace-base` kept a compat shim; `@opentelemetry/semantic-conventions` 1.43.0 still names the cloud-region constant `SEMRESATTRS_CLOUD_REGION`.
+- Lessons: the Python OTel global provider is set-once, so test fixtures must be module-scoped; `sdk-logs` 0.221 changed its processor constructors while `sdk-trace-base` kept a compat shim; `@opentelemetry/semantic-conventions` 1.43.0 still names the cloud-region constant `SEMRESATTRS_CLOUD_REGION`. Avoid adding private helper methods solely to host instrumentation; prefer wrapping the existing body directly.
 
 ## Revision Log
 
 - 2026-08-19: initial version; scoped named spans to significant daily-use operations, kept auto-instrumentation, chose explicit version bumps over provider rewrites.
 - 2026-08-19: implemented M1/M2, recorded surprises (constructor changes, set-once provider, extra ASGI spans, pre-existing failures), updated Progress to complete.
+- 2026-08-19: revised workflow span placement per PR #42 review (direct body wrapping instead of `_impl` splits).
