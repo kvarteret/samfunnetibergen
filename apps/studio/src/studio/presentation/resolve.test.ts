@@ -37,7 +37,7 @@ describe("Presentation URL configuration", () => {
     delete process.env.NEXT_PUBLIC_SITE_URL
     vi.stubEnv("NODE_ENV", "production")
     expect(resolvePresentationInitialUrl()).toBe(
-      "https://samfunnetibergen.no/nb",
+      "https://www.samfunnetibergen.no/nb",
     )
   })
 
@@ -59,8 +59,9 @@ describe("Presentation URL configuration", () => {
     ).toHaveLength(1)
   })
 
-  it("trusts production without retaining the retired develop origin", () => {
+  it("trusts the canonical www and apex production origins", () => {
     const origins = resolvePresentationOrigins()
+    expect(origins).toContain("https://www.samfunnetibergen.no")
     expect(origins).toContain("https://samfunnetibergen.no")
     expect(origins).not.toContain("https://neste.samfunnetibergen.no")
   })
