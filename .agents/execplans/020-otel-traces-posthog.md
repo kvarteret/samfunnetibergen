@@ -26,18 +26,24 @@ You can verify this in the PostHog UI after deploy (traces view) or locally via 
 
 - [x] (2026-08-19 19:05Z) Created branches `codex/otel-traces-posthog` from latest `origin/develop` in both repos.
 - [x] (2026-08-19 19:10Z) Researched both codebases and wrote this ExecPlan.
-- [ ] (M1) kvarteret-personal: add `with_named_span` helper and wire named spans into volunteer, mobile card, and feedback operations.
-- [ ] (M1) kvarteret-personal: add unit tests for `with_named_span` and for W3C `traceparent` extraction (cross-system join).
-- [ ] (M1) kvarteret-personal: bump OTel dependencies to latest in `pyproject.toml`.
-- [ ] (M2) samfunnetibergen: bump OTel dependencies to latest in `apps/web/package.json` and use semantic-convention constants in `instrumentation.node.ts`.
-- [ ] (M2) samfunnetibergen: wrap the volunteer-prospect proxy in a `volunteer.prospect.submit` span and update its route test mock.
-- [ ] (M2) samfunnetibergen: inject trace context into the now-playing and feedback outbound fetches.
-- [ ] (M3) Run the full test suites in both repos, then commit, push, and open a PR per repo.
+- [x] (M1) kvarteret-personal: add `with_named_span` helper and wire named spans into volunteer, mobile card, and feedback operations.
+- [x] (M1) kvarteret-personal: add unit tests for `with_named_span` and for W3C `traceparent` extraction (cross-system join).
+- [x] (M1) kvarteret-personal: bump OTel dependencies to latest in `pyproject.toml`.
+- [x] (M2) samfunnetibergen: bump OTel dependencies to latest in `apps/web/package.json` and use semantic-convention constants in `instrumentation.node.ts`.
+- [x] (M2) samfunnetibergen: wrap the volunteer-prospect proxy in a `volunteer.prospect.submit` span and update its route test mock.
+- [x] (M2) samfunnetibergen: inject trace context into the now-playing and feedback outbound fetches.
+- [x] (M3) Run the full test suites in both repos, then commit, push, and open a PR per repo.
 
 ## Surprises & Discoveries
 
 - Observation: The `develop` branches in both repos already contain far more OTel wiring than the older branches I inspected first. The web app (`apps/web/instrumentation.node.ts`) already has a `NodeTracerProvider` with an `OTLPTraceExporter` to `https://eu.i.posthog.com/i/v1/traces` plus `HttpInstrumentation`, and `src/lib/observability.ts` already provides `withOperationalSpan`, `injectActiveTraceContext`, `emitOperationalEvent`, and `currentTraceFields`. kvarteret-personal's `app/telemetry.py` already exports spans and logs with a `ParentBased(TraceIdRatioBased(0.1))` sampler (10% root sampling, but fully sampled whenever a sampled parent arrives — exactly right for cross-system traces).
   Evidence: `apps/web/instrumentation.node.ts`, `apps/web/src/lib/observability.ts`, `app/telemetry.py`.
+- Observation: Bumping JS OTel to 0.221.0/2.10.0 changed `SimpleLogRecordProcessor` to an options-object constructor (`{ exporter }`); `SimpleSpanProcessor` kept a backward-compatible positional-exporter shim in `sdk-trace-base`. Only the log processor needed updating.
+  Evidence: `node_modules/@opentelemetry/sdk-logs/build/src/export/SimpleLogRecordProcessor.d.ts` vs `node_modules/@opentelemetry/sdk-trace-base/build/src/SimpleSpanProcessor-shim.d.ts`.
+- Observation: The Python OpenTelemetry SDK forbids setting the global `TracerProvider` more than once per process (`_TRACER_PROVIDER_SET_ONCE`). Tests that install an in-memory exporter must use a single module-scoped fixture rather than per-test `trace.set_tracer_provider` calls.
+  Evidence: warning "Overriding of current TracerProvider is not allowed" during the first test attempt.
+- Observation: FastAPIInstrumentor 0.65b0 emits two extra `GET /hello http send` ASGI spans per request in addition to the `GET /hello` server span; tests must filter for the server span by name rather than asserting a single span.
+  Evidence: in-memory exporter listing showed three spans per TestClient request.
 - Observation: `withOperationalSpan` and `injectActiveTraceContext` are already used by the booking flow (`src/features/booking/actions/submit-room-booking.ts` creates a `booking.submit` span; the Crescat client injects trace context) and the volunteer-prospects route injects trace context into its outbound fetch. So the "booking" example in the request is already covered on the web side (booking targets Crescat, a third party, not kvarteret-personal; kvarteret-personal has no booking domain).
   Evidence: `apps/web/src/features/booking/actions/submit-room-booking.ts:182`, `apps/web/src/lib/integrations/crescat/client.ts:35`, `apps/web/src/app/api/volunteer-prospects/route.ts:155`.
 - Observation: kvarteret-personal's node_modules-free worktree and stale npm install mean `exporter-trace-otlp-http`, `instrumentation-http`, and `sdk-trace-node` are declared in `apps/web/package.json` but not yet present in `node_modules`; `npm install` (already required for the version bumps) fixes this.
@@ -45,6 +51,9 @@ You can verify this in the PostHog UI after deploy (traces view) or locally via 
 - Observation: The latest OTel versions at the time of writing are: JS `@opentelemetry/api@1.9.1`, `sdk-trace-node@2.10.0`, `sdk-trace-base@2.10.0`, `resources@2.10.0`, `semantic-conventions@1.43.0`, exporters/instrumentation/`api-logs`/`sdk-logs` at `0.221.0`; Python `opentelemetry-api`/`sdk`/`exporter-otlp-proto-http` at `1.44.0`, instrumentation packages at `0.65b0`.
   Evidence: `npm view` and PyPI JSON API queries.
 - Observation: Next.js 16 auto-creates spans for route handlers and fetch calls and automatically injects W3C trace context into `fetch` when OTel is configured; the bundled guide (`node_modules/next/dist/docs/01-app/02-guides/open-telemetry.md`) documents the manual `instrumentation.node.ts` pattern this repo already follows. We keep the existing manual wiring and only bump versions, to avoid churn on a working, deployed setup.
+- Observation: `ATTR_CLOUD_REGION` is not exported by `@opentelemetry/semantic-conventions@1.43.0`; the resource attribute constant still uses the `SEMRESATTRS_CLOUD_REGION` name.
+  Evidence: `node -e "const s=require('@opentelemetry/semantic-conventions'); console.log(s.ATTR_CLOUD_REGION)"` prints `undefined`.
+- Observation: Web typecheck failures (`PageProps`/`LayoutProps` not found) are pre-existing on develop and require `next typegen`; they are unrelated to this change (clean baseline has 11 errors, this branch 10, none in touched files). The kvarteret-personal test suite has 146 pre-existing failures when `DATABASE_URL` is unset (environmental); identical counts before and after this change.
 
 ## Decision Log
 
@@ -234,6 +243,13 @@ Auto-instrumented spans (HTTP root spans, Next.js route/fetch spans, HTTPX clien
 - New helper signature (personal): `with_named_span(name: str, attributes: Mapping[str, object] | None = None) -> ContextManager[Span]` in `app.observability`.
 - Existing helper used (web): `withOperationalSpan<T>(name: string, run: (span: Span) => Promise<T>): Promise<T>` and `injectActiveTraceContext(headers: Record<string, string>): void` in `apps/web/src/lib/observability.ts`.
 
+## Outcomes & Retrospective
+
+- (2026-08-19) Both PRs are implemented and locally verified. kvarteret-personal gained a `with_named_span` helper, nine named business-domain spans, three new tests (including the traceparent-join proof), and OTel 1.44.0/0.65b0 pins. samfunnetibergen gained latest OTel packages, semantic-convention resource attributes, a `volunteer.prospect.submit` span, and trace-context injection on all three web-to-personal fetches.
+- Remaining: deploy both PRs and confirm in PostHog Traces that a volunteer form submission shows the connected `samfunnetibergen -> kvarteret-personal` trace. The 146 kvarteret-personal test failures and 10 web typecheck errors are pre-existing environmental/typegen issues, not introduced here.
+- Lessons: the Python OTel global provider is set-once, so test fixtures must be module-scoped; `sdk-logs` 0.221 changed its processor constructors while `sdk-trace-base` kept a compat shim; `@opentelemetry/semantic-conventions` 1.43.0 still names the cloud-region constant `SEMRESATTRS_CLOUD_REGION`.
+
 ## Revision Log
 
 - 2026-08-19: initial version; scoped named spans to significant daily-use operations, kept auto-instrumentation, chose explicit version bumps over provider rewrites.
+- 2026-08-19: implemented M1/M2, recorded surprises (constructor changes, set-once provider, extra ASGI spans, pre-existing failures), updated Progress to complete.
