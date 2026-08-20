@@ -1,4 +1,5 @@
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import { crescatLocalDateTimeMs } from "@/lib/integrations/crescat/datetime"
 import {
   type ClosedDate,
   type OpeningHours,
@@ -15,15 +16,15 @@ export function slotOverlapsKaraokeBookings(
   durationHours: number,
   bookings: CresatBooking[],
 ): boolean {
-  const baseDateMs = new Date(date + "T00:00:00").getTime()
+  const baseDateMs = crescatLocalDateTimeMs(date + "T00:00:00")
   const slotStartMs = baseDateMs + slotStartMin * 60 * 1000
   const slotEndMs = slotStartMs + durationHours * 3600 * 1000
   return bookings.some(booking =>
     rangesOverlap(
       slotStartMs,
       slotEndMs,
-      new Date(booking.start).getTime(),
-      new Date(booking.end).getTime(),
+      crescatLocalDateTimeMs(booking.start),
+      crescatLocalDateTimeMs(booking.end),
     ),
   )
 }

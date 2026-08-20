@@ -3,18 +3,11 @@
 import { randomUUID } from "node:crypto"
 import { z } from "zod"
 
-const osloDateTimePartsFormatter = new Intl.DateTimeFormat("sv-SE", {
-  timeZone: "Europe/Oslo",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-})
-
-import { durationHoursBetween } from "@/features/booking/domain/availability"
+import {
+  bookingRangeMs,
+  durationHoursBetween,
+  overlaps,
+} from "@/features/booking/domain/availability"
 import {
   type BookingFormState,
   bookingFormSchema,
@@ -25,11 +18,7 @@ import {
   fetchVenueCalendar,
 } from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
-import {
-  addDaysDateOnly,
-  resolveEndDateTime,
-  toDateTime,
-} from "@/lib/integrations/crescat/datetime"
+import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
   buildRoomBooking,
   slugForBookerType,
@@ -118,13 +107,6 @@ const payloadSchema = z.object({
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
 
-function formatOsloDateTime(value: string): string {
-  const parts = osloDateTimePartsFormatter.formatToParts(new Date(value))
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find(item => item.type === type)?.value ?? ""
-  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
-}
-
 async function hasVenueCalendarConflict(
   payload: z.output<typeof payloadSchema>,
 ): Promise<boolean> {
@@ -134,14 +116,15 @@ async function hasVenueCalendarConflict(
     payload.startDate,
     addDaysDateOnly(endDate, 1),
   )
-  const start = toDateTime(payload.startDate, payload.startTime)
-  const end = resolveEndDateTime(endDate, payload.startTime, payload.endTime)
+  const [startMs, endMs] = bookingRangeMs(
+    payload.startDate,
+    payload.startTime,
+    endDate,
+    payload.endTime,
+  )
   return bookings.some(booking => {
     if (!payload.roomIds.includes(booking.resourceId)) return false
-    return (
-      start < formatOsloDateTime(booking.end) &&
-      end > formatOsloDateTime(booking.start)
-    )
+    return overlaps(startMs, endMs, booking)
   })
 }
 

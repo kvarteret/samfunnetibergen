@@ -1,4 +1,5 @@
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+import { crescatLocalDateTimeMs } from "@/lib/integrations/crescat/datetime"
 import { rangesOverlap, timeToMinutes } from "@/lib/time"
 
 const MINUTES_IN_DAY = 1440
@@ -10,7 +11,7 @@ export function slotRangeMs(
   startTime: string,
   endTime: string,
 ): [number, number] {
-  const baseMs = new Date(`${date}T00:00:00`).getTime()
+  const baseMs = crescatLocalDateTimeMs(`${date}T00:00:00`)
   const startMs = baseMs + timeToMinutes(startTime) * 60_000
   const crossesMidnight = timeToMinutes(endTime) <= timeToMinutes(startTime)
   const endMs =
@@ -27,22 +28,24 @@ export function overlaps(
   return rangesOverlap(
     startMs,
     endMs,
-    new Date(booking.start).getTime(),
-    new Date(booking.end).getTime(),
+    crescatLocalDateTimeMs(booking.start),
+    crescatLocalDateTimeMs(booking.end),
   )
 }
 
 export function formatBookingTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("nb-NO", {
+  return new Date(crescatLocalDateTimeMs(iso)).toLocaleTimeString("nb-NO", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "UTC",
   })
 }
 
 function formatBookingDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nb-NO", {
+  return new Date(crescatLocalDateTimeMs(iso)).toLocaleDateString("nb-NO", {
     day: "numeric",
     month: "short",
+    timeZone: "UTC",
   })
 }
 
@@ -58,10 +61,11 @@ export function bookingRangeMs(
     return slotRangeMs(startDate, startTime, endTime)
   }
   const startMs =
-    new Date(`${startDate}T00:00:00`).getTime() +
+    crescatLocalDateTimeMs(`${startDate}T00:00:00`) +
     timeToMinutes(startTime) * 60_000
   const endMs =
-    new Date(`${endDate}T00:00:00`).getTime() + timeToMinutes(endTime) * 60_000
+    crescatLocalDateTimeMs(`${endDate}T00:00:00`) +
+    timeToMinutes(endTime) * 60_000
   return [startMs, endMs]
 }
 
@@ -69,9 +73,7 @@ export function bookingRangeMs(
 // "17. jun 19:00–22:00" or "17. jun 22:00 – 18. jun 02:00" when it crosses
 // midnight.
 function formatConflictRange(booking: CresatBooking): string {
-  const start = new Date(booking.start)
-  const end = new Date(booking.end)
-  const sameDay = start.toDateString() === end.toDateString()
+  const sameDay = booking.start.slice(0, 10) === booking.end.slice(0, 10)
   return sameDay
     ? `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)}–${formatBookingTime(booking.end)}`
     : `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)} – ${formatBookingDate(booking.end)} ${formatBookingTime(booking.end)}`
@@ -147,9 +149,9 @@ export function occupiedMinuteRanges(
 ): { startMin: number; endMin: number }[] {
   if (!startDate || !selectedRoomIds.length) return []
 
-  const startDateMs = new Date(`${startDate}T00:00:00`).getTime()
+  const startDateMs = crescatLocalDateTimeMs(`${startDate}T00:00:00`)
   const endStr = endDate || startDate
-  const endDateMs = new Date(`${endStr}T23:59:59.999`).getTime()
+  const endDateMs = crescatLocalDateTimeMs(`${endStr}T23:59:59`) + 1
 
   const selectedSet = new Set(selectedRoomIds)
 
@@ -157,13 +159,13 @@ export function occupiedMinuteRanges(
     .filter(
       b =>
         selectedSet.has(b.resourceId) &&
-        new Date(b.start).getTime() < endDateMs &&
-        new Date(b.end).getTime() > startDateMs,
+        crescatLocalDateTimeMs(b.start) < endDateMs &&
+        crescatLocalDateTimeMs(b.end) > startDateMs,
     )
     .map(b => {
       const startMin =
-        Math.max(0, new Date(b.start).getTime() - startDateMs) / 60_000
-      const endMin = (new Date(b.end).getTime() - startDateMs) / 60_000
+        Math.max(0, crescatLocalDateTimeMs(b.start) - startDateMs) / 60_000
+      const endMin = (crescatLocalDateTimeMs(b.end) - startDateMs) / 60_000
       return { startMin, endMin }
     })
     .filter(r => r.endMin > 0)
@@ -190,7 +192,8 @@ export function findRoomConflicts(
   return bookingsForRoom(bookings, crescatRoomId)
     .filter(booking => overlaps(startMs, endMs, booking))
     .toSorted(
-      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+      (a, b) =>
+        crescatLocalDateTimeMs(a.start) - crescatLocalDateTimeMs(b.start),
     )
     .map(formatConflictRange)
 }

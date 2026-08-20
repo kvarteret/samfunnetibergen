@@ -1,5 +1,47 @@
 // Crescat expects "YYYY-MM-DD HH:mm:ss" local timestamps.
 
+const CRESCAT_LOCAL_DATE_TIME =
+  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})$/
+
+/**
+ * Convert a timezone-less Crescat timestamp to a comparable wall-clock value.
+ *
+ * Crescat's public calendars return local-looking values without an offset.
+ * Our venue and users operate in Norway, so the integration treats those
+ * components as Norwegian civil time. Date.UTC is deliberate: it gives the
+ * components a stable numeric representation without letting the runtime's
+ * timezone reinterpret them.
+ */
+export function crescatLocalDateTimeMs(value: string): number {
+  const match = CRESCAT_LOCAL_DATE_TIME.exec(value)
+  if (!match) {
+    throw new Error(`Unexpected Crescat date-time format: ${value}`)
+  }
+
+  const [, year, month, day, hour, minute, second] = match
+  const result = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  )
+  const parsed = new Date(result)
+  if (
+    parsed.getUTCFullYear() !== Number(year) ||
+    parsed.getUTCMonth() !== Number(month) - 1 ||
+    parsed.getUTCDate() !== Number(day) ||
+    parsed.getUTCHours() !== Number(hour) ||
+    parsed.getUTCMinutes() !== Number(minute) ||
+    parsed.getUTCSeconds() !== Number(second)
+  ) {
+    throw new Error(`Invalid Crescat date-time value: ${value}`)
+  }
+
+  return result
+}
+
 export function toDateTime(date: string, time: string): string {
   // "2026-05-22" + "21:00" → "2026-05-22 21:00:00"
   return `${date} ${time}:00`
