@@ -217,6 +217,21 @@ The strict timezone-less input shape is deliberate drift detection. If Crescat s
 offset-bearing timestamps or changes the format, update the adapter policy from fresh live evidence
 instead of allowing JavaScript runtime timezone rules to decide the booking time implicitly.
 
+#### Availability telemetry
+
+The room form emits `room_booking_rejected` when a submission is stopped by opening hours or a
+Crescat calendar conflict. Client-side prechecks emit the event through `posthog-js`, which keeps it
+attached to the visitor session and replay; the server emits the same event if its authoritative
+validation catches a conflict or opening-hours rejection. Diagnostic properties contain the reason,
+requested room IDs and date/time range, source, submission ID, and trace ID where available. They do
+not contain contact details, event descriptions, or other submitted free text.
+
+Calendar HTTP and network failures are captured as handled PostHog exceptions with the
+`server_request` workflow, `crescat-calendar` source, calendar slug, requested date window, and HTTP
+status where available. Technical submission failures continue to use handled exceptions under the
+`room_booking` workflow. This separates expected availability rejections from integration failures
+while making both searchable in PostHog.
+
 Booker types map to calendars via `calendarSlugForBookerType`:
 
 | Booker type | Calendar slug | Rooms |

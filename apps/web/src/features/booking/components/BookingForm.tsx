@@ -292,7 +292,26 @@ export function BookingForm({
             e.preventDefault()
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
-            if (hasConflict || (!slotWithinHours && values.startDate)) return
+            if (hasConflict || (!slotWithinHours && values.startDate)) {
+              try {
+                posthog.capture("room_booking_rejected", {
+                  booker_type: values.bookerType,
+                  end_date: values.endDate || values.startDate,
+                  end_time: values.endTime,
+                  failure_reason: hasConflict
+                    ? "calendar_conflict"
+                    : "opening_hours",
+                  form_id: "room_booking",
+                  room_ids: selectedRoomIds,
+                  source: "client_precheck",
+                  start_date: values.startDate,
+                  start_time: values.startTime,
+                })
+              } catch {
+                // Availability feedback must not depend on analytics.
+              }
+              return
+            }
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })

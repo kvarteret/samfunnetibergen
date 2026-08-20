@@ -2,6 +2,12 @@
 // /venue-access/{calendarSlug}/{calendar,resources}. No CSRF/session needed —
 // these are GET endpoints used by the public booking-calendar widget.
 
+import {
+  getHandledExceptionProperties,
+  toPostHogException,
+} from "@/lib/posthog/error-context"
+import { getPostHogClient } from "@/lib/posthog-server"
+
 const BASE_URL = "https://app.crescat.io/venue-access"
 
 const USER_AGENT =
@@ -46,6 +52,26 @@ export interface CresatResource {
   title: string
 }
 
+function captureCalendarFailure(
+  error: unknown,
+  properties: Record<string, number | string | undefined>,
+): void {
+  try {
+    getPostHogClient().captureException(
+      toPostHogException(error),
+      "anonymous",
+      getHandledExceptionProperties("server_request", {
+        source: "crescat-calendar",
+        integration: "crescat",
+        operation: "calendar_fetch",
+        ...properties,
+      }),
+    )
+  } catch {
+    // Availability behavior must not depend on telemetry availability.
+  }
+}
+
 export async function fetchVenueCalendar(
   calendarSlug: string,
   start: string,
@@ -57,9 +83,27 @@ export async function fetchVenueCalendar(
       headers: { accept: "application/json", "user-agent": USER_AGENT },
       next: { revalidate: 300 },
     })
-    if (!res.ok) return []
+    if (!res.ok) {
+      captureCalendarFailure(
+        new Error(`Crescat calendar request failed with status ${res.status}`),
+        {
+          calendar_slug: calendarSlug,
+          end_date: end,
+          failure_branch: "calendar_http_error",
+          http_status: res.status,
+          start_date: start,
+        },
+      )
+      return []
+    }
     return (await res.json()) as CresatBooking[]
-  } catch {
+  } catch (error) {
+    captureCalendarFailure(error, {
+      calendar_slug: calendarSlug,
+      end_date: end,
+      failure_branch: "calendar_request_failed",
+      start_date: start,
+    })
     return []
   }
 }
