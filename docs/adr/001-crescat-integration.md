@@ -220,11 +220,12 @@ instead of allowing JavaScript runtime timezone rules to decide the booking time
 #### Availability telemetry
 
 The room form emits `room_booking_rejected` when a submission is stopped by opening hours or a
-Crescat calendar conflict. Client-side prechecks emit the event through `posthog-js`, which keeps it
-attached to the visitor session and replay; the server emits the same event if its authoritative
-validation catches a conflict or opening-hours rejection. Diagnostic properties contain the reason,
-requested room IDs and date/time range, source, submission ID, and trace ID where available. They do
-not contain contact details, event descriptions, or other submitted free text.
+Crescat calendar conflict. Client-side prechecks emit the event through `posthog-js`, which attaches
+the PostHog session ID even when Session Replay is disabled. If replay is enabled later, the event can
+also be located in the recording. The server emits the same event if its authoritative validation
+catches a conflict or opening-hours rejection. Diagnostic properties contain the reason, requested
+room IDs and date/time range, source, submission ID, and trace ID where available. They do not contain
+contact details, event descriptions, or other submitted free text.
 
 Calendar HTTP and network failures are captured as handled PostHog exceptions with the
 `server_request` workflow, `crescat-calendar` source, calendar slug, requested date window, and HTTP
