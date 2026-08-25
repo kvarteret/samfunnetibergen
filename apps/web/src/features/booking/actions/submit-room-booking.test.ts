@@ -3,11 +3,13 @@ import { beforeEach, describe, expect, test, vi } from "vitest"
 const {
   captureExceptionMock,
   emitOperationalEventMock,
+  fetchVenueCalendarMock,
   posthogCaptureMock,
   spanSetAttributeMock,
 } = vi.hoisted(() => ({
   captureExceptionMock: vi.fn(),
   emitOperationalEventMock: vi.fn(),
+  fetchVenueCalendarMock: vi.fn(),
   posthogCaptureMock: vi.fn(),
   spanSetAttributeMock: vi.fn(),
 }))
@@ -55,7 +57,7 @@ vi.mock("@/lib/integrations/crescat/calendar", () => ({
       ? "studentersamfunnet-i-bergen-bookingkalender-privat"
       : "studentersamfunnet-i-bergen-bookingkalender",
   ),
-  fetchVenueCalendar: vi.fn().mockResolvedValue([]),
+  fetchVenueCalendar: fetchVenueCalendarMock,
 }))
 
 vi.mock("@/lib/sanity/fetch", () => ({
@@ -102,6 +104,7 @@ describe("submitRoomBooking", () => {
     captureExceptionMock.mockReset()
     emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
+    fetchVenueCalendarMock.mockReset().mockResolvedValue([])
     posthogCaptureMock.mockReset()
     spanSetAttributeMock.mockReset()
   })
@@ -125,6 +128,49 @@ describe("submitRoomBooking", () => {
       contactEmail: "ikke-en-epost",
     })
     expect(result.ok).toBe(false)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  test("records an authoritative calendar-conflict rejection", async () => {
+    fetchVenueCalendarMock.mockResolvedValueOnce([
+      {
+        id: 394377,
+        resourceId: 95,
+        event_id: 310742,
+        start: "2026-12-24T19:00:00",
+        end: "2026-12-24T21:00:00",
+        color: "",
+        title: "Existing booking",
+        part_of_event: false,
+      },
+    ])
+
+    const result = await submitRoomBooking(standardPayload())
+
+    expect(result).toEqual({
+      ok: false,
+      error:
+        "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
+    })
+    expect(posthogCaptureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "room_booking_rejected",
+        properties: expect.objectContaining({
+          failure_reason: "calendar_conflict",
+          room_ids: [95],
+          source: "server_validation",
+          start_date: "2026-12-24",
+          start_time: "20:00",
+        }),
+      }),
+    )
+    expect(emitOperationalEventMock).toHaveBeenCalledWith(
+      "booking.rejected",
+      expect.objectContaining({
+        failure_stage: "calendar_conflict",
+        outcome: "rejected",
+      }),
+    )
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -273,5 +319,8 @@ describe("submitRoomBooking", () => {
 
     const result = await submitRoomBooking(standardPayload())
     expect(result.ok).toBe(false)
+    expect(captureExceptionMock.mock.calls[0]?.[0]).toEqual(
+      new Error("Bookingsystemet svarte med status 422."),
+    )
   })
 })

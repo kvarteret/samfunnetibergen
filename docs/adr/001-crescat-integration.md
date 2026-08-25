@@ -1,7 +1,7 @@
 # ADR 001: Crescat event-request integration
 
 **Status:** Accepted
-**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking), updated 2026-06-15 (drift reconciliation + autofetched rooms), updated 2026-06-23 (per-day doors times)
+**Date:** 2026-05-21 (karaoke), generalized 2026-06-04 (room booking), updated 2026-06-15 (drift reconciliation + autofetched rooms), updated 2026-06-23 (per-day doors times), updated 2026-08-20 (calendar date-time policy)
 
 ## Context
 
@@ -194,9 +194,44 @@ GET /venue-access/{calendarSlug}/resources                → CresatResource[]
 ```
 
 Both are plain GETs (no CSRF/session needed). `calendar.ts` wraps them as `fetchVenueCalendar` and
-`fetchVenueResources`. `CresatBooking` carries `resourceId` (= Crescat `room_id`), `start`/`end` ISO
-timestamps, and a `title`; `CresatResource` is `{ id, room_title, title }`. Calendar is cached 5 min,
-resources 1 h.
+`fetchVenueResources`. `CresatBooking` carries `resourceId` (= Crescat `room_id`), timezone-less
+`start`/`end` date-time strings, and a `title`; `CresatResource` is `{ id, room_title, title }`.
+Calendar is cached 5 min, resources 1 h.
+
+#### Calendar date-time policy
+
+Crescat's calendar responses currently contain values such as `2026-09-10T17:30:00`, without a
+UTC marker or numeric offset. This is a reverse-engineered boundary, not a published Crescat
+timezone contract. Crescat's shared calendar displays those components unchanged, and the venue,
+its users, and Crescat booking operations are based in Norway. The website therefore treats these
+values as Norwegian civil times.
+
+`datetime.ts` owns that policy through `crescatLocalDateTimeMs`. It parses the supplied calendar
+components into a synthetic UTC-backed number solely for stable comparison; it does not interpret
+the raw value in the browser's or server's timezone. Room availability, server-side room conflict
+validation, conflict labels, occupied ranges, and karaoke availability all use this same helper.
+Code outside the Crescat adapter and availability domains must not call `new Date()` on a raw
+Crescat calendar value.
+
+The strict timezone-less input shape is deliberate drift detection. If Crescat starts returning
+offset-bearing timestamps or changes the format, update the adapter policy from fresh live evidence
+instead of allowing JavaScript runtime timezone rules to decide the booking time implicitly.
+
+#### Availability telemetry
+
+The room form emits `room_booking_rejected` when a submission is stopped by opening hours or a
+Crescat calendar conflict. Client-side prechecks emit the event through `posthog-js`, which attaches
+the PostHog session ID even when Session Replay is disabled. If replay is enabled later, the event can
+also be located in the recording. The server emits the same event if its authoritative validation
+catches a conflict or opening-hours rejection. Diagnostic properties contain the reason, requested
+room IDs and date/time range, source, submission ID, and trace ID where available. They do not contain
+contact details, event descriptions, or other submitted free text.
+
+Calendar HTTP and network failures are captured as handled PostHog exceptions with the
+`server_request` workflow, `crescat-calendar` source, calendar slug, requested date window, and HTTP
+status where available. Technical submission failures continue to use handled exceptions under the
+`room_booking` workflow. This separates expected availability rejections from integration failures
+while making both searchable in PostHog.
 
 Booker types map to calendars via `calendarSlugForBookerType`:
 
