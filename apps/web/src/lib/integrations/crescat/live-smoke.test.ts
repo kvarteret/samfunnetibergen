@@ -22,6 +22,111 @@ import {
 const LIVE = process.env.CRESCAT_LIVE_TEST === "1"
 
 describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
+  test("midnight regression — external doors before midnight", async () => {
+    const body = buildExternalBooking({
+      eventName: "[SLETT MEG] PR109 | Dører før midnatt | E-tjenesten",
+      roomId: 95,
+      roomIds: [95],
+      startDate: "2030-02-01",
+      startTime: "23:30",
+      endTime: "00:30",
+      doorsTimes: ["23:45"],
+      estimatedEndTimes: ["00:20"],
+      description:
+        "Live regresjonstest for lokal tid og dato ved booking over midnatt.",
+      audienceCount: 10,
+      openOrClosed: "Lukket",
+      furniture: "Ingen spesielle behov",
+      techEquipment: "Ingen",
+      cateringWishes: "Nei",
+      freeOrPaid: "Gratis",
+      ticketTypes: "",
+      contactName: "E-Tjenesten",
+      contactEmail: "e@samfunnetibergen.no",
+      contactPhone: "+4740612345",
+      invoiceAddress: "Testbooking — skal slettes",
+    })
+
+    expect(body.start).toBe("2030-02-01 23:30:00")
+    expect(body.end).toBe("2030-02-02 00:30:00")
+    const assignments = body.sections.find(
+      section => section.type === "assignments",
+    )
+    expect(assignments?.content).toContainEqual({
+      title: "Doors",
+      description: null,
+      start: "2030-02-01 23:45:00",
+      end: "2030-02-01 23:45:00",
+    })
+    expect(assignments?.content).toContainEqual({
+      title: "Antatt slutt",
+      description: null,
+      start: "2030-02-02 00:20:00",
+      end: "2030-02-02 00:20:00",
+    })
+
+    const result = await postEventRequest(ROOM_BOOKING_SLUGS.ekstern, body)
+    expect(
+      result.ok,
+      result.ok
+        ? undefined
+        : `POST failed: ${(result as { error: string }).error}`,
+    ).toBe(true)
+    if (result.ok) expect(result.value).toBe(201)
+  }, 30_000)
+
+  test("midnight regression — internal doors after midnight", async () => {
+    const body = buildInternalBooking({
+      eventName: "[SLETT MEG] PR109 | Dører etter midnatt | E-tjenesten",
+      roomId: 95,
+      roomIds: [95],
+      startDate: "2030-02-02",
+      startTime: "23:30",
+      endTime: "00:30",
+      doorsTimes: ["00:15"],
+      estimatedEndTimes: ["00:20"],
+      description:
+        "Live regresjonstest for lokal tid og dato ved booking over midnatt.",
+      audienceCount: 10,
+      openOrClosed: "Lukket",
+      furniture: "Ingen spesielle behov",
+      techEquipment: "Ingen",
+      cateringWishes: "Nei",
+      freeOrPaid: "Gratis",
+      ticketTypes: "",
+      contactName: "E-Tjenesten",
+      contactEmail: "e@samfunnetibergen.no",
+      contactPhone: "+4740612345",
+    })
+
+    expect(body.start).toBe("2030-02-02 23:30:00")
+    expect(body.end).toBe("2030-02-03 00:30:00")
+    const assignments = body.sections.find(
+      section => section.type === "assignments",
+    )
+    expect(assignments?.content).toContainEqual({
+      title: "Doors",
+      description: null,
+      start: "2030-02-03 00:15:00",
+      end: "2030-02-03 00:15:00",
+    })
+    expect(assignments?.content).toContainEqual({
+      title: "Antatt slutt",
+      description: null,
+      start: "2030-02-03 00:20:00",
+      end: "2030-02-03 00:20:00",
+    })
+
+    const result = await postEventRequest(ROOM_BOOKING_SLUGS.intern, body)
+    expect(
+      result.ok,
+      result.ok
+        ? undefined
+        : `POST failed: ${(result as { error: string }).error}`,
+    ).toBe(true)
+    if (result.ok) expect(result.value).toBe(201)
+  }, 30_000)
+
   test("external (standard) form — all fields, HTTP 201", async () => {
     const body = buildExternalBooking({
       eventName: "[SLETT MEG] Integrasjonstest | Ekstern | E-tjenesten",
@@ -106,15 +211,15 @@ describe.skipIf(!LIVE)("live smoke test — real Crescat submissions", () => {
           name: "E-Tjenesten",
           role: "Arrangør",
           email: "e@samfunnetibergen.no",
-          phone: "00000000",
+          phone: "+4740612345",
           country_code: "+47",
         },
         {
           name: "Teknisk Ansvarlig",
           role: "Tekniker",
           email: "teknisk@samfunnetibergen.no",
-          phone: "11111111",
-          country_code: "+47",
+          phone: "+447400123456",
+          country_code: "+44",
         },
       ],
       contactRole: "Arrangør",

@@ -360,6 +360,74 @@ describe("doorsAssignments (via buildExternalBooking)", () => {
     expect(a0.start).toContain("19:30")
   })
 
+  test("keeps doors before midnight on the selected date", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-08-29",
+      startTime: "23:30",
+      endTime: "00:30",
+      doorsTimes: ["23:45"],
+    })
+
+    expect(assignmentsContent(body)).toContainEqual({
+      title: "Doors",
+      description: null,
+      start: "2026-08-29 23:45:00",
+      end: "2026-08-29 23:45:00",
+    })
+  })
+
+  test("moves doors after midnight to the following date", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-08-29",
+      startTime: "23:30",
+      endTime: "00:30",
+      doorsTimes: ["00:15"],
+    })
+
+    expect(assignmentsContent(body)).toContainEqual({
+      title: "Doors",
+      description: null,
+      start: "2026-08-30 00:15:00",
+      end: "2026-08-30 00:15:00",
+    })
+  })
+
+  test("moves estimated end after midnight to the following date", () => {
+    const body = buildExternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-08-29",
+      startTime: "23:30",
+      endTime: "00:30",
+      estimatedEndTimes: ["00:20"],
+    })
+
+    expect(assignmentsContent(body)).toContainEqual({
+      title: "Antatt slutt",
+      description: null,
+      start: "2026-08-30 00:20:00",
+      end: "2026-08-30 00:20:00",
+    })
+  })
+
+  test("uses the same rollover for the internal Crescat form", () => {
+    const body = buildInternalBooking({
+      ...BASE_INPUT,
+      startDate: "2026-08-29",
+      startTime: "23:30",
+      endTime: "00:30",
+      doorsTimes: ["00:15"],
+    })
+
+    expect(assignmentsContent(body)).toContainEqual({
+      title: "Doors",
+      description: null,
+      start: "2026-08-30 00:15:00",
+      end: "2026-08-30 00:15:00",
+    })
+  })
+
   test("single day without doors time emits empty assignments", () => {
     const body = buildExternalBooking(BASE_INPUT)
     expect(assignmentsContent(body)).toEqual([])

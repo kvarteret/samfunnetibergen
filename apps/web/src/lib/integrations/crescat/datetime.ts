@@ -47,6 +47,11 @@ export function toDateTime(date: string, time: string): string {
   return `${date} ${time}:00`
 }
 
+function timeToMinuteOfDay(time: string): number {
+  const [hour, minute] = time.split(":").map(Number)
+  return hour * 60 + minute
+}
+
 export function addDaysDateOnly(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number)
   const d = new Date(Date.UTC(year, month - 1, day + days))
@@ -76,9 +81,47 @@ export function resolveEndDateTime(
   startTime: string,
   endTime: string,
 ): string {
-  const [sh, sm] = startTime.split(":").map(Number)
-  const [eh, em] = endTime.split(":").map(Number)
-  const crossesMidnight = eh * 60 + em <= sh * 60 + sm
+  const crossesMidnight =
+    timeToMinuteOfDay(endTime) <= timeToMinuteOfDay(startTime)
   const endDate = crossesMidnight ? addDaysDateOnly(date, 1) : date
   return `${endDate} ${endTime}:00`
+}
+
+interface AssignmentDateTimeInput {
+  startDate: string
+  endDate?: string
+  startTime: string
+  endTime: string
+  assignmentTime: string
+  dayIndex: number
+}
+
+/**
+ * Resolve a Crescat timeline assignment without converting Norwegian civil
+ * time through the JavaScript runtime timezone.
+ *
+ * For a booking represented by one selected calendar date that crosses
+ * midnight, an assignment earlier than get-in belongs to the following date.
+ * Other assignments keep their ordinary `startDate + dayIndex` date.
+ */
+export function resolveAssignmentDateTime({
+  startDate,
+  endDate,
+  startTime,
+  endTime,
+  assignmentTime,
+  dayIndex,
+}: AssignmentDateTimeInput): string {
+  let date = addDaysDateOnly(startDate, dayIndex)
+  const bookingEndDate = endDate ?? startDate
+  const crossesMidnightOnOneSelectedDate =
+    bookingEndDate === startDate &&
+    timeToMinuteOfDay(endTime) <= timeToMinuteOfDay(startTime)
+  const belongsToFollowingDate =
+    dayIndex === 0 &&
+    crossesMidnightOnOneSelectedDate &&
+    timeToMinuteOfDay(assignmentTime) < timeToMinuteOfDay(startTime)
+
+  if (belongsToFollowingDate) date = addDaysDateOnly(date, 1)
+  return toDateTime(date, assignmentTime)
 }
