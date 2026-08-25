@@ -1,4 +1,8 @@
-import { addDaysDateOnly, resolveEndDateTime, toDateTime } from "./datetime"
+import {
+  resolveAssignmentDateTime,
+  resolveEndDateTime,
+  toDateTime,
+} from "./datetime"
 import {
   AUDIENCE_COUNT,
   BAR_KVARTERET,
@@ -161,18 +165,31 @@ function timelineAssignments(input: RoomBookingInput): Assignment[] {
   const entries: Assignment[] = []
 
   for (let dayIndex = 0; dayIndex < dayCount; dayIndex++) {
-    const date = addDaysDateOnly(input.startDate, dayIndex)
     const doorsTime = doorsTimes[dayIndex]
     const estimatedEnd = estimatedEndTimes[dayIndex]
 
     if (doorsTime) {
-      const start = toDateTime(date, doorsTime)
+      const start = resolveAssignmentDateTime({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        assignmentTime: doorsTime,
+        dayIndex,
+      })
       const title = isMultiDay ? `Doors dag ${dayIndex + 1}` : "Doors"
       entries.push({ title, description: null, start, end: start })
     }
 
     if (estimatedEnd) {
-      const start = toDateTime(date, estimatedEnd)
+      const start = resolveAssignmentDateTime({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        assignmentTime: estimatedEnd,
+        dayIndex,
+      })
       const title = isMultiDay
         ? `Antatt slutt dag ${dayIndex + 1}`
         : "Antatt slutt"

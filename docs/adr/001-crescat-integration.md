@@ -149,9 +149,12 @@ fields by the builders:
   booking (index 0 = start date), not a single value — multi-day bookings can have a different public
   doors time on each day (e.g. a festival that opens earlier on day 2). Each non-empty entry becomes
   its own `Doors` (or `Doors dag N` when there is more than one) assignment dated `startDate + index`
-  days. The booking form only shows day 1's box by default; "Dørene åpner samme tid hver dag" fills
-  every day with day 1's value in one click, and "Legg til dag N" reveals one more day's box at a
-  time, so the common single-value case stays a single click without forcing per-day entry.
+  days. For a booking represented by one selected calendar date that crosses midnight, a doors time
+  earlier than get-in is dated on the following calendar day instead. Assignment timestamps remain
+  offset-less Norwegian civil-time strings; they are not converted through the browser's or server's
+  runtime timezone. The booking form only shows day 1's box by default; "Dørene åpner samme tid hver
+  dag" fills every day with day 1's value in one click, and "Legg til dag N" reveals one more day's
+  box at a time, so the common single-value case stays a single click without forcing per-day entry.
   Promotion prefill (`buildPromotionDefaults`) uses `doorsTimes[0]` — the first day's value — the same
   way it previously used the single `doorsTime`.
 - **Flexible dates** (ekstern/studentorg) → appended to the top-level `description`

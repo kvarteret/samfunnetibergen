@@ -527,7 +527,7 @@ export function unconstrainedMarks(
 
 // Returns time options for a given day, constrained to the booking window:
 // times must be >= booking start (day 0) and <= booking end (last day).
-function timeOptionsForDay(
+export function timeOptionsForDay(
   marks: number[],
   dayIndex: number,
   dayCount: number,
@@ -537,8 +537,16 @@ function timeOptionsForDay(
   const dayStart = dayIndex * MINUTES_IN_DAY
   const isFirstDay = dayIndex === 0
   const isLastDay = dayIndex === dayCount - 1
+  const crossesMidnight =
+    dayCount === 1 &&
+    localStartMinute !== null &&
+    localEndMinute !== null &&
+    localEndMinute <= localStartMinute
   return marks
     .filter(m => {
+      if (crossesMidnight) {
+        return m >= localStartMinute && m <= localEndMinute + MINUTES_IN_DAY
+      }
       if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
       const local = m % MINUTES_IN_DAY
       if (isFirstDay && localStartMinute !== null && local < localStartMinute)
@@ -559,6 +567,8 @@ interface BookingEventTimesProps {
   endDate: string
   startTime: string
   endTime: string
+  doorsTimeError?: string
+  doorsTimeId: string
   doorsTimes: string[]
   estimatedEndTimes: string[]
   openingHours: OpeningHours | null
@@ -578,6 +588,8 @@ export function BookingEventTimes({
   endDate,
   startTime,
   endTime,
+  doorsTimeError,
+  doorsTimeId,
   doorsTimes,
   estimatedEndTimes,
   openingHours,
@@ -629,6 +641,9 @@ export function BookingEventTimes({
         heading="Dørene åpner"
         headingNote="dag 1 obligatorisk"
         singleDayLabel="Dørene åpner *"
+        firstDayError={doorsTimeError}
+        firstDayHint="Tidspunktet publikum slippes inn – ikke arrangørens get-in."
+        firstDayId={doorsTimeId}
         requiredFirstDay
         marks={marks}
         dayCount={dayCount}
@@ -661,6 +676,9 @@ interface PerDayTimeSelectsProps {
   headingNote: string
   singleDayLabel: string
   requiredFirstDay?: boolean
+  firstDayError?: string
+  firstDayHint?: string
+  firstDayId?: string
   marks: number[]
   dayCount: number
   startTime: string
@@ -681,6 +699,9 @@ function PerDayTimeSelects({
   headingNote,
   singleDayLabel,
   requiredFirstDay = false,
+  firstDayError,
+  firstDayHint,
+  firstDayId,
   marks,
   dayCount,
   startTime,
@@ -716,7 +737,10 @@ function PerDayTimeSelects({
     return (
       <div className="max-w-xs">
         <SelectField
-          id={`${uid}-${idPrefix}-0`}
+          error={firstDayError}
+          errorId={firstDayError ? `${firstDayId}-error` : undefined}
+          hint={firstDayHint}
+          id={firstDayId ?? `${uid}-${idPrefix}-0`}
           label={singleDayLabel}
           onChange={value => onChange(0, value)}
           options={options}
@@ -748,17 +772,29 @@ function PerDayTimeSelects({
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {shownDays.map(({ dayIndex, options }) => (
-          <SelectField
-            id={`${uid}-${idPrefix}-${dayIndex}`}
-            key={dayIndex}
-            label={`Dag ${dayIndex + 1}${requiredFirstDay && dayIndex === 0 ? " *" : ""}`}
-            onChange={value => onChange(dayIndex, value)}
-            options={options}
-            placeholder="Velg tidspunkt"
-            value={values[dayIndex] ?? ""}
-          />
-        ))}
+        {shownDays.map(({ dayIndex, options }) => {
+          const isFirstDay = dayIndex === 0
+          return (
+            <SelectField
+              error={isFirstDay ? firstDayError : undefined}
+              errorId={
+                isFirstDay && firstDayError ? `${firstDayId}-error` : undefined
+              }
+              hint={isFirstDay ? firstDayHint : undefined}
+              id={
+                isFirstDay && firstDayId
+                  ? firstDayId
+                  : `${uid}-${idPrefix}-${dayIndex}`
+              }
+              key={dayIndex}
+              label={`Dag ${dayIndex + 1}${requiredFirstDay && isFirstDay ? " *" : ""}`}
+              onChange={value => onChange(dayIndex, value)}
+              options={options}
+              placeholder="Velg tidspunkt"
+              value={values[dayIndex] ?? ""}
+            />
+          )
+        })}
       </div>
 
       {shownDayCount < dayCount && (

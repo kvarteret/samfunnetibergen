@@ -40,7 +40,9 @@ export const bookingFormSchema = z
     endDate: optionalDate,
     startTime: z.string().regex(TIME_PATTERN, "Velg et gyldig starttidspunkt."),
     endTime: z.string().regex(TIME_PATTERN, "Velg et gyldig sluttidspunkt."),
-    doorsTimes: z.array(timeOrEmpty).min(1, "Velg tidspunkt for dørene åpner."),
+    doorsTimes: z
+      .array(timeOrEmpty)
+      .min(1, "Velg når dørene åpner for publikum."),
     estimatedEndTimes: z.array(timeOrEmpty),
     audienceCount: z
       .string()
@@ -91,7 +93,7 @@ export const bookingFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["doorsTimes"],
-        message: "Velg tidspunkt for dørene åpner.",
+        message: "Velg når dørene åpner for publikum.",
       })
     }
 

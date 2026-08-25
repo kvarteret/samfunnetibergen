@@ -3,6 +3,7 @@ import type { OpeningHours } from "@/lib/opening-hours"
 import {
   computeMultiDayConstraints,
   multiDayMarks,
+  timeOptionsForDay,
   unconstrainedMarks,
 } from "./date-time-picker"
 
@@ -49,6 +50,26 @@ describe("unconstrainedMarks", () => {
     // as a start time with no remaining slot for an end time.
     expect(marks).toHaveLength(95)
     expect(marks.at(-1)).toBe(23 * 60 + 30)
+  })
+})
+
+describe("timeOptionsForDay", () => {
+  test("keeps doors-open options for a single-day booking crossing midnight", () => {
+    const options = timeOptionsForDay(
+      [20 * 60 + 45, 21 * 60, 23 * 60 + 45, 24 * 60, 24 * 60 + 45],
+      0,
+      1,
+      20 * 60 + 45,
+      45,
+    )
+
+    expect(options.map(option => option.value)).toEqual([
+      "20:45",
+      "21:00",
+      "23:45",
+      "00:00",
+      "00:45",
+    ])
   })
 })
 

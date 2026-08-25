@@ -12,10 +12,12 @@ function EventDetailsHarness({
   startTime = "15:00",
   endTime = "23:00",
   crossMidnightHours = false,
+  doorsTimeError,
 }: {
   startTime?: string
   endTime?: string
   crossMidnightHours?: boolean
+  doorsTimeError?: string
 }) {
   const form = useForm({
     defaultValues: {
@@ -32,6 +34,8 @@ function EventDetailsHarness({
       <BookingFormEventDetailsSection
         audienceCountId="audience"
         closedDates={[]}
+        doorsTimeError={doorsTimeError}
+        doorsTimeId="doors-time"
         eventNameId="event-name"
         openingHours={null}
         roomOpeningHours={
@@ -88,7 +92,7 @@ describe("BookingFormEventDetailsSection timing fields", () => {
     expect(container.textContent).toContain("Antatt slutt (valgfritt)")
   })
 
-  test("does not render a doors dropdown with no valid options", async () => {
+  test("renders doors dropdown for a booking crossing midnight", async () => {
     await act(async () =>
       root.render(
         <EventDetailsHarness
@@ -99,6 +103,28 @@ describe("BookingFormEventDetailsSection timing fields", () => {
       ),
     )
 
-    expect(container.textContent).not.toContain("Dørene åpner")
+    expect(container.textContent).toContain("Dørene åpner")
+    expect(container.querySelector("#doors-time")).not.toBeNull()
+  })
+
+  test("anchors the validation error to the doors dropdown", async () => {
+    await act(async () =>
+      root.render(
+        <EventDetailsHarness doorsTimeError="Velg når dørene åpner for publikum." />,
+      ),
+    )
+
+    const doorsTrigger = container.querySelector("#doors-time")
+    expect(doorsTrigger).not.toBeNull()
+    expect(doorsTrigger?.getAttribute("aria-invalid")).toBe("true")
+    expect(
+      doorsTrigger?.getAttribute("aria-describedby")?.split(" "),
+    ).toContain("doors-time-error")
+    expect(container.textContent).toContain(
+      "Tidspunktet publikum slippes inn – ikke arrangørens get-in.",
+    )
+    expect(container.textContent).toContain(
+      "Velg når dørene åpner for publikum.",
+    )
   })
 })

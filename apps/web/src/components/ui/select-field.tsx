@@ -50,7 +50,7 @@ export function SelectField({
 
   return (
     <FieldGroup error={error} errorId={errorId}>
-      <Label>{label}</Label>
+      <Label htmlFor={id}>{label}</Label>
       {hint && <FieldHint>{hint}</FieldHint>}
       <Select.Root
         disabled={disabled}
@@ -67,6 +67,7 @@ export function SelectField({
             "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-base border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
             className,
           )}
+          id={id}
         >
           <Select.Value
             className="truncate data-placeholder:text-foreground-muted"

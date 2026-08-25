@@ -26,6 +26,8 @@ const OPEN_CLOSED_OPTIONS = [
 interface BookingFormEventDetailsSectionProps {
   audienceCountError?: string
   audienceCountId: string
+  doorsTimeError?: string
+  doorsTimeId: string
   eventNameError?: string
   eventNameId: string
   openingHours: OpeningHours | null
@@ -37,6 +39,8 @@ interface BookingFormEventDetailsSectionProps {
 export function BookingFormEventDetailsSection({
   audienceCountError,
   audienceCountId,
+  doorsTimeError,
+  doorsTimeId,
   eventNameError,
   eventNameId,
   openingHours,
@@ -151,6 +155,8 @@ export function BookingFormEventDetailsSection({
         }) => (
           <BookingEventTimes
             closedDates={closedDates}
+            doorsTimeError={doorsTimeError}
+            doorsTimeId={doorsTimeId}
             doorsTimes={doorsTimes}
             endDate={endDate}
             endTime={endTime}
