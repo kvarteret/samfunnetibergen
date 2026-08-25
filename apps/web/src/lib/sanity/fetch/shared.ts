@@ -34,9 +34,9 @@ type CleanableOpeningHoursRow = {
  * in `@/lib/opening-hours`. Cleaning here keeps display strings encoded for
  * Visual Editing while domain logic sees plain values.
  */
-function cleanOpeningHoursRows<
-  T extends CleanableOpeningHoursRow | null,
->(rows: T[] | null | undefined): T[] | null | undefined {
+function cleanOpeningHoursRows<T extends CleanableOpeningHoursRow | null>(
+  rows: T[] | null | undefined,
+): T[] | null | undefined {
   if (!rows) return rows
   return rows.map(row => {
     if (!row) return row
