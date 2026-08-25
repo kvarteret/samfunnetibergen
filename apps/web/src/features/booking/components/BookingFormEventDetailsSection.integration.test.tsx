@@ -92,7 +92,7 @@ describe("BookingFormEventDetailsSection timing fields", () => {
     expect(container.textContent).toContain("Antatt slutt (valgfritt)")
   })
 
-  test("does not render a doors dropdown with no valid options", async () => {
+  test("renders doors dropdown for a booking crossing midnight", async () => {
     await act(async () =>
       root.render(
         <EventDetailsHarness
@@ -103,7 +103,8 @@ describe("BookingFormEventDetailsSection timing fields", () => {
       ),
     )
 
-    expect(container.textContent).not.toContain("Dørene åpner")
+    expect(container.textContent).toContain("Dørene åpner")
+    expect(container.querySelector("#doors-time")).not.toBeNull()
   })
 
   test("anchors the validation error to the doors dropdown", async () => {

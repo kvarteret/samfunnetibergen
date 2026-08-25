@@ -527,7 +527,7 @@ export function unconstrainedMarks(
 
 // Returns time options for a given day, constrained to the booking window:
 // times must be >= booking start (day 0) and <= booking end (last day).
-function timeOptionsForDay(
+export function timeOptionsForDay(
   marks: number[],
   dayIndex: number,
   dayCount: number,
@@ -537,8 +537,16 @@ function timeOptionsForDay(
   const dayStart = dayIndex * MINUTES_IN_DAY
   const isFirstDay = dayIndex === 0
   const isLastDay = dayIndex === dayCount - 1
+  const crossesMidnight =
+    dayCount === 1 &&
+    localStartMinute !== null &&
+    localEndMinute !== null &&
+    localEndMinute <= localStartMinute
   return marks
     .filter(m => {
+      if (crossesMidnight) {
+        return m >= localStartMinute && m <= localEndMinute + MINUTES_IN_DAY
+      }
       if (m < dayStart || m >= dayStart + MINUTES_IN_DAY) return false
       const local = m % MINUTES_IN_DAY
       if (isFirstDay && localStartMinute !== null && local < localStartMinute)
