@@ -86,6 +86,7 @@ export function BookingForm({
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
     startDate: `${uid}-startDate`,
+    doorsTime: `${uid}-doorsTime-0`,
     eventName: `${uid}-eventName`,
     audienceCount: `${uid}-audience`,
     tickets: `${uid}-tickets`,
@@ -350,6 +351,8 @@ export function BookingForm({
                 audienceCountError={errorFor(fieldIds.audienceCount)}
                 audienceCountId={fieldIds.audienceCount}
                 closedDates={closedDates}
+                doorsTimeError={errorFor(fieldIds.doorsTime)}
+                doorsTimeId={fieldIds.doorsTime}
                 eventNameError={errorFor(fieldIds.eventName)}
                 eventNameId={fieldIds.eventName}
                 openingHours={openingHours}
@@ -479,13 +482,13 @@ function bookingFieldId(
     path === "endDate" ||
     path === "startTime" ||
     path === "endTime" ||
-    path.startsWith("doorsTimes") ||
     path.startsWith("estimatedEndTimes")
   ) {
     return path === "startTime" || path === "endTime"
       ? `${fieldIds.startDate}-time`
       : fieldIds.startDate
   }
+  if (path.startsWith("doorsTimes")) return fieldIds.doorsTime
   if (path === "studentOrgName") return fieldIds.studentOrgName
   if (path === "eventName") return fieldIds.eventName
   if (path === "audienceCount") return fieldIds.audienceCount

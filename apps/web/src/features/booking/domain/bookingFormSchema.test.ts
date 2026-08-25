@@ -16,6 +16,25 @@ const validBooking = {
 }
 
 describe("bookingFormSchema", () => {
+  test("distinguishes missing public doors time from get-in and get-out", () => {
+    const result = bookingFormSchema.safeParse({
+      ...validBooking,
+      doorsTimes: [],
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ["doorsTimes"],
+            message: "Velg når dørene åpner for publikum.",
+          }),
+        ]),
+      )
+    }
+  })
+
   test("accepts whitespace around an optional organization number", () => {
     const result = bookingFormSchema.safeParse({
       ...validBooking,
