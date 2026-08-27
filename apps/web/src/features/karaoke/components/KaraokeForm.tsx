@@ -62,6 +62,8 @@ export function KaraokeForm({
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
+  const bookingSubmissionIdRef = useRef<string | null>(null)
+  const submissionAttemptRef = useRef(0)
   const honeypotId = `${uid}-hp`
   const today = isoDate(useCurrentTime(initialNow))
   const fieldIds = {
@@ -89,7 +91,14 @@ export function KaraokeForm({
       )
     },
     onSubmit: async ({ value, formApi }) => {
-      const result = await submitKaraokeBooking({ ...value, honeypot })
+      bookingSubmissionIdRef.current ??= crypto.randomUUID()
+      submissionAttemptRef.current += 1
+      const result = await submitKaraokeBooking({
+        ...value,
+        honeypot,
+        bookingSubmissionId: bookingSubmissionIdRef.current,
+        submissionAttempt: submissionAttemptRef.current,
+      })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
         requestExceptionFeedback("karaoke_booking")

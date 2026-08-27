@@ -187,7 +187,12 @@ describe("submitRoomBooking", () => {
       )
       .mockResolvedValueOnce(new Response("", { status: 201 }))
 
-    await submitRoomBooking(standardPayload())
+    const bookingSubmissionId = "123e4567-e89b-42d3-a456-426614174000"
+    await submitRoomBooking({
+      ...standardPayload(),
+      bookingSubmissionId,
+      submissionAttempt: 2,
+    })
 
     const calls = fetchMock.mock.calls as Array<[string, RequestInit]>
     expect(calls.some(([url]) => url.includes("bookingskjema-standard"))).toBe(
@@ -198,15 +203,14 @@ describe("submitRoomBooking", () => {
       "00-abcdef0123456789abcdef0123456789-abcdef0123456789-01",
     )
     const successProperties = posthogCaptureMock.mock.calls[0]?.[0].properties
-    expect(successProperties.booking_submission_id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
-    )
+    expect(successProperties.booking_submission_id).toBe(bookingSubmissionId)
+    expect(successProperties.submission_attempt).toBe(2)
     expect(successProperties.trace_id).toBe("abcdef0123456789abcdef0123456789")
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
       "booking.submitted",
       expect.objectContaining({
         booking_submission_id: successProperties.booking_submission_id,
-        crescat_event_id: 201,
+        crescat_http_status: 201,
         outcome: "accepted",
       }),
     )
@@ -321,6 +325,15 @@ describe("submitRoomBooking", () => {
     expect(result.ok).toBe(false)
     expect(captureExceptionMock.mock.calls[0]?.[0]).toEqual(
       new Error("Bookingsystemet svarte med status 422."),
+    )
+    expect(posthogCaptureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "room_booking_submit_failed",
+        properties: expect.objectContaining({
+          failure_stage: "crescat_response",
+          submission_attempt: 1,
+        }),
+      }),
     )
   })
 })

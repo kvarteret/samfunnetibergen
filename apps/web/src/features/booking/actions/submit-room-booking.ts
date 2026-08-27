@@ -107,6 +107,54 @@ const payloadSchema = z.object({
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
 
+interface SubmissionTelemetry {
+  bookingSubmissionId?: string
+  submissionAttempt?: number
+}
+
+function resolveSubmissionTelemetry(input: SubmissionTelemetry): {
+  bookingSubmissionId: string
+  submissionAttempt: number
+} {
+  const bookingSubmissionId = z
+    .string()
+    .uuid()
+    .safeParse(input.bookingSubmissionId)
+  const submissionAttempt = z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .safeParse(input.submissionAttempt)
+  return {
+    bookingSubmissionId: bookingSubmissionId.success
+      ? bookingSubmissionId.data
+      : randomUUID(),
+    submissionAttempt: submissionAttempt.success ? submissionAttempt.data : 1,
+  }
+}
+
+function captureRoomBookingFailureEvent(
+  failureStage: string,
+  bookingSubmissionId: string,
+  submissionAttempt: number,
+): void {
+  try {
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "room_booking_submit_failed",
+      properties: {
+        $process_person_profile: false,
+        booking_submission_id: bookingSubmissionId,
+        failure_stage: failureStage,
+        submission_attempt: submissionAttempt,
+      },
+    })
+  } catch {
+    // User feedback must not depend on analytics availability.
+  }
+}
+
 function captureRoomBookingRejection(
   reason: "calendar_conflict" | "opening_hours",
   payload: z.output<typeof payloadSchema>,
@@ -195,18 +243,25 @@ async function isAllowedByOpeningHours(
 }
 
 export async function submitRoomBooking(
-  input: BookingFormState & { honeypot?: string },
+  input: BookingFormState & { honeypot?: string } & SubmissionTelemetry,
 ): Promise<Result<number>> {
-  const bookingSubmissionId = randomUUID()
+  const { bookingSubmissionId, submissionAttempt } =
+    resolveSubmissionTelemetry(input)
   return withOperationalSpan("booking.submit", async span => {
     span.setAttribute("booking_submission_id", bookingSubmissionId)
-    return submitRoomBookingWithinSpan(input, bookingSubmissionId)
+    span.setAttribute("submission_attempt", submissionAttempt)
+    return submitRoomBookingWithinSpan(
+      input,
+      bookingSubmissionId,
+      submissionAttempt,
+    )
   })
 }
 
 async function submitRoomBookingWithinSpan(
   input: BookingFormState & { honeypot?: string },
   bookingSubmissionId: string,
+  submissionAttempt: number,
 ): Promise<Result<number>> {
   const startedAt = performance.now()
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
@@ -214,6 +269,11 @@ async function submitRoomBookingWithinSpan(
 
   const formParsed = bookingFormSchema.safeParse(input)
   if (!formParsed.success) {
+    captureRoomBookingFailureEvent(
+      "schema_validation",
+      bookingSubmissionId,
+      submissionAttempt,
+    )
     captureSubmitFailure(
       "room_booking",
       new Error("Room booking form schema validation failed"),
@@ -230,6 +290,11 @@ async function submitRoomBookingWithinSpan(
   }
 
   if (await isSubmissionRateLimited("submitRoomBooking")) {
+    captureRoomBookingFailureEvent(
+      "rate_limit",
+      bookingSubmissionId,
+      submissionAttempt,
+    )
     return err(RATE_LIMIT_ERROR)
   }
 
@@ -237,6 +302,11 @@ async function submitRoomBookingWithinSpan(
     buildBookingPayload(formParsed.data, formParsed.data.selectedRoomIds),
   )
   if (!parsed.success) {
+    captureRoomBookingFailureEvent(
+      "normalized_payload",
+      bookingSubmissionId,
+      submissionAttempt,
+    )
     captureSubmitFailure(
       "room_booking",
       new Error("Room booking normalized payload validation failed"),
@@ -285,7 +355,7 @@ async function submitRoomBookingWithinSpan(
         const traceFields = currentTraceFields()
         emitOperationalEvent("booking.submitted", {
           booking_submission_id: bookingSubmissionId,
-          crescat_event_id: result.value,
+          crescat_http_status: result.value,
           duration_ms: Math.round(performance.now() - startedAt),
           outcome: "accepted",
         })
@@ -302,7 +372,9 @@ async function submitRoomBookingWithinSpan(
             end_time: parsed.data.endTime,
             free_or_paid: parsed.data.freeOrPaid,
             open_or_closed: parsed.data.openOrClosed,
-            crescat_event_id: result.value,
+            promote: formParsed.data.promote === "ja",
+            crescat_http_status: result.value,
+            submission_attempt: submissionAttempt,
             trace_id: traceFields.trace_id,
           },
         })
@@ -320,6 +392,11 @@ async function submitRoomBookingWithinSpan(
       room_id: parsed.data.roomIds[0],
       start_date: parsed.data.startDate,
     })
+    captureRoomBookingFailureEvent(
+      result.error.includes("sesjon") ? "crescat_session" : "crescat_response",
+      bookingSubmissionId,
+      submissionAttempt,
+    )
     emitOperationalEvent("booking.failed", {
       booking_submission_id: bookingSubmissionId,
       duration_ms: Math.round(performance.now() - startedAt),
@@ -335,6 +412,16 @@ async function submitRoomBookingWithinSpan(
       booker_type: parsed.data.bookerType,
       room_id: parsed.data.roomIds[0],
     })
+    captureRoomBookingFailureEvent(
+      error instanceof DOMException &&
+        (error.name === "AbortError" || error.name === "TimeoutError")
+        ? "crescat_timeout"
+        : error instanceof TypeError
+          ? "network"
+          : "unexpected",
+      bookingSubmissionId,
+      submissionAttempt,
+    )
     emitOperationalEvent("booking.failed", {
       booking_submission_id: bookingSubmissionId,
       duration_ms: Math.round(performance.now() - startedAt),
