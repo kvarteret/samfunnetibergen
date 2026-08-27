@@ -21,14 +21,18 @@ export const newDate = (): DateEntry => ({
 
 export const initialState: FormState = {
   title: "",
+  titleEnglish: "",
   description: "",
+  descriptionEnglish: "",
   dates: [newDate()],
   isRecurring: false,
   rrule: "",
   room: "",
   roomText: "",
+  roomTextEnglish: "",
   organizerGroup: "",
   organizerText: "",
+  organizerTextEnglish: "",
   submittedByOrganization: "",
   eventTypeId: "",
   isInternalEvent: false,

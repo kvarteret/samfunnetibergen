@@ -33,7 +33,9 @@ export function getEventValidationIssues(
 ): EventValidationIssue[] {
   const parsed = eventFormSchema.safeParse({
     title: subject.title,
+    titleEnglish: subject.title,
     description: "",
+    descriptionEnglish: "",
     dates: subject.dates.map((date, index) => ({
       id: String(index),
       startDate: date.startDate,
@@ -44,8 +46,10 @@ export function getEventValidationIssues(
     rrule: subject.rrule,
     room: "",
     roomText: "",
+    roomTextEnglish: "",
     organizerGroup: "",
     organizerText: "",
+    organizerTextEnglish: "",
     submittedByOrganization: "",
     eventTypeId: "",
     isInternalEvent: false,
