@@ -20,6 +20,7 @@ import {
   publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "../queries"
+import { cleanEventDate, cleanEventLogicFields } from "./event-normalization"
 import { compact, type FetchOptions, getOsloDateString } from "./shared"
 import { DEFAULT_LOCALE } from "../localized"
 
@@ -40,29 +41,28 @@ function resolveArrangement<
   T extends RawPublishedEvent | RawPromotedParentEvent | RawEventDetail,
 >(row: T) {
   const { parent, ...child } = row
+  // Draft mode can return editable strings stega-encoded. Domain logic
+  // (event-kind promotion filters, status resolution, placement/sort keys,
+  // recurrence rules, date/time parsing) must see plain values, so clean those
+  // fields here. Display fields (title, description) keep their encoding so
+  // Visual Editing can still highlight them.
+  const cleanChild = cleanEventLogicFields(child)
+  const cleanParent = parent ? cleanEventLogicFields(parent) : parent
   const inheritFestivalImage =
-    row.eventKind !== "festivalSession" || row.useFestivalImage !== false
+    cleanChild.eventKind !== "festivalSession" ||
+    cleanChild.useFestivalImage !== false
   const effectiveParent =
-    parent && !inheritFestivalImage
-      ? { ...parent, imageUrl: null, imageCaption: null }
-      : parent
-  const content = resolveEventContent(child, effectiveParent)
+    cleanParent && !inheritFestivalImage
+      ? { ...cleanParent, imageUrl: null, imageCaption: null }
+      : cleanParent
+  const content = resolveEventContent(cleanChild, effectiveParent)
   const dates: Array<{
     _key: string
     startDate: string
     startTime: string | null
     endTime: string | null
   }> = (content.dates ?? []).flatMap(date =>
-    date
-      ? [
-          {
-            _key: date._key,
-            startDate: date.startDate,
-            startTime: date.startTime,
-            endTime: date.endTime,
-          },
-        ]
-      : [],
+    date ? [cleanEventDate(date)] : [],
   )
   return {
     ...content,
@@ -71,11 +71,15 @@ function resolveArrangement<
     isFree: (content.isFree ?? false) as boolean,
     description: (content.description ?? []) as NonNullable<T["description"]>,
     eventStatus: resolveEffectiveStatus(
-      row.eventStatus as EventStatus | null,
-      parent?.eventStatus as EventStatus | null,
+      cleanChild.eventStatus as EventStatus | null,
+      cleanParent?.eventStatus as EventStatus | null,
     ),
-    parentEvent: parent
-      ? { _id: parent._id, slug: parent.slug, title: parent.title }
+    parentEvent: cleanParent
+      ? {
+          _id: cleanParent._id,
+          slug: cleanParent.slug,
+          title: cleanParent.title,
+        }
       : null,
   }
 }
