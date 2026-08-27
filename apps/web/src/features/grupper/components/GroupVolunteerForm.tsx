@@ -21,6 +21,7 @@ import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
+import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -89,6 +90,13 @@ export function GroupVolunteerForm({
     validators: {
       onChange: volunteerFormSchema,
       onSubmit: volunteerFormSchema,
+    },
+    onSubmitInvalid: ({ formApi }) => {
+      captureInvalidFormSubmission(
+        "volunteer_application",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
     },
     onSubmit: async ({ value, formApi }) => {
       const body = JSON.stringify({ ...value, honeypot })

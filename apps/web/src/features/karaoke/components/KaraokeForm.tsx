@@ -15,6 +15,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
+import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -79,6 +80,13 @@ export function KaraokeForm({
     validators: {
       onChange: karaokeFormSchema,
       onSubmit: karaokeFormSchema,
+    },
+    onSubmitInvalid: ({ formApi }) => {
+      captureInvalidFormSubmission(
+        "karaoke_booking",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
     },
     onSubmit: async ({ value, formApi }) => {
       const result = await submitKaraokeBooking({ ...value, honeypot })

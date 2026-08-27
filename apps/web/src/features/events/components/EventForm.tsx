@@ -14,6 +14,7 @@ import {
 } from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import {
@@ -58,6 +59,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     validators: {
       onChange: eventFormSchema,
       onSubmit: eventFormSchema,
+    },
+    onSubmitInvalid: ({ formApi }) => {
+      captureInvalidFormSubmission(
+        "event_submission",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
     },
     onSubmit: async ({ value, formApi }) => {
       // Upload the image only now, as part of submit, so abandoned forms never
