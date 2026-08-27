@@ -6,6 +6,8 @@
     "homeDescription": "Meld interesse for Skjenkegruppen, Kraft eller Vaktetaten og kom i gang med prøvedugnad.",
     "eventsTitle": "Arrangementer | Samfunnet / Det Akademiske Kvarter",
     "eventsDescription": "Se kommende arrangementer på Det Akademiske Kvarter, gruppert etter programtype.",
+    "calendarTitle": "Kalender | Samfunnet / Det Akademiske Kvarter",
+    "calendarDescription": "Se kommende arrangementer på Det Akademiske Kvarter i en kalender.",
     "volunteerSignupTitle": "Bli frivillig | Oversikt over grupper",
     "volunteerSignupDescription": "Se gruppene på huset og meld interesse som frivillig.",
     "groupPageTitle": "{group} | Bli frivillig",
@@ -50,11 +52,15 @@
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
     "recurringGeneric": "Gjentagende",
+    "timePrefix": "kl.",
     "statusCancelled": "Kansellert"
   },
   "EventsPage": {
     "title": "Arrangementer",
+    "calendarTitle": "Arrangementskalender",
     "back": "Tilbake til forsiden",
+    "calendar": "Vis kalender",
+    "list": "Vis som liste",
     "empty": "Ingen kommende arrangementer akkurat nå.",
     "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",
     "filterAll": "Alle",
@@ -62,6 +68,7 @@
     "filterType": "Type arrangement",
     "filterOrganizer": "Arrangør",
     "filterResultCount": "{count, plural, =0 {Ingen arrangementer} one {# arrangement} other {# arrangementer}}",
+    "calendarMonthCount": "{count, plural, one {# måned} other {# måneder}}",
     "tickets": "Billetter",
     "facebook": "Facebook"
   },
