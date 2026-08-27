@@ -20,6 +20,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -126,6 +127,7 @@ export function GroupVolunteerForm({
                 )
                 .catch(() => t("submitErrorFallback"))
         formApi.setErrorMap({ onServer: detail })
+        requestExceptionFeedback("volunteer_application")
         throw new Error(detail)
       }
     },
@@ -262,6 +264,7 @@ export function GroupVolunteerForm({
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: t("submitErrorFallback") as never })
+              requestExceptionFeedback("volunteer_application")
               posthog.captureException(
                 new Error("Unexpected volunteer application failure"),
                 {

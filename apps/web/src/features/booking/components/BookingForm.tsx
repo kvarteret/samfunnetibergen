@@ -22,6 +22,7 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -116,6 +117,7 @@ export function BookingForm({
       const result = await submitRoomBooking({ ...value, honeypot })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
+        requestExceptionFeedback("room_booking")
         throw new Error(result.error)
       }
 
@@ -316,6 +318,7 @@ export function BookingForm({
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
                 {

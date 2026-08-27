@@ -14,6 +14,7 @@ import {
   slotRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -83,6 +84,7 @@ export function KaraokeForm({
       const result = await submitKaraokeBooking({ ...value, honeypot })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
+        requestExceptionFeedback("karaoke_booking")
         throw new Error(result.error)
       }
     },
@@ -167,6 +169,7 @@ export function KaraokeForm({
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              requestExceptionFeedback("karaoke_booking")
               posthog.captureException(
                 new Error("Unexpected karaoke booking submission failure"),
                 {
