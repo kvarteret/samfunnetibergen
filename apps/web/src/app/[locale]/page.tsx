@@ -366,7 +366,7 @@ function HomeUpcomingEvents({
     <section className="w-screen bg-primary py-8 text-primary-foreground [margin-left:calc(50%_-_50vw)] sm:py-10">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-6 sm:px-10 lg:px-14">
         <HomeEventsHeader
-          href={`/${locale}/arrangementer`}
+          href={`/${locale}/arrangementer/kalender`}
           label={sectionLabel}
           linkLabel={linkLabel}
           onPrimary

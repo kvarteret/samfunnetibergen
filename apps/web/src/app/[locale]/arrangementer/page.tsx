@@ -9,6 +9,7 @@ import {
   type RecurringLabels,
 } from "@/features/events/domain/dates"
 import type { AppLocale } from "@/i18n/routing"
+import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -59,12 +60,14 @@ export default async function EventsPage({
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
 
-  const [t, arrangements, resolvedSearchParams, cardT] = await Promise.all([
-    getTranslations({ locale, namespace: "EventsPage" }),
-    fetchPublishedEvents(locale),
-    searchParams,
-    getTranslations({ locale, namespace: "EventCard" }),
-  ])
+  const [t, fetchedArrangements, resolvedSearchParams, cardT] =
+    await Promise.all([
+      getTranslations({ locale, namespace: "EventsPage" }),
+      fetchPublishedEvents(locale),
+      searchParams,
+      getTranslations({ locale, namespace: "EventCard" }),
+    ])
+  const arrangements = filterToFirstInstances(fetchedArrangements)
 
   const primaryDateLabels: PrimaryDateLabels = {
     today: cardT("today"),
@@ -120,6 +123,7 @@ export default async function EventsPage({
     <EventsPageContent
       arrangements={arrangements}
       backLabel={t("back")}
+      calendarLabel={t("calendar")}
       precomputedDates={precomputedDates}
       searchParams={resolvedSearchParams}
       title={t("title")}
