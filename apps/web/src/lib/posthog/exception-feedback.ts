@@ -1,6 +1,7 @@
 import posthog from "posthog-js"
 
 export type ExceptionFeedbackSurface =
+  | "event_submission"
   | "karaoke_booking"
   | "route_error"
   | "room_booking"
@@ -31,6 +32,7 @@ export function isExceptionFeedbackPath(pathname: string): boolean {
     routeSegments[0] === "grupper" ||
     routeSegments[0] === "booking" ||
     routeSegments[0] === "karaoke" ||
+    (routeSegments[0] === "arrangementer" && routeSegments[1] === "ny") ||
     (routeSegments[0] === "rom" && routeSegments[1] === "book")
   )
 }

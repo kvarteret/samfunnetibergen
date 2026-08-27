@@ -14,6 +14,7 @@ import {
 } from "@/features/events/actions/submitEvent"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
@@ -84,6 +85,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         const uploadResult = await uploadEventImage(formData)
         if (!uploadResult.ok) {
           formApi.setErrorMap({ onServer: uploadResult.error as never })
+          requestExceptionFeedback("event_submission")
           throw new Error(uploadResult.error)
         }
         imageAssetId = uploadResult.value
@@ -93,6 +95,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
+        requestExceptionFeedback("event_submission")
         throw new Error(result.error)
       }
     },
@@ -171,6 +174,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             void form.handleSubmit().catch(() => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              requestExceptionFeedback("event_submission")
               posthog.captureException(
                 new Error("Unexpected event submission failure"),
                 {
