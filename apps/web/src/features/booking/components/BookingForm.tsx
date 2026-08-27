@@ -22,6 +22,8 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
+import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -80,6 +82,8 @@ export function BookingForm({
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
+  const bookingSubmissionIdRef = useRef<string | null>(null)
+  const submissionAttemptRef = useRef(0)
   const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(useCurrentTime(initialNow))
@@ -112,20 +116,26 @@ export function BookingForm({
       onChange: bookingFormSchema,
       onSubmit: bookingFormSchema,
     },
+    onSubmitInvalid: ({ formApi }) => {
+      captureInvalidFormSubmission(
+        "room_booking",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
+    },
     onSubmit: async ({ value, formApi }) => {
-      const result = await submitRoomBooking({ ...value, honeypot })
+      bookingSubmissionIdRef.current ??= crypto.randomUUID()
+      submissionAttemptRef.current += 1
+      const result = await submitRoomBooking({
+        ...value,
+        honeypot,
+        bookingSubmissionId: bookingSubmissionIdRef.current,
+        submissionAttempt: submissionAttemptRef.current,
+      })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
+        requestExceptionFeedback("room_booking")
         throw new Error(result.error)
-      }
-
-      try {
-        posthog.capture("room_booking_submitted", {
-          promote: value.promote === "ja",
-        })
-      } catch {
-        // A successful Crescat booking must not become a visible failure if
-        // client analytics is unavailable.
       }
     },
   })
@@ -313,15 +323,20 @@ export function BookingForm({
               }
               return
             }
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
                 {
                   form_id: "room_booking",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name:
+                    error instanceof Error ? error.name : undefined,
                 },
               )
             })

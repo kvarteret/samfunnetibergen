@@ -20,6 +20,8 @@ import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
+import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -89,6 +91,13 @@ export function GroupVolunteerForm({
       onChange: volunteerFormSchema,
       onSubmit: volunteerFormSchema,
     },
+    onSubmitInvalid: ({ formApi }) => {
+      captureInvalidFormSubmission(
+        "volunteer_application",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
+    },
     onSubmit: async ({ value, formApi }) => {
       const body = JSON.stringify({ ...value, honeypot })
       if (submissionIdentityRef.current?.fingerprint !== body) {
@@ -108,12 +117,25 @@ export function GroupVolunteerForm({
       })
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null)
         const detail =
-          data && typeof data.detail === "string"
-            ? data.detail
-            : t("submitErrorFallback")
+          response.status === 429
+            ? t("submitRateLimited", {
+                minutes: Math.max(
+                  1,
+                  Math.ceil(Number(response.headers.get("retry-after")) / 60) ||
+                    1,
+                ),
+              })
+            : await response
+                .json()
+                .then(data =>
+                  data && typeof data.detail === "string"
+                    ? data.detail
+                    : t("submitErrorFallback"),
+                )
+                .catch(() => t("submitErrorFallback"))
         formApi.setErrorMap({ onServer: detail })
+        requestExceptionFeedback("volunteer_application")
         throw new Error(detail)
       }
     },
@@ -247,15 +269,20 @@ export function GroupVolunteerForm({
             e.preventDefault()
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: t("submitErrorFallback") as never })
+              requestExceptionFeedback("volunteer_application")
               posthog.captureException(
                 new Error("Unexpected volunteer application failure"),
                 {
                   form_id: "volunteer_application",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name:
+                    error instanceof Error ? error.name : undefined,
                 },
               )
             })

@@ -218,7 +218,9 @@ describe("POST /api/volunteer-prospects", () => {
     expect(fetchMock).not.toHaveBeenCalled()
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
-      expect.any(Error),
+      expect.objectContaining({
+        message: "Volunteer form schema validation failed",
+      }),
       expect.objectContaining({ failure_branch: "schema_validation_failed" }),
     )
   })
@@ -281,7 +283,10 @@ describe("POST /api/volunteer-prospects", () => {
     expect(fetchMock).not.toHaveBeenCalled()
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
-      expect.any(Error),
+      expect.objectContaining({
+        message:
+          "VOLUNTEER_PROSPECT_HMAC_SECRET must contain at least 32 characters.",
+      }),
       expect.objectContaining({
         failure_branch: "hmac_configuration_invalid",
       }),
@@ -297,7 +302,10 @@ describe("POST /api/volunteer-prospects", () => {
     expect(fetchMock).not.toHaveBeenCalled()
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
-      expect.any(Error),
+      expect.objectContaining({
+        message:
+          "VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET must contain at least 32 characters.",
+      }),
       expect.objectContaining({ failure_branch: "client_key_unavailable" }),
     )
   })
@@ -315,7 +323,9 @@ describe("POST /api/volunteer-prospects", () => {
     expect(fetchMock).not.toHaveBeenCalled()
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
-      expect.any(Error),
+      expect.objectContaining({
+        message: "A trusted client IP header is required.",
+      }),
       expect.objectContaining({ failure_branch: "client_key_unavailable" }),
     )
     expect(JSON.stringify(captureMock.mock.calls)).not.toContain(
@@ -386,17 +396,68 @@ describe("POST /api/volunteer-prospects", () => {
     expect(captureMock).not.toHaveBeenCalled()
   })
 
+  it("preserves upstream throttling and retry guidance", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json(
+        { detail: "Too many requests." },
+        { status: 429, headers: { "Retry-After": "600" } },
+      ),
+    )
+
+    const response = await POST(volunteerRequest())
+
+    expect(response.status).toBe(429)
+    expect(response.headers.get("Retry-After")).toBe("600")
+    expect(await response.json()).toEqual({ detail: "Too many requests." })
+    expect(captureMock).toHaveBeenCalledWith(
+      "volunteer_application",
+      expect.objectContaining({
+        name: "VolunteerProspectUpstreamError",
+        message: "Volunteer prospect forwarding failed with 429",
+      }),
+      expect.objectContaining({
+        failure_branch: "personal_backend_rejected",
+        status: 429,
+        retry_after_seconds: 600,
+        trace_id: "0123456789abcdef0123456789abcdef",
+      }),
+    )
+  })
+
+  it("supplies retry guidance when Personal omits the header", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json({ detail: "Too many requests." }, { status: 429 }),
+    )
+
+    const response = await POST(volunteerRequest())
+
+    expect(response.status).toBe(429)
+    expect(response.headers.get("Retry-After")).toBe("60")
+    expect(captureMock).toHaveBeenCalledWith(
+      "volunteer_application",
+      expect.objectContaining({
+        name: "VolunteerProspectUpstreamError",
+      }),
+      expect.objectContaining({
+        status: 429,
+        retry_after_seconds: 60,
+      }),
+    )
+  })
+
   it("does not include the applicant email when forwarding fails", async () => {
-    fetchMock.mockRejectedValue(new Error("Personal unavailable"))
+    const upstreamError = new Error("Personal unavailable")
+    fetchMock.mockRejectedValue(upstreamError)
 
     const response = await POST(volunteerRequest())
 
     expect(response.status).toBe(500)
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
-      expect.any(Error),
+      upstreamError,
       expect.objectContaining({
         failure_branch: "personal_backend_request_failed",
+        trace_id: "0123456789abcdef0123456789abcdef",
       }),
     )
     const capturedProperties = captureMock.mock.calls[0]?.[2]

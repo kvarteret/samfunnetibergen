@@ -17,9 +17,11 @@ if (
     capture_pageview: true,
     capture_pageleave: true,
     capture_exceptions: true,
+    session_recording: {
+      maskAllInputs: true,
+    },
     person_profiles: "identified_only",
-    tracing_headers:
-      typeof window === "undefined" ? undefined : [window.location.hostname],
+    tracing_headers: [window.location.hostname],
   })
 
   posthog.register({

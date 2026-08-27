@@ -29,6 +29,13 @@ const REQUEST_BODY_LIMIT_BYTES = 16 * 1_024
 
 class RequestBodyTooLargeError extends Error {}
 
+class VolunteerProspectUpstreamError extends Error {
+  constructor(status: number) {
+    super(`Volunteer prospect forwarding failed with ${status}`)
+    this.name = "VolunteerProspectUpstreamError"
+  }
+}
+
 export async function POST(request: Request) {
   let body: unknown = null
   try {
@@ -70,6 +77,7 @@ export async function POST(request: Request) {
         validation_stage: "server",
         failure_branch: "schema_validation_failed",
         form_id: "volunteer_application",
+        ...currentTraceFields(),
         ...getValidationDiagnostics(parsed.error.issues),
       },
     )
@@ -100,15 +108,12 @@ export async function POST(request: Request) {
       request.headers,
       process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET,
     )
-  } catch {
-    captureSubmitFailure(
-      "volunteer_application",
-      new Error("Volunteer prospect client key is unavailable"),
-      {
-        source: "volunteer-prospects-route",
-        failure_branch: "client_key_unavailable",
-      },
-    )
+  } catch (error) {
+    captureSubmitFailure("volunteer_application", error, {
+      source: "volunteer-prospects-route",
+      failure_branch: "client_key_unavailable",
+      ...currentTraceFields(),
+    })
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 503 })
   }
 
@@ -134,17 +139,14 @@ export async function POST(request: Request) {
       process.env.VOLUNTEER_PROSPECT_HMAC_SECRET,
       { idempotencyKey, clientKey },
     )
-  } catch {
-    captureSubmitFailure(
-      "volunteer_application",
-      new Error("Volunteer prospect HMAC signing is not configured"),
-      {
-        source: "volunteer-prospects-route",
-        failure_branch: "hmac_configuration_invalid",
-        first_choice_group_slug: requestBody.first_choice_group_slug,
-        has_second_choice: Boolean(requestBody.second_choice_group_slug),
-      },
-    )
+  } catch (error) {
+    captureSubmitFailure("volunteer_application", error, {
+      source: "volunteer-prospects-route",
+      failure_branch: "hmac_configuration_invalid",
+      ...currentTraceFields(),
+      first_choice_group_slug: requestBody.first_choice_group_slug,
+      has_second_choice: Boolean(requestBody.second_choice_group_slug),
+    })
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 503 })
   }
 
@@ -177,16 +179,20 @@ export async function POST(request: Request) {
             typeof errorBody?.detail === "string"
               ? errorBody.detail
               : GENERIC_ERROR
+          const retryAfterSeconds =
+            response.status === 429
+              ? Number(response.headers.get("retry-after")) || 60
+              : undefined
           if (response.status !== 409) {
             captureSubmitFailure(
               "volunteer_application",
-              new Error(
-                `Volunteer prospect forwarding failed with ${response.status}`,
-              ),
+              new VolunteerProspectUpstreamError(response.status),
               {
                 source: "volunteer-prospects-route",
                 failure_branch: "personal_backend_rejected",
+                ...currentTraceFields(),
                 status: response.status,
+                retry_after_seconds: retryAfterSeconds,
                 first_choice_group_slug: requestBody.first_choice_group_slug,
                 has_second_choice: Boolean(
                   requestBody.second_choice_group_slug,
@@ -196,7 +202,16 @@ export async function POST(request: Request) {
           }
           return NextResponse.json(
             { detail },
-            { status: response.status === 409 ? 409 : 422 },
+            {
+              status:
+                response.status === 409 || response.status === 429
+                  ? response.status
+                  : 422,
+              headers:
+                retryAfterSeconds === undefined
+                  ? undefined
+                  : { "Retry-After": String(retryAfterSeconds) },
+            },
           )
         }
 
@@ -230,17 +245,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ registrationId }, { status: 201 })
       },
     )
-  } catch {
-    captureSubmitFailure(
-      "volunteer_application",
-      new Error("Personal volunteer prospect request failed"),
-      {
-        source: "volunteer-prospects-route",
-        failure_branch: "personal_backend_request_failed",
-        first_choice_group_slug: requestBody.first_choice_group_slug,
-        has_second_choice: Boolean(requestBody.second_choice_group_slug),
-      },
-    )
+  } catch (error) {
+    captureSubmitFailure("volunteer_application", error, {
+      source: "volunteer-prospects-route",
+      failure_branch: "personal_backend_request_failed",
+      ...currentTraceFields(),
+      first_choice_group_slug: requestBody.first_choice_group_slug,
+      has_second_choice: Boolean(requestBody.second_choice_group_slug),
+    })
     return NextResponse.json({ detail: GENERIC_ERROR }, { status: 500 })
   }
 }

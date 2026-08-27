@@ -1,8 +1,12 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, usePathname } from "next/navigation"
 import posthog from "posthog-js"
 import { useEffect } from "react"
+import {
+  isExceptionFeedbackPath,
+  requestExceptionFeedback,
+} from "@/lib/posthog/exception-feedback"
 
 type LocaleErrorProps = {
   error: Error & { digest?: string }
@@ -14,6 +18,7 @@ export default function LocaleError({
   unstable_retry,
 }: LocaleErrorProps) {
   const params = useParams<{ locale?: string }>()
+  const pathname = usePathname()
 
   useEffect(() => {
     posthog.captureException(error, {
@@ -22,7 +27,10 @@ export default function LocaleError({
       digest: error.digest,
       handled: true,
     })
-  }, [error, params.locale])
+    if (isExceptionFeedbackPath(pathname)) {
+      requestExceptionFeedback("route_error", pathname)
+    }
+  }, [error, params.locale, pathname])
 
   return (
     <section className="mx-auto flex min-h-[50vh] w-full max-w-2xl flex-col items-start justify-center gap-6">
