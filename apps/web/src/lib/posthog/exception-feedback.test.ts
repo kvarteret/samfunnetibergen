@@ -26,12 +26,13 @@ describe("exception feedback", () => {
     expect(isExceptionFeedbackPath(pathname)).toBe(true)
   })
 
-  it.each(["/nb/rom", "/nb/arrangementer", "/en/om-oss"])(
-    "does not target unrelated errors on %s",
-    pathname => {
-      expect(isExceptionFeedbackPath(pathname)).toBe(false)
-    },
-  )
+  it.each([
+    "/nb/rom",
+    "/nb/arrangementer",
+    "/en/om-oss",
+  ])("does not target unrelated errors on %s", pathname => {
+    expect(isExceptionFeedbackPath(pathname)).toBe(false)
+  })
 
   it("requests the survey without including form contents", () => {
     requestExceptionFeedback("room_booking", "/nb/rom/book")
