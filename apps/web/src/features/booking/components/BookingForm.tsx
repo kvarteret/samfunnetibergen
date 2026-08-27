@@ -323,7 +323,7 @@ export function BookingForm({
               }
               return
             }
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("room_booking")
@@ -333,6 +333,9 @@ export function BookingForm({
                   form_id: "room_booking",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name: error instanceof Error ? error.name : undefined,
                 },
               )
             })
