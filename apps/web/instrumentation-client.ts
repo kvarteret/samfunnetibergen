@@ -5,6 +5,10 @@ const isLocalhost =
   (window.location.hostname === "localhost" ||
     window.location.hostname.startsWith("127.") ||
     window.location.hostname === "[::1]")
+const routeLocale =
+  typeof window === "undefined"
+    ? undefined
+    : window.location.pathname.split("/")[1]
 
 if (
   !isLocalhost ||
@@ -21,6 +25,8 @@ if (
     session_recording: {
       maskAllInputs: true,
     },
+    override_display_language:
+      routeLocale === "nb" || routeLocale === "en" ? routeLocale : undefined,
     person_profiles: "identified_only",
     tracing_headers:
       typeof window === "undefined" ? undefined : [window.location.hostname],
