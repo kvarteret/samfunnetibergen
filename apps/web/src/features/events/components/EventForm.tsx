@@ -171,7 +171,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             e.preventDefault()
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("event_submission")
@@ -181,6 +181,10 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
                   form_id: "event_submission",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name:
+                    error instanceof Error ? error.name : undefined,
                 },
               )
             })
