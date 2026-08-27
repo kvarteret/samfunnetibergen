@@ -108,11 +108,23 @@ export function GroupVolunteerForm({
       })
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null)
         const detail =
-          data && typeof data.detail === "string"
-            ? data.detail
-            : t("submitErrorFallback")
+          response.status === 429
+            ? t("submitRateLimited", {
+                minutes: Math.max(
+                  1,
+                  Math.ceil(Number(response.headers.get("retry-after")) / 60) ||
+                    1,
+                ),
+              })
+            : await response
+                .json()
+                .then(data =>
+                  data && typeof data.detail === "string"
+                    ? data.detail
+                    : t("submitErrorFallback"),
+                )
+                .catch(() => t("submitErrorFallback"))
         formApi.setErrorMap({ onServer: detail })
         throw new Error(detail)
       }

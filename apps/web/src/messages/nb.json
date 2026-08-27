@@ -206,6 +206,7 @@
     "successTitle": "Registrering sendt",
     "errorTitle": "Noe gikk galt",
     "submittedMessage": "Registreringen er sendt inn. Gruppen du valgte får beskjed, og dere kan avtale prøvedugnad videre på e-post.",
+    "submitRateLimited": "For mange forsøk. Vent {minutes, plural, =1 {ett minutt} other {# minutter}} før du prøver igjen.",
     "submitErrorFallback": "Noe gikk galt da registreringen skulle sendes inn.",
     "institutionOther": "Annet / ikke student"
   },

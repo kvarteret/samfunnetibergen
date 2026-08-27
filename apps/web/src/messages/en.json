@@ -194,6 +194,7 @@
     "successTitle": "Registration sent",
     "errorTitle": "Something went wrong",
     "submittedMessage": "Your registration has been sent. The groups you chose have been notified and can arrange a trial shift by email.",
+    "submitRateLimited": "Too many attempts. Wait {minutes, plural, =1 {one minute} other {# minutes}} before trying again.",
     "submitErrorFallback": "Something went wrong while sending the registration.",
     "institutionOther": "Other / not a student"
   },
