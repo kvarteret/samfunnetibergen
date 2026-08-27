@@ -1,8 +1,13 @@
 "use server"
 
-import { randomUUID } from "node:crypto"
 import { z } from "zod"
 
+import {
+  captureBookingFailureEvent,
+  classifyBookingFailureStage,
+  resolveSubmissionTelemetry,
+  type SubmissionTelemetry,
+} from "@/lib/booking/telemetry"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
@@ -54,54 +59,6 @@ const karaokePayloadSchema = z.object({
   studentProofAccepted: z.boolean(),
   acceptTerms: z.literal(true),
 })
-
-interface SubmissionTelemetry {
-  bookingSubmissionId?: string
-  submissionAttempt?: number
-}
-
-function resolveSubmissionTelemetry(input: SubmissionTelemetry): {
-  bookingSubmissionId: string
-  submissionAttempt: number
-} {
-  const bookingSubmissionId = z
-    .string()
-    .uuid()
-    .safeParse(input.bookingSubmissionId)
-  const submissionAttempt = z
-    .number()
-    .int()
-    .min(1)
-    .max(100)
-    .safeParse(input.submissionAttempt)
-  return {
-    bookingSubmissionId: bookingSubmissionId.success
-      ? bookingSubmissionId.data
-      : randomUUID(),
-    submissionAttempt: submissionAttempt.success ? submissionAttempt.data : 1,
-  }
-}
-
-function captureKaraokeBookingFailureEvent(
-  failureStage: string,
-  bookingSubmissionId: string,
-  submissionAttempt: number,
-): void {
-  try {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "karaoke_booking_submit_failed",
-      properties: {
-        $process_person_profile: false,
-        booking_submission_id: bookingSubmissionId,
-        failure_stage: failureStage,
-        submission_attempt: submissionAttempt,
-      },
-    })
-  } catch {
-    // User feedback must not depend on analytics availability.
-  }
-}
 
 async function hasKaraokeConflict(
   payload: z.output<typeof karaokePayloadSchema>,
@@ -179,7 +136,8 @@ export async function submitKaraokeBooking(
 
   const formParsed = karaokeFormSchema.safeParse(input)
   if (!formParsed.success) {
-    captureKaraokeBookingFailureEvent(
+    captureBookingFailureEvent(
+      "karaoke_booking_submit_failed",
       "schema_validation",
       bookingSubmissionId,
       submissionAttempt,
@@ -199,7 +157,8 @@ export async function submitKaraokeBooking(
   }
 
   if (await isSubmissionRateLimited("submitKaraokeBooking")) {
-    captureKaraokeBookingFailureEvent(
+    captureBookingFailureEvent(
+      "karaoke_booking_submit_failed",
       "rate_limit",
       bookingSubmissionId,
       submissionAttempt,
@@ -211,7 +170,8 @@ export async function submitKaraokeBooking(
     buildKaraokePayload(formParsed.data, deriveKaraokeState(formParsed.data)),
   )
   if (!parsed.success) {
-    captureKaraokeBookingFailureEvent(
+    captureBookingFailureEvent(
+      "karaoke_booking_submit_failed",
       "normalized_payload",
       bookingSubmissionId,
       submissionAttempt,
@@ -305,8 +265,9 @@ export async function submitKaraokeBooking(
         start_date: parsed.data.startDate,
       },
     )
-    captureKaraokeBookingFailureEvent(
-      result.error.includes("sesjon") ? "crescat_session" : "crescat_response",
+    captureBookingFailureEvent(
+      "karaoke_booking_submit_failed",
+      classifyBookingFailureStage(result.error),
       bookingSubmissionId,
       submissionAttempt,
     )
@@ -321,13 +282,9 @@ export async function submitKaraokeBooking(
         price_type: parsed.data.priceType,
       },
     )
-    captureKaraokeBookingFailureEvent(
-      error instanceof DOMException &&
-        (error.name === "AbortError" || error.name === "TimeoutError")
-        ? "crescat_timeout"
-        : error instanceof TypeError
-          ? "network"
-          : "unexpected",
+    captureBookingFailureEvent(
+      "karaoke_booking_submit_failed",
+      classifyBookingFailureStage(error),
       bookingSubmissionId,
       submissionAttempt,
     )

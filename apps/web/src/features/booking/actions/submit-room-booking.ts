@@ -1,6 +1,5 @@
 "use server"
 
-import { randomUUID } from "node:crypto"
 import { z } from "zod"
 
 import {
@@ -17,6 +16,12 @@ import {
   calendarSlugForBookerType,
   fetchVenueCalendar,
 } from "@/lib/integrations/crescat/calendar"
+import {
+  captureBookingFailureEvent,
+  classifyBookingFailureStage,
+  resolveSubmissionTelemetry,
+  type SubmissionTelemetry,
+} from "@/lib/booking/telemetry"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
@@ -106,54 +111,6 @@ const payloadSchema = z.object({
 })
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
-
-interface SubmissionTelemetry {
-  bookingSubmissionId?: string
-  submissionAttempt?: number
-}
-
-function resolveSubmissionTelemetry(input: SubmissionTelemetry): {
-  bookingSubmissionId: string
-  submissionAttempt: number
-} {
-  const bookingSubmissionId = z
-    .string()
-    .uuid()
-    .safeParse(input.bookingSubmissionId)
-  const submissionAttempt = z
-    .number()
-    .int()
-    .min(1)
-    .max(100)
-    .safeParse(input.submissionAttempt)
-  return {
-    bookingSubmissionId: bookingSubmissionId.success
-      ? bookingSubmissionId.data
-      : randomUUID(),
-    submissionAttempt: submissionAttempt.success ? submissionAttempt.data : 1,
-  }
-}
-
-function captureRoomBookingFailureEvent(
-  failureStage: string,
-  bookingSubmissionId: string,
-  submissionAttempt: number,
-): void {
-  try {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "room_booking_submit_failed",
-      properties: {
-        $process_person_profile: false,
-        booking_submission_id: bookingSubmissionId,
-        failure_stage: failureStage,
-        submission_attempt: submissionAttempt,
-      },
-    })
-  } catch {
-    // User feedback must not depend on analytics availability.
-  }
-}
 
 function captureRoomBookingRejection(
   reason: "calendar_conflict" | "opening_hours",
@@ -269,7 +226,8 @@ async function submitRoomBookingWithinSpan(
 
   const formParsed = bookingFormSchema.safeParse(input)
   if (!formParsed.success) {
-    captureRoomBookingFailureEvent(
+    captureBookingFailureEvent(
+      "room_booking_submit_failed",
       "schema_validation",
       bookingSubmissionId,
       submissionAttempt,
@@ -290,7 +248,8 @@ async function submitRoomBookingWithinSpan(
   }
 
   if (await isSubmissionRateLimited("submitRoomBooking")) {
-    captureRoomBookingFailureEvent(
+    captureBookingFailureEvent(
+      "room_booking_submit_failed",
       "rate_limit",
       bookingSubmissionId,
       submissionAttempt,
@@ -302,7 +261,8 @@ async function submitRoomBookingWithinSpan(
     buildBookingPayload(formParsed.data, formParsed.data.selectedRoomIds),
   )
   if (!parsed.success) {
-    captureRoomBookingFailureEvent(
+    captureBookingFailureEvent(
+      "room_booking_submit_failed",
       "normalized_payload",
       bookingSubmissionId,
       submissionAttempt,
@@ -392,8 +352,9 @@ async function submitRoomBookingWithinSpan(
       room_id: parsed.data.roomIds[0],
       start_date: parsed.data.startDate,
     })
-    captureRoomBookingFailureEvent(
-      result.error.includes("sesjon") ? "crescat_session" : "crescat_response",
+    captureBookingFailureEvent(
+      "room_booking_submit_failed",
+      classifyBookingFailureStage(result.error),
       bookingSubmissionId,
       submissionAttempt,
     )
@@ -412,13 +373,9 @@ async function submitRoomBookingWithinSpan(
       booker_type: parsed.data.bookerType,
       room_id: parsed.data.roomIds[0],
     })
-    captureRoomBookingFailureEvent(
-      error instanceof DOMException &&
-        (error.name === "AbortError" || error.name === "TimeoutError")
-        ? "crescat_timeout"
-        : error instanceof TypeError
-          ? "network"
-          : "unexpected",
+    captureBookingFailureEvent(
+      "room_booking_submit_failed",
+      classifyBookingFailureStage(error),
       bookingSubmissionId,
       submissionAttempt,
     )
