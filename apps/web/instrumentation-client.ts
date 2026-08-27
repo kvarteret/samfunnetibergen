@@ -17,6 +17,7 @@ if (
     capture_pageview: true,
     capture_pageleave: true,
     capture_exceptions: true,
+    disable_session_recording: false,
     session_recording: {
       maskAllInputs: true,
     },
