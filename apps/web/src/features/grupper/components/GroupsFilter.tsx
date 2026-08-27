@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import posthog from "posthog-js"
 import { useState } from "react"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Link } from "@/i18n/navigation"
@@ -39,9 +40,13 @@ export function GroupsFilter({
         <div className="overflow-x-auto pb-2">
           <SegmentedControl
             className="flex-nowrap"
-            onValueChange={value =>
+            onValueChange={value => {
+              posthog.capture("groups_filter_used", {
+                filter_type: "label",
+                value: value === "all" ? null : value,
+              })
               setActiveLabel(value === "all" ? null : value)
-            }
+            }}
             options={[
               { value: "all", label: allLabel },
               ...allLabels.map(label => ({ value: label, label })),

@@ -2,6 +2,7 @@
 
 import { Collapsible } from "@base-ui/react/collapsible"
 import { useTranslations } from "next-intl"
+import posthog from "posthog-js"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 import { useEvents } from "@/features/events/context/EventsContext"
@@ -12,19 +13,29 @@ export function EventsPageFilters() {
   const { filters, filteredEvents, setFilters, taxonomy } = useEvents()
   const activeFilterCount = countEventFilters(filters)
 
-  const clearAll = () =>
+  const clearAll = () => {
+    posthog.capture("events_filter_used", {
+      filter_type: "taxonomy_group",
+      value: null,
+    })
     setFilters({
       taxonomyGroupName: null,
       eventTypeIds: [],
       organizerGroupIds: [],
     })
+  }
 
-  const toggleTaxonomyGroup = (name: string) =>
+  const toggleTaxonomyGroup = (name: string) => {
+    posthog.capture("events_filter_used", {
+      filter_type: "taxonomy_group",
+      value: name,
+    })
     setFilters({
       taxonomyGroupName: filters.taxonomyGroupName === name ? null : name,
       eventTypeIds: [],
       organizerGroupIds: filters.organizerGroupIds,
     })
+  }
 
   return (
     <div className="space-y-6 border-y-2 border-border py-6">
@@ -80,7 +91,11 @@ export function EventsPageFilters() {
                       {t("filterType")} — {group.name}
                     </h2>
                     <ToggleGroup
-                      onValueChange={selectedGroupIds =>
+                      onValueChange={selectedGroupIds => {
+                        posthog.capture("events_filter_used", {
+                          filter_type: "event_type",
+                          value: selectedGroupIds.join(",") || null,
+                        })
                         setFilters({
                           ...filters,
                           eventTypeIds: [
@@ -90,7 +105,7 @@ export function EventsPageFilters() {
                             ...selectedGroupIds,
                           ],
                         })
-                      }
+                      }}
                       options={groupEventTypes.map(eventType => ({
                         value: eventType._id,
                         label: eventType.name,
@@ -108,9 +123,13 @@ export function EventsPageFilters() {
                     {t("filterOrganizer")}
                   </h2>
                   <ToggleGroup
-                    onValueChange={organizerGroupIds =>
+                    onValueChange={organizerGroupIds => {
+                      posthog.capture("events_filter_used", {
+                        filter_type: "organizer",
+                        value: organizerGroupIds.join(",") || null,
+                      })
                       setFilters({ ...filters, organizerGroupIds })
-                    }
+                    }}
                     options={taxonomy.organizerGroups.map(group => ({
                       value: group._id,
                       label: group.name,

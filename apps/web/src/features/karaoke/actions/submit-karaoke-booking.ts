@@ -16,6 +16,7 @@ import {
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
+import { getPostHogRequestDistinctId } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
@@ -236,7 +237,7 @@ export async function submitKaraokeBooking(
     if (result.ok) {
       try {
         getPostHogClient().capture({
-          distinctId: "anonymous",
+          distinctId: await getPostHogRequestDistinctId(),
           event: "karaoke_booking_submitted",
           properties: {
             price_type: parsed.data.priceType,

@@ -38,6 +38,7 @@ import {
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
+import { getPostHogRequestDistinctId } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
@@ -112,15 +113,15 @@ const payloadSchema = z.object({
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
 
-function captureRoomBookingRejection(
+async function captureRoomBookingRejection(
   reason: "calendar_conflict" | "opening_hours",
   payload: z.output<typeof payloadSchema>,
   bookingSubmissionId: string,
-): void {
+): Promise<void> {
   const traceFields = currentTraceFields()
   try {
     getPostHogClient().capture({
-      distinctId: "anonymous",
+      distinctId: await getPostHogRequestDistinctId(),
       event: "room_booking_rejected",
       properties: {
         $process_person_profile: false,
@@ -284,7 +285,7 @@ async function submitRoomBookingWithinSpan(
 
   try {
     if (!(await isAllowedByOpeningHours(parsed.data))) {
-      captureRoomBookingRejection(
+      await captureRoomBookingRejection(
         "opening_hours",
         parsed.data,
         bookingSubmissionId,
@@ -293,7 +294,7 @@ async function submitRoomBookingWithinSpan(
     }
 
     if (await hasVenueCalendarConflict(parsed.data)) {
-      captureRoomBookingRejection(
+      await captureRoomBookingRejection(
         "calendar_conflict",
         parsed.data,
         bookingSubmissionId,
@@ -320,7 +321,7 @@ async function submitRoomBookingWithinSpan(
           outcome: "accepted",
         })
         getPostHogClient().capture({
-          distinctId: "anonymous",
+          distinctId: await getPostHogRequestDistinctId(),
           event: "room_booking_submitted",
           properties: {
             $process_person_profile: false,

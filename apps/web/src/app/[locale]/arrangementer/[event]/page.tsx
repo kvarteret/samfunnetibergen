@@ -9,6 +9,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import { TrackView } from "@/lib/posthog/track-view"
 import { fetchEventBySlug, fetchEventChildren } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
@@ -60,6 +61,19 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <>
       {eventJsonLd && <JsonLd data={eventJsonLd} />}
+      <TrackView
+        captureKey={resolvedParams.event}
+        event="event_viewed"
+        properties={{
+          event_slug: resolvedParams.event,
+          event_title: eventData.title,
+          event_type: eventData.eventType?.name,
+          organizer_group_slug: eventData.organizerGroup?.slug,
+          organizer_group_name: eventData.organizerGroup?.name,
+          has_ticket_url: Boolean(eventData.ticketUrl),
+          has_facebook_url: Boolean(eventData.facebookUrl),
+        }}
+      />
       <article className="flex w-full flex-col gap-8">
         <EventStatusNotice event={eventData} t={t} />
         <EventDetailHero

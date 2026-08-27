@@ -2,6 +2,7 @@
 
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
+import { getPostHogRequestDistinctId } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import {
@@ -151,7 +152,7 @@ export async function submitEvent(
     const created = await getWriteClient().create(doc)
     try {
       getPostHogClient().capture({
-        distinctId: "anonymous",
+        distinctId: await getPostHogRequestDistinctId(),
         event: "event_submission_submitted",
         properties: {
           title: validatedInput.title,

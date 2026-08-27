@@ -1,3 +1,5 @@
+import { headers } from "next/headers"
+
 const POSTHOG_COOKIE_PREFIX = "ph_phc_"
 const POSTHOG_COOKIE_SUFFIX = "_posthog"
 
@@ -84,6 +86,21 @@ export function getPostHogDistinctIdFromCookie(
   }
 
   return undefined
+}
+
+/** Resolve the visitor's PostHog distinct_id from the request cookie, so a
+ * server action or route handler can attach a server-side event (e.g. an
+ * async submit confirmation) to the same person as the matching client-side
+ * `*_started` event. Falls back to "anonymous" when no PostHog cookie is
+ * present or the request headers can't be read (e.g. outside a Next request
+ * scope such as unit tests), so analytics never blocks the submission. */
+export async function getPostHogRequestDistinctId(): Promise<string> {
+  try {
+    const cookieHeader = (await headers()).get("cookie") ?? undefined
+    return getPostHogDistinctIdFromCookie(cookieHeader) ?? "anonymous"
+  } catch {
+    return "anonymous"
+  }
 }
 
 function parsePostHogDistinctId(rawValue: string): string | undefined {

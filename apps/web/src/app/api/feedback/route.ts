@@ -1,4 +1,5 @@
 import { injectActiveTraceContext } from "@/lib/observability"
+import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
 
   const page = typeof raw.page === "string" ? raw.page : "ukjent"
   getPostHogClient().capture({
-    distinctId: "anonymous",
+    distinctId: getPostHogDistinctIdFromCookie(request.headers.get("cookie") ?? undefined) ?? "anonymous",
     event: "feedback_submitted",
     properties: {
       feedback_type: feedbackType,

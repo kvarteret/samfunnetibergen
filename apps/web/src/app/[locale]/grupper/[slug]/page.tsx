@@ -12,6 +12,7 @@ import {
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import { TrackView } from "@/lib/posthog/track-view"
 import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
@@ -75,7 +76,17 @@ export default async function GroupPage({ params }: GroupPageProps) {
   }>
 
   return (
-    <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <>
+      <TrackView
+        captureKey={group.slug}
+        event="group_viewed"
+        properties={{
+          group_slug: group.slug,
+          group_name: group.name,
+          group_category: group.category,
+        }}
+      />
+      <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-8">
         <GroupMasthead
           logoUrl={group.logoUrl}
@@ -197,6 +208,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
       </aside>
     </article>
+    </>
   )
 }
 

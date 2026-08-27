@@ -15,6 +15,7 @@ import {
   injectActiveTraceContext,
   withOperationalSpan,
 } from "@/lib/observability"
+import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
@@ -227,7 +228,7 @@ export async function POST(request: Request) {
         })
         try {
           getPostHogClient().capture({
-            distinctId: "anonymous",
+            distinctId: getPostHogDistinctIdFromCookie(request.headers.get("cookie") ?? undefined) ?? "anonymous",
             event: "volunteer_application_submitted",
             properties: {
               $process_person_profile: false,
