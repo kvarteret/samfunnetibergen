@@ -28,7 +28,7 @@ describe("bookingFormSchema", () => {
         expect.arrayContaining([
           expect.objectContaining({
             path: ["doorsTimes"],
-            message: "Velg når dørene åpner for publikum.",
+            message: "validation.doors",
           }),
         ]),
       )

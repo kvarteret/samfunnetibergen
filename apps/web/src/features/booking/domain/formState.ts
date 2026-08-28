@@ -53,15 +53,6 @@ export const initialBookingState: BookingFormState = {
 export const isExternalBooker = (bookerType: BookerType): boolean =>
   bookerType !== "intern"
 
-const BOOKER_TYPE_LABELS: Record<BookerType, string> = {
-  ekstern: "Privat",
-  studentorg: "Studentorganisasjon",
-  intern: "Intern",
-}
-
-export const bookerTypeLabel = (bookerType: BookerType): string =>
-  BOOKER_TYPE_LABELS[bookerType]
-
 // --- Crescat free-text composition (shared by the order summary and payload) ---
 
 export function composeTechEquipment(state: BookingFormState): string {

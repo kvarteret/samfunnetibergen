@@ -1,12 +1,14 @@
 /** @vitest-environment jsdom */
 
 import { useForm } from "@tanstack/react-form"
+import { NextIntlClientProvider } from "next-intl"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { initialBookingState } from "../domain/formState"
 import { BookingFormEventDetailsSection } from "./BookingFormEventDetailsSection"
 import { BookingFormContext } from "./bookingFormContext"
+import messages from "@/messages/nb.json"
 
 function EventDetailsHarness({
   startTime = "15:00",
@@ -30,29 +32,31 @@ function EventDetailsHarness({
   })
 
   return (
-    <BookingFormContext.Provider value={form}>
-      <BookingFormEventDetailsSection
-        audienceCountId="audience"
-        closedDates={[]}
-        doorsTimeError={doorsTimeError}
-        doorsTimeId="doors-time"
-        eventNameId="event-name"
-        openingHours={null}
-        roomOpeningHours={
-          crossMidnightHours
-            ? {
-                rows: [
-                  {
-                    weekdays: [6],
-                    status: "open",
-                    duration: { start: "18:00", end: "03:00" },
-                  },
-                ],
-              }
-            : null
-        }
-      />
-    </BookingFormContext.Provider>
+    <NextIntlClientProvider locale="nb" messages={messages}>
+      <BookingFormContext.Provider value={form}>
+        <BookingFormEventDetailsSection
+          audienceCountId="audience"
+          closedDates={[]}
+          doorsTimeError={doorsTimeError}
+          doorsTimeId="doors-time"
+          eventNameId="event-name"
+          openingHours={null}
+          roomOpeningHours={
+            crossMidnightHours
+              ? {
+                  rows: [
+                    {
+                      weekdays: [6],
+                      status: "open",
+                      duration: { start: "18:00", end: "03:00" },
+                    },
+                  ],
+                }
+              : null
+          }
+        />
+      </BookingFormContext.Provider>
+    </NextIntlClientProvider>
   )
 }
 

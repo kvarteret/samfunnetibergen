@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { useForm } from "@tanstack/react-form"
+import { NextIntlClientProvider } from "next-intl"
 import type { ComponentProps } from "react"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
@@ -9,6 +10,7 @@ import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormContext } from "./bookingFormContext"
+import messages from "@/messages/nb.json"
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ children, href, ...props }: ComponentProps<"a">) => (
@@ -55,17 +57,19 @@ function ScheduleHarness() {
   })
 
   return (
-    <BookingFormContext.Provider value={form}>
-      <BookingFormScheduleSection
-        closedDates={[]}
-        occupiedRanges={[{ startMin: 0, endMin: 24 * 60 }]}
-        openingHours={null}
-        roomOccupancy={new Map([[95, ["3. jun 07:00 – 28. aug 13:00"]]])}
-        rooms={[TIVOLI]}
-        startDateId="booking-date"
-        today="2026-08-09"
-      />
-    </BookingFormContext.Provider>
+    <NextIntlClientProvider locale="nb" messages={messages}>
+      <BookingFormContext.Provider value={form}>
+        <BookingFormScheduleSection
+          closedDates={[]}
+          occupiedRanges={[{ startMin: 0, endMin: 24 * 60 }]}
+          openingHours={null}
+          roomOccupancy={new Map([[95, ["3. jun 07:00 – 28. aug 13:00"]]])}
+          rooms={[TIVOLI]}
+          startDateId="booking-date"
+          today="2026-08-09"
+        />
+      </BookingFormContext.Provider>
+    </NextIntlClientProvider>
   )
 }
 

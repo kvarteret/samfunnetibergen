@@ -4,6 +4,7 @@ import {
   Headphones,
   UtensilsCrossed,
 } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { HowToBookSection } from "@/components/how-to-book-section"
 import { LeietiderSection } from "@/components/leietider-section"
@@ -36,13 +37,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }) {
   const locale = await resolvePageLocale(params)
+  const t = await getTranslations({ locale, namespace: "RoomBooking" })
 
   return buildPageMetadata({
     locale,
     canonicalPath: `/${locale}/rom/book`,
-    title: "Book rom",
-    description:
-      "Send en bookingforespørsel for rom på Det Akademiske Kvarter. Fyll ut skjemaet, så behandler vi forespørselen din.",
+    title: t("page.title"),
+    description: t("page.description"),
   })
 }
 
@@ -61,34 +62,34 @@ function QuestionsSection({ section }: { section: EditorialSection }) {
   )
 }
 
-const SERVICES = [
-  {
-    icon: Headphones,
-    title: "Silent Disco",
-    description:
-      "Tre kanaler, DJs og lyssetting for en hel fest. Tilgjengelig i Teglverket, Tivoli og Storelogen.",
-    href: "/silent-disco",
-  },
-  {
-    icon: UtensilsCrossed,
-    title: "Catering",
-    description:
-      "Kvarterets kjøkken skreddersyr mat etter ønske – fra tapas til storselskap.",
-    href: "/catering",
-  },
-] as const
+type BookingTranslations = Awaited<ReturnType<typeof getTranslations>>
 
-function ServicesSection() {
+function ServicesSection({ t }: { t: BookingTranslations }) {
+  const services = [
+    {
+      icon: Headphones,
+      title: t("services.silentDiscoTitle"),
+      description: t("services.silentDiscoDescription"),
+      href: "/silent-disco",
+    },
+    {
+      icon: UtensilsCrossed,
+      title: t("services.cateringTitle"),
+      description: t("services.cateringDescription"),
+      href: "/catering",
+    },
+  ] as const
+
   return (
     <section aria-labelledby="services-heading">
       <h2
         className="mb-5 font-heading text-2xl text-foreground"
         id="services-heading"
       >
-        Tillegg og tjenester
+        {t("page.servicesTitle")}
       </h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        {SERVICES.map(({ icon: Icon, title, description, href }) => (
+        {services.map(({ icon: Icon, title, description, href }) => (
           <Link
             className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
             href={href}
@@ -100,7 +101,7 @@ function ServicesSection() {
               <p>{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">
-              Les mer
+              {t("page.readMore")}
               <ArrowRight aria-hidden className="size-4" />
             </span>
           </Link>
@@ -123,12 +124,14 @@ export default async function BookRoomPage({
   activateRequestLocale(locale)
 
   const [
+    t,
     initialRooms,
     houseHours,
     roomsPageContent,
     termsPage,
     cancellationPage,
   ] = await Promise.all([
+    getTranslations({ locale, namespace: "RoomBooking" }),
     fetchBookableRoomsForBooker("ekstern"),
     fetchHouseHours(locale),
     fetchPublishedRoomsPageContent(locale),
@@ -136,14 +139,14 @@ export default async function BookRoomPage({
     fetchPageBySlug("avbestillingsvilkar", locale),
   ])
 
-  const howToSection = roomsPageContent?.sections?.find(
-    s => s.title === "Slik booker du",
+  const howToSection = roomsPageContent?.sections?.find(s =>
+    ["Slik booker du", "How to book"].includes(s.title ?? ""),
   )
-  const leietiderSection = roomsPageContent?.sections?.find(
-    s => s.title === "Leietider",
+  const leietiderSection = roomsPageContent?.sections?.find(s =>
+    ["Leietider", "Rental hours"].includes(s.title ?? ""),
   )
-  const questionsSection = roomsPageContent?.sections?.find(
-    s => s.title === "Spørsmål og vilkår",
+  const questionsSection = roomsPageContent?.sections?.find(s =>
+    ["Spørsmål og vilkår", "Questions and terms"].includes(s.title ?? ""),
   )
 
   return (
@@ -158,21 +161,21 @@ export default async function BookRoomPage({
                   aria-hidden
                 />
               </div>
-              <p className="font-heading uppercase tracking-widest">Booking</p>
+              <p className="font-heading uppercase tracking-widest">
+                {t("page.booking")}
+              </p>
             </div>
             <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
-              Book rom
+              {t("page.title")}
             </h1>
             <p className="max-w-xl text-lg leading-7 text-foreground-muted">
-              Fyll ut skjemaet under, så behandler vi forespørselen din så fort
-              vi ser den. En booking er en forespørsel og bekreftes av oss på
-              e-post.
+              {t("page.description")}
             </p>
             <Link
               className="group inline-flex items-center gap-1.5 font-heading underline-offset-4 hover:underline focus-brutal"
               href="/rom"
             >
-              Se alle rom
+              {t("page.seeAllRooms")}
               <ArrowRight className="size-4 transition-transform duration-base ease-out group-hover:translate-x-1" />
             </Link>
           </div>
@@ -200,7 +203,7 @@ export default async function BookRoomPage({
         <QuestionsSection section={questionsSection} />
       ) : null}
 
-      <ServicesSection />
+      <ServicesSection t={t} />
     </article>
   )
 }

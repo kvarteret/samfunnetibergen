@@ -1,4 +1,5 @@
 import { Disclosure } from "@/components/ui/disclosure"
+import { useTranslations } from "next-intl"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { EditorialSection } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
@@ -12,6 +13,8 @@ export function LeietiderSection({
   section,
   className,
 }: LeietiderSectionProps) {
+  const t = useTranslations("RoomBooking")
+
   if (!section?.title) return null
 
   return (
@@ -22,7 +25,7 @@ export function LeietiderSection({
         </h2>
         <LeietiderBody body={section.body} />
       </div>
-      <Disclosure className="md:hidden" summary="Se leietider">
+      <Disclosure className="md:hidden" summary={t("page.viewRentalHours")}>
         <LeietiderBody body={section.body} />
       </Disclosure>
     </section>

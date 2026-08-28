@@ -2,6 +2,7 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Building2, Check, type LucideIcon, User, Users } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -16,28 +17,11 @@ import { useBookingForm } from "./bookingFormContext"
 
 const BOOKER_OPTIONS: Array<{
   type: BookerType
-  label: string
-  hint: string
   icon: LucideIcon
 }> = [
-  {
-    type: "ekstern",
-    label: "Privat",
-    hint: "Privatpersoner og bedrifter.",
-    icon: User,
-  },
-  {
-    type: "studentorg",
-    label: "Studentorganisasjon",
-    hint: "Registrert under Studentbergen.no.",
-    icon: Users,
-  },
-  {
-    type: "intern",
-    label: "Intern",
-    hint: "Driftsorganisasjoner og interne arrangører.",
-    icon: Building2,
-  },
+  { type: "ekstern", icon: User },
+  { type: "studentorg", icon: Users },
+  { type: "intern", icon: Building2 },
 ]
 
 interface BookingFormBookerTypeSectionProps {
@@ -50,10 +34,11 @@ export function BookingFormBookerTypeSection({
   studentOrgNameId,
 }: BookingFormBookerTypeSectionProps) {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
   const studentOrgErrorId = `${studentOrgNameId}-error`
 
   return (
-    <FormSection number="01" title="Hvem booker">
+    <FormSection number="01" title={t("booker.sectionTitle")}>
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => s.values.bookerType}
       >
@@ -84,10 +69,22 @@ export function BookingFormBookerTypeSection({
                   </span>
                   <span className="flex items-center gap-1.5 font-heading text-sm text-foreground">
                     <option.icon aria-hidden className="size-4 text-primary" />
-                    {option.label}
+                    {t(
+                      option.type === "ekstern"
+                        ? "booker.private"
+                        : option.type === "studentorg"
+                          ? "booker.studentOrganization"
+                          : "booker.internal",
+                    )}
                   </span>
                   <span className="text-sm leading-5 text-foreground-muted">
-                    {option.hint}
+                    {t(
+                      option.type === "ekstern"
+                        ? "booker.privateHint"
+                        : option.type === "studentorg"
+                          ? "booker.studentOrganizationHint"
+                          : "booker.internalHint",
+                    )}
                   </span>
                 </SelectableCard>
               ))}
@@ -99,7 +96,7 @@ export function BookingFormBookerTypeSection({
                 errorId={studentOrgErrorId}
               >
                 <Label htmlFor={studentOrgNameId}>
-                  Navn på studentorganisasjon *
+                  {t("booker.organizationName")}
                 </Label>
                 <form.Field name="studentOrgName">
                   {(field: AnyFieldApi) => (
@@ -111,7 +108,7 @@ export function BookingFormBookerTypeSection({
                       autoComplete="organization"
                       id={studentOrgNameId}
                       onChange={e => field.handleChange(e.target.value)}
-                      placeholder="Registrert under Studentbergen.no"
+                      placeholder={t("booker.organizationPlaceholder")}
                       value={field.state.value as string}
                     />
                   )}

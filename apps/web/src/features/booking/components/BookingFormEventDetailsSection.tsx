@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useTranslations } from "next-intl"
 import { useId } from "react"
 import { BookingEventTimes } from "@/components/ui/date-time-picker"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -19,8 +20,8 @@ import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
 const OPEN_CLOSED_OPTIONS = [
-  { value: "Åpent", label: "Åpent arrangement" },
-  { value: "Lukket", label: "Lukket arrangement" },
+  { value: "Åpent" as const, labelKey: "open" as const },
+  { value: "Lukket" as const, labelKey: "closed" as const },
 ]
 
 interface BookingFormEventDetailsSectionProps {
@@ -50,18 +51,19 @@ export function BookingFormEventDetailsSection({
 }: BookingFormEventDetailsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
   const audienceCountErrorId = `${audienceCountId}-error`
   const eventNameErrorId = `${eventNameId}-error`
 
   return (
-    <FormSection number="03" title="Arrangement">
+    <FormSection number="03" title={t("event.sectionTitle")}>
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup
           className="sm:col-span-2"
           error={eventNameError}
           errorId={eventNameErrorId}
         >
-          <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
+          <Label htmlFor={eventNameId}>{t("event.name")}</Label>
           <form.Field name="eventName">
             {(field: AnyFieldApi) => (
               <Input
@@ -70,14 +72,14 @@ export function BookingFormEventDetailsSection({
                 aria-invalid={!!eventNameError}
                 id={eventNameId}
                 onChange={e => field.handleChange(e.target.value)}
-                placeholder="F.eks. konsert, møte, foredrag"
+                placeholder={t("event.namePlaceholder")}
                 value={field.state.value as string}
               />
             )}
           </form.Field>
         </FieldGroup>
         <FieldGroup error={audienceCountError} errorId={audienceCountErrorId}>
-          <Label htmlFor={audienceCountId}>Estimert antall publikum *</Label>
+          <Label htmlFor={audienceCountId}>{t("event.audience")}</Label>
           <form.Field name="audienceCount">
             {(field: AnyFieldApi) => (
               <NumberField
@@ -86,12 +88,14 @@ export function BookingFormEventDetailsSection({
                 }
                 aria-invalid={!!audienceCountError}
                 className="w-40"
+                decrementLabel={t("controls.decrease")}
                 id={audienceCountId}
+                incrementLabel={t("controls.increase")}
                 min={0}
                 onValueChange={value =>
                   field.handleChange(value === null ? "" : String(value))
                 }
-                placeholder="F.eks. 50"
+                placeholder={t("event.audiencePlaceholder")}
                 value={
                   field.state.value === ""
                     ? null
@@ -102,7 +106,7 @@ export function BookingFormEventDetailsSection({
           </form.Field>
         </FieldGroup>
         <FieldGroup>
-          <Label>Type arrangement</Label>
+          <Label>{t("event.type")}</Label>
           <form.Field name="openOrClosed">
             {(field: AnyFieldApi) => (
               <RadioGroup<string>
@@ -111,7 +115,7 @@ export function BookingFormEventDetailsSection({
               >
                 {OPEN_CLOSED_OPTIONS.map(opt => (
                   <RadioGroupItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(`event.${opt.labelKey}`)}
                   </RadioGroupItem>
                 ))}
               </RadioGroup>
@@ -119,14 +123,14 @@ export function BookingFormEventDetailsSection({
           </form.Field>
         </FieldGroup>
         <FieldGroup className="sm:col-span-2">
-          <Label htmlFor={`${uid}-description`}>Beskrivelse</Label>
+          <Label htmlFor={`${uid}-description`}>{t("event.description")}</Label>
           <form.Field name="description">
             {(field: AnyFieldApi) => (
               <Textarea
                 className="resize-y"
                 id={`${uid}-description`}
                 onChange={e => field.handleChange(e.target.value)}
-                placeholder="Fortell oss kort om arrangementet ditt..."
+                placeholder={t("event.descriptionPlaceholder")}
                 rows={4}
                 value={field.state.value as string}
               />
