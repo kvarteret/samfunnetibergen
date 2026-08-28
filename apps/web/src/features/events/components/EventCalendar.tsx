@@ -134,7 +134,32 @@ function CalendarDayCell({
   )
 }
 
-function MonthCalendar({
+function MobileMonthCalendar({
+  month,
+  locale,
+}: {
+  month: CalendarMonth
+  locale: AppLocale
+}) {
+  const eventDays = month.days.filter(day => day.occurrences.length > 0)
+
+  return (
+    <div className="border-y border-primary/40 md:hidden">
+      <div className="grid grid-cols-1 gap-3 py-3">
+        {eventDays.map((day, index) => (
+          <CalendarDayCell
+            day={day}
+            isShaded={index % 2 === 1}
+            key={day.date}
+            locale={locale}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DesktopMonthCalendar({
   month,
   locale,
 }: {
@@ -142,7 +167,7 @@ function MonthCalendar({
   locale: AppLocale
 }) {
   return (
-    <div className="overflow-x-auto border-y border-primary/40">
+    <div className="hidden overflow-x-auto border-y border-primary/40 md:block">
       <div className="grid min-w-[60rem] grid-cols-7 gap-3 bg-transparent py-3">
         {Array.from({ length: month.leadingEmptyDays }, (_, index) => (
           <div
@@ -161,6 +186,21 @@ function MonthCalendar({
         ))}
       </div>
     </div>
+  )
+}
+
+function MonthCalendar({
+  month,
+  locale,
+}: {
+  month: CalendarMonth
+  locale: AppLocale
+}) {
+  return (
+    <>
+      <MobileMonthCalendar locale={locale} month={month} />
+      <DesktopMonthCalendar locale={locale} month={month} />
+    </>
   )
 }
 
