@@ -50,7 +50,9 @@ const DEFAULT_VALUES = {
   endTime: "23:00",
 }
 
-function ScheduleHarness() {
+function ScheduleHarness(
+  props: Partial<ComponentProps<typeof BookingFormScheduleSection>>,
+) {
   const form = useForm({
     defaultValues: DEFAULT_VALUES,
     onSubmit: () => undefined,
@@ -67,6 +69,7 @@ function ScheduleHarness() {
           rooms={[TIVOLI]}
           startDateId="booking-date"
           today="2026-08-09"
+          {...props}
         />
       </BookingFormContext.Provider>
     </NextIntlClientProvider>
@@ -109,5 +112,75 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     expect(container.textContent).not.toContain(
       "Tivoli er opptatt i valgt tidsrom",
     )
+  })
+
+  const rooms = [TIVOLI, { ...TIVOLI, crescatRoomId: 97, title: "Teglverket" }]
+
+  test("focuses the direct room and lets the user add and remove another room", async () => {
+    await act(async () =>
+      root.render(
+        <ScheduleHarness
+          initialRoomId={95}
+          roomOccupancy={new Map()}
+          rooms={rooms}
+        />,
+      ),
+    )
+    expect(container.textContent).toContain("Tivoli")
+    expect(container.textContent).not.toContain("Teglverket")
+    const disclosure = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent?.includes("Legg til flere rom"),
+    )!
+    expect(disclosure.type).toBe("button")
+    expect(disclosure.getAttribute("aria-expanded")).toBe("false")
+    await act(async () => disclosure.click())
+    expect(container.textContent).toContain("Teglverket")
+
+    const add = container.querySelector<HTMLButtonElement>(
+      '[aria-label="Legg til rom i bookingen"]',
+    )!
+    await act(async () => add.click())
+    expect(
+      container.querySelectorAll('[aria-label="Fjern rom fra bookingen"]'),
+    ).toHaveLength(2)
+    await act(async () => disclosure.click())
+    await act(async () => disclosure.click())
+    expect(
+      container.querySelectorAll('[aria-label="Fjern rom fra bookingen"]'),
+    ).toHaveLength(2)
+    const remove = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(
+        '[aria-label="Fjern rom fra bookingen"]',
+      ),
+    ).at(-1)!
+    await act(async () => remove.click())
+    expect(
+      container.querySelectorAll('[aria-label="Fjern rom fra bookingen"]'),
+    ).toHaveLength(1)
+  })
+
+  test.each([
+    undefined,
+    999,
+  ])("shows all rooms with initialRoomId=%s", async initialRoomId => {
+    await act(async () =>
+      root.render(
+        <ScheduleHarness initialRoomId={initialRoomId} rooms={rooms} />,
+      ),
+    )
+    expect(container.textContent).toContain("Tivoli")
+    expect(container.textContent).toContain("Teglverket")
+    expect(container.textContent).not.toContain("Legg til flere rom")
+  })
+
+  test("falls back when the direct room disappears from the offer", async () => {
+    await act(async () =>
+      root.render(<ScheduleHarness initialRoomId={95} rooms={rooms} />),
+    )
+    await act(async () =>
+      root.render(<ScheduleHarness initialRoomId={95} rooms={[rooms[1]]} />),
+    )
+    expect(container.textContent).toContain("Teglverket")
+    expect(container.textContent).not.toContain("Legg til flere rom")
   })
 })

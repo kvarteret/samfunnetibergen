@@ -19,7 +19,7 @@ The behavior is visible at `/nb/rom/teglverket`: click “Book Teglverket her”
 - [x] (2026-08-28) Review correction: remove the Safari predicate and its tests, keep ordinary exception capture, and move schedule localization into PR #118.
 - [x] (2026-08-28) Replace the validation identity switch with a guarded translation lookup, remove unused booker labels, and avoid cloning newly created ticket defaults.
 - [x] (2026-08-28) Revised #118 passes 66 focused tests, web lint, route type generation, web typecheck, and whitespace checks. React Doctor removed the unused-booker-label warning; unrelated baseline diagnostics remain.
-- [ ] Reduce PR #117 to focused-room presentation and interaction tests, without a separate grouping helper.
+- [x] (2026-08-28) Reduced PR #117 to 27 net production lines over #118, with schedule interaction tests and no separate grouping helper. Its 70 targeted tests, web lint, route type generation, web typecheck, and whitespace checks pass.
 - [ ] Verify the revised heads and merge #118 before #117 after required repository gates pass.
 - [x] (2026-08-28) Add or update focused tests, run source-specific verification, and perform a local/live route smoke check.
 

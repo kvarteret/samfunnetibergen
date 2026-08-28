@@ -351,6 +351,7 @@ export function BookingForm({
             studentOrgNameId={fieldIds.studentOrgName}
           />
           <BookingFormScheduleSection
+            initialRoomId={initialRoomId}
             rooms={rooms}
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}

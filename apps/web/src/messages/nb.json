@@ -129,6 +129,8 @@
       "selectDateTime": "Velg dato og tid for å se ledige rom.",
       "occupied": "Opptatt",
       "added": "Lagt til",
+      "addMoreRooms": "Legg til flere rom",
+      "addMoreRoomsHint": "Velg rom du vil legge til i bookingen.",
       "showMoreConflicts": "Vis {count} til",
       "addRoom": "Legg til rom i bookingen",
       "removeRoomAria": "Fjern rom fra bookingen",

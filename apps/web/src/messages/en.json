@@ -130,6 +130,8 @@
       "selectDateTime": "Choose a date and time to see available rooms.",
       "occupied": "Busy",
       "added": "Added",
+      "addMoreRooms": "Add more rooms",
+      "addMoreRoomsHint": "Choose rooms to add to your booking.",
       "showMoreConflicts": "Show {count} more",
       "addRoom": "Add room to booking",
       "removeRoomAria": "Remove room from booking",
