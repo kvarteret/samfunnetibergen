@@ -14,13 +14,13 @@ const isValidDateOnly = (value: string): boolean => {
 const optionalDate = z
   .string()
   .refine(value => value === "" || isValidDateOnly(value), {
-    message: "Velg en gyldig sluttdato.",
+    message: "validation.invalidEndDate",
   })
 
 const timeOrEmpty = z
   .string()
   .refine(value => value === "" || TIME_PATTERN.test(value), {
-    message: "Velg et gyldig klokkeslett.",
+    message: "validation.invalidTime",
   })
 
 const ticketTypeSchema = z.object({
@@ -30,29 +30,27 @@ const ticketTypeSchema = z.object({
 
 export const bookingFormSchema = z
   .object({
-    bookerType: z.enum(["ekstern", "studentorg", "intern"]),
+    bookerType: z.enum(
+      ["ekstern", "studentorg", "intern"],
+      "validation.bookerType",
+    ),
     studentOrgName: z.string(),
     selectedRoomIds: z
       .array(z.number().int().positive())
-      .min(1, "Velg minst ett rom."),
-    eventName: z.string().trim().min(1, "Skriv inn navn på arrangementet."),
-    startDate: z.string().refine(isValidDateOnly, "Velg en gyldig dato."),
+      .min(1, "validation.roomRequired"),
+    eventName: z.string().trim().min(1, "validation.eventName"),
+    startDate: z.string().refine(isValidDateOnly, "validation.date"),
     endDate: optionalDate,
-    startTime: z.string().regex(TIME_PATTERN, "Velg et gyldig starttidspunkt."),
-    endTime: z.string().regex(TIME_PATTERN, "Velg et gyldig sluttidspunkt."),
-    doorsTimes: z
-      .array(timeOrEmpty)
-      .min(1, "Velg når dørene åpner for publikum."),
+    startTime: z.string().regex(TIME_PATTERN, "validation.startTime"),
+    endTime: z.string().regex(TIME_PATTERN, "validation.endTime"),
+    doorsTimes: z.array(timeOrEmpty).min(1, "validation.doors"),
     estimatedEndTimes: z.array(timeOrEmpty),
-    audienceCount: z
-      .string()
-      .trim()
-      .regex(/^\d+$/, "Skriv inn et helt antall publikum."),
-    openOrClosed: z.enum(["Åpent", "Lukket"]),
+    audienceCount: z.string().trim().regex(/^\d+$/, "validation.audience"),
+    openOrClosed: z.enum(["Åpent", "Lukket"], "validation.eventType"),
     description: z.string(),
-    furniture: z.string().trim().min(1, "Skriv inn ønsket møblement."),
+    furniture: z.string().trim().min(1, "validation.furniture"),
     micEnabled: z.boolean(),
-    micQuantity: z.number().int().min(1, "Velg minst én mikrofon."),
+    micQuantity: z.number().int().min(1, "validation.microphone"),
     projector: z.boolean(),
     music: z.boolean(),
     soundTech: z.boolean(),
@@ -64,28 +62,31 @@ export const bookingFormSchema = z
     cateringText: z.string(),
     barSelf: z.boolean(),
     barKvarteret: z.boolean(),
-    freeOrPaid: z.enum(["Gratis", "Betalt"]),
+    freeOrPaid: z.enum(["Gratis", "Betalt"], "validation.ticketType"),
     ticketTypes: z.array(ticketTypeSchema),
-    ticketSalesMethod: z.enum(["house", "ownTerminal"]),
+    ticketSalesMethod: z.enum(
+      ["house", "ownTerminal"],
+      "validation.ticketSalesMethod",
+    ),
     invoiceAddress: z.string(),
     orgNumber: z.string(),
     flexibleDates: z.boolean(),
     acceptTerms: z.boolean().refine(value => value, {
-      message: "Bekreft at du har lest og godtar bookingvilkårene.",
+      message: "validation.terms",
     }),
-    contactName: z.string().trim().min(1, "Skriv inn navn på kontaktperson."),
-    contactEmail: z.string().trim().email("Skriv inn en gyldig e-postadresse."),
+    contactName: z.string().trim().min(1, "validation.contactName"),
+    contactEmail: z.string().trim().email("validation.email"),
     contactPhone: z
       .string()
-      .refine(isOptionalE164PhoneNumber, "Skriv inn et gyldig telefonnummer."),
-    promote: z.enum(["", "ja", "nei"]),
+      .refine(isOptionalE164PhoneNumber, "validation.phone"),
+    promote: z.enum(["", "ja", "nei"], "validation.promotion"),
   })
   .superRefine((value, context) => {
     if (value.endDate && value.endDate < value.startDate) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["endDate"],
-        message: "Sluttdatoen kan ikke være før startdatoen.",
+        message: "validation.endBeforeStart",
       })
     }
 
@@ -93,7 +94,7 @@ export const bookingFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["doorsTimes"],
-        message: "Velg når dørene åpner for publikum.",
+        message: "validation.doors",
       })
     }
 
@@ -101,7 +102,7 @@ export const bookingFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["studentOrgName"],
-        message: "Skriv inn navn på studentorganisasjonen.",
+        message: "validation.organizationName",
       })
     }
 
@@ -109,7 +110,7 @@ export const bookingFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["invoiceAddress"],
-        message: "Skriv inn fakturaadresse.",
+        message: "validation.invoiceAddress",
       })
     }
 
@@ -121,8 +122,7 @@ export const bookingFormSchema = z
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["ticketTypes"],
-          message:
-            "Legg til minst én billettype med pris for betalte arrangement.",
+          message: "validation.ticket",
         })
       }
     }
@@ -131,7 +131,7 @@ export const bookingFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["orgNumber"],
-        message: "Organisasjonsnummeret kan bare inneholde sifre.",
+        message: "validation.organizationNumber",
       })
     }
   })

@@ -1,9 +1,10 @@
 "use client"
 
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
+import { useLocale, useTranslations } from "next-intl"
 import { type ReactNode, useState } from "react"
 import type { DateRange } from "react-day-picker"
-import { nb } from "react-day-picker/locale"
+import { enUS, nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { SelectField } from "@/components/ui/select-field"
@@ -220,6 +221,9 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
+  const locale = useLocale()
+  const t = useTranslations("RoomBooking")
+  const calendarLocale = locale === "en" ? enUS : nb
   const todayDate = new Date(`${today}T00:00:00`)
 
   const closedDateSet = new Set(closedDates.map(d => d.date))
@@ -320,7 +324,7 @@ export function DateTimePicker({
                   mods.beyond_range && "opacity-40",
                 )}
                 day={day}
-                locale={nb}
+                locale={calendarLocale}
                 modifiers={modifiers}
                 onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
                 variant="plain"
@@ -339,7 +343,7 @@ export function DateTimePicker({
           },
         }}
         disabled={isDisabled}
-        locale={nb}
+        locale={calendarLocale}
         mode="range"
         modifiers={{ occupied: isOccupied, beyond_range: isBeyondRange }}
         modifiersClassNames={{ beyond_range: "opacity-40" }}
@@ -354,7 +358,7 @@ export function DateTimePicker({
         {startDate ? (
           isHouseClosed(startDate, closedDates, vacationMode) ? (
             <p className="text-sm text-foreground-muted">
-              Huset er stengt denne dagen. Velg en annen dato.
+              {t("dateTime.houseClosed")}
             </p>
           ) : (
             <TimeSlots
@@ -374,7 +378,7 @@ export function DateTimePicker({
           )
         ) : (
           <p className="text-sm text-foreground-muted">
-            Velg en dato for å se ledige tidspunkt.
+            {t("dateTime.selectDate")}
           </p>
         )}
       </div>
@@ -428,6 +432,7 @@ function TimeSlots({
   onEndChange,
   timingWarning,
 }: TimeSlotsProps) {
+  const t = useTranslations("RoomBooking")
   const hasHours =
     hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
 
@@ -457,7 +462,7 @@ function TimeSlots({
   if (openingMarks.length < 2 && hasHours) {
     return (
       <p className="text-sm text-foreground-muted">
-        Ingen tilgjengelige tidspunkt for valgt rom i dette tidsrommet.
+        {t("dateTime.noAvailableTimes")}
       </p>
     )
   }
@@ -599,6 +604,7 @@ export function BookingEventTimes({
   onDoorsChange,
   onEstimatedEndChange,
 }: BookingEventTimesProps) {
+  const t = useTranslations("RoomBooking")
   if (!startDate || !startTime || !endTime) return null
 
   const dayCount = endDate
@@ -638,11 +644,11 @@ export function BookingEventTimes({
       <PerDayTimeSelects
         uid={uid}
         idPrefix="doorsTime"
-        heading="Dørene åpner"
-        headingNote="dag 1 obligatorisk"
-        singleDayLabel="Dørene åpner *"
+        heading={t("dateTime.doorsOpen")}
+        headingNote={t("dateTime.day1Required")}
+        singleDayLabel={t("dateTime.doorsOpenSingle")}
         firstDayError={doorsTimeError}
-        firstDayHint="Tidspunktet publikum slippes inn – ikke arrangørens get-in."
+        firstDayHint={t("dateTime.doorsHint")}
         firstDayId={doorsTimeId}
         requiredFirstDay
         marks={marks}
@@ -655,9 +661,9 @@ export function BookingEventTimes({
       <PerDayTimeSelects
         uid={uid}
         idPrefix="estimatedEnd"
-        heading="Antatt slutt"
-        headingNote="valgfritt"
-        singleDayLabel="Antatt slutt (valgfritt)"
+        heading={t("dateTime.estimatedEnd")}
+        headingNote={t("dateTime.optional")}
+        singleDayLabel={t("dateTime.estimatedEndSingle")}
         marks={marks}
         dayCount={dayCount}
         startTime={startTime}
@@ -709,6 +715,7 @@ function PerDayTimeSelects({
   values,
   onChange,
 }: PerDayTimeSelectsProps) {
+  const t = useTranslations("RoomBooking")
   const localStartMinute = timeToMinutes(startTime)
   const localEndMinute = timeToMinutes(endTime)
   const filledDayCount = values.reduce(
@@ -744,7 +751,7 @@ function PerDayTimeSelects({
           label={singleDayLabel}
           onChange={value => onChange(0, value)}
           options={options}
-          placeholder="Velg tidspunkt"
+          placeholder={t("dateTime.selectTime")}
           value={values[0] ?? ""}
         />
       </div>
@@ -787,10 +794,10 @@ function PerDayTimeSelects({
                   : `${uid}-${idPrefix}-${dayIndex}`
               }
               key={dayIndex}
-              label={`Dag ${dayIndex + 1}${requiredFirstDay && isFirstDay ? " *" : ""}`}
+              label={`${t("dateTime.day", { number: dayIndex + 1 })}${requiredFirstDay && isFirstDay ? " *" : ""}`}
               onChange={value => onChange(dayIndex, value)}
               options={options}
-              placeholder="Velg tidspunkt"
+              placeholder={t("dateTime.selectTime")}
               value={values[dayIndex] ?? ""}
             />
           )
@@ -799,7 +806,7 @@ function PerDayTimeSelects({
 
       {shownDayCount < dayCount && (
         <Button onClick={addNextDay} size="sm" type="button" variant="neutral">
-          Legg til dag {shownDayCount + 1}
+          {t("dateTime.addDay", { number: shownDayCount + 1 })}
         </Button>
       )}
     </div>

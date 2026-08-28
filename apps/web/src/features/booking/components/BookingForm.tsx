@@ -2,6 +2,7 @@
 
 import { useForm, useStore } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
 import { type FormEvent, useEffect, useId, useRef, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -24,7 +25,6 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
@@ -79,6 +79,7 @@ export function BookingForm({
   cancellationTermsContent,
   initialNow,
 }: BookingFormProps) {
+  const t = useTranslations("RoomBooking")
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
@@ -87,6 +88,18 @@ export function BookingForm({
   const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(useCurrentTime(initialNow))
+  const defaultValues = {
+    ...initialBookingState,
+    ticketTypes: initialBookingState.ticketTypes.map(ticket => ({
+      ...ticket,
+      name: t("ticket.regularDefault"),
+    })),
+    selectedRoomIds:
+      initialRoomId != null &&
+      initialRooms.some(r => r.crescatRoomId === initialRoomId)
+        ? [initialRoomId]
+        : [],
+  } as BookingFormValues
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
     startDate: `${uid}-startDate`,
@@ -104,14 +117,7 @@ export function BookingForm({
     promote: `${uid}-promote`,
   }
   const form = useForm({
-    defaultValues: {
-      ...initialBookingState,
-      selectedRoomIds:
-        initialRoomId != null &&
-        initialRooms.some(r => r.crescatRoomId === initialRoomId)
-          ? [initialRoomId]
-          : [],
-    } as BookingFormValues,
+    defaultValues,
     validators: {
       onChange: bookingFormSchema,
       onSubmit: bookingFormSchema,
@@ -251,13 +257,14 @@ export function BookingForm({
   const validationErrors = [
     ...schemaIssues.map(issue => ({
       fieldId: bookingFieldId(issue.path, fieldIds),
-      message: issue.message,
+      message: translateValidationMessage(issue.message, t),
     })),
     ...getBookingAvailabilityErrors({
       hasConflict,
       slotWithinHours,
       startDate: values.startDate,
       startDateId: fieldIds.startDate,
+      translate: t,
     }),
   ]
   const { visibleErrors, markSubmitAttempt, errorFor } =
@@ -275,16 +282,13 @@ export function BookingForm({
   if (isSubmitSuccessful) {
     return (
       <Alert className="max-w-2xl p-8" variant="success">
-        <AlertTitle>Forespørsel mottatt!</AlertTitle>
-        <AlertDescription>
-          Takk for din bookingforespørsel. Vi behandler den så fort vi kan og
-          tar kontakt på e-post.
-        </AlertDescription>
+        <AlertTitle>{t("form.successTitle")}</AlertTitle>
+        <AlertDescription>{t("form.successDescription")}</AlertDescription>
         <Link
           className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
           href="/rom"
         >
-          Tilbake til rom
+          {t("form.backToRooms")}
         </Link>
       </Alert>
     )
@@ -325,7 +329,7 @@ export function BookingForm({
             }
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              form.setErrorMap({ onServer: t("form.unexpectedError") as never })
               requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
@@ -425,10 +429,9 @@ export function BookingForm({
               <section className="space-y-4 border-t-2 border-border pt-8">
                 {!slotWithinHours && values.startDate && (
                   <Alert className="max-w-3xl" variant="destructive">
-                    <AlertTitle>Utenfor åpningstid</AlertTitle>
+                    <AlertTitle>{t("form.outsideHours")}</AlertTitle>
                     <AlertDescription>
-                      Valgt start- eller sluttid er utenfor husets åpningstider
-                      for denne dagen.
+                      {t("form.outsideHoursDescription")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -441,17 +444,21 @@ export function BookingForm({
                   {isSubmitting ? (
                     <>
                       <Loader2 aria-hidden className="animate-spin" />
-                      Sender inn...
+                      {t("form.submitting")}
                     </>
                   ) : (
                     <>
                       <ArrowRight aria-hidden />
-                      Send bookingforespørsel
+                      {t("form.submit")}
                     </>
                   )}
                 </Button>
                 {visibleErrors.length > 0 && (
-                  <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+                  <ErrorSummary
+                    className="max-w-3xl"
+                    errors={visibleErrors}
+                    title={t("form.validationSummaryTitle")}
+                  />
                 )}
                 {submitError && (
                   <Alert className="max-w-3xl" variant="destructive">
@@ -459,7 +466,7 @@ export function BookingForm({
                       aria-hidden
                       className="mt-0.5 size-4 shrink-0 text-destructive"
                     />
-                    <AlertTitle>Det oppstod en feil</AlertTitle>
+                    <AlertTitle>{t("form.genericErrorTitle")}</AlertTitle>
                     <AlertDescription>{String(submitError)}</AlertDescription>
                   </Alert>
                 )}
@@ -526,24 +533,86 @@ function getBookingAvailabilityErrors({
   slotWithinHours,
   startDate,
   startDateId,
+  translate,
 }: {
   hasConflict: boolean
   slotWithinHours: boolean
   startDate: string
   startDateId: string
+  translate: ReturnType<typeof useTranslations<"RoomBooking">>
 }): ErrorSummaryItem[] {
   const errors: ErrorSummaryItem[] = []
   if (hasConflict) {
     errors.push({
       fieldId: `${startDateId}-time`,
-      message: "Velg et tidsrom som ikke overlapper en eksisterende booking.",
+      message: translate("validation.availabilityConflict"),
     })
   }
   if (!slotWithinHours && startDate) {
     errors.push({
       fieldId: `${startDateId}-time`,
-      message: "Velg et tidsrom innenfor åpningstiden.",
+      message: translate("validation.outsideOpeningHours"),
     })
   }
   return errors
+}
+
+function translateValidationMessage(
+  message: string,
+  t: ReturnType<typeof useTranslations<"RoomBooking">>,
+): string {
+  switch (message) {
+    case "validation.invalidEndDate":
+      return t("validation.invalidEndDate")
+    case "validation.invalidTime":
+      return t("validation.invalidTime")
+    case "validation.bookerType":
+      return t("validation.bookerType")
+    case "validation.roomRequired":
+      return t("validation.roomRequired")
+    case "validation.eventName":
+      return t("validation.eventName")
+    case "validation.date":
+      return t("validation.date")
+    case "validation.startTime":
+      return t("validation.startTime")
+    case "validation.endTime":
+      return t("validation.endTime")
+    case "validation.doors":
+      return t("validation.doors")
+    case "validation.audience":
+      return t("validation.audience")
+    case "validation.eventType":
+      return t("validation.eventType")
+    case "validation.furniture":
+      return t("validation.furniture")
+    case "validation.microphone":
+      return t("validation.microphone")
+    case "validation.terms":
+      return t("validation.terms")
+    case "validation.contactName":
+      return t("validation.contactName")
+    case "validation.email":
+      return t("validation.email")
+    case "validation.phone":
+      return t("validation.phone")
+    case "validation.endBeforeStart":
+      return t("validation.endBeforeStart")
+    case "validation.organizationName":
+      return t("validation.organizationName")
+    case "validation.invoiceAddress":
+      return t("validation.invoiceAddress")
+    case "validation.ticket":
+      return t("validation.ticket")
+    case "validation.ticketType":
+      return t("validation.ticketType")
+    case "validation.ticketSalesMethod":
+      return t("validation.ticketSalesMethod")
+    case "validation.organizationNumber":
+      return t("validation.organizationNumber")
+    case "validation.promotion":
+      return t("validation.promotion")
+    default:
+      return message
+  }
 }

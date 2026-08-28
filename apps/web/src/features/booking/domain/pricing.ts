@@ -38,6 +38,26 @@ export interface PriceSummary {
   totalIncVat: number
 }
 
+export interface PriceSummaryLabels {
+  room: string
+  hours: string
+  soundTechnician: string
+  lightingTechnician: string
+  riggingSetup: string
+  riggingTeardown: string
+  barHouse: string
+}
+
+const DEFAULT_PRICE_SUMMARY_LABELS: PriceSummaryLabels = {
+  room: "Rom",
+  hours: "t",
+  soundTechnician: "Lydtekniker",
+  lightingTechnician: "Lystekniker",
+  riggingSetup: "Opprigg og oppsett av møblement",
+  riggingTeardown: "Nedrigg og rydding",
+  barHouse: "Kvarteret står i bar",
+}
+
 function billableHoursForRoom(
   room: BookingRoom,
   startDate: string,
@@ -92,6 +112,7 @@ function formatHours(hours: number): string {
 function roomRentLines(
   rooms: BookingRoom[],
   hoursPerRoom: Map<number, number>,
+  labels: PriceSummaryLabels,
 ): PriceLine[] {
   const selectedIds = new Set(rooms.map(room => room.crescatRoomId))
   const bundledWithTeglverket = selectedIds.has(TEGLVERKET_CRESCAT_ROOM_ID)
@@ -115,7 +136,7 @@ function roomRentLines(
     .map(room => {
       const hours = hoursPerRoom.get(room.crescatRoomId) ?? 0
       return {
-        label: `${room.title ?? "Rom"} (${formatHours(hours)} t × ${room.pricePerHour} kr)`,
+        label: `${room.title ?? labels.room} (${formatHours(hours)} ${labels.hours} × ${room.pricePerHour} kr)`,
         amount: hours > 0 ? (room.pricePerHour ?? 0) * hours : 0,
       }
     })
@@ -132,6 +153,7 @@ export function computePriceSummary(
   baseHours: OpeningHours | null = null,
   closedDates: ClosedDate[] = [],
   vacationMode?: VacationMode | null,
+  labels: PriceSummaryLabels = DEFAULT_PRICE_SUMMARY_LABELS,
 ): PriceSummary {
   const hoursPerRoom = new Map<number, number>()
   if (state.startDate && state.startTime && state.endTime) {
@@ -155,25 +177,23 @@ export function computePriceSummary(
   const lines: PriceLine[] = []
 
   if (state.bookerType === "ekstern") {
-    lines.push(...roomRentLines(rooms, hoursPerRoom))
+    lines.push(...roomRentLines(rooms, hoursPerRoom, labels))
   }
 
-  if (state.soundTech) lines.push({ label: "Lydtekniker", amount: TECH_PRICE })
-  if (state.lightTech) lines.push({ label: "Lystekniker", amount: TECH_PRICE })
+  if (state.soundTech) {
+    lines.push({ label: labels.soundTechnician, amount: TECH_PRICE })
+  }
+  if (state.lightTech) {
+    lines.push({ label: labels.lightingTechnician, amount: TECH_PRICE })
+  }
   if (state.riggingSetup) {
-    lines.push({
-      label: "Opprigg og oppsett av møblement",
-      amount: RIGGING_PRICE,
-    })
+    lines.push({ label: labels.riggingSetup, amount: RIGGING_PRICE })
   }
   if (state.riggingTeardown) {
-    lines.push({ label: "Nedrigg og rydding", amount: RIGGING_PRICE })
+    lines.push({ label: labels.riggingTeardown, amount: RIGGING_PRICE })
   }
   if (state.barKvarteret) {
-    lines.push({
-      label: "Kvarteret står i bar",
-      amount: BAR_KVARTERET_PRICE,
-    })
+    lines.push({ label: labels.barHouse, amount: BAR_KVARTERET_PRICE })
   }
 
   const subtotalExVat = lines.reduce((sum, line) => sum + line.amount, 0)

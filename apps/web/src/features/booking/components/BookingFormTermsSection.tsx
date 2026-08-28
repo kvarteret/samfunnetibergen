@@ -2,6 +2,7 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Check, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useCallback, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
@@ -23,12 +24,11 @@ export function BookingFormTermsSection({
   cancellationTermsContent,
 }: BookingFormTermsSectionProps) {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
   const acceptTermsErrorId = `${acceptTermsId}-error`
 
   const [hasReadRental, setHasReadRental] = useState(false)
   const [hasReadCancellation, setHasReadCancellation] = useState(false)
-  const [showRentalDialog, setShowRentalDialog] = useState(false)
-  const [showCancellationDialog, setShowCancellationDialog] = useState(false)
   const [notReadWarning, setNotReadWarning] = useState(false)
 
   const rentalDialogRef = useRef<HTMLDialogElement>(null)
@@ -37,26 +37,22 @@ export function BookingFormTermsSection({
   const hasReadBoth = hasReadRental && hasReadCancellation
 
   const openRentalDialog = useCallback(() => {
-    setShowRentalDialog(true)
     setNotReadWarning(false)
     rentalDialogRef.current?.showModal()
   }, [])
 
   const closeRentalDialog = useCallback(() => {
     rentalDialogRef.current?.close()
-    setShowRentalDialog(false)
     setHasReadRental(true)
   }, [])
 
   const openCancellationDialog = useCallback(() => {
-    setShowCancellationDialog(true)
     setNotReadWarning(false)
     cancellationDialogRef.current?.showModal()
   }, [])
 
   const closeCancellationDialog = useCallback(() => {
     cancellationDialogRef.current?.close()
-    setShowCancellationDialog(false)
     setHasReadCancellation(true)
   }, [])
 
@@ -70,18 +66,11 @@ export function BookingFormTermsSection({
   }
 
   return (
-    <FormSection number="09" title="Vilkår">
+    <FormSection number="09" title={t("terms.sectionTitle")}>
       <div className="max-w-3xl space-y-4">
         <div className="space-y-3">
-          <p className="leading-6">
-            Ved å booke et lokale på Det Akademiske Kvarter inngår du en
-            forespørsel som må godkjennes av en romkoordinator. En booking er
-            ikke bekreftet før du har mottatt bekreftelse på e-post.
-          </p>
-          <p className="leading-6">
-            Avbestilling må skje i henhold til våre avbestillingsvilkår. Sen
-            avbestilling vil medføre gebyr.
-          </p>
+          <p className="leading-6">{t("terms.intro")}</p>
+          <p className="leading-6">{t("terms.cancellationIntro")}</p>
         </div>
 
         <div className="flex flex-wrap gap-4">
@@ -91,12 +80,12 @@ export function BookingFormTermsSection({
               onClick={openRentalDialog}
               type="button"
             >
-              Vilkår for leie
+              {t("terms.rental")}
             </button>
             {hasReadRental && (
               <span className="inline-flex items-center gap-1 text-sm text-success">
                 <Check aria-hidden className="size-3" />
-                Lest
+                {t("terms.read")}
               </span>
             )}
           </span>
@@ -106,12 +95,12 @@ export function BookingFormTermsSection({
               onClick={openCancellationDialog}
               type="button"
             >
-              Avbestillingsvilkår
+              {t("terms.cancellation")}
             </button>
             {hasReadCancellation && (
               <span className="inline-flex items-center gap-1 text-sm text-success">
                 <Check aria-hidden className="size-3" />
-                Lest
+                {t("terms.read")}
               </span>
             )}
           </span>
@@ -128,7 +117,7 @@ export function BookingFormTermsSection({
               error={acceptTermsError}
               errorId={acceptTermsErrorId}
               id={acceptTermsId}
-              label="Jeg har lest, forstått og godkjenner vilkår for leie og avbestillingsvilkår."
+              label={t("terms.accept")}
               labelClassName="font-sans font-base text-foreground-muted"
               onChange={handleCheckboxChange}
             />
@@ -137,34 +126,32 @@ export function BookingFormTermsSection({
 
         {notReadWarning && (
           <p className="text-sm font-medium text-destructive">
-            Du har ikke lest og forstått våre vilkår!
+            {t("terms.notRead")}
           </p>
         )}
       </div>
 
       <TermsDialog
         onClose={closeRentalDialog}
-        open={showRentalDialog}
         ref={rentalDialogRef}
-        title="Vilkår for leie"
+        title={t("terms.rental")}
       >
         {rentalTermsContent ? (
           <ReactMarkdown>{rentalTermsContent}</ReactMarkdown>
         ) : (
-          <p>Innholdet kunne ikke lastes.</p>
+          <p>{t("terms.contentUnavailable")}</p>
         )}
       </TermsDialog>
 
       <TermsDialog
         onClose={closeCancellationDialog}
-        open={showCancellationDialog}
         ref={cancellationDialogRef}
-        title="Avbestillingsvilkår"
+        title={t("terms.cancellation")}
       >
         {cancellationTermsContent ? (
           <ReactMarkdown>{cancellationTermsContent}</ReactMarkdown>
         ) : (
-          <p>Innholdet kunne ikke lastes.</p>
+          <p>{t("terms.contentUnavailable")}</p>
         )}
       </TermsDialog>
     </FormSection>
@@ -176,12 +163,13 @@ import { forwardRef, type ReactNode } from "react"
 interface TermsDialogProps {
   title: string
   children: ReactNode
-  open: boolean
   onClose: () => void
 }
 
 const TermsDialog = forwardRef<HTMLDialogElement, TermsDialogProps>(
   function TermsDialog({ title, children, onClose }, ref) {
+    const t = useTranslations("RoomBooking")
+
     return (
       <dialog
         className="m-auto max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-sm border-2 border-border bg-background p-0 shadow-lg backdrop:bg-black/50"
@@ -190,7 +178,7 @@ const TermsDialog = forwardRef<HTMLDialogElement, TermsDialogProps>(
         <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-border bg-background p-4">
           <h2 className="font-heading text-xl">{title}</h2>
           <button
-            aria-label="Lukk"
+            aria-label={t("catering.close")}
             className="p-1 text-foreground-muted hover:text-foreground focus-brutal"
             onClick={onClose}
             type="button"
@@ -201,7 +189,7 @@ const TermsDialog = forwardRef<HTMLDialogElement, TermsDialogProps>(
         <div className="space-y-4 p-6">{children}</div>
         <div className="sticky bottom-0 border-t-2 border-border bg-background p-4">
           <Button onClick={onClose} type="button">
-            Lukk
+            {t("catering.close")}
           </Button>
         </div>
       </dialog>

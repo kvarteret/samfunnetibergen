@@ -84,8 +84,8 @@ const EVENT_ISSUE_FIELD_TO_PROMO: Record<string, string> = {
   submittedByEmail: PROMO_SUBMITTER_EMAIL_FIELD,
 }
 
-// Gates the booking submit on the promotion choice. Returns user-facing
-// Norwegian messages for anything wrong, or [] when the booking may proceed.
+// Gates the booking submit on the promotion choice. Returns stable validation
+// message IDs for anything wrong, or [] when the booking may proceed.
 // When the guest declines promotion ("nei") there is nothing to validate.
 export function getPromotionValidationMessages(
   input: PromotionValidationInput,
@@ -94,7 +94,7 @@ export function getPromotionValidationMessages(
     return [
       {
         fieldId: PROMOTE_FIELD,
-        message: "Velg om du vil promotere arrangementet.",
+        message: "validation.promotion",
       },
     ]
   }

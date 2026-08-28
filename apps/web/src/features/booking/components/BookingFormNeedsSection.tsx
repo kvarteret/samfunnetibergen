@@ -10,6 +10,7 @@ import {
   Volume2,
   Wand2,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useId } from "react"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -40,15 +41,16 @@ export function BookingFormNeedsSection({
 }: BookingFormNeedsSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
   const furnitureErrorId = `${furnitureId}-error`
 
   return (
-    <FormSection number="06" title="Behov">
+    <FormSection number="06" title={t("needs.sectionTitle")}>
       <div className="max-w-3xl space-y-8">
         <div className="space-y-4">
-          <SubsectionHeading>Møblement</SubsectionHeading>
+          <SubsectionHeading>{t("needs.furniture")}</SubsectionHeading>
           <FieldGroup error={furnitureError} errorId={furnitureErrorId}>
-            <Label htmlFor={furnitureId}>Ønsket møblement *</Label>
+            <Label htmlFor={furnitureId}>{t("needs.furnitureLabel")}</Label>
             <form.Field name="furniture">
               {(field: AnyFieldApi) => (
                 <Textarea
@@ -59,7 +61,7 @@ export function BookingFormNeedsSection({
                   className="resize-y"
                   id={furnitureId}
                   onChange={e => field.handleChange(e.target.value)}
-                  placeholder="F.eks. bord og stoler til 30 personer, oppsett i u-form, ståbord langs veggene."
+                  placeholder={t("needs.furniturePlaceholder")}
                   rows={4}
                   value={field.state.value as string}
                 />
@@ -69,24 +71,28 @@ export function BookingFormNeedsSection({
         </div>
 
         <div className="space-y-4">
-          <SubsectionHeading>Tekniske behov</SubsectionHeading>
+          <SubsectionHeading>{t("needs.technical")}</SubsectionHeading>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <form.Field name="micEnabled">
               {(field: AnyFieldApi) => (
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Volume2}
-                  label="Mikrofoner"
+                  label={t("needs.microphones")}
                   onChange={field.handleChange}
                 >
                   {(field.state.value as boolean) && (
                     <FieldGroup className="mt-3 flex items-center gap-3">
-                      <Label htmlFor={`${uid}-micQuantity`}>Antall</Label>
+                      <Label htmlFor={`${uid}-micQuantity`}>
+                        {t("needs.quantity")}
+                      </Label>
                       <form.Field name="micQuantity">
                         {(qtyField: AnyFieldApi) => (
                           <NumberField
                             className="w-32"
+                            decrementLabel={t("controls.decrease")}
                             id={`${uid}-micQuantity`}
+                            incrementLabel={t("controls.increase")}
                             min={1}
                             onValueChange={value =>
                               qtyField.handleChange(value ?? 1)
@@ -105,7 +111,7 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Projector}
-                  label="Projektor + lerret"
+                  label={t("needs.projector")}
                   onChange={field.handleChange}
                 />
               )}
@@ -115,7 +121,7 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Music}
-                  label="Musikkavspilling"
+                  label={t("needs.music")}
                   onChange={field.handleChange}
                 />
               )}
@@ -125,13 +131,11 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Wand2}
-                  label="Dedikert lydtekniker"
+                  label={t("needs.soundTechnician")}
                   onChange={field.handleChange}
                 >
-                  <p className=" leading-6 text-foreground-muted">
-                    Dedikert tekniker koster <strong>3500 kr eks. mva</strong>{" "}
-                    per tekniker. Avbestilling må skje senest{" "}
-                    <strong>10 dager</strong> før arrangementet.
+                  <p className="leading-6 text-foreground-muted">
+                    {t("needs.technicianNotice")}
                   </p>
                 </ToggleOption>
               )}
@@ -141,13 +145,11 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Wand2}
-                  label="Dedikert lystekniker"
+                  label={t("needs.lightingTechnician")}
                   onChange={field.handleChange}
                 >
-                  <p className=" leading-6 text-foreground-muted">
-                    Dedikert tekniker koster <strong>3500 kr eks. mva</strong>{" "}
-                    per tekniker. Avbestilling må skje senest{" "}
-                    <strong>10 dager</strong> før arrangementet.
+                  <p className="leading-6 text-foreground-muted">
+                    {t("needs.technicianNotice")}
                   </p>
                 </ToggleOption>
               )}
@@ -157,12 +159,11 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Hammer}
-                  label="Opprigg og oppsett av møblement"
+                  label={t("needs.riggingSetup")}
                   onChange={field.handleChange}
                 >
-                  <p className=" leading-6 text-foreground-muted">
-                    Koster <strong>2000 kr eks. mva</strong>. Husk å beregne tid
-                    til opprigg innenfor bookingens start- og sluttid.
+                  <p className="leading-6 text-foreground-muted">
+                    {t("needs.riggingSetupNotice")}
                   </p>
                 </ToggleOption>
               )}
@@ -172,12 +173,11 @@ export function BookingFormNeedsSection({
                 <ToggleOption
                   checked={field.state.value as boolean}
                   icon={Trash2}
-                  label="Nedrigg og rydding"
+                  label={t("needs.riggingTeardown")}
                   onChange={field.handleChange}
                 >
-                  <p className=" leading-6 text-foreground-muted">
-                    Koster <strong>2000 kr eks. mva</strong>. Husk å beregne tid
-                    til nedrigg innenfor bookingens start- og sluttid.
+                  <p className="leading-6 text-foreground-muted">
+                    {t("needs.riggingTeardownNotice")}
                   </p>
                 </ToggleOption>
               )}
@@ -188,7 +188,7 @@ export function BookingFormNeedsSection({
                   <ToggleOption
                     checked={field.state.value as boolean}
                     icon={Armchair}
-                    label="Behov for amfi — kun Tivoli"
+                    label={t("needs.amphi")}
                     onChange={field.handleChange}
                   />
                 )}
