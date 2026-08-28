@@ -66,32 +66,34 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
 
   return (
     <Link
-      className="group block w-full cursor-pointer overflow-hidden border border-border/40 bg-card focus-brutal"
+      className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
       href={`/arrangementer/${event.slug}`}
     >
       {imageUrl ? (
-        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+        <div className="relative aspect-[5/3] w-full overflow-hidden bg-muted md:aspect-4/3">
           <Image
             alt={event.imageCaption ?? event.title}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             fill
-            sizes="(max-width: 768px) 14rem, 16rem"
+            sizes="(max-width: 768px) 30vw, 16rem"
             src={imageUrl}
             unoptimized={shouldLoadImageDirectly(imageUrl)}
           />
         </div>
       ) : (
-        <div className="flex aspect-4/3 items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
+        <div className="flex aspect-[5/3] items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted md:aspect-4/3">
           <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
           <span>{event.title}</span>
         </div>
       )}
-      <div className="space-y-2 p-3">
-        <p className="font-heading text-base leading-tight group-hover:underline group-hover:underline-offset-2">
+      <div className="space-y-2 p-0 pt-2 md:p-3">
+        <p className="font-heading text-2xl leading-tight group-hover:underline group-hover:underline-offset-2 md:text-base">
           {event.title}
         </p>
         {time && (
-          <p className="text-sm leading-tight text-foreground-muted">{time}</p>
+          <p className="text-2xl leading-tight text-foreground-muted md:text-sm">
+            {time}
+          </p>
         )}
         {event.eventStatus === "cancelled" && (
           <p className="font-heading text-xs uppercase tracking-widest text-destructive">
@@ -134,6 +136,30 @@ function CalendarDayCell({
   )
 }
 
+function MobileCalendarDayCell({
+  day,
+  locale,
+}: {
+  day: CalendarDay
+  locale: AppLocale
+}) {
+  return (
+    <article>
+      <h3 className="bg-primary px-2 py-2 text-center font-heading text-2xl leading-tight text-primary-foreground">
+        {formatDayLabel(day.date, locale)}
+      </h3>
+      <div className="space-y-5 py-3">
+        {day.occurrences.map(occurrence => (
+          <CalendarEvent
+            key={`${occurrence.event._id}-${occurrence.date._key}`}
+            occurrence={occurrence}
+          />
+        ))}
+      </div>
+    </article>
+  )
+}
+
 function MobileMonthCalendar({
   month,
   locale,
@@ -144,15 +170,10 @@ function MobileMonthCalendar({
   const eventDays = month.days.filter(day => day.occurrences.length > 0)
 
   return (
-    <div className="border-y border-primary/40 md:hidden">
-      <div className="grid grid-cols-1 gap-3 py-3">
-        {eventDays.map((day, index) => (
-          <CalendarDayCell
-            day={day}
-            isShaded={index % 2 === 1}
-            key={day.date}
-            locale={locale}
-          />
+    <div className="md:hidden">
+      <div className="grid grid-cols-1 gap-4 py-3">
+        {eventDays.map(day => (
+          <MobileCalendarDayCell day={day} key={day.date} locale={locale} />
         ))}
       </div>
     </div>
@@ -246,7 +267,7 @@ export function EventCalendar({
             <button
               aria-controls={`month-content-${month.key}`}
               aria-expanded={isOpen}
-              className="flex min-h-24 w-full cursor-pointer items-center justify-between gap-4 border-y border-primary/50 px-0 py-4 text-left focus-brutal sm:min-h-28 sm:py-5"
+              className="flex min-h-24 w-full cursor-pointer items-center justify-between gap-4 border-t border-primary/50 px-0 py-4 text-left focus-brutal sm:min-h-28 sm:py-5 md:border-y"
               onClick={() => {
                 setHasInteracted(true)
                 setSelectedMonths(
@@ -257,15 +278,15 @@ export function EventCalendar({
               }}
               type="button"
             >
-              <span className="min-w-0 font-heading text-3xl leading-none sm:text-5xl">
+              <span className="min-w-0 font-heading text-4xl leading-none sm:text-5xl">
                 {monthLabel}{" "}
-                <span className="text-xl sm:text-2xl">
+                <span className="text-2xl sm:text-2xl">
                   ({month.eventCount})
                 </span>
               </span>
               <span
                 className={cn(
-                  "flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-base",
+                  "flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive text-destructive-foreground transition-transform duration-base md:size-10 md:bg-primary md:text-primary-foreground",
                   isOpen && "rotate-180",
                 )}
               >
