@@ -127,8 +127,6 @@
       "flexibleDates": "Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre.",
       "noRooms": "Ingen rom er tilgjengelige for booking akkurat nå.",
       "selectDateTime": "Velg dato og tid for å se ledige rom.",
-      "addMoreRooms": "Legg til flere rom",
-      "addMoreRoomsHint": "Velg rom du vil legge til i bookingen.",
       "occupied": "Opptatt",
       "added": "Lagt til",
       "showMoreConflicts": "Vis {count} til",

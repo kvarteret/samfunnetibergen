@@ -8,7 +8,6 @@ import {
   isExceptionFeedbackPath,
   requestExceptionFeedback,
 } from "@/lib/posthog/exception-feedback"
-import { isBrowserDomMutationError } from "@/lib/posthog/browser-dom-mutation"
 
 type LocaleErrorProps = {
   error: Error & { digest?: string }
@@ -24,21 +23,6 @@ export default function LocaleError({
   const t = useTranslations("Error")
 
   useEffect(() => {
-    if (isBrowserDomMutationError(error)) {
-      try {
-        posthog.capture("browser_dom_mutation_error", {
-          browser_dom_mutation: true,
-          digest: error.digest,
-          error_name: error.name,
-          locale: params.locale,
-          source: "app-router-error-boundary",
-        })
-      } catch {
-        // Browser error telemetry must never block the recovery UI.
-      }
-      return
-    }
-
     posthog.captureException(error, {
       source: "app-router-error-boundary",
       locale: params.locale,

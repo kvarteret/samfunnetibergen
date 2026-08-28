@@ -561,58 +561,7 @@ function translateValidationMessage(
   message: string,
   t: ReturnType<typeof useTranslations<"RoomBooking">>,
 ): string {
-  switch (message) {
-    case "validation.invalidEndDate":
-      return t("validation.invalidEndDate")
-    case "validation.invalidTime":
-      return t("validation.invalidTime")
-    case "validation.bookerType":
-      return t("validation.bookerType")
-    case "validation.roomRequired":
-      return t("validation.roomRequired")
-    case "validation.eventName":
-      return t("validation.eventName")
-    case "validation.date":
-      return t("validation.date")
-    case "validation.startTime":
-      return t("validation.startTime")
-    case "validation.endTime":
-      return t("validation.endTime")
-    case "validation.doors":
-      return t("validation.doors")
-    case "validation.audience":
-      return t("validation.audience")
-    case "validation.eventType":
-      return t("validation.eventType")
-    case "validation.furniture":
-      return t("validation.furniture")
-    case "validation.microphone":
-      return t("validation.microphone")
-    case "validation.terms":
-      return t("validation.terms")
-    case "validation.contactName":
-      return t("validation.contactName")
-    case "validation.email":
-      return t("validation.email")
-    case "validation.phone":
-      return t("validation.phone")
-    case "validation.endBeforeStart":
-      return t("validation.endBeforeStart")
-    case "validation.organizationName":
-      return t("validation.organizationName")
-    case "validation.invoiceAddress":
-      return t("validation.invoiceAddress")
-    case "validation.ticket":
-      return t("validation.ticket")
-    case "validation.ticketType":
-      return t("validation.ticketType")
-    case "validation.ticketSalesMethod":
-      return t("validation.ticketSalesMethod")
-    case "validation.organizationNumber":
-      return t("validation.organizationNumber")
-    case "validation.promotion":
-      return t("validation.promotion")
-    default:
-      return message
-  }
+  return message.startsWith("validation.") && t.has(message)
+    ? t(message)
+    : message
 }

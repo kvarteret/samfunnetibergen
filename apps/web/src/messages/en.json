@@ -128,8 +128,6 @@
       "flexibleDates": "The date and room are flexible. Kvarteret may suggest another time or room if that works better.",
       "noRooms": "No rooms are available for booking right now.",
       "selectDateTime": "Choose a date and time to see available rooms.",
-      "addMoreRooms": "Add more rooms",
-      "addMoreRoomsHint": "Choose rooms to add to your booking.",
       "occupied": "Busy",
       "added": "Added",
       "showMoreConflicts": "Show {count} more",
