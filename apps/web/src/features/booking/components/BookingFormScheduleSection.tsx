@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { Disclosure } from "@/components/ui/disclosure"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -37,6 +38,7 @@ import { useBookingForm } from "./bookingFormContext"
 
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
+  initialRoomId?: number
   roomOccupancy: Map<number, string[]>
   occupiedRanges: { startMin: number; endMin: number }[]
   openingHours: OpeningHours | null
@@ -49,6 +51,7 @@ interface BookingFormScheduleSectionProps {
 
 export function BookingFormScheduleSection({
   rooms,
+  initialRoomId,
   roomOccupancy,
   occupiedRanges,
   openingHours,
@@ -61,6 +64,7 @@ export function BookingFormScheduleSection({
   const form = useBookingForm()
   const t = useTranslations("RoomBooking")
   const startDateErrorId = `${startDateId}-error`
+  const focusedRoom = rooms.find(room => room.crescatRoomId === initialRoomId)
 
   return (
     <FormSection
@@ -107,6 +111,17 @@ export function BookingFormScheduleSection({
             room =>
               selectedRoomIdSet.has(room.crescatRoomId) &&
               roomOccupancy.has(room.crescatRoomId),
+          )
+          const renderRoom = (room: BookingRoom) => (
+            <RoomCard
+              conflicts={roomOccupancy.get(room.crescatRoomId) ?? []}
+              key={room.crescatRoomId}
+              onToggle={() => toggleRoom(room.crescatRoomId)}
+              occupied={roomOccupancy.has(room.crescatRoomId)}
+              room={room}
+              selected={selectedRoomIdSet.has(room.crescatRoomId)}
+              t={t}
+            />
           )
 
           return (
@@ -175,19 +190,26 @@ export function BookingFormScheduleSection({
 
               {startDate && startTime && endTime ? (
                 rooms.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {rooms.map(room => (
-                      <RoomCard
-                        conflicts={roomOccupancy.get(room.crescatRoomId) ?? []}
-                        key={room.crescatRoomId}
-                        onToggle={() => toggleRoom(room.crescatRoomId)}
-                        occupied={roomOccupancy.has(room.crescatRoomId)}
-                        room={room}
-                        selected={selectedRoomIdSet.has(room.crescatRoomId)}
-                        t={t}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {(focusedRoom ? [focusedRoom] : rooms).map(renderRoom)}
+                    </div>
+                    {focusedRoom && rooms.length > 1 && (
+                      <Disclosure
+                        className="mt-4"
+                        summary={t("schedule.addMoreRooms")}
+                      >
+                        <p className="mb-4 text-sm text-foreground-muted">
+                          {t("schedule.addMoreRoomsHint")}
+                        </p>
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                          {rooms
+                            .filter(room => room !== focusedRoom)
+                            .map(renderRoom)}
+                        </div>
+                      </Disclosure>
+                    )}
+                  </>
                 ) : (
                   <p className="text-sm text-foreground-muted">
                     {t("schedule.noRooms")}
