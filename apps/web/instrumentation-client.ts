@@ -1,4 +1,5 @@
 import posthog from "posthog-js"
+import { filterExceptionNoise } from "@/lib/posthog/exception-noise-filter"
 
 const isLocalhost =
   typeof window !== "undefined" &&
@@ -28,6 +29,7 @@ if (
     override_display_language:
       routeLocale === "nb" || routeLocale === "en" ? routeLocale : undefined,
     person_profiles: "identified_only",
+    before_send: filterExceptionNoise,
     tracing_headers:
       typeof window === "undefined" ? undefined : [window.location.hostname],
   })
