@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useLocale, useTranslations } from "next-intl"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -36,6 +37,8 @@ export function BookingFormContactSection({
   orgNumberId,
 }: BookingFormContactSectionProps) {
   const form = useBookingForm()
+  const locale = useLocale()
+  const t = useTranslations("RoomBooking")
   const bookerType = form.state.values.bookerType as BookerType
   const isExternal = isExternalBooker(bookerType)
   const contactEmailErrorId = `${contactEmailId}-error`
@@ -45,10 +48,10 @@ export function BookingFormContactSection({
   const orgNumberErrorId = `${orgNumberId}-error`
 
   return (
-    <FormSection number="05" title="Kontaktinformasjon">
+    <FormSection number="05" title={t("contact.sectionTitle")}>
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
-          <Label htmlFor={contactNameId}>Navn *</Label>
+          <Label htmlFor={contactNameId}>{t("contact.name")}</Label>
           <form.Field name="contactName">
             {(field: AnyFieldApi) => (
               <Input
@@ -59,14 +62,14 @@ export function BookingFormContactSection({
                 autoComplete="name"
                 id={contactNameId}
                 onChange={e => field.handleChange(e.target.value)}
-                placeholder="Fullt navn"
+                placeholder={t("contact.fullName")}
                 value={field.state.value as string}
               />
             )}
           </form.Field>
         </FieldGroup>
         <FieldGroup error={contactEmailError} errorId={contactEmailErrorId}>
-          <Label htmlFor={contactEmailId}>E-post *</Label>
+          <Label htmlFor={contactEmailId}>{t("contact.email")}</Label>
           <form.Field name="contactEmail">
             {(field: AnyFieldApi) => (
               <Input
@@ -77,7 +80,7 @@ export function BookingFormContactSection({
                 autoComplete="email"
                 id={contactEmailId}
                 onChange={e => field.handleChange(e.target.value)}
-                placeholder="din@epost.no"
+                placeholder={t("contact.emailPlaceholder")}
                 type="email"
                 value={field.state.value as string}
               />
@@ -85,7 +88,7 @@ export function BookingFormContactSection({
           </form.Field>
         </FieldGroup>
         <FieldGroup error={contactPhoneError} errorId={contactPhoneErrorId}>
-          <Label htmlFor={contactPhoneId}>Telefon</Label>
+          <Label htmlFor={contactPhoneId}>{t("contact.phone")}</Label>
           <form.Field name="contactPhone">
             {(field: AnyFieldApi) => (
               <PhoneNumberField
@@ -94,6 +97,7 @@ export function BookingFormContactSection({
                 }
                 error={!!contactPhoneError}
                 id={contactPhoneId}
+                locale={locale === "en" ? "en" : "nb"}
                 onChange={value => field.handleChange(value)}
                 value={field.state.value as string}
               />
@@ -108,7 +112,9 @@ export function BookingFormContactSection({
                   error={invoiceAddressError}
                   errorId={invoiceAddressErrorId}
                 >
-                  <Label htmlFor={invoiceAddressId}>Fakturaadresse *</Label>
+                  <Label htmlFor={invoiceAddressId}>
+                    {t("contact.invoiceAddress")}
+                  </Label>
                   <Input
                     aria-describedby={
                       invoiceAddressError ? invoiceAddressErrorId : undefined
@@ -117,7 +123,7 @@ export function BookingFormContactSection({
                     autoComplete="street-address"
                     id={invoiceAddressId}
                     onChange={e => field.handleChange(e.target.value)}
-                    placeholder="Adresse for faktura"
+                    placeholder={t("contact.invoicePlaceholder")}
                     value={field.state.value as string}
                   />
                 </FieldGroup>
@@ -126,7 +132,9 @@ export function BookingFormContactSection({
             <form.Field name="orgNumber">
               {(field: AnyFieldApi) => (
                 <FieldGroup error={orgNumberError} errorId={orgNumberErrorId}>
-                  <Label htmlFor={orgNumberId}>Org.nr.</Label>
+                  <Label htmlFor={orgNumberId}>
+                    {t("contact.organizationNumber")}
+                  </Label>
                   <Input
                     aria-describedby={
                       orgNumberError ? orgNumberErrorId : undefined
@@ -135,7 +143,7 @@ export function BookingFormContactSection({
                     id={orgNumberId}
                     inputMode="numeric"
                     onChange={e => field.handleChange(e.target.value)}
-                    placeholder="Valgfritt"
+                    placeholder={t("contact.optional")}
                     value={field.state.value as string}
                   />
                 </FieldGroup>

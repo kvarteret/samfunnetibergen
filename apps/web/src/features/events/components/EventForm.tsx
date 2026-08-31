@@ -12,17 +12,18 @@ import {
   submitEvent,
   uploadEventImage,
 } from "@/features/events/actions/submitEvent"
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import { useFormErrors } from "@/lib/use-form-errors"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import { useFormErrors } from "@/lib/use-form-errors"
+import { eventFormSchema } from "../domain/eventFormSchema"
 import {
   buildPreviewEvent,
   type FormState,
   initialState,
 } from "../domain/formState"
-import { eventFormSchema } from "../domain/eventFormSchema"
 import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { useEventImage } from "../domain/useEventImage"
 import { EventFormActions } from "./EventFormActions"
@@ -49,7 +50,14 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const [honeypot] = useState("")
   const fieldIds = {
     title: `${uid}-title`,
+    titleEnglish: `${uid}-title-en`,
+    description: `${uid}-description`,
+    descriptionEnglish: `${uid}-description-en`,
     firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
+    roomText: `${uid}-roomText`,
+    roomTextEnglish: `${uid}-roomText-en`,
+    organizerText: `${uid}-organizerText`,
+    organizerTextEnglish: `${uid}-organizerText-en`,
     submittedBy: `${uid}-submittedBy`,
     submittedByEmail: `${uid}-submittedByEmail`,
   }
@@ -77,6 +85,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         const uploadResult = await uploadEventImage(formData)
         if (!uploadResult.ok) {
           formApi.setErrorMap({ onServer: uploadResult.error as never })
+          requestExceptionFeedback("event_submission")
           throw new Error(uploadResult.error)
         }
         imageAssetId = uploadResult.value
@@ -86,6 +95,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
+        requestExceptionFeedback("event_submission")
         throw new Error(result.error)
       }
     },
@@ -161,15 +171,20 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             e.preventDefault()
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              requestExceptionFeedback("event_submission")
               posthog.captureException(
                 new Error("Unexpected event submission failure"),
                 {
                   form_id: "event_submission",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name:
+                    error instanceof Error ? error.name : undefined,
                 },
               )
             })
@@ -179,8 +194,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
           )}
           <EventFormDetailsSection
+            descriptionEnglishError={errorFor(fieldIds.descriptionEnglish)}
+            descriptionError={errorFor(fieldIds.description)}
             eventTypeOptions={eventTypeSelectOptions}
             titleError={errorFor(fieldIds.title)}
+            titleEnglishError={errorFor(fieldIds.titleEnglish)}
             titleId={fieldIds.title}
             uid={uid}
           />
@@ -195,9 +213,16 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             firstDateId={fieldIds.firstDate}
             uid={uid}
           />
-          <EventFormPlaceSection roomOptions={roomSelectOptions} uid={uid} />
+          <EventFormPlaceSection
+            roomOptions={roomSelectOptions}
+            roomTextEnglishError={errorFor(fieldIds.roomTextEnglish)}
+            roomTextError={errorFor(fieldIds.roomText)}
+            uid={uid}
+          />
           <EventFormOrganizerSection
             groupOptions={groupSelectOptions}
+            organizerTextEnglishError={errorFor(fieldIds.organizerTextEnglish)}
+            organizerTextError={errorFor(fieldIds.organizerText)}
             uid={uid}
           />
           <EventFormPriceSection uid={uid} />
@@ -220,6 +245,13 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
 
 function eventFieldId(path: string, fieldIds: Record<string, string>): string {
   if (path === "title") return fieldIds.title
+  if (path === "titleEnglish") return fieldIds.titleEnglish
+  if (path === "description") return fieldIds.description
+  if (path === "descriptionEnglish") return fieldIds.descriptionEnglish
+  if (path === "roomText") return fieldIds.roomText
+  if (path === "roomTextEnglish") return fieldIds.roomTextEnglish
+  if (path === "organizerText") return fieldIds.organizerText
+  if (path === "organizerTextEnglish") return fieldIds.organizerTextEnglish
   if (path === "submittedBy") return fieldIds.submittedBy
   if (path === "submittedByEmail") return fieldIds.submittedByEmail
   if (path === "dates" || path.startsWith("dates[")) {

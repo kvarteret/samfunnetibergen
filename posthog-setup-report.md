@@ -7,9 +7,9 @@ Thirteen events are instrumented across booking flows, volunteer applications, e
 | Event | Description | File |
 |-------|-------------|------|
 | `room_booking_submitted` | Successful room booking request sent to Crescat | `src/features/booking/actions/submit-room-booking.ts` |
-| `room_booking_submit_failed` | Room booking failed (conflict, out-of-hours, or error) | `src/features/booking/actions/submit-room-booking.ts` |
+| `room_booking_submit_failed` | Room booking submission failed, categorized by `failure_stage` | `src/features/booking/actions/submit-room-booking.ts` |
 | `karaoke_booking_submitted` | Successful karaoke booking request sent to Crescat | `src/features/karaoke/actions/submit-karaoke-booking.ts` |
-| `karaoke_booking_submit_failed` | Karaoke booking failed (slot unavailable or error) | `src/features/karaoke/actions/submit-karaoke-booking.ts` |
+| `karaoke_booking_submit_failed` | Karaoke booking submission failed, categorized by `failure_stage` | `src/features/karaoke/actions/submit-karaoke-booking.ts` |
 | `volunteer_application_submitted` | Volunteer application successfully forwarded | `src/app/api/volunteer-prospects/route.ts` |
 | `volunteer_application_submit_failed` | Volunteer application forwarding failed | `src/app/api/volunteer-prospects/route.ts` |
 | `event_submission_submitted` | External organizer submitted a new event for review | `src/features/events/actions/submitEvent.ts` |
@@ -27,9 +27,16 @@ We've built some insights and a dashboard for you to keep an eye on user behavio
 - [Analytics basics (wizard) — Dashboard](https://eu.posthog.com/project/202551/dashboard/749502)
 - [Booking submissions over time](https://eu.posthog.com/project/202551/insights/VSqBgjCe)
 - [Booking failure rate](https://eu.posthog.com/project/202551/insights/ieoIdxV0)
+- [Successful booking retries](https://eu.posthog.com/project/202551/insights/XlYo10BE)
 - [Volunteer applications over time](https://eu.posthog.com/project/202551/insights/hWrZTdok)
 - [Event submissions over time](https://eu.posthog.com/project/202551/insights/7rro6F4g)
 - [Event page engagement clicks](https://eu.posthog.com/project/202551/insights/bJ3pq6Yj)
+
+Booking successes and failures carry a retry-stable `booking_submission_id`
+and a one-based `submission_attempt`. A successful event with
+`submission_attempt > 1` represents a successful user retry. The value returned
+by the current Crescat endpoint is recorded as `crescat_http_status`; it is not
+a Crescat request identifier.
 
 ### Agent skill
 

@@ -28,8 +28,7 @@ if (
     override_display_language:
       routeLocale === "nb" || routeLocale === "en" ? routeLocale : undefined,
     person_profiles: "identified_only",
-    tracing_headers:
-      typeof window === "undefined" ? undefined : [window.location.hostname],
+    tracing_headers: [window.location.hostname],
   })
 
   posthog.register({

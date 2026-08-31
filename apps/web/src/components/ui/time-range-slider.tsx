@@ -3,6 +3,7 @@
 import { Popover } from "@base-ui/react/popover"
 import { Slider } from "@base-ui/react/slider"
 import { Info } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { minutesToTime } from "@/lib/opening-hours"
 import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
@@ -98,22 +99,27 @@ export function timeIndexWithin(
 export function formatDurationLabel(
   durationMin: number,
   isMultiDay: boolean,
+  labels: {
+    hours: string
+    minutes: string
+    days: string
+  } = { hours: "t", minutes: "m", days: "d" },
 ): string {
   if (durationMin <= 0) return ""
 
   if (isMultiDay) {
     const d = Math.floor(durationMin / MINUTES_IN_DAY)
     const h = Math.floor((durationMin % MINUTES_IN_DAY) / 60)
-    if (d === 0) return `${h}t`
-    if (h === 0) return `${d}d`
-    return `${d}d ${h}t`
+    if (d === 0) return `${h}${labels.hours}`
+    if (h === 0) return `${d}${labels.days}`
+    return `${d}${labels.days} ${h}${labels.hours}`
   }
 
   const h = Math.floor(durationMin / 60)
   const m = durationMin % 60
-  if (h === 0) return `${m}m`
-  if (m === 0) return `${h}t`
-  return `${h}t ${m}m`
+  if (h === 0) return `${m}${labels.minutes}`
+  if (m === 0) return `${h}${labels.hours}`
+  return `${h}${labels.hours} ${m}${labels.minutes}`
 }
 
 export interface TickMark {
@@ -130,6 +136,7 @@ export function computeTickMarks(
   minStartIdx: number,
   minMinute: number,
   totalSpan: number,
+  dayLabel: (day: number) => string = day => `Dag ${day}`,
 ): TickMark[] {
   const ticks: TickMark[] = []
 
@@ -146,7 +153,7 @@ export function computeTickMarks(
           index: idx,
           minute: marks[idx],
           pct,
-          label: `Dag ${d + 1}`,
+          label: dayLabel(d + 1),
         })
       }
     }
@@ -208,6 +215,7 @@ export function TimeRangeSlider({
   onEndChange,
   timingWarning,
 }: TimeRangeSliderProps) {
+  const t = useTranslations("RoomBooking")
   // ── Index-based mapping ──────────────────────────────────────────────
   // The slider operates on indices into the (sorted) marks array.
   // This way discrete slot marks with gaps (e.g. a closed kitchen block
@@ -376,13 +384,25 @@ export function TimeRangeSlider({
 
   const durationLabel = useMemo(
     () =>
-      formatDurationLabel(marks[endIndex] - marks[startIndex], dayCount > 1),
-    [marks, startIndex, endIndex, dayCount],
+      formatDurationLabel(marks[endIndex] - marks[startIndex], dayCount > 1, {
+        days: t("dateTime.durationDays"),
+        hours: t("dateTime.durationHours"),
+        minutes: t("dateTime.durationMinutes"),
+      }),
+    [marks, startIndex, endIndex, dayCount, t],
   )
 
   const tickMarks = useMemo(
-    () => computeTickMarks(marks, dayCount, minStartIdx, minMinute, totalSpan),
-    [marks, dayCount, minStartIdx, minMinute, totalSpan],
+    () =>
+      computeTickMarks(
+        marks,
+        dayCount,
+        minStartIdx,
+        minMinute,
+        totalSpan,
+        day => t("dateTime.day", { number: day }),
+      ),
+    [marks, dayCount, minStartIdx, minMinute, totalSpan, t],
   )
 
   const stripeSegments = useMemo(
@@ -395,7 +415,7 @@ export function TimeRangeSlider({
   if (marks.length < 2) {
     return (
       <p className="text-sm text-foreground-muted">
-        Ikke nok tidspunkt for å vise en tidsvelger.
+        {t("dateTime.notEnoughTimes")}
       </p>
     )
   }
@@ -406,9 +426,9 @@ export function TimeRangeSlider({
           the slider, which is a later sibling and would otherwise paint over it. */}
       <div className="relative z-20 flex items-center gap-1.5">
         <p className="font-heading text-sm uppercase tracking-widest text-foreground">
-          Get-in / get-out
+          {t("dateTime.getInOut")}
         </p>
-        <GetInGetOutInfo />
+        <GetInGetOutInfo t={t} />
         {durationLabel && (
           <span className="font-heading text-sm tabular-nums text-foreground-muted">
             → {durationLabel}
@@ -422,14 +442,14 @@ export function TimeRangeSlider({
       <div className="relative z-10 flex items-end justify-between gap-3">
         <TimeSlotBox
           className="min-w-28"
-          label="Get-in"
+          label={t("dateTime.getIn")}
           onChange={selectStart}
           options={startOptions}
           value={formatLabel(startIndex)}
         />
         <TimeSlotBox
           className="min-w-28"
-          label="Get-out"
+          label={t("dateTime.getOut")}
           onChange={selectEnd}
           options={endOptions}
           value={formatLabel(endIndex)}
@@ -501,25 +521,25 @@ export function TimeRangeSlider({
 
             {/* Start thumb */}
             <Slider.Thumb
-              aria-label="Starttid"
+              aria-label={t("dateTime.startTime")}
               className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
               index={0}
               style={{ borderColor: trackColor }}
             >
               <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
-                Get-in
+                {t("dateTime.getIn")}
               </span>
             </Slider.Thumb>
 
             {/* End thumb */}
             <Slider.Thumb
-              aria-label="Sluttid"
+              aria-label={t("dateTime.endTime")}
               className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
               index={1}
               style={{ borderColor: trackColor }}
             >
               <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
-                Get-out
+                {t("dateTime.getOut")}
               </span>
             </Slider.Thumb>
           </Slider.Track>
@@ -549,11 +569,15 @@ export function TimeRangeSlider({
 // Explains get-in/get-out for arrangers — for multi-day bookings, get-in is
 // the first day and get-out is the last day; days in between don't change
 // these two times.
-function GetInGetOutInfo() {
+function GetInGetOutInfo({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"RoomBooking">>
+}) {
   return (
     <Popover.Root>
       <Popover.Trigger
-        aria-label="Hva betyr get-in og get-out?"
+        aria-label={t("dateTime.whatGetInOut")}
         className="flex size-5 cursor-pointer items-center justify-center text-foreground-muted transition-colors hover:text-foreground focus-brutal"
         closeDelay={100}
         delay={0}
@@ -565,18 +589,15 @@ function GetInGetOutInfo() {
         <Popover.Positioner sideOffset={8}>
           <Popover.Popup className="z-[100] w-72 space-y-2 panel shadow-shadow text-sm">
             <p>
-              <strong className="font-heading">Get-in:</strong> som arrangør
-              betyr det at leietaker kommer inn i rommet på avtalt tidspunkt og
-              overtar ansvaret.
+              <strong className="font-heading">{t("dateTime.getIn")}:</strong>{" "}
+              {t("dateTime.getInExplanation")}
             </p>
             <p>
-              <strong className="font-heading">Get-out:</strong> betyr at
-              leietaker skal være helt ute av rommet igjen innen avtalt slutt,
-              inkludert rydding og nedrigg.
+              <strong className="font-heading">{t("dateTime.getOut")}:</strong>{" "}
+              {t("dateTime.getOutExplanation")}
             </p>
             <p className="text-foreground-muted">
-              Er det flere dager er det get-in første dag og get-out siste dag
-              som setter tidene for bookingen.
+              {t("dateTime.multiDayExplanation")}
             </p>
           </Popover.Popup>
         </Popover.Positioner>

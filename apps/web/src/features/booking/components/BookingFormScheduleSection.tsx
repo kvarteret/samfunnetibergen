@@ -11,11 +11,13 @@ import {
   Plus,
   X,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { type MouseEvent, type ReactNode, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { Disclosure } from "@/components/ui/disclosure"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -36,6 +38,7 @@ import { useBookingForm } from "./bookingFormContext"
 
 interface BookingFormScheduleSectionProps {
   rooms: BookingRoom[]
+  initialRoomId?: number
   roomOccupancy: Map<number, string[]>
   occupiedRanges: { startMin: number; endMin: number }[]
   openingHours: OpeningHours | null
@@ -48,6 +51,7 @@ interface BookingFormScheduleSectionProps {
 
 export function BookingFormScheduleSection({
   rooms,
+  initialRoomId,
   roomOccupancy,
   occupiedRanges,
   openingHours,
@@ -58,10 +62,16 @@ export function BookingFormScheduleSection({
   today,
 }: BookingFormScheduleSectionProps) {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
   const startDateErrorId = `${startDateId}-error`
+  const focusedRoom = rooms.find(room => room.crescatRoomId === initialRoomId)
 
   return (
-    <FormSection id="booking-schedule" number="02" title="Rom og tidspunkt">
+    <FormSection
+      id="booking-schedule"
+      number="02"
+      title={t("schedule.sectionTitle")}
+    >
       <form.Subscribe
         selector={(s: { values: BookingFormValues }) => ({
           selectedRoomIds: s.values.selectedRoomIds as number[],
@@ -102,11 +112,22 @@ export function BookingFormScheduleSection({
               selectedRoomIdSet.has(room.crescatRoomId) &&
               roomOccupancy.has(room.crescatRoomId),
           )
+          const renderRoom = (room: BookingRoom) => (
+            <RoomCard
+              conflicts={roomOccupancy.get(room.crescatRoomId) ?? []}
+              key={room.crescatRoomId}
+              onToggle={() => toggleRoom(room.crescatRoomId)}
+              occupied={roomOccupancy.has(room.crescatRoomId)}
+              room={room}
+              selected={selectedRoomIdSet.has(room.crescatRoomId)}
+              t={t}
+            />
+          )
 
           return (
             <>
               <FieldGroup error={startDateError} errorId={startDateErrorId}>
-                <Label>Dato og tidspunkt *</Label>
+                <Label>{t("schedule.dateTimeRequired")}</Label>
                 <DateTimePicker
                   closedDates={closedDates}
                   endDate={endDate}
@@ -133,15 +154,14 @@ export function BookingFormScheduleSection({
                       <Alert id={`${startDateId}-time`} variant="destructive">
                         <CalendarClock aria-hidden />
                         <AlertTitle>
-                          {selectedConflictRooms
-                            .map(room => room.title ?? room.crescatRoomId)
-                            .join(", ")}{" "}
-                          er opptatt i valgt tidsrom
+                          {t("schedule.roomBusyTitle", {
+                            rooms: selectedConflictRooms
+                              .map(room => room.title ?? room.crescatRoomId)
+                              .join(", "),
+                          })}
                         </AlertTitle>
                         <AlertDescription className="gap-3">
-                          <p>
-                            Endre tidspunktet eller fjern rommet fra bookingen.
-                          </p>
+                          <p>{t("schedule.roomBusyDescription")}</p>
                           {selectedConflictRooms.map(room => (
                             <Button
                               key={room.crescatRoomId}
@@ -151,7 +171,9 @@ export function BookingFormScheduleSection({
                               variant="neutral"
                             >
                               <X aria-hidden />
-                              Fjern {room.title ?? room.crescatRoomId}
+                              {t("schedule.removeRoom", {
+                                room: room.title ?? room.crescatRoomId,
+                              })}
                             </Button>
                           ))}
                         </AlertDescription>
@@ -162,140 +184,40 @@ export function BookingFormScheduleSection({
                   vacationMode={vacationMode}
                 />
                 <p className="text-sm text-foreground-muted">
-                  Husk å beregne tid til opprigg og nedrigg innenfor bookingens
-                  start- og sluttid.
+                  {t("schedule.getInOutHint")}
                 </p>
               </FieldGroup>
 
               {startDate && startTime && endTime ? (
                 rooms.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {rooms.map(room => {
-                      const selected = selectedRoomIdSet.has(room.crescatRoomId)
-                      const occupied = roomOccupancy.has(room.crescatRoomId)
-                      const conflicts =
-                        roomOccupancy.get(room.crescatRoomId) ?? []
-                      const roomName = room.title ?? String(room.crescatRoomId)
-                      const isCrescatOnly = room.source === "crescat"
-
-                      return (
-                        <div
-                          className={cn(
-                            "relative flex flex-col overflow-hidden border-2 transition-colors",
-                            occupied
-                              ? "border-border bg-card cursor-default"
-                              : "cursor-pointer",
-                            !occupied && selected
-                              ? "border-state bg-state/5"
-                              : !occupied && "border-border bg-card",
-                          )}
-                          key={room.crescatRoomId}
-                          onClick={() =>
-                            !occupied && toggleRoom(room.crescatRoomId)
-                          }
-                        >
-                          {!isCrescatOnly && (
-                            <div className="relative aspect-video bg-muted">
-                              <ImageWithFallback
-                                alt={room.image?.alt ?? roomName}
-                                className={cn(occupied && "grayscale")}
-                                fallback={
-                                  <Building2
-                                    aria-hidden
-                                    className="size-8 text-foreground-muted"
-                                  />
-                                }
-                                sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
-                                src={room.image?.assetUrl}
-                              />
-                              {occupied && (
-                                <div className="absolute inset-0 flex flex-col bg-black/55">
-                                  <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
-                                    <CalendarClock
-                                      aria-hidden
-                                      className="size-4 shrink-0"
-                                    />
-                                    <span className="font-heading text-sm uppercase tracking-widest">
-                                      Opptatt
-                                    </span>
-                                  </div>
-                                  <div className="mt-auto p-3">
-                                    <RoomConflictList
-                                      conflicts={conflicts}
-                                      tone="onImage"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                              {!occupied && (
-                                <AddRoomButton
-                                  className="absolute right-3 top-3"
-                                  onClick={() => toggleRoom(room.crescatRoomId)}
-                                  selected={selected}
-                                />
-                              )}
-                            </div>
-                          )}
-                          <div className="flex flex-1 flex-col gap-2 p-4">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="font-heading text-lg text-foreground">
-                                {roomName}
-                              </p>
-                              {isCrescatOnly && !occupied && (
-                                <AddRoomButton
-                                  onClick={() => toggleRoom(room.crescatRoomId)}
-                                  selected={selected}
-                                />
-                              )}
-                              {isCrescatOnly && occupied && (
-                                <div className="flex items-center gap-1 text-destructive">
-                                  <CalendarClock
-                                    aria-hidden
-                                    className="size-3.5 shrink-0"
-                                  />
-                                  <span className="font-heading text-xs uppercase tracking-widest">
-                                    Opptatt
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            {!isCrescatOnly &&
-                              (room.capacityStanding ||
-                                room.capacitySeated) && (
-                                <p className="text-sm text-foreground-muted">
-                                  <RoomCapacity
-                                    seated={room.capacitySeated}
-                                    standing={room.capacityStanding}
-                                  />
-                                </p>
-                              )}
-                            {/* Occupied conflicts now render over the image; the
-                                crescat-only card (no image) still needs them
-                                inline. */}
-                            {occupied && isCrescatOnly && (
-                              <RoomConflictList conflicts={conflicts} />
-                            )}
-                            {room.slug && (
-                              <div
-                                className="mt-auto pt-1"
-                                onClick={e => e.stopPropagation()}
-                              >
-                                <RoomInfoTrigger room={room} />
-                              </div>
-                            )}
-                          </div>
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {(focusedRoom ? [focusedRoom] : rooms).map(renderRoom)}
+                    </div>
+                    {focusedRoom && rooms.length > 1 && (
+                      <Disclosure
+                        className="mt-4"
+                        summary={t("schedule.addMoreRooms")}
+                      >
+                        <p className="mb-4 text-sm text-foreground-muted">
+                          {t("schedule.addMoreRoomsHint")}
+                        </p>
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                          {rooms
+                            .filter(room => room !== focusedRoom)
+                            .map(renderRoom)}
                         </div>
-                      )
-                    })}
-                  </div>
+                      </Disclosure>
+                    )}
+                  </>
                 ) : (
                   <p className="text-sm text-foreground-muted">
-                    Ingen rom er tilgjengelige for booking akkurat nå.
+                    {t("schedule.noRooms")}
                   </p>
                 )
               ) : (
                 <p className="text-sm text-foreground-muted">
-                  Velg dato og tid for å se ledige rom.
+                  {t("schedule.selectDateTime")}
                 </p>
               )}
 
@@ -305,7 +227,7 @@ export function BookingFormScheduleSection({
                     <CheckboxField
                       checked={field.state.value as boolean}
                       className="max-w-3xl"
-                      label="Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre."
+                      label={t("schedule.flexibleDates")}
                       labelClassName="font-sans font-base text-foreground-muted"
                       onChange={field.handleChange}
                     />
@@ -320,13 +242,118 @@ export function BookingFormScheduleSection({
   )
 }
 
+type BookingTranslations = ReturnType<typeof useTranslations<"RoomBooking">>
+
+function RoomCard({
+  room,
+  selected,
+  occupied,
+  conflicts,
+  onToggle,
+  t,
+}: {
+  room: BookingRoom
+  selected: boolean
+  occupied: boolean
+  conflicts: string[]
+  onToggle: () => void
+  t: BookingTranslations
+}) {
+  const roomName = room.title ?? String(room.crescatRoomId)
+  const isCrescatOnly = room.source === "crescat"
+
+  return (
+    <div
+      className={cn(
+        "relative flex flex-col overflow-hidden border-2 transition-colors",
+        occupied ? "border-border bg-card cursor-default" : "cursor-pointer",
+        !occupied && selected
+          ? "border-state bg-state/5"
+          : !occupied && "border-border bg-card",
+      )}
+      onClick={() => !occupied && onToggle()}
+    >
+      {!isCrescatOnly && (
+        <div className="relative aspect-video bg-muted">
+          <ImageWithFallback
+            alt={room.image?.alt ?? roomName}
+            className={cn(occupied && "grayscale")}
+            fallback={
+              <Building2 aria-hidden className="size-8 text-foreground-muted" />
+            }
+            sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+            src={room.image?.assetUrl}
+          />
+          {occupied && (
+            <div className="absolute inset-0 flex flex-col bg-black/55">
+              <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
+                <CalendarClock aria-hidden className="size-4 shrink-0" />
+                <span className="font-heading text-sm uppercase tracking-widest">
+                  {t("schedule.occupied")}
+                </span>
+              </div>
+              <div className="mt-auto p-3">
+                <RoomConflictList conflicts={conflicts} t={t} tone="onImage" />
+              </div>
+            </div>
+          )}
+          {!occupied && (
+            <AddRoomButton
+              className="absolute right-3 top-3"
+              onClick={onToggle}
+              selected={selected}
+              t={t}
+            />
+          )}
+        </div>
+      )}
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-heading text-lg text-foreground">{roomName}</p>
+          {isCrescatOnly && !occupied && (
+            <AddRoomButton onClick={onToggle} selected={selected} t={t} />
+          )}
+          {isCrescatOnly && occupied && (
+            <div className="flex items-center gap-1 text-destructive">
+              <CalendarClock aria-hidden className="size-3.5 shrink-0" />
+              <span className="font-heading text-xs uppercase tracking-widest">
+                {t("schedule.occupied")}
+              </span>
+            </div>
+          )}
+        </div>
+        {!isCrescatOnly && (room.capacityStanding || room.capacitySeated) && (
+          <p className="text-sm text-foreground-muted">
+            <RoomCapacity
+              seated={room.capacitySeated}
+              seatedLabel={t("schedule.seated")}
+              standing={room.capacityStanding}
+              standingLabel={t("schedule.standing")}
+            />
+          </p>
+        )}
+        {occupied && isCrescatOnly && (
+          <RoomConflictList conflicts={conflicts} t={t} />
+        )}
+        {room.slug && (
+          <div className="mt-auto pt-1" onClick={e => e.stopPropagation()}>
+            <RoomInfoTrigger room={room} t={t} />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const CONFLICT_PREVIEW_COUNT = 3
 
 function RoomConflictList({
   conflicts,
+  t,
   tone = "inline",
 }: {
   conflicts: string[]
+  t: BookingTranslations
   tone?: "inline" | "onImage"
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -356,7 +383,7 @@ function RoomConflictList({
             }}
             type="button"
           >
-            Vis {hiddenCount} til
+            {t("schedule.showMoreConflicts", { count: hiddenCount })}
           </button>
         </li>
       )}
@@ -365,13 +392,13 @@ function RoomConflictList({
 }
 
 const TECH_SPECS: {
-  label: string
+  labelKey: "sound" | "light" | "av"
   hasKey: "hasSound" | "hasLighting" | "hasAV"
   detailsKey: "soundDetails" | "lightingDetails" | "avDetails"
 }[] = [
-  { label: "Lyd", hasKey: "hasSound", detailsKey: "soundDetails" },
-  { label: "Lys", hasKey: "hasLighting", detailsKey: "lightingDetails" },
-  { label: "A/V", hasKey: "hasAV", detailsKey: "avDetails" },
+  { labelKey: "sound", hasKey: "hasSound", detailsKey: "soundDetails" },
+  { labelKey: "light", hasKey: "hasLighting", detailsKey: "lightingDetails" },
+  { labelKey: "av", hasKey: "hasAV", detailsKey: "avDetails" },
 ]
 
 // Adds or removes a room from the booking. The whole card also toggles the
@@ -380,10 +407,12 @@ function AddRoomButton({
   selected,
   onClick,
   className,
+  t,
 }: {
   selected: boolean
   onClick: () => void
   className?: string
+  t: BookingTranslations
 }) {
   const handleClick = (e: MouseEvent) => {
     e.preventDefault()
@@ -394,7 +423,7 @@ function AddRoomButton({
   if (selected) {
     return (
       <button
-        aria-label="Fjern rom fra bookingen"
+        aria-label={t("schedule.removeRoomAria")}
         className={cn(
           "flex items-center gap-1.5 border-2 border-state bg-state px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-state-foreground transition-colors hover:opacity-90 focus-brutal",
           className,
@@ -403,14 +432,14 @@ function AddRoomButton({
         type="button"
       >
         <Check aria-hidden className="size-3.5" />
-        Lagt til
+        {t("schedule.added")}
       </button>
     )
   }
 
   return (
     <button
-      aria-label="Legg til rom i bookingen"
+      aria-label={t("schedule.addRoom")}
       className={cn(
         "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:border-state hover:bg-state hover:text-state-foreground focus-brutal",
         className,
@@ -430,18 +459,21 @@ function AddRoomButton({
 // so opening it doesn't also toggle the room.
 function RoomInfoTrigger({
   room,
+  t,
   className,
 }: {
   room: BookingRoom
+  t: BookingTranslations
   className?: string
 }) {
   const hasCapacity =
     room.capacityStanding != null || room.capacitySeated != null
+  const roomName = room.title ?? String(room.crescatRoomId)
 
   return (
     <Popover.Root>
       <Popover.Trigger
-        aria-label={`Mer info om ${room.title}`}
+        aria-label={t("schedule.moreInfoAria", { room: roomName })}
         className={cn(
           "flex cursor-pointer items-center gap-1.5 border-2 border-border bg-card/90 px-2.5 py-1 font-heading text-xs tracking-widest text-foreground-muted backdrop-blur-sm transition-colors hover:border-primary hover:text-foreground focus-brutal",
           className,
@@ -451,7 +483,7 @@ function RoomInfoTrigger({
         openOnHover
       >
         <Info aria-hidden className="size-3.5" />
-        Mer info
+        {t("schedule.moreInfo")}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner sideOffset={12}>
@@ -467,29 +499,39 @@ function RoomInfoTrigger({
 
             <dl className="space-y-1.5 text-sm">
               {hasCapacity && (
-                <PreviewRow label="Kapasitet">
+                <PreviewRow label={t("schedule.capacity")}>
                   <RoomCapacity
                     seated={room.capacitySeated}
+                    seatedLabel={t("schedule.seated")}
                     standing={room.capacityStanding}
+                    standingLabel={t("schedule.standing")}
                   />
                 </PreviewRow>
               )}
               {room.floor != null && (
-                <PreviewRow label="Etasje">{room.floor}. etasje</PreviewRow>
+                <PreviewRow label={t("schedule.floor")}>
+                  {t("schedule.floorValue", { floor: room.floor })}
+                </PreviewRow>
               )}
               {room.suitedPurposes.length > 0 && (
-                <PreviewRow label="Passer til">
+                <PreviewRow label={t("schedule.suitedFor")}>
                   {room.suitedPurposes.join(", ")}
                 </PreviewRow>
               )}
               {room.bar != null && (
-                <PreviewRow label="Bar">{room.bar || "Nei"}</PreviewRow>
+                <PreviewRow label={t("schedule.bar")}>
+                  {room.bar || t("schedule.no")}
+                </PreviewRow>
               )}
               {TECH_SPECS.map(spec => (
-                <PreviewRow key={spec.label} label={spec.label}>
+                <PreviewRow
+                  key={spec.labelKey}
+                  label={t(`schedule.${spec.labelKey}`)}
+                >
                   <TechSpecValue
                     details={room[spec.detailsKey]}
                     value={room[spec.hasKey]}
+                    t={t}
                   />
                 </PreviewRow>
               ))}
@@ -499,7 +541,7 @@ function RoomInfoTrigger({
               className="inline-flex items-center gap-2 font-heading text-foreground underline underline-offset-4 hover:text-primary"
               href={`/rom/${room.slug}`}
             >
-              Se rommet
+              {t("schedule.viewRoom")}
               <ArrowRight aria-hidden className="size-4" />
             </Link>
           </Popover.Popup>
@@ -529,9 +571,11 @@ function PreviewRow({
 function TechSpecValue({
   value,
   details,
+  t,
 }: {
   value: boolean
   details: string | null
+  t: BookingTranslations
 }) {
   return (
     <span
@@ -548,7 +592,7 @@ function TechSpecValue({
       ) : (
         <X aria-hidden className="mt-0.5 size-3.5 shrink-0" />
       )}
-      {value ? details || "Ja" : "Nei"}
+      {value ? details || t("schedule.yes") : t("schedule.no")}
     </span>
   )
 }

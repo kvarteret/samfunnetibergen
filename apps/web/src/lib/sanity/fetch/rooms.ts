@@ -13,7 +13,12 @@ import {
   roomsPageQuery,
   roomsQuery,
 } from "../queries"
-import { compact, type FetchOptions, withRequiredKeys } from "./shared"
+import {
+  compact,
+  cleanOpeningHours,
+  type FetchOptions,
+  withRequiredKeys,
+} from "./shared"
 import { DEFAULT_LOCALE } from "../localized"
 
 export type EditorialSection = NonNullable<
@@ -93,6 +98,7 @@ export async function fetchBookableRooms(
   return withRequiredKeys(rooms, "slug", "crescatRoomId").map(room => ({
     ...room,
     slug: stegaClean(room.slug),
+    openingHours: cleanOpeningHours(room.openingHours),
   }))
 }
 
@@ -103,7 +109,16 @@ export async function fetchBarPreviews(
     query: barPreviewsQuery,
     params: { locale },
   })
-  return data
+  if (!data) return null
+  return {
+    ...data,
+    operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
+    rooms: data.rooms?.map(room => ({
+      ...room,
+      slug: stegaClean(room.slug),
+      openingHours: cleanOpeningHours(room.openingHours),
+    })),
+  }
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {
@@ -129,4 +144,6 @@ export async function fetchRoomBySlug(
     stega: options.stega,
   })
   return data
+    ? { ...data, openingHours: cleanOpeningHours(data.openingHours) }
+    : null
 }

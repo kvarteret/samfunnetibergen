@@ -62,6 +62,8 @@ export function KaraokeForm({
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
+  const bookingSubmissionIdRef = useRef<string | null>(null)
+  const submissionAttemptRef = useRef(0)
   const honeypotId = `${uid}-hp`
   const today = isoDate(useCurrentTime(initialNow))
   const fieldIds = {
@@ -89,7 +91,14 @@ export function KaraokeForm({
       )
     },
     onSubmit: async ({ value, formApi }) => {
-      const result = await submitKaraokeBooking({ ...value, honeypot })
+      bookingSubmissionIdRef.current ??= crypto.randomUUID()
+      submissionAttemptRef.current += 1
+      const result = await submitKaraokeBooking({
+        ...value,
+        honeypot,
+        bookingSubmissionId: bookingSubmissionIdRef.current,
+        submissionAttempt: submissionAttemptRef.current,
+      })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
         requestExceptionFeedback("karaoke_booking")
@@ -174,7 +183,7 @@ export function KaraokeForm({
             e.preventDefault()
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
-            void form.handleSubmit().catch(() => {
+            void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("karaoke_booking")
@@ -184,6 +193,10 @@ export function KaraokeForm({
                   form_id: "karaoke_booking",
                   validation_stage: "client",
                   failure_branch: "unexpected_submission_failure",
+                  rejection_message:
+                    error instanceof Error ? error.message : String(error),
+                  rejection_name:
+                    error instanceof Error ? error.name : undefined,
                 },
               )
             })

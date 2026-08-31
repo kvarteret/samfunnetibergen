@@ -3,6 +3,7 @@
 import { Dialog } from "@base-ui/react/dialog"
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Beer, Info, UtensilsCrossed, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useId } from "react"
 import { FormSection } from "@/components/ui/form-section"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,9 +16,10 @@ const BAR_THRESHOLD = 40
 export function BookingFormCateringBarSection() {
   const uid = useId()
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
 
   return (
-    <FormSection number="07" title="Mat og bar">
+    <FormSection number="07" title={t("catering.sectionTitle")}>
       <div className="max-w-3xl space-y-6">
         <div className="space-y-4">
           <form.Field name="cateringCustom">
@@ -25,14 +27,13 @@ export function BookingFormCateringBarSection() {
               <ToggleOption
                 checked={field.state.value as boolean}
                 icon={UtensilsCrossed}
-                label="Jeg ønsker tilbud om catering"
+                label={t("catering.catering")}
                 onChange={field.handleChange}
               >
                 {(field.state.value as boolean) && (
                   <div className="mt-3 space-y-3">
                     <p className="text-sm leading-6 text-foreground-muted">
-                      Du vil bli kontaktet av kjøkkensjef slik at dere kan
-                      diskutere mulighetene for catering på ditt arrangement.
+                      {t("catering.cateringDescription")}
                     </p>
                     <form.Field name="cateringText">
                       {(textField: AnyFieldApi) => (
@@ -40,7 +41,7 @@ export function BookingFormCateringBarSection() {
                           className="resize-y"
                           id={`${uid}-catering`}
                           onChange={e => textField.handleChange(e.target.value)}
-                          placeholder="Beskriv ønsker om mat, snacks eller drikke."
+                          placeholder={t("catering.cateringPlaceholder")}
                           rows={4}
                           value={textField.state.value as string}
                         />
@@ -75,44 +76,34 @@ export function BookingFormCateringBarSection() {
 // Large scrollable catering details, opened from the "Mer info" trigger. Closes
 // on the X or by clicking the backdrop (base-ui Dialog default).
 function CateringInfoDialog() {
+  const t = useTranslations("RoomBooking")
+
   return (
     <Dialog.Root>
       <Dialog.Trigger className="inline-flex items-center gap-1.5 border-2 border-border bg-card px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-foreground-muted transition-colors hover:border-primary hover:text-foreground focus-brutal">
         <Info aria-hidden className="size-3.5" />
-        Mer info
+        {t("catering.cateringInfo")}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-100 bg-black/50" />
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-100 flex max-h-[85vh] w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col border-2 border-border bg-background shadow-shadow">
           <div className="flex shrink-0 items-center justify-between border-b-2 border-border p-4">
             <Dialog.Title className="font-heading text-xl">
-              Catering på Kvarteret
+              {t("catering.cateringInfoTitle")}
             </Dialog.Title>
             <Dialog.Close
-              aria-label="Lukk"
+              aria-label={t("catering.close")}
               className="p-1 text-foreground-muted transition-colors hover:text-foreground focus-brutal"
             >
               <X aria-hidden className="size-5" />
             </Dialog.Close>
           </div>
           <div className="space-y-4 overflow-y-auto p-6 leading-6">
-            <p>
-              Det Akademiske Kvarter tilbyr et bredt utvalg av god mat og
-              drikke. Trenger du mat, snacks eller drikke til arrangementet
-              ditt, kan du forespørre det her.
-            </p>
-            <p>
-              Kjøkkensjefen vår tar kontakt etter at forespørselen er sendt,
-              slik at dere sammen kan finne en løsning som passer arrangementet.
-              Vi tilpasser menyen etter ønsker og behov, fra enkel servering til
-              større bespisning.
-            </p>
-            <p>
-              Gi oss gjerne beskjed om allergier og spesielle hensyn, så tar vi
-              det med i planleggingen.
-            </p>
+            <p>{t("catering.cateringInfoBody1")}</p>
+            <p>{t("catering.cateringInfoBody2")}</p>
+            <p>{t("catering.cateringInfoBody3")}</p>
             <p className="text-foreground-muted">
-              Medbragt mat og drikke er ikke tillatt i lokalene våre.
+              {t("catering.cateringInfoBody4")}
             </p>
           </div>
         </Dialog.Popup>
@@ -123,6 +114,7 @@ function CateringInfoDialog() {
 
 function BarSection({ requiresBar }: { requiresBar: boolean }) {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
 
   return (
     <div className="space-y-4">
@@ -130,8 +122,8 @@ function BarSection({ requiresBar }: { requiresBar: boolean }) {
         <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
         <p className="text-sm leading-6">
           {requiresBar
-            ? "Ditt arrangement krever bar i rommet."
-            : "Ditt arrangement krever ikke bar i rommet."}
+            ? t("catering.barRequired")
+            : t("catering.barNotRequired")}
         </p>
       </div>
 
@@ -157,7 +149,7 @@ function BarSection({ requiresBar }: { requiresBar: boolean }) {
                 <ToggleOption
                   checked={wantsBar}
                   icon={Beer}
-                  label="Jeg ønsker bar i rommet"
+                  label={t("catering.bar")}
                   onChange={checked => {
                     if (checked) {
                       form.setFieldValue("barSelf", true)
@@ -179,6 +171,7 @@ function BarSection({ requiresBar }: { requiresBar: boolean }) {
 
 function BarOptions() {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
 
   return (
     <div className="space-y-3 border-l-2 border-border pl-4">
@@ -187,7 +180,7 @@ function BarOptions() {
           <ToggleOption
             checked={field.state.value as boolean}
             icon={Beer}
-            label="Jeg står i bar selv"
+            label={t("catering.barSelf")}
             onChange={checked => {
               field.handleChange(checked)
               if (checked) form.setFieldValue("barKvarteret", false)
@@ -198,11 +191,7 @@ function BarOptions() {
                 aria-hidden
                 className="mt-0.5 size-4 shrink-0 text-primary"
               />
-              <p>
-                Det er kostnadsfritt å bemanne egen bar på eget arrangement.
-                Dette krever HMS- og baropplæring fra oss. Dette tar cirka en
-                time og lenke blir sendt ut ved bekreftet booking.
-              </p>
+              <p>{t("catering.barSelfDescription")}</p>
             </div>
           </ToggleOption>
         )}
@@ -212,14 +201,14 @@ function BarOptions() {
           <ToggleOption
             checked={field.state.value as boolean}
             icon={Beer}
-            label="Kvarteret står i bar"
+            label={t("catering.barHouse")}
             onChange={checked => {
               field.handleChange(checked)
               if (checked) form.setFieldValue("barSelf", false)
             }}
           >
             <p className="text-sm text-foreground-muted">
-              Pris: 2000 kr eks. mva. Forutsetter kapasitet.
+              {t("catering.barHouseDescription")}
             </p>
           </ToggleOption>
         )}

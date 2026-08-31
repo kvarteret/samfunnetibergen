@@ -31,14 +31,18 @@ const eventDateSchema = z.object({
 export const eventFormSchema = z
   .object({
     title: z.string().trim().min(1, "Skriv inn tittel."),
+    titleEnglish: z.string().trim().min(1, "Skriv inn engelsk tittel."),
     description: z.string(),
+    descriptionEnglish: z.string(),
     dates: z.array(eventDateSchema).min(1, "Legg til minst én dato."),
     isRecurring: z.boolean(),
     rrule: z.string(),
     room: z.string(),
     roomText: z.string(),
+    roomTextEnglish: z.string(),
     organizerGroup: z.string(),
     organizerText: z.string(),
+    organizerTextEnglish: z.string(),
     submittedByOrganization: z.string(),
     eventTypeId: z.string(),
     isInternalEvent: z.boolean(),
@@ -70,6 +74,32 @@ export const eventFormSchema = z
         message:
           "Velg et gjentakelsesmønster for det gjentagende arrangementet.",
       })
+    }
+
+    const translationPairs = [
+      ["description", "descriptionEnglish", "beskrivelse"],
+      ["roomText", "roomTextEnglish", "stedsnavn"],
+      ["organizerText", "organizerTextEnglish", "arrangørnavn"],
+    ] as const
+
+    for (const [sourceField, translationField, label] of translationPairs) {
+      const source = value[sourceField].trim()
+      const translation = value[translationField].trim()
+
+      if (source && !translation) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [translationField],
+          message: `Skriv inn engelsk ${label}.`,
+        })
+      }
+      if (!source && translation) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [sourceField],
+          message: `Fyll ut norsk ${label} eller fjern den engelske teksten.`,
+        })
+      }
     }
   })
 

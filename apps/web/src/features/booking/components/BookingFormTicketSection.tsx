@@ -2,6 +2,7 @@
 
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Plus, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useId } from "react"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -14,20 +15,24 @@ import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
 
 const FREE_PAID_OPTIONS = [
-  { value: "Gratis", label: "Gratis" },
-  { value: "Betalt", label: "Betalt" },
+  { value: "Gratis" as const, labelKey: "free" as const },
+  { value: "Betalt" as const, labelKey: "paid" as const },
 ]
 
 const SALES_METHOD_OPTIONS = [
-  { value: "house", label: "Husets billettkasse (kostnadsfritt)" },
-  { value: "ownTerminal", label: "Egen betalingsterminal" },
+  { value: "house" as const, labelKey: "houseSales" as const },
+  { value: "ownTerminal" as const, labelKey: "ownTerminal" as const },
 ]
 
-const DEFAULT_TICKET_TYPES: TicketType[] = [
-  { name: "Ordinær", price: "200" },
-  { name: "Student", price: "150" },
-  { name: "Medlem", price: "100" },
-]
+function defaultTicketTypes(
+  t: ReturnType<typeof useTranslations<"RoomBooking">>,
+): TicketType[] {
+  return [
+    { name: t("ticket.regularDefault"), price: "200" },
+    { name: t("ticket.studentDefault"), price: "150" },
+    { name: t("ticket.memberDefault"), price: "100" },
+  ]
+}
 
 interface BookingFormTicketSectionProps {
   ticketsError?: string
@@ -40,9 +45,10 @@ export function BookingFormTicketSection({
 }: BookingFormTicketSectionProps) {
   const uid = useId()
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
 
   return (
-    <FormSection number="04" title="Billett">
+    <FormSection number="04" title={t("ticket.sectionTitle")}>
       <div className="max-w-3xl space-y-4">
         <form.Field name="freeOrPaid">
           {(field: AnyFieldApi) => (
@@ -52,10 +58,7 @@ export function BookingFormTicketSection({
                 if (v === "Betalt") {
                   const current = form.state.values.ticketTypes as TicketType[]
                   if (current.length === 0) {
-                    form.setFieldValue(
-                      "ticketTypes",
-                      DEFAULT_TICKET_TYPES.map(t => ({ ...t })),
-                    )
+                    form.setFieldValue("ticketTypes", defaultTicketTypes(t))
                   }
                 }
               }}
@@ -63,7 +66,7 @@ export function BookingFormTicketSection({
             >
               {FREE_PAID_OPTIONS.map(opt => (
                 <RadioGroupItem key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(`ticket.${opt.labelKey}`)}
                 </RadioGroupItem>
               ))}
             </RadioGroup>
@@ -76,11 +79,13 @@ export function BookingFormTicketSection({
             freeOrPaid === "Betalt" ? (
               <div className="space-y-6">
                 <FieldGroup error={ticketsError} errorId={`${ticketsId}-error`}>
-                  <Label htmlFor={ticketsId}>Billettyper og priser *</Label>
+                  <Label htmlFor={ticketsId}>
+                    {t("ticket.typesAndPrices")}
+                  </Label>
                   <TicketTypesEditor anchorId={ticketsId} uid={uid} />
                 </FieldGroup>
                 <FieldGroup>
-                  <Label>Hvordan selges billettene? *</Label>
+                  <Label>{t("ticket.salesMethod")}</Label>
                   <form.Field name="ticketSalesMethod">
                     {(field: AnyFieldApi) => (
                       <RadioGroup<string>
@@ -89,7 +94,7 @@ export function BookingFormTicketSection({
                       >
                         {SALES_METHOD_OPTIONS.map(opt => (
                           <RadioGroupItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                            {t(`ticket.${opt.labelKey}`)}
                           </RadioGroupItem>
                         ))}
                       </RadioGroup>
@@ -113,6 +118,7 @@ function TicketTypesEditor({
   anchorId: string
 }) {
   const form = useBookingForm()
+  const t = useTranslations("RoomBooking")
 
   return (
     <form.Field name="ticketTypes">
@@ -148,17 +154,19 @@ function TicketTypesEditor({
                 <Input
                   id={i === 0 ? anchorId : undefined}
                   onChange={e => updateTicket(i, "name", e.target.value)}
-                  placeholder="Billettnavn"
+                  placeholder={t("ticket.namePlaceholder")}
                   value={ticket.name}
                 />
                 <Input
                   inputMode="numeric"
                   onChange={e => updateTicket(i, "price", e.target.value)}
-                  placeholder="Pris"
+                  placeholder={t("ticket.pricePlaceholder")}
                   value={ticket.price}
                 />
                 <button
-                  aria-label={`Fjern ${ticket.name || "billett"}`}
+                  aria-label={t("ticket.removeTicket", {
+                    ticket: ticket.name || t("ticket.ticketFallback"),
+                  })}
                   className="p-1 text-foreground-muted hover:text-destructive focus-brutal"
                   onClick={() => removeTicket(i)}
                   type="button"
@@ -174,7 +182,7 @@ function TicketTypesEditor({
               variant="neutral"
             >
               <Plus aria-hidden className="size-4" />
-              Legg til
+              {t("ticket.add")}
             </Button>
           </div>
         )

@@ -95,6 +95,32 @@ export function filterEvents(
   })
 }
 
+/**
+ * Keep the first concrete day for each series or festival in the card list.
+ * Generated children are already ordered by their first future date at the
+ * Sanity boundary, so preserving input order makes the first row the earliest
+ * visible instance without changing the shared query used by other surfaces.
+ */
+export function filterToFirstInstances(
+  events: PublishedEvent[],
+): PublishedEvent[] {
+  const seenParents = new Set<string>()
+
+  return events.filter(event => {
+    const isMaterializedInstance =
+      event.eventKind === "seriesInstance" ||
+      event.eventKind === "festivalSession"
+
+    if (!isMaterializedInstance) return true
+
+    const parentId = event.parentEvent?._id ?? event._id
+    if (seenParents.has(parentId)) return false
+
+    seenParents.add(parentId)
+    return true
+  })
+}
+
 export function countEventFilters(filters: EventFilters): number {
   return (
     (filters.taxonomyGroupName !== null ? 1 : 0) +

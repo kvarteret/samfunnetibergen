@@ -1,6 +1,7 @@
 import posthog from "posthog-js"
 
 export type ExceptionFeedbackSurface =
+  | "event_submission"
   | "karaoke_booking"
   | "route_error"
   | "room_booking"
@@ -8,7 +9,9 @@ export type ExceptionFeedbackSurface =
 
 export function requestExceptionFeedback(
   surface: ExceptionFeedbackSurface,
-  pathname = typeof window === "undefined" ? undefined : window.location.pathname,
+  pathname = typeof window === "undefined"
+    ? undefined
+    : window.location.pathname,
 ): void {
   try {
     posthog.capture("exception_feedback_requested", {
@@ -23,14 +26,13 @@ export function requestExceptionFeedback(
 export function isExceptionFeedbackPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean)
   const routeSegments =
-    segments[0] === "nb" || segments[0] === "en"
-      ? segments.slice(1)
-      : segments
+    segments[0] === "nb" || segments[0] === "en" ? segments.slice(1) : segments
 
   return (
     routeSegments[0] === "grupper" ||
     routeSegments[0] === "booking" ||
     routeSegments[0] === "karaoke" ||
+    (routeSegments[0] === "arrangementer" && routeSegments[1] === "ny") ||
     (routeSegments[0] === "rom" && routeSegments[1] === "book")
   )
 }

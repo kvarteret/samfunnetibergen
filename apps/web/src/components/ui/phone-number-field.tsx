@@ -4,6 +4,7 @@ import { Combobox } from "@base-ui/react/combobox"
 import { Check, ChevronDown, Search } from "lucide-react"
 import { type ComponentProps, type FocusEvent, useState } from "react"
 import flags from "react-phone-number-input/flags"
+import en from "react-phone-number-input/locale/en"
 import nb from "react-phone-number-input/locale/nb"
 import PhoneInput, {
   type Country,
@@ -33,6 +34,9 @@ interface CountrySelectProps
   options: CountryOption[]
   iconComponent?: unknown
   readOnly?: boolean
+  searchLabel?: string
+  searchPlaceholder?: string
+  emptyLabel?: string
 }
 
 function CountrySelect({
@@ -46,6 +50,9 @@ function CountrySelect({
   onFocus,
   onBlur,
   "aria-label": ariaLabel,
+  searchLabel = "Søk etter land eller landskode",
+  searchPlaceholder = "Søk etter land eller landskode",
+  emptyLabel = "Ingen land funnet",
 }: CountrySelectProps) {
   void _iconComponent
   const [searchValue, setSearchValue] = useState("")
@@ -128,14 +135,14 @@ function CountrySelect({
                 className="size-4 shrink-0 text-foreground-muted"
               />
               <Combobox.Input
-                aria-label="Søk etter land eller landskode"
+                aria-label={searchLabel}
                 autoComplete="off"
                 className="h-11 min-w-0 flex-1 bg-transparent font-base text-foreground outline-none placeholder:text-foreground-muted"
-                placeholder="Søk etter land eller landskode"
+                placeholder={searchPlaceholder}
               />
             </div>
             <Combobox.Empty className="text-sm text-foreground-muted">
-              <div className="px-3 py-4">Ingen land funnet</div>
+              <div className="px-3 py-4">{emptyLabel}</div>
             </Combobox.Empty>
             <Combobox.List className="max-h-[min(22rem,var(--available-height))] overflow-y-auto p-1 outline-none">
               {(option: CountryOption & { value: Country }) => {
@@ -185,6 +192,7 @@ interface PhoneNumberFieldProps {
   error?: boolean
   describedBy?: string
   required?: boolean
+  locale?: "nb" | "en"
 }
 
 export function PhoneNumberField({
@@ -197,7 +205,10 @@ export function PhoneNumberField({
   error,
   describedBy,
   required,
+  locale = "nb",
 }: PhoneNumberFieldProps) {
+  const labels = locale === "en" ? en : nb
+
   return (
     <PhoneInput
       addInternationalOption={false}
@@ -207,10 +218,19 @@ export function PhoneNumberField({
       className={cn("flex w-full max-w-sm items-center", className)}
       countryOptionsOrder={["NO", "SE", "DK", "GB", "US", "|", "..."]}
       countrySelectComponent={CountrySelect}
+      countrySelectProps={
+        locale === "en"
+          ? {
+              emptyLabel: "No countries found",
+              searchLabel: "Search for country or calling code",
+              searchPlaceholder: "Search for country or calling code",
+            }
+          : undefined
+      }
       defaultCountry="NO"
       id={id}
       inputMode="tel"
-      labels={nb}
+      labels={labels}
       limitMaxLength
       numberInputProps={{
         className:

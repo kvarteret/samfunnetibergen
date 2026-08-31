@@ -196,9 +196,11 @@ function buildEventDocument(input: SubmitEventInput) {
   const isRecurringSeries = Boolean(input.isRecurring && input.rrule)
   const doc: { _type: string; [key: string]: unknown } = {
     _type: "arrangement",
-    localizedTitle: [
-      { _key: nanoid(), language: "nb", value: input.title.trim() },
-    ],
+    localizedTitle: localizedEntries(
+      input.title.trim(),
+      input.titleEnglish.trim(),
+      "internationalizedArrayStringValue",
+    ),
     slug: { _type: "slug", current: slug },
     eventKind: isRecurringSeries ? "seriesParent" : "single",
     eventStatus: "scheduled",
@@ -217,23 +219,11 @@ function buildEventDocument(input: SubmitEventInput) {
   }
 
   if (input.description?.trim()) {
-    doc.localizedDescription = [
-      {
-        _key: nanoid(),
-        language: "nb",
-        value: [
-          {
-            _key: nanoid(),
-            _type: "block",
-            style: "normal",
-            children: [
-              { _key: nanoid(), _type: "span", text: input.description.trim() },
-            ],
-            markDefs: [],
-          },
-        ],
-      },
-    ]
+    doc.localizedDescription = localizedEntries(
+      portableTextValue(input.description.trim()),
+      portableTextValue(input.descriptionEnglish.trim()),
+      "internationalizedArrayPortableTextContentValue",
+    )
   }
 
   if (isRecurringSeries) {
@@ -241,8 +231,18 @@ function buildEventDocument(input: SubmitEventInput) {
     doc.rrule = input.rrule
   }
 
-  setLocalizedOpt(doc, "localizedRoomText", input.roomText?.trim())
-  setLocalizedOpt(doc, "localizedOrganizerText", input.organizerText?.trim())
+  setLocalizedOpt(
+    doc,
+    "localizedRoomText",
+    input.roomText?.trim(),
+    input.roomTextEnglish?.trim(),
+  )
+  setLocalizedOpt(
+    doc,
+    "localizedOrganizerText",
+    input.organizerText?.trim(),
+    input.organizerTextEnglish?.trim(),
+  )
   setOpt(doc, "submittedByOrganization", input.submittedByOrganization?.trim())
 
   if (input.isInternalEvent) doc.isInternalEvent = true
@@ -281,8 +281,49 @@ function setLocalizedOpt(
   doc: Record<string, unknown>,
   key: string,
   value?: string,
+  englishValue?: string,
 ) {
-  if (value) doc[key] = [{ _key: nanoid(), language: "nb", value }]
+  if (value && englishValue)
+    doc[key] = localizedEntries(
+      value,
+      englishValue,
+      "internationalizedArrayStringValue",
+    )
+}
+
+function localizedEntries<T>(
+  norwegianValue: T,
+  englishValue: T,
+  type:
+    | "internationalizedArrayStringValue"
+    | "internationalizedArrayPortableTextContentValue",
+) {
+  return [
+    {
+      _key: nanoid(),
+      _type: type,
+      language: "nb",
+      value: norwegianValue,
+    },
+    {
+      _key: nanoid(),
+      _type: type,
+      language: "en",
+      value: englishValue,
+    },
+  ]
+}
+
+function portableTextValue(value: string) {
+  return [
+    {
+      _key: nanoid(),
+      _type: "block",
+      style: "normal",
+      children: [{ _key: nanoid(), _type: "span", text: value }],
+      markDefs: [],
+    },
+  ]
 }
 function setNum(
   doc: Record<string, unknown>,

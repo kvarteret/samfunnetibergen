@@ -1,4 +1,4 @@
-import { CalendarPlus } from "lucide-react"
+import { CalendarDays, CalendarPlus } from "lucide-react"
 
 import { EventsProvider } from "@/features/events/context/EventsContext"
 import type { PublishedEvent } from "@/features/events/domain/eventUtils"
@@ -10,6 +10,7 @@ import { EventsPageSections } from "./EventsPageSections"
 interface EventsPageProps {
   arrangements: PublishedEvent[]
   backLabel: string
+  calendarLabel: string
   precomputedDates: Map<
     string,
     {
@@ -26,6 +27,7 @@ interface EventsPageProps {
 export function EventsPage({
   arrangements,
   backLabel,
+  calendarLabel,
   precomputedDates,
   searchParams,
   title,
@@ -43,7 +45,16 @@ export function EventsPage({
           >
             {backLabel}
           </Link>
-          <h1 className="font-heading text-4xl">{title}</h1>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h1 className="font-heading text-4xl">{title}</h1>
+            <Link
+              className="inline-flex items-center gap-2 font-heading uppercase tracking-widest underline underline-offset-4 focus-brutal"
+              href="/arrangementer/kalender"
+            >
+              <CalendarDays className="size-4" aria-hidden />
+              {calendarLabel}
+            </Link>
+          </div>
         </header>
 
         <EventsPageFilters />

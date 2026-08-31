@@ -18,6 +18,8 @@ interface NumberFieldProps {
   disabled?: boolean
   required?: boolean
   showControls?: boolean
+  decrementLabel?: string
+  incrementLabel?: string
   "aria-describedby"?: string
   "aria-invalid"?: boolean
 }
@@ -35,6 +37,8 @@ export function NumberField({
   disabled,
   required,
   showControls = true,
+  decrementLabel = "Reduser",
+  incrementLabel = "Øk",
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
 }: NumberFieldProps) {
@@ -53,7 +57,7 @@ export function NumberField({
       <NumberFieldPrimitive.Group className="flex h-11">
         {showControls && (
           <NumberFieldPrimitive.Decrement
-            aria-label="Reduser"
+            aria-label={decrementLabel}
             className="flex w-10 cursor-pointer items-center justify-center rounded-base border-2 border-r-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
           >
             <Minus aria-hidden className="size-4" />
@@ -71,7 +75,7 @@ export function NumberField({
         />
         {showControls && (
           <NumberFieldPrimitive.Increment
-            aria-label="Øk"
+            aria-label={incrementLabel}
             className="flex w-10 cursor-pointer items-center justify-center rounded-base border-2 border-l-0 border-border bg-card outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal"
           >
             <Plus aria-hidden className="size-4" />

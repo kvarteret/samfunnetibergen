@@ -1,3 +1,5 @@
+import { stegaClean } from "@sanity/client/stega"
+
 export type FetchOptions = {
   stega?: boolean
 }
@@ -15,6 +17,46 @@ const osloDateFormatter = new Intl.DateTimeFormat("en-CA", {
 /** Drop nullish entries, narrowing `(T | null | undefined)[]` to `T[]`. */
 export function compact<T>(items: readonly (T | null | undefined)[]): T[] {
   return items.filter((item): item is T => item != null)
+}
+
+type CleanableOpeningHoursRow = {
+  status?: string | null | undefined
+  duration?: {
+    start?: string | null | undefined
+    end?: string | null | undefined
+  } | null
+}
+
+/**
+ * Strip draft-mode stega encoding from opening-hours rows. In draft mode
+ * `sanityFetch` can return editable strings stega-encoded (invisible
+ * characters appended), which breaks `timeToMinutes()` and `status === "closed"`
+ * in `@/lib/opening-hours`. Cleaning here keeps display strings encoded for
+ * Visual Editing while domain logic sees plain values.
+ */
+function cleanOpeningHoursRows<T extends CleanableOpeningHoursRow | null>(
+  rows: T[] | null | undefined,
+): T[] | null | undefined {
+  if (!rows) return rows
+  return rows.map(row => {
+    if (!row) return row
+    const logicFields = stegaClean({
+      status: row.status,
+      duration: row.duration,
+    })
+    return {
+      ...row,
+      ...logicFields,
+    } as T
+  })
+}
+
+/** Apply `cleanOpeningHoursRows` to an `openingHours`-shaped object. */
+export function cleanOpeningHours<
+  T extends { rows?: CleanableOpeningHoursRow[] | null } | null | undefined,
+>(hours: T): T {
+  if (!hours) return hours
+  return { ...hours, rows: cleanOpeningHoursRows(hours.rows) } as T
 }
 
 /** Keep only records whose given keys are non-null, narrowing those keys. */

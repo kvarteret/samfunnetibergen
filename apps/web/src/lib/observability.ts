@@ -13,7 +13,7 @@ const logger = logs.getLogger("samfunnetibergen")
 
 const ALLOWED_FIELDS = new Set([
   "booking_submission_id",
-  "crescat_event_id",
+  "crescat_http_status",
   "duration_ms",
   "error_category",
   "failure_stage",

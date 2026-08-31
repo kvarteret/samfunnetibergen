@@ -2,8 +2,10 @@
 
 import { act } from "react"
 import { createRoot } from "react-dom/client"
+import { NextIntlClientProvider } from "next-intl"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { TimeRangeSlider } from "./time-range-slider"
+import messages from "@/messages/nb.json"
 
 describe("TimeRangeSlider controlled time reconciliation", () => {
   let container: HTMLDivElement
@@ -29,15 +31,17 @@ describe("TimeRangeSlider controlled time reconciliation", () => {
 
     await act(async () => {
       root.render(
-        <TimeRangeSlider
-          dayCount={1}
-          endTime="23:00"
-          marks={[20 * 60, 21 * 60, 22 * 60]}
-          occupiedRanges={[]}
-          onEndChange={onEndChange}
-          onStartChange={onStartChange}
-          startTime="19:00"
-        />,
+        <NextIntlClientProvider locale="nb" messages={messages}>
+          <TimeRangeSlider
+            dayCount={1}
+            endTime="23:00"
+            marks={[20 * 60, 21 * 60, 22 * 60]}
+            occupiedRanges={[]}
+            onEndChange={onEndChange}
+            onStartChange={onStartChange}
+            startTime="19:00"
+          />
+        </NextIntlClientProvider>,
       )
     })
 

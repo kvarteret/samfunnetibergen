@@ -16,7 +16,7 @@ import {
   sponsorsPageQuery,
   usefulInfoPageQuery,
 } from "../queries"
-import { compact, type FetchOptions } from "./shared"
+import { compact, cleanOpeningHours, type FetchOptions } from "./shared"
 import { DEFAULT_LOCALE } from "../localized"
 
 export type HouseHoursContent = NonNullable<
@@ -105,7 +105,15 @@ export async function fetchKontaktPage(locale: AppLocale = DEFAULT_LOCALE) {
 
 export async function fetchFooter(locale: AppLocale = DEFAULT_LOCALE) {
   const { data } = await sanityFetch({ query: footerQuery, params: { locale } })
-  return data
+  if (!data) return data
+  return {
+    ...data,
+    operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
+    roomHours: data.roomHours?.map(room => ({
+      ...room,
+      hours: cleanOpeningHours(room.hours),
+    })),
+  }
 }
 
 export async function fetchHouseHours(
@@ -116,6 +124,11 @@ export async function fetchHouseHours(
     params: { locale },
   })
   return data
+    ? {
+        ...data,
+        operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
+      }
+    : null
 }
 
 export async function fetchLinkInBio(locale: AppLocale = DEFAULT_LOCALE) {
