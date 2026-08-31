@@ -28,10 +28,10 @@ export type LinkInBio = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedHeading?: InternationalizedArrayString
+  localizedHeading: InternationalizedArrayString
   localizedBio?: InternationalizedArrayText
   links?: Array<{
-    link?: SourceLink
+    link: SourceLink
     emoji?: string
     emojiImage?: {
       asset?: SanityImageAssetReference
@@ -47,18 +47,18 @@ export type LinkInBio = {
 
 export type SanityImageCrop = {
   _type: "sanity.imageCrop"
-  top?: number
-  bottom?: number
-  left?: number
-  right?: number
+  top: number
+  bottom: number
+  left: number
+  right: number
 }
 
 export type SanityImageHotspot = {
   _type: "sanity.imageHotspot"
-  x?: number
-  y?: number
-  height?: number
-  width?: number
+  x: number
+  y: number
+  height: number
+  width: number
 }
 
 export type HomePageReference = {
@@ -133,8 +133,8 @@ export type StudentGroupReference = {
 
 export type SourceLink = {
   _type: "sourceLink"
-  localizedLabel?: InternationalizedArrayString
-  linkType?: string
+  localizedLabel: InternationalizedArrayString
+  linkType: string
   internalPage?:
     | HomePageReference
     | RoomsPageReference
@@ -175,7 +175,7 @@ export type SiteMetadata = {
   }
   openingHours?: OpeningHours
   houseClosedDates?: Array<{
-    date?: string
+    date: string
     note?: string
     _type: "houseClosedDate"
     _key: string
@@ -210,9 +210,9 @@ export type InternbevisBenefit = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  name?: string
+  name: string
   description?: string
-  minimumTier?: "trinn1" | "trinn2" | "trinn3"
+  minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
 export type Navbar = {
@@ -221,7 +221,7 @@ export type Navbar = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  items?: Array<
+  items: Array<
     {
       _key: string
     } & NavItem
@@ -230,14 +230,14 @@ export type Navbar = {
 
 export type ArrangementDate = {
   _type: "arrangementDate"
-  startDate?: string
+  startDate: string
   startTime?: string
   endTime?: string
 }
 
 export type FooterSocialLink = {
   _type: "footerSocialLink"
-  platform?:
+  platform:
     | "instagram"
     | "facebook"
     | "youtube"
@@ -245,13 +245,13 @@ export type FooterSocialLink = {
     | "snapchat"
     | "flickr"
     | "other"
-  localizedLabel?: InternationalizedArrayString
-  url?: string
+  localizedLabel: InternationalizedArrayString
+  url: string
 }
 
 export type ContactGroup = {
   _type: "contactGroup"
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   persons?: Array<
     {
       _key: string
@@ -261,7 +261,7 @@ export type ContactGroup = {
 
 export type ContactPerson = {
   _type: "contactPerson"
-  localizedName?: InternationalizedArrayString
+  localizedName: InternationalizedArrayString
   localizedRole?: InternationalizedArrayString
   email?: string
   phone?: string
@@ -286,7 +286,7 @@ export type Menu = {
 
 export type MenuSection = {
   _type: "menuSection"
-  title?: string
+  title: string
   fixedPrice?: number
   info?: string
   items?: Array<
@@ -298,20 +298,20 @@ export type MenuSection = {
 
 export type MenuItem = {
   _type: "menuItem"
-  title?: string
+  title: string
   description?: string
   price?: number
 }
 
 export type NavItem = {
   _type: "navItem"
-  localizedLabel?: InternationalizedArrayString
+  localizedLabel: InternationalizedArrayString
   href?: string
   externalUrl?: string
   children?: Array<{
     localizedGroupLabel?: InternationalizedArrayString
-    items?: Array<{
-      localizedLabel?: InternationalizedArrayString
+    items: Array<{
+      localizedLabel: InternationalizedArrayString
       href?: string
       externalUrl?: string
       _type: "navLeaf"
@@ -348,7 +348,7 @@ export type PortableTextContent = Array<
       media?: unknown
       hotspot?: SanityImageHotspot
       crop?: SanityImageCrop
-      alt?: string
+      alt: string
       caption?: string
       _type: "image"
       _key: string
@@ -365,8 +365,8 @@ export type OpeningHoursRow = {
 
 export type Duration = {
   _type: "duration"
-  start?: TimeValue
-  end?: TimeValue
+  start: TimeValue
+  end: TimeValue
 }
 
 export type TimeValue =
@@ -421,9 +421,9 @@ export type TimeValue =
 
 export type InfoAccordionBlock = {
   _type: "infoAccordionBlock"
-  localizedHeading?: InternationalizedArrayString
+  localizedHeading: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
-  items?: Array<
+  items: Array<
     {
       _key: string
     } & InfoAccordionItem
@@ -432,13 +432,13 @@ export type InfoAccordionBlock = {
 
 export type InfoAccordionItem = {
   _type: "infoAccordionItem"
-  localizedTitle?: InternationalizedArrayString
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedTitle: InternationalizedArrayString
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type InfoAddressBlock = {
   _type: "infoAddressBlock"
-  localizedHeading?: InternationalizedArrayString
+  localizedHeading: InternationalizedArrayString
   localizedBody?: InternationalizedArrayPortableTextContent
   localizedAddress?: InternationalizedArrayString
   mapUrl?: string
@@ -447,7 +447,7 @@ export type InfoAddressBlock = {
 export type EditorialSection = {
   _type: "editorialSection"
   localizedTitle?: InternationalizedArrayString
-  localizedBody?: InternationalizedArrayPortableTextContent
+  localizedBody: InternationalizedArrayPortableTextContent
 }
 
 export type SourcedImage = {
@@ -485,7 +485,7 @@ export type Arrangement = {
   parentEvent?: ArrangementReference
   festivalDayShortcut?: string
   localizedTitle?: InternationalizedArrayString
-  slug?: Slug
+  slug: Slug
   eventType?: EventTypeReference
   isInternalEvent?: boolean
   isPromoted?: boolean
@@ -519,8 +519,8 @@ export type Arrangement = {
   priceMedlem?: number
   ticketUrl?: string
   facebookUrl?: string
-  eventStatus?: "scheduled" | "cancelled"
-  approvalStatus?: string
+  eventStatus: "scheduled" | "cancelled"
+  approvalStatus: string
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
@@ -532,22 +532,22 @@ export type StudentGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedName?: InternationalizedArrayString
-  slug?: Slug
-  category?: "arbeidsgruppe" | "komitee" | "dorg" | "borg"
+  localizedName: InternationalizedArrayString
+  slug: Slug
+  category: "arbeidsgruppe" | "komitee" | "dorg" | "borg"
   parentGroup?: StudentGroupReference
-  localizedSummary?: InternationalizedArrayText
+  localizedSummary: InternationalizedArrayText
   localizedBody?: InternationalizedArrayPortableTextContent
   recruitmentLabel?: string
   recruitmentLead?: string
   recruitmentSections?: Array<{
-    title?: string
-    paragraphs?: Array<string>
+    title: string
+    paragraphs: Array<string>
     _type: "recruitmentSection"
     _key: string
   }>
   links?: Array<{
-    platform?:
+    platform:
       | "email"
       | "website"
       | "facebook"
@@ -555,7 +555,7 @@ export type StudentGroup = {
       | "tiktok"
       | "studentbergen"
       | "other"
-    url?: string
+    url: string
     localizedCustomLabel?: InternationalizedArrayString
     _type: "groupLink"
     _key: string
@@ -588,7 +588,7 @@ export type InternationalizedArrayPortableTextContent = Array<
 
 export type Slug = {
   _type: "slug"
-  current?: string
+  current: string
   source?: string
 }
 
@@ -598,9 +598,9 @@ export type Room = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedTitle?: InternationalizedArrayString
-  slug?: Slug
-  localizedSummary?: InternationalizedArrayText
+  localizedTitle: InternationalizedArrayString
+  slug: Slug
+  localizedSummary: InternationalizedArrayText
   localizedBody?: InternationalizedArrayPortableTextContent
   crescatRoomId?: number
   pricePerHour?: number
@@ -641,8 +641,8 @@ export type EventType = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedName?: InternationalizedArrayString
-  taxonomyGroup?: EventTaxonomyGroupReference
+  localizedName: InternationalizedArrayString
+  taxonomyGroup: EventTaxonomyGroupReference
   isActive?: boolean
   orderRank?: string
 }
@@ -653,7 +653,7 @@ export type EventTaxonomyGroup = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedName?: InternationalizedArrayString
+  localizedName: InternationalizedArrayString
   orderRank?: string
 }
 
@@ -663,8 +663,8 @@ export type Page = {
   _createdAt: string
   _updatedAt: string
   _rev: string
-  localizedTitle?: InternationalizedArrayString
-  slug?: Slug
+  localizedTitle: InternationalizedArrayString
+  slug: Slug
   localizedContent?: InternationalizedArrayText
 }
 
@@ -695,7 +695,7 @@ export type UsefulInfoPage = {
   _updatedAt: string
   _rev: string
   localizedEyebrow?: InternationalizedArrayString
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   localizedIntro?: InternationalizedArrayText
   sections?: Array<
     | ({
@@ -717,7 +717,7 @@ export type SponsorsPage = {
   _updatedAt: string
   _rev: string
   localizedEyebrow?: InternationalizedArrayString
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sponsors?: Array<{
     logo?: {
@@ -728,7 +728,7 @@ export type SponsorsPage = {
       _type: "image"
     }
     localizedLogoAlt?: InternationalizedArrayString
-    localizedTitle?: InternationalizedArrayString
+    localizedTitle: InternationalizedArrayString
     localizedDescription?: InternationalizedArrayPortableTextContent
     website?: string
     _type: "sponsor"
@@ -743,7 +743,7 @@ export type GroupsPage = {
   _updatedAt: string
   _rev: string
   localizedEyebrow?: InternationalizedArrayString
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -751,8 +751,8 @@ export type GroupsPage = {
     } & EditorialSection
   >
   faq?: Array<{
-    localizedQuestion?: InternationalizedArrayString
-    localizedAnswer?: InternationalizedArrayText
+    localizedQuestion: InternationalizedArrayString
+    localizedAnswer: InternationalizedArrayText
     _type: "faqItem"
     _key: string
   }>
@@ -772,7 +772,7 @@ export type RoomsPage = {
   _updatedAt: string
   _rev: string
   localizedEyebrow?: InternationalizedArrayString
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   sections?: Array<
     {
@@ -781,9 +781,9 @@ export type RoomsPage = {
   >
   bookingLink?: SourceLink
   floorPlans?: Array<{
-    floor?: number
+    floor: number
     localizedTitle?: InternationalizedArrayString
-    file?: {
+    file: {
       asset?: SanityFileAssetReference
       media?: unknown
       _type: "file"
@@ -800,7 +800,7 @@ export type HomePage = {
   _updatedAt: string
   _rev: string
   localizedEyebrow?: InternationalizedArrayString
-  localizedTitle?: InternationalizedArrayString
+  localizedTitle: InternationalizedArrayString
   localizedDescription?: InternationalizedArrayText
   primaryCta?: SourceLink
 }
@@ -852,7 +852,7 @@ export type AssistInstructionContextReference = {
 
 export type SanityAssistInstructionContext = {
   _type: "sanity.assist.instruction.context"
-  reference?: AssistInstructionContextReference
+  reference: AssistInstructionContextReference
 }
 
 export type AssistInstructionContext = {
@@ -880,7 +880,7 @@ export type AssistInstructionContext = {
 
 export type SanityAssistInstructionUserInput = {
   _type: "sanity.assist.instruction.userInput"
-  message?: string
+  message: string
   description?: string
 }
 
@@ -945,25 +945,25 @@ export type SanityAssistSchemaTypeField = {
 export type InternationalizedArrayStudentGroupLabelValueValue = {
   _type: "internationalizedArrayStudentGroupLabelValueValue"
   value?: string
-  language?: string
+  language: string
 }
 
 export type InternationalizedArrayPortableTextContentValue = {
   _type: "internationalizedArrayPortableTextContentValue"
   value?: PortableTextContent
-  language?: string
+  language: string
 }
 
 export type InternationalizedArrayTextValue = {
   _type: "internationalizedArrayTextValue"
   value?: string
-  language?: string
+  language: string
 }
 
 export type InternationalizedArrayStringValue = {
   _type: "internationalizedArrayStringValue"
   value?: string
-  language?: string
+  language: string
 }
 
 export type Markdown = string
@@ -989,9 +989,9 @@ export type SanityImagePalette = {
 
 export type SanityImageDimensions = {
   _type: "sanity.imageDimensions"
-  height?: number
-  width?: number
-  aspectRatio?: number
+  height: number
+  width: number
+  aspectRatio: number
 }
 
 export type SanityImageMetadata = {
@@ -1017,14 +1017,14 @@ export type SanityFileAsset = {
   title?: string
   description?: string
   altText?: string
-  sha1hash?: string
-  extension?: string
-  mimeType?: string
-  size?: number
-  assetId?: string
+  sha1hash: string
+  extension: string
+  mimeType: string
+  size: number
+  assetId: string
   uploadId?: string
-  path?: string
-  url?: string
+  path: string
+  url: string
   source?: SanityAssetSourceData
 }
 
@@ -1046,14 +1046,14 @@ export type SanityImageAsset = {
   title?: string
   description?: string
   altText?: string
-  sha1hash?: string
-  extension?: string
-  mimeType?: string
-  size?: number
-  assetId?: string
+  sha1hash: string
+  extension: string
+  mimeType: string
+  size: number
+  assetId: string
   uploadId?: string
-  path?: string
-  url?: string
+  path: string
+  url: string
   metadata?: SanityImageMetadata
   source?: SanityAssetSourceData
 }
@@ -1156,7 +1156,7 @@ export type AllSanitySchemaTypes =
 export type EventRoomsQueryResult = Array<{
   _id: string
   title: string | ""
-  slug: string | ""
+  slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
@@ -1168,7 +1168,7 @@ export type EventTypesQueryResult = Array<{
   taxonomyGroup: {
     _id: string
     name: string | ""
-  } | null
+  }
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
@@ -1177,7 +1177,7 @@ export type EventTypesQueryResult = Array<{
 export type EventGroupsQueryResult = Array<{
   _id: string
   name: string | ""
-  category: "" | "arbeidsgruppe" | "borg" | "dorg" | "komitee"
+  category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
@@ -1191,17 +1191,17 @@ export type PublishedEventsQueryResult = Array<{
     | "seriesInstance"
     | "seriesParent"
     | "single"
-  eventStatus: "cancelled" | "scheduled" | null
+  eventStatus: "cancelled" | "scheduled"
   parent: {
     _id: string
-    slug: string | ""
+    slug: string
     eventKind:
       | "festivalParent"
       | "festivalSession"
       | "seriesInstance"
       | "seriesParent"
       | "single"
-    eventStatus: "cancelled" | "scheduled" | null
+    eventStatus: "cancelled" | "scheduled"
     title: string | null
     description:
       | Array<never>
@@ -1233,7 +1233,7 @@ export type PublishedEventsQueryResult = Array<{
               media?: unknown
               hotspot?: SanityImageHotspot
               crop?: SanityImageCrop
-              alt: string | null
+              alt: string
               caption: string | null
               markDefs: null
               imageUrl: string | null
@@ -1244,7 +1244,7 @@ export type PublishedEventsQueryResult = Array<{
     organizerGroup: {
       _id: string
       name: string | ""
-      slug: string | ""
+      slug: string
     } | null
     organizerText: string | null
     eventType: {
@@ -1253,7 +1253,7 @@ export type PublishedEventsQueryResult = Array<{
       taxonomyGroup: {
         _id: string
         name: string | ""
-      } | null
+      }
     } | null
     isFree: boolean | null
     priceOrdinar: number | null
@@ -1263,8 +1263,8 @@ export type PublishedEventsQueryResult = Array<{
     facebookUrl: string | null
     isInternalEvent: boolean | null
   } | null
-  slug: string | ""
-  approvalStatus: string | "pending"
+  slug: string
+  approvalStatus: string
   isPromoted: boolean | false
   promotedPlacement: "pool" | "top" | null
   promotedOrder: number | null
@@ -1275,21 +1275,21 @@ export type PublishedEventsQueryResult = Array<{
   dates:
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       }>
     | Array<never>
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       } | null>
   room: {
     _id: string
     title: string | ""
-    slug: string | ""
+    slug: string
     floor: number | null
     imageUrl: string | null
   } | null
@@ -1325,7 +1325,7 @@ export type PublishedEventsQueryResult = Array<{
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -1336,7 +1336,7 @@ export type PublishedEventsQueryResult = Array<{
   organizerGroup: {
     _id: string
     name: string | ""
-    slug: string | ""
+    slug: string
   } | null
   organizerText: string | null
   eventType: {
@@ -1345,7 +1345,7 @@ export type PublishedEventsQueryResult = Array<{
     taxonomyGroup: {
       _id: string
       name: string | ""
-    } | null
+    }
   } | null
   isFree: boolean | null
   priceOrdinar: number | null
@@ -1367,17 +1367,17 @@ export type PromotedParentEventsQueryResult = Array<{
     | "seriesInstance"
     | "seriesParent"
     | "single"
-  eventStatus: "cancelled" | "scheduled" | null
+  eventStatus: "cancelled" | "scheduled"
   parent: {
     _id: string
-    slug: string | ""
+    slug: string
     eventKind:
       | "festivalParent"
       | "festivalSession"
       | "seriesInstance"
       | "seriesParent"
       | "single"
-    eventStatus: "cancelled" | "scheduled" | null
+    eventStatus: "cancelled" | "scheduled"
     title: string | null
     description:
       | Array<never>
@@ -1409,7 +1409,7 @@ export type PromotedParentEventsQueryResult = Array<{
               media?: unknown
               hotspot?: SanityImageHotspot
               crop?: SanityImageCrop
-              alt: string | null
+              alt: string
               caption: string | null
               markDefs: null
               imageUrl: string | null
@@ -1420,7 +1420,7 @@ export type PromotedParentEventsQueryResult = Array<{
     organizerGroup: {
       _id: string
       name: string | ""
-      slug: string | ""
+      slug: string
     } | null
     organizerText: string | null
     eventType: {
@@ -1429,7 +1429,7 @@ export type PromotedParentEventsQueryResult = Array<{
       taxonomyGroup: {
         _id: string
         name: string | ""
-      } | null
+      }
     } | null
     isFree: boolean | null
     priceOrdinar: number | null
@@ -1439,8 +1439,8 @@ export type PromotedParentEventsQueryResult = Array<{
     facebookUrl: string | null
     isInternalEvent: boolean | null
   } | null
-  slug: string | ""
-  approvalStatus: string | "pending"
+  slug: string
+  approvalStatus: string
   isPromoted: boolean | false
   promotedPlacement: "pool" | "top" | null
   promotedOrder: number | null
@@ -1451,21 +1451,21 @@ export type PromotedParentEventsQueryResult = Array<{
   dates:
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       }>
     | Array<never>
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       } | null>
   room: {
     _id: string
     title: string | ""
-    slug: string | ""
+    slug: string
     floor: number | null
     imageUrl: string | null
   } | null
@@ -1501,7 +1501,7 @@ export type PromotedParentEventsQueryResult = Array<{
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -1512,7 +1512,7 @@ export type PromotedParentEventsQueryResult = Array<{
   organizerGroup: {
     _id: string
     name: string | ""
-    slug: string | ""
+    slug: string
   } | null
   organizerText: string | null
   eventType: {
@@ -1521,7 +1521,7 @@ export type PromotedParentEventsQueryResult = Array<{
     taxonomyGroup: {
       _id: string
       name: string | ""
-    } | null
+    }
   } | null
   isFree: boolean | null
   priceOrdinar: number | null
@@ -1536,7 +1536,7 @@ export type PromotedParentEventsQueryResult = Array<{
 // Variable: publishedEventSlugsQuery
 // Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && defined(slug.current)        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && (            count(dates[startDate >= $today]) > 0            || eventStatus == "cancelled"        )    ] {        "slug": slug.current    }
 export type PublishedEventSlugsQueryResult = Array<{
-  slug: string | null
+  slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/events.ts
@@ -1550,17 +1550,17 @@ export type EventBySlugQueryResult = {
     | "seriesInstance"
     | "seriesParent"
     | "single"
-  eventStatus: "cancelled" | "scheduled" | null
+  eventStatus: "cancelled" | "scheduled"
   parent: {
     _id: string
-    slug: string | ""
+    slug: string
     eventKind:
       | "festivalParent"
       | "festivalSession"
       | "seriesInstance"
       | "seriesParent"
       | "single"
-    eventStatus: "cancelled" | "scheduled" | null
+    eventStatus: "cancelled" | "scheduled"
     title: string | null
     description:
       | Array<never>
@@ -1592,7 +1592,7 @@ export type EventBySlugQueryResult = {
               media?: unknown
               hotspot?: SanityImageHotspot
               crop?: SanityImageCrop
-              alt: string | null
+              alt: string
               caption: string | null
               markDefs: null
               imageUrl: string | null
@@ -1603,7 +1603,7 @@ export type EventBySlugQueryResult = {
     organizerGroup: {
       _id: string
       name: string | ""
-      slug: string | ""
+      slug: string
     } | null
     organizerText: string | null
     eventType: {
@@ -1612,7 +1612,7 @@ export type EventBySlugQueryResult = {
       taxonomyGroup: {
         _id: string
         name: string | ""
-      } | null
+      }
     } | null
     isFree: boolean | null
     priceOrdinar: number | null
@@ -1622,8 +1622,8 @@ export type EventBySlugQueryResult = {
     facebookUrl: string | null
     isInternalEvent: boolean | null
   } | null
-  slug: string | ""
-  approvalStatus: string | "pending"
+  slug: string
+  approvalStatus: string
   isPromoted: boolean | false
   promotedPlacement: "pool" | "top" | null
   promotedOrder: number | null
@@ -1634,21 +1634,21 @@ export type EventBySlugQueryResult = {
   dates:
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       }>
     | Array<never>
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       } | null>
   room: {
     _id: string
     title: string | ""
-    slug: string | ""
+    slug: string
     floor: number | null
     imageUrl: string | null
   } | null
@@ -1684,7 +1684,7 @@ export type EventBySlugQueryResult = {
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -1695,7 +1695,7 @@ export type EventBySlugQueryResult = {
   organizerGroup: {
     _id: string
     name: string | ""
-    slug: string | ""
+    slug: string
   } | null
   organizerText: string | null
   eventType: {
@@ -1704,7 +1704,7 @@ export type EventBySlugQueryResult = {
     taxonomyGroup: {
       _id: string
       name: string | ""
-    } | null
+    }
   } | null
   isFree: boolean | null
   priceOrdinar: number | null
@@ -1726,17 +1726,17 @@ export type EventChildrenQueryResult = Array<{
     | "seriesInstance"
     | "seriesParent"
     | "single"
-  eventStatus: "cancelled" | "scheduled" | null
+  eventStatus: "cancelled" | "scheduled"
   parent: {
     _id: string
-    slug: string | ""
+    slug: string
     eventKind:
       | "festivalParent"
       | "festivalSession"
       | "seriesInstance"
       | "seriesParent"
       | "single"
-    eventStatus: "cancelled" | "scheduled" | null
+    eventStatus: "cancelled" | "scheduled"
     title: string | null
     description:
       | Array<never>
@@ -1768,7 +1768,7 @@ export type EventChildrenQueryResult = Array<{
               media?: unknown
               hotspot?: SanityImageHotspot
               crop?: SanityImageCrop
-              alt: string | null
+              alt: string
               caption: string | null
               markDefs: null
               imageUrl: string | null
@@ -1779,7 +1779,7 @@ export type EventChildrenQueryResult = Array<{
     organizerGroup: {
       _id: string
       name: string | ""
-      slug: string | ""
+      slug: string
     } | null
     organizerText: string | null
     eventType: {
@@ -1788,7 +1788,7 @@ export type EventChildrenQueryResult = Array<{
       taxonomyGroup: {
         _id: string
         name: string | ""
-      } | null
+      }
     } | null
     isFree: boolean | null
     priceOrdinar: number | null
@@ -1798,8 +1798,8 @@ export type EventChildrenQueryResult = Array<{
     facebookUrl: string | null
     isInternalEvent: boolean | null
   } | null
-  slug: string | ""
-  approvalStatus: string | "pending"
+  slug: string
+  approvalStatus: string
   isPromoted: boolean | false
   promotedPlacement: "pool" | "top" | null
   promotedOrder: number | null
@@ -1810,21 +1810,21 @@ export type EventChildrenQueryResult = Array<{
   dates:
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       }>
     | Array<never>
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       } | null>
   room: {
     _id: string
     title: string | ""
-    slug: string | ""
+    slug: string
     floor: number | null
     imageUrl: string | null
   } | null
@@ -1860,7 +1860,7 @@ export type EventChildrenQueryResult = Array<{
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -1871,7 +1871,7 @@ export type EventChildrenQueryResult = Array<{
   organizerGroup: {
     _id: string
     name: string | ""
-    slug: string | ""
+    slug: string
   } | null
   organizerText: string | null
   eventType: {
@@ -1880,7 +1880,7 @@ export type EventChildrenQueryResult = Array<{
     taxonomyGroup: {
       _id: string
       name: string | ""
-    } | null
+    }
   } | null
   isFree: boolean | null
   priceOrdinar: number | null
@@ -1903,17 +1903,17 @@ export type FeedEventsQueryResult = Array<{
     | "seriesInstance"
     | "seriesParent"
     | "single"
-  eventStatus: "cancelled" | "scheduled" | null
+  eventStatus: "cancelled" | "scheduled"
   parent: {
     _id: string
-    slug: string | ""
+    slug: string
     eventKind:
       | "festivalParent"
       | "festivalSession"
       | "seriesInstance"
       | "seriesParent"
       | "single"
-    eventStatus: "cancelled" | "scheduled" | null
+    eventStatus: "cancelled" | "scheduled"
     title: string | null
     description:
       | Array<never>
@@ -1945,7 +1945,7 @@ export type FeedEventsQueryResult = Array<{
               media?: unknown
               hotspot?: SanityImageHotspot
               crop?: SanityImageCrop
-              alt: string | null
+              alt: string
               caption: string | null
               markDefs: null
               imageUrl: string | null
@@ -1956,7 +1956,7 @@ export type FeedEventsQueryResult = Array<{
     organizerGroup: {
       _id: string
       name: string | ""
-      slug: string | ""
+      slug: string
     } | null
     organizerText: string | null
     eventType: {
@@ -1965,7 +1965,7 @@ export type FeedEventsQueryResult = Array<{
       taxonomyGroup: {
         _id: string
         name: string | ""
-      } | null
+      }
     } | null
     isFree: boolean | null
     priceOrdinar: number | null
@@ -1975,11 +1975,11 @@ export type FeedEventsQueryResult = Array<{
     facebookUrl: string | null
     isInternalEvent: boolean | null
   } | null
-  slug: string | ""
+  slug: string
   dates:
     | Array<{
         _key: string
-        startDate: string | ""
+        startDate: string
         startTime: string | null
         endTime: string | null
       }>
@@ -2019,7 +2019,7 @@ export type FeedEventsQueryResult = Array<{
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -2030,7 +2030,7 @@ export type FeedEventsQueryResult = Array<{
   organizerGroup: {
     _id: string
     name: string | ""
-    slug: string | ""
+    slug: string
   } | null
   organizerText: string | null
   eventType: {
@@ -2039,7 +2039,7 @@ export type FeedEventsQueryResult = Array<{
     taxonomyGroup: {
       _id: string
       name: string | ""
-    } | null
+    }
   } | null
   isFree: boolean | null
   priceOrdinar: number | null
@@ -2056,7 +2056,7 @@ export type FeedEventsQueryResult = Array<{
 export type StudentGroupsQueryResult = Array<{
   _id: string
   name: string | "[Mangler gruppenavn]"
-  slug: string | ""
+  slug: string
   summary: string | "[Mangler kort beskrivelse]"
   email: string | null
   website: string | null
@@ -2070,8 +2070,7 @@ export type StudentGroupsQueryResult = Array<{
           | "studentbergen"
           | "tiktok"
           | "website"
-          | null
-        url: string | null
+        url: string
         customLabel: string | null
       }>
     | Array<never>
@@ -2086,7 +2085,7 @@ export type StudentGroupsQueryResult = Array<{
   } | null
   subGroups: Array<{
     name: string | "[Mangler gruppenavn]"
-    slug: string | ""
+    slug: string
   }>
 }>
 
@@ -2094,7 +2093,7 @@ export type StudentGroupsQueryResult = Array<{
 // Variable: studentGroupSlugsQuery
 // Query: *[_type == "studentGroup" && defined(slug.current)] {    "slug": slug.current}
 export type StudentGroupSlugsQueryResult = Array<{
-  slug: string | null
+  slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/groups.ts
@@ -2103,7 +2102,7 @@ export type StudentGroupSlugsQueryResult = Array<{
 export type StudentGroupBySlugQueryResult = {
   _id: string
   name: string | "[Mangler gruppenavn]"
-  slug: string | ""
+  slug: string
   summary: string | "[Mangler kort beskrivelse]"
   body: Array<never> | PortableTextContent
   email: string | null
@@ -2118,8 +2117,7 @@ export type StudentGroupBySlugQueryResult = {
           | "studentbergen"
           | "tiktok"
           | "website"
-          | null
-        url: string | null
+        url: string
         customLabel: string | null
       }>
     | Array<never>
@@ -2127,11 +2125,11 @@ export type StudentGroupBySlugQueryResult = {
   logoUrl: string | null
   parentGroup: {
     name: string | "[Mangler gruppenavn]"
-    slug: string | ""
+    slug: string
   } | null
   subGroups: Array<{
     name: string | "[Mangler gruppenavn]"
-    slug: string | ""
+    slug: string
     summary: string | "[Mangler kort beskrivelse]"
     category: "arbeidsgruppe" | "borg" | "dorg" | "komitee"
     image: {
@@ -2163,10 +2161,9 @@ export type FooterQueryResult = {
           | "other"
           | "snapchat"
           | "tiktok"
-          | "website"
           | "youtube"
         label: string | "[Mangler navn]"
-        url: string | "#"
+        url: string
       }>
     | Array<never>
   visitAddress: string | null
@@ -2174,7 +2171,7 @@ export type FooterQueryResult = {
   houseClosedDates:
     | Array<{
         _key: string
-        date: string | ""
+        date: string
         note: string | null
       }>
     | Array<never>
@@ -2190,14 +2187,14 @@ export type FooterQueryResult = {
       status: "closed" | "open"
       note: string | null
       duration: {
-        start: TimeValue | null
-        end: TimeValue | null
+        start: TimeValue
+        end: TimeValue
       } | null
     }> | null
   } | null
   roomHours: Array<{
     title: string | "[Mangler romnavn]"
-    slug: string | ""
+    slug: string
     hours: {
       rows: Array<{
         _key: string
@@ -2205,8 +2202,8 @@ export type FooterQueryResult = {
         status: "closed" | "open"
         note: string | null
         duration: {
-          start: TimeValue | null
-          end: TimeValue | null
+          start: TimeValue
+          end: TimeValue
         } | null
       }> | null
     } | null
@@ -2217,28 +2214,24 @@ export type FooterQueryResult = {
 // Variable: navbarQuery
 // Query: *[_type == "navbar" && _id == "navbar"][0] {    "items": coalesce(items[] {        _key,                "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),        href,        externalUrl,        "children": coalesce(children[] {            _key,            "groupLabel": coalesce(localizedGroupLabel[language == $locale && defined(value) && value != ""][0].value, localizedGroupLabel[language == "nb" && defined(value) && value != ""][0].value),            "items": coalesce(items[] {                _key,                    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),                href,                externalUrl            }, [])        }, [])    }, [])}
 export type NavbarQueryResult = {
-  items:
-    | Array<{
-        _key: string
-        label: string | "[Mangler navn]"
-        href: string | null
-        externalUrl: string | null
-        children:
-          | Array<{
-              _key: string
-              groupLabel: string | null
-              items:
-                | Array<{
-                    _key: string
-                    label: string | "[Mangler navn]"
-                    href: string | null
-                    externalUrl: string | null
-                  }>
-                | Array<never>
-            }>
-          | Array<never>
-      }>
-    | Array<never>
+  items: Array<{
+    _key: string
+    label: string | "[Mangler navn]"
+    href: string | null
+    externalUrl: string | null
+    children:
+      | Array<{
+          _key: string
+          groupLabel: string | null
+          items: Array<{
+            _key: string
+            label: string | "[Mangler navn]"
+            href: string | null
+            externalUrl: string | null
+          }>
+        }>
+      | Array<never>
+  }>
 } | null
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
@@ -2252,8 +2245,8 @@ export type HouseHoursQueryResult = {
       status: "closed" | "open"
       note: string | null
       duration: {
-        start: TimeValue | null
-        end: TimeValue | null
+        start: TimeValue
+        end: TimeValue
       } | null
     }> | null
   } | null
@@ -2265,7 +2258,7 @@ export type HouseHoursQueryResult = {
   houseClosedDates:
     | Array<{
         _key: string
-        date: string | ""
+        date: string
         note: string | null
       }>
     | Array<never>
@@ -2336,7 +2329,7 @@ export type RoomsPageQueryResult = {
                   media?: unknown
                   hotspot?: SanityImageHotspot
                   crop?: SanityImageCrop
-                  alt: string | null
+                  alt: string
                   caption: string | null
                   markDefs: null
                   imageUrl: string | null
@@ -2404,7 +2397,7 @@ export type SponsorsPageQueryResult = {
                   media?: unknown
                   hotspot?: SanityImageHotspot
                   crop?: SanityImageCrop
-                  alt: string | null
+                  alt: string
                   caption: string | null
                   markDefs: null
                   imageUrl: string | null
@@ -2457,7 +2450,7 @@ export type GroupsPageQueryResult = {
                   media?: unknown
                   hotspot?: SanityImageHotspot
                   crop?: SanityImageCrop
-                  alt: string | null
+                  alt: string
                   caption: string | null
                   markDefs: null
                   imageUrl: string | null
@@ -2479,7 +2472,7 @@ export type GroupsPageQueryResult = {
 // Variable: pageSlugsQuery
 // Query: *[    _type == "page"    && defined(slug.current)    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ] {    "slug": slug.current}
 export type PageSlugsQueryResult = Array<{
-  slug: string | null
+  slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
@@ -2488,7 +2481,7 @@ export type PageSlugsQueryResult = Array<{
 export type PageBySlugQueryResult = {
   _id: string
   title: string | "[Mangler tittel]"
-  slug: string | ""
+  slug: string
   content: string | ""
 } | null
 
@@ -2565,7 +2558,7 @@ export type UsefulInfoPageQueryResult = {
                       media?: unknown
                       hotspot?: SanityImageHotspot
                       crop?: SanityImageCrop
-                      alt: string | null
+                      alt: string
                       caption: string | null
                       markDefs: null
                       imageUrl: string | null
@@ -2577,48 +2570,46 @@ export type UsefulInfoPageQueryResult = {
             _type: "infoAccordionBlock"
             heading: string | null
             intro: string | null
-            items:
-              | Array<{
-                  _key: string
-                  title: string | null
-                  body:
-                    | Array<never>
-                    | Array<
-                        | {
-                            _key: string
-                            _type: "block"
-                            children?: Array<{
-                              marks?: Array<string>
-                              text?: string
-                              _type: "span"
-                              _key: string
-                            }>
-                            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-                            listItem?: "bullet" | "number"
-                            markDefs: Array<{
-                              href?: string
-                              style?: "cta" | "inline"
-                              target: "blank" | "self"
-                              _type: "link"
-                              _key: string
-                            }> | null
-                            level?: number
-                          }
-                        | {
-                            _key: string
-                            _type: "image"
-                            asset?: SanityImageAssetReference
-                            media?: unknown
-                            hotspot?: SanityImageHotspot
-                            crop?: SanityImageCrop
-                            alt: string | null
-                            caption: string | null
-                            markDefs: null
-                            imageUrl: string | null
-                          }
-                      >
-                }>
-              | Array<never>
+            items: Array<{
+              _key: string
+              title: string | null
+              body:
+                | Array<never>
+                | Array<
+                    | {
+                        _key: string
+                        _type: "block"
+                        children?: Array<{
+                          marks?: Array<string>
+                          text?: string
+                          _type: "span"
+                          _key: string
+                        }>
+                        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+                        listItem?: "bullet" | "number"
+                        markDefs: Array<{
+                          href?: string
+                          style?: "cta" | "inline"
+                          target: "blank" | "self"
+                          _type: "link"
+                          _key: string
+                        }> | null
+                        level?: number
+                      }
+                    | {
+                        _key: string
+                        _type: "image"
+                        asset?: SanityImageAssetReference
+                        media?: unknown
+                        hotspot?: SanityImageHotspot
+                        crop?: SanityImageCrop
+                        alt: string
+                        caption: string | null
+                        markDefs: null
+                        imageUrl: string | null
+                      }
+                  >
+            }>
           }
         | {
             _key: string
@@ -2654,7 +2645,7 @@ export type UsefulInfoPageQueryResult = {
                       media?: unknown
                       hotspot?: SanityImageHotspot
                       crop?: SanityImageCrop
-                      alt: string | null
+                      alt: string
                       caption: string | null
                       markDefs: null
                       imageUrl: string | null
@@ -2688,7 +2679,7 @@ export type LinkInBioQueryResult = {
             | "/rom"
             | "/sponsorer"
             | null
-        } | null
+        }
         emoji: string | null
         emojiImageUrl: string | null
         highlight: boolean | false
@@ -2701,7 +2692,7 @@ export type LinkInBioQueryResult = {
 // Query: *[_type == "room"] | order(orderRank asc) {    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    floor,    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),    "hasSound": coalesce(hasSound, false),    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasLighting": coalesce(hasLighting, false),    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasAV": coalesce(hasAV, false),    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value),    "image": images[0] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)}}
 export type RoomsQueryResult = Array<{
   title: string | "[Mangler romnavn]"
-  slug: string | ""
+  slug: string
   summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
@@ -2729,7 +2720,7 @@ export type BarPreviewsQueryResult = {
   houseClosedDates:
     | Array<{
         _key: string
-        date: string | ""
+        date: string
         note: string | null
       }>
     | Array<never>
@@ -2745,14 +2736,14 @@ export type BarPreviewsQueryResult = {
       status: "closed" | "open"
       note: string | null
       duration: {
-        start: TimeValue | null
-        end: TimeValue | null
+        start: TimeValue
+        end: TimeValue
       } | null
     }> | null
   } | null
   rooms: Array<{
     title: string | "[Mangler romnavn]"
-    slug: string | ""
+    slug: string
     summary: string | "[Mangler kort beskrivelse]"
     bar: string | null
     openingHours: {
@@ -2762,8 +2753,8 @@ export type BarPreviewsQueryResult = {
         status: "closed" | "open"
         note: string | null
         duration: {
-          start: TimeValue | null
-          end: TimeValue | null
+          start: TimeValue
+          end: TimeValue
         } | null
       }> | null
     } | null
@@ -2780,7 +2771,7 @@ export type BarPreviewsQueryResult = {
 // Variable: roomSlugsQuery
 // Query: *[_type == "room" && defined(slug.current)] {    "slug": slug.current}
 export type RoomSlugsQueryResult = Array<{
-  slug: string | null
+  slug: string
 }>
 
 // Source: ../web/src/lib/sanity/queries/rooms.ts
@@ -2788,11 +2779,11 @@ export type RoomSlugsQueryResult = Array<{
 // Query: *[_type == "room" && defined(crescatRoomId) && defined(slug.current)] | order(orderRank asc) {    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler romnavn]"),    "slug": coalesce(slug.current, ""),    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),    capacityStanding,    capacitySeated,    crescatRoomId,    pricePerHour,    floor,    "suitedPurposes": coalesce(string::split(localizedSuitedPurposes[language == $locale && defined(value) && value != ""][0].value, "\n"), string::split(localizedSuitedPurposes[language == "nb" && defined(value) && value != ""][0].value, "\n"), []),    "bar": coalesce(localizedBar[language == $locale && defined(value) && value != ""][0].value, localizedBar[language == "nb" && defined(value) && value != ""][0].value),    "openingHours": openingHours {    rows[] {        _key,        weekdays,        "status": coalesce(status, select(closed == true => "closed", "open")),        note,        "duration": duration {    start,    end}    }},    "image": images[0] {    _key,    "assetUrl": image.asset->url,    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)},    "hasSound": coalesce(hasSound, false),    "soundDetails": coalesce(localizedSoundDetails[language == $locale && defined(value) && value != ""][0].value, localizedSoundDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasLighting": coalesce(hasLighting, false),    "lightingDetails": coalesce(localizedLightingDetails[language == $locale && defined(value) && value != ""][0].value, localizedLightingDetails[language == "nb" && defined(value) && value != ""][0].value),    "hasAV": coalesce(hasAV, false),    "avDetails": coalesce(localizedAvDetails[language == $locale && defined(value) && value != ""][0].value, localizedAvDetails[language == "nb" && defined(value) && value != ""][0].value)}
 export type BookableRoomsQueryResult = Array<{
   title: string | "[Mangler romnavn]"
-  slug: string | ""
+  slug: string
   summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
-  crescatRoomId: number | null
+  crescatRoomId: number
   pricePerHour: number | null
   floor: number | null
   suitedPurposes: Array<string> | Array<never>
@@ -2804,8 +2795,8 @@ export type BookableRoomsQueryResult = Array<{
       status: "closed" | "open"
       note: string | null
       duration: {
-        start: TimeValue | null
-        end: TimeValue | null
+        start: TimeValue
+        end: TimeValue
       } | null
     }> | null
   } | null
@@ -2829,7 +2820,7 @@ export type BookableRoomsQueryResult = Array<{
 export type RoomBySlugQueryResult = {
   crescatRoomId: number | null
   title: string | "[Mangler romnavn]"
-  slug: string | ""
+  slug: string
   summary: string | "[Mangler kort beskrivelse]"
   capacityStanding: number | null
   capacitySeated: number | null
@@ -2852,8 +2843,8 @@ export type RoomBySlugQueryResult = {
       status: "closed" | "open"
       note: string | null
       duration: {
-        start: TimeValue | null
-        end: TimeValue | null
+        start: TimeValue
+        end: TimeValue
       } | null
     }> | null
   } | null
@@ -2887,7 +2878,7 @@ export type RoomBySlugQueryResult = {
             media?: unknown
             hotspot?: SanityImageHotspot
             crop?: SanityImageCrop
-            alt: string | null
+            alt: string
             caption: string | null
             markDefs: null
             imageUrl: string | null
@@ -2904,7 +2895,7 @@ export type RoomBySlugQueryResult = {
   floorPlans:
     | Array<{
         _key: string
-        floor: number | 0
+        floor: number
         title: string | "[Mangler tittel]"
         assetUrl: string | null
         mimeType: string | null
