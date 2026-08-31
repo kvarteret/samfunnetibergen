@@ -5,7 +5,7 @@ const CLIENT_KEY_SECRET = "test-client-key-secret-0123456789abcdef"
 const CLIENT_IP = "203.0.113.42"
 const FIXED_IDEMPOTENCY_KEY = "123e4567-e89b-42d3-a456-426614174001"
 const EXPECTED_CLIENT_KEY =
-  "v1=9a0dcfcc46f5fc85d1151d64c99635e5d32febbe873c1d9467cf618652eb84e5"
+  "v1=824d07cc5a6254c1187713a923496056e2f42635d0d498947eca539ddcabbe37"
 
 const {
   captureMock,

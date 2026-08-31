@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID } from "node:crypto"
 import { isIP } from "node:net"
+import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/distinct-id"
 
 export const VOLUNTEER_PROSPECT_PATH = "/api/v1/volunteer-prospects"
 
@@ -102,14 +103,27 @@ export function createVolunteerProspectClientKey(
     secret,
     "VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET",
   )
+  const visitorId = getPostHogDistinctIdFromCookie(
+    headers.get("cookie") ?? undefined,
+  )
   const forwardedFor =
     headers.get("x-vercel-forwarded-for") ?? headers.get("x-forwarded-for")
   const canonicalClientIp = forwardedFor?.split(",", 1)[0]?.trim().toLowerCase()
-  if (!canonicalClientIp || isIP(canonicalClientIp) === 0) {
-    throw new Error("A trusted client IP header is required.")
+  const userAgent = headers.get("user-agent")?.trim()
+
+  let clientIdentity: string
+  if (visitorId) {
+    clientIdentity = `visitor:${visitorId}`
+  } else {
+    if (!canonicalClientIp || isIP(canonicalClientIp) === 0) {
+      throw new Error("A trusted client IP header is required.")
+    }
+    clientIdentity = userAgent
+      ? `ip:${canonicalClientIp}\nuser-agent:${userAgent.slice(0, 512)}`
+      : `ip:${canonicalClientIp}`
   }
   const digest = createHmac("sha256", normalizedSecret)
-    .update(canonicalClientIp, "utf8")
+    .update(clientIdentity, "utf8")
     .digest("hex")
   return `v1=${digest}`
 }

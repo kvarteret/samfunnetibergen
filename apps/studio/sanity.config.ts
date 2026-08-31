@@ -8,6 +8,7 @@ import { internationalizedArray } from "sanity-plugin-internationalized-array"
 import { dataset, projectId } from "./src/env"
 import { arrangementDocumentActions } from "./src/studio/actions/arrangementDocumentActions"
 import { singletonTypeNames } from "./src/studio/documentTypes"
+import { studentGroupLabelValue } from "./src/studio/schemaTypes/documents/studentGroup"
 import {
   resolve,
   resolvePresentationInitialUrl,
@@ -63,7 +64,12 @@ const config = defineConfig({
       // Norwegian value is the canonical source, while English is the required
       // public translation; legacy scalar fields are deprecated separately.
       defaultLanguages: ["nb", "en"],
-      fieldTypes: ["string", "text", "portableTextContent"],
+      fieldTypes: [
+        "string",
+        "text",
+        "portableTextContent",
+        studentGroupLabelValue,
+      ],
       languageFilter: {
         documentTypes: ["groupsPage", "studentGroup"],
       },

@@ -20,7 +20,8 @@ staged smoke tests pass.
   `VOLUNTEER_PROSPECT_HMAC_SECRET` of at least 32 characters, matching Personal's
   active value, and a separate server-only
   `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET` of at least 32 characters used only to
-  pseudonymize client IP addresses. Do not prefix either with `NEXT_PUBLIC_`.
+  pseudonymize the browser-scoped client identity. Do not prefix either with
+  `NEXT_PUBLIC_`.
   Personal does not receive or need the client-key secret. Before releasing the
   website's v2 signer, deploy Personal support for the v2 canonical request;
   Personal may retain v1 verification temporarily during this rollout. During

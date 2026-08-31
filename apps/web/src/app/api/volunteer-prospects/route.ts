@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     )
   }
 
-  // Personal owns the durable route, client-key, and email counters. This
+  // Personal owns the durable route and client-key counters. This
   // stateless proxy supplies the signed dimensions after local validation.
   const values: VolunteerFormValues = parsed.data
   let idempotencyKey: string

@@ -569,10 +569,16 @@ export type StudentGroup = {
     crop?: SanityImageCrop
     _type: "image"
   }
-  localizedLabels?: InternationalizedArrayText
+  localizedLabels?: InternationalizedArrayStudentGroupLabelValue
   image?: SourcedImage
   orderRank?: string
 }
+
+export type InternationalizedArrayStudentGroupLabelValue = Array<
+  {
+    _key: string
+  } & InternationalizedArrayStudentGroupLabelValueValue
+>
 
 export type InternationalizedArrayPortableTextContent = Array<
   {
@@ -936,6 +942,12 @@ export type SanityAssistSchemaTypeField = {
   >
 }
 
+export type InternationalizedArrayStudentGroupLabelValueValue = {
+  _type: "internationalizedArrayStudentGroupLabelValueValue"
+  value?: string
+  language: string
+}
+
 export type InternationalizedArrayPortableTextContentValue = {
   _type: "internationalizedArrayPortableTextContentValue"
   value?: PortableTextContent
@@ -1096,6 +1108,7 @@ export type AllSanitySchemaTypes =
   | EventTypeReference
   | Arrangement
   | StudentGroup
+  | InternationalizedArrayStudentGroupLabelValue
   | InternationalizedArrayPortableTextContent
   | Slug
   | Room
@@ -1123,6 +1136,7 @@ export type AllSanitySchemaTypes =
   | SanityAssistInstructionFieldRef
   | SanityAssistInstruction
   | SanityAssistSchemaTypeField
+  | InternationalizedArrayStudentGroupLabelValueValue
   | InternationalizedArrayPortableTextContentValue
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue

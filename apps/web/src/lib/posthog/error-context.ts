@@ -1,5 +1,4 @@
-const POSTHOG_COOKIE_PREFIX = "ph_phc_"
-const POSTHOG_COOKIE_SUFFIX = "_posthog"
+export { getPostHogDistinctIdFromCookie } from "./distinct-id"
 
 export type ErrorWorkflow =
   | "event_image_upload"
@@ -57,44 +56,4 @@ export function toPostHogException(error: unknown): Error {
   if (error instanceof Error) return error
   if (typeof error === "string" && error.trim()) return new Error(error)
   return new Error("Unknown error")
-}
-
-export function getPostHogDistinctIdFromCookie(
-  cookieHeader: string | string[] | undefined,
-): string | undefined {
-  if (!cookieHeader) return undefined
-  const cookieString = Array.isArray(cookieHeader)
-    ? cookieHeader.join("; ")
-    : cookieHeader
-
-  for (const cookiePart of cookieString.split(";")) {
-    const [rawName, ...rawValueParts] = cookiePart.trim().split("=")
-    const rawValue = rawValueParts.join("=")
-    if (
-      !rawName ||
-      !rawValue ||
-      !rawName.startsWith(POSTHOG_COOKIE_PREFIX) ||
-      !rawName.endsWith(POSTHOG_COOKIE_SUFFIX)
-    ) {
-      continue
-    }
-
-    const distinctId = parsePostHogDistinctId(rawValue)
-    if (distinctId) return distinctId
-  }
-
-  return undefined
-}
-
-function parsePostHogDistinctId(rawValue: string): string | undefined {
-  try {
-    const parsed = JSON.parse(decodeURIComponent(rawValue)) as {
-      distinct_id?: unknown
-    }
-    return typeof parsed.distinct_id === "string" && parsed.distinct_id
-      ? parsed.distinct_id
-      : undefined
-  } catch {
-    return undefined
-  }
 }

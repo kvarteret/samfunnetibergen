@@ -71,7 +71,8 @@ export function localizedArrayField(
   type:
     | "internationalizedArrayString"
     | "internationalizedArrayText"
-    | "internationalizedArrayPortableTextContent",
+    | "internationalizedArrayPortableTextContent"
+    | "internationalizedArrayStudentGroupLabelValue",
   options: LocalizedArrayFieldOptions = {},
 ) {
   const { required = false, ...fieldOptions } = options

@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
+import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -118,7 +119,7 @@ export function EventCard({
   return (
     <Card className={eventCardVariants({ variant, size })}>
       {event.imageUrl && (
-        <Link href={href}>
+        <Link {...eventTrackingAttributes(event, "card-image")} href={href}>
           <div
             className={cn(
               "group/image relative w-full overflow-hidden",
@@ -165,6 +166,7 @@ export function EventCard({
           </div>
           <Link
             className="hover:underline hover:underline-offset-4"
+            {...eventTrackingAttributes(event, "card-title")}
             href={href}
           >
             <h2
