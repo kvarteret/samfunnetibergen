@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest"
 import {
   eventBySlugQuery,
   promotedParentEventsQuery,
+  publicEventBySlugQuery,
+  publicEventChildrenQuery,
+  publicEventsQuery,
   publishedEventSlugsQuery,
   publishedEventsQuery,
 } from "./events"
@@ -40,6 +43,26 @@ describe("promoted ordering", () => {
     expect(promotedParentEventsQuery).toContain("orderRank")
     expect(promotedParentEventsQuery).toContain(
       "count(dates[startDate >= $today]) > 0",
+    )
+  })
+})
+
+describe("public events API query contract", () => {
+  it("selects approved concrete occurrences by an inclusive range", () => {
+    expect(publicEventsQuery).toContain('approvalStatus == "approved"')
+    expect(publicEventsQuery).toContain("$from == null || startDate >= $from")
+    expect(publicEventsQuery).toContain("$to == null || startDate <= $to")
+    expect(publicEventsQuery).toContain("defined(slug.current)")
+    expect(publicEventsQuery).toContain("$includeInternal == true")
+    expect(publicEventsQuery).toContain("_updatedAt")
+  })
+
+  it("keeps historical detail and parent programs available to the service", () => {
+    expect(publicEventBySlugQuery).toContain('approvalStatus == "approved"')
+    expect(publicEventBySlugQuery).toContain("$from == null")
+    expect(publicEventChildrenQuery).toContain("parentEvent._ref == $parentId")
+    expect(publicEventChildrenQuery).toContain(
+      'coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]',
     )
   })
 })

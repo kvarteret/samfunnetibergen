@@ -1,6 +1,7 @@
 import { defineQuery } from "next-sanity"
 
 import { portableTextProjection } from "../fragments/portableText"
+
 const localizedName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")`
 const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "")`
 const localizedNullableTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
@@ -194,3 +195,86 @@ export const feedEventsQuery = defineQuery(`
         "roomText": ${localizedNullableRoomText},
         ${inheritableFieldsProjection}
     }`)
+
+// The public API uses a separate projection so its range selection and
+// modification metadata are explicit. The existing website queries remain
+// compatible while the API moves onto the shared public-event service.
+const PUBLIC_DATE_FILTER = `defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)`
+
+const publicParentProjection = `parentEvent-> {
+    _id,
+    _updatedAt,
+    "slug": coalesce(slug.current, ""),
+    "eventKind": coalesce(eventKind, "single"),
+    eventStatus,
+    ${inheritableFieldsProjection}
+}`
+
+const publicEventProjection = `{
+    _id,
+    _updatedAt,
+    "eventKind": coalesce(eventKind, "single"),
+    eventStatus,
+    "parent": ${publicParentProjection},
+    "slug": coalesce(slug.current, ""),
+    "dates": coalesce(select(
+      eventKind in ["seriesParent", "festivalParent"] => *[
+        _type == "arrangement" &&
+        eventKind in ["seriesInstance", "festivalSession"] &&
+        parentEvent._ref == ^._id &&
+        approvalStatus == "approved" &&
+        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+      ].dates[${PUBLIC_DATE_FILTER}][] | order(startDate asc, startTime asc) {
+        _key,
+        "startDate": coalesce(startDate, ""),
+        startTime,
+        endTime
+      },
+      dates[${PUBLIC_DATE_FILTER}][] | order(startDate asc, startTime asc) {
+        _key,
+        "startDate": coalesce(startDate, ""),
+        startTime,
+        endTime
+      }
+    ), []),
+    "room": room-> {
+        _id,
+        "title": ${localizedTitle},
+        "slug": coalesce(slug.current, ""),
+        floor,
+        "imageUrl": images[0].image.asset->url
+    },
+    "roomText": ${localizedNullableRoomText},
+    ${inheritableFieldsProjection}
+}`
+
+/** Approved concrete events whose dates overlap the requested inclusive range. */
+export const publicEventsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && ${CONCRETE_EVENT_KINDS}
+        && defined(slug.current)
+        && count(dates[${PUBLIC_DATE_FILTER}]) > 0
+        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+    ] | order(dates[${PUBLIC_DATE_FILTER}][0].startDate asc, dates[${PUBLIC_DATE_FILTER}][0].startTime asc, _id asc) ${publicEventProjection}`)
+
+/** Approved event lookup for the public API, including historical records. */
+export const publicEventBySlugQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && slug.current == $slug
+        && approvalStatus == "approved"
+        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+    ][0] ${publicEventProjection}`)
+
+/** Approved child events for a public series/festival program. */
+export const publicEventChildrenQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && parentEvent._ref == $parentId
+        && approvalStatus == "approved"
+        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]
+        && defined(slug.current)
+        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) ${publicEventProjection}`)
