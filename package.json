@@ -43,9 +43,8 @@
     "test:domain": "npm --workspace @samfunnet/content-domain run test",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
-    "lint": "npm run lint:web && npm run lint:studio",
+    "lint": "npm run lint:web",
     "lint:web": "npm --workspace @samfunnet/web run lint",
-    "lint:studio": "npx --no-install biome check --skip=assist/source/organizeImports apps/studio packages/content-domain",
     "check": "npx --no-install biome check --write ."
   },
   "devDependencies": {
