@@ -112,9 +112,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     const firstId = form.state.values.dates[0]?.id
     if (firstId) {
       form.setFieldValue("dates", (dates: typeof initialState.dates) =>
-        dates.map(d =>
-          d.id === firstId ? { ...d, startDate: today, startTime: "21:00" } : d,
-        ),
+        dates.map(d => (d.id === firstId ? { ...d, startDate: today } : d)),
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
