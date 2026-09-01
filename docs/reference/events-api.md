@@ -47,6 +47,9 @@ Example bounded request:
 
     curl -i 'https://www.samfunnetibergen.no/api/v1/events?locale=en&from=2026-09-01&to=2027-02-28'
 
+The generated OpenAPI document is available at
+`https://www.samfunnetibergen.no/api/v1/openapi.json`.
+
 ## Detail
 
 `GET /api/v1/events/{slug}?locale=nb` returns the complete public event record,
@@ -81,8 +84,28 @@ responses are JSON and permit anonymous cross-origin reads. Responses use a
 should use the `links` values for navigation and should tolerate additive
 optional fields in v1. Breaking contract changes will use `/api/v2`.
 
+The route is intended to be anonymously reachable from outside Vercel. The
+website Vercel project must allow `/api/v1/*` and `/api/events/feed` through
+its firewall; a protection-bypass header is for deployment smoke tests only and
+is not part of this client contract.
+
 The API is separate from the optional Schema.org linked-data export at
 `/api/events/feed`. That route is a lossy `DataFeed` representation, while v1
 is the complete application contract. Event JSON-LD remains embedded on
 individual website detail pages for search metadata. No calendar-subscription
 or iCalendar endpoint is currently provided.
+
+## Broadcast readiness
+
+The planned Broadcast pull integration uses `/api/events/feed` and treats each
+`DataFeedItem` `@id` as the stable occurrence match key. Ticket URLs are offer
+metadata, not identity, so two performances sharing a ticket page remain two
+records. The repository audit can report local readiness without exposing
+ticket URLs or private editorial fields:
+
+    npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only
+
+Broadcast venue-id, tag vocabulary, polling, cancellation, and test-workspace
+mapping still require an explicit external agreement. Do not hand off the feed
+as production-ready until the Vercel protection exception and that mapping are
+verified.

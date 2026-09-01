@@ -44,7 +44,7 @@ gh workflow run release-production.yml \
   --ref develop \
   -f ref=develop \
   -f promote=true \
-  -f smoke_paths='/nb /nb/rom /nb/rom/book'
+  -f smoke_paths='/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed'
 ```
 
 The `ref` input controls the checked-out release source. `promote=true` makes
@@ -71,7 +71,8 @@ The workflow must finish successfully. It runs, in order:
 1. format, lint, route and Sanity TypeGen, workspace TypeScript, and test checks;
 2. Vercel production environment pull and production build;
 3. staged Vercel deployment;
-4. HTTP smoke tests for the supplied paths;
+4. HTTP smoke tests for the supplied paths, plus JSON/content-type checks for
+   the public event API, OpenAPI, and Schema.org DataFeed;
 5. promotion of the staged deployment;
 6. creation of the `prod-YYYY.MM.DD.N` Git tag and GitHub release.
 
@@ -101,6 +102,11 @@ staged deployment URL, and promotion result.
   project uses its own credentials and is never selected by this workflow.
 - If smoke tests receive a protected-deployment response, verify
   `VERCEL_AUTOMATION_BYPASS_SECRET` and the requested paths.
+- The staged-release check may use the deployment bypass secret, but production
+  handoff is incomplete until an ordinary external request (without that
+  header) returns the documented API, OpenAPI, and DataFeed responses. The
+  Vercel firewall exception is a project setting and cannot be implemented by
+  CORS headers or repository source.
 - If the workflow is still running, keep watching it; do not treat dispatch or
   an intermediate green step as a completed release.
 

@@ -68,6 +68,7 @@ export const publishedEventSlugsQuery = defineQuery(`
         && approvalStatus == "approved"
         && defined(slug.current)
         && ${CONCRETE_EVENT_KINDS}
+        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true
         && (
             count(dates[startDate >= $today]) > 0
             || eventStatus == "cancelled"

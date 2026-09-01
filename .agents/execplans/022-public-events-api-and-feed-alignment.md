@@ -62,22 +62,25 @@ self-contained and repeats the implementation decisions needed to deliver it.
       pure inheritance/status/schedule/occurrence domain, and server-side API
       service for the v1 slice. Website consumers still use their compatibility
       fetchers and will be migrated in the next slice.
-- [ ] Migrate website consumers, detail-page JSON-LD, and the DataFeed to the
-      shared service.
+- [x] (2026-09-01) Migrated homepage/list/calendar/public detail reads,
+      detail-page JSON-LD, and the DataFeed to the shared occurrence service.
 - [x] (2026-09-01) Implemented and contract-tested `/api/v1/events` and
       `/api/v1/events/{slug}`, including locale/range parsing, 100-item cursor
       pagination, internal opt-in, CORS/OPTIONS/HEAD, error envelopes, and
       Zod output validation.
-- [x] (2026-09-01) Published the generated OpenAPI route and initial external
-      integration guide for the v1 API. Repository-boundary documentation and
-      the deployment smoke path remain in the next slice.
+- [x] (2026-09-01) Published the generated OpenAPI route and external
+      integration guide, updated source-backed repository boundaries, and
+      added staged-release smoke checks for the API/OpenAPI/DataFeed.
 - [ ] Inspect production request logs for unknown feed consumers and communicate
       the breaking ItemList-to-DataFeed shape change before deployment if needed.
-- [ ] Complete the Broadcast mapping agreement, run the readiness audit, and
-      hand off the verified DataFeed URL.
-- [x] (2026-09-01) Ran the focused API/domain tests, web TypeScript check, web
-      lint, diff check, and production web build. TypeGen was also rerun after
-      the public query changes.
+- [x] (2026-09-01) Added the pure Broadcast readiness adapter, safe report-only
+      audit, release-gate mode, duplicate-ticket information, and fixture tests.
+      External mapping agreement and handoff remain blocked on Broadcast.
+- [x] (2026-09-01) Ran the full workspace tests (web 318 tests, Studio 123,
+      content-domain 35), all workspace TypeScript checks, both lint targets,
+      format check, route TypeGen, Sanity TypeGen, diff check, and the
+      production web build. The Broadcast release-gate command also correctly
+      exits nonzero while the live content has incomplete ticketed records.
 - [ ] Deploy, remove the Vercel checkpoint from public API paths, and complete
       unauthenticated production smoke tests.
 
@@ -168,6 +171,14 @@ self-contained and repeats the implementation decisions needed to deliver it.
   but nine lacked a start time, eleven lacked an end time, and one lacked a
   location. Twenty-two met all locally checkable requirements before Broadcast
   venue-id and tag-vocabulary agreement. Counts are dated evidence, not fixed
+  acceptance values.
+
+- Observation: a later 2026-09-01 readiness run found 38 upcoming ticketed
+  occurrences, of which 21 passed local checks. It reported 11 missing end
+  times, 9 missing start times, 4 missing ticket URLs, and 3 unmapped rooms;
+  duplicate ticket URLs are informational and do not collapse occurrences.
+  Evidence: `npm run events:audit:broadcast` against the published Sanity
+  projection. These counts are dated content evidence, not permanent
   acceptance values.
 
 - Observation: `TZDate.toISOString()` in the installed `@date-fns/tz` version
@@ -318,16 +329,19 @@ self-contained and repeats the implementation decisions needed to deliver it.
 
 ## Outcomes & Retrospective
 
-The first API slice is implemented locally: `/api/v1/events`, detail lookup,
-published Sanity selection, occurrence normalization, cursor pagination,
-OpenAPI, and an integration guide are covered by focused tests and the
-production web build. Website consumers, the DataFeed migration, deployment
-exception, and Broadcast readiness remain. Update this section after each
-completed milestone with observable behavior, remaining gaps, and any contract
-adjustment. At final completion, record the deployed URLs, verification
-commands, DataFeed shape, whether Vercel protection was successfully removed
-from both public machine-readable paths, and Broadcast's confirmed
-mapping/readiness result.
+The v1 API, shared website event reads, normalized detail JSON-LD, and
+occurrence-first DataFeed are implemented locally and covered by the full
+workspace test/typecheck/lint/build cycle. The repository now includes
+source-backed ownership docs, staged-release machine-readable smoke checks,
+and a report-only/release-gate Broadcast readiness audit. The current live
+content audit is intentionally red until editors supply the missing event
+data. Production firewall verification, the production-log check, and external
+Broadcast venue/tag mapping and test import remain. Update this section after
+each completed milestone with observable behavior, remaining gaps, and any
+contract adjustment. At final completion, record the deployed URLs,
+verification commands, DataFeed shape, whether Vercel protection was
+successfully removed from both public machine-readable paths, and Broadcast's
+confirmed mapping/readiness result.
 
 ## Context and Orientation
 
@@ -347,11 +361,14 @@ entries. Normal listing queries select `single`, `seriesInstance`, and
 
 The key current source files are:
 
-- `apps/web/src/lib/sanity/queries/events.ts`, which defines list, detail,
-  children, parent-promotion, and feed GROQ queries;
-- `apps/web/src/lib/sanity/fetch/events.ts`, which resolves child inheritance,
-  effective status, display defaults, dates, festival image behavior, and
-  parent summaries;
+- `apps/web/src/lib/sanity/queries/events.ts`, which defines the compatibility
+  list/detail queries and the shared published API projections;
+- `apps/web/src/features/events/server/public-events.ts` and
+  `apps/web/src/features/events/domain/public-events.ts`, which resolve child
+  inheritance, effective status, display defaults, dates, festival image
+  behavior, parent summaries, and normalized occurrences;
+- `apps/web/src/lib/sanity/fetch/events.ts`, which keeps the website fetch API
+  compatible and preserves its draft-mode path;
 - `packages/content-domain/resolve-event.ts`, the pure inheritance/status
   contract;
 - `apps/web/src/app/[locale]/arrangementer/page.tsx`, the card-list server
@@ -372,8 +389,8 @@ The key current source files are:
 
 There is no iCalendar route in the working source or `origin/develop`. Any
 future calendar-subscription representation is outside this plan. The stale
-`app/api/ical/route.ts` references in `.agents/README.md` and the arrangement
-skill must be corrected during Milestone 4.
+`app/api/ical/route.ts` references in the repository guidance have been
+corrected; do not treat iCalendar as an existing public boundary.
 
 Broadcast is an external SaaS consumer, not a repository dependency and not a
 content source. Its current input contract is documented at
@@ -1148,3 +1165,11 @@ occurrence domain, v1 collection/detail handlers, cursor contract, OpenAPI
 route, integration guide, and focused tests are implemented. The plan records
 the `@date-fns/tz` UTC conversion discovery and leaves website/DataFeed
 migration, deployment, and Broadcast onboarding as remaining work.
+
+2026-09-01: Updated after the consumer/feed slice. Website event reads and the
+calendar now use the shared published occurrence service; detail JSON-LD and
+`/api/events/feed` consume normalized occurrences, with the latter now a
+`DataFeed`. Source-backed boundary docs and release smoke checks cover the
+machine-readable paths. The Broadcast readiness adapter and safe audit are
+implemented; external venue/tag mapping and production firewall verification
+remain release prerequisites.

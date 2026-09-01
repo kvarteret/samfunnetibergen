@@ -23,7 +23,7 @@ on:
       smoke_paths:
         description: "Space-separated paths to smoke test before promotion"
         required: true
-        default: "/nb /nb/rom /nb/rom/book"
+        default: "/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed"
 
 permissions:
   contents: write
@@ -198,8 +198,46 @@ jobs:
             fi
           done
         env:
-          SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book' }}
+          SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed' }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - name: Smoke test public machine-readable endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_url="${{ steps.deploy.outputs.url }}"
+          curl_args=(--silent --show-error --location)
+          if [[ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]]; then
+            curl_args+=(--header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
+          fi
+
+          temp_dir="$(mktemp -d)"
+          trap 'rm -rf "$temp_dir"' EXIT
+
+          request_json() {
+            local url="$1"
+            local body="$2"
+            local headers="$3"
+            local status
+            status="$(curl "${curl_args[@]}" --dump-header "$headers" --output "$body" --write-out "%{http_code}" "$url")"
+            echo "${status} ${url}"
+            if [[ "$status" != "200" ]]; then
+              echo "Machine-readable smoke test failed for ${url} with HTTP ${status}" >&2
+              exit 1
+            fi
+          }
+
+          request_json "${base_url%/}/api/v1/events?locale=nb" "$temp_dir/events.json" "$temp_dir/events.headers"
+          request_json "${base_url%/}/api/v1/openapi.json" "$temp_dir/openapi.json" "$temp_dir/openapi.headers"
+          request_json "${base_url%/}/api/events/feed" "$temp_dir/feed.json" "$temp_dir/feed.headers"
+
+          grep -Eiq '^content-type: application/json(;|[[:space:]])' "$temp_dir/events.headers"
+          grep -Eiq '^content-type: application/json(;|[[:space:]])' "$temp_dir/openapi.headers"
+          grep -Eiq '^content-type: application/ld\+json(;|[[:space:]])' "$temp_dir/feed.headers"
+          jq -e '.meta.locale == "nb" and (.data | type == "array")' "$temp_dir/events.json" >/dev/null
+          jq -e '.openapi == "3.1.0"' "$temp_dir/openapi.json" >/dev/null
+          jq -e '.["@type"] == "DataFeed" and (.["dataFeedElement"] | type == "array") and all(.["dataFeedElement"][]; .["@type"] == "DataFeedItem")' "$temp_dir/feed.json" >/dev/null
 
       - name: Promote staged deployment
         if: ${{ github.event_name == 'push' || inputs.promote }}

@@ -12,6 +12,7 @@
     "start": "next start -p 3187",
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
+    "events:audit:broadcast": "tsx scripts/audit-broadcast-readiness.ts",
     "typecheck": "tsc --noEmit",
     "route-typegen": "next typegen",
     "test": "vitest run",

@@ -24,7 +24,9 @@ source.
 - Public occurrence domain: `apps/web/src/features/events/domain/public-events.ts`.
 - Public pages: `apps/web/src/app/[locale]/arrangementer/page.tsx` and
   `apps/web/src/app/[locale]/arrangementer/[event]/page.tsx`.
-- Versioned API: `apps/web/src/app/api/v1/events/`.
+- Versioned API: `apps/web/src/app/api/v1/events/route.ts`,
+  `apps/web/src/app/api/v1/events/[slug]/route.ts`, and
+  `apps/web/src/app/api/v1/openapi.json/route.ts`.
 - Linked-data feed: `apps/web/src/app/api/events/feed/route.ts`.
 - Public event submission: `apps/web/src/features/events/actions/submitEvent.ts`.
 
@@ -37,8 +39,13 @@ source.
   first resolving the ignored generated-file boundary.
 - Event submission creates Sanity `arrangement` documents and uses approval
   state before public display.
+- `/api/v1` is the complete occurrence-first application contract. The
+  `/api/events/feed` DataFeed is a lossy linked-data projection of the same
+  public occurrence service and is not a second content source.
 
 ## Verification
 
 Run `npm run sanity:typegen` after schema or query shape changes. Run
-`npm run build:web` for route, metadata, or feed changes when feasible.
+`npm run build:web` for route, metadata, or feed changes when feasible. Run
+`npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only`
+before handing the DataFeed to an external ingestion consumer.

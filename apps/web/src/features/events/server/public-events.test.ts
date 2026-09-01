@@ -8,7 +8,12 @@ vi.mock("@/lib/sanity/client", () => ({
 vi.mock("@/lib/sanity/fetcher", () => ({ sanityFetch: vi.fn() }))
 vi.mock("next/headers", () => ({ draftMode: vi.fn() }))
 
-import { fetchPublicEventBySlug, fetchPublicEventSet } from "./public-events"
+import {
+  fetchPublicEventBySlug,
+  fetchPublicEventChildren,
+  fetchPublicEventSet,
+  fetchPublicPromotedParentEvents,
+} from "./public-events"
 
 const eventRow = {
   _id: "event-1",
@@ -122,6 +127,45 @@ describe("public event service", () => {
       expect.objectContaining({
         parentId: "parent-1",
         includeInternal: true,
+      }),
+      expect.anything(),
+    )
+  })
+
+  it("fetches promoted parents through the published public service", async () => {
+    fetchMock.mockResolvedValue([eventRow])
+
+    const result = await fetchPublicPromotedParentEvents({
+      locale: "nb",
+      from: "2026-09-01",
+      to: null,
+    })
+
+    expect(result).toHaveLength(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("isPromoted == true"),
+      expect.objectContaining({
+        locale: "nb",
+        from: "2026-09-01",
+        to: null,
+      }),
+      expect.anything(),
+    )
+  })
+
+  it("exposes children as resolved public events for calendar and detail pages", async () => {
+    fetchMock.mockResolvedValue([eventRow])
+
+    const result = await fetchPublicEventChildren("parent-1", "en")
+
+    expect(result[0]?.title).toBe("Event")
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("$parentId"),
+      expect.objectContaining({
+        parentId: "parent-1",
+        locale: "en",
+        from: null,
+        to: null,
       }),
       expect.anything(),
     )

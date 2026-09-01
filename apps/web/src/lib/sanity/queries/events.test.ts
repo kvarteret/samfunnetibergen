@@ -67,4 +67,20 @@ describe("public events API query contract", () => {
       'coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]',
     )
   })
+
+  it("keeps homepage promotion on the same public projection", () => {
+    expect(publicPromotedParentEventsQuery).toContain("isPromoted == true")
+    expect(publicPromotedParentEventsQuery).toContain(
+      "$includeInternal == true",
+    )
+    expect(publicPromotedParentEventsQuery).toContain(
+      "$from == null || startDate >= $from",
+    )
+  })
+
+  it("keeps internal events out of public sitemap slugs", () => {
+    expect(publishedEventSlugsQuery).toContain(
+      "coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true",
+    )
+  })
 })
