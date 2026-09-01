@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-
+import {
+  flattenPublicOccurrences,
+  type RawPublicEvent,
+  resolvePublicEvent,
+} from "@/features/events/domain/public-events"
 import {
   buildEventFeedData,
   buildEventStructuredData,
@@ -8,7 +12,9 @@ import {
   serializeJsonLd,
 } from "./structured-data"
 
-const event = {
+const event: RawPublicEvent = {
+  _id: "event-sommerfest",
+  _updatedAt: "2026-07-01T10:00:00.000Z",
   slug: "sommerfest",
   title: "Sommerfest",
   dates: [
@@ -40,12 +46,28 @@ const event = {
   ],
   imageUrl: "https://cdn.example.com/sommerfest.jpg",
   organizerText: "Samfunnet i Bergen",
-  room: { title: "Storsalen" },
+  room: {
+    _id: "room-storsalen",
+    title: "Storsalen",
+    slug: "storsalen",
+    floor: 1,
+    imageUrl: null,
+  },
   roomText: null,
   eventStatus: "scheduled" as const,
   isFree: false,
   priceStudent: 50,
   ticketUrl: "https://tickets.example.com/sommerfest",
+}
+
+function occurrencesFor(
+  input: RawPublicEvent = event,
+  range: { from: string | null; to: string | null } = {
+    from: "2026-07-14",
+    to: null,
+  },
+) {
+  return flattenPublicOccurrences([resolvePublicEvent(input)], range)
 }
 
 describe("structured data", () => {
@@ -102,10 +124,9 @@ describe("structured data", () => {
   })
 
   it("builds localized future event occurrences without fabricating end times", () => {
-    const data = buildEventStructuredData(event, {
+    const data = buildEventStructuredData(occurrencesFor(), {
       siteUrl: "https://example.com",
       locale: "nb",
-      today: "2026-07-14",
     })
 
     expect(data).toMatchObject({
@@ -113,9 +134,11 @@ describe("structured data", () => {
       "@graph": [
         {
           "@type": "Event",
-          "@id": "https://example.com/nb/arrangementer/sommerfest#occurrence-a",
+          "@id": expect.stringContaining(
+            "https://example.com/nb/arrangementer/sommerfest#occurrence%3A",
+          ),
           url: "https://example.com/nb/arrangementer/sommerfest",
-          startDate: "2026-07-15T19:00:00.000+02:00",
+          startDate: "2026-07-15T17:00:00.000Z",
           name: "Sommerfest",
           description: "Trygg <tekst>",
           location: {
@@ -135,15 +158,19 @@ describe("structured data", () => {
             url: "https://example.com",
           },
           inLanguage: "nb",
-          offers: {
-            "@type": "Offer",
-            price: "50",
-            priceCurrency: "NOK",
-            url: "https://tickets.example.com/sommerfest",
-          },
+          offers: [
+            expect.objectContaining({
+              "@type": "Offer",
+              price: "50",
+              priceCurrency: "NOK",
+              url: "https://tickets.example.com/sommerfest",
+            }),
+          ],
         },
         {
-          "@id": "https://example.com/nb/arrangementer/sommerfest#date-only",
+          "@id": expect.stringContaining(
+            "https://example.com/nb/arrangementer/sommerfest#occurrence%3A",
+          ),
           startDate: "2026-07-16",
         },
       ],
@@ -158,22 +185,26 @@ describe("structured data", () => {
   })
 
   it("shares event nodes with the localized event feed", () => {
-    const feed = buildEventFeedData([event], {
+    const feed = buildEventFeedData(occurrencesFor(), {
       siteUrl: "https://example.com",
       locale: "nb",
-      today: "2026-07-14",
     })
 
     expect(feed).toMatchObject({
-      "@type": "ItemList",
-      url: "https://example.com/nb/arrangementer",
-      numberOfItems: 2,
+      "@type": "DataFeed",
+      "@id": "https://example.com/api/events/feed",
+      url: "https://example.com/api/events/feed",
+      inLanguage: "nb",
     })
+    expect(feed.dataFeedElement).toHaveLength(2)
 
-    expect(feed.itemListElement).toEqual(
+    expect(feed.dataFeedElement).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          "@type": "ListItem",
+          "@type": "DataFeedItem",
+          "@id": expect.stringContaining(
+            "https://example.com/api/events/feed#occurrence%3A",
+          ),
           item: expect.objectContaining({
             url: "https://example.com/nb/arrangementer/sommerfest",
           }),
@@ -184,27 +215,31 @@ describe("structured data", () => {
 
   it("uses Kvarteret's address only for referenced rooms", () => {
     const referencedRoom = buildEventStructuredData(
-      {
+      occurrencesFor({
         ...event,
-        room: { title: "Teglverket" },
+        room: {
+          _id: "room-teglverket",
+          title: "Teglverket",
+          slug: "teglverket",
+          floor: 1,
+          imageUrl: null,
+        },
         roomText: null,
-      },
+      }),
       {
         siteUrl: "https://example.com",
         locale: "nb",
-        today: "2026-07-14",
       },
     )
     const freeTextVenue = buildEventStructuredData(
-      {
+      occurrencesFor({
         ...event,
         room: null,
         roomText: "Litteraturhuset, Østre Skostredet 5",
-      },
+      }),
       {
         siteUrl: "https://example.com",
         locale: "nb",
-        today: "2026-07-14",
       },
     )
 
@@ -244,15 +279,14 @@ describe("structured data", () => {
   it("omits Event markup when the venue is missing", () => {
     expect(
       buildEventStructuredData(
-        {
+        occurrencesFor({
           ...event,
           room: null,
           roomText: null,
-        },
+        }),
         {
           siteUrl: "https://example.com",
           locale: "nb",
-          today: "2026-07-14",
         },
       ),
     ).toBeNull()
@@ -260,18 +294,21 @@ describe("structured data", () => {
 
   it("links known organizer profiles and describes free admission as an offer", () => {
     const data = buildEventStructuredData(
-      {
+      occurrencesFor({
         ...event,
-        organizerGroup: { name: "Quiz-gruppen", slug: "quiz-gruppen" },
+        organizerGroup: {
+          _id: "quiz-gruppen",
+          name: "Quiz-gruppen",
+          slug: "quiz-gruppen",
+        },
         organizerText: null,
         isFree: true,
         priceStudent: null,
         ticketUrl: null,
-      },
+      }),
       {
         siteUrl: "https://example.com",
         locale: "nb",
-        today: "2026-07-14",
       },
     )
 
@@ -287,12 +324,14 @@ describe("structured data", () => {
         name: "Quiz-gruppen",
         url: "https://example.com/nb/grupper/quiz-gruppen",
       },
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "NOK",
-        availability: "https://schema.org/InStock",
-      },
+      offers: [
+        expect.objectContaining({
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "NOK",
+          availability: "https://schema.org/InStock",
+        }),
+      ],
     })
   })
 
@@ -359,11 +398,10 @@ describe("structured data", () => {
   it("omits Event markup when every occurrence is historical", () => {
     expect(
       buildEventStructuredData(
-        { ...event, dates: [event.dates[2]] },
+        occurrencesFor({ ...event, dates: [event.dates?.[2] ?? null] }),
         {
           siteUrl: "https://example.com",
           locale: "nb",
-          today: "2026-07-14",
         },
       ),
     ).toBeNull()

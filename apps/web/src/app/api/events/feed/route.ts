@@ -1,59 +1,53 @@
-import { createClient } from "next-sanity"
-import {
-  resolveEffectiveStatus,
-  resolveEventContent,
-} from "@samfunnet/content-domain/resolve-event"
-import {
-  buildEventFeedData,
-  serializeJsonLd,
-  type StructuredEvent,
-} from "@/lib/structured-data"
-import { apiVersion, dataset, projectId } from "@/lib/sanity/env"
+import { fetchPublicEventSet } from "@/features/events/server/public-events"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
-import { feedEventsQuery } from "@/lib/sanity/queries/events"
 import { resolveSiteUrl } from "@/lib/site-url"
+import { buildEventFeedData, serializeJsonLd } from "@/lib/structured-data"
 
-const client = createClient({ projectId, dataset, apiVersion, useCdn: false })
-
-export const revalidate = 300
-export const dynamic = "force-static"
-
-type RawFeedEvent = Awaited<ReturnType<typeof fetchEvents>>[number]
-
-/** ADR 005: every feed entry is a concrete occurrence. Inheritable fields
- * fall back to the parent; the effective status combines child and parent
- * status. The non-standard `rrule` extension is gone — consumers no longer
- * expand recurrence. */
-function resolveFeedEvent(raw: RawFeedEvent): StructuredEvent {
-  const { parent, ...child } = raw
-  return {
-    ...resolveEventContent(child, parent),
-    dates: raw.dates ?? [],
-    eventStatus: resolveEffectiveStatus(raw.eventStatus, parent?.eventStatus),
-  }
-}
-
-async function fetchEvents() {
-  const today = getOsloDateString()
-  return client.fetch(feedEventsQuery, { today, locale: "nb" })
-}
+export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   const today = getOsloDateString()
-  const rawEvents = await fetchEvents()
-  const events = rawEvents.map(resolveFeedEvent)
+  const { occurrences } = await fetchPublicEventSet({
+    locale: "nb",
+    from: today,
+    to: null,
+  })
   const body = serializeJsonLd(
-    buildEventFeedData(events, {
+    buildEventFeedData(occurrences, {
       siteUrl: resolveSiteUrl(),
       locale: "nb",
-      today,
     }),
   )
 
   return new Response(body, {
     headers: {
       "Content-Type": "application/ld+json; charset=utf-8",
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+    },
+  })
+}
+
+export async function HEAD(): Promise<Response> {
+  const response = await GET()
+  return new Response(null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+}
+
+export function OPTIONS(): Response {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Accept, Content-Type, Origin",
+      "Access-Control-Max-Age": "86400",
+      Allow: "GET, HEAD, OPTIONS",
     },
   })
 }

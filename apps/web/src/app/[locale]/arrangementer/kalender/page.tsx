@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
 import { EventCalendarPage } from "@/features/events"
+import { startOfCurrentWeek } from "@/features/events/domain/calendar"
+import { fetchPublicEventSet } from "@/features/events/server/public-events"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -8,7 +10,6 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { fetchPublishedEvents } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 
 export const revalidate = 60
@@ -37,12 +38,19 @@ export default async function CalendarPage({
 }: PageProps<"/[locale]/arrangementer/kalender">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
+  const today = getOsloDateString()
 
-  const [t, arrangements, resolvedSearchParams] = await Promise.all([
-    getTranslations({ locale, namespace: "EventsPage" }),
-    fetchPublishedEvents(locale),
-    searchParams,
-  ])
+  const [t, { events: arrangements }, resolvedSearchParams] = await Promise.all(
+    [
+      getTranslations({ locale, namespace: "EventsPage" }),
+      fetchPublicEventSet({
+        locale,
+        from: startOfCurrentWeek(today),
+        to: null,
+      }),
+      searchParams,
+    ],
+  )
 
   return (
     <EventCalendarPage
@@ -52,7 +60,7 @@ export default async function CalendarPage({
       locale={locale}
       searchParams={resolvedSearchParams}
       title={t("calendarTitle")}
-      today={getOsloDateString()}
+      today={today}
     />
   )
 }

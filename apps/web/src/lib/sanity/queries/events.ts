@@ -166,36 +166,6 @@ export const eventChildrenQuery = defineQuery(`
         && approvalStatus == "approved"
     ] | order(dates[0].startDate asc) ${eventProjection}`)
 
-// The internal-event flag is inheritable, so the feed's exclusion must
-// consider the parent's flag for children that never set their own.
-// The $today date filter here trims payload; the structured-data builder
-// filters by its own "today" again because cached query results can span a
-// date boundary within the revalidation window.
-export const feedEventsQuery = defineQuery(`
-    *[
-        _type == "arrangement"
-        && approvalStatus == "approved"
-        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true
-        && ${CONCRETE_EVENT_KINDS}
-        && count(dates[startDate >= $today]) > 0
-    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) {
-        _id,
-        _updatedAt,
-        "eventKind": coalesce(eventKind, "single"),
-        eventStatus,
-        "parent": ${parentProjection},
-        "slug": coalesce(slug.current, ""),
-        "dates": coalesce(dates[startDate >= $today] | order(startDate asc) {
-            _key,
-            "startDate": coalesce(startDate, ""),
-            startTime,
-            endTime
-        }, []),
-        "room": room-> { "title": ${localizedTitle} },
-        "roomText": ${localizedNullableRoomText},
-        ${inheritableFieldsProjection}
-    }`)
-
 // The public API uses a separate projection so its range selection and
 // modification metadata are explicit. The existing website queries remain
 // compatible while the API moves onto the shared public-event service.
@@ -215,6 +185,13 @@ const publicEventProjection = `{
     _updatedAt,
     "eventKind": coalesce(eventKind, "single"),
     eventStatus,
+    "isPromoted": coalesce(isPromoted, false),
+    promotedPlacement,
+    promotedOrder,
+    orderRank,
+    "isRecurring": coalesce(isRecurring, false),
+    rrule,
+    "useFestivalImage": coalesce(useFestivalImage, true),
     "parent": ${publicParentProjection},
     "slug": coalesce(slug.current, ""),
     "dates": coalesce(select(
@@ -258,6 +235,24 @@ export const publicEventsQuery = defineQuery(`
         && count(dates[${PUBLIC_DATE_FILTER}]) > 0
         && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
     ] | order(dates[${PUBLIC_DATE_FILTER}][0].startDate asc, dates[${PUBLIC_DATE_FILTER}][0].startTime asc, _id asc) ${publicEventProjection}`)
+
+/** Promoted public parents used by the homepage feature surface. */
+export const publicPromotedParentEventsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && isPromoted == true
+        && ${PARENT_EVENT_KINDS}
+        && count(*[
+          _type == "arrangement"
+          && eventKind in ["seriesInstance", "festivalSession"]
+          && parentEvent._ref == ^._id
+          && approvalStatus == "approved"
+          && count(dates[${PUBLIC_DATE_FILTER}]) > 0
+          && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+        ]) > 0
+        && ($includeInternal == true || coalesce(isInternalEvent, false) != true)
+    ] | order(promotedOrder asc, orderRank asc, _id asc) ${publicEventProjection}`)
 
 /** Approved event lookup for the public API, including historical records. */
 export const publicEventBySlugQuery = defineQuery(`

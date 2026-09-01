@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { buildCalendarMonths } from "./calendar"
-import type { PublishedEvent } from "./eventUtils"
+import { resolvePublicEvent } from "./public-events"
 
 function event(
   id: string,
@@ -11,11 +11,12 @@ function event(
     startTime?: string | null
   }>,
 ) {
-  return {
+  return resolvePublicEvent({
     _id: id,
     title: id,
-    dates,
-  } as unknown as PublishedEvent
+    eventStatus: "scheduled",
+    dates: dates.map(date => ({ ...date, endTime: null })),
+  })
 }
 
 describe("calendar event grouping", () => {
@@ -34,7 +35,7 @@ describe("calendar event grouping", () => {
     expect(months).toHaveLength(2)
     expect(months[0]?.eventCount).toBe(1)
     expect(months[0]?.days[0]?.date).toBe("2026-08-24")
-    expect(months[0]?.days[0]?.occurrences[0]?.date.startDate).toBe(
+    expect(months[0]?.days[0]?.occurrences[0]?.schedule.startDate).toBe(
       "2026-08-24",
     )
     expect(months[1]?.eventCount).toBe(1)
@@ -82,7 +83,7 @@ describe("calendar event grouping", () => {
     expect(months[1]?.leadingEmptyDays).toBe(1)
   })
 
-  it("sorts events within a day by time and then title", () => {
+  it("sorts events within a day by time and then stable event id", () => {
     const months = buildCalendarMonths(
       [
         event("late", [

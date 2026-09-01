@@ -5,6 +5,7 @@ import { sanityClient } from "@/lib/sanity/client"
 import {
   publicEventBySlugQuery,
   publicEventChildrenQuery,
+  publicPromotedParentEventsQuery,
   publicEventsQuery,
 } from "@/lib/sanity/queries"
 
@@ -66,6 +67,44 @@ export async function fetchPublicEventSet({
   }
 }
 
+export async function fetchPublicPromotedParentEvents({
+  locale,
+  from,
+  to,
+  includeInternal = false,
+}: PublicEventSetOptions): Promise<PublicEvent[]> {
+  const rows = await sanityClient.fetch(
+    publicPromotedParentEventsQuery,
+    {
+      locale,
+      from,
+      to,
+      includeInternal,
+    },
+    PUBLIC_QUERY_OPTIONS,
+  )
+  return resolveRows(rows)
+}
+
+export async function fetchPublicEventChildren(
+  parentId: string,
+  locale: AppLocale,
+  includeInternal = false,
+): Promise<PublicEvent[]> {
+  const rows = await sanityClient.fetch(
+    publicEventChildrenQuery,
+    {
+      parentId,
+      locale,
+      from: null,
+      to: null,
+      includeInternal,
+    },
+    PUBLIC_QUERY_OPTIONS,
+  )
+  return resolveRows(rows)
+}
+
 export async function fetchPublicEventBySlug(
   slug: string,
   locale: AppLocale,
@@ -89,20 +128,12 @@ export async function fetchPublicEventBySlug(
     event.eventKind === "seriesParent" || event.eventKind === "festivalParent"
   if (!isParent) return { event, children: [] }
 
-  const childRows = await sanityClient.fetch(
-    publicEventChildrenQuery,
-    {
-      parentId: event._id,
-      locale,
-      from: null,
-      to: null,
-      includeInternal,
-    },
-    PUBLIC_QUERY_OPTIONS,
-  )
-
   return {
     event,
-    children: resolveRows(childRows),
+    children: await fetchPublicEventChildren(
+      event._id,
+      locale,
+      includeInternal,
+    ),
   }
 }

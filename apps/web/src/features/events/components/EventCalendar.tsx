@@ -2,8 +2,8 @@
 
 import { ArrowDown, CalendarDays } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { useState } from "react"
 
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
@@ -49,7 +49,7 @@ function formatDayLabel(date: string, locale: AppLocale) {
 }
 
 function formatTime(occurrence: CalendarOccurrence, prefix: string) {
-  const { startTime, endTime } = occurrence.date
+  const { startTime, endTime } = occurrence.schedule
   if (!startTime) return null
   return endTime
     ? `${prefix} ${startTime}–${endTime}`
@@ -126,10 +126,7 @@ function CalendarDayCell({
       </h3>
       <div className="space-y-3">
         {day.occurrences.map(occurrence => (
-          <CalendarEvent
-            key={`${occurrence.event._id}-${occurrence.date._key}`}
-            occurrence={occurrence}
-          />
+          <CalendarEvent key={occurrence.id} occurrence={occurrence} />
         ))}
       </div>
     </article>
@@ -150,10 +147,7 @@ function MobileCalendarDayCell({
       </h3>
       <div className="space-y-5 py-3">
         {day.occurrences.map(occurrence => (
-          <CalendarEvent
-            key={`${occurrence.event._id}-${occurrence.date._key}`}
-            occurrence={occurrence}
-          />
+          <CalendarEvent key={occurrence.id} occurrence={occurrence} />
         ))}
       </div>
     </article>

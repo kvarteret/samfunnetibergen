@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
 import { JsonLd } from "@/components/JsonLd"
+import { flattenPublicOccurrences } from "@/features/events/domain/public-events"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
@@ -52,11 +53,16 @@ export default async function EventPage({ params }: EventPageProps) {
   const childEvents = isParentEvent
     ? await fetchEventChildren(eventData._id, locale, { stega: false })
     : []
-  const eventJsonLd = buildEventStructuredData(eventData, {
-    siteUrl: resolveSiteUrl(),
-    locale,
-    today: getOsloDateString(),
-  })
+  const today = getOsloDateString()
+  const eventJsonLd = buildEventStructuredData(
+    isParentEvent
+      ? flattenPublicOccurrences(childEvents, { from: today, to: null })
+      : flattenPublicOccurrences([eventData], { from: today, to: null }),
+    {
+      siteUrl: resolveSiteUrl(),
+      locale,
+    },
+  )
 
   return (
     <>

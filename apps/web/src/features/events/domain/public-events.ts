@@ -60,15 +60,27 @@ export type PublicRoom = {
   imageUrl: string | null
 }
 
+type PublicPortableTextBlock = {
+  _key?: string
+  _type: string
+  [key: string]: unknown
+}
+
 export type PublicEvent = {
   _id: string
   _updatedAt: string | null
   effectiveUpdatedAt: string | null
   eventKind: PublicEventKind
   eventStatus: EventStatus
+  isPromoted: boolean
+  promotedPlacement: "top" | "pool" | null
+  promotedOrder: number | null
+  orderRank: string | null
+  isRecurring: boolean
+  rrule: string | null
   slug: string
   title: string
-  description: readonly unknown[]
+  description: PublicPortableTextBlock[]
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
@@ -139,6 +151,12 @@ export type RawPublicEvent = {
   _updatedAt?: string | null
   eventKind?: string | null
   eventStatus?: EventStatus | null
+  isPromoted?: boolean | null
+  promotedPlacement?: "top" | "pool" | null
+  promotedOrder?: number | null
+  orderRank?: string | null
+  isRecurring?: boolean | null
+  rrule?: string | null
   parent?: RawPublicParent | null
   slug?: string | null
   title?: string | null
@@ -337,9 +355,17 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       content.eventStatus ?? null,
       cleanParent?.eventStatus ?? null,
     ),
+    isPromoted: content.isPromoted ?? false,
+    promotedPlacement: content.promotedPlacement ?? null,
+    promotedOrder: content.promotedOrder ?? null,
+    orderRank: content.orderRank ?? null,
+    isRecurring: content.isRecurring ?? false,
+    rrule: normalizeString(content.rrule),
     slug: normalizeString(content.slug) ?? "",
     title: normalizeString(content.title) ?? MISSING_TITLE,
-    description: Array.isArray(content.description) ? content.description : [],
+    description: Array.isArray(content.description)
+      ? (content.description as PublicPortableTextBlock[])
+      : [],
     imageUrl: normalizeString(content.imageUrl),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,

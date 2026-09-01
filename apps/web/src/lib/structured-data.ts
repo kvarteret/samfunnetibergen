@@ -1,14 +1,9 @@
-import { TZDate } from "@date-fns/tz"
 import { toPlainText } from "@portabletext/toolkit"
-import {
-  type EventStatus,
-  schemaOrgEventStatus,
-} from "@samfunnet/content-domain/resolve-event"
+import { schemaOrgEventStatus } from "@samfunnet/content-domain/resolve-event"
 
-const OSLO_TIME_ZONE = "Europe/Oslo"
+import type { PublicOccurrence } from "@/features/events/domain/public-events"
+
 const SCHEMA_CONTEXT = "https://schema.org"
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
-const TIME_PATTERN = /^\d{2}:\d{2}(:\d{2})?$/
 const KVARTERET_MAP_URL =
   "https://www.google.com/maps/place/Det+Akademiske+Kvarter/@60.3896713,5.3212395,19z/data=!3m1!4b1!4m6!3m5!1s0x463cfc0208521f51:0xbdfb43c9a516175!8m2!3d60.3896713!4d5.3218932!16zL20vMDNxZGJn?entry=ttu&g_ep=EgoyMDI2MDcxOS4wIKXMDSoASAFQAw%3D%3D"
 const ORGANIZATION_SAME_AS = [
@@ -23,31 +18,6 @@ const KVARTERET_ADDRESS = {
   addressLocality: "Bergen",
   addressCountry: "NO",
 } as const
-
-export type StructuredEventDate = {
-  _key?: string | null
-  startDate: string
-  startTime?: string | null
-  endTime?: string | null
-}
-
-export type StructuredEvent = {
-  slug: string
-  title?: string | null
-  dates: readonly StructuredEventDate[]
-  description?: unknown
-  imageUrl?: string | null
-  organizerGroup?: { name?: string | null; slug?: string | null } | null
-  organizerText?: string | null
-  room?: { title?: string | null } | null
-  roomText?: string | null
-  eventStatus?: EventStatus | null
-  isFree?: boolean | null
-  priceOrdinar?: number | null
-  priceStudent?: number | null
-  priceMedlem?: number | null
-  ticketUrl?: string | null
-}
 
 export type StructuredFaqSection = {
   _type?: string | null
@@ -78,29 +48,8 @@ type EventBuildOptions = {
   locale: string
 }
 
-type EventOccurrenceOptions = EventBuildOptions & {
-  today: string
-}
-
 function normalizedSiteUrl(siteUrl: string) {
   return siteUrl.replace(/\/+$/, "")
-}
-
-function toOsloTimestamp(date: string, time: string) {
-  if (!TIME_PATTERN.test(time)) return null
-
-  const [year, month, day] = date.split("-").map(Number)
-  const [hours, minutes, seconds = 0] = time.split(":").map(Number)
-
-  return new TZDate(
-    year,
-    month - 1,
-    day,
-    hours,
-    minutes,
-    seconds,
-    OSLO_TIME_ZONE,
-  ).toISOString()
 }
 
 export function toPlainTextContent(value: unknown): string | undefined {
@@ -155,79 +104,146 @@ export function buildOrganizationWebsiteGraph(
   }
 }
 
-export function buildEventStructuredDataNode(
-  event: StructuredEvent,
-  date: StructuredEventDate,
+function eventWebsiteUrl(
+  occurrence: PublicOccurrence,
   { siteUrl, locale }: EventBuildOptions,
-): StructuredEventNode | null {
-  if (!DATE_PATTERN.test(date.startDate)) return null
+) {
+  return `${normalizedSiteUrl(siteUrl)}/${locale}/arrangementer/${encodeURIComponent(occurrence.event.slug)}`
+}
 
-  const baseUrl = normalizedSiteUrl(siteUrl)
-  const canonicalUrl = `${baseUrl}/${locale}/arrangementer/${encodeURIComponent(event.slug)}`
-  const occurrenceKey = encodeURIComponent(date._key || date.startDate)
-  const startDate = date.startTime
-    ? toOsloTimestamp(date.startDate, date.startTime)
-    : date.startDate
-  if (!startDate) return null
+function buildOffers(event: PublicOccurrence["event"]) {
+  const ticketUrl = event.ticketUrl ?? undefined
+  const offers: Record<string, unknown>[] = []
 
-  const endDate = date.endTime
-    ? toOsloTimestamp(date.startDate, date.endTime)
-    : null
-  const name = event.title?.trim() || "[Mangler arrangementstittel]"
+  if (event.isFree) {
+    offers.push({
+      "@type": "Offer",
+      name: "Free entry",
+      price: "0",
+      priceCurrency: "NOK",
+      availability: "https://schema.org/InStock",
+      ...(ticketUrl ? { url: ticketUrl } : {}),
+    })
+    return offers
+  }
+
+  for (const [name, price] of [
+    ["Ordinary", event.priceOrdinar],
+    ["Student", event.priceStudent],
+    ["Member", event.priceMedlem],
+  ] as const) {
+    if (typeof price !== "number" || !Number.isFinite(price)) continue
+    offers.push({
+      "@type": "Offer",
+      name,
+      price: String(price),
+      priceCurrency: "NOK",
+      availability: "https://schema.org/InStock",
+      ...(ticketUrl ? { url: ticketUrl } : {}),
+    })
+  }
+
+  if (offers.length === 0 && ticketUrl) {
+    offers.push({
+      "@type": "Offer",
+      url: ticketUrl,
+      availability: "https://schema.org/InStock",
+    })
+  }
+
+  return offers
+}
+
+function buildKeywords(event: PublicOccurrence["event"]): string[] {
+  return [event.eventType?.taxonomyGroup?.name, event.eventType?.name]
+    .map(value => value?.trim())
+    .filter((value, index, values): value is string =>
+      Boolean(value && values.indexOf(value) === index),
+    )
+    .slice(0, 3)
+}
+
+function buildLocation(
+  occurrence: PublicOccurrence,
+  { siteUrl, locale }: EventBuildOptions,
+) {
+  const { event } = occurrence
   const roomName = firstNonEmpty(event.room?.title)
   const freeTextLocation = firstNonEmpty(event.roomText)
-  const locationName = roomName ?? freeTextLocation
-  if (!locationName) return null
+  if (!roomName && !freeTextLocation) return null
+
+  if (roomName && event.room) {
+    const roomUrl = event.room.slug
+      ? `${normalizedSiteUrl(siteUrl)}/${locale}/rom/${encodeURIComponent(event.room.slug)}`
+      : undefined
+    return {
+      "@type": "Place",
+      name: roomName,
+      ...(roomUrl ? { "@id": roomUrl, url: roomUrl } : {}),
+      address: KVARTERET_ADDRESS,
+      containedInPlace: { "@id": `${normalizedSiteUrl(siteUrl)}#place` },
+    }
+  }
+
+  return {
+    "@type": "Place",
+    name: freeTextLocation,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: freeTextLocation,
+    },
+  }
+}
+
+export function buildEventStructuredDataNode(
+  occurrence: PublicOccurrence,
+  {
+    siteUrl,
+    locale,
+    allowMissingLocation = false,
+    eventId,
+  }: EventBuildOptions & {
+    allowMissingLocation?: boolean
+    eventId?: string
+  },
+): StructuredEventNode | null {
+  const { event, schedule } = occurrence
+  const location = buildLocation(occurrence, { siteUrl, locale })
+  if (!location && !allowMissingLocation) return null
+
+  const canonicalUrl = eventWebsiteUrl(occurrence, { siteUrl, locale })
+  const occurrenceKey = encodeURIComponent(occurrence.id)
+  const node: StructuredEventNode = {
+    "@type": "Event",
+    "@id": eventId ?? `${canonicalUrl}#${occurrenceKey}`,
+    name: event.title,
+    url: canonicalUrl,
+    startDate: schedule.startsAt ?? schedule.startDate,
+    inLanguage: locale,
+  }
+
+  if (schedule.endsAt) node.endDate = schedule.endsAt
+  const description = toPlainTextContent(event.description)
+  if (description) node.description = description
+  if (event.imageUrl) node.image = event.imageUrl
+  if (location) node.location = location
+
+  const keywords = buildKeywords(event)
+  if (keywords.length > 0) node.keywords = keywords
+  node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
 
   const organizerName = firstNonEmpty(
     event.organizerGroup?.name,
     event.organizerText,
   )
-  const description = toPlainTextContent(event.description)
-  const imageUrl = event.imageUrl?.trim()
-  const ticketUrl = event.ticketUrl?.trim()
-  const price = [
-    event.priceStudent,
-    event.priceOrdinar,
-    event.priceMedlem,
-  ].find(value => typeof value === "number" && Number.isFinite(value))
-
-  const node: StructuredEventNode = {
-    "@type": "Event",
-    "@id": `${canonicalUrl}#${occurrenceKey}`,
-    name,
-    url: canonicalUrl,
-    startDate,
-    inLanguage: "nb",
-  }
-
-  if (endDate) node.endDate = endDate
-  if (description) node.description = description
-  if (imageUrl) node.image = imageUrl
-  node.location = {
-    "@type": "Place",
-    name: locationName,
-    ...(roomName
-      ? {
-          address: KVARTERET_ADDRESS,
-          containedInPlace: { "@id": `${baseUrl}#place` },
-        }
-      : {
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: freeTextLocation,
-          },
-        }),
-  }
-  node.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
   if (organizerName) {
     const organizerSlug = event.organizerGroup?.slug?.trim()
     const organizerUrl = organizerSlug
-      ? `${baseUrl}/${locale}/grupper/${encodeURIComponent(organizerSlug)}`
+      ? `${normalizedSiteUrl(siteUrl)}/${locale}/grupper/${encodeURIComponent(organizerSlug)}`
       : ["samfunnet i bergen", "studentersamfunnet"].includes(
             organizerName.toLocaleLowerCase("nb-NO"),
           )
-        ? baseUrl
+        ? normalizedSiteUrl(siteUrl)
         : undefined
 
     node.organizer = {
@@ -236,48 +252,22 @@ export function buildEventStructuredDataNode(
       ...(organizerUrl ? { url: organizerUrl } : {}),
     }
   }
-  if (event.eventStatus) {
-    node.eventStatus = schemaOrgEventStatus(event.eventStatus)
-  }
-  if (typeof event.isFree === "boolean") {
-    node.isAccessibleForFree = event.isFree
-  }
-  if (event.isFree === true) {
-    node.offers = {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "NOK",
-      availability: "https://schema.org/InStock",
-    }
-  } else if (price != null || ticketUrl) {
-    node.offers = {
-      "@type": "Offer",
-      ...(price != null ? { price: String(price), priceCurrency: "NOK" } : {}),
-      ...(ticketUrl ? { url: ticketUrl } : {}),
-      availability: "https://schema.org/InStock",
-    }
-  }
+  node.eventStatus = schemaOrgEventStatus(event.eventStatus)
+  node.isAccessibleForFree = event.isFree
+  const offers = buildOffers(event)
+  if (offers.length > 0) node.offers = offers
 
   return node
 }
 
-function buildOccurrenceNodes(
-  event: StructuredEvent,
-  { siteUrl, locale, today }: EventOccurrenceOptions,
-): StructuredEventNode[] {
-  return event.dates.flatMap(date => {
-    if (date.startDate < today) return []
-    const node = buildEventStructuredDataNode(event, date, { siteUrl, locale })
+export function buildEventStructuredData(
+  occurrences: readonly PublicOccurrence[],
+  options: EventBuildOptions,
+): StructuredDataDocument | null {
+  const nodes = occurrences.flatMap(occurrence => {
+    const node = buildEventStructuredDataNode(occurrence, options)
     return node ? [node] : []
   })
-}
-
-export function buildEventStructuredData(
-  event: StructuredEvent,
-  options: EventOccurrenceOptions,
-): StructuredDataDocument | null {
-  const nodes = buildOccurrenceNodes(event, options)
-
   if (nodes.length === 0) return null
 
   return {
@@ -287,23 +277,44 @@ export function buildEventStructuredData(
 }
 
 export function buildEventFeedData(
-  events: readonly StructuredEvent[],
-  options: EventOccurrenceOptions,
+  occurrences: readonly PublicOccurrence[],
+  options: EventBuildOptions,
 ): StructuredDataDocument {
-  const items = events.flatMap(event => buildOccurrenceNodes(event, options))
-  const feedUrl = `${normalizedSiteUrl(options.siteUrl)}/${options.locale}/arrangementer`
+  const baseUrl = normalizedSiteUrl(options.siteUrl)
+  const feedUrl = `${baseUrl}/api/events/feed`
+  const items = occurrences.flatMap(occurrence => {
+    const itemId = `${feedUrl}#${encodeURIComponent(occurrence.id)}`
+    const event = buildEventStructuredDataNode(occurrence, {
+      ...options,
+      allowMissingLocation: true,
+      eventId: `${eventWebsiteUrl(occurrence, options)}#${encodeURIComponent(occurrence.id)}`,
+    })
+    if (!event) return []
+
+    const updatedAt = occurrence.event.effectiveUpdatedAt
+    const dateModified =
+      updatedAt && Number.isFinite(Date.parse(updatedAt))
+        ? new Date(updatedAt).toISOString()
+        : undefined
+
+    return [
+      {
+        "@type": "DataFeedItem",
+        "@id": itemId,
+        ...(dateModified ? { dateModified } : {}),
+        item: event,
+      },
+    ]
+  })
 
   return {
     "@context": SCHEMA_CONTEXT,
-    "@type": "ItemList",
+    "@type": "DataFeed",
+    "@id": feedUrl,
     name: "Arrangementer — Samfunnet i Bergen",
     url: feedUrl,
-    numberOfItems: items.length,
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      item,
-    })),
+    inLanguage: options.locale,
+    dataFeedElement: items,
   }
 }
 

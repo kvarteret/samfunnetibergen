@@ -2,101 +2,35 @@ import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
 import { draftMode } from "next/headers"
-import type { AppLocale } from "@/i18n/routing"
 import {
-  type EventStatus,
-  resolveEffectiveStatus,
-  resolveEventContent,
-} from "@samfunnet/content-domain/resolve-event"
+  type PublicEvent,
+  type RawPublicEvent,
+  resolvePublicEvent,
+} from "@/features/events/domain/public-events"
+import {
+  fetchPublicEventBySlug,
+  fetchPublicEventChildren,
+  fetchPublicEventSet,
+  fetchPublicPromotedParentEvents,
+} from "@/features/events/server/public-events"
+import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
+import { DEFAULT_LOCALE } from "../localized"
 import {
   eventBySlugQuery,
   eventChildrenQuery,
   eventGroupsQuery,
   eventRoomsQuery,
   eventTypesQuery,
-  promotedParentEventsQuery,
   publishedEventSlugsQuery,
-  publishedEventsQuery,
 } from "../queries"
-import { cleanEventDate, cleanEventLogicFields } from "./event-normalization"
 import { compact, type FetchOptions, getOsloDateString } from "./shared"
-import { DEFAULT_LOCALE } from "../localized"
 
-type RawPublishedEvent = ClientReturn<typeof publishedEventsQuery>[number]
-type RawPromotedParentEvent = ClientReturn<
-  typeof promotedParentEventsQuery
->[number]
-type RawEventDetail = NonNullable<ClientReturn<typeof eventBySlugQuery>>
+export type PublishedEvent = PublicEvent
 
-const MISSING_TITLE = "[Mangler arrangementstittel]"
-
-/** Apply ADR 005 read semantics to a query row: inheritable fields fall
- * back to the parent, the effective real-world status combines child and
- * parent status, and display defaults (title placeholder, isFree=false,
- * empty description) are applied after inheritance so a null child value
- * can inherit before defaulting. */
-function resolveArrangement<
-  T extends RawPublishedEvent | RawPromotedParentEvent | RawEventDetail,
->(row: T) {
-  const { parent, ...child } = row
-  // Draft mode can return editable strings stega-encoded. Domain logic
-  // (event-kind promotion filters, status resolution, placement/sort keys,
-  // recurrence rules, date/time parsing) must see plain values, so clean those
-  // fields here. Display fields (title, description) keep their encoding so
-  // Visual Editing can still highlight them.
-  const cleanChild = cleanEventLogicFields(child)
-  const cleanParent = parent ? cleanEventLogicFields(parent) : parent
-  const inheritFestivalImage =
-    cleanChild.eventKind !== "festivalSession" ||
-    cleanChild.useFestivalImage !== false
-  const effectiveParent =
-    cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageCaption: null }
-      : cleanParent
-  const content = resolveEventContent(cleanChild, effectiveParent)
-  const dates: Array<{
-    _key: string
-    startDate: string
-    startTime: string | null
-    endTime: string | null
-  }> = (content.dates ?? []).flatMap(date =>
-    date ? [cleanEventDate(date)] : [],
-  )
-  return {
-    ...content,
-    dates,
-    title: (content.title ?? MISSING_TITLE) as string,
-    isFree: (content.isFree ?? false) as boolean,
-    description: (content.description ?? []) as NonNullable<T["description"]>,
-    eventStatus: resolveEffectiveStatus(
-      cleanChild.eventStatus as EventStatus | null,
-      cleanParent?.eventStatus as EventStatus | null,
-    ),
-    parentEvent: cleanParent
-      ? {
-          _id: cleanParent._id,
-          slug: cleanParent.slug,
-          title: cleanParent.title,
-        }
-      : null,
-  }
-}
-
-function resolvePublishedEvent(
-  row: RawPublishedEvent | RawPromotedParentEvent,
-) {
-  return resolveArrangement(row)
-}
-
-function resolveEventDetail(row: RawEventDetail) {
-  return resolveArrangement(row)
-}
-
-export type PublishedEvent = ReturnType<typeof resolvePublishedEvent>
-
-export type EventDetail = ReturnType<typeof resolveEventDetail>
+export type EventDetail = PublicEvent
+export type EventChild = PublicEvent
 
 export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
 
@@ -107,21 +41,22 @@ export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
 export async function fetchPublishedEvents(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<PublishedEvent[]> {
-  const { data } = await sanityFetch({
-    query: publishedEventsQuery,
-    params: { locale, today: getOsloDateString() },
+  const { events } = await fetchPublicEventSet({
+    locale,
+    from: getOsloDateString(),
+    to: null,
   })
-  return data.map(resolvePublishedEvent)
+  return events
 }
 
 export async function fetchPromotedParentEvents(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<PublishedEvent[]> {
-  const { data } = await sanityFetch({
-    query: promotedParentEventsQuery,
-    params: { locale, today: getOsloDateString() },
+  return fetchPublicPromotedParentEvents({
+    locale,
+    from: getOsloDateString(),
+    to: null,
   })
-  return data.map(resolvePublishedEvent)
 }
 
 export async function fetchPublishedEventSlugs(): Promise<string[]> {
@@ -142,12 +77,17 @@ export async function fetchEventBySlug(
   options: FetchOptions = {},
 ): Promise<EventDetail | null> {
   const { isEnabled: preview } = await draftMode()
+  if (!preview) {
+    const result = await fetchPublicEventBySlug(slug, locale)
+    return result?.event ?? null
+  }
+
   const { data } = await sanityFetch({
     query: eventBySlugQuery,
     params: { preview, slug, locale },
     stega: options.stega,
   })
-  return data ? resolveEventDetail(data) : null
+  return data ? resolvePublicEvent(data as RawPublicEvent) : null
 }
 
 /** Approved children of a series or festival parent, in date order —
@@ -156,13 +96,16 @@ export async function fetchEventChildren(
   parentId: string,
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
-): Promise<PublishedEvent[]> {
+): Promise<EventChild[]> {
+  const { isEnabled: preview } = await draftMode()
+  if (!preview) return fetchPublicEventChildren(parentId, locale)
+
   const { data } = await sanityFetch({
     query: eventChildrenQuery,
     params: { parentId, locale },
     stega: options.stega,
   })
-  return data.map(resolvePublishedEvent)
+  return data.map(row => resolvePublicEvent(row as RawPublicEvent))
 }
 
 export async function fetchEventRooms(

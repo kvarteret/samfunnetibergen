@@ -1,10 +1,11 @@
-import type { PublishedEvent } from "./eventUtils"
-import type { EventDateEntry } from "../components/EventCard"
+import {
+  comparePublicOccurrences,
+  flattenPublicOccurrences,
+  type PublicEvent,
+  type PublicOccurrence,
+} from "./public-events"
 
-export type CalendarOccurrence = {
-  event: PublishedEvent
-  date: EventDateEntry
-}
+export type CalendarOccurrence = PublicOccurrence
 
 export type CalendarDay = {
   date: string
@@ -24,7 +25,7 @@ function monthKey(date: string) {
   return date.slice(0, 7)
 }
 
-function startOfCurrentWeek(date: string) {
+export function startOfCurrentWeek(date: string) {
   const [year, month, day] = date.split("-").map(Number)
   const parsed = new Date(Date.UTC(year, month - 1, day))
   const mondayOffset = (parsed.getUTCDay() + 6) % 7
@@ -63,52 +64,30 @@ function mondayBasedOffset(year: number, month: number) {
   return (weekday + 6) % 7
 }
 
-function compareOccurrences(
-  first: CalendarOccurrence,
-  second: CalendarOccurrence,
-) {
-  const firstTime = first.date.startTime ?? "99:99"
-  const secondTime = second.date.startTime ?? "99:99"
-  return (
-    `${firstTime}-${first.event.title}`.localeCompare(
-      `${secondTime}-${second.event.title}`,
-    ) || first.event._id.localeCompare(second.event._id)
-  )
-}
-
 /**
- * Flatten event date entries into future calendar days. The source query keeps
- * rows with at least one future date but also returns their historical dates,
- * so the explicit Oslo date boundary belongs here at the presentation model
- * boundary. Month keys between the current and last event month are retained
- * so users can see empty months before later events.
+ * Group the shared, globally ordered occurrence stream into calendar days.
+ * Month keys between the current week and last event month are retained so
+ * users can see empty months before later events.
  */
 export function buildCalendarMonths(
-  events: PublishedEvent[],
+  events: PublicEvent[],
   today: string,
 ): CalendarMonth[] {
   const visibleFrom = startOfCurrentWeek(today)
   const occurrencesByDate = new Map<string, CalendarOccurrence[]>()
   let lastFutureDate: string | null = null
 
-  for (const event of events) {
-    for (const rawDate of event.dates ?? []) {
-      if (!rawDate?.startDate || rawDate.startDate < visibleFrom) continue
+  for (const occurrence of flattenPublicOccurrences(events, {
+    from: visibleFrom,
+    to: null,
+  })) {
+    const date = occurrence.schedule.startDate
+    const occurrences = occurrencesByDate.get(date) ?? []
+    occurrences.push(occurrence)
+    occurrencesByDate.set(date, occurrences)
 
-      const date: EventDateEntry = {
-        _key: rawDate._key,
-        startDate: rawDate.startDate,
-        startTime: rawDate.startTime ?? null,
-        endTime: rawDate.endTime ?? null,
-      }
-      const occurrence = { event, date }
-      const occurrences = occurrencesByDate.get(date.startDate) ?? []
-      occurrences.push(occurrence)
-      occurrencesByDate.set(date.startDate, occurrences)
-
-      if (!lastFutureDate || date.startDate > lastFutureDate) {
-        lastFutureDate = date.startDate
-      }
+    if (!lastFutureDate || date > lastFutureDate) {
+      lastFutureDate = date
     }
   }
 
@@ -126,7 +105,7 @@ export function buildCalendarMonths(
       return {
         date,
         occurrences: (occurrencesByDate.get(date) ?? []).sort(
-          compareOccurrences,
+          comparePublicOccurrences,
         ),
       }
     })
