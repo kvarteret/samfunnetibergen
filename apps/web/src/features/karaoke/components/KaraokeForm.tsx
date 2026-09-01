@@ -115,7 +115,7 @@ export function KaraokeForm({
           duration_hours: value.duration,
           total_price: submitted.totalPrice,
           start_date: submitted.bookingStartDate,
-          crescat_event_id: result.value,
+          crescat_http_status: result.value,
         })
       } catch {
         // A successful Crescat booking must not become a visible failure if
