@@ -138,6 +138,25 @@ export function GroupVolunteerForm({
         requestExceptionFeedback("volunteer_application")
         throw new Error(detail)
       }
+
+      const data = (await response.json().catch(() => null)) as {
+        registrationId?: number | string
+      } | null
+      if (honeypot.trim()) return
+
+      try {
+        posthog.capture("volunteer_application_submitted", {
+          first_choice_group_slug: value.firstChoiceGroupSlug,
+          has_second_choice: Boolean(value.secondChoiceGroupSlug),
+          has_friend_referrals: value.friendEmails.length > 0,
+          ...(data?.registrationId === undefined
+            ? {}
+            : { registration_id: data.registrationId }),
+        })
+      } catch {
+        // A successful Personal registration must not become a visible
+        // failure if client analytics is unavailable.
+      }
     },
   })
 

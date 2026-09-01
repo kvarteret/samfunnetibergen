@@ -74,6 +74,7 @@ describe("submitEvent", () => {
 
     expect(result).toEqual({ ok: true, value: "arrangement-123" })
     expect(createMock).toHaveBeenCalledOnce()
+    expect(posthogCaptureMock).not.toHaveBeenCalled()
 
     const document = createMock.mock.calls[0]?.[0] as {
       dates: Array<{ startDate: string }>

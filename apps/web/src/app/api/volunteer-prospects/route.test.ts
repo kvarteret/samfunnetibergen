@@ -129,15 +129,7 @@ describe("POST /api/volunteer-prospects", () => {
       tracestate: "vendor=test",
     })
     expect(JSON.stringify(requestInit.headers)).not.toContain(CLIENT_IP)
-    expect(posthogCaptureMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          $process_person_profile: false,
-          registration_id: 42,
-          trace_id: "0123456789abcdef0123456789abcdef",
-        }),
-      }),
-    )
+    expect(posthogCaptureMock).not.toHaveBeenCalled()
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
       "volunteer.application.submitted",
       expect.objectContaining({

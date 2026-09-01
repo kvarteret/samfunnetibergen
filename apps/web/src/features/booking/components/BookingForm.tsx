@@ -143,6 +143,24 @@ export function BookingForm({
         requestExceptionFeedback("room_booking")
         throw new Error(result.error)
       }
+      if (honeypot.trim()) return
+
+      try {
+        posthog.capture("room_booking_submitted", {
+          booker_type: value.bookerType,
+          end_date: value.endDate || value.startDate,
+          end_time: value.endTime,
+          free_or_paid: value.freeOrPaid,
+          open_or_closed: value.openOrClosed,
+          promote: value.promote === "ja",
+          room_ids: value.selectedRoomIds,
+          start_date: value.startDate,
+          start_time: value.startTime,
+        })
+      } catch {
+        // A successful Crescat booking must not become a visible failure if
+        // client analytics is unavailable.
+      }
     },
   })
   const values = useStore(form.store, state => state.values)

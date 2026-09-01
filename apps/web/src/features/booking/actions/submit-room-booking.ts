@@ -312,31 +312,11 @@ async function submitRoomBookingWithinSpan(
 
     if (result.ok) {
       try {
-        const traceFields = currentTraceFields()
         emitOperationalEvent("booking.submitted", {
           booking_submission_id: bookingSubmissionId,
           crescat_http_status: result.value,
           duration_ms: Math.round(performance.now() - startedAt),
           outcome: "accepted",
-        })
-        getPostHogClient().capture({
-          distinctId: "anonymous",
-          event: "room_booking_submitted",
-          properties: {
-            $process_person_profile: false,
-            booking_submission_id: bookingSubmissionId,
-            booker_type: parsed.data.bookerType,
-            room_id: parsed.data.roomIds[0],
-            start_date: parsed.data.startDate,
-            start_time: parsed.data.startTime,
-            end_time: parsed.data.endTime,
-            free_or_paid: parsed.data.freeOrPaid,
-            open_or_closed: parsed.data.openOrClosed,
-            promote: formParsed.data.promote === "ja",
-            crescat_http_status: result.value,
-            submission_attempt: submissionAttempt,
-            trace_id: traceFields.trace_id,
-          },
         })
       } catch {
         // A successful Crescat booking remains successful if analytics fails.
