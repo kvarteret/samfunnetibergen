@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - apps/web/**
+      - packages/content-domain/**
+      - package.json
+      - package-lock.json
   workflow_dispatch:
     inputs:
       ref:
@@ -77,7 +82,7 @@ jobs:
       - name: Biome format check
         run: npm run format:check
 
-      - name: ESLint
+      - name: Lint
         run: npm run lint
 
       - name: Generate Next.js route types
