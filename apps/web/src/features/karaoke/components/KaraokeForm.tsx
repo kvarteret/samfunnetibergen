@@ -104,6 +104,25 @@ export function KaraokeForm({
         requestExceptionFeedback("karaoke_booking")
         throw new Error(result.error)
       }
+
+      if (honeypot.trim()) return
+
+      const submitted = deriveKaraokeState(value)
+      try {
+        posthog.capture("karaoke_booking_submitted", {
+          price_type: value.priceType,
+          number_of_people: submitted.people,
+          duration_hours: value.duration,
+          total_price: submitted.totalPrice,
+          start_date: submitted.bookingStartDate,
+          crescat_http_status: result.value,
+          booking_submission_id: bookingSubmissionIdRef.current,
+          submission_attempt: submissionAttemptRef.current,
+        })
+      } catch {
+        // A successful Crescat booking must not become a visible failure if
+        // client analytics is unavailable.
+      }
     },
   })
   const values = useStore(form.store, state => state.values)

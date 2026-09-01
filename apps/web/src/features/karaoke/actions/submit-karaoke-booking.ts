@@ -16,7 +16,6 @@ import {
 } from "@/lib/integrations/crescat/karaoke"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
-import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchHouseHours } from "@/lib/sanity/fetch"
 import {
@@ -234,24 +233,6 @@ export async function submitKaraokeBooking(
     const result = await postEventRequest(KARAOKE_SLUG, body)
 
     if (result.ok) {
-      try {
-        getPostHogClient().capture({
-          distinctId: "anonymous",
-          event: "karaoke_booking_submitted",
-          properties: {
-            price_type: parsed.data.priceType,
-            number_of_people: parsed.data.numberOfPeople,
-            duration_hours: parsed.data.duration,
-            total_price: totalPrice,
-            start_date: parsed.data.startDate,
-            crescat_http_status: result.value,
-            booking_submission_id: bookingSubmissionId,
-            submission_attempt: submissionAttempt,
-          },
-        })
-      } catch {
-        // A successful Crescat booking remains successful if analytics fails.
-      }
       return result
     }
 

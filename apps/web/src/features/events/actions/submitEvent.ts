@@ -2,7 +2,6 @@
 
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
-import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import {
   captureSubmitFailure,
@@ -149,25 +148,6 @@ export async function submitEvent(
   try {
     const doc = buildEventDocument(validatedInput)
     const created = await getWriteClient().create(doc)
-    try {
-      getPostHogClient().capture({
-        distinctId: "anonymous",
-        event: "event_submission_submitted",
-        properties: {
-          title: validatedInput.title,
-          is_recurring: validatedInput.isRecurring,
-          is_internal: validatedInput.isInternalEvent,
-          is_free: validatedInput.isFree,
-          has_ticket_url: Boolean(validatedInput.ticketUrl),
-          has_facebook_url: Boolean(validatedInput.facebookUrl),
-          date_count: validatedInput.dates.filter(date => date.startDate)
-            .length,
-          sanity_document_id: created._id,
-        },
-      })
-    } catch {
-      // A successful Sanity write remains successful if analytics fails.
-    }
     return ok(created._id)
   } catch {
     captureSubmitFailure(

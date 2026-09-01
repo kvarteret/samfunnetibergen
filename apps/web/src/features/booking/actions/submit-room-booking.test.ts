@@ -202,14 +202,11 @@ describe("submitRoomBooking", () => {
     expect(postHeaders.traceparent).toBe(
       "00-abcdef0123456789abcdef0123456789-abcdef0123456789-01",
     )
-    const successProperties = posthogCaptureMock.mock.calls[0]?.[0].properties
-    expect(successProperties.booking_submission_id).toBe(bookingSubmissionId)
-    expect(successProperties.submission_attempt).toBe(2)
-    expect(successProperties.trace_id).toBe("abcdef0123456789abcdef0123456789")
+    expect(posthogCaptureMock).not.toHaveBeenCalled()
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
       "booking.submitted",
       expect.objectContaining({
-        booking_submission_id: successProperties.booking_submission_id,
+        booking_submission_id: bookingSubmissionId,
         crescat_http_status: 201,
         outcome: "accepted",
       }),

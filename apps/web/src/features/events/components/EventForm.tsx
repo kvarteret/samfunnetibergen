@@ -98,6 +98,21 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         requestExceptionFeedback("event_submission")
         throw new Error(result.error)
       }
+
+      try {
+        posthog.capture("event_submission_submitted", {
+          is_recurring: value.isRecurring,
+          is_internal: value.isInternalEvent,
+          is_free: value.isFree,
+          has_ticket_url: Boolean(value.ticketUrl),
+          has_facebook_url: Boolean(value.facebookUrl),
+          date_count: value.dates.filter(date => date.startDate).length,
+          sanity_document_id: result.value,
+        })
+      } catch {
+        // A successful Sanity write must not become a visible failure if
+        // client analytics is unavailable.
+      }
     },
   })
   const values = useStore(form.store, state => state.values)

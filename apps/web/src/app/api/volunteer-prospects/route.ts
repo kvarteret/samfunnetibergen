@@ -15,7 +15,6 @@ import {
   injectActiveTraceContext,
   withOperationalSpan,
 } from "@/lib/observability"
-import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
   getValidationDiagnostics,
@@ -220,28 +219,10 @@ export async function POST(request: Request) {
         } | null
         const registrationId = data?.registrationId
         span.setAttribute("registration_id", registrationId ?? "")
-        const traceFields = currentTraceFields()
         emitOperationalEvent("volunteer.application.submitted", {
           registration_id: registrationId,
           outcome: "accepted",
         })
-        try {
-          getPostHogClient().capture({
-            distinctId: "anonymous",
-            event: "volunteer_application_submitted",
-            properties: {
-              $process_person_profile: false,
-              first_choice_group_slug: requestBody.first_choice_group_slug,
-              has_second_choice: Boolean(requestBody.second_choice_group_slug),
-              has_friend_referrals:
-                (requestBody.friend_emails?.length ?? 0) > 0,
-              registration_id: registrationId,
-              trace_id: traceFields.trace_id,
-            },
-          })
-        } catch {
-          // A successful Personal registration remains successful if analytics fails.
-        }
         return NextResponse.json({ registrationId }, { status: 201 })
       },
     )
