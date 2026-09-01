@@ -30,6 +30,8 @@ The same review will document and test what `form_validation_failed` reveals. It
   Evidence: `GroupVolunteerForm.tsx` reads the successful JSON response after the status check and conditionally includes only `registration_id` in the client event.
 - Observation: Refreshing `next typegen` alone did not remove an old deleted-route validator from `.next`; moving the ignored generated cache aside and regenerating fixed web typecheck without a source change.
   Evidence: the first typecheck referenced `.next/{dev/,}types/validator.ts` and deleted `arrangementer/kalender/page.js`; after the generated cache was moved aside, `npm run route-typegen` and `npm run typecheck:web` passed.
+- Observation: The Crescat submission adapter returns an HTTP status, not a Crescat event ID.
+  Evidence: the final browser event uses `crescat_http_status: result.value`; the misleading `crescat_event_id` label was removed during the final PR audit.
 
 ## Decision Log
 
