@@ -16,7 +16,7 @@ The same review will document and test what `form_validation_failed` reveals. It
 - [x] (2026-09-01) Remove anonymous server-side `*_submitted` events and their now-unused imports while preserving operational telemetry.
 - [x] (2026-09-01) Add or update focused tests for the server no-duplicate contract and confirm validation metadata coverage.
 - [x] (2026-09-01) Run the final source/privacy audit and verify the clean PR branch with 280 passing web tests, route type generation, typecheck, lint, and diff checks.
-- [ ] Push the PR branch, create the pull request, and record its URL.
+- [x] (2026-09-01) Push the PR branch and create [PR #122](https://github.com/kvarteret/samfunnetibergen/pull/122).
 
 ## Surprises & Discoveries
 
@@ -45,7 +45,7 @@ The same review will document and test what `form_validation_failed` reveals. It
 
 ## Outcomes & Retrospective
 
-Implementation is complete locally on the clean PR branch. New successful funnel events are emitted from the browser for all four flows, anonymous server-side funnel duplicates are removed, and the validation event remains useful and value-free. The clean branch is verified with 280 passing tests and 5 expected skips, route type generation, web typecheck, web lint, and `git diff --check`. Record the final PR reference and any remaining limitation such as historical anonymous events not being repairable retroactively after the remote PR is created.
+Implementation is complete on the clean PR branch in [PR #122](https://github.com/kvarteret/samfunnetibergen/pull/122). New successful funnel events are emitted from the browser for all four flows, anonymous server-side funnel duplicates are removed, and the validation event remains useful and value-free. The clean branch is verified with 280 passing tests and 5 expected skips, route type generation, web typecheck, web lint, and `git diff --check`. Historical anonymous events cannot be reassigned retroactively; corrected funnel attribution applies to new submissions after deployment.
 
 ## Context and Orientation
 
@@ -124,3 +124,5 @@ Plan revision note (2026-09-01): created after source inspection; the initial in
 Plan revision note (2026-09-01): recorded implementation completion, the volunteer response-property decision, the generated Next validator cache issue and recovery, and the passing full web verification before the PR step.
 
 Plan revision note (2026-09-01): replayed the implementation onto `origin/develop` so the PR branch contains only this one change, resolved the expected conflicts against the newer base telemetry shape, and verified the clean branch with 280 passing web tests and 5 skips.
+
+Plan revision note (2026-09-01): opened [PR #122](https://github.com/kvarteret/samfunnetibergen/pull/122) and marked the plan complete; the PR branch contains the implementation, focused regression coverage, and the source-backed PostHog metadata documentation.
