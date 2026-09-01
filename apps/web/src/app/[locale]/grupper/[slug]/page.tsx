@@ -1,8 +1,8 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import type { ComponentType, ReactNode } from "react"
 import { getTranslations } from "next-intl/server"
+import type { ComponentType, ReactNode } from "react"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
@@ -12,12 +12,13 @@ import {
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import { groupTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
-import nbMessages from "@/messages/nb.json"
 import enMessages from "@/messages/en.json"
+import nbMessages from "@/messages/nb.json"
 
 export const revalidate = 300
 
@@ -75,7 +76,10 @@ export default async function GroupPage({ params }: GroupPageProps) {
   }>
 
   return (
-    <article className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <article
+      className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      {...groupTrackingAttributes(group, "group-detail")}
+    >
       <div className="space-y-8">
         <GroupMasthead
           logoUrl={group.logoUrl}
@@ -132,6 +136,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
           <AsideSection title={t("contact")}>
             {hasLinks ? (
               group.links.map((link, i) => {
+                if (!link.platform || !link.url) return null
                 const platformKey = `platform${link.platform.charAt(0).toUpperCase()}${link.platform.slice(1)}`
                 const platformLabel = link.customLabel || t(platformKey)
                 const isEmail = link.platform === "email"

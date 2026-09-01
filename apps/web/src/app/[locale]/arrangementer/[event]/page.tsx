@@ -9,14 +9,15 @@ import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { fetchEventBySlug, fetchEventChildren } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { resolveSiteUrl } from "@/lib/site-url"
 import {
   buildEventStructuredData,
   toPlainTextContent,
 } from "@/lib/structured-data"
-import { resolveSiteUrl } from "@/lib/site-url"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
 
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
@@ -60,7 +61,10 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <>
       {eventJsonLd && <JsonLd data={eventJsonLd} />}
-      <article className="flex w-full flex-col gap-8">
+      <article
+        className="flex w-full flex-col gap-8"
+        {...eventTrackingAttributes(eventData, "event-detail")}
+      >
         <EventStatusNotice event={eventData} t={t} />
         <EventDetailHero
           event={eventData}
@@ -154,6 +158,7 @@ function EventDetailHero({
             <Link
               href={`/arrangementer/${event.parentEvent.slug}`}
               className="underline underline-offset-4 hover:no-underline"
+              {...eventTrackingAttributes(event.parentEvent, "detail-parent")}
             >
               {event.parentEvent.title ?? event.title}
             </Link>
@@ -365,6 +370,7 @@ function EventChildList({
             <Link
               href={`/arrangementer/${child.slug}`}
               className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4 text-foreground transition-colors hover:bg-muted"
+              {...eventTrackingAttributes(child, "detail-child")}
             >
               <span className="flex flex-col gap-1">
                 <span className="font-heading text-lg uppercase tracking-wide">

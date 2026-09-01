@@ -12,18 +12,18 @@ import {
   submitEvent,
   uploadEventImage,
 } from "@/features/events/actions/submitEvent"
-import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import { useFormErrors } from "@/lib/use-form-errors"
+import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import { useFormErrors } from "@/lib/use-form-errors"
+import { eventFormSchema } from "../domain/eventFormSchema"
 import {
   buildPreviewEvent,
   type FormState,
   initialState,
 } from "../domain/formState"
-import { eventFormSchema } from "../domain/eventFormSchema"
 import { eventTypeOptions, groupOptions, roomOptions } from "../domain/options"
 import { useEventImage } from "../domain/useEventImage"
 import { EventFormActions } from "./EventFormActions"
@@ -112,9 +112,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     const firstId = form.state.values.dates[0]?.id
     if (firstId) {
       form.setFieldValue("dates", (dates: typeof initialState.dates) =>
-        dates.map(d =>
-          d.id === firstId ? { ...d, startDate: today, startTime: "21:00" } : d,
-        ),
+        dates.map(d => (d.id === firstId ? { ...d, startDate: today } : d)),
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

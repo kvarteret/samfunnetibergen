@@ -13,6 +13,8 @@ const FIXED_NONCE = "123e4567-e89b-42d3-a456-426614174000"
 const FIXED_IDEMPOTENCY_KEY = "123e4567-e89b-42d3-a456-426614174001"
 const FIXED_CLIENT_KEY =
   "v1=9a0dcfcc46f5fc85d1151d64c99635e5d32febbe873c1d9467cf618652eb84e5"
+const FIXED_FALLBACK_CLIENT_KEY =
+  "v1=824d07cc5a6254c1187713a923496056e2f42635d0d498947eca539ddcabbe37"
 const FIXED_BODY = '{"full_name":"Kari Nordmann","email":"kari@example.com"}'
 const FIXED_SIGNATURE =
   "v2=4494eaa27eeaa0095320f8293384f7dbd3c814d81b17c9e6c83cd0539615837a"
@@ -98,7 +100,7 @@ describe("volunteer prospect HMAC signing", () => {
       CLIENT_KEY_SECRET,
     )
 
-    expect(clientKey).toBe(FIXED_CLIENT_KEY)
+    expect(clientKey).toBe(FIXED_FALLBACK_CLIENT_KEY)
     expect(clientKey).not.toContain("203.0.113.42")
     expect(clientKey).not.toContain("198.51.100.7")
   })
@@ -109,7 +111,7 @@ describe("volunteer prospect HMAC signing", () => {
         new Headers({ "x-forwarded-for": "203.0.113.42, 198.51.100.7" }),
         CLIENT_KEY_SECRET,
       ),
-    ).toBe(FIXED_CLIENT_KEY)
+    ).toBe(FIXED_FALLBACK_CLIENT_KEY)
     expect(() =>
       createVolunteerProspectClientKey(new Headers(), CLIENT_KEY_SECRET),
     ).toThrow("trusted client IP")
@@ -125,6 +127,60 @@ describe("volunteer prospect HMAC signing", () => {
         "too-short",
       ),
     ).toThrow("at least 32 characters")
+  })
+
+  it("prefers a browser-scoped visitor identifier over the client IP", () => {
+    const cookie = `ph_phc_project_posthog=${encodeURIComponent(
+      JSON.stringify({ distinct_id: "visitor-123" }),
+    )}`
+    const first = createVolunteerProspectClientKey(
+      new Headers({
+        cookie,
+        "x-vercel-forwarded-for": "203.0.113.42",
+      }),
+      CLIENT_KEY_SECRET,
+    )
+    const sameVisitorFromAnotherIp = createVolunteerProspectClientKey(
+      new Headers({
+        cookie,
+        "x-vercel-forwarded-for": "198.51.100.7",
+      }),
+      CLIENT_KEY_SECRET,
+    )
+    const otherVisitor = createVolunteerProspectClientKey(
+      new Headers({
+        cookie: `ph_phc_project_posthog=${encodeURIComponent(
+          JSON.stringify({ distinct_id: "visitor-456" }),
+        )}`,
+        "x-vercel-forwarded-for": "203.0.113.42",
+      }),
+      CLIENT_KEY_SECRET,
+    )
+
+    expect(sameVisitorFromAnotherIp).toBe(first)
+    expect(otherVisitor).not.toBe(first)
+    expect(first).not.toContain("visitor-123")
+    expect(first).not.toContain("203.0.113.42")
+  })
+
+  it("uses the validated IP and user agent when no visitor identifier exists", () => {
+    const first = createVolunteerProspectClientKey(
+      new Headers({
+        "x-forwarded-for": "203.0.113.42",
+        "user-agent": "ExampleBrowser/1.0",
+      }),
+      CLIENT_KEY_SECRET,
+    )
+    const otherUserAgent = createVolunteerProspectClientKey(
+      new Headers({
+        "x-forwarded-for": "203.0.113.42",
+        "user-agent": "ExampleBrowser/2.0",
+      }),
+      CLIENT_KEY_SECRET,
+    )
+
+    expect(otherUserAgent).not.toBe(first)
+    expect(first).not.toContain("ExampleBrowser")
   })
 
   it("accepts canonical idempotency UUIDs and generates a UUID when absent", () => {

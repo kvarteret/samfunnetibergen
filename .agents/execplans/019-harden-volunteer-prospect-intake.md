@@ -10,10 +10,11 @@ The public volunteer form must remain usable while resisting oversized input,
 repeated submissions, and basic abuse without exposing a visitor's network
 address to the Personal service. After this change, Samfunnet rejects request
 bodies larger than 16 KiB before JSON parsing, applies explicit size and count
-limits to every submitted form value, derives a pseudonymous client key from the
-visitor IP using a separate server-only secret, and supplies a stable
-idempotency key for retries. Personal can authenticate and rate-limit those two
-keys because both are covered by the server-to-server HMAC signature.
+limits to every submitted form value, derives a pseudonymous client key from a
+browser-scoped visitor identifier with a trusted IP and user-agent fallback,
+and supplies a stable idempotency key for retries. Personal can authenticate
+and rate-limit those two keys because both are covered by the server-to-server
+HMAC signature.
 
 ## Progress
 
@@ -44,6 +45,20 @@ keys because both are covered by the server-to-server HMAC signature.
   Next 16.3.1 and patched direct overrides; recorded the remaining Sanity CLI
   dependency pins rather than accepting `npm audit fix --force`'s breaking
   Sanity downgrade.
+- [x] (2026-08-31 16:00Z) Investigated the August 26 incident in PostHog and
+  cross-checked Personal history. Eleven Quizgruppen `429` responses followed
+  rapid repeated submissions from two visitors; the old release did not expose
+  the limiting dimension, while later Kraftetaten telemetry confirmed the
+  former three-per-email hourly limiter could produce the same symptom.
+- [x] (2026-08-31 16:00Z) Removed the volunteer-prospect email limiter and its
+  settings from Personal, retained route/client limits, and updated the
+  generated OpenAPI contract and documentation. The website client key now
+  prefers its browser-scoped PostHog visitor ID and falls back to validated
+  IP plus user-agent material, all behind the existing server-only HMAC.
+- [x] (2026-08-31 16:00Z) Verified the Personal suite with a temporary SQLite
+  database: 377 passed and 15 skipped. The touched website tests passed (34
+  tests). The website-wide typecheck remains blocked by pre-existing missing
+  `PageProps`/`LayoutProps` types in unrelated pages.
 
 ## Surprises & Discoveries
 
@@ -77,7 +92,13 @@ keys because both are covered by the server-to-server HMAC signature.
   Evidence: sibling `app/api/request_auth.py` accepts the shared v2 line order,
   validates canonical UUID and client-key headers, and applies route/client
   counters; `app/api/v1/volunteer_prospects.py` matches the field limits and
-  applies a normalized-email counter and transactional idempotency input.
+  applies transactional idempotency input without an email counter.
+- Observation: the August 26 server telemetry could identify the old
+  `personal_backend_rejected`/`429` branch but not the exact limiter key because
+  the release predated retry-after and dimension telemetry.
+  Evidence: PostHog recorded 11 Quizgruppen `429`s during the incident, while
+  two visitors generated 16 submit clicks; later production telemetry exposed
+  the one-hour retry guidance on the email-limiter branch.
 - Observation: `npm audit fix` removed the directly remediable Samfunnet
   findings, but the current Sanity 6 CLI tree still pins vulnerable
   `js-yaml@3.13.1`, `smol-toml@1.5.2`, `undici@7.28.0`, and `uuid@10.0.0`.
@@ -99,12 +120,23 @@ keys because both are covered by the server-to-server HMAC signature.
   can enforce a limit.
   Date/Author: 2026-08-14 / Codex.
 - Decision: derive `X-Kvarteret-Client-Key` as
-  `v1=<lowercase HMAC-SHA256 hex>` over the trimmed, lowercase, validated client
-  IP, keyed by `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`.
-  Rationale: Personal needs a stable rate-limit dimension but must never receive
-  or persist the raw address. A separate secret prevents reuse of the request
-  authentication key for a different security purpose.
-  Date/Author: 2026-08-14 / Codex.
+  `v1=<lowercase HMAC-SHA256 hex>` over a browser-scoped visitor identifier
+  when available, otherwise over validated IP plus user-agent material, keyed
+  by `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`.
+  Rationale: Personal needs a stable rate-limit dimension that does not punish
+  unrelated users behind a shared address or change when a visitor's network
+  changes. Personal receives only the opaque HMAC output; the fallback retains
+  validation and avoids using user-agent alone, which is widely shared and
+  trivially spoofable.
+  Date/Author: 2026-08-31 / Codex; supersedes the IP-only derivation recorded
+  on 2026-08-14.
+- Decision: remove the normalized-email volunteer-prospect limiter while
+  retaining route-wide and opaque-client-key limits.
+  Rationale: incident evidence showed the email dimension could block a
+  legitimate visitor after retries, while no spam signal required that
+  restriction. Route and client controls still bound request volume and are
+  independent of submitted email addresses.
+  Date/Author: 2026-08-31 / Codex.
 - Decision: prefer `x-vercel-forwarded-for`, fall back to `x-forwarded-for`, use
   only the first comma-separated address, and reject missing or invalid IPs.
   Rationale: the site deploys on Vercel, whose current documentation identifies
@@ -147,10 +179,10 @@ keys because both are covered by the server-to-server HMAC signature.
 
 Samfunnet now rejects bodies above 16 KiB before decode or parse, applies
 explicit Zod bounds at the public server boundary, sends only an opaque keyed
-IP pseudonym, and binds that value and a retry-stable UUID into the v2 request
-signature. The browser retains a UUID for same-value retries without adding a
-dependency or durable client storage. Personal confirmed the shared v2 vector
-and implemented the matching consumer controls.
+browser/client pseudonym, and binds that value and a retry-stable UUID into the
+v2 request signature. The browser retains a UUID for same-value retries without
+adding a dependency or durable client storage. Personal accepts route/client
+controls and no longer rate-limits by submitted email.
 
 All 38 focused tests and 222 full web tests passed, with 3 expected skips.
 TypeScript, ESLint, focused Biome, `git diff --check`, and the production build
@@ -161,6 +193,13 @@ findings; 15 audit entries remain in the pinned Sanity CLI dependency tree and
 require upstream releases or a separately tested Sanity major migration. No
 real secret changed. Unrelated concurrent
 bar-opening and Studio changes remain untouched in the shared worktree.
+
+The 2026-08-31 follow-up is implemented but not deployed or committed. The
+persistent Personal checkout already contained unrelated uncommitted changes;
+the limiter edits were applied around them without resetting or overwriting
+those changes. Existing `VOLUNTEER_PROSPECT_EMAIL_*` production variables are
+ignored by the updated settings model and may be removed during deployment
+cleanup.
 
 ## Context and Orientation
 
@@ -179,13 +218,22 @@ The HMAC signer in
 now implements protocol v2. HMAC means hash-based message authentication
 code: it lets Personal verify that a server with the shared secret produced the
 headers and that signed values did not change. The pseudonymous client key is a
-separate HMAC whose output is stable for one source IP but cannot be reversed to
-the raw address without the Samfunnet-only client-key secret.
+separate HMAC whose output is stable for the browser-scoped visitor when
+available, or for the validated IP/user-agent fallback. It cannot be reversed
+to the raw identity material without the Samfunnet-only client-key secret.
 
 An idempotency key identifies one logical submission. Reusing it for a retry
 allows Personal to return or recognize the first result rather than creating a
 duplicate. The browser can preserve that key while its React component remains
 mounted; the server generates a fallback for direct callers that omit it.
+
+Follow-up policy revision (2026-08-31): the email dimension is no longer used
+for volunteer-prospect throttling. The website's client key prefers the
+PostHog browser visitor cookie so it remains stable across normal IP changes;
+when that cookie is unavailable, it HMACs validated Vercel client IP together
+with a bounded user-agent value. User-agent alone is not used because it is
+shared and spoofable. Personal continues to enforce the route-wide and opaque
+client-key counters.
 
 ## Plan of Work
 
@@ -324,3 +372,16 @@ match the implemented integration-module placement and v2 current state.
 Revision note (2026-08-14 11:00Z): Recorded dependency-audit remediation and
 the remaining upstream-pinned Sanity CLI findings after rejecting the audit
 tool's breaking forced downgrade.
+
+Revision note (2026-08-31 16:00Z): Recorded the August incident investigation
+and policy follow-up: removed the Personal email limiter, changed client-key
+derivation to browser visitor ID with IP/user-agent fallback, updated the
+cross-repository contract and docs, and captured verification results.
+
+Revision note (2026-08-31 19:00Z): Corrected Quiz's Sanity hierarchy and contact
+content, routed its public slug to Personal group 298 (`quiz`), updated the
+Norwegian and English group copy, and added a locale-aware multi-select
+combobox input for the fixed student-group label taxonomy. Sanity content and
+schema were verified; the external Studio bundle still needs its normal
+Vercel/GitHub release because local `sanity deploy` cannot upload tarballs for
+an externally hosted application.

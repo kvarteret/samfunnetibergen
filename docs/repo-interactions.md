@@ -45,11 +45,11 @@ group IDs. Both repositories use the same deterministic slug rule without
 aliases. In Studio, an existing group slug is hidden and read-only; it is only
 generated while creating a new group.
 
-The `quiz-gruppen` Sanity child group is an intentional exception to the
-one-slug rule: Personal resolves that public slug to its active `kultur` group
-(group ID 289) and keeps `Quiz-gruppen` as the displayed choice label. This
-lets the child page use the parent group's operational volunteer records while
-keeping the public choice specific.
+`quiz-gruppen` is an independent Sanity group and routes to Personal's active
+`quiz` group (group ID 298). Personal keeps `Quiz-gruppen` as the displayed
+choice label while using the operational group's stable slug for registration
+records. Its Sanity `parentGroup` must remain unset so it appears in the
+top-level public group listing.
 
 Verified source:
 
@@ -69,16 +69,18 @@ reuses it for same-value retries while the component stays mounted, and creates
 a new key after the submitted values change. The route accepts only a canonical
 lowercase UUID and generates a UUID v4 fallback for callers that omit it.
 
-For the client key, the Vercel route prefers `x-vercel-forwarded-for`, falls back
-to Vercel's `x-forwarded-for`, selects the first address, and validates it as
-IPv4 or IPv6. It derives
-`v1=<lowercase HMAC-SHA256 hex>` over the trimmed, lowercase address using the
-Samfunnet-only `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`. The raw address is never
-sent to Personal or included in application diagnostics. This trust model
-assumes the route remains directly behind Vercel, which documents that it
-overwrites `x-forwarded-for` to prevent spoofing and preserves
-`x-vercel-forwarded-for` when another proxy rewrites the conventional header.
-Re-evaluate the source header before moving the route to another host.
+For the client key, the Vercel route first uses the browser-scoped PostHog
+distinct ID from the request cookie when available. Otherwise it prefers
+`x-vercel-forwarded-for`, falls back to Vercel's `x-forwarded-for`, selects the
+first address, validates it as IPv4 or IPv6, and combines it with the
+user-agent. It derives `v1=<lowercase HMAC-SHA256 hex>` over that identity
+material using the Samfunnet-only `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`. Raw
+identity material is never sent to Personal or included in application
+diagnostics. The fallback trust model assumes the route remains directly
+behind Vercel, which documents that it overwrites `x-forwarded-for` to prevent
+spoofing and preserves `x-vercel-forwarded-for` when another proxy rewrites the
+conventional header. Re-evaluate the source header before moving the route to
+another host.
 
 The server-to-server request carries:
 
@@ -99,8 +101,8 @@ The v2 signature covers eight newline-separated values, with no final newline:
     /api/v1/volunteer-prospects
     <lowercase SHA-256 hex digest of the exact request body bytes>
 
-Personal uses the bound keys for durable idempotency and route, client-key, and
-normalized-email counters. It never needs the Samfunnet client-key secret.
+Personal uses the bound keys for durable idempotency and route/client-key
+counters. It never needs the Samfunnet client-key secret.
 
 The website Vercel project and Personal must contain the same active
 `VOLUNTEER_PROSPECT_HMAC_SECRET`. The website alone must also contain a separate

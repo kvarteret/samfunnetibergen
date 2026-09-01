@@ -1,6 +1,7 @@
 import { defineQuery } from "next-sanity"
 
 import { sourcedImageProjection } from "../fragments/images"
+
 const groupName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]")`
 const groupSummary = `coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]")`
 const groupBody = `coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])`
@@ -8,6 +9,7 @@ const groupLabels = `coalesce(string::split(localizedLabels[language == $locale 
 
 export const studentGroupsQuery =
   defineQuery(`*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {
+    _id,
     "name": ${groupName},
     "slug": coalesce(slug.current, ""),
     "summary": ${groupSummary},
@@ -35,6 +37,7 @@ export const studentGroupSlugsQuery =
 
 export const studentGroupBySlugQuery =
   defineQuery(`*[_type == "studentGroup" && slug.current == $slug][0] {
+    _id,
     "name": ${groupName},
     "slug": coalesce(slug.current, ""),
     "summary": ${groupSummary},

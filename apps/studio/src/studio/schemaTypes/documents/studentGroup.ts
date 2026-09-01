@@ -8,6 +8,7 @@ import {
   getPublishedDocumentId,
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
+import { StudentGroupLabelsInput } from "../../components/StudentGroupLabelsInput"
 import { studentGroupSlugFromName } from "../../groupSlugs"
 import { localizedArrayField } from "../shared/localizedFields"
 
@@ -17,6 +18,13 @@ export const STUDENT_GROUP_CATEGORIES = [
   { title: "Driftsorganisasjon (Dorg)", value: "dorg" },
   { title: "Brukerorganisasjon (Borg)", value: "borg" },
 ]
+
+export const studentGroupLabelValue = defineField({
+  name: "studentGroupLabelValue",
+  title: "Etikett",
+  type: "string",
+  components: { input: StudentGroupLabelsInput },
+})
 
 export type StudentGroupCategory = "arbeidsgruppe" | "komitee" | "dorg" | "borg"
 
@@ -268,7 +276,7 @@ export const studentGroup = defineType({
     localizedArrayField(
       "localizedLabels",
       "Etiketter (oversettelser)",
-      "internationalizedArrayText",
+      "internationalizedArrayStudentGroupLabelValue",
       { group: "identity" },
     ),
     defineField({

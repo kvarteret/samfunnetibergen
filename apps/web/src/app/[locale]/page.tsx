@@ -21,6 +21,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
+import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import {
   fetchBarPreviews,
   fetchHomePageContent,
@@ -468,6 +469,7 @@ function HomePromotedEventCard({
       <Link
         className="group block focus-brutal"
         href={eventHref(event, locale)}
+        {...eventTrackingAttributes(event, "home-promoted")}
       >
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
           {imageUrl ? (
@@ -532,6 +534,7 @@ function HomeUpcomingEventCard({
     <Link
       className="group grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 focus-brutal sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-4 xl:grid-cols-1"
       href={eventHref(event, locale)}
+      {...eventTrackingAttributes(event, "home-upcoming")}
     >
       <div className="relative aspect-4/3 min-w-0 overflow-hidden bg-primary-foreground/15">
         {imageUrl ? (

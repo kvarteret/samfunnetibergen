@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Link } from "@/i18n/navigation"
+import { groupTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"
 
 type GroupSection = {
@@ -72,6 +73,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
     <Link
       className="group flex min-h-full flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
       href={`/grupper/${group.slug}`}
+      {...groupTrackingAttributes(group, "groups-card")}
     >
       <div className="space-y-3">
         <div className="flex min-w-0 items-start gap-4">

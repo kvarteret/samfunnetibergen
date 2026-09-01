@@ -25,6 +25,7 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
@@ -329,7 +330,7 @@ export function BookingForm({
             }
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              form.setErrorMap({ onServer: t("form.unexpectedError") as never })
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
