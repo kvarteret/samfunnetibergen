@@ -67,7 +67,7 @@ function serializeLocation(event: PublicEvent): PublicEventSummary["location"] {
   return event.roomText ? { kind: "text", name: event.roomText } : null
 }
 
-export function serializePublicEventSummary(
+function serializePublicEventSummary(
   event: PublicEvent,
   options: PublicApiLinkOptions,
 ): PublicEventSummary {

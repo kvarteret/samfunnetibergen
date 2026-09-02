@@ -141,4 +141,20 @@ describe("public occurrence schedules", () => {
       "occurrence:event-b:b-late",
     ])
   })
+
+  it("creates distinct fallback identities for keyless dates on the same day", () => {
+    const event = resolvePublicEvent({
+      _id: "event-keyless",
+      eventStatus: "scheduled",
+      dates: [
+        { startDate: "2026-09-10", startTime: "18:00" },
+        { startDate: "2026-09-10", startTime: "20:00" },
+      ],
+    })
+
+    expect(flattenPublicOccurrences([event]).map(item => item.id)).toEqual([
+      "occurrence:event-keyless:2026-09-10-0",
+      "occurrence:event-keyless:2026-09-10-1",
+    ])
+  })
 })

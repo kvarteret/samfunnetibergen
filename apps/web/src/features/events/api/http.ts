@@ -1,4 +1,5 @@
 const API_CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300"
+const API_ERROR_CACHE_CONTROL = "private, no-store"
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,9 @@ export function publicApiErrorResponse(
   message: string,
   status: number,
 ): Response {
-  return publicApiJsonResponse({ error: { code, message } }, status)
+  return publicApiJsonResponse({ error: { code, message } }, status, {
+    "Cache-Control": API_ERROR_CACHE_CONTROL,
+  })
 }
 
 export function publicApiJsonResponse(

@@ -131,6 +131,7 @@ describe("GET /api/v1/events", () => {
     const body = await response.json()
 
     expect(response.status).toBe(400)
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store")
     expect(body.error.code).toBe("invalid_request")
     expect(fetchPublicEventSetMock).not.toHaveBeenCalled()
   })

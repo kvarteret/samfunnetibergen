@@ -39,7 +39,7 @@ function parseDate(value: string, name: string): string {
   return parsed.data
 }
 
-export function parseLocaleParam(params: URLSearchParams): AppLocale {
+function parseLocaleParam(params: URLSearchParams): AppLocale {
   const value = oneQueryValue(params, "locale") ?? "nb"
   const parsed = publicLocaleSchema.safeParse(value)
   if (!parsed.success) {

@@ -290,7 +290,7 @@ function normalizeDate(
   }
 
   const cleaned = cleanEventDate({
-    _key: date._key ?? date.startDate,
+    _key: date._key ?? `${date.startDate}-${index}`,
     startDate: date.startDate,
     startTime: date.startTime ?? null,
     endTime: date.endTime ?? null,
@@ -367,7 +367,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
   }
 }
 
-export function occurrenceId(eventId: string, dateKey: string): string {
+function occurrenceId(eventId: string, dateKey: string): string {
   return `occurrence:${eventId}:${dateKey}`
 }
 
@@ -378,7 +378,7 @@ export type PublicOccurrenceOrderingKey = {
   dateKey: string
 }
 
-export function publicOccurrenceOrderingKey(
+function publicOccurrenceOrderingKey(
   occurrence: PublicOccurrence,
 ): PublicOccurrenceOrderingKey {
   return {

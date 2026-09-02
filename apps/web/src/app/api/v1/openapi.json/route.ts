@@ -26,7 +26,7 @@ type OpenApiDocument = {
 }
 
 function jsonSchema(schema: z.ZodType) {
-  return schema.toJSONSchema({ target: "openapi-3.0" })
+  return schema.toJSONSchema()
 }
 
 export function buildPublicEventsOpenApi(

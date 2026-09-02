@@ -2,26 +2,22 @@ import { z } from "zod"
 import type { PublicOccurrence } from "../domain/public-events"
 import { publicDateSchema, publicLocaleSchema } from "./schemas"
 
-const cursorOrderingKeySchema = z
-  .object({
-    startDate: publicDateSchema,
-    startTime: z.string().nullable(),
-    eventId: z.string().min(1),
-    dateKey: z.string().min(1),
-  })
-  .strict()
+const cursorOrderingKeySchema = z.strictObject({
+  startDate: publicDateSchema,
+  startTime: z.string().nullable(),
+  eventId: z.string().min(1),
+  dateKey: z.string().min(1),
+})
 
-const cursorPayloadSchema = z
-  .object({
-    version: z.literal(1),
-    issuedAt: z.number().int().positive(),
-    locale: publicLocaleSchema,
-    from: publicDateSchema,
-    to: publicDateSchema.nullable(),
-    includeInternal: z.boolean(),
-    last: cursorOrderingKeySchema,
-  })
-  .strict()
+const cursorPayloadSchema = z.strictObject({
+  version: z.literal(1),
+  issuedAt: z.number().int().positive(),
+  locale: publicLocaleSchema,
+  from: publicDateSchema,
+  to: publicDateSchema.nullable(),
+  includeInternal: z.boolean(),
+  last: cursorOrderingKeySchema,
+})
 
 export type PublicEventsCursor = z.infer<typeof cursorPayloadSchema>
 
