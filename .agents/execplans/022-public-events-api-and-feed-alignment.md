@@ -44,6 +44,15 @@ Kvarter` rather than appearing locationless.
 - [x] (2026-09-02) Enabled and verified the production Vercel firewall bypass
       for `/api/v1/*`; unauthenticated requests now reach the application rather
       than the Vercel 429 Security Checkpoint.
+- [x] (2026-09-02) Removed and published both project-wide Vercel rate-limit
+      rules. Added the canonical `SITE_URL` to Preview and Production so API
+      links no longer inherit the unrelated `blifrivillig.no` project domain.
+- [x] (2026-09-02) Made missing ticket URLs informational rather than a
+      readiness blocker and documented 23:00 as an explicit editorial estimate
+      for evening concerts with no known end time.
+- [x] (2026-09-02) Corrected the three affected concert end times and the BIFF
+      2026 title, description, venues, and ticket-link semantics in published
+      Sanity content with a revision-guarded transaction.
 - [ ] Before production, check request logs for unknown DataFeed consumers and
       complete a Broadcast test-workspace import.
 
@@ -80,6 +89,19 @@ Kvarter` rather than appearing locationless.
   was off and both rate-limit rules matched only localized arrangement listing
   paths. Publishing the `Allow Public Events API` bypass for `/api/v1/` changed
   the response from a Vercel 429 to an ordinary application 404 before deploy.
+
+- Observation: Vercel custom bypass rules do not permanently disable
+  platform-level DDoS mitigation.
+  Evidence: Vercel exposes only a 24-hour system-mitigation pause. The two
+  project rate-limit rules were removed globally, while baseline system
+  mitigations remain active.
+
+- Observation: BIFF has published the festival dates and venues but not the
+  2026 screening times.
+  Evidence: `https://www.biff.no/article/biff-2026-1422-oktober` says BIFF runs
+  14–22 October and that screening times become available when ticket sales
+  open on 1 October. The content correction therefore retains date-only
+  festival days instead of inventing times.
 
 ## Decision Log
 
@@ -124,6 +146,18 @@ Kvarter` rather than appearing locationless.
   Rationale: performances may share a ticket page and ticket URLs may change.
   Date/Author: 2026-09-01 / user and Codex.
 
+- Decision: missing ticket URLs are informational and do not block Broadcast
+  readiness.
+  Rationale: ticket-page availability and placement cannot be guaranteed. The
+  API continues to expose a nullable ticket URL when one exists.
+  Date/Author: 2026-09-02 / user and Codex.
+
+- Decision: editors may enter 23:00 as the estimated end of an evening concert
+  when no more precise time exists.
+  Rationale: this resolves known concert records without making the API invent
+  end times for other event categories.
+  Date/Author: 2026-09-02 / user and Codex.
+
 - Decision: keep page-level Schema.org Event JSON-LD and do not replace the
   removed feed with iCalendar, RSS, Atom, or JSON Feed.
   Rationale: structured page metadata and calendar subscription are different
@@ -153,6 +187,14 @@ Repository implementation is complete and the path-scoped Vercel firewall
 bypass is live. Remaining external work is the request-log check for unknown
 legacy feed consumers, Broadcast mapping agreement, test-workspace import, and
 production deployment.
+
+The follow-up correction removed both Vercel rate-limit rules, configured the
+canonical site origin for deployments, made ticket URLs optional for readiness,
+and updated published concert and BIFF content. The refreshed audit found 39
+paid occurrences with 29 ready. The remaining blockers are nine date-only BIFF
+days and one external venue mapping; missing ticket links are informational.
+BIFF remains date-only until its screening timetable is published on 1 October;
+this is accurate source data, not an integration defect.
 
 ## Context and Orientation
 
@@ -304,3 +346,8 @@ single explorable v1 API for both mobile and Broadcast. The revision records the
 integration-complete collection, rich single-detail boundary, absence of batch
 detail, removal of `/api/events/feed`, and Det Akademiske Kvarter fallback for
 events without a room or free-text location.
+
+2026-09-02: Recorded the follow-up removal of project rate limits, canonical
+deployment origin, optional-ticket readiness policy, 23:00 concert estimate,
+and source-backed BIFF content correction. BIFF times remain unset until the
+official program publishes them.

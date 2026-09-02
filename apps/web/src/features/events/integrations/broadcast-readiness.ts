@@ -6,10 +6,11 @@ export type BroadcastReadinessErrorCode =
   | "missing_end_time"
   | "missing_image"
   | "missing_keyword"
-  | "missing_ticket_url"
   | "unmapped_location"
 
-export type BroadcastReadinessInfoCode = "duplicate_ticket_url"
+export type BroadcastReadinessInfoCode =
+  | "duplicate_ticket_url"
+  | "missing_ticket_url"
 
 export type BroadcastReadiness = {
   occurrenceId: string
@@ -52,6 +53,7 @@ export function assessBroadcastReadiness(
 ): BroadcastReadiness {
   const { event, schedule } = occurrence
   const issues: BroadcastReadinessErrorCode[] = []
+  const info: BroadcastReadinessInfoCode[] = []
 
   if (!event.title.trim() || event.title === MISSING_TITLE) {
     issues.push("missing_title")
@@ -60,7 +62,9 @@ export function assessBroadcastReadiness(
   if (!schedule.endsAt) issues.push("missing_end_time")
   if (!event.imageUrl) issues.push("missing_image")
   if (!hasKeyword(occurrence)) issues.push("missing_keyword")
-  if (!event.ticketUrl) issues.push("missing_ticket_url")
+  // Ticket URLs are useful purchase metadata, but neither editors nor the
+  // source systems can guarantee that every event has a stable ticket page.
+  if (!event.ticketUrl) info.push("missing_ticket_url")
   // A missing room reference means the event is at the venue itself. Explicit
   // free-text locations still require an external Broadcast venue mapping.
   if (!event.room && event.roomText) issues.push("unmapped_location")
@@ -70,7 +74,7 @@ export function assessBroadcastReadiness(
     websiteUrl: websiteUrl(occurrence, options),
     ready: issues.length === 0,
     issues,
-    info: [],
+    info,
   }
 }
 
@@ -91,7 +95,10 @@ export function addDuplicateTicketUrlInfo(
   return readiness.map(result => {
     const ticketUrl = occurrenceById.get(result.occurrenceId)?.event.ticketUrl
     return ticketUrl && (counts.get(ticketUrl) ?? 0) > 1
-      ? { ...result, info: ["duplicate_ticket_url"] }
+      ? {
+          ...result,
+          info: [...new Set([...result.info, "duplicate_ticket_url" as const])],
+        }
       : result
   })
 }

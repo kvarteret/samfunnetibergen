@@ -60,11 +60,17 @@ content is needed.
 ## Broadcast mapping
 
 Broadcast polls the default collection snapshot. The occurrence `id` is its
-stable match key; ticket URLs are purchase metadata and may be shared by
-multiple performances. Locally controlled readiness requires a title, concrete
-start and end timestamps, image, taxonomy keyword, and ticket URL for a paid
-event. A missing room and missing free-text location resolves to Det Akademiske
-Kvarter and is therefore not an incomplete venue.
+stable match key; ticket URLs are optional purchase metadata, may be absent,
+and may be shared by multiple performances. A missing ticket URL is reported
+as information and does not block readiness. Locally controlled readiness
+requires a title, concrete start and end timestamps, image, and taxonomy
+keyword. A missing room and missing free-text location resolves to Det
+Akademiske Kvarter and is therefore not an incomplete venue.
+
+Editors may use 23:00 as the estimated end time for an evening concert when no
+more precise end time is available. This is an explicit content decision, not
+an API-generated default: the API continues to return `null` rather than invent
+an end time for other events.
 
 Broadcast must still confirm its venue ID, room mapping, accepted tag
 vocabulary, polling cadence, cancellation mapping, and the meaning of an item

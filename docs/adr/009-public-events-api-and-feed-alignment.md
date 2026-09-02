@@ -108,14 +108,18 @@ editorial fields remain private.
 
 The repository audit checks locally controlled source completeness without
 making external writes. A paid occurrence needs a title, UTC start and end
-timestamps, image, taxonomy keyword, and ticket URL. A missing room and missing
+timestamps, image, and taxonomy keyword. Ticket URLs are optional purchase
+metadata because their availability and placement cannot be guaranteed; the
+audit reports a missing ticket URL as information rather than a readiness
+failure. A missing room and missing
 free-text location is valid because it resolves to Det Akademiske Kvarter. An
 explicit free-text venue still needs a confirmed Broadcast mapping.
 
-The audit reports shared ticket URLs as information rather than collapsing
-occurrences. Missing fields keep an event from being locally ready; Broadcast
-may create incomplete mapped records as drafts. Readiness counts are dated
-content observations rather than permanent test assertions.
+The audit reports missing or shared ticket URLs as information rather than
+collapsing occurrences. Missing required fields keep an event from being
+locally ready; Broadcast may create incomplete mapped records as drafts.
+Readiness counts are dated content observations rather than permanent test
+assertions.
 
 ## Consequences
 

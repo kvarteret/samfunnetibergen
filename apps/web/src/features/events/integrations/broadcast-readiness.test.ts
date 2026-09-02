@@ -96,10 +96,21 @@ describe("Broadcast readiness", () => {
       "missing_end_time",
       "missing_image",
       "missing_keyword",
-      "missing_ticket_url",
       "unmapped_location",
     ])
+    expect(result.info).toEqual(["missing_ticket_url"])
     expect(result.ready).toBe(false)
+  })
+
+  it("treats a missing ticket URL as information rather than a blocker", () => {
+    const result = assessBroadcastReadiness(
+      occurrence({ ticketUrl: null }),
+      options,
+    )
+
+    expect(result.ready).toBe(true)
+    expect(result.issues).toEqual([])
+    expect(result.info).toEqual(["missing_ticket_url"])
   })
 
   it("treats a missing room and location as Det Akademiske Kvarter", () => {
