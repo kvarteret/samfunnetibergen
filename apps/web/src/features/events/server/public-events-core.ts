@@ -5,6 +5,7 @@ import {
   publicEventChildrenQuery,
   publicEventsQuery,
   publicPromotedParentEventsQuery,
+  publishedEventSlugsQuery,
 } from "@/lib/sanity/queries"
 
 import {
@@ -134,4 +135,15 @@ export async function fetchPublicEventBySlug(
       includeInternal,
     ),
   }
+}
+
+export async function fetchPublicEventSlugs(today: string): Promise<string[]> {
+  const rows = await sanityClient.fetch(
+    publishedEventSlugsQuery,
+    { today },
+    PUBLIC_QUERY_OPTIONS,
+  )
+  return (rows as readonly { slug: string | null }[]).flatMap(row =>
+    row.slug ? [row.slug] : [],
+  )
 }

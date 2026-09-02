@@ -5,15 +5,13 @@ const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }))
 vi.mock("@/lib/sanity/client", () => ({
   sanityClient: { fetch: fetchMock },
 }))
-vi.mock("@/lib/sanity/fetcher", () => ({ sanityFetch: vi.fn() }))
-vi.mock("next/headers", () => ({ draftMode: vi.fn() }))
 
 import {
   fetchPublicEventBySlug,
   fetchPublicEventChildren,
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
-} from "./public-events"
+} from "./public-events-core"
 
 const eventRow = {
   _id: "event-1",

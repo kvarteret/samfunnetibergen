@@ -23,7 +23,7 @@ on:
       smoke_paths:
         description: "Space-separated paths to smoke test before promotion"
         required: true
-        default: "/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed"
+        default: "/nb /nb/rom /nb/rom/book"
 
 permissions:
   contents: write
@@ -198,7 +198,7 @@ jobs:
             fi
           done
         env:
-          SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed' }}
+          SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book' }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Smoke test public machine-readable endpoints

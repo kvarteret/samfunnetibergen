@@ -6,7 +6,7 @@ import {
 import { fetchPublicEventSet } from "@/features/events/server/public-events-core"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 
-const USAGE = `events:audit:broadcast — audit public ticketed occurrences
+const USAGE = `events:audit:broadcast — check Broadcast source-data completeness
 
 USAGE
   npm run events:audit:broadcast -- --report-only
@@ -50,7 +50,7 @@ async function main(): Promise<void> {
   }
 
   const readyCount = results.filter(result => result.ready).length
-  process.stdout.write("Broadcast readiness report\n")
+  process.stdout.write("Broadcast source-data completeness report\n")
   process.stdout.write(`Ticketed occurrences: ${results.length}\n`)
   process.stdout.write(`Ready: ${readyCount}\n`)
   process.stdout.write("Issues:\n")
@@ -66,10 +66,18 @@ async function main(): Promise<void> {
   if (incomplete.length > 0) {
     process.stdout.write("Incomplete occurrences:\n")
     for (const result of incomplete) {
-      const info =
-        result.info.length > 0 ? `; info=${result.info.join(",")}` : ""
       process.stdout.write(
-        `  ${result.occurrenceId}\t${result.websiteUrl}\t${result.issues.join(",")}${info}\n`,
+        `  ${result.occurrenceId}\t${result.websiteUrl}\t${result.issues.join(",")}\n`,
+      )
+    }
+  }
+
+  const informational = results.filter(result => result.info.length > 0)
+  if (informational.length > 0) {
+    process.stdout.write("Informational occurrences:\n")
+    for (const result of informational) {
+      process.stdout.write(
+        `  ${result.occurrenceId}\t${result.websiteUrl}\t${result.info.join(",")}\n`,
       )
     }
   }

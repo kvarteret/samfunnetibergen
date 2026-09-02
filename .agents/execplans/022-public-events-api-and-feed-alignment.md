@@ -81,6 +81,15 @@ self-contained and repeats the implementation decisions needed to deliver it.
       format check, route TypeGen, Sanity TypeGen, diff check, and the
       production web build. The Broadcast release-gate command also correctly
       exits nonzero while the live content has incomplete ticketed records.
+- [x] (2026-09-02) Removed the superseded website event-query compatibility
+      layer and dead promotion/Supabase code, moved pages and the calendar onto
+      the shared event/occurrence service, and retained the undocumented
+      `includeInternal=true` escape hatch by explicit user decision.
+- [x] (2026-09-02) Regenerated both Sanity type targets and reran route TypeGen,
+      the production web build, all workspace typechecks/lints/format checks,
+      and all tests (web 322, Studio 123, content-domain 35). The report-only
+      Broadcast audit completed against current data with 21 of 39 paid
+      occurrences complete.
 - [ ] Deploy, remove the Vercel checkpoint from public API paths, and complete
       unauthenticated production smoke tests.
 
@@ -327,11 +336,19 @@ self-contained and repeats the implementation decisions needed to deliver it.
   semantics.
   Date/Author: 2026-09-01 / Codex.
 
+- Decision: retain the undocumented `includeInternal=true` option while
+  removing the old website event query/fetch compatibility layer.
+  Rationale: the user explicitly retained the internal-event convenience, but
+  the migrated pages no longer need a parallel public-event normalization path.
+  Date/Author: 2026-09-02 / user and Codex.
+
 ## Outcomes & Retrospective
 
 The v1 API, shared website event reads, normalized detail JSON-LD, and
 occurrence-first DataFeed are implemented locally and covered by the full
-workspace test/typecheck/lint/build cycle. The repository now includes
+workspace test/typecheck/lint/build cycle. The obsolete website compatibility
+queries/fetchers have now been removed so pages, APIs, and feeds converge on
+the same public event domain. The repository now includes
 source-backed ownership docs, staged-release machine-readable smoke checks,
 and a report-only/release-gate Broadcast readiness audit. The current live
 content audit is intentionally red until editors supply the missing event
@@ -499,12 +516,11 @@ Expose a function shaped like:
       occurrences: PublicOccurrence[]
     }>
 
-Retain `fetchPublishedEvents(locale)` as a compatibility wrapper so homepage
-and existing components do not need a broad type rewrite. It calls the shared
-service with Oslo today, no end date, and `includeInternal=false`. Detail
-fetching defaults to the same public visibility but allows draft/Presentation
-preview to bypass it. Add an explicit internal option used only by the new API;
-do not read URL search parameters inside the domain service.
+Move homepage, list, calendar, detail, sitemap, API, and feed consumers directly
+onto the shared service. Detail fetching defaults to public visibility but
+allows draft/Presentation preview to bypass it. Keep the explicit internal
+option available only through the new API request boundary; do not read URL
+search parameters inside the domain service.
 
 At the end of this milestone, run TypeGen and focused tests. Acceptance is that
 a fixture containing a multi-date single, two series children, festival child
@@ -514,8 +530,8 @@ React or HTTP.
 
 ### Milestone 2: Migrate website consumers and implement the DataFeed
 
-Update the current arrangement list and homepage through the compatibility
-fetch helper, keeping their today-forward behavior. Ensure the latest
+Update the current arrangement list and homepage through the shared service,
+keeping their today-forward behavior. Ensure the latest
 `/arrangementer` implementation still calls `filterToFirstInstances` after the
 shared fetch, so only the first visible child per parent reaches the card list.
 
@@ -1173,3 +1189,10 @@ calendar now use the shared published occurrence service; detail JSON-LD and
 machine-readable paths. The Broadcast readiness adapter and safe audit are
 implemented; external venue/tag mapping and production firewall verification
 remain release prerequisites.
+
+2026-09-02: Revised after the PR 123-125 cleanup review. The website
+compatibility queries and fetchers are removed, the calendar consumes the
+service's occurrence stream directly, API errors are explicitly non-cacheable,
+OpenAPI schema generation matches the declared 3.1 dialect, and redundant
+machine-endpoint status-only smoke requests are removed. The intentionally
+undocumented `includeInternal=true` option remains by user decision.

@@ -79,10 +79,11 @@ Errors use one envelope with `code` and a stable human-readable `message`:
 
 Invalid query parameters return `400`; a missing or hidden detail returns
 `404`; an unexpected temporary failure returns `500`. Successful and error
-responses are JSON and permit anonymous cross-origin reads. Responses use a
-60-second shared cache with stale-while-revalidate for five minutes. Clients
-should use the `links` values for navigation and should tolerate additive
-optional fields in v1. Breaking contract changes will use `/api/v2`.
+responses are JSON and permit anonymous cross-origin reads. Successful
+responses use a 60-second shared cache with stale-while-revalidate for five
+minutes; errors are not cached. Clients should use the `links` values for
+navigation and should tolerate additive optional fields in v1. Breaking
+contract changes will use `/api/v2`.
 
 The route is intended to be anonymously reachable from outside Vercel. The
 website Vercel project must allow `/api/v1/*` and `/api/events/feed` through
@@ -95,13 +96,14 @@ is the complete application contract. Event JSON-LD remains embedded on
 individual website detail pages for search metadata. No calendar-subscription
 or iCalendar endpoint is currently provided.
 
-## Broadcast readiness
+## Broadcast feed completeness
 
 The planned Broadcast pull integration uses `/api/events/feed` and treats each
 `DataFeedItem` `@id` as the stable occurrence match key. Ticket URLs are offer
 metadata, not identity, so two performances sharing a ticket page remain two
-records. The repository audit can report local readiness without exposing
-ticket URLs or private editorial fields:
+records. The repository audit checks whether paid occurrences have the source
+fields Broadcast requires without exposing ticket URLs or private editorial
+fields:
 
     npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only
 

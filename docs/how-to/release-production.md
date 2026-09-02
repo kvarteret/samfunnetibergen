@@ -44,7 +44,7 @@ gh workflow run release-production.yml \
   --ref develop \
   -f ref=develop \
   -f promote=true \
-  -f smoke_paths='/nb /nb/rom /nb/rom/book /api/v1/events?locale=nb /api/v1/openapi.json /api/events/feed'
+  -f smoke_paths='/nb /nb/rom /nb/rom/book'
 ```
 
 The `ref` input controls the checked-out release source. `promote=true` makes

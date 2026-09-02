@@ -1,17 +1,13 @@
 import type { PublicOccurrence } from "../domain/public-events"
 
-export const BROADCAST_READINESS_ERROR_CODES = [
-  "missing_title",
-  "missing_start_time",
-  "missing_end_time",
-  "missing_image",
-  "missing_keyword",
-  "missing_ticket_url",
-  "unmapped_location",
-] as const
-
 export type BroadcastReadinessErrorCode =
-  (typeof BROADCAST_READINESS_ERROR_CODES)[number]
+  | "missing_title"
+  | "missing_start_time"
+  | "missing_end_time"
+  | "missing_image"
+  | "missing_keyword"
+  | "missing_ticket_url"
+  | "unmapped_location"
 
 export type BroadcastReadinessInfoCode = "duplicate_ticket_url"
 
