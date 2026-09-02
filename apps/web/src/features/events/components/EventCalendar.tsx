@@ -227,12 +227,13 @@ export function EventCalendar({
   today: string
 }) {
   const t = useTranslations("EventsPage")
-  const { filteredEvents } = useEvents()
-  const months = buildCalendarMonths(filteredEvents, today)
+  const { filteredOccurrences } = useEvents()
+  const months = buildCalendarMonths(filteredOccurrences, today)
   const [selectedMonths, setSelectedMonths] = useState<string[]>([])
   const [hasInteracted, setHasInteracted] = useState(false)
   const defaultMonths = months.map(month => month.key)
   const openMonths = hasInteracted ? selectedMonths : defaultMonths
+  const openMonthKeys = new Set(openMonths)
 
   if (months.length === 0) {
     return (
@@ -250,7 +251,7 @@ export function EventCalendar({
       </p>
       {months.map(month => {
         const monthLabel = formatMonthLabel(month, locale)
-        const isOpen = openMonths.includes(month.key)
+        const isOpen = openMonthKeys.has(month.key)
 
         return (
           <section

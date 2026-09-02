@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl"
 
 import { useEvents } from "@/features/events/context/EventsContext"
-import type { PublishedEvent } from "@/features/events/domain/eventUtils"
+import type { PublicEvent } from "@/features/events/domain/public-events"
 import { EventCard, type EventDateEntry, type EventSummary } from "./EventCard"
 
-type PublishedEventDate = NonNullable<PublishedEvent["dates"]>[number]
+type PublicEventDate = PublicEvent["dates"][number]
 
 interface EventsPageSectionsProps {
   precomputedDates: Map<
@@ -21,11 +21,11 @@ interface EventsPageSectionsProps {
 }
 
 function toEventSummary(
-  event: PublishedEvent,
+  event: PublicEvent,
   precomputedDates: EventsPageSectionsProps["precomputedDates"],
 ): EventSummary {
   const dates: EventDateEntry[] = (event.dates ?? []).map(
-    (d: PublishedEventDate) => ({
+    (d: PublicEventDate) => ({
       _key: d._key,
       startDate: d.startDate,
       startTime: d.startTime ?? null,

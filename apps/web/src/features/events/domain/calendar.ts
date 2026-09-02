@@ -1,7 +1,5 @@
 import {
   comparePublicOccurrences,
-  flattenPublicOccurrences,
-  type PublicEvent,
   type PublicOccurrence,
 } from "./public-events"
 
@@ -70,17 +68,18 @@ function mondayBasedOffset(year: number, month: number) {
  * users can see empty months before later events.
  */
 export function buildCalendarMonths(
-  events: PublicEvent[],
+  sourceOccurrences: readonly PublicOccurrence[],
   today: string,
 ): CalendarMonth[] {
   const visibleFrom = startOfCurrentWeek(today)
   const occurrencesByDate = new Map<string, CalendarOccurrence[]>()
   let lastFutureDate: string | null = null
 
-  for (const occurrence of flattenPublicOccurrences(events, {
-    from: visibleFrom,
-    to: null,
-  })) {
+  const occurrences = sourceOccurrences
+    .filter(occurrence => occurrence.schedule.startDate >= visibleFrom)
+    .toSorted(comparePublicOccurrences)
+
+  for (const occurrence of occurrences) {
     const date = occurrence.schedule.startDate
     const occurrences = occurrencesByDate.get(date) ?? []
     occurrences.push(occurrence)

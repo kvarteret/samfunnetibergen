@@ -10,13 +10,14 @@ import {
 } from "@/features/events/domain/dates"
 import type { AppLocale } from "@/i18n/routing"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
+import { fetchPublicEventSet } from "@/features/events/server/public-events"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { fetchPublishedEvents } from "@/lib/sanity/fetch"
+import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 
 export const revalidate = 60
 
@@ -59,11 +60,12 @@ export default async function EventsPage({
 }: PageProps<"/[locale]/arrangementer">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
+  const today = getOsloDateString()
 
-  const [t, fetchedArrangements, resolvedSearchParams, cardT] =
+  const [t, { events: fetchedArrangements }, resolvedSearchParams, cardT] =
     await Promise.all([
       getTranslations({ locale, namespace: "EventsPage" }),
-      fetchPublishedEvents(locale),
+      fetchPublicEventSet({ locale, from: today, to: null }),
       searchParams,
       getTranslations({ locale, namespace: "EventCard" }),
     ])
@@ -81,7 +83,6 @@ export default async function EventsPage({
     generic: cardT("recurringGeneric"),
   }
 
-  const todayStr = new Date().toISOString().split("T")[0]!
   const precomputedDates = new Map<
     string,
     {
@@ -98,7 +99,7 @@ export default async function EventsPage({
       startTime: d.startTime ?? null,
       endTime: d.endTime ?? null,
     }))
-    const resolvedDates = computeAllDates(dates, todayStr)
+    const resolvedDates = computeAllDates(dates, today)
     const primaryDate = resolvedDates[0]
     const primaryDateLabel = primaryDate
       ? formatPrimaryDate(primaryDate, primaryDateLabels)

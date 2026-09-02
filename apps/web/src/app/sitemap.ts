@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next"
+import { fetchPublicEventSlugs } from "@/features/events/server/public-events"
 import { routing } from "@/i18n/routing"
 import {
   fetchPageSlugs,
-  fetchPublishedEventSlugs,
   fetchRoomSlugs,
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
+import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { resolveSiteUrl } from "@/lib/site-url"
 import {
   buildLocalizedSitemapEntries,
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fetchPageSlugs(),
     fetchRoomSlugs(),
     fetchStudentGroupSlugs(),
-    fetchPublishedEventSlugs(),
+    fetchPublicEventSlugs(getOsloDateString()),
   ])
 
   const dynamicPaths = filterSitemapDynamicPaths([

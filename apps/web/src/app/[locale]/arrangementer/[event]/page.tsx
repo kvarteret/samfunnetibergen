@@ -4,14 +4,17 @@ import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
 import { JsonLd } from "@/components/JsonLd"
-import { flattenPublicOccurrences } from "@/features/events/domain/public-events"
+import {
+  flattenPublicOccurrences,
+  type PublicEvent,
+} from "@/features/events/domain/public-events"
+import { fetchEventPageData } from "@/features/events/server/public-events"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { fetchEventBySlug, fetchEventChildren } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { resolveSiteUrl } from "@/lib/site-url"
@@ -26,8 +29,8 @@ const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   timeZone: "Europe/Oslo",
 })
 
-type EventDetail = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>
-type EventChild = Awaited<ReturnType<typeof fetchEventChildren>>[number]
+type EventDetail = PublicEvent
+type EventChild = PublicEvent
 
 type EventPageProps = {
   params: Promise<{ event: string; locale: string }>
@@ -42,17 +45,15 @@ export default async function EventPage({ params }: EventPageProps) {
   )) as AppLocale
   activateRequestLocale(locale)
 
-  const [eventData, t] = await Promise.all([
-    fetchEventBySlug(resolvedParams.event, locale, { stega: false }),
+  const [detail, t] = await Promise.all([
+    fetchEventPageData(resolvedParams.event, locale, { stega: false }),
     getTranslations({ locale, namespace: "EventPage" }),
   ])
 
-  if (!eventData) notFound()
+  if (!detail) notFound()
 
+  const { event: eventData, children: childEvents } = detail
   const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
-  const childEvents = isParentEvent
-    ? await fetchEventChildren(eventData._id, locale, { stega: false })
-    : []
   const today = getOsloDateString()
   const eventJsonLd = buildEventStructuredData(
     isParentEvent
@@ -97,9 +98,13 @@ export async function generateMetadata({ params }: EventPageProps) {
   const locale = await resolvePageLocale(
     Promise.resolve({ locale: resolvedParams.locale }),
   )
-  const eventData = await fetchEventBySlug(resolvedParams.event, locale)
+  const detail = await fetchEventPageData(resolvedParams.event, locale, {
+    stega: false,
+  })
 
-  if (!eventData) return {}
+  if (!detail) return {}
+
+  const { event: eventData } = detail
 
   const metadata = buildPageMetadata({
     locale,

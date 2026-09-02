@@ -1,8 +1,4 @@
-import type { fetchPublishedEvents } from "@/lib/sanity/fetch"
-
-export type PublishedEvent = Awaited<
-  ReturnType<typeof fetchPublishedEvents>
->[number]
+import type { PublicEvent } from "./public-events"
 
 export type TaxonomyGroup = {
   _id: string
@@ -32,9 +28,7 @@ export type EventFilters = {
   organizerGroupIds: string[]
 }
 
-export function buildTaxonomyFromEvents(
-  events: PublishedEvent[],
-): EventTaxonomy {
+export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
   const taxonomyGroupsMap = new Map<string, TaxonomyGroup>()
   const eventTypesMap = new Map<string, TaxonomyEventType>()
   const organizerGroupsMap = new Map<string, OrganizerGroup>()
@@ -69,9 +63,9 @@ export function buildTaxonomyFromEvents(
 }
 
 export function filterEvents(
-  events: PublishedEvent[],
+  events: PublicEvent[],
   filters: EventFilters,
-): PublishedEvent[] {
+): PublicEvent[] {
   const eventTypeIds = new Set(filters.eventTypeIds)
   const organizerGroupIds = new Set(filters.organizerGroupIds)
 
@@ -101,9 +95,7 @@ export function filterEvents(
  * Sanity boundary, so preserving input order makes the first row the earliest
  * visible instance without changing the shared query used by other surfaces.
  */
-export function filterToFirstInstances(
-  events: PublishedEvent[],
-): PublishedEvent[] {
+export function filterToFirstInstances(events: PublicEvent[]): PublicEvent[] {
   const seenParents = new Set<string>()
 
   return events.filter(event => {

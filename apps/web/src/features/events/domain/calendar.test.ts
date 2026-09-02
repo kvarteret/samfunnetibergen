@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { buildCalendarMonths } from "./calendar"
-import { resolvePublicEvent } from "./public-events"
+import { buildCalendarMonths as groupCalendarMonths } from "./calendar"
+import { flattenPublicOccurrences, resolvePublicEvent } from "./public-events"
 
 function event(
   id: string,
@@ -17,6 +17,13 @@ function event(
     eventStatus: "scheduled",
     dates: dates.map(date => ({ ...date, endTime: null })),
   })
+}
+
+function buildCalendarMonths(
+  events: ReturnType<typeof event>[],
+  today: string,
+) {
+  return groupCalendarMonths(flattenPublicOccurrences(events), today)
 }
 
 describe("calendar event grouping", () => {

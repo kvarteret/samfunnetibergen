@@ -5,9 +5,10 @@ description: Work on arrangement listing, detail pages, feeds, and event submiss
 
 # Working With Sanity Arrangements
 
-Use this skill for `/arrangementer`, arrangement detail pages, iCal, JSON-LD
-event feed, event submission, event taxonomy, rooms, and organizer group
-references.
+Use this skill for `/arrangementer`, arrangement detail pages, the versioned
+public event API, the Schema.org DataFeed, event submission, event taxonomy,
+rooms, and organizer group references. There is no iCalendar route in current
+source.
 
 ## Source Of Truth
 
@@ -16,11 +17,15 @@ references.
   `apps/studio/src/studio/schemaTypes/documents/eventTaxonomyGroup.ts`, and
   `apps/studio/src/studio/schemaTypes/documents/singletons/`.
 - Sanity queries: `apps/web/src/lib/sanity/queries/events.ts`.
-- Server fetch helpers: `apps/web/src/lib/sanity/fetch/events.ts`.
+- Shared public event service and preview controller:
+  `apps/web/src/features/events/server/public-events.ts`.
+- Event-form taxonomy and reference fetches:
+  `apps/web/src/lib/sanity/fetch/events.ts`.
+- Public occurrence domain: `apps/web/src/features/events/domain/public-events.ts`.
 - Public pages: `apps/web/src/app/[locale]/arrangementer/page.tsx` and
   `apps/web/src/app/[locale]/arrangementer/[event]/page.tsx`.
-- Feeds: `apps/web/src/app/api/ical/route.ts` and
-  `apps/web/src/app/api/events/feed/route.ts`.
+- Versioned API: `apps/web/src/app/api/v1/events/`.
+- Linked-data feed: `apps/web/src/app/api/events/feed/route.ts`.
 - Public event submission: `apps/web/src/features/events/actions/submitEvent.ts`.
 
 ## Boundary Rules

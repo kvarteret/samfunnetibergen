@@ -41,7 +41,7 @@ const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "f
 
 // Inheritable fields are projected raw (no coalesce): a null child value
 // must survive to the domain resolver so it can fall back to the parent.
-// Display defaults are applied after resolution in apps/web/src/lib/sanity/fetch/events.ts.
+// Display defaults are applied after resolution in the public event domain.
 const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
     "description": ${localizedDescription}[] ${portableTextProjection},
@@ -62,77 +62,6 @@ const inheritableFieldsProjection = `
     facebookUrl,
     isInternalEvent`
 
-const parentProjection = `parentEvent-> {
-    _id,
-    "slug": coalesce(slug.current, ""),
-    "eventKind": coalesce(eventKind, "single"),
-    eventStatus,
-    ${inheritableFieldsProjection}
-}`
-
-const eventProjection = `{
-    _id,
-    "eventKind": coalesce(eventKind, "single"),
-    eventStatus,
-    "parent": ${parentProjection},
-    "slug": coalesce(slug.current, ""),
-    "approvalStatus": coalesce(approvalStatus, "pending"),
-    "isPromoted": coalesce(isPromoted, false),
-    promotedPlacement,
-    promotedOrder,
-    orderRank,
-    "isRecurring": coalesce(isRecurring, false),
-    "useFestivalImage": coalesce(useFestivalImage, true),
-    rrule,
-    "dates": coalesce(select(
-      eventKind in ["seriesParent", "festivalParent"] => *[
-        _type == "arrangement" &&
-        eventKind in ["seriesInstance", "festivalSession"] &&
-        parentEvent._ref == ^._id &&
-        approvalStatus == "approved"
-      ].dates[] | order(startDate asc, startTime asc) {
-        _key,
-        "startDate": coalesce(startDate, ""),
-        startTime,
-        endTime
-      },
-      dates[] | order(startDate asc) {
-        _key,
-        "startDate": coalesce(startDate, ""),
-        startTime,
-        endTime
-      }
-    ), []),
-    "room": room-> { _id, "title": ${localizedTitle}, "slug": coalesce(slug.current, ""), floor, "imageUrl": images[0].image.asset->url },
-    "roomText": ${localizedNullableRoomText},
-    ${inheritableFieldsProjection}
-}`
-
-export const publishedEventsQuery = defineQuery(`
-    *[
-        _type == "arrangement"
-        && approvalStatus == "approved"
-        && ${CONCRETE_EVENT_KINDS}
-        && count(dates[startDate >= $today]) > 0
-    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
-
-// Promoted parent events are fetched separately for homepage-style promoted
-// surfaces. Normal listings and feeds still show only concrete events.
-export const promotedParentEventsQuery = defineQuery(`
-    *[
-        _type == "arrangement"
-        && approvalStatus == "approved"
-        && isPromoted == true
-        && ${PARENT_EVENT_KINDS}
-        && count(*[
-          _type == "arrangement" &&
-          eventKind in ["seriesInstance", "festivalSession"] &&
-          parentEvent._ref == ^._id &&
-          approvalStatus == "approved" &&
-          count(dates[startDate >= $today]) > 0
-        ]) > 0
-    ] | order(coalesce(dates[startDate >= $today][0].startDate, dates[0].startDate) asc) ${eventProjection}`)
-
 export const publishedEventSlugsQuery = defineQuery(`
     *[
         _type == "arrangement"
@@ -147,28 +76,7 @@ export const publishedEventSlugsQuery = defineQuery(`
         "slug": slug.current
     }`)
 
-// Detail pages stay reachable for every approved event, including historical
-// events whose stable URLs may still be linked from search or social posts.
-// Preview mode continues to expose drafts, while unpublished events remain
-// unavailable to ordinary requests.
-export const eventBySlugQuery = defineQuery(`
-    *[_type == "arrangement" && slug.current == $slug && (
-        $preview == true
-        || (
-            approvalStatus == "approved"
-        )
-    )][0] ${eventProjection}`)
-
-export const eventChildrenQuery = defineQuery(`
-    *[
-        _type == "arrangement"
-        && parentEvent._ref == $parentId
-        && approvalStatus == "approved"
-    ] | order(dates[0].startDate asc) ${eventProjection}`)
-
-// The public API uses a separate projection so its range selection and
-// modification metadata are explicit. The existing website queries remain
-// compatible while the API moves onto the shared public-event service.
+// Public pages, API routes, feeds, and editor preview share this projection.
 const PUBLIC_DATE_FILTER = `defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)`
 
 const publicParentProjection = `parentEvent-> {
@@ -272,4 +180,20 @@ export const publicEventChildrenQuery = defineQuery(`
         && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]
         && defined(slug.current)
         && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) ${publicEventProjection}`)
+
+// Editor preview uses the same projection while allowing the selected draft.
+export const previewEventBySlugQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && slug.current == $slug
+        && ($preview == true || approvalStatus == "approved")
+    ][0] ${publicEventProjection}`)
+
+export const previewEventChildrenQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && parentEvent._ref == $parentId
+        && approvalStatus == "approved"
+        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]
     ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) ${publicEventProjection}`)

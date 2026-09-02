@@ -1,17 +1,21 @@
 import { List } from "lucide-react"
 
 import { EventsProvider } from "@/features/events/context/EventsContext"
-import type { PublishedEvent } from "@/features/events/domain/eventUtils"
+import type {
+  PublicEvent,
+  PublicOccurrence,
+} from "@/features/events/domain/public-events"
 import type { AppLocale } from "@/i18n/routing"
 import { Link } from "@/i18n/navigation"
 import { EventsPageFilters } from "./EventsPageFilters"
 import { EventCalendar } from "./EventCalendar"
 
 interface EventCalendarPageProps {
-  arrangements: PublishedEvent[]
+  arrangements: PublicEvent[]
   backLabel: string
   listLabel: string
   locale: AppLocale
+  occurrences: PublicOccurrence[]
   searchParams: Record<string, string | string[] | undefined>
   title: string
   today: string
@@ -22,6 +26,7 @@ export function EventCalendarPage({
   backLabel,
   listLabel,
   locale,
+  occurrences,
   searchParams,
   title,
   today,
@@ -29,6 +34,7 @@ export function EventCalendarPage({
   return (
     <EventsProvider
       initialEvents={arrangements}
+      initialOccurrences={occurrences}
       initialSearchParams={searchParams}
     >
       <div className="flex flex-col gap-10">

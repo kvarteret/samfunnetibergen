@@ -40,24 +40,23 @@ export default async function CalendarPage({
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [t, { events: arrangements }, resolvedSearchParams] = await Promise.all(
-    [
-      getTranslations({ locale, namespace: "EventsPage" }),
-      fetchPublicEventSet({
-        locale,
-        from: startOfCurrentWeek(today),
-        to: null,
-      }),
-      searchParams,
-    ],
-  )
+  const [t, eventSet, resolvedSearchParams] = await Promise.all([
+    getTranslations({ locale, namespace: "EventsPage" }),
+    fetchPublicEventSet({
+      locale,
+      from: startOfCurrentWeek(today),
+      to: null,
+    }),
+    searchParams,
+  ])
 
   return (
     <EventCalendarPage
-      arrangements={arrangements}
+      arrangements={eventSet.events}
       backLabel={t("back")}
       listLabel={t("list")}
       locale={locale}
+      occurrences={eventSet.occurrences}
       searchParams={resolvedSearchParams}
       title={t("calendarTitle")}
       today={today}

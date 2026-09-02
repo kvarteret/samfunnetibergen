@@ -8,6 +8,5 @@ export { EventsProvider, useEvents } from "./context/EventsContext"
 export type {
   EventFilters,
   EventTaxonomy,
-  PublishedEvent,
 } from "./domain/eventUtils"
 export { filterToFirstInstances } from "./domain/eventUtils"

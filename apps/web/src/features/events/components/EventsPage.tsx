@@ -1,14 +1,14 @@
 import { CalendarDays, CalendarPlus } from "lucide-react"
 
 import { EventsProvider } from "@/features/events/context/EventsContext"
-import type { PublishedEvent } from "@/features/events/domain/eventUtils"
+import type { PublicEvent } from "@/features/events/domain/public-events"
 import { Link } from "@/i18n/navigation"
 import type { EventDateEntry } from "./EventCard"
 import { EventsPageFilters } from "./EventsPageFilters"
 import { EventsPageSections } from "./EventsPageSections"
 
 interface EventsPageProps {
-  arrangements: PublishedEvent[]
+  arrangements: PublicEvent[]
   backLabel: string
   calendarLabel: string
   precomputedDates: Map<

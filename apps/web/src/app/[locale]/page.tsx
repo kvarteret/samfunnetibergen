@@ -14,6 +14,11 @@ import {
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
+import type { PublicEvent } from "@/features/events/domain/public-events"
+import {
+  fetchPublicEventSet,
+  fetchPublicPromotedParentEvents,
+} from "@/features/events/server/public-events"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -22,12 +27,7 @@ import {
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import {
-  fetchBarPreviews,
-  fetchHomePageContent,
-  fetchPromotedParentEvents,
-  fetchPublishedEvents,
-} from "@/lib/sanity/fetch"
+import { fetchBarPreviews, fetchHomePageContent } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   }
 }
 
-type SanityEvent = Awaited<ReturnType<typeof fetchPublishedEvents>>[number]
+type SanityEvent = PublicEvent
 type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
 
 type EventCardLabels = {
@@ -73,6 +73,7 @@ type EventCardLabels = {
 
 function toEventSummary(
   event: SanityEvent,
+  today: string,
   labels?: EventCardLabels,
 ): EventSummary {
   const dates: EventDateEntry[] = (event.dates ?? []).map(
@@ -84,8 +85,7 @@ function toEventSummary(
     }),
   )
 
-  const todayStr = new Date().toISOString().split("T")[0]!
-  const resolvedDates = computeAllDates(dates, todayStr)
+  const resolvedDates = computeAllDates(dates, today)
 
   const primaryDateLabels = labels
     ? {
@@ -215,16 +215,16 @@ function eventHref(event: EventSummary, locale: AppLocale) {
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
+  const today = getOsloDateString()
 
-  const [events, promotedParentEvents, barPreviews, t, homeT] =
+  const [{ events }, promotedParentEvents, barPreviews, t, homeT] =
     await Promise.all([
-      fetchPublishedEvents(locale),
-      fetchPromotedParentEvents(locale),
+      fetchPublicEventSet({ locale, from: today, to: null }),
+      fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
       fetchBarPreviews(locale),
       getTranslations({ locale, namespace: "EventCard" }),
       getTranslations({ locale, namespace: "HomePage" }),
     ])
-  const today = getOsloDateString()
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -254,6 +254,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         locale={locale}
         sectionLabel={undefined}
         linkLabel={homeT("eventsAll")}
+        today={today}
       />
       <HomeUpcomingEvents
         events={upcomingEvents}
@@ -261,6 +262,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         locale={locale}
         sectionLabel={homeT("eventsTitle")}
         linkLabel={homeT("calendar")}
+        today={today}
       />
       <HomeGrupperBanner
         body={homeT("grupperBannerBody")}
@@ -317,6 +319,7 @@ interface HomeEventsSectionProps {
   locale: AppLocale
   sectionLabel?: string
   linkLabel: string
+  today: string
 }
 
 function HomePromotedEvents({
@@ -324,6 +327,7 @@ function HomePromotedEvents({
   labels,
   locale,
   linkLabel,
+  today,
 }: HomeEventsSectionProps) {
   if (!events.length) return null
 
@@ -343,7 +347,7 @@ function HomePromotedEvents({
             key={event._id}
           >
             <HomePromotedEventCard
-              event={toEventSummary(event, labels)}
+              event={toEventSummary(event, today, labels)}
               index={index}
               locale={locale}
             />
@@ -360,6 +364,7 @@ function HomeUpcomingEvents({
   locale,
   sectionLabel,
   linkLabel,
+  today,
 }: HomeEventsSectionProps) {
   if (!events.length) return null
 
@@ -379,7 +384,7 @@ function HomeUpcomingEvents({
               key={event._id}
             >
               <HomeUpcomingEventCard
-                event={toEventSummary(event, labels)}
+                event={toEventSummary(event, today, labels)}
                 locale={locale}
               />
             </div>

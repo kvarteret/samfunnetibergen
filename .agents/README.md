@@ -11,11 +11,12 @@ and docs disagree.
 
 Current verified boundaries:
 
-- Public arrangement pages and feeds read from Sanity through
-  `src/lib/sanity/fetch/events.ts`, `src/lib/sanity/queries/events.ts`,
-  `src/app/[locale]/arrangementer/page.tsx`,
-  `src/app/[locale]/arrangementer/[event]/page.tsx`,
-  `src/app/api/ical/route.ts`, and `src/app/api/events/feed/route.ts`.
+- Public arrangement pages, the versioned JSON API, and the linked-data feed
+  read published Sanity data through the shared event service in
+  `apps/web/src/features/events/server/public-events.ts`, backed by
+  `apps/web/src/lib/sanity/queries/events.ts`. The website pages,
+  `/api/v1/events`, `/api/v1/openapi.json`, and `/api/events/feed` are public
+  consumers of that boundary. There is no iCalendar route in current source.
 - Public volunteer prospect submissions are validated locally, then proxied to
   `kvarteret-personal` from `src/app/api/volunteer-prospects/route.ts`.
 - Generated `kvarteret-personal` client files live under

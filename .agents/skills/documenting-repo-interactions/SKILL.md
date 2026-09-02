@@ -19,10 +19,12 @@ Every interaction claim must be verified before it is written.
 
 ## Current Verified Boundaries
 
-- Arrangement pages and feeds read from Sanity:
-  `lib/sanity/fetch/events.ts`, `lib/sanity/queries/events.ts`,
-  `app/[locale]/arrangementer/page.tsx`, `app/[locale]/arrangementer/[event]/page.tsx`,
-  `app/api/ical/route.ts`, and `app/api/events/feed/route.ts`.
+- Arrangement pages, the versioned API, and the linked-data feed read from
+  Sanity through `features/events/server/public-events.ts`, backed by
+  `lib/sanity/queries/events.ts`. Public consumers include
+  `app/[locale]/arrangementer/page.tsx`,
+  `app/[locale]/arrangementer/[event]/page.tsx`, `app/api/v1/events/`, and
+  `app/api/events/feed/route.ts`. There is no iCalendar route in current source.
 - Volunteer prospect submissions are proxied to `kvarteret-personal`:
   `app/api/volunteer-prospects/route.ts`.
 - The generated `kvarteret-personal` client directory is ignored:

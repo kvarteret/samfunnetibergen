@@ -1,20 +1,22 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  eventBySlugQuery,
-  promotedParentEventsQuery,
+  previewEventBySlugQuery,
+  previewEventChildrenQuery,
   publicEventBySlugQuery,
   publicEventChildrenQuery,
   publicEventsQuery,
+  publicPromotedParentEventsQuery,
   publishedEventSlugsQuery,
-  publishedEventsQuery,
 } from "./events"
 
 describe("event detail query", () => {
   it("keeps every approved event reachable after its dates pass", () => {
-    expect(eventBySlugQuery).toContain('approvalStatus == "approved"')
-    expect(eventBySlugQuery).toContain("$preview == true")
-    expect(eventBySlugQuery).not.toContain("count(dates[startDate >= $today])")
+    expect(previewEventBySlugQuery).toContain('approvalStatus == "approved"')
+    expect(previewEventBySlugQuery).toContain("$preview == true")
+    expect(previewEventBySlugQuery).not.toContain(
+      "count(dates[startDate >= $today])",
+    )
   })
 })
 
@@ -27,12 +29,12 @@ describe("event status query contract", () => {
 
 describe("festival projections", () => {
   it("derives parent dates from approved series and festival days", () => {
-    expect(promotedParentEventsQuery).toContain(
+    expect(previewEventChildrenQuery).toContain(
       'eventKind in ["seriesInstance", "festivalSession"]',
     )
-    expect(promotedParentEventsQuery).toContain('approvalStatus == "approved"')
-    expect(promotedParentEventsQuery).toContain("parentEvent._ref == ^._id")
-    expect(publishedEventsQuery).toContain(
+    expect(previewEventChildrenQuery).toContain('approvalStatus == "approved"')
+    expect(previewEventChildrenQuery).toContain("parentEvent._ref == $parentId")
+    expect(publicEventsQuery).toContain(
       '"useFestivalImage": coalesce(useFestivalImage, true)',
     )
   })
@@ -40,9 +42,9 @@ describe("festival projections", () => {
 
 describe("promoted ordering", () => {
   it("projects editorial order and excludes parents without upcoming days", () => {
-    expect(promotedParentEventsQuery).toContain("orderRank")
-    expect(promotedParentEventsQuery).toContain(
-      "count(dates[startDate >= $today]) > 0",
+    expect(publicPromotedParentEventsQuery).toContain("orderRank")
+    expect(publicPromotedParentEventsQuery).toContain(
+      "count(dates[defined(startDate) && ($from == null || startDate >= $from)",
     )
   })
 })

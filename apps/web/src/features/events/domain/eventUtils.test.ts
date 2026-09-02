@@ -1,20 +1,16 @@
 import { describe, expect, it } from "vitest"
 
-import type { PublishedEvent } from "./eventUtils"
+import type { PublicEvent } from "./public-events"
 import { filterToFirstInstances } from "./eventUtils"
 
-function event(
-  id: string,
-  kind: PublishedEvent["eventKind"],
-  parentId?: string,
-) {
+function event(id: string, kind: PublicEvent["eventKind"], parentId?: string) {
   return {
     _id: id,
     eventKind: kind,
     parentEvent: parentId
       ? { _id: parentId, slug: `${parentId}-slug`, title: parentId }
       : null,
-  } as unknown as PublishedEvent
+  } as unknown as PublicEvent
 }
 
 describe("first materialized event instances", () => {

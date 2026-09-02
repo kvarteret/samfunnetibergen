@@ -1,12 +1,19 @@
 import "server-only"
 
+import { draftMode } from "next/headers"
+
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "@/lib/sanity/client"
+import { sanityFetch } from "@/lib/sanity/fetcher"
+import type { FetchOptions } from "@/lib/sanity/fetch/shared"
 import {
+  previewEventBySlugQuery,
+  previewEventChildrenQuery,
   publicEventBySlugQuery,
   publicEventChildrenQuery,
-  publicPromotedParentEventsQuery,
   publicEventsQuery,
+  publicPromotedParentEventsQuery,
+  publishedEventSlugsQuery,
 } from "@/lib/sanity/queries"
 
 import {
@@ -51,12 +58,7 @@ export async function fetchPublicEventSet({
 }> {
   const rows = await sanityClient.fetch(
     publicEventsQuery,
-    {
-      locale,
-      from,
-      to,
-      includeInternal,
-    },
+    { locale, from, to, includeInternal },
     PUBLIC_QUERY_OPTIONS,
   )
   const events = resolveRows(rows)
@@ -75,12 +77,7 @@ export async function fetchPublicPromotedParentEvents({
 }: PublicEventSetOptions): Promise<PublicEvent[]> {
   const rows = await sanityClient.fetch(
     publicPromotedParentEventsQuery,
-    {
-      locale,
-      from,
-      to,
-      includeInternal,
-    },
+    { locale, from, to, includeInternal },
     PUBLIC_QUERY_OPTIONS,
   )
   return resolveRows(rows)
@@ -93,13 +90,7 @@ export async function fetchPublicEventChildren(
 ): Promise<PublicEvent[]> {
   const rows = await sanityClient.fetch(
     publicEventChildrenQuery,
-    {
-      parentId,
-      locale,
-      from: null,
-      to: null,
-      includeInternal,
-    },
+    { parentId, locale, from: null, to: null, includeInternal },
     PUBLIC_QUERY_OPTIONS,
   )
   return resolveRows(rows)
@@ -112,13 +103,7 @@ export async function fetchPublicEventBySlug(
 ): Promise<PublicEventDetailResult | null> {
   const row = await sanityClient.fetch(
     publicEventBySlugQuery,
-    {
-      slug,
-      locale,
-      from: null,
-      to: null,
-      includeInternal,
-    },
+    { slug, locale, from: null, to: null, includeInternal },
     PUBLIC_QUERY_OPTIONS,
   )
   if (!row) return null
@@ -135,5 +120,62 @@ export async function fetchPublicEventBySlug(
       locale,
       includeInternal,
     ),
+  }
+}
+
+export async function fetchPublicEventSlugs(today: string): Promise<string[]> {
+  const rows = await sanityClient.fetch(
+    publishedEventSlugsQuery,
+    { today },
+    PUBLIC_QUERY_OPTIONS,
+  )
+  return (rows as readonly { slug: string | null }[]).flatMap(row =>
+    row.slug ? [row.slug] : [],
+  )
+}
+
+/** Shared website detail controller, including Presentation draft support. */
+export async function fetchEventPageData(
+  slug: string,
+  locale: AppLocale,
+  options: FetchOptions = {},
+): Promise<PublicEventDetailResult | null> {
+  const { isEnabled: preview } = await draftMode()
+  if (!preview) return fetchPublicEventBySlug(slug, locale)
+
+  const { data: row } = await sanityFetch({
+    query: previewEventBySlugQuery,
+    params: {
+      preview,
+      slug,
+      locale,
+      from: null,
+      to: null,
+      includeInternal: true,
+    },
+    stega: options.stega,
+  })
+  if (!row) return null
+
+  const event = resolvePublicEvent(row as RawPublicEvent)
+  const isParent =
+    event.eventKind === "seriesParent" || event.eventKind === "festivalParent"
+  if (!isParent) return { event, children: [] }
+
+  const { data: childRows } = await sanityFetch({
+    query: previewEventChildrenQuery,
+    params: {
+      parentId: event._id,
+      locale,
+      from: null,
+      to: null,
+      includeInternal: true,
+    },
+    stega: options.stega,
+  })
+
+  return {
+    event,
+    children: childRows.map(row => resolvePublicEvent(row as RawPublicEvent)),
   }
 }
