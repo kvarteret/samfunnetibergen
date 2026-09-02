@@ -41,9 +41,11 @@ Kvarter` rather than appearing locationless.
 - [x] (2026-09-02) Ran focused and full web tests, route TypeGen, formatting,
       typecheck, lint, production build, local HTTP smoke tests, the live
       report-only audit, and final diff checks. Exact results are recorded below.
-- [ ] Before production, check request logs for unknown DataFeed consumers,
-      configure anonymous Vercel access to `/api/v1/*`, and complete a Broadcast
-      test-workspace import.
+- [x] (2026-09-02) Enabled and verified the production Vercel firewall bypass
+      for `/api/v1/*`; unauthenticated requests now reach the application rather
+      than the Vercel 429 Security Checkpoint.
+- [ ] Before production, check request logs for unknown DataFeed consumers and
+      complete a Broadcast test-workspace import.
 
 ## Surprises & Discoveries
 
@@ -71,6 +73,13 @@ Kvarter` rather than appearing locationless.
   API-contract slice.
   Evidence: the subagent returned a usage-limit error before making changes;
   the primary agent implemented and reviewed the slice directly.
+
+- Observation: the live 429 was a Vercel system challenge rather than either
+  configured arrangement-page rate-limit rule.
+  Evidence: the response included `x-vercel-mitigated: challenge`; Attack Mode
+  was off and both rate-limit rules matched only localized arrangement listing
+  paths. Publishing the `Allow Public Events API` bypass for `/api/v1/` changed
+  the response from a Vercel 429 to an ordinary application 404 before deploy.
 
 ## Decision Log
 
@@ -140,9 +149,10 @@ free-text location awaiting mapping. The report exited successfully as
 designed. No Sanity schema or GROQ query shape changed, so Sanity TypeGen was
 not rerun.
 
-Repository implementation is complete. Remaining external work is the Vercel
-firewall change, request-log check for unknown legacy feed consumers, Broadcast
-mapping agreement, test-workspace import, and production deployment.
+Repository implementation is complete and the path-scoped Vercel firewall
+bypass is live. Remaining external work is the request-log check for unknown
+legacy feed consumers, Broadcast mapping agreement, test-workspace import, and
+production deployment.
 
 ## Context and Orientation
 

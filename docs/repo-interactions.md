@@ -44,8 +44,10 @@ Runtime caveat: generated Sanity types under
 `apps/web/src/lib/sanity/sanity.types.ts` must be regenerated after query
 changes; they do not replace the published-read and serializer boundary.
 Deployment protection is a Vercel project setting, not a CORS or repository
-source setting. The API cannot be called anonymously in production until the
-corresponding firewall exception is verified.
+source setting. On 2026-09-02, the website project enabled the `Allow Public
+Events API` bypass rule for paths starting with `/api/v1/`; an unauthenticated
+request then reached the application without a Vercel Security Checkpoint. The
+production routes still require deployment of the event API stack.
 
 Do not document `kvarteret-personal` as the public arrangement source for this
 site unless these call paths change.

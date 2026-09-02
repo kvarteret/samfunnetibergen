@@ -83,8 +83,9 @@ stale-while-revalidate; errors are not cached.
 
 Clients must tolerate additive optional fields within v1 and use returned links
 for navigation. Breaking changes require `/api/v2`. The Vercel project must
-allow anonymous access to `/api/v1/*`; deployment bypass headers are not part of
-the public contract.
+allow anonymous access to `/api/v1/*`. The project-level `Allow Public Events
+API` firewall rule provides that path-scoped bypass; deployment bypass headers
+are not part of the public contract.
 
 Schema.org Event JSON-LD remains embedded on individual website detail pages
 for search metadata. There is no standalone Schema.org DataFeed and no
