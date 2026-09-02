@@ -61,7 +61,9 @@ export function assessBroadcastReadiness(
   if (!event.imageUrl) issues.push("missing_image")
   if (!hasKeyword(occurrence)) issues.push("missing_keyword")
   if (!event.ticketUrl) issues.push("missing_ticket_url")
-  if (!event.room) issues.push("unmapped_location")
+  // A missing room reference means the event is at the venue itself. Explicit
+  // free-text locations still require an external Broadcast venue mapping.
+  if (!event.room && event.roomText) issues.push("unmapped_location")
 
   return {
     occurrenceId: occurrence.id,

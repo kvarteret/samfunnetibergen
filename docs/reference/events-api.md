@@ -1,49 +1,44 @@
 # Public events API
 
-The public events API gives external applications a stable, read-only view of
-approved Samfunnet arrangements. It is served by the website at
-`/api/v1/events` and is backed directly by the published Sanity content. The
-API is intended for calendar and application integrations; callers must not
-scrape the website or query Sanity directly.
+The public events API gives applications and external integrations one stable,
+read-only view of approved Samfunnet arrangements. It is served by the website,
+backed by published Sanity content, and is the supported source for both the
+mobile app and the planned Broadcast integration. Callers must not scrape the
+website or query Sanity directly.
 
-## Occurrences
+## Occurrences and locations
 
-The collection is occurrence-first. An occurrence is one concrete date entry
-that a calendar can display. A multi-date single event therefore appears once
-per date, while a materialized series instance or festival session normally
-appears once. Occurrence `id` values and event `id` values are opaque: store and
-compare the complete string, but do not parse its parts.
+The collection is occurrence-first: every item is one concrete date a calendar
+can display. A multi-date event appears once per date. Event and occurrence IDs
+are opaque and must be stored whole rather than parsed.
 
-Each occurrence has a stored local `startDate`, optional local `startTime` and
-`endTime`, the `Europe/Oslo` IANA time zone, and normalized `startsAt` and
-`endsAt` timestamps when the relevant times are known. Date-only entries are
-not declared to be all-day events. When an end time is earlier than its start
-time, `endDate` is the following calendar date, so an overnight event remains
-chronologically correct.
+Schedules retain local date/time values, identify `Europe/Oslo`, and include UTC
+`startsAt` and `endsAt` values when their times are known. Overnight events end
+on the following date. A selected room is returned as a room location and an
+explicit free-text location is returned unchanged. If neither is present, the
+public location is the venue itself: `Det Akademiske Kvarter`.
 
 ## Collection
 
-`GET /api/v1/events` returns every public occurrence from today in Oslo
-onward. The default response is unpaginated. Use `locale=nb` or `locale=en`;
-Norwegian is the default and is used field-by-field when an English value is
-missing.
+`GET /api/v1/events` returns every public occurrence from today in Oslo onward.
+This default response is an unpaginated integration snapshot suitable for
+Broadcast and the mobile app. Use `locale=nb` or `locale=en`; Norwegian is the
+default and is the field-by-field fallback for missing English content.
 
-Supplying either inclusive `from` or `to` changes the response to fixed pages
-of 100 occurrences. An omitted `from` uses today in Oslo, and an omitted `to`
-has no upper bound. The response's `links.next` contains an opaque cursor URL
-when another page exists. Follow that URL unchanged. A cursor is bound to its
-locale and date range, so changing those parameters returns `400`.
+Each occurrence contains a compact but integration-complete event summary:
+stable identity, title, kind, status, effective modification timestamp, image,
+event type and taxonomy, organizer, location, pricing, ticket link, parent
+summary, and API/website links. Broadcast can map a collection item without
+following its detail link.
 
-The `data` items contain a compact event summary: title, event kind, effective
-status, image, event type and taxonomy, organizer, location, parent summary,
-and API/website links. Full descriptions, price variants, ticket links, and
-Facebook links are available from the detail resource.
+Supplying either inclusive `from` or `to` uses fixed pages of 100 occurrences.
+An omitted `from` means today in Oslo and an omitted `to` has no upper bound.
+Follow `links.next` unchanged. A cursor is bound to its locale and date range;
+changing those parameters returns `400`.
 
-Example default request:
+Examples:
 
     curl -i 'https://www.samfunnetibergen.no/api/v1/events?locale=nb'
-
-Example bounded request:
 
     curl -i 'https://www.samfunnetibergen.no/api/v1/events?locale=en&from=2026-09-01&to=2027-02-28'
 
@@ -52,62 +47,45 @@ The generated OpenAPI document is available at
 
 ## Detail
 
-`GET /api/v1/events/{slug}?locale=nb` returns the complete public event record,
-including rich Portable Text blocks and plain text, image caption, taxonomy,
-organizer, location, pricing in NOK, public links, effective status, and
-ordered occurrences. Approved historical events remain reachable by slug.
+`GET /api/v1/events/{slug}?locale=nb` returns one complete event record. Detail
+adds rich Portable Text and plain-text descriptions, Facebook link, and ordered
+occurrences. A series or festival parent also returns its
+approved child program; a child summary links back to its parent. Approved
+historical events remain reachable by slug.
 
-A series or festival parent returns its approved child program. A child
-occurrence includes a parent summary so clients can navigate back to that
-overview. Internal arrangements and unapproved records are not returned by
-the documented API.
+The API intentionally has no batch-detail endpoint. Consumers use the
+collection for multiple compact records and follow a detail link only when rich
+content is needed.
 
-Example detail request:
+## Broadcast mapping
 
-    curl -i 'https://www.samfunnetibergen.no/api/v1/events/example-slug?locale=nb'
+Broadcast polls the default collection snapshot. The occurrence `id` is its
+stable match key; ticket URLs are purchase metadata and may be shared by
+multiple performances. Locally controlled readiness requires a title, concrete
+start and end timestamps, image, taxonomy keyword, and ticket URL for a paid
+event. A missing room and missing free-text location resolves to Det Akademiske
+Kvarter and is therefore not an incomplete venue.
 
-## Errors and caching
-
-Errors use one envelope with `code` and a stable human-readable `message`:
-
-    {
-      "error": {
-        "code": "invalid_request",
-        "message": "from must not be later than to for an inclusive date range."
-      }
-    }
-
-Invalid query parameters return `400`; a missing or hidden detail returns
-`404`; an unexpected temporary failure returns `500`. Successful and error
-responses are JSON and permit anonymous cross-origin reads. Successful
-responses use a 60-second shared cache with stale-while-revalidate for five
-minutes; errors are not cached. Clients should use the `links` values for
-navigation and should tolerate additive optional fields in v1. Breaking
-contract changes will use `/api/v2`.
-
-The route is intended to be anonymously reachable from outside Vercel. The
-website Vercel project must allow `/api/v1/*` and `/api/events/feed` through
-its firewall; a protection-bypass header is for deployment smoke tests only and
-is not part of this client contract.
-
-The API is separate from the optional Schema.org linked-data export at
-`/api/events/feed`. That route is a lossy `DataFeed` representation, while v1
-is the complete application contract. Event JSON-LD remains embedded on
-individual website detail pages for search metadata. No calendar-subscription
-or iCalendar endpoint is currently provided.
-
-## Broadcast feed completeness
-
-The planned Broadcast pull integration uses `/api/events/feed` and treats each
-`DataFeedItem` `@id` as the stable occurrence match key. Ticket URLs are offer
-metadata, not identity, so two performances sharing a ticket page remain two
-records. The repository audit checks whether paid occurrences have the source
-fields Broadcast requires without exposing ticket URLs or private editorial
-fields:
+Broadcast must still confirm its venue ID, room mapping, accepted tag
+vocabulary, polling cadence, cancellation mapping, and the meaning of an item
+disappearing from a later full snapshot. Run the non-mutating audit before
+handoff:
 
     npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only
 
-Broadcast venue-id, tag vocabulary, polling, cancellation, and test-workspace
-mapping still require an explicit external agreement. Do not hand off the feed
-as production-ready until the Vercel protection exception and that mapping are
-verified.
+## Errors, caching, and deployment
+
+Errors use an envelope containing `code` and `message`. Invalid query parameters
+return `400`, missing or hidden details return `404`, and temporary failures
+return `500`. Anonymous cross-origin `GET`, `HEAD`, and `OPTIONS` are supported.
+Successful responses use a 60-second shared cache with five minutes of
+stale-while-revalidate; errors are not cached.
+
+Clients must tolerate additive optional fields within v1 and use returned links
+for navigation. Breaking changes require `/api/v2`. The Vercel project must
+allow anonymous access to `/api/v1/*`; deployment bypass headers are not part of
+the public contract.
+
+Schema.org Event JSON-LD remains embedded on individual website detail pages
+for search metadata. There is no standalone Schema.org DataFeed and no
+iCalendar endpoint.

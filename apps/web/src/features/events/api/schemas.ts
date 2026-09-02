@@ -58,11 +58,19 @@ const publicLocationSchema = z.union([
     kind: z.literal("text"),
     name: z.string(),
   }),
+  z.strictObject({
+    kind: z.literal("venue"),
+    name: z.literal("Det Akademiske Kvarter"),
+  }),
 ])
 
-const publicSummaryLinksSchema = z.strictObject({
+const publicNavigationLinksSchema = z.strictObject({
   self: z.url(),
   website: z.url(),
+})
+
+const publicSummaryLinksSchema = publicNavigationLinksSchema.extend({
+  ticket: z.url().nullable(),
 })
 
 const publicParentSummarySchema = z.strictObject({
@@ -71,7 +79,7 @@ const publicParentSummarySchema = z.strictObject({
   kind: publicEventKindSchema,
   status: publicEventStatusSchema,
   title: z.string(),
-  links: publicSummaryLinksSchema,
+  links: publicNavigationLinksSchema,
 })
 
 const publicScheduleSchema = z.strictObject({
@@ -90,17 +98,27 @@ const publicScheduleSchema = z.strictObject({
   timeZone: z.literal("Europe/Oslo"),
 })
 
+const publicPricingSchema = z.strictObject({
+  currency: z.literal("NOK"),
+  isFree: z.boolean(),
+  ordinary: z.number().nullable(),
+  student: z.number().nullable(),
+  member: z.number().nullable(),
+})
+
 const publicEventSummarySchema = z.strictObject({
   id: z.string().min(1),
   slug: z.string().min(1),
   kind: publicEventKindSchema,
   status: publicEventStatusSchema,
+  updatedAt: z.iso.datetime({ offset: true }).nullable(),
   title: z.string(),
   image: publicImageSchema.nullable(),
   eventType: publicEventTypeSchema.nullable(),
   taxonomyGroup: publicTaxonomySchema.nullable(),
   organizer: publicOrganizerSchema.nullable(),
-  location: publicLocationSchema.nullable(),
+  location: publicLocationSchema,
+  pricing: publicPricingSchema,
   parent: publicParentSummarySchema.nullable(),
   links: publicSummaryLinksSchema,
 })
@@ -112,7 +130,6 @@ const publicOccurrenceSummarySchema = z.strictObject({
 })
 
 const publicDetailLinksSchema = publicSummaryLinksSchema.extend({
-  ticket: z.url().nullable(),
   facebook: z.url().nullable(),
 })
 
@@ -121,17 +138,8 @@ const publicDescriptionSchema = z.strictObject({
   text: z.string(),
 })
 
-const publicPricingSchema = z.strictObject({
-  currency: z.literal("NOK"),
-  isFree: z.boolean(),
-  ordinary: z.number().nullable(),
-  student: z.number().nullable(),
-  member: z.number().nullable(),
-})
-
 const publicEventDetailSchema = publicEventSummarySchema.extend({
   description: publicDescriptionSchema,
-  pricing: publicPricingSchema,
   links: publicDetailLinksSchema,
   occurrences: z.array(publicOccurrenceSummarySchema),
 })

@@ -69,7 +69,7 @@ describe("Broadcast readiness", () => {
     expect(occurrence().schedule.endsAt).toBe("2026-09-03T00:30:00.000Z")
   })
 
-  it("reports incomplete fields without inventing a location or time", () => {
+  it("reports incomplete fields and preserves an explicit external location", () => {
     const result = assessBroadcastReadiness(
       occurrence({
         title: null,
@@ -100,6 +100,16 @@ describe("Broadcast readiness", () => {
       "unmapped_location",
     ])
     expect(result.ready).toBe(false)
+  })
+
+  it("treats a missing room and location as Det Akademiske Kvarter", () => {
+    const result = assessBroadcastReadiness(
+      occurrence({ room: null, roomText: null }),
+      options,
+    )
+
+    expect(result.ready).toBe(true)
+    expect(result.issues).not.toContain("unmapped_location")
   })
 
   it("reports duplicate ticket URLs as information, never as duplicate occurrences", () => {

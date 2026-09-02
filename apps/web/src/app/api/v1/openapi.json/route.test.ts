@@ -14,6 +14,13 @@ describe("public events OpenAPI document", () => {
     expect(document.components.schemas).toHaveProperty("PublicEventsResponse")
     expect(document.components.schemas).toHaveProperty("PublicEventResponse")
     expect(document.components.schemas).toHaveProperty("PublicErrorResponse")
+    const serialized = JSON.stringify(
+      document.components.schemas.PublicEventsResponse,
+    )
+    expect(serialized).toContain("updatedAt")
+    expect(serialized).toContain("pricing")
+    expect(serialized).toContain("ticket")
+    expect(serialized).toContain("Det Akademiske Kvarter")
   })
 
   it("serves JSON with the public API protocol headers", async () => {

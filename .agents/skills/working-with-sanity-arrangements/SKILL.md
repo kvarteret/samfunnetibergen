@@ -1,12 +1,12 @@
 ---
 name: working-with-sanity-arrangements
-description: Work on arrangement listing, detail pages, feeds, and event submission without confusing Sanity ownership with kvarteret-personal volunteer-prospect or mobile-card APIs.
+description: Work on arrangement listing, detail pages, the public API, and event submission without confusing Sanity ownership with kvarteret-personal volunteer-prospect or mobile-card APIs.
 ---
 
 # Working With Sanity Arrangements
 
 Use this skill for `/arrangementer`, arrangement detail pages, the versioned
-public event API, the Schema.org DataFeed, event submission, event taxonomy,
+public event API, event submission, event taxonomy,
 rooms, and organizer group references. There is no iCalendar route in current
 source.
 
@@ -27,7 +27,6 @@ source.
 - Versioned API: `apps/web/src/app/api/v1/events/route.ts`,
   `apps/web/src/app/api/v1/events/[slug]/route.ts`, and
   `apps/web/src/app/api/v1/openapi.json/route.ts`.
-- Linked-data feed: `apps/web/src/app/api/events/feed/route.ts`.
 - Public event submission: `apps/web/src/features/events/actions/submitEvent.ts`.
 
 ## Boundary Rules
@@ -39,13 +38,13 @@ source.
   first resolving the ignored generated-file boundary.
 - Event submission creates Sanity `arrangement` documents and uses approval
   state before public display.
-- `/api/v1` is the complete occurrence-first application contract. The
-  `/api/events/feed` DataFeed is a lossy linked-data projection of the same
-  public occurrence service and is not a second content source.
+- `/api/v1` is the complete occurrence-first contract for the mobile app and
+  Broadcast. Detail pages embed Schema.org Event data for search; there is no
+  standalone DataFeed.
 
 ## Verification
 
 Run `npm run sanity:typegen` after schema or query shape changes. Run
-`npm run build:web` for route, metadata, or feed changes when feasible. Run
+`npm run build:web` for route or metadata changes when feasible. Run
 `npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only`
-before handing the DataFeed to an external ingestion consumer.
+before handing the v1 collection to Broadcast.

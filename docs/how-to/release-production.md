@@ -72,7 +72,7 @@ The workflow must finish successfully. It runs, in order:
 2. Vercel production environment pull and production build;
 3. staged Vercel deployment;
 4. HTTP smoke tests for the supplied paths, plus JSON/content-type checks for
-   the public event API, OpenAPI, and Schema.org DataFeed;
+   the public event API and OpenAPI;
 5. promotion of the staged deployment;
 6. creation of the `prod-YYYY.MM.DD.N` Git tag and GitHub release.
 
@@ -104,7 +104,7 @@ staged deployment URL, and promotion result.
   `VERCEL_AUTOMATION_BYPASS_SECRET` and the requested paths.
 - The staged-release check may use the deployment bypass secret, but production
   handoff is incomplete until an ordinary external request (without that
-  header) returns the documented API, OpenAPI, and DataFeed responses. The
+  header) returns the documented API and OpenAPI responses. The
   Vercel firewall exception is a project setting and cannot be implemented by
   CORS headers or repository source.
 - If the workflow is still running, keep watching it; do not treat dispatch or

@@ -2,6 +2,7 @@ import { resolveSiteUrl } from "@/lib/site-url"
 import { toPlainTextContent } from "@/lib/structured-data"
 
 import {
+  DEFAULT_PUBLIC_VENUE_NAME,
   flattenPublicOccurrences,
   type PublicEvent,
   type PublicOccurrence,
@@ -64,7 +65,19 @@ function serializeLocation(event: PublicEvent): PublicEventSummary["location"] {
     }
   }
 
-  return event.roomText ? { kind: "text", name: event.roomText } : null
+  return event.roomText
+    ? { kind: "text", name: event.roomText }
+    : { kind: "venue", name: DEFAULT_PUBLIC_VENUE_NAME }
+}
+
+function serializePricing(event: PublicEvent): PublicEventSummary["pricing"] {
+  return {
+    currency: "NOK",
+    isFree: event.isFree,
+    ordinary: event.priceOrdinar,
+    student: event.priceStudent,
+    member: event.priceMedlem,
+  }
 }
 
 function serializePublicEventSummary(
@@ -74,6 +87,7 @@ function serializePublicEventSummary(
   const links = {
     self: apiEventUrl(event, options),
     website: websiteEventUrl(event, options),
+    ticket: event.ticketUrl,
   }
 
   return {
@@ -81,6 +95,7 @@ function serializePublicEventSummary(
     slug: event.slug,
     kind: event.eventKind,
     status: event.eventStatus,
+    updatedAt: event.effectiveUpdatedAt,
     title: event.title,
     image: serializeImage(event),
     eventType: event.eventType
@@ -94,6 +109,7 @@ function serializePublicEventSummary(
       : null,
     organizer: serializeOrganizer(event),
     location: serializeLocation(event),
+    pricing: serializePricing(event),
     parent: event.parentEvent
       ? {
           id: event.parentEvent._id,
@@ -140,16 +156,8 @@ export function serializePublicEventDetail(
       blocks: [...event.description],
       text: toPlainTextContent(event.description) ?? "",
     },
-    pricing: {
-      currency: "NOK",
-      isFree: event.isFree,
-      ordinary: event.priceOrdinar,
-      student: event.priceStudent,
-      member: event.priceMedlem,
-    },
     links: {
       ...summary.links,
-      ticket: event.ticketUrl,
       facebook: event.facebookUrl,
     },
     occurrences: occurrences.map(occurrence =>

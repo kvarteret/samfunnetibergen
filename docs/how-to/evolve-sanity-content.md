@@ -35,11 +35,10 @@ phases.
 | --- | --- | --- | --- |
 | Public website | `apps/web` | `apps/web/src/lib/sanity/client.ts`, `apps/web/src/lib/sanity/queries/`, `apps/web/src/lib/sanity/fetch/`, public pages and feeds | Verified |
 | Sanity Studio | `apps/studio` | `apps/studio/sanity.config.ts`, `apps/studio/src/studio/schemaTypes/`, `apps/studio/src/studio/presentation/` | Verified |
-| Mobile app | Unknown external owner | No mobile source or verified Sanity call is present in this repository; `apps/web/src/app/appen/page.tsx` only links to stores | Potential; not verified |
+| Mobile app | External owner | Consumes the versioned public event API; its source is not present in this repository | Planned consumer |
 
 Before removing a field, register any future consumer with an owner and a
-source-backed query/parser contract. A mobile integration requires a separate
-decision between direct Sanity access with an app-owned parser contract and a
-new versioned application API. The existing
-`apps/web/src/app/api/events/feed/route.ts` is JSON-LD syndication and must not
-be called a mobile API without a new ADR and consumer tests.
+source-backed query/parser contract. The mobile app and other external
+consumers use the versioned public API under
+`apps/web/src/app/api/v1/events/`; detail pages separately embed Schema.org
+Event data for search metadata.

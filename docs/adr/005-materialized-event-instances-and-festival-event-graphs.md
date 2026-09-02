@@ -26,9 +26,9 @@ editable, but they also need a durable relationship to the festival parent. The
 festival parent must be promotable on its own without every child session being
 promoted individually.
 
-The JSON-LD feed currently ships a non-standard `rrule` extension on recurring
-entries (`src/app/api/events/feed/route.ts`), pushing recurrence expansion onto
-every consumer, including the app.
+At the time of this decision, the JSON-LD feed shipped a non-standard `rrule`
+extension and pushed recurrence expansion onto every consumer. ADR 009 later
+replaced that route with the occurrence-first versioned API.
 
 ## Decision
 
@@ -264,11 +264,9 @@ upcoming-date filter so previously shared canonical URLs do not turn into 404s
 only because the real-world status changed. Listings may filter or de-rank
 cancelled events, but detail routes must stay resolvable.
 
-The JSON-LD event feed emits concrete event entries only. It drops the
-non-standard `rrule` extension currently emitted in
-`src/app/api/events/feed/route.ts`; consumers no longer expand recurrence.
-Feed status uses the effective status (child + parent resolution above) mapped
-to Schema.org:
+The public occurrence API emits concrete event entries only, so consumers no
+longer expand recurrence. Detail-page JSON-LD uses the effective status from
+the child and parent resolution above, mapped to Schema.org:
 
 - `scheduled` → `https://schema.org/EventScheduled`;
 - `cancelled` → `https://schema.org/EventCancelled`;

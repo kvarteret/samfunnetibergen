@@ -1,7 +1,10 @@
 import { toPlainText } from "@portabletext/toolkit"
 import { schemaOrgEventStatus } from "@samfunnet/content-domain/resolve-event"
 
-import type { PublicOccurrence } from "@/features/events/domain/public-events"
+import {
+  DEFAULT_PUBLIC_VENUE_NAME,
+  type PublicOccurrence,
+} from "@/features/events/domain/public-events"
 
 const SCHEMA_CONTEXT = "https://schema.org"
 const KVARTERET_MAP_URL =
@@ -170,8 +173,6 @@ function buildLocation(
   const { event } = occurrence
   const roomName = firstNonEmpty(event.room?.title)
   const freeTextLocation = firstNonEmpty(event.roomText)
-  if (!roomName && !freeTextLocation) return null
-
   if (roomName && event.room) {
     const roomUrl = event.room.slug
       ? `${normalizedSiteUrl(siteUrl)}/${locale}/rom/${encodeURIComponent(event.room.slug)}`
@@ -187,11 +188,19 @@ function buildLocation(
 
   return {
     "@type": "Place",
-    name: freeTextLocation,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: freeTextLocation,
-    },
+    name: freeTextLocation ?? DEFAULT_PUBLIC_VENUE_NAME,
+    address: freeTextLocation
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: freeTextLocation,
+        }
+      : KVARTERET_ADDRESS,
+    ...(!freeTextLocation
+      ? {
+          "@id": `${normalizedSiteUrl(siteUrl)}#place`,
+          url: `${normalizedSiteUrl(siteUrl)}/${locale}`,
+        }
+      : {}),
   }
 }
 
@@ -200,16 +209,13 @@ export function buildEventStructuredDataNode(
   {
     siteUrl,
     locale,
-    allowMissingLocation = false,
     eventId,
   }: EventBuildOptions & {
-    allowMissingLocation?: boolean
     eventId?: string
   },
-): StructuredEventNode | null {
+): StructuredEventNode {
   const { event, schedule } = occurrence
   const location = buildLocation(occurrence, { siteUrl, locale })
-  if (!location && !allowMissingLocation) return null
 
   const canonicalUrl = eventWebsiteUrl(occurrence, { siteUrl, locale })
   const occurrenceKey = encodeURIComponent(occurrence.id)
@@ -226,7 +232,7 @@ export function buildEventStructuredDataNode(
   const description = toPlainTextContent(event.description)
   if (description) node.description = description
   if (event.imageUrl) node.image = event.imageUrl
-  if (location) node.location = location
+  node.location = location
 
   const keywords = buildKeywords(event)
   if (keywords.length > 0) node.keywords = keywords
@@ -266,55 +272,13 @@ export function buildEventStructuredData(
 ): StructuredDataDocument | null {
   const nodes = occurrences.flatMap(occurrence => {
     const node = buildEventStructuredDataNode(occurrence, options)
-    return node ? [node] : []
+    return [node]
   })
   if (nodes.length === 0) return null
 
   return {
     "@context": SCHEMA_CONTEXT,
     "@graph": nodes,
-  }
-}
-
-export function buildEventFeedData(
-  occurrences: readonly PublicOccurrence[],
-  options: EventBuildOptions,
-): StructuredDataDocument {
-  const baseUrl = normalizedSiteUrl(options.siteUrl)
-  const feedUrl = `${baseUrl}/api/events/feed`
-  const items = occurrences.flatMap(occurrence => {
-    const itemId = `${feedUrl}#${encodeURIComponent(occurrence.id)}`
-    const event = buildEventStructuredDataNode(occurrence, {
-      ...options,
-      allowMissingLocation: true,
-      eventId: `${eventWebsiteUrl(occurrence, options)}#${encodeURIComponent(occurrence.id)}`,
-    })
-    if (!event) return []
-
-    const updatedAt = occurrence.event.effectiveUpdatedAt
-    const dateModified =
-      updatedAt && Number.isFinite(Date.parse(updatedAt))
-        ? new Date(updatedAt).toISOString()
-        : undefined
-
-    return [
-      {
-        "@type": "DataFeedItem",
-        "@id": itemId,
-        ...(dateModified ? { dateModified } : {}),
-        item: event,
-      },
-    ]
-  })
-
-  return {
-    "@context": SCHEMA_CONTEXT,
-    "@type": "DataFeed",
-    "@id": feedUrl,
-    name: "Arrangementer — Samfunnet i Bergen",
-    url: feedUrl,
-    inLanguage: options.locale,
-    dataFeedElement: items,
   }
 }
 

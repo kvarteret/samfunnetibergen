@@ -21,6 +21,8 @@ export const PUBLIC_EVENT_KINDS = [
 export type PublicEventKind = (typeof PUBLIC_EVENT_KINDS)[number]
 export type PublicTimeZone = "Europe/Oslo"
 
+export const DEFAULT_PUBLIC_VENUE_NAME = "Det Akademiske Kvarter"
+
 export type PublicEventDate = {
   _key: string
   startDate: string

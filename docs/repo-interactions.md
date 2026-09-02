@@ -12,18 +12,18 @@ anonymous external clients consume that service through compatibility fetchers,
 `/api/v1/events`, and `/api/v1/events/{slug}`. The OpenAPI document is served at
 `/api/v1/openapi.json`.
 
-The `/api/events/feed` route is a separate, lossy Schema.org `DataFeed` and
-contains one `DataFeedItem` per public occurrence. It is a linked-data export,
-not the complete application contract. Website detail pages retain Event
-JSON-LD for search metadata, and the sitemap retains localized event URLs.
-There is no iCalendar endpoint in current source.
+The versioned API is the single external integration contract for the mobile
+app and the planned Broadcast pull integration. Website detail pages retain
+Event JSON-LD for search metadata, and the sitemap retains localized event
+URLs. There is no standalone Schema.org DataFeed or iCalendar endpoint.
 
 Ownership and consumers:
 
 - Content owner: Sanity documents and Studio schemas.
 - Runtime/API owner: `samfunnetibergen/apps/web`.
-- External consumers: anonymous API/feed clients, including the planned
-  Broadcast ingestion mapper; no sibling repository is an arrangement source.
+- External consumers: anonymous API clients, including the mobile app and the
+  planned Broadcast ingestion mapper; no sibling repository is an arrangement
+  source.
 
 Verified source:
 
@@ -38,15 +38,14 @@ Verified source:
 - `apps/web/src/app/api/v1/events/route.ts`
 - `apps/web/src/app/api/v1/events/[slug]/route.ts`
 - `apps/web/src/app/api/v1/openapi.json/route.ts`
-- `apps/web/src/app/api/events/feed/route.ts`
 - `apps/web/src/lib/structured-data.ts`
 
 Runtime caveat: generated Sanity types under
 `apps/web/src/lib/sanity/sanity.types.ts` must be regenerated after query
 changes; they do not replace the published-read and serializer boundary.
 Deployment protection is a Vercel project setting, not a CORS or repository
-source setting. The API/feed cannot be called anonymously in production until
-the corresponding firewall exception is verified.
+source setting. The API cannot be called anonymously in production until the
+corresponding firewall exception is verified.
 
 Do not document `kvarteret-personal` as the public arrangement source for this
 site unless these call paths change.

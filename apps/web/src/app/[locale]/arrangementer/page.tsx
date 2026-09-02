@@ -38,20 +38,7 @@ export async function generateMetadata({
     description: t("eventsDescription"),
   })
 
-  return {
-    ...metadata,
-    alternates: {
-      ...metadata.alternates,
-      types: {
-        "application/ld+json": [
-          {
-            title: "Arrangementer — Samfunnet i Bergen",
-            url: "/api/events/feed",
-          },
-        ],
-      },
-    },
-  }
+  return metadata
 }
 
 export default async function EventsPage({

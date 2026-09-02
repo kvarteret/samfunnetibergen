@@ -5,7 +5,6 @@ import {
   resolvePublicEvent,
 } from "@/features/events/domain/public-events"
 import {
-  buildEventFeedData,
   buildEventStructuredData,
   buildFaqPageStructuredData,
   buildOrganizationWebsiteGraph,
@@ -184,35 +183,6 @@ describe("structured data", () => {
     expect(nodes[1]).not.toHaveProperty("endDate")
   })
 
-  it("shares event nodes with the localized event feed", () => {
-    const feed = buildEventFeedData(occurrencesFor(), {
-      siteUrl: "https://example.com",
-      locale: "nb",
-    })
-
-    expect(feed).toMatchObject({
-      "@type": "DataFeed",
-      "@id": "https://example.com/api/events/feed",
-      url: "https://example.com/api/events/feed",
-      inLanguage: "nb",
-    })
-    expect(feed.dataFeedElement).toHaveLength(2)
-
-    expect(feed.dataFeedElement).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          "@type": "DataFeedItem",
-          "@id": expect.stringContaining(
-            "https://example.com/api/events/feed#occurrence%3A",
-          ),
-          item: expect.objectContaining({
-            url: "https://example.com/nb/arrangementer/sommerfest",
-          }),
-        }),
-      ]),
-    )
-  })
-
   it("uses Kvarteret's address only for referenced rooms", () => {
     const referencedRoom = buildEventStructuredData(
       occurrencesFor({
@@ -276,20 +246,26 @@ describe("structured data", () => {
     expect(freeTextLocation).not.toHaveProperty("containedInPlace")
   })
 
-  it("omits Event markup when the venue is missing", () => {
-    expect(
-      buildEventStructuredData(
-        occurrencesFor({
-          ...event,
-          room: null,
-          roomText: null,
-        }),
-        {
-          siteUrl: "https://example.com",
-          locale: "nb",
-        },
-      ),
-    ).toBeNull()
+  it("uses Det Akademiske Kvarter when no location is set", () => {
+    const data = buildEventStructuredData(
+      occurrencesFor({ ...event, room: null, roomText: null }),
+      { siteUrl: "https://example.com", locale: "nb" },
+    )
+    const nodes = (
+      data as unknown as { "@graph": Array<Record<string, unknown>> }
+    )["@graph"]
+
+    expect(nodes[0]?.location).toMatchObject({
+      "@type": "Place",
+      "@id": "https://example.com#place",
+      name: "Det Akademiske Kvarter",
+      address: {
+        streetAddress: "Olav Kyrres gate 49",
+        postalCode: "5015",
+        addressLocality: "Bergen",
+        addressCountry: "NO",
+      },
+    })
   })
 
   it("links known organizer profiles and describes free admission as an offer", () => {

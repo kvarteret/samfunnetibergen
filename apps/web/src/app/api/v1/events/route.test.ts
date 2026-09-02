@@ -29,6 +29,11 @@ function makeOccurrences(count: number) {
       eventStatus: "scheduled",
       slug: `event-${index}`,
       title: `Event ${index}`,
+      isFree: false,
+      priceOrdinar: 150,
+      priceStudent: 100,
+      priceMedlem: 75,
+      ticketUrl: `https://tickets.example.test/event-${index}`,
       dates: [
         {
           _key: `date-${index}`,
@@ -74,6 +79,23 @@ describe("GET /api/v1/events", () => {
     expect(body.links).toEqual({
       self: "https://api.example.test/api/v1/events?locale=nb",
       next: null,
+    })
+    expect(body.data[0].event).toMatchObject({
+      updatedAt: "2026-09-01T10:00:00.000Z",
+      location: {
+        kind: "venue",
+        name: "Det Akademiske Kvarter",
+      },
+      pricing: {
+        currency: "NOK",
+        isFree: false,
+        ordinary: 150,
+        student: 100,
+        member: 75,
+      },
+      links: {
+        ticket: "https://tickets.example.test/event-0",
+      },
     })
     expect(fetchPublicEventSetMock).toHaveBeenCalledWith({
       locale: "nb",

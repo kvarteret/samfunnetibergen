@@ -15,8 +15,9 @@ Current verified boundaries:
   read published Sanity data through the shared event service in
   `apps/web/src/features/events/server/public-events.ts`, backed by
   `apps/web/src/lib/sanity/queries/events.ts`. The website pages,
-  `/api/v1/events`, `/api/v1/openapi.json`, and `/api/events/feed` are public
-  consumers of that boundary. There is no iCalendar route in current source.
+  `/api/v1/events` and `/api/v1/openapi.json` are public consumers of that
+  boundary. Event detail pages embed Schema.org Event data; there is no
+  standalone DataFeed or iCalendar route in current source.
 - Public volunteer prospect submissions are validated locally, then proxied to
   `kvarteret-personal` from `src/app/api/volunteer-prospects/route.ts`.
 - Generated `kvarteret-personal` client files live under

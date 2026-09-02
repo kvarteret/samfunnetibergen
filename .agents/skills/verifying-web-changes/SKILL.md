@@ -18,11 +18,10 @@ Use source-specific verification instead of broad noisy sweeps.
 
 ## Source-Specific Checks
 
-- Arrangement pages and feeds: inspect Sanity queries in
+- Arrangement pages and the public API: inspect Sanity queries in
   `apps/web/src/lib/sanity/queries/events.ts`, then verify the affected route
-  under `apps/web/src/app/[locale]/arrangementer/`,
-  `apps/web/src/app/api/v1/events/`, or
-  `apps/web/src/app/api/events/feed/route.ts`.
+  under `apps/web/src/app/[locale]/arrangementer/` or
+  `apps/web/src/app/api/v1/events/`.
 - Volunteer prospect flow: verify `features/blifrivillig/prospect.ts`,
   `features/blifrivillig/components/GroupVolunteerForm.tsx`, and
   `app/api/volunteer-prospects/route.ts`.
