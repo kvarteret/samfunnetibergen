@@ -53,6 +53,10 @@ Kvarter` rather than appearing locationless.
 - [x] (2026-09-02) Corrected the three affected concert end times and the BIFF
       2026 title, description, venues, and ticket-link semantics in published
       Sanity content with a revision-guarded transaction.
+- [x] (2026-09-03) Verified the combined Vercel preview returns HTTP 200 with
+      canonical API/OpenAPI links and the corrected concert schedules. Copied
+      the BIFF multi-venue text onto all nine festival sessions because session
+      locations intentionally do not inherit from their festival parent.
 - [ ] Before production, check request logs for unknown DataFeed consumers and
       complete a Broadcast test-workspace import.
 
@@ -102,6 +106,12 @@ Kvarter` rather than appearing locationless.
   14–22 October and that screening times become available when ticket sales
   open on 1 October. The content correction therefore retains date-only
   festival days instead of inventing times.
+
+- Observation: locations intentionally do not inherit from festival parents.
+  Evidence: the shared event resolver excludes room and free-text location
+  fields from its inheritance allowlist. Setting only the BIFF parent venue
+  therefore made child API occurrences fall back to Det Akademiske Kvarter;
+  the same sourced multi-venue text had to be stored on each child session.
 
 ## Decision Log
 
@@ -192,9 +202,11 @@ The follow-up correction removed both Vercel rate-limit rules, configured the
 canonical site origin for deployments, made ticket URLs optional for readiness,
 and updated published concert and BIFF content. The refreshed audit found 39
 paid occurrences with 29 ready. The remaining blockers are nine date-only BIFF
-days and one external venue mapping; missing ticket links are informational.
-BIFF remains date-only until its screening timetable is published on 1 October;
-this is accurate source data, not an integration defect.
+days, external mapping for the BIFF multi-venue label, and one Akvariet venue
+mapping; missing ticket links are informational. BIFF remains date-only until
+its screening timetable is published on 1 October; this is accurate source
+data, not an integration defect. The deployed preview returns all nine BIFF
+occurrences with their sourced multi-venue text rather than the default venue.
 
 ## Context and Orientation
 
@@ -351,3 +363,6 @@ events without a room or free-text location.
 deployment origin, optional-ticket readiness policy, 23:00 concert estimate,
 and source-backed BIFF content correction. BIFF times remain unset until the
 official program publishes them.
+
+2026-09-03: Recorded deployed-preview verification and the child-level BIFF
+location correction discovered during field-level payload inspection.
