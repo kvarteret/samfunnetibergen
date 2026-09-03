@@ -1,12 +1,13 @@
 import { resolveSiteUrl } from "@/lib/site-url"
-import { toPlainTextContent } from "@/lib/structured-data"
 
 import {
   DEFAULT_PUBLIC_VENUE_NAME,
   flattenPublicOccurrences,
   type PublicEvent,
   type PublicOccurrence,
+  type PublicSchedule,
 } from "../domain/public-events"
+import { serializePublicDescription } from "./description"
 import type {
   PublicEventDetail,
   PublicEventSummary,
@@ -80,6 +81,23 @@ function serializePricing(event: PublicEvent): PublicEventSummary["pricing"] {
   }
 }
 
+function serializePublicSchedule(
+  schedule: PublicSchedule,
+): PublicOccurrenceSummary["schedule"] {
+  return schedule.startsAt
+    ? {
+        kind: "timed",
+        startsAt: schedule.startsAt,
+        endsAt: schedule.endsAt,
+        timeZone: schedule.timeZone,
+      }
+    : {
+        kind: "date",
+        date: schedule.startDate,
+        timeZone: schedule.timeZone,
+      }
+}
+
 function serializePublicEventSummary(
   event: PublicEvent,
   options: PublicApiLinkOptions,
@@ -123,8 +141,21 @@ function serializePublicEventSummary(
           },
         }
       : null,
+    description: serializePublicDescription(event.description),
     links,
   }
+}
+
+function serializePublicEventChildSummary(
+  event: PublicEvent,
+  options: PublicApiLinkOptions,
+) {
+  const { parent: ignoredParent, ...summary } = serializePublicEventSummary(
+    event,
+    options,
+  )
+  void ignoredParent
+  return summary
 }
 
 export function serializePublicOccurrence(
@@ -133,7 +164,7 @@ export function serializePublicOccurrence(
 ): PublicOccurrenceSummary {
   return {
     id: occurrence.id,
-    schedule: occurrence.schedule,
+    schedule: serializePublicSchedule(occurrence.schedule),
     event: serializePublicEventSummary(occurrence.event, options),
   }
 }
@@ -149,19 +180,31 @@ export function serializePublicEventDetail(
     ? flattenPublicOccurrences(children)
     : flattenPublicOccurrences([event])
   const summary = serializePublicEventSummary(event, options)
+  const detailLinks = {
+    ...summary.links,
+    facebook: event.facebookUrl,
+  }
+
+  if (isParent) {
+    return {
+      ...summary,
+      detailKind: "parent",
+      links: detailLinks,
+      occurrences: occurrences.map(occurrence => ({
+        id: occurrence.id,
+        schedule: serializePublicSchedule(occurrence.schedule),
+        event: serializePublicEventChildSummary(occurrence.event, options),
+      })),
+    }
+  }
 
   return {
     ...summary,
-    description: {
-      blocks: [...event.description],
-      text: toPlainTextContent(event.description) ?? "",
-    },
-    links: {
-      ...summary.links,
-      facebook: event.facebookUrl,
-    },
-    occurrences: occurrences.map(occurrence =>
-      serializePublicOccurrence(occurrence, options),
-    ),
+    detailKind: "leaf",
+    links: detailLinks,
+    occurrences: occurrences.map(occurrence => ({
+      id: occurrence.id,
+      schedule: serializePublicSchedule(occurrence.schedule),
+    })),
   }
 }

@@ -4,11 +4,10 @@ import {
   InvalidPublicEventsRequest,
   parsePublicEventDetailRequest,
   parsePublicEventsCollectionRequest,
-  publicEventsUrl,
 } from "./request"
 
 describe("public events request parsing", () => {
-  it("defaults to Norwegian today-forward unpaginated mode", () => {
+  it("defaults to Norwegian today-forward complete snapshot", () => {
     expect(
       parsePublicEventsCollectionRequest(
         "https://example.test/api/v1/events",
@@ -19,12 +18,10 @@ describe("public events request parsing", () => {
       from: "2026-09-01",
       to: null,
       includeInternal: false,
-      cursor: null,
-      paginated: false,
     })
   })
 
-  it("uses a fixed-range page mode when either date bound is explicit", () => {
+  it("keeps explicit inclusive date filters without pagination state", () => {
     const request = parsePublicEventsCollectionRequest(
       "https://example.test/api/v1/events?locale=en&to=2026-12-31&includeInternal=true",
       "2026-09-01",
@@ -35,15 +32,15 @@ describe("public events request parsing", () => {
       from: "2026-09-01",
       to: "2026-12-31",
       includeInternal: true,
-      paginated: true,
     })
   })
 
-  it("rejects invalid dates, inverted ranges, and cursors in default mode", () => {
+  it("rejects invalid dates, inverted ranges, and unsupported parameters", () => {
     for (const url of [
       "https://example.test/api/v1/events?from=2026-02-30",
       "https://example.test/api/v1/events?from=2026-10-01&to=2026-09-01",
       "https://example.test/api/v1/events?cursor=abc",
+      "https://example.test/api/v1/events?limit=100",
     ]) {
       expect(() =>
         parsePublicEventsCollectionRequest(url, "2026-09-01"),
@@ -68,20 +65,11 @@ describe("public events request parsing", () => {
     ).toEqual({ locale: "en", includeInternal: true })
   })
 
-  it("builds canonical next links without trusting the request host", () => {
-    const request = parsePublicEventsCollectionRequest(
-      "https://attacker.test/api/v1/events?locale=en&from=2026-09-01&to=2026-12-31",
-      "2026-09-01",
-    )
-
-    expect(
-      publicEventsUrl(
-        "https://www.samfunnetibergen.no",
-        request,
-        "cursor-token",
+  it("rejects unsupported detail parameters", () => {
+    expect(() =>
+      parsePublicEventDetailRequest(
+        "https://example.test/api/v1/events/old?limit=1",
       ),
-    ).toBe(
-      "https://www.samfunnetibergen.no/api/v1/events?locale=en&from=2026-09-01&to=2026-12-31&cursor=cursor-token",
-    )
+    ).toThrow(InvalidPublicEventsRequest)
   })
 })

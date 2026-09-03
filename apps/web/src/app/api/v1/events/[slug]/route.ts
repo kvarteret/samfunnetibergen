@@ -1,7 +1,7 @@
 import {
   publicApiErrorResponse,
+  publicApiConditionalJsonResponse,
   publicApiHeadResponse,
-  publicApiJsonResponse,
   publicApiOptionsResponse,
 } from "@/features/events/api/http"
 import {
@@ -64,10 +64,9 @@ export async function GET(
     const body = publicDetailResponseSchema.parse({
       data: detail,
       meta: { locale: parsed.locale },
-      links: detail.links,
     })
 
-    return publicApiJsonResponse(body)
+    return publicApiConditionalJsonResponse(request, body)
   } catch (error) {
     return errorResponse(error)
   }

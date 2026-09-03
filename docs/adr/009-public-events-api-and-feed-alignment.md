@@ -34,8 +34,9 @@ optional fields. Broadcast therefore does not require Schema.org JSON-LD.
 The mobile app needs compact chronological lists and rich detail navigation.
 Broadcast needs a complete upcoming snapshot whose records contain all fields
 needed for mapping without making one detail request per occurrence. These are
-compatible needs when the collection summary is integration-complete but rich
-content remains on the detail resource.
+compatible needs when the collection summary is integration-complete and rich
+content is represented as portable HTML/plain text rather than Sanity-specific
+blocks.
 
 ## Decision
 
@@ -50,17 +51,18 @@ festival sessions normally produce one occurrence each. IDs are opaque.
 
 The default request returns the complete today-forward occurrence snapshot in
 the selected locale. This makes one polling request sufficient for Broadcast at
-the current event volume. Requests that specify `from` or `to` use fixed
-100-item cursor pages for bounded mobile and historical reads. Consumers follow
-`links.next` unchanged.
+the current event volume. Requests that specify `from` or `to` return every
+matching occurrence; those filters are inclusive and do not create a second
+pagination protocol. The API rejects unsupported query parameters.
 
 Each collection record contains stable identity, status, effective
-modification timestamp, normalized schedule, title, image, taxonomy, organizer,
-location, pricing, ticket link, parent summary, and navigation links. It omits
-rich description blocks, Facebook links, and complete
-series/festival programs. `GET /api/v1/events/{slug}` provides those rich detail
-fields. There is no batch-detail endpoint until a measured consumer need
-justifies its additional failure, size, and caching semantics.
+modification timestamp, a discriminated schedule, title, image, taxonomy,
+organizer, location, pricing, a sanitized `{html,text}` description, parent
+summary, and navigation links. `GET /api/v1/events/{slug}` adds the Facebook
+link and a discriminated detail representation. Leaf occurrences contain only
+their id and schedule. Parent occurrences include child summaries without
+repeating the parent record. There is no batch-detail endpoint until a measured
+consumer need justifies its additional failure, size, and caching semantics.
 
 The public location resolution order is:
 
@@ -86,19 +88,23 @@ add a replacement RSS, JSON Feed, or iCalendar route as part of this decision.
 
 `GET /api/v1/events` accepts `locale=nb|en` and optional inclusive `from` and
 `to` dates. Norwegian is the default and fallback locale. A request without
-dates returns the full upcoming snapshot; a dated request returns up to 100
-items and an opaque next link. Successful responses contain `data`, `meta`, and
-`links`.
+dates returns the full upcoming snapshot; a dated request returns all matching
+items. Successful responses contain `data` and `meta`. Canonical navigation
+links live on each event in `data`, rather than in a duplicate response-level
+links object.
 
 `GET /api/v1/events/{slug}` accepts the same locale and returns one approved
 event, including historical events. A parent returns its approved child
-program. A child links to its parent summary.
+program using child summaries per occurrence; those summaries do not repeat the
+parent record. A leaf returns occurrence ids and schedules without repeating
+the event fields.
 
 `GET /api/v1/openapi.json` describes both supported routes. All v1 routes allow
 anonymous cross-origin GET, HEAD, and OPTIONS requests. They use a 60-second
-shared cache and five-minute stale-while-revalidate window. Errors have stable
-`code` and `message` fields. Breaking changes require `/api/v2`; clients must
-tolerate additive optional fields within v1.
+shared cache and five-minute stale-while-revalidate window, with ETag validators
+and conditional `304` responses. Errors have stable `code` and `message`
+fields. Breaking changes require `/api/v2`; clients must tolerate additive
+optional fields within v1.
 
 The API exposes only public resolved fields. Approval state, submission contact
 data, booking provenance, promotion controls, recurrence rules, and other
@@ -132,7 +138,8 @@ logs should be checked before production deployment.
 The default snapshot grows with future materialized occurrences. Current volume
 is small enough for one response, but response size must be observed. If it
 becomes materially large, a future version may require pagination or a defined
-snapshot export without duplicating the domain model.
+snapshot export without duplicating the domain model. ETag validation keeps
+unchanged polling responses inexpensive.
 
 Broadcast mapping remains an external operational dependency. The general API
 must not adopt Broadcast-proprietary field names or venue IDs as its canonical

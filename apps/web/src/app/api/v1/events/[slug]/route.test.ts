@@ -80,7 +80,9 @@ describe("GET /api/v1/events/[slug]", () => {
 
     expect(response.status).toBe(200)
     expect(body.meta).toEqual({ locale: "en" })
+    expect(body.data.detailKind).toBe("leaf")
     expect(body.data.description.text).toBe("A description")
+    expect(body.data.description.html).toBe("<p>A description</p>")
     expect(body.data.pricing).toEqual({
       currency: "NOK",
       isFree: false,
@@ -89,14 +91,16 @@ describe("GET /api/v1/events/[slug]", () => {
       member: 60,
     })
     expect(body.data.occurrences[0].schedule).toMatchObject({
-      startDate: "2026-01-10",
-      endDate: "2026-01-11",
+      kind: "timed",
       startsAt: "2026-01-10T20:00:00.000Z",
       endsAt: "2026-01-11T01:30:00.000Z",
+      timeZone: "Europe/Oslo",
     })
     expect(body.data.links.website).toBe(
       "https://api.example.test/en/arrangementer/historical-event",
     )
+    expect(body).not.toHaveProperty("links")
+    expect(body.data.occurrences[0]).not.toHaveProperty("event")
     expect(fetchPublicEventBySlugMock).toHaveBeenCalledWith(
       "historical-event",
       "en",
@@ -120,6 +124,67 @@ describe("GET /api/v1/events/[slug]", () => {
         message: "The requested public event was not found.",
       },
     })
+  })
+
+  it("returns parent programs as child summaries without repeating the parent", async () => {
+    const parent = resolvePublicEvent({
+      _id: "series-parent",
+      eventKind: "seriesParent",
+      eventStatus: "scheduled",
+      slug: "series-parent",
+      title: "Series parent",
+      description: [
+        {
+          _type: "block",
+          style: "normal",
+          children: [{ _type: "span", text: "Parent description" }],
+          markDefs: [],
+        },
+      ],
+      dates: [],
+    })
+    const child = resolvePublicEvent({
+      _id: "series-child",
+      eventKind: "seriesInstance",
+      eventStatus: "scheduled",
+      slug: "series-child",
+      title: "Child event",
+      parent: {
+        _id: parent._id,
+        eventKind: parent.eventKind,
+        eventStatus: parent.eventStatus,
+        slug: parent.slug,
+        title: parent.title,
+      },
+      dates: [
+        {
+          _key: "child-date",
+          startDate: "2026-01-11",
+          startTime: "19:00",
+          endTime: "20:00",
+        },
+      ],
+    })
+    fetchPublicEventBySlugMock.mockResolvedValue({
+      event: parent,
+      children: [child],
+    })
+
+    const response = await GET(
+      new Request("https://request-host.example/api/v1/events/series-parent"),
+      { params: Promise.resolve({ slug: "series-parent" }) },
+    )
+    const body = await response.json()
+    const childSummary = body.data.occurrences[0].event
+
+    expect(body.data.detailKind).toBe("parent")
+    expect(childSummary).toMatchObject({
+      id: "series-child",
+      title: "Child event",
+      description: { html: "", text: "" },
+    })
+    expect(childSummary).not.toHaveProperty("parent")
+    expect(body.data).not.toHaveProperty("occurrences[0].event.parent")
   })
 
   it("passes the hidden internal opt-in to the server-side lookup", async () => {
@@ -160,5 +225,31 @@ describe("GET /api/v1/events/[slug]", () => {
     expect(response.status).toBe(200)
     expect(response.body).toBeNull()
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*")
+  })
+
+  it("returns 304 for an unchanged conditional detail", async () => {
+    fetchPublicEventBySlugMock.mockResolvedValue({
+      event: makeEvent(),
+      children: [],
+    })
+    const first = await GET(
+      new Request(
+        "https://request-host.example/api/v1/events/historical-event",
+      ),
+      { params: Promise.resolve({ slug: "historical-event" }) },
+    )
+    const etag = first.headers.get("ETag")
+    expect(etag).toBeTruthy()
+
+    const second = await GET(
+      new Request(
+        "https://request-host.example/api/v1/events/historical-event",
+        { headers: { "If-None-Match": etag! } },
+      ),
+      { params: Promise.resolve({ slug: "historical-event" }) },
+    )
+    expect(second.status).toBe(304)
+    expect(second.body).toBeNull()
+    expect(second.headers.get("ETag")).toBe(etag)
   })
 })

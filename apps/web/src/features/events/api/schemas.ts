@@ -18,8 +18,8 @@ export const publicDateSchema = z
   .refine(isValidPublicDate, "Expected a real calendar date")
 
 const publicImageSchema = z.strictObject({
-  url: z.url(),
-  caption: z.string().nullable(),
+  url: z.url().describe("Absolute image URL."),
+  caption: z.string().nullable().describe("Optional image caption."),
 })
 
 const publicTaxonomySchema = z.strictObject({
@@ -65,12 +65,12 @@ const publicLocationSchema = z.union([
 ])
 
 const publicNavigationLinksSchema = z.strictObject({
-  self: z.url(),
-  website: z.url(),
+  self: z.url().describe("Canonical API URL for this event."),
+  website: z.url().describe("Canonical website URL for this event."),
 })
 
 const publicSummaryLinksSchema = publicNavigationLinksSchema.extend({
-  ticket: z.url().nullable(),
+  ticket: z.url().nullable().describe("Purchase URL, when available."),
 })
 
 const publicParentSummarySchema = z.strictObject({
@@ -82,21 +82,34 @@ const publicParentSummarySchema = z.strictObject({
   links: publicNavigationLinksSchema,
 })
 
-const publicScheduleSchema = z.strictObject({
-  startDate: publicDateSchema,
-  startTime: z
-    .string()
-    .regex(/^\d{2}:\d{2}(?::\d{2})?$/)
-    .nullable(),
-  endDate: publicDateSchema.nullable(),
-  endTime: z
-    .string()
-    .regex(/^\d{2}:\d{2}(?::\d{2})?$/)
-    .nullable(),
-  startsAt: z.iso.datetime({ offset: true }).nullable(),
-  endsAt: z.iso.datetime({ offset: true }).nullable(),
-  timeZone: z.literal("Europe/Oslo"),
+const publicTimedScheduleSchema = z.strictObject({
+  kind: z
+    .literal("timed")
+    .describe("The occurrence has a concrete start time."),
+  startsAt: z.iso
+    .datetime({ offset: true })
+    .describe("UTC start timestamp in ISO 8601 format."),
+  endsAt: z.iso
+    .datetime({ offset: true })
+    .nullable()
+    .describe("UTC end timestamp, or null when the end is unknown."),
+  timeZone: z
+    .literal("Europe/Oslo")
+    .describe("Local time zone used by the editorial schedule."),
 })
+
+const publicDateOnlyScheduleSchema = z.strictObject({
+  kind: z.literal("date").describe("The occurrence has no concrete time."),
+  date: publicDateSchema.describe("Local calendar date in Europe/Oslo."),
+  timeZone: z
+    .literal("Europe/Oslo")
+    .describe("Local time zone used by the editorial schedule."),
+})
+
+export const publicScheduleSchema = z.discriminatedUnion("kind", [
+  publicTimedScheduleSchema,
+  publicDateOnlyScheduleSchema,
+])
 
 const publicPricingSchema = z.strictObject({
   currency: z.literal("NOK"),
@@ -112,7 +125,13 @@ const publicEventSummarySchema = z.strictObject({
   kind: publicEventKindSchema,
   status: publicEventStatusSchema,
   updatedAt: z.iso.datetime({ offset: true }).nullable(),
-  title: z.string(),
+  title: z.string().describe("Localized public event title."),
+  description: z.strictObject({
+    html: z
+      .string()
+      .describe("Sanitized HTML description using the supported subset."),
+    text: z.string().describe("Plain-text description."),
+  }),
   image: publicImageSchema.nullable(),
   eventType: publicEventTypeSchema.nullable(),
   taxonomyGroup: publicTaxonomySchema.nullable(),
@@ -130,19 +149,40 @@ const publicOccurrenceSummarySchema = z.strictObject({
 })
 
 const publicDetailLinksSchema = publicSummaryLinksSchema.extend({
-  facebook: z.url().nullable(),
+  facebook: z.url().nullable().describe("Facebook URL, when available."),
 })
 
-const publicDescriptionSchema = z.strictObject({
-  blocks: z.array(z.unknown()),
-  text: z.string(),
+const publicOccurrenceScheduleSchema = z.strictObject({
+  id: z.string().min(1),
+  schedule: publicScheduleSchema,
 })
 
-const publicEventDetailSchema = publicEventSummarySchema.extend({
-  description: publicDescriptionSchema,
+const publicParentChildSummarySchema = publicEventSummarySchema.omit({
+  parent: true,
+})
+
+const publicParentOccurrenceSchema = z.strictObject({
+  id: z.string().min(1),
+  schedule: publicScheduleSchema,
+  event: publicParentChildSummarySchema,
+})
+
+const publicLeafEventDetailSchema = publicEventSummarySchema.extend({
+  detailKind: z.literal("leaf"),
   links: publicDetailLinksSchema,
-  occurrences: z.array(publicOccurrenceSummarySchema),
+  occurrences: z.array(publicOccurrenceScheduleSchema),
 })
+
+const publicParentEventDetailSchema = publicEventSummarySchema.extend({
+  detailKind: z.literal("parent"),
+  links: publicDetailLinksSchema,
+  occurrences: z.array(publicParentOccurrenceSchema),
+})
+
+const publicEventDetailSchema = z.discriminatedUnion("detailKind", [
+  publicLeafEventDetailSchema,
+  publicParentEventDetailSchema,
+])
 
 export const publicCollectionResponseSchema = z.strictObject({
   data: z.array(publicOccurrenceSummarySchema),
@@ -151,19 +191,12 @@ export const publicCollectionResponseSchema = z.strictObject({
     from: publicDateSchema,
     to: publicDateSchema.nullable(),
     count: z.number().int().nonnegative(),
-    total: z.number().int().nonnegative(),
-    paginated: z.boolean(),
-  }),
-  links: z.strictObject({
-    self: z.url(),
-    next: z.url().nullable(),
   }),
 })
 
 export const publicDetailResponseSchema = z.strictObject({
   data: publicEventDetailSchema,
   meta: z.strictObject({ locale: publicLocaleSchema }),
-  links: publicDetailLinksSchema,
 })
 
 export const publicErrorResponseSchema = z.strictObject({

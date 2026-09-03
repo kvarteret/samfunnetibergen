@@ -15,8 +15,6 @@ export type PublicEventsCollectionRequest = {
   from: string
   to: string | null
   includeInternal: boolean
-  cursor: string | null
-  paginated: boolean
 }
 
 function oneQueryValue(params: URLSearchParams, name: string): string | null {
@@ -56,9 +54,25 @@ export function parsePublicEventsCollectionRequest(
   const locale = parseLocaleParam(params)
   const fromParam = oneQueryValue(params, "from")
   const toParam = oneQueryValue(params, "to")
-  const cursor = oneQueryValue(params, "cursor")
+
+  for (const name of new Set(params.keys())) {
+    if (
+      ![
+        "locale",
+        "from",
+        "to",
+        // Kept as a hidden compatibility switch for internal callers. It is
+        // intentionally accepted here but omitted from OpenAPI and public docs.
+        "includeInternal",
+      ].includes(name)
+    ) {
+      throw new InvalidPublicEventsRequest(
+        `Unsupported query parameter: ${name}.`,
+      )
+    }
+  }
+
   const includeInternal = oneQueryValue(params, "includeInternal") === "true"
-  const paginated = fromParam !== null || toParam !== null
   const from = parseDate(fromParam ?? today, "from")
   const to = toParam === null ? null : parseDate(toParam, "to")
 
@@ -67,36 +81,12 @@ export function parsePublicEventsCollectionRequest(
       "from must not be later than to for an inclusive date range.",
     )
   }
-  if (cursor !== null && !paginated) {
-    throw new InvalidPublicEventsRequest(
-      "cursor is only valid when from or to is supplied.",
-    )
-  }
-
   return {
     locale,
     from,
     to,
     includeInternal,
-    cursor,
-    paginated,
   }
-}
-
-export function publicEventsUrl(
-  siteUrl: string,
-  request: PublicEventsCollectionRequest,
-  cursor: string | null = request.cursor,
-): string {
-  const url = new URL(`${siteUrl.replace(/\/+$/, "")}/api/v1/events`)
-  url.searchParams.set("locale", request.locale)
-  if (request.paginated) {
-    url.searchParams.set("from", request.from)
-    if (request.to !== null) url.searchParams.set("to", request.to)
-  }
-  if (request.includeInternal) url.searchParams.set("includeInternal", "true")
-  if (cursor !== null) url.searchParams.set("cursor", cursor)
-  return url.toString()
 }
 
 export function parsePublicEventDetailRequest(requestUrl: string): {
@@ -104,6 +94,21 @@ export function parsePublicEventDetailRequest(requestUrl: string): {
   includeInternal: boolean
 } {
   const params = new URL(requestUrl).searchParams
+  for (const name of new Set(params.keys())) {
+    if (
+      ![
+        "locale",
+        // See the collection parser: this compatibility switch is accepted
+        // intentionally but is not part of the public contract.
+        "includeInternal",
+      ].includes(name)
+    ) {
+      throw new InvalidPublicEventsRequest(
+        `Unsupported query parameter: ${name}.`,
+      )
+    }
+  }
+
   return {
     locale: parseLocaleParam(params),
     includeInternal: oneQueryValue(params, "includeInternal") === "true",

@@ -72,13 +72,7 @@ describe("GET /api/v1/events", () => {
     )
     expect(body.meta).toMatchObject({
       locale: "nb",
-      paginated: false,
       count: 1,
-      total: 1,
-    })
-    expect(body.links).toEqual({
-      self: "https://api.example.test/api/v1/events?locale=nb",
-      next: null,
     })
     expect(body.data[0].event).toMatchObject({
       updatedAt: "2026-09-01T10:00:00.000Z",
@@ -93,6 +87,7 @@ describe("GET /api/v1/events", () => {
         student: 100,
         member: 75,
       },
+      description: { html: "", text: "" },
       links: {
         ticket: "https://tickets.example.test/event-0",
       },
@@ -105,43 +100,59 @@ describe("GET /api/v1/events", () => {
     })
   })
 
-  it("paginates explicit ranges at 100 and traverses opaque next links", async () => {
+  it("returns every occurrence for an explicit inclusive range", async () => {
     const result = makeOccurrences(205)
     fetchPublicEventSetMock.mockResolvedValue(result)
-    const firstRequest = new Request(
-      "https://request-host.example/api/v1/events?locale=en&from=2026-09-01&to=2027-04-01",
+    const response = await GET(
+      new Request(
+        "https://request-host.example/api/v1/events?locale=en&from=2026-09-01&to=2027-04-01",
+      ),
     )
+    const body = await response.json()
 
-    const firstResponse = await GET(firstRequest)
-    const firstBody = await firstResponse.json()
-    const secondResponse = await GET(new Request(firstBody.links.next))
-    const secondBody = await secondResponse.json()
-    const thirdResponse = await GET(new Request(secondBody.links.next))
-    const thirdBody = await thirdResponse.json()
-
-    expect(firstBody.meta).toMatchObject({
+    expect(body.meta).toMatchObject({
       locale: "en",
       from: "2026-09-01",
       to: "2027-04-01",
-      count: 100,
-      total: 205,
-      paginated: true,
+      count: 205,
     })
-    expect(secondBody.meta.count).toBe(100)
-    expect(thirdBody.meta).toMatchObject({ count: 5, total: 205 })
-    expect(thirdBody.links.next).toBeNull()
-    expect(
-      [firstBody, secondBody, thirdBody].flatMap(body =>
-        body.data.map((item: { id: string }) => item.id),
+    expect(body.data).toHaveLength(205)
+  })
+
+  it("serializes an occurrence without a time as a date-only schedule", async () => {
+    const event = resolvePublicEvent({
+      _id: "date-only",
+      eventKind: "single",
+      eventStatus: "scheduled",
+      slug: "date-only",
+      title: "Date-only event",
+      dates: [
+        {
+          _key: "date-only-occurrence",
+          startDate: "2026-10-14",
+          startTime: null,
+          endTime: null,
+        },
+      ],
+    })
+    fetchPublicEventSetMock.mockResolvedValue({
+      events: [event],
+      occurrences: flattenPublicOccurrences([event]),
+    })
+
+    const response = await GET(
+      new Request(
+        "https://request-host.example/api/v1/events?from=2026-10-14&to=2026-10-14",
       ),
-    ).toHaveLength(205)
-    expect(
-      new Set(
-        [firstBody, secondBody, thirdBody].flatMap(body =>
-          body.data.map((item: { id: string }) => item.id),
-        ),
-      ),
-    ).toHaveProperty("size", 205)
+    )
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.data[0].schedule).toEqual({
+      kind: "date",
+      date: "2026-10-14",
+      timeZone: "Europe/Oslo",
+    })
   })
 
   it("rejects invalid requests before reading Sanity", async () => {
@@ -158,15 +169,31 @@ describe("GET /api/v1/events", () => {
     expect(fetchPublicEventSetMock).not.toHaveBeenCalled()
   })
 
-  it("rejects a cursor on the unpaginated default request", async () => {
+  it("rejects unsupported query parameters without reading Sanity", async () => {
     const response = await GET(
-      new Request(
-        "https://request-host.example/api/v1/events?cursor=not-a-cursor",
-      ),
+      new Request("https://request-host.example/api/v1/events?limit=100"),
     )
 
     expect(response.status).toBe(400)
     expect(fetchPublicEventSetMock).not.toHaveBeenCalled()
+  })
+
+  it("returns 304 for an unchanged conditional snapshot", async () => {
+    fetchPublicEventSetMock.mockResolvedValue(makeOccurrences(1))
+    const first = await GET(
+      new Request("https://request-host.example/api/v1/events"),
+    )
+    const etag = first.headers.get("ETag")
+    expect(etag).toBeTruthy()
+
+    const second = await GET(
+      new Request("https://request-host.example/api/v1/events", {
+        headers: { "If-None-Match": etag! },
+      }),
+    )
+    expect(second.status).toBe(304)
+    expect(second.body).toBeNull()
+    expect(second.headers.get("ETag")).toBe(etag)
   })
 })
 
@@ -180,8 +207,9 @@ describe("/api/v1/events protocol helpers", () => {
       "GET, HEAD, OPTIONS",
     )
     expect(response.headers.get("Access-Control-Allow-Headers")).toBe(
-      "Accept, Content-Type, Origin",
+      "Accept, Content-Type, If-None-Match, Origin",
     )
+    expect(response.headers.get("Access-Control-Expose-Headers")).toBe("ETag")
   })
 
   it("returns an empty HEAD response with the GET status and headers", async () => {

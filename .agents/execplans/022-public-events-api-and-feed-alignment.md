@@ -9,8 +9,9 @@ with `.agents/PLANS.md`.
 After this work, the mobile app and Broadcast can consume one anonymous,
 versioned API at `/api/v1/events`. A single default request returns a compact,
 complete snapshot of upcoming occurrences. Each item has enough public data for
-Broadcast to map it without following another URL, while mobile clients can
-follow `/api/v1/events/{slug}` for rich descriptions and event relationships.
+Broadcast and mobile clients to map and display it without following another
+URL, including a sanitized HTML/plain-text description. The detail endpoint
+adds Facebook metadata and parent child-program relationships.
 
 The old `/api/events/feed` route is removed. Individual website detail pages
 continue to embed Schema.org Event JSON-LD for search metadata. Events with no
@@ -57,6 +58,26 @@ Kvarter` rather than appearing locationless.
       canonical API/OpenAPI links and the corrected concert schedules. Copied
       the BIFF multi-venue text onto all nine festival sessions because session
       locations intentionally do not inherit from their festival parent.
+- [x] (2026-09-03) Simplified the v1 contract by removing cursor pagination,
+      response-level links duplication, and raw Portable Text. Added a
+      discriminated schedule, sanitized HTML/plain-text descriptions, ETag
+      conditional responses, explicit anonymous OpenAPI operations, and
+      unsupported-parameter rejection. Updated event consumers, tests, docs,
+      and direct serializer dependencies.
+- [x] (2026-09-03) Extended the production smoke check to assert ETag headers,
+      conditional `304` behavior, discriminated schedule/description payloads,
+      anonymous OpenAPI security, and GET/HEAD/OPTIONS documentation.
+- [x] (2026-09-03) Completed local verification: 329 web tests passed with 5
+      skipped, web TypeScript and ESLint passed, the production web build
+      completed, formatting and `git diff --check` passed, OpenAPI validation
+      completed without errors, and generated client types were produced.
+- [x] (2026-09-03) Smoked the production build locally against the current
+      published Sanity dataset: the 73-item snapshot contained both timed and
+      date-only schedules, emitted sanitized HTML/plain text and an ETag,
+      exposed ETag through CORS, and returned `304` for `If-None-Match`.
+- [x] (2026-09-03) Re-ran the non-writing Broadcast source-data audit. It still
+      reports the expected 29 of 39 ticketed occurrences ready, with nine BIFF
+      date-only occurrences and ten external-location mappings outstanding.
 - [ ] Before production, check request logs for unknown DataFeed consumers and
       complete a Broadcast test-workspace import.
 
@@ -113,6 +134,18 @@ Kvarter` rather than appearing locationless.
   therefore made child API occurrences fall back to Det Akademiske Kvarter;
   the same sourced multi-venue text had to be stored on each child session.
 
+- Observation: `@portabletext/to-html` escapes text but returns raw component
+  output, so it is not sufficient as the API boundary by itself.
+  Evidence: the serializer now applies explicit component escaping and an
+  `isomorphic-dompurify` tag, attribute, and URI allowlist; malicious-link and
+  markup tests pass.
+
+- Observation: changing the shared domain schedule requires website consumers
+  to derive their local calendar date/time from UTC rather than reading removed
+  split fields.
+  Evidence: calendar, structured-data, and Broadcast readiness tests now pass
+  against the `timed`/`date` union.
+
 ## Decision Log
 
 - Decision: expose one external integration contract under `/api/v1` and remove
@@ -132,11 +165,45 @@ Kvarter` rather than appearing locationless.
   partial-failure semantics, cache variants, and duplicate rich content.
   Date/Author: 2026-09-02 / user and Codex.
 
-- Decision: preserve the default unpaginated upcoming snapshot and paginate
-  requests containing `from` or `to` at 100 occurrences with opaque cursors.
-  Rationale: current volume makes one Broadcast snapshot practical, while
-  bounded mobile or historical requests remain safe to traverse.
-  Date/Author: 2026-09-02 / user and Codex.
+- Decision: preserve the default unpaginated upcoming snapshot and return every
+  occurrence matching inclusive `from`/`to` filters; remove cursor pagination.
+  Rationale: current volume makes a complete snapshot practical and removing
+  page state simplifies both integrations and the OpenAPI contract.
+  Date/Author: 2026-09-03 / user and Codex; supersedes the 2026-09-02 page
+  decision.
+
+- Decision: keep the hidden `includeInternal=true` compatibility switch accepted
+  by route parsing but omit it from OpenAPI and public reference documentation.
+  Rationale: preserve the requested compatibility behavior without making the
+  internal-event escape hatch part of the public contract.
+  Date/Author: 2026-09-03 / user and Codex.
+
+- Decision: expose schedules as `{kind:"timed", startsAt, endsAt, timeZone}` or
+  `{kind:"date", date, timeZone}` and do not retain redundant local split
+  fields in the API response.
+  Rationale: a discriminator makes date-only versus timed semantics explicit;
+  UTC timestamps preserve overnight behavior without ambiguous local fields.
+  Date/Author: 2026-09-03 / user and Codex.
+
+- Decision: serialize descriptions to sanitized `{html,text}` in collection
+  summaries and never expose raw Portable Text blocks.
+  Rationale: Broadcast/mobile consumers need description content without a
+  detail round trip, and HTML/plain text is portable while a strict allowlist
+  prevents editor content from becoming executable markup.
+  Date/Author: 2026-09-03 / user and Codex.
+
+- Decision: detail responses use `detailKind`; leaf occurrences contain only
+  `{id,schedule}`, while parent occurrences contain child summaries without a
+  repeated parent summary.
+  Rationale: event fields occur once per detail resource while parent programs
+  still expose child identity and content clearly.
+  Date/Author: 2026-09-03 / user and Codex.
+
+- Decision: add deterministic ETags and honor `If-None-Match` for collection and
+  detail GET/HEAD responses.
+  Rationale: complete snapshots are cheap to validate and unchanged polling
+  should return `304` without a JSON body.
+  Date/Author: 2026-09-03 / user and Codex.
 
 - Decision: collection summaries include `updatedAt`, pricing, and ticket link
   in addition to their existing image, taxonomy, organizer, status, schedule,
@@ -208,6 +275,13 @@ its screening timetable is published on 1 October; this is accurate source
 data, not an integration defect. The deployed preview returns all nine BIFF
 occurrences with their sourced multi-venue text rather than the default venue.
 
+The 2026-09-03 contract simplification is implemented and locally verified.
+All 329 active web tests, web TypeScript, ESLint, production build, formatting,
+diff checks, OpenAPI validation, and client type generation pass. The Broadcast
+audit result remains 29 of 39 ticketed occurrences ready; the known BIFF time
+and external-location mapping gaps remain content/partner work. Only the
+external request-log and Broadcast test-workspace steps remain.
+
 ## Context and Orientation
 
 This is an npm workspace. `apps/studio` owns Sanity arrangement schemas.
@@ -222,8 +296,9 @@ website pages and route handlers.
 `apps/web/src/app/api/v1/events/[slug]/route.ts` owns rich detail.
 `apps/web/src/features/events/api/schemas.ts` is the runtime response contract,
 and `apps/web/src/features/events/api/serializers.ts` maps normalized domain
-objects into it. `apps/web/src/app/api/v1/openapi.json/route.ts` generates
-OpenAPI schemas from the same Zod definitions.
+objects into it. `apps/web/src/features/events/api/description.ts` converts
+Portable Text to sanitized HTML/plain text. `apps/web/src/app/api/v1/openapi.json/route.ts`
+generates OpenAPI schemas from the same Zod definitions.
 
 `apps/web/src/features/events/integrations/broadcast-readiness.ts` is a pure,
 non-writing completeness check. `apps/web/scripts/audit-broadcast-readiness.ts`
@@ -259,11 +334,15 @@ agent guidance, release documentation, and current architecture references.
 Historical completed ExecPlans may retain descriptions of behavior at their
 time, but current guidance must say the route is removed.
 
-Finally, run focused route, serializer, structured-data, and Broadcast tests.
-Run formatting, TypeScript, lint, the production web build, and `git diff
---check`. Since no Sanity schema or GROQ query shape changes, Sanity TypeGen is
-not required solely for this revision; if generated types drift during another
-check, investigate rather than accepting unrelated output.
+Finally, simplify the v1 representations. Remove cursor state, page metadata,
+and response-level links; add the `timed`/`date` schedule union and
+`detailKind` parent/leaf shapes; serialize descriptions with
+`@portabletext/to-html` plus a strict sanitizer; add ETag validators; and
+reject unsupported query parameters. Run focused route, serializer,
+structured-data, and Broadcast tests. Since no Sanity schema or GROQ query
+shape changed, Sanity TypeGen is not required solely for this revision; if
+generated types drift during another check, investigate rather than accepting
+unrelated output.
 
 ## Concrete Steps
 
@@ -288,12 +367,20 @@ Run the current-data report when Sanity credentials/network are available:
 Before production, request `/api/v1/events?locale=nb` without a Vercel bypass
 header and confirm HTTP 200 JSON. Confirm that an occurrence without room/free
 text has `event.location.kind` equal to `venue` and name equal to `Det
-Akademiske Kvarter`. Confirm that `/api/events/feed` returns 404 after removal.
+Akademiske Kvarter`. Send `If-None-Match` from a previous response and confirm
+HTTP 304 with no body. The release workflow performs these same checks,
+including OpenAPI protocol operations and description/schedule shape. Confirm
+that `/api/events/feed` returns 404 after removal.
 
 ## Validation and Acceptance
 
 Focused tests must prove collection records expose `updatedAt`, pricing, ticket
-link, and the venue fallback. Detail tests must prove rich data remains.
+link, venue fallback, and `{html,text}` descriptions. Detail tests must prove
+leaf occurrences contain only id/schedule and parent details expose child
+summaries without repeating parent fields. Schedule tests must prove overnight
+timed and date-only representations. Description tests must prove supported
+Portable Text renders and malicious URLs/markup are removed. ETag tests must
+prove matching conditional requests return `304` with no body.
 Structured-data tests must prove the canonical Kvarteret Place is emitted for a
 missing source location and explicit free text is not overwritten. Broadcast
 tests must prove the fallback venue is ready while explicit free text remains
@@ -337,6 +424,10 @@ At completion, `PublicEventSummary` includes:
       student: number | null
       member: number | null
     }
+    description: {
+      html: string
+      text: string
+    }
     links: {
       self: string
       website: string
@@ -348,8 +439,9 @@ Its `location` union includes referenced room, explicit text, and:
     { kind: "venue", name: "Det Akademiske Kvarter" }
 
 `assessBroadcastReadiness` remains pure. `fetchPublicEventSet` remains the only
-published collection fetch boundary. No new package or external service
-dependency is introduced.
+published collection fetch boundary. The API serializer directly depends on
+`@portabletext/to-html` and `isomorphic-dompurify`; no external service is
+introduced.
 
 ## Plan Revision Note
 
@@ -366,3 +458,23 @@ official program publishes them.
 
 2026-09-03: Recorded deployed-preview verification and the child-level BIFF
 location correction discovered during field-level payload inspection.
+
+2026-09-03: Implemented the user-approved simplification: all matching date
+filters return a complete snapshot; cursor/page metadata and response-level
+links were removed; schedule uses a discriminated timed/date union; collection
+summaries include sanitized HTML/plain text descriptions; parent/leaf details
+use `detailKind`; and GET/HEAD responses emit deterministic ETags with 304
+support. Added strict unknown-parameter rejection while retaining the hidden
+internal compatibility switch only in source parsing. Updated consumers,
+focused tests, OpenAPI, reference documentation, and direct dependencies.
+
+2026-09-03: Recorded final local verification and the unchanged Broadcast audit
+baseline. OpenAPI validation has no errors; its remaining advisory warnings are
+the absent repository license metadata and OPTIONS operations that truthfully
+have only a 204 response.
+
+2026-09-03: Narrowed the discriminated schedule to the API serializer boundary
+after review so website calendar and structured-data code retain lossless local
+date/time fields internally. Added browser-usable conditional requests by
+allowing `If-None-Match` and exposing `ETag` through CORS, then recorded a local
+production-server smoke test against 73 current occurrences.
