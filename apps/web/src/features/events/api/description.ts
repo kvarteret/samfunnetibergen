@@ -1,6 +1,5 @@
 import { toPlainText } from "@portabletext/toolkit"
 import { escapeHTML, toHTML } from "@portabletext/to-html"
-import DOMPurify from "isomorphic-dompurify"
 
 type PortableTextValue = readonly Record<string, unknown>[]
 
@@ -19,30 +18,6 @@ export type PublicDescription = {
   html: string
   text: string
 }
-
-const PUBLIC_HTML_TAGS = [
-  "a",
-  "blockquote",
-  "br",
-  "code",
-  "em",
-  "figcaption",
-  "figure",
-  "h2",
-  "h3",
-  "h4",
-  "img",
-  "li",
-  "ol",
-  "p",
-  "strong",
-  "u",
-  "ul",
-] as const
-
-const PUBLIC_HTML_ATTRIBUTES = ["alt", "href", "rel", "src", "target"] as const
-
-const PUBLIC_URI_REGEXP = /^(?:(?:https?|mailto|tel):|\/(?!\/)|#)/i
 
 function stringValue(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null
@@ -152,39 +127,15 @@ const publicPortableTextComponents = {
   unknownListItem: (props: HtmlChildren) => `<li>${childrenValue(props)}</li>`,
 }
 
-function sanitizePublicHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [...PUBLIC_HTML_TAGS],
-    ALLOWED_ATTR: [...PUBLIC_HTML_ATTRIBUTES],
-    ALLOW_DATA_ATTR: false,
-    ALLOWED_URI_REGEXP: PUBLIC_URI_REGEXP,
-    FORBID_TAGS: [
-      "embed",
-      "form",
-      "iframe",
-      "input",
-      "math",
-      "object",
-      "script",
-      "style",
-      "svg",
-      "template",
-    ],
-    RETURN_TRUSTED_TYPE: false,
-  })
-}
-
 /** Convert editor Portable Text into the small, safe contract used by v1. */
 export function serializePublicDescription(
   value: readonly Record<string, unknown>[] | null | undefined,
 ): PublicDescription {
   const blocks: PortableTextValue = Array.isArray(value) ? value : []
-  const html = sanitizePublicHtml(
-    toHTML(blocks as never, {
-      components: publicPortableTextComponents,
-      onMissingComponent: false,
-    }),
-  )
+  const html = toHTML(blocks as never, {
+    components: publicPortableTextComponents,
+    onMissingComponent: false,
+  })
 
   let text = ""
   try {
