@@ -2,17 +2,12 @@ import { resolveSiteUrl } from "@/lib/site-url"
 
 import {
   DEFAULT_PUBLIC_VENUE_NAME,
-  flattenPublicOccurrences,
   type PublicEvent,
   type PublicOccurrence,
   type PublicSchedule,
-} from "../domain/public-events"
+} from "../domain/events"
 import { serializePublicDescription } from "./description"
-import type {
-  PublicEventDetail,
-  PublicEventSummary,
-  PublicOccurrenceSummary,
-} from "./schemas"
+import type { PublicApiEvent, PublicApiOccurrence } from "./schemas"
 
 export type PublicApiLinkOptions = {
   siteUrl?: string
@@ -27,19 +22,13 @@ function websiteEventUrl(event: PublicEvent, options: PublicApiLinkOptions) {
   return `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/${options.locale}/arrangementer/${encodeURIComponent(event.slug)}`
 }
 
-function apiEventUrl(event: PublicEvent, options: PublicApiLinkOptions) {
-  return `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/api/v1/events/${encodeURIComponent(event.slug)}?locale=${options.locale}`
-}
-
 function serializeImage(event: PublicEvent) {
   return event.imageUrl
     ? { url: event.imageUrl, caption: event.imageCaption }
     : null
 }
 
-function serializeOrganizer(
-  event: PublicEvent,
-): PublicEventSummary["organizer"] {
+function serializeOrganizer(event: PublicEvent): PublicApiEvent["organizer"] {
   if (event.organizerGroup) {
     return {
       kind: "group",
@@ -54,7 +43,7 @@ function serializeOrganizer(
     : null
 }
 
-function serializeLocation(event: PublicEvent): PublicEventSummary["location"] {
+function serializeLocation(event: PublicEvent): PublicApiEvent["location"] {
   if (event.room) {
     return {
       kind: "room",
@@ -71,7 +60,7 @@ function serializeLocation(event: PublicEvent): PublicEventSummary["location"] {
     : { kind: "venue", name: DEFAULT_PUBLIC_VENUE_NAME }
 }
 
-function serializePricing(event: PublicEvent): PublicEventSummary["pricing"] {
+function serializePricing(event: PublicEvent): PublicApiEvent["pricing"] {
   return {
     currency: "NOK",
     isFree: event.isFree,
@@ -83,7 +72,7 @@ function serializePricing(event: PublicEvent): PublicEventSummary["pricing"] {
 
 function serializePublicSchedule(
   schedule: PublicSchedule,
-): PublicOccurrenceSummary["schedule"] {
+): PublicApiOccurrence["schedule"] {
   return schedule.startsAt
     ? {
         kind: "timed",
@@ -98,15 +87,11 @@ function serializePublicSchedule(
       }
 }
 
-function serializePublicEventSummary(
+function serializePublicEvent(
   event: PublicEvent,
   options: PublicApiLinkOptions,
-): PublicEventSummary {
-  const links = {
-    self: apiEventUrl(event, options),
-    website: websiteEventUrl(event, options),
-    ticket: event.ticketUrl,
-  }
+): PublicApiEvent {
+  const siteUrl = normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())
 
   return {
     id: event._id,
@@ -115,6 +100,7 @@ function serializePublicEventSummary(
     status: event.eventStatus,
     updatedAt: event.effectiveUpdatedAt,
     title: event.title,
+    description: serializePublicDescription(event.description),
     image: serializeImage(event),
     eventType: event.eventType
       ? { id: event.eventType._id, name: event.eventType.name }
@@ -135,76 +121,25 @@ function serializePublicEventSummary(
           kind: event.parentEvent.eventKind,
           status: event.parentEvent.eventStatus,
           title: event.parentEvent.title,
-          links: {
-            self: `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/api/v1/events/${encodeURIComponent(event.parentEvent.slug)}?locale=${options.locale}`,
-            website: `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/${options.locale}/arrangementer/${encodeURIComponent(event.parentEvent.slug)}`,
-          },
+          website: `${siteUrl}/${options.locale}/arrangementer/${encodeURIComponent(event.parentEvent.slug)}`,
         }
       : null,
-    description: serializePublicDescription(event.description),
-    links,
+    links: {
+      website: websiteEventUrl(event, options),
+      ticket: event.ticketUrl,
+      facebook: event.facebookUrl,
+    },
   }
 }
 
-function serializePublicEventChildSummary(
-  event: PublicEvent,
-  options: PublicApiLinkOptions,
-) {
-  const { parent: ignoredParent, ...summary } = serializePublicEventSummary(
-    event,
-    options,
-  )
-  void ignoredParent
-  return summary
-}
-
+/** Serialize one occurrence with the complete public event fields. */
 export function serializePublicOccurrence(
   occurrence: PublicOccurrence,
   options: PublicApiLinkOptions,
-): PublicOccurrenceSummary {
+): PublicApiOccurrence {
   return {
     id: occurrence.id,
     schedule: serializePublicSchedule(occurrence.schedule),
-    event: serializePublicEventSummary(occurrence.event, options),
-  }
-}
-
-export function serializePublicEventDetail(
-  event: PublicEvent,
-  children: readonly PublicEvent[],
-  options: PublicApiLinkOptions,
-): PublicEventDetail {
-  const isParent =
-    event.eventKind === "seriesParent" || event.eventKind === "festivalParent"
-  const occurrences = isParent
-    ? flattenPublicOccurrences(children)
-    : flattenPublicOccurrences([event])
-  const summary = serializePublicEventSummary(event, options)
-  const detailLinks = {
-    ...summary.links,
-    facebook: event.facebookUrl,
-  }
-
-  if (isParent) {
-    return {
-      ...summary,
-      detailKind: "parent",
-      links: detailLinks,
-      occurrences: occurrences.map(occurrence => ({
-        id: occurrence.id,
-        schedule: serializePublicSchedule(occurrence.schedule),
-        event: serializePublicEventChildSummary(occurrence.event, options),
-      })),
-    }
-  }
-
-  return {
-    ...summary,
-    detailKind: "leaf",
-    links: detailLinks,
-    occurrences: occurrences.map(occurrence => ({
-      id: occurrence.id,
-      schedule: serializePublicSchedule(occurrence.schedule),
-    })),
+    event: serializePublicEvent(occurrence.event, options),
   }
 }

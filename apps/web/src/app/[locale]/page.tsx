@@ -14,7 +14,7 @@ import {
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
-import type { PublicEvent } from "@/features/events/domain/public-events"
+import type { PublicEvent } from "@/features/events/domain/events"
 import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,

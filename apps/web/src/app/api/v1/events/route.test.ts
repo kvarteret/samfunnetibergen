@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
   flattenPublicOccurrences,
   resolvePublicEvent,
-} from "@/features/events/domain/public-events"
+} from "@/features/events/domain/events"
 
 const { fetchPublicEventSetMock } = vi.hoisted(() => ({
   fetchPublicEventSetMock: vi.fn(),
@@ -34,6 +34,7 @@ function makeOccurrences(count: number) {
       priceStudent: 100,
       priceMedlem: 75,
       ticketUrl: `https://tickets.example.test/event-${index}`,
+      facebookUrl: `https://facebook.example.test/event-${index}`,
       dates: [
         {
           _key: `date-${index}`,
@@ -70,9 +71,10 @@ describe("GET /api/v1/events", () => {
     expect(response.headers.get("Cache-Control")).toBe(
       "public, s-maxage=60, stale-while-revalidate=300",
     )
-    expect(body.meta).toMatchObject({
+    expect(body.meta).toEqual({
       locale: "nb",
-      count: 1,
+      from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      to: null,
     })
     expect(body.data[0].event).toMatchObject({
       updatedAt: "2026-09-01T10:00:00.000Z",
@@ -90,8 +92,11 @@ describe("GET /api/v1/events", () => {
       description: { html: "", text: "" },
       links: {
         ticket: "https://tickets.example.test/event-0",
+        facebook: "https://facebook.example.test/event-0",
       },
     })
+    expect(body.data[0].event).not.toHaveProperty("detailKind")
+    expect(body.data[0].event).not.toHaveProperty("occurrences")
     expect(fetchPublicEventSetMock).toHaveBeenCalledWith({
       locale: "nb",
       from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
@@ -110,11 +115,10 @@ describe("GET /api/v1/events", () => {
     )
     const body = await response.json()
 
-    expect(body.meta).toMatchObject({
+    expect(body.meta).toEqual({
       locale: "en",
       from: "2026-09-01",
       to: "2027-04-01",
-      count: 205,
     })
     expect(body.data).toHaveLength(205)
   })

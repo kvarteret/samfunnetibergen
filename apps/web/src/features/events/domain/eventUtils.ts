@@ -1,4 +1,4 @@
-import type { PublicEvent } from "./public-events"
+import type { PublicEvent } from "./events"
 
 export type TaxonomyGroup = {
   _id: string

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { buildCalendarMonths as groupCalendarMonths } from "./calendar"
-import { flattenPublicOccurrences, resolvePublicEvent } from "./public-events"
+import { flattenPublicOccurrences, resolvePublicEvent } from "./events"
 
 function event(
   id: string,

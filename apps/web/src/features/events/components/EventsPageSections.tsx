@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl"
 
 import { useEvents } from "@/features/events/context/EventsContext"
-import type { PublicEvent } from "@/features/events/domain/public-events"
+import type { PublicEvent } from "@/features/events/domain/events"
 import { EventCard, type EventDateEntry, type EventSummary } from "./EventCard"
 
 type PublicEventDate = PublicEvent["dates"][number]

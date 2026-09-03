@@ -235,9 +235,9 @@ jobs:
           grep -Eiq '^content-type: application/json(;|[[:space:]])' "$temp_dir/openapi.headers"
           grep -Eiq '^etag:[[:space:]]*"' "$temp_dir/events.headers"
           jq -e '.meta.locale == "nb" and (.data | type == "array")' "$temp_dir/events.json" >/dev/null
-          jq -e 'all(.data[]; ((.schedule.kind == "timed" and (.schedule.startsAt | endswith("Z"))) or (.schedule.kind == "date" and (.schedule.date | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")))) and (.event.description.html | type == "string") and (.event.description.text | type == "string"))' "$temp_dir/events.json" >/dev/null
+          jq -e 'all(.data[]; ((.schedule.kind == "timed" and (.schedule.startsAt | endswith("Z"))) or (.schedule.kind == "date" and (.schedule.date | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")))) and (.event.description.html | type == "string") and (.event.description.text | type == "string") and (.event.links.website | type == "string") and ((.event.links.facebook == null) or (.event.links.facebook | type == "string")))' "$temp_dir/events.json" >/dev/null
           jq -e '.openapi == "3.1.0"' "$temp_dir/openapi.json" >/dev/null
-          jq -e '.security == [] and (.paths["/api/v1/events"].get != null) and (.paths["/api/v1/events"].head != null) and (.paths["/api/v1/events"].options != null) and (.paths["/api/v1/events/{slug}"].get != null) and (.paths["/api/v1/events/{slug}"].head != null) and (.paths["/api/v1/events/{slug}"].options != null) and (([.paths["/api/v1/events"].get.parameters[]?.name] | index("cursor")) == null)' "$temp_dir/openapi.json" >/dev/null
+          jq -e '.security == [] and ([.paths | keys[]] == ["/api/v1/events"]) and (.paths["/api/v1/events"].get != null) and (.paths["/api/v1/events"].head != null) and (.paths["/api/v1/events"].options != null)' "$temp_dir/openapi.json" >/dev/null
 
           event_etag="$(awk 'BEGIN { IGNORECASE = 1 } /^etag:/ { sub(/\r$/, ""); sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' "$temp_dir/events.headers")"
           conditional_status="$(curl "${curl_args[@]}" --header "If-None-Match: ${event_etag}" --output /dev/null --write-out "%{http_code}" "${base_url%/}/api/v1/events?locale=nb")"

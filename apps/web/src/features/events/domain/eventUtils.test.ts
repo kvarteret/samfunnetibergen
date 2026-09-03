@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { PublicEvent } from "./public-events"
+import type { PublicEvent } from "./events"
 import { filterToFirstInstances } from "./eventUtils"
 
 function event(id: string, kind: PublicEvent["eventKind"], parentId?: string) {

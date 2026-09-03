@@ -33,7 +33,7 @@ phases.
 
 | Consumer | Owner | Evidence in this repository | Contract status |
 | --- | --- | --- | --- |
-| Public website | `apps/web` | `apps/web/src/lib/sanity/client.ts`, `apps/web/src/lib/sanity/queries/`, `apps/web/src/lib/sanity/fetch/`, public pages and feeds | Verified |
+| Public website | `apps/web` | `apps/web/src/lib/sanity/client.ts`, `apps/web/src/lib/sanity/queries/`, `apps/web/src/lib/sanity/fetch/`, public pages and the events API | Verified |
 | Sanity Studio | `apps/studio` | `apps/studio/sanity.config.ts`, `apps/studio/src/studio/schemaTypes/`, `apps/studio/src/studio/presentation/` | Verified |
 | Mobile app | External owner | Consumes the versioned public event API; its source is not present in this repository | Planned consumer |
 

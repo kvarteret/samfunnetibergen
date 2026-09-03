@@ -12,7 +12,7 @@ vi.mock("@/lib/sanity/client", () => ({
 }))
 vi.mock("@/lib/sanity/fetcher", () => ({ sanityFetch: sanityFetchMock }))
 
-import { fetchEventPageData } from "./public-events"
+import { fetchEventPageData } from "./public-events-page"
 
 const eventRow = {
   _id: "event-1",

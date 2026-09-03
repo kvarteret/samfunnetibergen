@@ -1,7 +1,4 @@
-import {
-  comparePublicOccurrences,
-  type PublicOccurrence,
-} from "./public-events"
+import { comparePublicOccurrences, type PublicOccurrence } from "./events"
 
 export type CalendarOccurrence = PublicOccurrence
 

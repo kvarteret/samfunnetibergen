@@ -21,7 +21,7 @@ This makes users repeat information and makes the codebase duplicate form primit
 The important product distinction is that a booking and a public event are not the same object:
 
 - A booking reserves a room for an operational interval.
-- A public event describes what appears in the calendar, feeds, and event detail pages.
+- A public event describes what appears in the calendar, events API, and event detail pages.
 
 For many room bookings, the booking request should also become an event submission. The booking
 window often includes setup, doors, soundcheck, and teardown, while the public event time usually
@@ -123,7 +123,7 @@ Sanity-side intake document is introduced.
 
 - Save user effort when a booking should also become a public event.
 - Keep Crescat as the booking/request system for room and karaoke reservations.
-- Keep Sanity `arrangement` as the public event source for listing, detail pages, feeds, and Studio
+- Keep Sanity `arrangement` as the public event source for listing, detail pages, the events API, and Studio
   review.
 - Model booking window and public showtime separately.
 - Share field models and UI primitives where behavior is actually common.

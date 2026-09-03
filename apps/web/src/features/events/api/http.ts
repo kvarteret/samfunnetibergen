@@ -11,7 +11,7 @@ const CORS_HEADERS = {
 }
 
 export function publicApiErrorResponse(
-  code: "invalid_request" | "not_found" | "internal_error",
+  code: "invalid_request" | "internal_error",
   message: string,
   status: number,
 ): Response {

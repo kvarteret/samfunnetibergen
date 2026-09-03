@@ -35,7 +35,7 @@ export const eventGroupsQuery = defineQuery(`
 }`)
 
 // ADR 005 query contract: a missing eventKind always reads as "single";
-// public listings and feeds show concrete events only (never parents).
+// public listings and the events API show concrete events only (never parents).
 const CONCRETE_EVENT_KINDS = `coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]`
 const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]`
 
@@ -77,7 +77,7 @@ export const publishedEventSlugsQuery = defineQuery(`
         "slug": slug.current
     }`)
 
-// Public pages, API routes, feeds, and editor preview share this projection.
+// Public pages, the events API, and editor preview share this projection.
 const PUBLIC_DATE_FILTER = `defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)`
 
 const publicParentProjection = `parentEvent-> {

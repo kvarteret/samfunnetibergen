@@ -1,4 +1,4 @@
-import type { PublicOccurrence } from "../domain/public-events"
+import type { PublicOccurrence } from "../domain/events"
 
 export type BroadcastReadinessErrorCode =
   | "missing_title"

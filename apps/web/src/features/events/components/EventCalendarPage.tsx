@@ -4,7 +4,7 @@ import { EventsProvider } from "@/features/events/context/EventsContext"
 import type {
   PublicEvent,
   PublicOccurrence,
-} from "@/features/events/domain/public-events"
+} from "@/features/events/domain/events"
 import type { AppLocale } from "@/i18n/routing"
 import { Link } from "@/i18n/navigation"
 import { EventsPageFilters } from "./EventsPageFilters"

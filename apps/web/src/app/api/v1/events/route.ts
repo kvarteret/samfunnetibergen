@@ -58,7 +58,6 @@ export async function GET(request: Request): Promise<Response> {
         locale: parsed.locale,
         from: parsed.from,
         to: parsed.to,
-        count: occurrences.length,
       },
     })
 

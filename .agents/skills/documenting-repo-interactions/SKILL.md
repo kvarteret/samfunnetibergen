@@ -19,12 +19,14 @@ Every interaction claim must be verified before it is written.
 
 ## Current Verified Boundaries
 
-- Arrangement pages and the versioned API read from
-  Sanity through `features/events/server/public-events.ts`, backed by
+- Arrangement pages and the versioned API read from Sanity through
+  `features/events/server/public-events.ts`; website preview is isolated in
+  `features/events/server/public-events-page.ts`. Both are backed by
   `lib/sanity/queries/events.ts`. Public consumers include
   `app/[locale]/arrangementer/page.tsx`,
   `app/[locale]/arrangementer/[event]/page.tsx` and `app/api/v1/events/`.
-  Detail pages embed Schema.org Event data; there is no standalone DataFeed or
+  The collection returns complete event objects per occurrence. Detail pages
+  embed Schema.org Event data; there is no standalone linked-data feed or
   iCalendar route in current source.
 - Volunteer prospect submissions are proxied to `kvarteret-personal`:
   `app/api/volunteer-prospects/route.ts`.

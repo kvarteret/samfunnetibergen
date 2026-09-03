@@ -6,9 +6,9 @@ description: Work on arrangement listing, detail pages, the public API, and even
 # Working With Sanity Arrangements
 
 Use this skill for `/arrangementer`, arrangement detail pages, the versioned
-public event API, event submission, event taxonomy,
-rooms, and organizer group references. There is no iCalendar route in current
-source.
+events API, event submission, event taxonomy, rooms, and organizer group
+references. There is no standalone linked-data feed or iCalendar route in
+current source.
 
 ## Source Of Truth
 
@@ -17,15 +17,15 @@ source.
   `apps/studio/src/studio/schemaTypes/documents/eventTaxonomyGroup.ts`, and
   `apps/studio/src/studio/schemaTypes/documents/singletons/`.
 - Sanity queries: `apps/web/src/lib/sanity/queries/events.ts`.
-- Shared public event service and preview controller:
-  `apps/web/src/features/events/server/public-events.ts`.
+- Shared event service: `apps/web/src/features/events/server/public-events.ts`.
+- Website preview controller:
+  `apps/web/src/features/events/server/public-events-page.ts`.
 - Event-form taxonomy and reference fetches:
   `apps/web/src/lib/sanity/fetch/events.ts`.
-- Public occurrence domain: `apps/web/src/features/events/domain/public-events.ts`.
+- Public occurrence domain: `apps/web/src/features/events/domain/events.ts`.
 - Public pages: `apps/web/src/app/[locale]/arrangementer/page.tsx` and
   `apps/web/src/app/[locale]/arrangementer/[event]/page.tsx`.
-- Versioned API: `apps/web/src/app/api/v1/events/route.ts`,
-  `apps/web/src/app/api/v1/events/[slug]/route.ts`, and
+- Versioned API: `apps/web/src/app/api/v1/events/route.ts` and
   `apps/web/src/app/api/v1/openapi.json/route.ts`.
 - Public event submission: `apps/web/src/features/events/actions/submitEvent.ts`.
 
@@ -38,9 +38,10 @@ source.
   first resolving the ignored generated-file boundary.
 - Event submission creates Sanity `arrangement` documents and uses approval
   state before public display.
-- `/api/v1` is the complete occurrence-first contract for the mobile app and
-  Broadcast. Detail pages embed Schema.org Event data for search; there is no
-  standalone DataFeed.
+- `/api/v1/events` is the complete occurrence-first contract for the mobile app
+  and Broadcast. Every occurrence includes the complete public event object,
+  sanitized description, and public links. Detail pages embed Schema.org Event
+  data for search; the website detail page uses the server service directly.
 
 ## Verification
 

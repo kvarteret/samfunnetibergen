@@ -8,14 +8,15 @@ Update it when a source-backed boundary changes.
 Sanity owns the arrangement content. `apps/web` owns the public read boundary:
 the shared server-side event service resolves published localization,
 inheritance, status, visibility, and Europe/Oslo occurrences. Website pages and
-anonymous external clients consume that service through compatibility fetchers,
-`/api/v1/events`, and `/api/v1/events/{slug}`. The OpenAPI document is served at
+anonymous external clients consume that service through
+`/api/v1/events`. The OpenAPI document is served at
 `/api/v1/openapi.json`.
 
 The versioned API is the single external integration contract for the mobile
-app and the planned Broadcast pull integration. Website detail pages retain
+app and the planned Broadcast pull integration. Its collection contains the
+complete public event object for each occurrence. Website detail pages retain
 Event JSON-LD for search metadata, and the sitemap retains localized event
-URLs. There is no standalone Schema.org DataFeed or iCalendar endpoint.
+URLs. There is no standalone linked-data feed or iCalendar endpoint.
 
 Ownership and consumers:
 
@@ -29,14 +30,14 @@ Verified source:
 
 - `apps/studio/src/studio/schemaTypes/documents/arrangement.ts`
 - `apps/web/src/features/events/server/public-events.ts`
-- `apps/web/src/features/events/domain/public-events.ts`
+- `apps/web/src/features/events/server/public-events-page.ts`
+- `apps/web/src/features/events/domain/events.ts`
 - `apps/web/src/lib/sanity/queries/events.ts`
 - `apps/web/src/lib/sanity/fetch/events.ts`
 - `apps/web/src/app/[locale]/arrangementer/page.tsx`
 - `apps/web/src/app/[locale]/arrangementer/kalender/page.tsx`
 - `apps/web/src/app/[locale]/arrangementer/[event]/page.tsx`
 - `apps/web/src/app/api/v1/events/route.ts`
-- `apps/web/src/app/api/v1/events/[slug]/route.ts`
 - `apps/web/src/app/api/v1/openapi.json/route.ts`
 - `apps/web/src/lib/structured-data.ts`
 

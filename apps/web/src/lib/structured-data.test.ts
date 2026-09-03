@@ -3,7 +3,7 @@ import {
   flattenPublicOccurrences,
   type RawPublicEvent,
   resolvePublicEvent,
-} from "@/features/events/domain/public-events"
+} from "@/features/events/domain/events"
 import {
   buildEventStructuredData,
   buildFaqPageStructuredData,

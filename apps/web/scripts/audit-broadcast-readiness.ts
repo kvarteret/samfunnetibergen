@@ -3,7 +3,7 @@ import {
   assessBroadcastReadiness,
   type BroadcastReadinessErrorCode,
 } from "@/features/events/integrations/broadcast-readiness"
-import { fetchPublicEventSet } from "@/features/events/server/public-events-core"
+import { fetchPublicEventSet } from "@/features/events/server/public-events"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 
 const USAGE = `events:audit:broadcast — check Broadcast source-data completeness

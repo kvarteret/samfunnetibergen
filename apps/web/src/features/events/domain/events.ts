@@ -399,38 +399,20 @@ function occurrenceId(eventId: string, dateKey: string): string {
   return `occurrence:${eventId}:${dateKey}`
 }
 
-export type PublicOccurrenceOrderingKey = {
-  startDate: string
-  startTime: string | null
-  eventId: string
-  dateKey: string
-}
-
-function publicOccurrenceOrderingKey(
-  occurrence: PublicOccurrence,
-): PublicOccurrenceOrderingKey {
-  return {
-    startDate: occurrence.schedule.startDate,
-    startTime: occurrence.schedule.startTime,
-    eventId: occurrence.event._id,
-    dateKey: occurrence.dateKey,
-  }
-}
-
-function compareOrderingKeys(
-  left: PublicOccurrenceOrderingKey,
-  right: PublicOccurrenceOrderingKey,
+function comparePublicOccurrenceValues(
+  left: PublicOccurrence,
+  right: PublicOccurrence,
 ): number {
   const leftKey = [
-    left.startDate,
-    left.startTime ?? "99:99",
-    left.eventId,
+    left.schedule.startDate,
+    left.schedule.startTime ?? "99:99",
+    left.event._id,
     left.dateKey,
   ]
   const rightKey = [
-    right.startDate,
-    right.startTime ?? "99:99",
-    right.eventId,
+    right.schedule.startDate,
+    right.schedule.startTime ?? "99:99",
+    right.event._id,
     right.dateKey,
   ]
 
@@ -445,17 +427,7 @@ export function comparePublicOccurrences(
   left: PublicOccurrence,
   right: PublicOccurrence,
 ): number {
-  return compareOrderingKeys(
-    publicOccurrenceOrderingKey(left),
-    publicOccurrenceOrderingKey(right),
-  )
-}
-
-export function comparePublicOccurrenceToKey(
-  occurrence: PublicOccurrence,
-  key: PublicOccurrenceOrderingKey,
-): number {
-  return compareOrderingKeys(publicOccurrenceOrderingKey(occurrence), key)
+  return comparePublicOccurrenceValues(left, right)
 }
 
 export function isValidPublicDate(value: string): boolean {

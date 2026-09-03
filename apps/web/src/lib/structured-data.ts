@@ -4,7 +4,7 @@ import { schemaOrgEventStatus } from "@samfunnet/content-domain/resolve-event"
 import {
   DEFAULT_PUBLIC_VENUE_NAME,
   type PublicOccurrence,
-} from "@/features/events/domain/public-events"
+} from "@/features/events/domain/events"
 
 const SCHEMA_CONTEXT = "https://schema.org"
 const KVARTERET_MAP_URL =

@@ -5,7 +5,7 @@ import {
   normalizePublicSchedule,
   type PublicEventDate,
   resolvePublicEvent,
-} from "./public-events"
+} from "./events"
 
 const date = (
   startDate: string,

@@ -15,8 +15,8 @@ as three npm workspaces:
 
 - `apps/studio` owns Sanity schema definitions, editor structure, custom
   actions and inputs, Presentation configuration, and Sanity migrations.
-- `apps/web` owns public GROQ queries, fetch normalization, pages, feeds, Draft
-  Mode endpoints, Visual Editing, and website telemetry.
+- `apps/web` owns public GROQ queries, fetch normalization, pages, the events
+  API, Draft Mode endpoints, Visual Editing, and website telemetry.
 - `packages/content-domain` owns only pure event recurrence, materialized
   instance generation, inherited-content resolution, and effective status.
 

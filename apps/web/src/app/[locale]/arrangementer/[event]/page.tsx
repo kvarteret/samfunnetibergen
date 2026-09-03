@@ -7,8 +7,8 @@ import { JsonLd } from "@/components/JsonLd"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
-} from "@/features/events/domain/public-events"
-import { fetchEventPageData } from "@/features/events/server/public-events"
+} from "@/features/events/domain/events"
+import { fetchEventPageData } from "@/features/events/server/public-events-page"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"

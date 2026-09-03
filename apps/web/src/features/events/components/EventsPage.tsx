@@ -1,7 +1,7 @@
 import { CalendarDays, CalendarPlus } from "lucide-react"
 
 import { EventsProvider } from "@/features/events/context/EventsContext"
-import type { PublicEvent } from "@/features/events/domain/public-events"
+import type { PublicEvent } from "@/features/events/domain/events"
 import { Link } from "@/i18n/navigation"
 import type { EventDateEntry } from "./EventCard"
 import { EventsPageFilters } from "./EventsPageFilters"

@@ -3,24 +3,18 @@ import { describe, expect, it } from "vitest"
 import { buildPublicEventsOpenApi, GET } from "./route"
 
 describe("public events OpenAPI document", () => {
-  it("documents both v1 resources without the internal compatibility switch", () => {
+  it("documents the complete v1 collection without internal-only parameters", () => {
     const document = buildPublicEventsOpenApi("https://api.example.test")
 
     expect(document.openapi).toBe("3.1.0")
     expect(document.servers).toEqual([{ url: "https://api.example.test" }])
-    expect(document.paths).toHaveProperty("/api/v1/events")
-    expect(document.paths).toHaveProperty("/api/v1/events/{slug}")
+    expect(Object.keys(document.paths)).toEqual(["/api/v1/events"])
     expect(document.security).toEqual([])
     expect(document.paths["/api/v1/events"]).toHaveProperty("get")
     expect(document.paths["/api/v1/events"]).toHaveProperty("head")
     expect(document.paths["/api/v1/events"]).toHaveProperty("options")
-    expect(document.paths["/api/v1/events/{slug}"]).toHaveProperty("head")
-    expect(document.paths["/api/v1/events/{slug}"]).toHaveProperty("options")
     expect(JSON.stringify(document)).not.toContain("includeInternal")
-    expect(JSON.stringify(document)).not.toContain("cursor")
-    expect(JSON.stringify(document)).not.toContain("paginated")
     expect(document.components.schemas).toHaveProperty("PublicEventsResponse")
-    expect(document.components.schemas).toHaveProperty("PublicEventResponse")
     expect(document.components.schemas).toHaveProperty("PublicErrorResponse")
     const serialized = JSON.stringify(
       document.components.schemas.PublicEventsResponse,
@@ -30,6 +24,7 @@ describe("public events OpenAPI document", () => {
     expect(serialized).toContain("ticket")
     expect(serialized).toContain("Det Akademiske Kvarter")
     expect(serialized).toContain("description")
+    expect(serialized).toContain("facebook")
     expect(serialized).toContain("timed")
     expect(serialized).toContain("date")
   })

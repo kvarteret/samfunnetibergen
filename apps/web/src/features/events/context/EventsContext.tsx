@@ -20,7 +20,7 @@ import {
 import type {
   PublicEvent,
   PublicOccurrence,
-} from "@/features/events/domain/public-events"
+} from "@/features/events/domain/events"
 
 type EventsContextValue = {
   events: PublicEvent[]

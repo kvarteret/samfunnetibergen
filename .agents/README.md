@@ -11,13 +11,14 @@ and docs disagree.
 
 Current verified boundaries:
 
-- Public arrangement pages, the versioned JSON API, and the linked-data feed
-  read published Sanity data through the shared event service in
-  `apps/web/src/features/events/server/public-events.ts`, backed by
+- Public arrangement pages and the versioned JSON API read published Sanity
+  data through the shared event service in
+  `apps/web/src/features/events/server/public-events.ts`. Website preview
+  handling is isolated in `public-events-page.ts`; both are backed by
   `apps/web/src/lib/sanity/queries/events.ts`. The website pages,
-  `/api/v1/events` and `/api/v1/openapi.json` are public consumers of that
-  boundary. Event detail pages embed Schema.org Event data; there is no
-  standalone DataFeed or iCalendar route in current source.
+  `/api/v1/events`, and `/api/v1/openapi.json` are consumers of that boundary.
+  Event detail pages embed Schema.org Event data; there is no standalone
+  linked-data feed or iCalendar route in current source.
 - Public volunteer prospect submissions are validated locally, then proxied to
   `kvarteret-personal` from `src/app/api/volunteer-prospects/route.ts`.
 - Generated `kvarteret-personal` client files live under
@@ -59,8 +60,9 @@ ran; do not run a full build-and-test cycle by habit.
 - `security-audit`: perform calibrated security reviews with concrete data flow.
 - `verifying-web-changes`: choose the narrowest source, build, and runtime
   checks for this Next.js/Sanity app.
-- `working-with-sanity-arrangements`: work on arrangement pages, feeds, and
-  submission flow without confusing Sanity and `kvarteret-personal` ownership.
+- `working-with-sanity-arrangements`: work on arrangement pages, the events API,
+  and submission flow without confusing Sanity and `kvarteret-personal`
+  ownership.
 - `sanity-typegen-types`: regenerate and consume Sanity types correctly,
   keeping required fields nullable and parsing at the fetch boundary.
 - `react-doctor`: optional React health scan copied from the generic PostHog

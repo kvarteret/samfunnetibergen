@@ -11,7 +11,7 @@ import {
   fetchPublicEventChildren,
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
-} from "./public-events-core"
+} from "./public-events"
 
 const eventRow = {
   _id: "event-1",

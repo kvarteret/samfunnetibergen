@@ -4,7 +4,7 @@ import {
   isValidPublicDate,
   PUBLIC_EVENT_KINDS,
   type PublicEventKind,
-} from "../domain/public-events"
+} from "../domain/events"
 
 const publicEventKindSchema = z.enum(
   PUBLIC_EVENT_KINDS as unknown as [PublicEventKind, ...PublicEventKind[]],
@@ -64,13 +64,10 @@ const publicLocationSchema = z.union([
   }),
 ])
 
-const publicNavigationLinksSchema = z.strictObject({
-  self: z.url().describe("Canonical API URL for this event."),
+const publicEventLinksSchema = z.strictObject({
   website: z.url().describe("Canonical website URL for this event."),
-})
-
-const publicSummaryLinksSchema = publicNavigationLinksSchema.extend({
   ticket: z.url().nullable().describe("Purchase URL, when available."),
+  facebook: z.url().nullable().describe("Facebook URL, when available."),
 })
 
 const publicParentSummarySchema = z.strictObject({
@@ -79,7 +76,7 @@ const publicParentSummarySchema = z.strictObject({
   kind: publicEventKindSchema,
   status: publicEventStatusSchema,
   title: z.string(),
-  links: publicNavigationLinksSchema,
+  website: z.url().describe("Canonical website URL for the parent event."),
 })
 
 const publicTimedScheduleSchema = z.strictObject({
@@ -119,7 +116,8 @@ const publicPricingSchema = z.strictObject({
   member: z.number().nullable(),
 })
 
-const publicEventSummarySchema = z.strictObject({
+/** One complete public event representation used by every collection item. */
+export const publicEventSchema = z.strictObject({
   id: z.string().min(1),
   slug: z.string().min(1),
   kind: publicEventKindSchema,
@@ -139,80 +137,34 @@ const publicEventSummarySchema = z.strictObject({
   location: publicLocationSchema,
   pricing: publicPricingSchema,
   parent: publicParentSummarySchema.nullable(),
-  links: publicSummaryLinksSchema,
+  links: publicEventLinksSchema,
 })
 
-const publicOccurrenceSummarySchema = z.strictObject({
+export const publicOccurrenceSchema = z.strictObject({
   id: z.string().min(1),
   schedule: publicScheduleSchema,
-  event: publicEventSummarySchema,
+  event: publicEventSchema,
 })
-
-const publicDetailLinksSchema = publicSummaryLinksSchema.extend({
-  facebook: z.url().nullable().describe("Facebook URL, when available."),
-})
-
-const publicOccurrenceScheduleSchema = z.strictObject({
-  id: z.string().min(1),
-  schedule: publicScheduleSchema,
-})
-
-const publicParentChildSummarySchema = publicEventSummarySchema.omit({
-  parent: true,
-})
-
-const publicParentOccurrenceSchema = z.strictObject({
-  id: z.string().min(1),
-  schedule: publicScheduleSchema,
-  event: publicParentChildSummarySchema,
-})
-
-const publicLeafEventDetailSchema = publicEventSummarySchema.extend({
-  detailKind: z.literal("leaf"),
-  links: publicDetailLinksSchema,
-  occurrences: z.array(publicOccurrenceScheduleSchema),
-})
-
-const publicParentEventDetailSchema = publicEventSummarySchema.extend({
-  detailKind: z.literal("parent"),
-  links: publicDetailLinksSchema,
-  occurrences: z.array(publicParentOccurrenceSchema),
-})
-
-const publicEventDetailSchema = z.discriminatedUnion("detailKind", [
-  publicLeafEventDetailSchema,
-  publicParentEventDetailSchema,
-])
 
 export const publicCollectionResponseSchema = z.strictObject({
-  data: z.array(publicOccurrenceSummarySchema),
+  data: z.array(publicOccurrenceSchema),
   meta: z.strictObject({
     locale: publicLocaleSchema,
     from: publicDateSchema,
     to: publicDateSchema.nullable(),
-    count: z.number().int().nonnegative(),
   }),
-})
-
-export const publicDetailResponseSchema = z.strictObject({
-  data: publicEventDetailSchema,
-  meta: z.strictObject({ locale: publicLocaleSchema }),
 })
 
 export const publicErrorResponseSchema = z.strictObject({
   error: z.strictObject({
-    code: z.enum(["invalid_request", "not_found", "internal_error"]),
+    code: z.enum(["invalid_request", "internal_error"]),
     message: z.string(),
   }),
 })
 
-export type PublicEventSummary = z.infer<typeof publicEventSummarySchema>
-export type PublicOccurrenceSummary = z.infer<
-  typeof publicOccurrenceSummarySchema
->
-export type PublicEventDetail = z.infer<typeof publicEventDetailSchema>
+export type PublicApiEvent = z.infer<typeof publicEventSchema>
+export type PublicApiOccurrence = z.infer<typeof publicOccurrenceSchema>
 export type PublicCollectionResponse = z.infer<
   typeof publicCollectionResponseSchema
 >
-export type PublicDetailResponse = z.infer<typeof publicDetailResponseSchema>
 export type PublicErrorResponse = z.infer<typeof publicErrorResponseSchema>

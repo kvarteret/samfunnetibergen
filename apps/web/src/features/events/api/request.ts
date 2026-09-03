@@ -61,8 +61,8 @@ export function parsePublicEventsCollectionRequest(
         "locale",
         "from",
         "to",
-        // Kept as a hidden compatibility switch for internal callers. It is
-        // intentionally accepted here but omitted from OpenAPI and public docs.
+        // Internal-only opt-in for controlled server-side callers; it is
+        // intentionally omitted from OpenAPI and public documentation.
         "includeInternal",
       ].includes(name)
     ) {
@@ -86,31 +86,5 @@ export function parsePublicEventsCollectionRequest(
     from,
     to,
     includeInternal,
-  }
-}
-
-export function parsePublicEventDetailRequest(requestUrl: string): {
-  locale: AppLocale
-  includeInternal: boolean
-} {
-  const params = new URL(requestUrl).searchParams
-  for (const name of new Set(params.keys())) {
-    if (
-      ![
-        "locale",
-        // See the collection parser: this compatibility switch is accepted
-        // intentionally but is not part of the public contract.
-        "includeInternal",
-      ].includes(name)
-    ) {
-      throw new InvalidPublicEventsRequest(
-        `Unsupported query parameter: ${name}.`,
-      )
-    }
-  }
-
-  return {
-    locale: parseLocaleParam(params),
-    includeInternal: oneQueryValue(params, "includeInternal") === "true",
   }
 }

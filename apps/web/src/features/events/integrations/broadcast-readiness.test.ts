@@ -4,7 +4,7 @@ import {
   flattenPublicOccurrences,
   type RawPublicEvent,
   resolvePublicEvent,
-} from "../domain/public-events"
+} from "../domain/events"
 import {
   addDuplicateTicketUrlInfo,
   assessBroadcastReadiness,
