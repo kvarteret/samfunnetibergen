@@ -3,8 +3,8 @@ import "server-only"
 import { draftMode } from "next/headers"
 
 import type { AppLocale } from "@/i18n/routing"
-import { sanityFetch } from "@/lib/sanity/fetcher"
 import type { FetchOptions } from "@/lib/sanity/fetch/shared"
+import { sanityFetch } from "@/lib/sanity/fetcher"
 import {
   previewEventBySlugQuery,
   previewEventChildrenQuery,
@@ -26,7 +26,7 @@ export async function fetchEventPageData(
   const { isEnabled: preview } = await draftMode()
   if (!preview) return fetchPublicEventBySlug(slug, locale)
 
-  const { data: row } = await sanityFetch({
+  const { data: row } = (await sanityFetch({
     query: previewEventBySlugQuery,
     params: {
       preview,
@@ -37,15 +37,15 @@ export async function fetchEventPageData(
       includeInternal: true,
     },
     stega: options.stega,
-  })
+  })) as { data: RawPublicEvent | null }
   if (!row) return null
 
-  const event = resolvePublicEvent(row as RawPublicEvent)
+  const event = resolvePublicEvent(row)
   const isParent =
     event.eventKind === "seriesParent" || event.eventKind === "festivalParent"
   if (!isParent) return { event, children: [] }
 
-  const { data: childRows } = await sanityFetch({
+  const { data: childRows } = (await sanityFetch({
     query: previewEventChildrenQuery,
     params: {
       parentId: event._id,
@@ -55,12 +55,10 @@ export async function fetchEventPageData(
       includeInternal: true,
     },
     stega: options.stega,
-  })
+  })) as { data: RawPublicEvent[] }
 
   return {
     event,
-    children: childRows.map(childRow =>
-      resolvePublicEvent(childRow as RawPublicEvent),
-    ),
+    children: childRows.map(childRow => resolvePublicEvent(childRow)),
   }
 }

@@ -28,12 +28,15 @@ describe("public event domain", () => {
         eventStatus: "cancelled",
         slug: "series",
         title: "Inherited title",
+        description: [
+          { _type: "block", children: [{ text: "Inherited details" }] },
+        ],
         imageUrl: "https://cdn.example.test/parent.jpg",
         isFree: true,
       },
       slug: "series-day",
       title: null,
-      description: [],
+      description: null,
       imageUrl: null,
       room: null,
       roomText: "Lille sal",
@@ -42,6 +45,9 @@ describe("public event domain", () => {
     })
 
     expect(event.title).toBe("Inherited title")
+    expect(event.description).toEqual([
+      { _type: "block", children: [{ text: "Inherited details" }] },
+    ])
     expect(event.imageUrl).toBe("https://cdn.example.test/parent.jpg")
     expect(event.isFree).toBe(true)
     expect(event.eventStatus).toBe("cancelled")
