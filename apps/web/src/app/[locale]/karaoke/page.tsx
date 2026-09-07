@@ -74,7 +74,7 @@ export default async function KaraokePage({
       <KaraokeForm
         initialNow={new Date().toISOString()}
         room={room}
-        operationsManagerHours={houseHours?.operationsManagerHours}
+        bookableHours={houseHours?.bookableHours}
         houseClosedDates={houseHours?.houseClosedDates}
         vacationMode={houseHours?.vacationMode}
       />

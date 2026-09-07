@@ -23,7 +23,7 @@ interface KaraokeFormSlotPickerProps {
   selectedDate: string
   selectedSlotMin: number | null
   today: string
-  operationsManagerHours?: OpeningHours | null
+  bookableHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
   onDateChange: (date: string) => void
@@ -39,7 +39,7 @@ export function KaraokeFormSlotPicker({
   selectedDate,
   selectedSlotMin,
   today,
-  operationsManagerHours,
+  bookableHours,
   houseClosedDates,
   vacationMode,
   onDateChange,
@@ -54,7 +54,7 @@ export function KaraokeFormSlotPicker({
     ? slotRangesForDate(
         selectedDate,
         duration,
-        operationsManagerHours,
+        bookableHours,
         houseClosedDates,
         vacationMode,
       ).map(slotMin => ({
@@ -82,7 +82,7 @@ export function KaraokeFormSlotPicker({
             date,
             duration,
             bookings,
-            operationsManagerHours,
+            bookableHours,
             houseClosedDates,
             vacationMode,
           )

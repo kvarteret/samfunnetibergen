@@ -71,8 +71,45 @@ export const siteMetadata = defineType({
     }),
     defineField({
       name: "openingHours",
-      title: "Driftsleder tilgjengelig",
+      title: "Ordinære åpningstider",
+      description:
+        "Generelle åpningstider. Vises på nettsiden og styrer Åpent/Stengt-status.",
       type: "openingHours",
+    }),
+    defineField({
+      name: "bookableHours",
+      title: "Huset kan bookes",
+      description:
+        "Tidsrom hvor huset kan bookes (bookingkontroll). Bookingskjemaet for rom og karaoke lar kun tider innenfor disse vinduene velges. Er feltet tomt brukes Ordinære åpningstider som fallback.",
+      type: "openingHours",
+      initialValue: {
+        rows: [
+          {
+            _key: "bookable-man-tor",
+            weekdays: [1, 2, 3, 4],
+            status: "open",
+            duration: { start: "12:00", end: "01:00" },
+          },
+          {
+            _key: "bookable-fre",
+            weekdays: [5],
+            status: "open",
+            duration: { start: "12:00", end: "23:00" },
+          },
+          {
+            _key: "bookable-lor",
+            weekdays: [6],
+            status: "open",
+            duration: { start: "19:00", end: "00:00" },
+          },
+          {
+            _key: "bookable-son",
+            weekdays: [7],
+            status: "open",
+            duration: { start: "16:30", end: "22:00" },
+          },
+        ],
+      },
     }),
     defineField({
       name: "houseClosedDates",

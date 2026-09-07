@@ -2,24 +2,30 @@
 
 import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
+import type {
+  NavGroup,
+  NavItem,
+  NavLeaf,
+  SiteLogoContent,
+} from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
+import { BrandLogo } from "./BrandLogo"
 import { PaperMenuSection } from "./PaperPicker"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 import { useTranslations } from "next-intl"
 
 type MobileMenuProps = {
   items: NavItem[]
+  logo?: SiteLogoContent | null
 }
 
 const navShellClass =
   "mx-auto flex w-full max-w-7xl items-center justify-between px-6 sm:px-10 lg:px-14"
 const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 
-export function MobileMenu({ items }: MobileMenuProps) {
+export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
 
@@ -46,13 +52,10 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 href="/"
                 onClick={close}
               >
-                <Image
-                  alt="Samfunnet i Bergen logo"
+                <BrandLogo
                   className="h-8 w-auto sm:h-10"
-                  height={62}
-                  priority
-                  src="/kvarteret-logo.svg"
-                  width={100}
+                  logo={logo}
+                  targetHeight={40}
                 />
               </Link>
               <Dialog.Close

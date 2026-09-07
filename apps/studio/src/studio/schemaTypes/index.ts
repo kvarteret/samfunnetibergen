@@ -16,6 +16,7 @@ import { homePage } from "./documents/singletons/homePage"
 import { linkInBio } from "./documents/singletons/linkInBio"
 import { roomsPage } from "./documents/singletons/roomsPage"
 import { siteMetadata } from "./documents/singletons/siteMetadata"
+import { siteLogo } from "./documents/singletons/siteLogo"
 import { sponsorsPage } from "./documents/singletons/sponsorsPage"
 import { usefulInfoPage } from "./documents/singletons/usefulInfoPage"
 import { studentGroup } from "./documents/studentGroup"
@@ -69,6 +70,7 @@ export const schemaTypes = [
   // Singletons
   footer,
   siteMetadata,
+  siteLogo,
   homePage,
   roomsPage,
   groupsPage,

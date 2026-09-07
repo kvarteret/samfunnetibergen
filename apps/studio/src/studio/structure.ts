@@ -266,6 +266,8 @@ export const structure: StructureResolver = (S, context) =>
             .id("settings-list")
             .title("Innstillinger")
             .items([
+              singletonListItem(S, "siteLogo", "Logo", icons.image),
+              S.divider(),
               orderableDocumentListDeskItem({
                 S,
                 context,

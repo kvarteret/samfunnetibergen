@@ -162,6 +162,21 @@ export type InternationalizedArrayString = Array<
   } & InternationalizedArrayStringValue
 >
 
+export type SiteLogo = {
+  _id: string
+  _type: "siteLogo"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  logo?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: "image"
+  }
+}
+
 export type SiteMetadata = {
   _id: string
   _type: "siteMetadata"
@@ -174,6 +189,7 @@ export type SiteMetadata = {
     to?: string
   }
   openingHours?: OpeningHours
+  bookableHours?: OpeningHours
   houseClosedDates?: Array<{
     date: string
     note?: string
@@ -1083,6 +1099,7 @@ export type AllSanitySchemaTypes =
   | SourceLink
   | InternationalizedArrayText
   | InternationalizedArrayString
+  | SiteLogo
   | SiteMetadata
   | OpeningHours
   | Footer

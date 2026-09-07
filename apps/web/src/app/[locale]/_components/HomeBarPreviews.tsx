@@ -44,7 +44,7 @@ export interface HomeBarPreviewRoom {
 interface HomeBarPreviewsProps {
   rooms: HomeBarPreviewRoom[]
   houseClosedDates?: ClosedDate[] | null
-  operationsManagerHours?: OpeningHours | null
+  openingHours?: OpeningHours | null
   vacationMode?: VacationMode | null
   locale: AppLocale
   initialNow: string
@@ -65,7 +65,7 @@ function hasSpotifyTrack(
 export function HomeBarPreviews({
   rooms,
   houseClosedDates,
-  operationsManagerHours,
+  openingHours,
   vacationMode,
   locale,
   initialNow,
@@ -115,7 +115,7 @@ export function HomeBarPreviews({
             locale={locale}
             now={now}
             nowPlaying={nowPlaying}
-            operationsManagerHours={operationsManagerHours}
+            openingHours={openingHours}
             room={room}
             translations={t}
             vacationMode={vacationMode}
@@ -129,7 +129,7 @@ export function HomeBarPreviews({
 function HomeBarPreviewCard({
   room,
   houseClosedDates,
-  operationsManagerHours,
+  openingHours,
   vacationMode,
   now,
   nowPlaying,
@@ -138,7 +138,7 @@ function HomeBarPreviewCard({
 }: {
   room: HomeBarPreviewRoom
   houseClosedDates?: ClosedDate[] | null
-  operationsManagerHours?: OpeningHours | null
+  openingHours?: OpeningHours | null
   vacationMode?: VacationMode | null
   now: Date
   nowPlaying: NowPlayingState | null
@@ -148,7 +148,7 @@ function HomeBarPreviewCard({
   const spotifyTrack = hasSpotifyTrack(nowPlaying, room)
   const isOpen = isOpenAtForCombinedHours(
     now,
-    operationsManagerHours,
+    openingHours,
     room.openingHours,
     houseClosedDates,
     vacationMode,

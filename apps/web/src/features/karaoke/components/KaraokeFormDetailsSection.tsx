@@ -24,7 +24,7 @@ interface KaraokeFormDetailsSectionProps {
   derived: KaraokeDerivedState
   today: string
   bookings: CresatBooking[]
-  operationsManagerHours?: OpeningHours | null
+  bookableHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
   eventNameError?: string
@@ -38,7 +38,7 @@ export function KaraokeFormDetailsSection({
   derived,
   today,
   bookings,
-  operationsManagerHours,
+  bookableHours,
   houseClosedDates,
   vacationMode,
   eventNameError,
@@ -107,7 +107,7 @@ export function KaraokeFormDetailsSection({
                             slotField.state.value as number | null
                           }
                           today={today}
-                          operationsManagerHours={operationsManagerHours}
+                          bookableHours={bookableHours}
                           houseClosedDates={houseClosedDates}
                           vacationMode={vacationMode}
                           onDateChange={date => {
