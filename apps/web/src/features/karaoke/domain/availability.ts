@@ -33,14 +33,14 @@ export function dateHasKaraokeSlot(
   date: string,
   durationHours: number,
   bookings: CresatBooking[],
-  operationsManagerHours?: OpeningHours | null,
+  bookableHours?: OpeningHours | null,
   houseClosedDates?: ClosedDate[] | null,
   vacationMode?: VacationMode | null,
 ): boolean {
   return slotRangesForDate(
     date,
     durationHours,
-    operationsManagerHours,
+    bookableHours,
     houseClosedDates,
     vacationMode,
   ).some(

@@ -283,7 +283,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         houseClosedDates={barPreviews?.houseClosedDates}
         initialNow={initialNow}
         locale={locale}
-        operationsManagerHours={barPreviews?.operationsManagerHours}
+        openingHours={barPreviews?.openingHours}
         rooms={barPreviews?.rooms ?? []}
         vacationMode={barPreviews?.vacationMode}
       />

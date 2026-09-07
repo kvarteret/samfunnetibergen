@@ -112,7 +112,7 @@ export async function fetchBarPreviews(
   if (!data) return null
   return {
     ...data,
-    operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
+    openingHours: cleanOpeningHours(data.openingHours),
     rooms: data.rooms?.map(room => ({
       ...room,
       slug: stegaClean(room.slug),

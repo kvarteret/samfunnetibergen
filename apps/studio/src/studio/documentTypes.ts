@@ -1,5 +1,6 @@
 export const singletonTypeNames = [
   "siteMetadata",
+  "siteLogo",
   "footer",
   "homePage",
   "roomsPage",

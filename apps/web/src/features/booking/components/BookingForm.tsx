@@ -62,7 +62,9 @@ const TIVOLI_CRESCAT_ROOM_ID = 95
 interface BookingFormProps {
   initialRooms: BookingRoom[]
   initialRoomId?: number
-  openingHours: OpeningHours | null
+  /** House-level booking window (Sanity "Huset kan bookes"). Bookable slots
+   * are the intersection of this window and each selected room's own hours. */
+  bookableHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   rentalTermsContent: string | null
@@ -73,7 +75,7 @@ interface BookingFormProps {
 export function BookingForm({
   initialRooms,
   initialRoomId,
-  openingHours,
+  bookableHours,
   closedDates,
   vacationMode,
   rentalTermsContent,
@@ -252,7 +254,7 @@ export function BookingForm({
 
   const slotWithinHours = (() => {
     const hasConfiguredHours =
-      hasOpeningHoursRows(openingHours) ||
+      hasOpeningHoursRows(bookableHours) ||
       hasOpeningHoursRows(primaryRoom?.openingHours ?? null)
     if (
       !hasConfiguredHours ||
@@ -266,7 +268,7 @@ export function BookingForm({
       values.startDate,
       values.startTime,
       durationHoursBetween(values.startTime, values.endTime),
-      openingHours,
+      bookableHours,
       primaryRoom?.openingHours ?? null,
       closedDates,
       vacationMode,
@@ -378,7 +380,7 @@ export function BookingForm({
             rooms={rooms}
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}
-            openingHours={openingHours}
+            openingHours={bookableHours}
             today={today}
             closedDates={closedDates}
             vacationMode={vacationMode}
@@ -398,7 +400,7 @@ export function BookingForm({
                 doorsTimeId={fieldIds.doorsTime}
                 eventNameError={errorFor(fieldIds.eventName)}
                 eventNameId={fieldIds.eventName}
-                openingHours={openingHours}
+                openingHours={bookableHours}
                 roomOpeningHours={primaryRoom?.openingHours ?? null}
                 vacationMode={vacationMode}
               />
@@ -504,7 +506,7 @@ export function BookingForm({
             {values => (
               <BookingFormOrderSummary
                 closedDates={closedDates}
-                openingHours={openingHours}
+                openingHours={bookableHours}
                 vacationMode={vacationMode}
                 rooms={rooms}
                 selectedRoomIds={values.selectedRoomIds}

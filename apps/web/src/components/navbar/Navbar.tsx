@@ -1,5 +1,4 @@
 import { ExternalLink } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import {
@@ -10,9 +9,10 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import type { HouseHoursContent } from "@/lib/sanity/fetch"
+import type { HouseHoursContent, SiteLogoContent } from "@/lib/sanity/fetch"
 import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
+import { BrandLogo } from "./BrandLogo"
 import { MobileMenu } from "./MobileMenu"
 import { NavbarScrollShell } from "./NavbarScrollShell"
 import { NavbarOpenStatus } from "./NavbarOpenStatus"
@@ -156,9 +156,11 @@ function isExternal(item: {
 
 export function Navbar({
   houseHours,
+  logo,
   initialNow,
 }: {
   houseHours?: HouseHoursContent | null
+  logo?: SiteLogoContent | null
   initialNow: string
 }) {
   const t = useTranslations("Navigation")
@@ -176,20 +178,16 @@ export function Navbar({
             className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
             href="/"
           >
-            <Image
-              alt="Samfunnet i Bergen logo"
+            <BrandLogo
               className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
-              height={62}
-              priority
-              src="/kvarteret-logo.svg"
-              width={100}
+              logo={logo}
             />
           </Link>
 
           <NavbarOpenStatus
             closedDates={houseHours?.houseClosedDates}
             initialNow={initialNow}
-            openingHours={houseHours?.operationsManagerHours}
+            openingHours={houseHours?.openingHours}
             vacationMode={houseHours?.vacationMode}
           />
         </div>
@@ -199,7 +197,7 @@ export function Navbar({
           <LanguageSwitcher />
         </div>
 
-        <MobileMenu items={items} />
+        <MobileMenu items={items} logo={logo} />
       </nav>
     </NavbarScrollShell>
   )

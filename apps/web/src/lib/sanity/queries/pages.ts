@@ -13,9 +13,17 @@ import {
   infoAddressBlockProjection,
 } from "../fragments/sections"
 
+export const siteLogoQuery =
+  defineQuery(`*[_type == "siteLogo" && _id == "siteLogo"][0] {
+    "assetUrl": logo.asset->url,
+    "width": coalesce(logo.asset->metadata.dimensions.width, 0),
+    "height": coalesce(logo.asset->metadata.dimensions.height, 0)
+}`)
+
 export const houseHoursQuery =
   defineQuery(`*[_type == "siteMetadata" && _id == "siteMetadata"][0] {
-    "operationsManagerHours": openingHours ${openingHoursProjection},
+    "openingHours": openingHours ${openingHoursProjection},
+    "bookableHours": bookableHours ${openingHoursProjection},
     "vacationMode": {
         "enabled": coalesce(vacationMode.enabled, false),
         "from": vacationMode.from,

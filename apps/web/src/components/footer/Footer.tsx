@@ -316,14 +316,14 @@ function formatOpeningTimeLabel(
 function OpeningHoursColumn({
   rooms,
   houseClosedDates,
-  operationsManagerHours,
+  openingHours,
   vacationMode,
   initialNow,
   locale,
 }: {
   rooms: RoomHours[]
   houseClosedDates: FooterData["houseClosedDates"]
-  operationsManagerHours: FooterData["operationsManagerHours"]
+  openingHours: FooterData["openingHours"]
   vacationMode: FooterData["vacationMode"]
   initialNow: string
   locale: "nb" | "en"
@@ -350,7 +350,7 @@ function OpeningHoursColumn({
                 rooms={[{ openingHours: room.hours }]}
                 houseClosedDates={houseClosedDates}
                 initialNow={initialNow}
-                operationsManagerHours={operationsManagerHours}
+                openingHours={openingHours}
                 vacationMode={vacationMode}
               />
             </div>
@@ -411,7 +411,7 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
           <OpeningHoursColumn
             rooms={roomHours}
             houseClosedDates={data.houseClosedDates}
-            operationsManagerHours={data.operationsManagerHours}
+            openingHours={data.openingHours}
             vacationMode={data.vacationMode}
             initialNow={initialNow}
             locale={locale as "nb" | "en"}

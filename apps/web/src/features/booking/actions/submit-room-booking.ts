@@ -182,7 +182,7 @@ async function isAllowedByOpeningHours(
     payload.roomIds.includes(candidate.crescatRoomId),
   )
 
-  const baseHours = houseHours?.operationsManagerHours ?? null
+  const baseHours = houseHours?.bookableHours ?? null
   const roomHours = room?.openingHours ?? null
   const hasConfiguredHours =
     hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)

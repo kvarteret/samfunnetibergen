@@ -15,7 +15,12 @@ The global locale layout fetches the house-hours content in
 `apps/web/src/app/[locale]/layout.tsx` through `fetchHouseHours()`. The fetch
 helper is `apps/web/src/lib/sanity/fetch/pages.ts`, and `houseHoursQuery` in
 `apps/web/src/lib/sanity/queries/pages.ts` reads the published `siteMetadata` singleton:
-shared opening hours, vacation mode, and closed dates.
+shared opening hours, vacation mode, and closed dates. `siteMetadata.openingHours`
+is labelled "Ordinære åpningstider" (comment: "Generelle åpningstider") and is
+returned as `houseHours.openingHours`; it drives the public open/closed status.
+`siteMetadata.bookableHours` ("Huset kan bookes") is returned as
+`houseHours.bookableHours` and is the booking-window constraint for the room and
+karaoke booking flows, falling back to `openingHours` when unconfigured.
 
 `apps/web/src/components/navbar/Navbar.tsx` passes those values to the client
 component `apps/web/src/components/navbar/NavbarOpenStatus.tsx`. That component calls

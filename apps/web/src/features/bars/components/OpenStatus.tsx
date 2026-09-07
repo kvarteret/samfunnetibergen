@@ -19,7 +19,7 @@ export interface OpenStatusRoom {
 interface OpenStatusProps {
   rooms: OpenStatusRoom[]
   houseClosedDates?: ClosedDate[] | null
-  operationsManagerHours?: OpeningHours | null
+  openingHours?: OpeningHours | null
   vacationMode?: VacationMode | null
   variant?: "status" | "announcement"
   initialNow: string
@@ -28,7 +28,7 @@ interface OpenStatusProps {
 export function OpenStatus({
   rooms,
   houseClosedDates,
-  operationsManagerHours,
+  openingHours,
   vacationMode,
   variant = "status",
   initialNow,
@@ -43,7 +43,7 @@ export function OpenStatus({
   const isOpen = rooms.some(room =>
     isOpenAtForCombinedHours(
       now,
-      operationsManagerHours,
+      openingHours,
       room.openingHours,
       houseClosedDates,
       vacationMode,

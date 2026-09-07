@@ -189,12 +189,12 @@ export default async function BookRoomPage({
       <HowToBookSection section={howToSection} />
 
       <BookingForm
+        bookableHours={houseHours?.bookableHours ?? null}
         cancellationTermsContent={cancellationPage?.content ?? null}
         closedDates={houseHours?.houseClosedDates ?? []}
         initialNow={new Date().toISOString()}
         initialRoomId={preselectedRoomId}
         initialRooms={initialRooms}
-        openingHours={houseHours?.operationsManagerHours ?? null}
         vacationMode={houseHours?.vacationMode}
         rentalTermsContent={termsPage?.content ?? null}
       />

@@ -195,7 +195,7 @@ export async function submitKaraokeBooking(
       parsed.data.startDate,
       parsed.data.startTime,
       parsed.data.duration,
-      houseHours?.operationsManagerHours,
+      houseHours?.bookableHours,
       houseHours?.houseClosedDates,
       houseHours?.vacationMode,
     )

@@ -2,6 +2,7 @@ import "server-only"
 
 import type { ClientReturn } from "@sanity/client"
 import type { AppLocale } from "@/i18n/routing"
+import { hasOpeningHoursRows } from "@/lib/opening-hours"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
 import {
@@ -13,6 +14,7 @@ import {
   navbarQuery,
   pageBySlugQuery,
   pageSlugsQuery,
+  siteLogoQuery,
   sponsorsPageQuery,
   usefulInfoPageQuery,
 } from "../queries"
@@ -22,6 +24,8 @@ import { DEFAULT_LOCALE } from "../localized"
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
 >
+
+export type SiteLogoContent = NonNullable<ClientReturn<typeof siteLogoQuery>>
 
 export type HomePageContent = NonNullable<ClientReturn<typeof homePageNbQuery>>
 
@@ -108,7 +112,7 @@ export async function fetchFooter(locale: AppLocale = DEFAULT_LOCALE) {
   if (!data) return data
   return {
     ...data,
-    operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
+    openingHours: cleanOpeningHours(data.openingHours),
     roomHours: data.roomHours?.map(room => ({
       ...room,
       hours: cleanOpeningHours(room.hours),
@@ -123,12 +127,29 @@ export async function fetchHouseHours(
     query: houseHoursQuery,
     params: { locale },
   })
+  if (!data) return null
+
+  const openingHours = cleanOpeningHours(data.openingHours)
+  // "Huset kan bookes": until an editor configures rows, fall back to the
+  // ordinary opening hours so booking windows keep today's behaviour.
+  const bookableHours = cleanOpeningHours(data.bookableHours)
+  return {
+    ...data,
+    openingHours,
+    bookableHours: hasOpeningHoursRows(bookableHours)
+      ? bookableHours
+      : openingHours,
+  }
+}
+
+export async function fetchSiteLogo(
+  options: FetchOptions = {},
+): Promise<SiteLogoContent | null> {
+  const { data } = await sanityFetch({
+    query: siteLogoQuery,
+    stega: options.stega,
+  })
   return data
-    ? {
-        ...data,
-        operationsManagerHours: cleanOpeningHours(data.operationsManagerHours),
-      }
-    : null
 }
 
 export async function fetchLinkInBio(locale: AppLocale = DEFAULT_LOCALE) {

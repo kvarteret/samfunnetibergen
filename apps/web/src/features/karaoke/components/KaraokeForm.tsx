@@ -46,7 +46,7 @@ import { KaraokeFormContext } from "./karaokeFormContext"
 
 interface KaraokeFormProps {
   room: KaraokeRoom
-  operationsManagerHours?: OpeningHours | null
+  bookableHours?: OpeningHours | null
   houseClosedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
   initialNow: string
@@ -54,7 +54,7 @@ interface KaraokeFormProps {
 
 export function KaraokeForm({
   room,
-  operationsManagerHours,
+  bookableHours,
   houseClosedDates,
   vacationMode,
   initialNow,
@@ -156,7 +156,7 @@ export function KaraokeForm({
     const allowedSlots = slotRangesForDate(
       values.startDate,
       values.duration,
-      operationsManagerHours,
+      bookableHours,
       houseClosedDates,
       vacationMode,
     )
@@ -173,7 +173,7 @@ export function KaraokeForm({
     bookings,
     form,
     houseClosedDates,
-    operationsManagerHours,
+    bookableHours,
     vacationMode,
     values.duration,
     values.startDate,
@@ -230,7 +230,7 @@ export function KaraokeForm({
             today={today}
             bookings={bookings}
             houseClosedDates={houseClosedDates}
-            operationsManagerHours={operationsManagerHours}
+            bookableHours={bookableHours}
             vacationMode={vacationMode}
             eventNameError={errorFor(fieldIds.eventName)}
             eventNameId={fieldIds.eventName}
