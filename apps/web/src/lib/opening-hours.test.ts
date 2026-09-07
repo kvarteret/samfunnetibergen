@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest"
 import {
-  formatOpeningHoursTime,
   formatOpeningDate,
+  formatOpeningHoursTime,
   formatVacationModeNotice,
   isVacationModeActive,
   minutesToTime,
+  type OpeningHours,
   openingHoursDaySummaries,
   openingHoursStatusAt,
-  type OpeningHours,
   openingRangesForDate,
   slotRangesForDate,
 } from "./opening-hours"
@@ -125,6 +125,37 @@ describe("slotRangesForDate", () => {
     const slots = slotRangesForDate("2026-08-13", 24, OVERLAPPING_ROWS, [])
 
     expect(slots).toEqual([])
+  })
+
+  // The bookable window opens 16:30 on Sundays, so hourly steps anchored to the
+  // start used to stop at 20:30 and leave 21:00-22:00 unbookable.
+  test("offers a slot flush against closing when the window opens on the half hour", () => {
+    const slots = slotRangesForDate(
+      "2026-08-13",
+      1,
+      rows(["16:30", "22:00"]),
+      [],
+    )
+
+    expect(slots.map(minutesToTime)).toEqual([
+      "16:30",
+      "17:30",
+      "18:30",
+      "19:30",
+      "20:30",
+      "21:00",
+    ])
+  })
+
+  test("keeps a single slot when only the closing-time slot fits", () => {
+    const slots = slotRangesForDate(
+      "2026-08-13",
+      4,
+      rows(["16:30", "20:30"]),
+      [],
+    )
+
+    expect(slots.map(minutesToTime)).toEqual(["16:30"])
   })
 })
 
