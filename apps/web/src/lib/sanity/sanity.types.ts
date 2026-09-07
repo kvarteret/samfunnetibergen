@@ -1206,7 +1206,7 @@ export type PublishedEventSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: publicEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && defined(slug.current)        && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ] | order(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startDate asc, dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]        && defined(slug.current)        && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ] | order(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startDate asc, dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PublicEventsQueryResult = Array<{
   _id: string
   _updatedAt: string
@@ -1236,42 +1236,40 @@ export type PublicEventsQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -1320,42 +1318,40 @@ export type PublicEventsQueryResult = Array<{
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -1383,7 +1379,7 @@ export type PublicEventsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: publicPromotedParentEventsQuery
-// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isPromoted == true        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]        && count(*[          _type == "arrangement"          && eventKind in ["seriesInstance", "festivalSession"]          && parentEvent._ref == ^._id          && approvalStatus == "approved"          && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0          && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)        ]) > 0        && ($includeInternal == true || coalesce(isInternalEvent, false) != true)    ] | order(promotedOrder asc, orderRank asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && approvalStatus == "approved"        && isPromoted == true        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]        && count(*[          _type == "arrangement"          && eventKind in ["seriesInstance", "festivalSession"]          && parentEvent._ref == ^._id          && approvalStatus == "approved"          && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0          && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)        ]) > 0        && ($includeInternal == true || coalesce(isInternalEvent, false) != true)    ] | order(promotedOrder asc, orderRank asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PublicPromotedParentEventsQueryResult = Array<{
   _id: string
   _updatedAt: string
@@ -1413,42 +1409,40 @@ export type PublicPromotedParentEventsQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -1497,42 +1491,40 @@ export type PublicPromotedParentEventsQueryResult = Array<{
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -1560,7 +1552,7 @@ export type PublicPromotedParentEventsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: publicEventBySlugQuery
-// Query: *[        _type == "arrangement"        && slug.current == $slug        && approvalStatus == "approved"        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ][0] {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && slug.current == $slug        && approvalStatus == "approved"        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ][0] {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PublicEventBySlugQueryResult = {
   _id: string
   _updatedAt: string
@@ -1590,42 +1582,40 @@ export type PublicEventBySlugQueryResult = {
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -1674,42 +1664,40 @@ export type PublicEventBySlugQueryResult = {
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -1737,7 +1725,7 @@ export type PublicEventBySlugQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: publicEventChildrenQuery
-// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]        && defined(slug.current)        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]        && defined(slug.current)        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PublicEventChildrenQueryResult = Array<{
   _id: string
   _updatedAt: string
@@ -1767,42 +1755,40 @@ export type PublicEventChildrenQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -1851,42 +1837,40 @@ export type PublicEventChildrenQueryResult = Array<{
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -1914,7 +1898,7 @@ export type PublicEventChildrenQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: previewEventBySlugQuery
-// Query: *[        _type == "arrangement"        && slug.current == $slug        && ($preview == true || approvalStatus == "approved")    ][0] {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && slug.current == $slug        && ($preview == true || approvalStatus == "approved")    ][0] {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PreviewEventBySlugQueryResult = {
   _id: string
   _updatedAt: string
@@ -1944,42 +1928,40 @@ export type PreviewEventBySlugQueryResult = {
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -2028,42 +2010,40 @@ export type PreviewEventBySlugQueryResult = {
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -2091,7 +2071,7 @@ export type PreviewEventBySlugQueryResult = {
 
 // Source: ../web/src/lib/sanity/queries/events.ts
 // Variable: previewEventChildrenQuery
-// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
+// Query: *[        _type == "arrangement"        && parentEvent._ref == $parentId        && approvalStatus == "approved"        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {    _id,    _updatedAt,    "eventKind": coalesce(eventKind, "single"),    eventStatus,    "isPromoted": coalesce(isPromoted, false),    promotedPlacement,    promotedOrder,    orderRank,    "isRecurring": coalesce(isRecurring, false),    rrule,    "useFestivalImage": coalesce(useFestivalImage, true),    "parent": parentEvent-> {    _id,    _updatedAt,    "slug": coalesce(slug.current, ""),    "eventKind": coalesce(eventKind, "single"),    eventStatus,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent},    "slug": coalesce(slug.current, ""),    "dates": coalesce(select(      eventKind in ["seriesParent", "festivalParent"] => *[        _type == "arrangement" &&        eventKind in ["seriesInstance", "festivalSession"] &&        parentEvent._ref == ^._id &&        approvalStatus == "approved" &&        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      },      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {        _key,        "startDate": coalesce(startDate, ""),        startTime,        endTime      }    ), []),    "room": room-> {        _id,        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),        "slug": coalesce(slug.current, ""),        floor,        "imageUrl": images[0].image.asset->url    },    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {    _key,    _type,    ...,    markDefs[] {        ...,        _type == "link" => {            ...,            "target": coalesce(target, select(blank == true => "blank", "self"))        }    },    _type == "image" => {        "imageUrl": asset->url,        alt,        caption    }},    "imageUrl": image.asset->url,    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),    "eventType": eventType-> {        _id,        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }    },    isFree,    priceOrdinar,    priceStudent,    priceMedlem,    ticketUrl,    facebookUrl,    isInternalEvent}
 export type PreviewEventChildrenQueryResult = Array<{
   _id: string
   _updatedAt: string
@@ -2121,42 +2101,40 @@ export type PreviewEventChildrenQueryResult = Array<{
       | "single"
     eventStatus: "cancelled" | "scheduled"
     title: string | null
-    description:
-      | Array<never>
-      | Array<
-          | {
-              _key: string
-              _type: "block"
-              children?: Array<{
-                marks?: Array<string>
-                text?: string
-                _type: "span"
-                _key: string
-              }>
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-              listItem?: "bullet" | "number"
-              markDefs: Array<{
-                href?: string
-                style?: "cta" | "inline"
-                target: "blank" | "self"
-                _type: "link"
-                _key: string
-              }> | null
-              level?: number
-            }
-          | {
-              _key: string
-              _type: "image"
-              asset?: SanityImageAssetReference
-              media?: unknown
-              hotspot?: SanityImageHotspot
-              crop?: SanityImageCrop
-              alt: string
-              caption: string | null
-              markDefs: null
-              imageUrl: string | null
-            }
-        >
+    description: Array<
+      | {
+          _key: string
+          _type: "block"
+          children?: Array<{
+            marks?: Array<string>
+            text?: string
+            _type: "span"
+            _key: string
+          }>
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+          listItem?: "bullet" | "number"
+          markDefs: Array<{
+            href?: string
+            style?: "cta" | "inline"
+            target: "blank" | "self"
+            _type: "link"
+            _key: string
+          }> | null
+          level?: number
+        }
+      | {
+          _key: string
+          _type: "image"
+          asset?: SanityImageAssetReference
+          media?: unknown
+          hotspot?: SanityImageHotspot
+          crop?: SanityImageCrop
+          alt: string
+          caption: string | null
+          markDefs: null
+          imageUrl: string | null
+        }
+    > | null
     imageUrl: string | null
     imageCaption: string | null
     organizerGroup: {
@@ -2205,42 +2183,40 @@ export type PreviewEventChildrenQueryResult = Array<{
   } | null
   roomText: string | null
   title: string | null
-  description:
-    | Array<never>
-    | Array<
-        | {
-            _key: string
-            _type: "block"
-            children?: Array<{
-              marks?: Array<string>
-              text?: string
-              _type: "span"
-              _key: string
-            }>
-            style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
-            listItem?: "bullet" | "number"
-            markDefs: Array<{
-              href?: string
-              style?: "cta" | "inline"
-              target: "blank" | "self"
-              _type: "link"
-              _key: string
-            }> | null
-            level?: number
-          }
-        | {
-            _key: string
-            _type: "image"
-            asset?: SanityImageAssetReference
-            media?: unknown
-            hotspot?: SanityImageHotspot
-            crop?: SanityImageCrop
-            alt: string
-            caption: string | null
-            markDefs: null
-            imageUrl: string | null
-          }
-      >
+  description: Array<
+    | {
+        _key: string
+        _type: "block"
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: "span"
+          _key: string
+        }>
+        style?: "blockquote" | "h2" | "h3" | "h4" | "normal"
+        listItem?: "bullet" | "number"
+        markDefs: Array<{
+          href?: string
+          style?: "cta" | "inline"
+          target: "blank" | "self"
+          _type: "link"
+          _key: string
+        }> | null
+        level?: number
+      }
+    | {
+        _key: string
+        _type: "image"
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        alt: string
+        caption: string | null
+        markDefs: null
+        imageUrl: string | null
+      }
+  > | null
   imageUrl: string | null
   imageCaption: string | null
   organizerGroup: {
@@ -3163,12 +3139,12 @@ declare module "@sanity/client" {
     '\n    *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") asc) {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n    "taxonomyGroup": taxonomyGroup-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")\n    }\n}': EventTypesQueryResult
     '\n    *[_type == "studentGroup"] | order(orderRank asc, coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") asc) {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n    "category": coalesce(category, "")\n}': EventGroupsQueryResult
     '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && defined(slug.current)\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true\n        && (\n            count(dates[startDate >= $today]) > 0\n            || eventStatus == "cancelled"\n        )\n    ] {\n        "slug": slug.current\n    }': PublishedEventSlugsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && defined(slug.current)\n        && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ] | order(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startDate asc, dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isPromoted == true\n        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]\n        && count(*[\n          _type == "arrangement"\n          && eventKind in ["seriesInstance", "festivalSession"]\n          && parentEvent._ref == ^._id\n          && approvalStatus == "approved"\n          && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0\n          && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n        ]) > 0\n        && ($includeInternal == true || coalesce(isInternalEvent, false) != true)\n    ] | order(promotedOrder asc, orderRank asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicPromotedParentEventsQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && slug.current == $slug\n        && approvalStatus == "approved"\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ][0] {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventBySlugQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]\n        && defined(slug.current)\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventChildrenQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && slug.current == $slug\n        && ($preview == true || approvalStatus == "approved")\n    ][0] {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PreviewEventBySlugQueryResult
-    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]\n    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PreviewEventChildrenQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]\n        && defined(slug.current)\n        && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ] | order(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startDate asc, dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventsQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && approvalStatus == "approved"\n        && isPromoted == true\n        && coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]\n        && count(*[\n          _type == "arrangement"\n          && eventKind in ["seriesInstance", "festivalSession"]\n          && parentEvent._ref == ^._id\n          && approvalStatus == "approved"\n          && count(dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)]) > 0\n          && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n        ]) > 0\n        && ($includeInternal == true || coalesce(isInternalEvent, false) != true)\n    ] | order(promotedOrder asc, orderRank asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicPromotedParentEventsQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && slug.current == $slug\n        && approvalStatus == "approved"\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ][0] {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventBySlugQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]\n        && defined(slug.current)\n        && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PublicEventChildrenQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && slug.current == $slug\n        && ($preview == true || approvalStatus == "approved")\n    ][0] {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PreviewEventBySlugQueryResult
+    '\n    *[\n        _type == "arrangement"\n        && parentEvent._ref == $parentId\n        && approvalStatus == "approved"\n        && coalesce(eventKind, "single") in ["seriesInstance", "festivalSession"]\n    ] | order(dates[0].startDate asc, dates[0].startTime asc, _id asc) {\n    _id,\n    _updatedAt,\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    "isPromoted": coalesce(isPromoted, false),\n    promotedPlacement,\n    promotedOrder,\n    orderRank,\n    "isRecurring": coalesce(isRecurring, false),\n    rrule,\n    "useFestivalImage": coalesce(useFestivalImage, true),\n    "parent": parentEvent-> {\n    _id,\n    _updatedAt,\n    "slug": coalesce(slug.current, ""),\n    "eventKind": coalesce(eventKind, "single"),\n    eventStatus,\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n},\n    "slug": coalesce(slug.current, ""),\n    "dates": coalesce(select(\n      eventKind in ["seriesParent", "festivalParent"] => *[\n        _type == "arrangement" &&\n        eventKind in ["seriesInstance", "festivalSession"] &&\n        parentEvent._ref == ^._id &&\n        approvalStatus == "approved" &&\n        ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)\n      ].dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      },\n      dates[defined(startDate) && ($from == null || startDate >= $from) && ($to == null || startDate <= $to)][] | order(startDate asc, startTime asc) {\n        _key,\n        "startDate": coalesce(startDate, ""),\n        startTime,\n        endTime\n      }\n    ), []),\n    "room": room-> {\n        _id,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "slug": coalesce(slug.current, ""),\n        floor,\n        "imageUrl": images[0].image.asset->url\n    },\n    "roomText": coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value),\n    \n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        alt,\n        caption\n    }\n},\n    "imageUrl": image.asset->url,\n    "imageCaption": coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value),\n    "organizerGroup": organizerGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""), "slug": coalesce(slug.current, "") },\n    "organizerText": coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value),\n    "eventType": eventType-> {\n        _id,\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "taxonomyGroup": taxonomyGroup-> { _id, "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "") }\n    },\n    isFree,\n    priceOrdinar,\n    priceStudent,\n    priceMedlem,\n    ticketUrl,\n    facebookUrl,\n    isInternalEvent\n}': PreviewEventChildrenQueryResult
     '*[_type == "studentGroup" && !defined(parentGroup)] | order(orderRank asc) {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "labels": coalesce(string::split(localizedLabels[language == $locale && defined(value) && value != ""][0].value, "\\n"), string::split(localizedLabels[language == "nb" && defined(value) && value != ""][0].value, "\\n"), []),\n    "logoUrl": logo.asset->url,\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n},\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]") asc) {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    }, [])\n}': StudentGroupsQueryResult
     '*[_type == "studentGroup" && defined(slug.current)] {\n    "slug": slug.current\n}': StudentGroupSlugsQueryResult
     '*[_type == "studentGroup" && slug.current == $slug][0] {\n    _id,\n    "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n    "slug": coalesce(slug.current, ""),\n    "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n    "body": coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, []),\n    email,\n    website,\n    "links": coalesce(links[] {\n      platform,\n      url,\n      "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)\n    }, []),\n    "category": coalesce(category, "arbeidsgruppe"),\n    "logoUrl": logo.asset->url,\n    "parentGroup": parentGroup-> {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, "")\n    },\n    "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]") asc) {\n        "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "slug": coalesce(slug.current, ""),\n        "summary": coalesce(localizedSummary[language == $locale && defined(value) && value != ""][0].value, localizedSummary[language == "nb" && defined(value) && value != ""][0].value, "[Mangler kort beskrivelse]"),\n        "category": coalesce(category, "arbeidsgruppe"),\n        "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n    }, []),\n    "image": image {\n    _key,\n    "assetUrl": image.asset->url,\n    "alt": coalesce(localizedAlt[language == $locale && defined(value) && value != ""][0].value, localizedAlt[language == "nb" && defined(value) && value != ""][0].value),\n    "caption": coalesce(localizedCaption[language == $locale && defined(value) && value != ""][0].value, localizedCaption[language == "nb" && defined(value) && value != ""][0].value)\n}\n}': StudentGroupBySlugQueryResult
