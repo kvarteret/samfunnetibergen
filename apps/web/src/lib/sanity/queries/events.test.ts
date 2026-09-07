@@ -59,6 +59,15 @@ describe("public events API query contract", () => {
     expect(publicEventsQuery).toContain("_updatedAt")
   })
 
+  it("keeps missing child descriptions nullable for parent inheritance", () => {
+    expect(publicEventsQuery).toContain(
+      '"description": coalesce(localizedDescription[language == $locale',
+    )
+    expect(publicEventsQuery).not.toContain(
+      'localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[]',
+    )
+  })
+
   it("keeps historical detail and parent programs available to the service", () => {
     expect(publicEventBySlugQuery).toContain('approvalStatus == "approved"')
     expect(publicEventBySlugQuery).toContain("$from == null")

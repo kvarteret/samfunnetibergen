@@ -5,7 +5,7 @@ import { portableTextProjection } from "../fragments/portableText"
 const localizedName = `coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")`
 const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "")`
 const localizedNullableTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
-const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])`
+const localizedNullableDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedNullableImageCaption = `coalesce(localizedImageCaption[language == $locale && defined(value) && value != ""][0].value, localizedImageCaption[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedNullableOrganizerText = `coalesce(localizedOrganizerText[language == $locale && defined(value) && value != ""][0].value, localizedOrganizerText[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedNullableRoomText = `coalesce(localizedRoomText[language == $locale && defined(value) && value != ""][0].value, localizedRoomText[language == "nb" && defined(value) && value != ""][0].value)`
@@ -44,7 +44,7 @@ const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "f
 // Display defaults are applied after resolution in the public event domain.
 const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
-    "description": ${localizedDescription}[] ${portableTextProjection},
+    "description": ${localizedNullableDescription}[] ${portableTextProjection},
     "imageUrl": image.asset->url,
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
