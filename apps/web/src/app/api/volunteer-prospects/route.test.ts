@@ -8,6 +8,7 @@ const EXPECTED_CLIENT_KEY =
   "v1=824d07cc5a6254c1187713a923496056e2f42635d0d498947eca539ddcabbe37"
 
 const {
+  spanState,
   captureMock,
   emitOperationalEventMock,
   fetchMock,
@@ -16,6 +17,7 @@ const {
   spanSetAttributeMock,
   withOperationalSpanMock,
 } = vi.hoisted(() => ({
+  spanState: { active: false },
   captureMock: vi.fn(),
   emitOperationalEventMock: vi.fn(),
   fetchMock: vi.fn(),
@@ -49,6 +51,7 @@ vi.mock("@/lib/observability", () => ({
   }),
   emitOperationalEvent: emitOperationalEventMock,
   injectActiveTraceContext: (headers: Record<string, string>) => {
+    expect(spanState.active).toBe(true)
     headers.traceparent =
       "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01"
     headers.tracestate = "vendor=test"
@@ -59,7 +62,11 @@ vi.mock("@/lib/observability", () => ({
       run: (span: {
         setAttribute: typeof spanSetAttributeMock
       }) => Promise<unknown>,
-    ) => run({ setAttribute: spanSetAttributeMock }),
+    ) => {
+      spanState.active = true
+      try { return await run({ setAttribute: spanSetAttributeMock }) }
+      finally { spanState.active = false }
+    },
   ),
 }))
 

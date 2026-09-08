@@ -1,3 +1,5 @@
+import { withExportLifetime } from "./src/lib/telemetry-export"
+import { context, SpanKind, trace } from "@opentelemetry/api"
 import { logs } from "@opentelemetry/api-logs"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
@@ -8,7 +10,7 @@ import {
   LoggerProvider,
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
+import { AlwaysOnSampler, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
@@ -39,7 +41,7 @@ class InfoAndAboveProcessor implements LogRecordProcessor {
   }
 }
 
-const projectToken = process.env.POSTHOG_API_KEY?.trim()
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim()
 
 if (projectToken) {
   const headers = {
@@ -59,12 +61,35 @@ if (projectToken) {
 
   const tracerProvider = new NodeTracerProvider({
     resource,
+    sampler: new AlwaysOnSampler(),
     spanProcessors: [
+      {
+        onStart() {},
+        onEnd(span) {
+          if (span.kind !== SpanKind.SERVER) return
+          const status = Number(span.attributes["http.response.status_code"] ?? span.attributes["http.status_code"] ?? 0)
+          logs.getLogger("samfunnetibergen").emit({
+            context: trace.setSpan(context.active(), trace.wrapSpanContext(span.spanContext())),
+            severityNumber: status >= 500 ? 17 : status >= 400 ? 13 : 9,
+            severityText: status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO",
+            body: "http.request.completed",
+            attributes: {
+              event: "http.request.completed",
+              status_code: status,
+              http_method: span.attributes["http.request.method"] ?? span.attributes["http.method"] ?? "unknown",
+              route_template: span.attributes["http.route"] ?? "unmatched",
+              duration_ms: span.duration[0] * 1000 + span.duration[1] / 1000000,
+            },
+          })
+        },
+        async forceFlush() {},
+        async shutdown() {},
+      },
       new SimpleSpanProcessor(
-        new OTLPTraceExporter({
+        withExportLifetime(new OTLPTraceExporter({
           url: `${POSTHOG_OTLP_BASE_URL}/traces`,
           headers,
-        }),
+        })),
       ),
     ],
   })
@@ -75,15 +100,17 @@ if (projectToken) {
     processors: [
       new InfoAndAboveProcessor(
         new SimpleLogRecordProcessor({
-          exporter: new OTLPLogExporter({
+          exporter: withExportLifetime(new OTLPLogExporter({
             url: `${POSTHOG_OTLP_BASE_URL}/logs`,
             headers,
-          }),
+          })),
         }),
       ),
     ],
   })
   logs.setGlobalLoggerProvider(loggerProvider)
 
-  new HttpInstrumentation().enable()
+  const httpInstrumentation = new HttpInstrumentation()
+  httpInstrumentation.setTracerProvider(tracerProvider)
+  httpInstrumentation.enable()
 }
