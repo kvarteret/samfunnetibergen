@@ -461,6 +461,7 @@
     "submittedMessage": "Your registration has been sent. The groups you chose have been notified and can arrange a trial shift by email.",
     "submitRateLimited": "Too many attempts. Wait {minutes, plural, =1 {one minute} other {# minutes}} before trying again.",
     "submitErrorFallback": "Something went wrong while sending the registration.",
+    "staleDeploymentError": "The website was updated while you were filling in the form. Reload the page to submit.",
     "institutionOther": "Other / not a student"
   },
   "VolunteerSignupPage": {
