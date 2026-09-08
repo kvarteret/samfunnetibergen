@@ -423,13 +423,19 @@ function slotStartsFromRanges(
 ): number[] {
   const durationMin = durationHours * 60
   return ranges.flatMap(range => {
-    const count =
-      Math.floor((range.endMin - range.startMin - durationMin) / stepMin) + 1
-    if (count <= 0) return []
-    return Array.from(
-      { length: count },
+    const lastStart = range.endMin - durationMin
+    if (lastStart < range.startMin) return []
+
+    const starts = Array.from(
+      { length: Math.floor((lastStart - range.startMin) / stepMin) + 1 },
       (_, index) => range.startMin + index * stepMin,
     )
+    // Steps are anchored to the range start, so a window that does not begin
+    // on the hour (Sunday opens 16:30) strands its own tail: the last stepped
+    // start is 20:30 and nobody can pick 21:00-22:00, even though the server
+    // accepts it. Add the slot flush against closing time to close that gap.
+    if (starts.at(-1) !== lastStart) starts.push(lastStart)
+    return starts
   })
 }
 
