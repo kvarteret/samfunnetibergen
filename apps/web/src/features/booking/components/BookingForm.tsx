@@ -24,7 +24,10 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
+import {
+  captureInvalidFormSubmission,
+  createSubmissionFailureTracker,
+} from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -128,7 +131,11 @@ export function BookingForm({
       onSubmit: bookingFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
-      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
+      failureTracker.current.fail(
+        "validation",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
       captureInvalidFormSubmission(
         "room_booking",
         formApi.state.errorMap.onChange,
@@ -337,7 +344,9 @@ export function BookingForm({
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
             if (hasConflict || (!slotWithinHours && values.startDate)) {
-              failureTracker.current.fail(hasConflict ? "calendar_conflict" : "opening_hours")
+              failureTracker.current.fail(
+                hasConflict ? "calendar_conflict" : "opening_hours",
+              )
               try {
                 posthog.capture("room_booking_rejected", {
                   booker_type: values.bookerType,

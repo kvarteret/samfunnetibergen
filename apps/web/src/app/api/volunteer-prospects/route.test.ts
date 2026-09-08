@@ -64,8 +64,11 @@ vi.mock("@/lib/observability", () => ({
       }) => Promise<unknown>,
     ) => {
       spanState.active = true
-      try { return await run({ setAttribute: spanSetAttributeMock }) }
-      finally { spanState.active = false }
+      try {
+        return await run({ setAttribute: spanSetAttributeMock })
+      } finally {
+        spanState.active = false
+      }
     },
   ),
 }))

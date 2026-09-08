@@ -15,7 +15,10 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
+import {
+  captureInvalidFormSubmission,
+  createSubmissionFailureTracker,
+} from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -77,7 +80,9 @@ export function KaraokeForm({
     studentProof: `${uid}-studentProof`,
   }
 
-  const failureTracker = useRef(createSubmissionFailureTracker("karaoke_booking"))
+  const failureTracker = useRef(
+    createSubmissionFailureTracker("karaoke_booking"),
+  )
 
   const form = useForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
@@ -86,7 +91,11 @@ export function KaraokeForm({
       onSubmit: karaokeFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
-      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
+      failureTracker.current.fail(
+        "validation",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
       captureInvalidFormSubmission(
         "karaoke_booking",
         formApi.state.errorMap.onChange,

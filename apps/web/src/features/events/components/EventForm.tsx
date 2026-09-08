@@ -14,7 +14,10 @@ import {
 } from "@/features/events/actions/submitEvent"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
+import {
+  captureInvalidFormSubmission,
+  createSubmissionFailureTracker,
+} from "@/lib/posthog/form-validation"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -62,7 +65,9 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     submittedByEmail: `${uid}-submittedByEmail`,
   }
 
-  const failureTracker = useRef(createSubmissionFailureTracker("event_submission"))
+  const failureTracker = useRef(
+    createSubmissionFailureTracker("event_submission"),
+  )
 
   const form = useForm({
     defaultValues: initialState as FormState,
@@ -71,7 +76,11 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       onSubmit: eventFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
-      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
+      failureTracker.current.fail(
+        "validation",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
       captureInvalidFormSubmission(
         "event_submission",
         formApi.state.errorMap.onChange,

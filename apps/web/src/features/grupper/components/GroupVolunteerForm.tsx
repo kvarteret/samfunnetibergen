@@ -21,7 +21,10 @@ import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
+import {
+  captureInvalidFormSubmission,
+  createSubmissionFailureTracker,
+} from "@/lib/posthog/form-validation"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -85,7 +88,9 @@ export function GroupVolunteerForm({
   const [honeypot, setHoneypot] = useState("")
   const submissionIdentityRef = useRef<SubmissionIdentity | null>(null)
 
-  const failureTracker = useRef(createSubmissionFailureTracker("volunteer_application"))
+  const failureTracker = useRef(
+    createSubmissionFailureTracker("volunteer_application"),
+  )
 
   const form = useForm({
     defaultValues: { ...defaultValues, firstChoiceGroupSlug: groupSlug },
@@ -94,7 +99,11 @@ export function GroupVolunteerForm({
       onSubmit: volunteerFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
-      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
+      failureTracker.current.fail(
+        "validation",
+        formApi.state.errorMap.onChange,
+        formApi.state.errorMap.onSubmit,
+      )
       captureInvalidFormSubmission(
         "volunteer_application",
         formApi.state.errorMap.onChange,

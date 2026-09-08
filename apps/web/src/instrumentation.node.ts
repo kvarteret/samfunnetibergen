@@ -10,7 +10,10 @@ import {
   LoggerProvider,
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
-import { AlwaysOnSampler, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
+import {
+  AlwaysOnSampler,
+  SimpleSpanProcessor,
+} from "@opentelemetry/sdk-trace-base"
 import { registerOTel } from "@vercel/otel"
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
@@ -75,17 +78,29 @@ if (projectToken) {
         onStart() {},
         onEnd(span) {
           if (span.kind !== SpanKind.SERVER) return
-          const status = Number(span.attributes["http.response.status_code"] ?? span.attributes["http.status_code"] ?? 0)
+          const status = Number(
+            span.attributes["http.response.status_code"] ??
+              span.attributes["http.status_code"] ??
+              0,
+          )
           logs.getLogger("samfunnetibergen").emit({
-            context: trace.setSpan(context.active(), trace.wrapSpanContext(span.spanContext())),
+            context: trace.setSpan(
+              context.active(),
+              trace.wrapSpanContext(span.spanContext()),
+            ),
             severityNumber: status >= 500 ? 17 : status >= 400 ? 13 : 9,
-            severityText: status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO",
+            severityText:
+              status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO",
             body: "http.request.completed",
             attributes: {
               event: "http.request.completed",
               status_code: status,
-              "vercel.request.id": span.attributes["vercel.request_id"] ?? "unknown",
-              http_method: span.attributes["http.request.method"] ?? span.attributes["http.method"] ?? "unknown",
+              "vercel.request.id":
+                span.attributes["vercel.request_id"] ?? "unknown",
+              http_method:
+                span.attributes["http.request.method"] ??
+                span.attributes["http.method"] ??
+                "unknown",
               route_template: span.attributes["http.route"] ?? "unmatched",
               duration_ms: span.duration[0] * 1000 + span.duration[1] / 1000000,
             },
@@ -95,10 +110,14 @@ if (projectToken) {
         async shutdown() {},
       },
       new SimpleSpanProcessor(
-        withExportLifetime(withSanitizedSpans(new OTLPTraceExporter({
-          url: `${POSTHOG_OTLP_BASE_URL}/traces`,
-          headers,
-        }))),
+        withExportLifetime(
+          withSanitizedSpans(
+            new OTLPTraceExporter({
+              url: `${POSTHOG_OTLP_BASE_URL}/traces`,
+              headers,
+            }),
+          ),
+        ),
       ),
     ],
   })
@@ -108,14 +127,15 @@ if (projectToken) {
     processors: [
       new InfoAndAboveProcessor(
         new SimpleLogRecordProcessor({
-          exporter: withExportLifetime(new OTLPLogExporter({
-            url: `${POSTHOG_OTLP_BASE_URL}/logs`,
-            headers,
-          })),
+          exporter: withExportLifetime(
+            new OTLPLogExporter({
+              url: `${POSTHOG_OTLP_BASE_URL}/logs`,
+              headers,
+            }),
+          ),
         }),
       ),
     ],
   })
   logs.setGlobalLoggerProvider(loggerProvider)
-
 }

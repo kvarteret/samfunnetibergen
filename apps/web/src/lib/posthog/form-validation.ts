@@ -34,13 +34,22 @@ function normalizeFieldPath(path: string): string {
   return path.replace(/\[\d+\]/g, "[]")
 }
 
-
 /** One tracker per mounted form; successful submissions start a new sequence. */
 export function createSubmissionFailureTracker(formId: TrackedFormId) {
-  let attempts: { stage: string; fields: { field: string; code: string }[] }[] = []
+  let attempts: { stage: string; fields: { field: string; code: string }[] }[] =
+    []
   return {
-    reset() { attempts = [] },
-    fail(stage: "validation" | "submission" | "calendar_conflict" | "opening_hours", ...errorMaps: unknown[]) {
+    reset() {
+      attempts = []
+    },
+    fail(
+      stage:
+        | "validation"
+        | "submission"
+        | "calendar_conflict"
+        | "opening_hours",
+      ...errorMaps: unknown[]
+    ) {
       const fields: { field: string; code: string }[] = []
       for (const map of errorMaps) {
         if (!map || typeof map !== "object") continue
@@ -50,9 +59,22 @@ export function createSubmissionFailureTracker(formId: TrackedFormId) {
           if (!/^[a-zA-Z_][a-zA-Z0-9_.\[\]]{0,119}$/.test(field)) continue
           for (const error of errors) {
             // Never export values or arbitrary validator messages (they can echo input).
-            const knownCodes = ["invalid_type", "invalid_format", "too_small", "too_big", "custom", "invalid_value", "invalid_union"]
-            const code = knownCodes.includes(error?.code) ? error.code : "validation_failed"
-            if (!fields.some(item => item.field === field && item.code === code)) fields.push({ field, code })
+            const knownCodes = [
+              "invalid_type",
+              "invalid_format",
+              "too_small",
+              "too_big",
+              "custom",
+              "invalid_value",
+              "invalid_union",
+            ]
+            const code = knownCodes.includes(error?.code)
+              ? error.code
+              : "validation_failed"
+            if (
+              !fields.some(item => item.field === field && item.code === code)
+            )
+              fields.push({ field, code })
           }
         }
       }

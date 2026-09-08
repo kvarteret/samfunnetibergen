@@ -10,7 +10,9 @@ type Exporter<T> = {
 
 // Simple processors start asynchronous HTTP exports. Their forceFlush does not
 // necessarily await those requests, so retain the actual exporter callback.
-export function withExportLifetime<T>(exporter: Omit<Exporter<T>, "forceFlush">): Exporter<T> {
+export function withExportLifetime<T>(
+  exporter: Omit<Exporter<T>, "forceFlush">,
+): Exporter<T> {
   const pending = new Set<Promise<void>>()
   let reportedFailure = false
   return {
@@ -20,21 +22,44 @@ export function withExportLifetime<T>(exporter: Omit<Exporter<T>, "forceFlush">)
           exporter.export(items, result => {
             if (result.code !== 0 && !reportedFailure) {
               reportedFailure = true
-              console.warn(JSON.stringify({event: "telemetry.export.failed", error_type: result.error?.name, status_code: (result.error as {code?: number})?.code}))
+              console.warn(
+                JSON.stringify({
+                  event: "telemetry.export.failed",
+                  error_type: result.error?.name,
+                  status_code: (result.error as { code?: number })?.code,
+                }),
+              )
             }
-            try { callback(result) } finally { resolve() }
+            try {
+              callback(result)
+            } finally {
+              resolve()
+            }
           })
         } catch (error) {
           try {
-            callback({ code: 1, error: error instanceof Error ? error : new Error("Telemetry export failed") })
-          } finally { resolve() }
+            callback({
+              code: 1,
+              error:
+                error instanceof Error
+                  ? error
+                  : new Error("Telemetry export failed"),
+            })
+          } finally {
+            resolve()
+          }
         }
       })
       pending.add(completion)
       void completion.then(() => pending.delete(completion))
       waitUntil(completion)
     },
-    forceFlush: async () => { await Promise.all([...pending]) },
-    shutdown: async () => { await Promise.all([...pending]); await exporter.shutdown() },
+    forceFlush: async () => {
+      await Promise.all([...pending])
+    },
+    shutdown: async () => {
+      await Promise.all([...pending])
+      await exporter.shutdown()
+    },
   }
 }
