@@ -1,4 +1,4 @@
-import { withExportLifetime } from "./src/lib/telemetry-export"
+import { withExportLifetime } from "./lib/telemetry-export"
 import { context, SpanKind, trace } from "@opentelemetry/api"
 import { logs } from "@opentelemetry/api-logs"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"

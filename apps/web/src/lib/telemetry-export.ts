@@ -12,11 +12,16 @@ type Exporter<T> = {
 // necessarily await those requests, so retain the actual exporter callback.
 export function withExportLifetime<T>(exporter: Omit<Exporter<T>, "forceFlush">): Exporter<T> {
   const pending = new Set<Promise<void>>()
+  let reportedFailure = false
   return {
     export(items, callback) {
       const completion = new Promise<void>(resolve => {
         try {
           exporter.export(items, result => {
+            if (result.code !== 0 && !reportedFailure) {
+              reportedFailure = true
+              console.warn(JSON.stringify({event: "telemetry.export.failed", error_type: result.error?.name, status_code: (result.error as {code?: number})?.code}))
+            }
             try { callback(result) } finally { resolve() }
           })
         } catch (error) {

@@ -7,6 +7,7 @@ import {
 import { getPostHogClient } from "@/lib/posthog-server"
 
 export async function register() {
+  console.info(JSON.stringify({event: "telemetry.register", runtime: process.env.NEXT_RUNTIME, configured: Boolean(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN)}))
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./instrumentation.node")
   }
