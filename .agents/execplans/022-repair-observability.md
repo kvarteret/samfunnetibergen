@@ -10,9 +10,9 @@ Store all produced backend spans, make browser and backend services distinct in 
 
 - [x] 2026-09-08: Inspected both source repositories, production deployment metadata, and PostHog logs.
 - [x] 2026-09-08: Isolated BFF changes from the user's unrelated branch using a worktree at the deployed commit.
-- [ ] Implement and test complete sampling, export lifetime, browser structure, and outbound parent propagation.
-- [ ] Deploy an authenticated JSON-to-OTLP collector and enable a drain for only the two source projects.
-- [ ] Run checks, deploy application changes, and verify live log delivery.
+- [x] Implement and test complete sampling, export lifetime, browser structure, and outbound parent propagation.
+- [x] Deploy an authenticated JSON-to-OTLP collector and enable a drain for only the two source projects.
+- [x] Run checks, deploy application changes, and verify live log delivery.
 
 ## Surprises & Discoveries
 
@@ -24,11 +24,18 @@ Use a separate collector project with no database so it cannot feed its own logs
 
 ## Outcomes & Retrospective
 
-Implementation and live verification are pending.
+Production verification succeeded on 2026-09-08. All five services are visible.
+Trace 3a3fddf407aaac2bd724f9d5644a2169 contains the Next server request, outbound
+fetch, and Personal server child with logs linked to the correct span.
+Three empty volunteer form submissions produced issue
+01a081bf-472c-7e50-9f6f-bbe9d9245b55 with all three safe field/code histories.
+Python checks: 401 passed, 15 skipped. Web checks: 349 passed, 5 skipped;
+typecheck, lint and production build passed. Additional span sanitizer tests
+cover credentials and preserving timing/correlation.
 
 ## Context and Orientation
 
-The Python service is /Users/kluvin/dev/kvarteret/kvarteret-personal. app/telemetry.py configures OpenTelemetry providers and flushes at invocation completion; app/observability.py sanitizes logs. The BFF worktree is /Users/kluvin/dev/kvarteret/samfunnetibergen-observability. apps/web/instrumentation.node.ts configures providers and src/lib/observability.ts emits business logs. OpenTelemetry exports logs and spans using HTTP (OTLP). A span is a timed operation with a parent and trace ID.
+The Python service is /Users/kluvin/dev/kvarteret/kvarteret-personal. app/telemetry.py configures OpenTelemetry providers and flushes at invocation completion; app/observability.py sanitizes logs. The BFF worktree is /Users/kluvin/dev/kvarteret/samfunnetibergen-observability. apps/web/src/instrumentation.node.ts configures providers and src/lib/observability.ts emits business logs. OpenTelemetry exports logs and spans using HTTP (OTLP). A span is a timed operation with a parent and trace ID.
 
 ## Plan of Work
 
@@ -52,6 +59,14 @@ Original request: vhq79-1788545598124-7d9fc0b71bcd, 2026-09-04T18:13:18.124Z, HT
 
 ## Interfaces and Dependencies
 
-Keep current OpenTelemetry SDKs and add @vercel/functions for export lifetime. Collector accepts POST JSON batches at /api/logs and authenticates Authorization against VERCEL_DRAIN_SECRET. POSTHOG_PROJECT_TOKEN supplies its ingestion credential; POSTHOG_HOST defaults to the EU ingestion origin. No user-facing API contracts change.
+Keep current OpenTelemetry SDKs and add @vercel/functions for export lifetime. Collector accepts POST JSON batches at /api/logs and authenticates Authorization against VERCEL_DRAIN_SECRET. POSTHOG_PROJECT_TOKEN supplies its ingestion credential; POSTHOG_HOST defaults to the EU ingestion origin. The Personal client-error endpoint adds optional, bounded diagnostic fields; its OpenAPI artifact was regenerated and checked using scripts/export_openapi.py because this checkout has no Makefile.
 
 Revision 2026-09-08: Initial plan after verifying deployment and ingestion boundaries.
+
+
+Revision 2026-09-08: Resolved production hook discovery by moving server
+instrumentation into src, beside src/app. Added @vercel/otel. Fixed admin blank
+optional selection 422 responses and excluded CSRF fields from fragment GETs.
+Added third-failure issues to four public forms and admin HTMX HTTP failures.
+Verified the issue in PostHog with all three histories. Added trace export
+redaction and release fallback after inspecting live server spans.

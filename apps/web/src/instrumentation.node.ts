@@ -1,3 +1,4 @@
+import { withSanitizedSpans } from "./lib/telemetry-spans"
 import { withExportLifetime } from "./lib/telemetry-export"
 import { context, SpanKind, trace } from "@opentelemetry/api"
 import { logs } from "@opentelemetry/api-logs"
@@ -51,8 +52,9 @@ if (projectToken) {
     [ATTR_SERVICE_NAME]: "samfunnetibergen",
     [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.VERCEL_ENV ?? "development",
     [ATTR_SERVICE_VERSION]:
-      process.env.NEXT_PUBLIC_GIT_SHA ??
-      process.env.VERCEL_GIT_COMMIT_SHA ??
+      process.env.NEXT_PUBLIC_GIT_SHA ||
+      process.env.VERCEL_GIT_COMMIT_SHA ||
+      process.env.VERCEL_DEPLOYMENT_ID ||
       "unknown",
     [SEMRESATTRS_CLOUD_REGION]: process.env.VERCEL_REGION ?? "local",
     [ATTR_SERVICE_INSTANCE_ID]: process.env.VERCEL_DEPLOYMENT_ID ?? "local",
@@ -82,6 +84,7 @@ if (projectToken) {
             attributes: {
               event: "http.request.completed",
               status_code: status,
+              "vercel.request.id": span.attributes["vercel.request_id"] ?? "unknown",
               http_method: span.attributes["http.request.method"] ?? span.attributes["http.method"] ?? "unknown",
               route_template: span.attributes["http.route"] ?? "unmatched",
               duration_ms: span.duration[0] * 1000 + span.duration[1] / 1000000,
@@ -92,10 +95,10 @@ if (projectToken) {
         async shutdown() {},
       },
       new SimpleSpanProcessor(
-        withExportLifetime(new OTLPTraceExporter({
+        withExportLifetime(withSanitizedSpans(new OTLPTraceExporter({
           url: `${POSTHOG_OTLP_BASE_URL}/traces`,
           headers,
-        })),
+        }))),
       ),
     ],
   })
