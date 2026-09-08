@@ -3,7 +3,6 @@ import { context, SpanKind, trace } from "@opentelemetry/api"
 import { logs } from "@opentelemetry/api-logs"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { resourceFromAttributes } from "@opentelemetry/resources"
 import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import {
@@ -11,7 +10,7 @@ import {
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
 import { AlwaysOnSampler, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
-import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
+import { registerOTel } from "@vercel/otel"
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
   ATTR_SERVICE_INSTANCE_ID,
@@ -59,9 +58,16 @@ if (projectToken) {
     [ATTR_SERVICE_INSTANCE_ID]: process.env.VERCEL_DEPLOYMENT_ID ?? "local",
   })
 
-  const tracerProvider = new NodeTracerProvider({
-    resource,
-    sampler: new AlwaysOnSampler(),
+  registerOTel({
+    serviceName: "samfunnetibergen",
+    attributes: resource.attributes,
+    traceSampler: new AlwaysOnSampler(),
+    instrumentationConfig: {
+      fetch: {
+        ignoreUrls: [/^https:\/\/eu\.i\.posthog\.com\//],
+        propagateContextUrls: [/^https:\/\/personal\.kvarteret\.no\//],
+      },
+    },
     spanProcessors: [
       {
         onStart() {},
@@ -93,7 +99,6 @@ if (projectToken) {
       ),
     ],
   })
-  tracerProvider.register()
 
   const loggerProvider = new LoggerProvider({
     resource,
@@ -110,7 +115,4 @@ if (projectToken) {
   })
   logs.setGlobalLoggerProvider(loggerProvider)
 
-  const httpInstrumentation = new HttpInstrumentation()
-  httpInstrumentation.setTracerProvider(tracerProvider)
-  httpInstrumentation.enable()
 }

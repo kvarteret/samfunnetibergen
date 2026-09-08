@@ -14,7 +14,7 @@ import {
 } from "@/features/events/actions/submitEvent"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
+import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -62,6 +62,8 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     submittedByEmail: `${uid}-submittedByEmail`,
   }
 
+  const failureTracker = useRef(createSubmissionFailureTracker("event_submission"))
+
   const form = useForm({
     defaultValues: initialState as FormState,
     validators: {
@@ -69,6 +71,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
       onSubmit: eventFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
+      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
       captureInvalidFormSubmission(
         "event_submission",
         formApi.state.errorMap.onChange,
@@ -99,6 +102,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         throw new Error(result.error)
       }
 
+      failureTracker.current.reset()
       try {
         posthog.capture("event_submission_submitted", {
           is_recurring: value.isRecurring,
@@ -185,6 +189,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
+              failureTracker.current.fail("submission")
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("event_submission")

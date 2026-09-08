@@ -15,7 +15,7 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
-import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
+import { captureInvalidFormSubmission, createSubmissionFailureTracker } from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
@@ -77,6 +77,8 @@ export function KaraokeForm({
     studentProof: `${uid}-studentProof`,
   }
 
+  const failureTracker = useRef(createSubmissionFailureTracker("karaoke_booking"))
+
   const form = useForm({
     defaultValues: initialKaraokeState as KaraokeFormState,
     validators: {
@@ -84,6 +86,7 @@ export function KaraokeForm({
       onSubmit: karaokeFormSchema,
     },
     onSubmitInvalid: ({ formApi }) => {
+      failureTracker.current.fail("validation", formApi.state.errorMap.onChange, formApi.state.errorMap.onSubmit)
       captureInvalidFormSubmission(
         "karaoke_booking",
         formApi.state.errorMap.onChange,
@@ -105,6 +108,7 @@ export function KaraokeForm({
         throw new Error(result.error)
       }
 
+      failureTracker.current.reset()
       if (honeypot.trim()) return
 
       const submitted = deriveKaraokeState(value)
@@ -203,6 +207,7 @@ export function KaraokeForm({
             markSubmitAttempt()
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
+              failureTracker.current.fail("submission")
               if (form.state.errorMap.onServer) return
               form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("karaoke_booking")
