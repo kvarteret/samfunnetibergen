@@ -18,7 +18,6 @@ export const onRequestError: Instrumentation.onRequestError = async (
   context,
 ) => {
   if (process.env.NEXT_RUNTIME !== "nodejs") return
-  if (process.env.KV_LOCAL_FIXTURES === "1") return
 
   const posthog = getPostHogClient()
   const distinctId =

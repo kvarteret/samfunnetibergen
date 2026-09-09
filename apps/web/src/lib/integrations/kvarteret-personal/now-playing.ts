@@ -54,7 +54,6 @@ function parseNowPlaying(payload: unknown): NowPlayingState {
 }
 
 export async function fetchNowPlaying(): Promise<NowPlayingState | null> {
-  if (process.env.KV_LOCAL_FIXTURES === "1") return null
   const headers: Record<string, string> = { Accept: "application/json" }
   injectActiveTraceContext(headers)
   const response = await fetch(`${PERSONAL_APP_BASE_URL}/api/now-playing`, {

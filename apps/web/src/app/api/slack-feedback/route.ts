@@ -7,6 +7,10 @@ export async function POST(request: Request) {
 
   const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK
 
+  if (!webhookUrl) {
+    return Response.json({ detail: "Webhook not configured" }, { status: 500 })
+  }
+
   let body: unknown
   try {
     body = await request.json()
@@ -33,14 +37,6 @@ export async function POST(request: Request) {
 
   if (!message) {
     return Response.json({ detail: "Message is required" }, { status: 400 })
-  }
-
-  if (process.env.KV_LOCAL_FIXTURES === "1") {
-    return Response.json({ ok: true, local: true }, { status: 200 })
-  }
-
-  if (!webhookUrl) {
-    return Response.json({ detail: "Webhook not configured" }, { status: 500 })
   }
 
   try {
