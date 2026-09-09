@@ -47,11 +47,6 @@ const nextConfig: NextConfig = {
     // the repository root, one level above this Next app.
     root: resolve(process.cwd(), "../.."),
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "12mb",
-    },
-  },
   async redirects() {
     return [
       ...legacyStudioRedirects,
