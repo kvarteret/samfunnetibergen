@@ -1,6 +1,7 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
@@ -19,7 +20,7 @@ import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
-import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
+import { getKaraokeAvailability } from "../api/availability"
 import { submitKaraokeBookingRequest } from "../api/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
@@ -44,6 +45,8 @@ import {
 import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
 import { KaraokeFormContext } from "./karaokeFormContext"
 
+const EMPTY_BOOKINGS: CresatBooking[] = []
+
 interface KaraokeFormProps {
   room: KaraokeRoom
   bookableHours?: OpeningHours | null
@@ -60,7 +63,6 @@ export function KaraokeForm({
   initialNow,
 }: KaraokeFormProps) {
   const uid = useId()
-  const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
   const bookingSubmissionIdRef = useRef<string | null>(null)
   const submissionAttemptRef = useRef(0)
@@ -145,11 +147,16 @@ export function KaraokeForm({
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
-  useEffect(() => {
-    const end = new Date(today)
-    end.setDate(end.getDate() + KARAOKE_DATE_COUNT)
-    fetchKaraokeAvailability(today, isoDate(end)).then(setBookings)
-  }, [today])
+  const { data: karaokeAvailability } = useQuery({
+    queryKey: ["karaokeAvailability", today],
+    queryFn: () => {
+      const end = new Date(today)
+      end.setDate(end.getDate() + KARAOKE_DATE_COUNT)
+      return getKaraokeAvailability(today, isoDate(end))
+    },
+    placeholderData: keepPreviousData,
+  })
+  const bookings: CresatBooking[] = karaokeAvailability ?? EMPTY_BOOKINGS
 
   useEffect(() => {
     if (!values.startDate || values.startSlotMin === null) return

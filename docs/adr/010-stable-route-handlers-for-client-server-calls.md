@@ -1,4 +1,4 @@
-# ADR 010: Form submits via stable route handlers
+# ADR 010: Stable route handlers for client-server calls
 
 **Status:** Accepted
 
@@ -48,6 +48,9 @@ rotating id to go stale:
 - `POST /api/karaoke` — karaoke booking (JSON body).
 - `POST /api/events` — event submission (JSON body).
 - `POST /api/events/image` — event image upload (multipart form data).
+- `GET /api/booking/rooms` — bookable rooms for the room picker.
+- `GET /api/booking/availability` — room availability calendar.
+- `GET /api/karaoke/availability` — karaoke availability calendar.
 
 Each route lives under `apps/web/src/app/api/`. Each `"use server"` directive is
 removed from the corresponding action module, which becomes a plain server-only
@@ -55,12 +58,16 @@ module and keeps its validation, honeypot, rate-limit, availability, and
 delivery behaviour unchanged. Thin client helpers under
 `apps/web/src/features/<area>/api/` post the values and return the same
 `Result` the server action used to return, so the forms keep their existing
-error and success handling. Read-only data-fetch actions (room and karaoke
-availability, bookable rooms) remain server actions; they are cheap to retry
-and not part of this decision.
+error and success handling. The read-only data fetches (bookable rooms, room
+and karaoke availability) follow the same rule: each becomes a stable `GET`
+route handler that calls the same server-only function, consumed on the client
+through React Query (`useQuery`), which is already wired up in
+`apps/web/src/app/providers.tsx`. Server components still call the server-only
+functions directly with no HTTP hop.
 
-The submit is now `browser -> POST /api/<surface> -> server-only module ->
-Crescat or Sanity`. The endpoint's identity is a URL, not a build.
+The client-server boundary is now `browser -> /api/<surface> -> server-only
+module -> Crescat, Sanity, or Personal`. The endpoint's identity is a URL, not
+a build, for reads and writes alike.
 
 ### CSRF
 
@@ -83,6 +90,11 @@ applies the check before reading the body.
 - The submit boundaries now require an explicit same-origin check instead of
   inheriting it from server actions. That check is covered by the route tests
   under `apps/web/src/app/api/`.
+- Interactive reads no longer depend on a build-time action id either: a stale
+  tab's booker-type or date change fetches the stable `GET` route, so the
+  availability and room lists keep working after a deploy instead of producing
+  an unhandled rejection. React Query keeps the last-known data while loading
+  and retries failures.
 - No-JavaScript progressive enhancement is not relevant here: these forms are
   already JavaScript TanStack forms, so a `fetch` submit loses nothing.
 - The request body shapes and the `Result` response shapes become contracts.
@@ -91,9 +103,9 @@ applies the check before reading the body.
   never with "action not found".
 - The stale-deployment detection (`isStaleDeploymentError`,
   `STALE_DEPLOYMENT_ERROR`, and the `staleDeploymentError` message key) became
-  dead once no submit form used a server action, and was removed. The
+  dead once no client-facing server action remained, and was removed. The
   `deploymentId` config remains for asset cache busting and navigation skew
-  handling.
+  handling; no application correctness depends on it now.
 
 ## Alternatives considered
 
@@ -132,4 +144,5 @@ Run the focused route and form tests, then typecheck and build the web app:
 The route tests prove that a cross-origin POST is rejected with `403` before
 any submit logic runs, that a same-origin POST delegates to the server-only
 module and returns its `Result`, and that malformed bodies are rejected with
-`400`.
+`400`. The `GET` route tests prove parameter validation and delegation to the
+server-only read functions.

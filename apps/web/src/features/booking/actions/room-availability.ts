@@ -1,4 +1,5 @@
-"use server"
+// Server-only availability lookup. The client fetch goes through the stable
+// GET /api/booking/availability route handler. Not a server action (ADR 010).
 
 import {
   type CresatBooking,

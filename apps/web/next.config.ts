@@ -17,11 +17,10 @@ function localNetworkOrigins(): string[] {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: localNetworkOrigins(),
-  // Tag assets and server actions with the Vercel deployment id so an open tab
-  // keeps talking to the build it loaded and prefetched data stays consistent.
-  // Submit forms now use stable route handlers (ADR 010); this still protects
-  // asset fetches, client-side navigations, and the read-only availability
-  // actions from version skew after a deploy.
+  // Tag assets and prefetch requests with the Vercel deployment id so an open
+  // tab keeps talking to the build it loaded. All client-server form and
+  // availability calls now use stable route handlers (ADR 010); this remains
+  // for asset cache busting and navigation skew handling.
   deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   images: {
     remotePatterns: [

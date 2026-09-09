@@ -1,4 +1,6 @@
-"use server"
+// Server-only bookable-room lookup. The interactive client fetch goes
+// through the stable GET /api/booking/rooms route handler; the room page
+// server component calls this function directly. Not a server action (ADR 010).
 
 import {
   calendarSlugForBookerType,
