@@ -5,6 +5,7 @@ import { captureInvalidFormSubmission } from "./form-validation"
 vi.mock("posthog-js", () => ({
   default: {
     capture: vi.fn(),
+    captureException: vi.fn(),
   },
 }))
 
@@ -36,4 +37,43 @@ describe("form validation analytics", () => {
 
     expect(posthog.capture).not.toHaveBeenCalled()
   })
+})
+
+it("raises one issue on the third failure and starts over after success", async () => {
+  const { createSubmissionFailureTracker } = await import("./form-validation")
+  const tracker = createSubmissionFailureTracker("volunteer_application")
+  const errors = {
+    email: [
+      {
+        code: "invalid_format",
+        message: "secret@example.com",
+        input: "private",
+      },
+    ],
+  }
+  tracker.fail("validation", errors)
+  tracker.fail("submission")
+  expect(posthog.captureException).not.toHaveBeenCalled()
+  tracker.fail("validation", errors)
+  tracker.fail("submission")
+  expect(posthog.captureException).toHaveBeenCalledTimes(1)
+  expect(
+    JSON.stringify(vi.mocked(posthog.captureException).mock.calls),
+  ).not.toMatch(/secret@example|private/)
+  expect(posthog.captureException).toHaveBeenCalledWith(
+    expect.objectContaining({ name: "RepeatedFormSubmissionFailure" }),
+    expect.objectContaining({
+      attempt_count: 3,
+      failure_history: expect.arrayContaining([
+        expect.objectContaining({
+          fields: [{ field: "email", code: "invalid_format" }],
+        }),
+      ]),
+    }),
+  )
+  tracker.reset()
+  tracker.fail("submission")
+  tracker.fail("submission")
+  tracker.fail("submission")
+  expect(posthog.captureException).toHaveBeenCalledTimes(2)
 })

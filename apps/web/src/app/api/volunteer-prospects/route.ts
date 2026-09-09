@@ -154,10 +154,10 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
       ...authenticationHeaders,
     }
-    injectActiveTraceContext(outboundHeaders)
     return await withOperationalSpan(
       "volunteer.prospect.submit",
       async span => {
+        injectActiveTraceContext(outboundHeaders)
         const response = await fetch(
           `${PERSONAL_APP_BASE_URL}/api/v1/volunteer-prospects`,
           {

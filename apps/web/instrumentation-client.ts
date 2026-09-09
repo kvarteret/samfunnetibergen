@@ -1,4 +1,5 @@
 import posthog from "posthog-js"
+import { normalizeBrowserLog } from "./src/lib/posthog/browser-logs"
 import { dropDocumentUrlExceptions } from "@/lib/posthog/exception-filter"
 
 const isLocalhost =
@@ -22,6 +23,11 @@ if (
     capture_pageview: true,
     capture_pageleave: true,
     capture_exceptions: true,
+    logs: {
+      serviceName: "samfunnetibergen-browser",
+      captureConsoleLogs: true,
+      beforeSend: normalizeBrowserLog,
+    },
     before_send: dropDocumentUrlExceptions,
     disable_session_recording: false,
     session_recording: {

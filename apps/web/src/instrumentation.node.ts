@@ -1,15 +1,19 @@
+import { withSanitizedSpans } from "./lib/telemetry-spans"
+import { withExportLifetime } from "./lib/telemetry-export"
 import { logs } from "@opentelemetry/api-logs"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { resourceFromAttributes } from "@opentelemetry/resources"
 import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import {
   LoggerProvider,
   SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
-import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
+import {
+  AlwaysOnSampler,
+  SimpleSpanProcessor,
+} from "@opentelemetry/sdk-trace-base"
+import { registerOTel } from "@vercel/otel"
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
   ATTR_SERVICE_INSTANCE_ID,
@@ -39,7 +43,7 @@ class InfoAndAboveProcessor implements LogRecordProcessor {
   }
 }
 
-const projectToken = process.env.POSTHOG_API_KEY?.trim()
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim()
 
 if (projectToken) {
   const headers = {
@@ -50,40 +54,52 @@ if (projectToken) {
     [ATTR_SERVICE_NAME]: "samfunnetibergen",
     [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.VERCEL_ENV ?? "development",
     [ATTR_SERVICE_VERSION]:
-      process.env.NEXT_PUBLIC_GIT_SHA ??
-      process.env.VERCEL_GIT_COMMIT_SHA ??
+      process.env.NEXT_PUBLIC_GIT_SHA ||
+      process.env.VERCEL_GIT_COMMIT_SHA ||
+      process.env.VERCEL_DEPLOYMENT_ID ||
       "unknown",
     [SEMRESATTRS_CLOUD_REGION]: process.env.VERCEL_REGION ?? "local",
     [ATTR_SERVICE_INSTANCE_ID]: process.env.VERCEL_DEPLOYMENT_ID ?? "local",
   })
 
-  const tracerProvider = new NodeTracerProvider({
-    resource,
+  registerOTel({
+    serviceName: "samfunnetibergen",
+    attributes: resource.attributes,
+    traceSampler: new AlwaysOnSampler(),
+    instrumentationConfig: {
+      fetch: {
+        ignoreUrls: [/^https:\/\/eu\.i\.posthog\.com\//],
+        propagateContextUrls: [/^https:\/\/personal\.kvarteret\.no\//],
+      },
+    },
     spanProcessors: [
       new SimpleSpanProcessor(
-        new OTLPTraceExporter({
-          url: `${POSTHOG_OTLP_BASE_URL}/traces`,
-          headers,
-        }),
+        withExportLifetime(
+          withSanitizedSpans(
+            new OTLPTraceExporter({
+              url: `${POSTHOG_OTLP_BASE_URL}/traces`,
+              headers,
+            }),
+          ),
+        ),
       ),
     ],
   })
-  tracerProvider.register()
 
   const loggerProvider = new LoggerProvider({
     resource,
     processors: [
       new InfoAndAboveProcessor(
         new SimpleLogRecordProcessor({
-          exporter: new OTLPLogExporter({
-            url: `${POSTHOG_OTLP_BASE_URL}/logs`,
-            headers,
-          }),
+          exporter: withExportLifetime(
+            new OTLPLogExporter({
+              url: `${POSTHOG_OTLP_BASE_URL}/logs`,
+              headers,
+            }),
+          ),
         }),
       ),
     ],
   })
   logs.setGlobalLoggerProvider(loggerProvider)
-
-  new HttpInstrumentation().enable()
 }
