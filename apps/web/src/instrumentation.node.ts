@@ -1,6 +1,5 @@
 import { withSanitizedSpans } from "./lib/telemetry-spans"
 import { withExportLifetime } from "./lib/telemetry-export"
-import { context, SpanKind, trace } from "@opentelemetry/api"
 import { logs } from "@opentelemetry/api-logs"
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
@@ -74,41 +73,6 @@ if (projectToken) {
       },
     },
     spanProcessors: [
-      {
-        onStart() {},
-        onEnd(span) {
-          if (span.kind !== SpanKind.SERVER) return
-          const status = Number(
-            span.attributes["http.response.status_code"] ??
-              span.attributes["http.status_code"] ??
-              0,
-          )
-          logs.getLogger("samfunnetibergen").emit({
-            context: trace.setSpan(
-              context.active(),
-              trace.wrapSpanContext(span.spanContext()),
-            ),
-            severityNumber: status >= 500 ? 17 : status >= 400 ? 13 : 9,
-            severityText:
-              status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO",
-            body: "http.request.completed",
-            attributes: {
-              event: "http.request.completed",
-              status_code: status,
-              "vercel.request.id":
-                span.attributes["vercel.request_id"] ?? "unknown",
-              http_method:
-                span.attributes["http.request.method"] ??
-                span.attributes["http.method"] ??
-                "unknown",
-              route_template: span.attributes["http.route"] ?? "unmatched",
-              duration_ms: span.duration[0] * 1000 + span.duration[1] / 1000000,
-            },
-          })
-        },
-        async forceFlush() {},
-        async shutdown() {},
-      },
       new SimpleSpanProcessor(
         withExportLifetime(
           withSanitizedSpans(
