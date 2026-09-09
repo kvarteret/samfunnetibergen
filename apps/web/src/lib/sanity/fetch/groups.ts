@@ -12,7 +12,6 @@ import {
   studentGroupsQuery,
 } from "../queries"
 import { compact, type FetchOptions, withRequiredKeys } from "./shared"
-import { isLocalFixtureMode } from "../offline"
 
 export type GroupsPageContent = NonNullable<
   ClientReturn<typeof groupsPageQuery>
@@ -32,7 +31,6 @@ export async function fetchGroupsPageContent(
   locale: AppLocale,
   options: FetchOptions = {},
 ): Promise<GroupsPageContent | null> {
-  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: groupsPageQuery,
     params: { locale },
@@ -44,7 +42,6 @@ export async function fetchGroupsPageContent(
 export async function fetchStudentGroups(
   locale: AppLocale,
 ): Promise<StudentGroupSummary[]> {
-  if (isLocalFixtureMode) return []
   const { data: groups } = (await sanityFetch({
     query: studentGroupsQuery,
     params: { locale },
@@ -57,7 +54,6 @@ export async function fetchStudentGroups(
 }
 
 export async function fetchStudentGroupSlugs(): Promise<string[]> {
-  if (isLocalFixtureMode) return []
   const groups = await sanityClient.fetch(
     studentGroupSlugsQuery,
     {},
@@ -74,7 +70,6 @@ export async function fetchStudentGroupBySlug(
   locale: AppLocale,
   options: FetchOptions = {},
 ): Promise<StudentGroupDetail | null> {
-  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: studentGroupBySlugQuery,
     params: { slug, locale },

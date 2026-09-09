@@ -20,7 +20,6 @@ import {
   withRequiredKeys,
 } from "./shared"
 import { DEFAULT_LOCALE } from "../localized"
-import { isLocalFixtureMode } from "../offline"
 
 export type EditorialSection = NonNullable<
   NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]
@@ -51,7 +50,6 @@ export async function fetchRoomsPageContent(
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<RoomsPageContent | null> {
-  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: roomsPageQuery,
     params: { locale },
@@ -66,7 +64,6 @@ export async function fetchRoomsPageContent(
 export async function fetchPublishedRoomsPageContent(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<RoomsPageContent | null> {
-  if (isLocalFixtureMode) return null
   return sanityClient.fetch(
     roomsPageQuery,
     { locale },
@@ -81,7 +78,6 @@ export async function fetchPublishedRoomsPageContent(
 export async function fetchRooms(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<RoomSummary[]> {
-  if (isLocalFixtureMode) return []
   const { data: rooms } = await sanityFetch({
     query: roomsQuery,
     params: { locale },
@@ -95,7 +91,6 @@ export async function fetchRooms(
 export async function fetchBookableRooms(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<BookableRoom[]> {
-  if (isLocalFixtureMode) return []
   const { data: rooms } = await sanityFetch({
     query: bookableRoomsQuery,
     params: { locale },
@@ -110,7 +105,6 @@ export async function fetchBookableRooms(
 export async function fetchBarPreviews(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<BarPreviewsContent | null> {
-  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: barPreviewsQuery,
     params: { locale },
@@ -128,7 +122,6 @@ export async function fetchBarPreviews(
 }
 
 export async function fetchRoomSlugs(): Promise<string[]> {
-  if (isLocalFixtureMode) return []
   const rooms = await sanityClient.fetch(
     roomSlugsQuery,
     {},
@@ -145,7 +138,6 @@ export async function fetchRoomBySlug(
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<RoomDetail | null> {
-  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: roomBySlugQuery,
     params: { slug, locale },

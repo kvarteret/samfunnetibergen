@@ -5,7 +5,6 @@ import type { AppLocale } from "@/i18n/routing"
 import { sanityFetch } from "../fetcher"
 import { DEFAULT_LOCALE } from "../localized"
 import { eventGroupsQuery, eventRoomsQuery, eventTypesQuery } from "../queries"
-import { isLocalFixtureMode } from "../offline"
 
 export type EventRoom = ClientReturn<typeof eventRoomsQuery>[number]
 
@@ -16,7 +15,6 @@ export type EventGroup = ClientReturn<typeof eventGroupsQuery>[number]
 export async function fetchEventRooms(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<EventRoom[]> {
-  if (isLocalFixtureMode) return []
   const { data } = await sanityFetch({
     query: eventRoomsQuery,
     params: { locale },
@@ -27,7 +25,6 @@ export async function fetchEventRooms(
 export async function fetchEventTypes(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<EventType[]> {
-  if (isLocalFixtureMode) return []
   const { data } = await sanityFetch({
     query: eventTypesQuery,
     params: { locale },
@@ -38,7 +35,6 @@ export async function fetchEventTypes(
 export async function fetchEventGroups(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<EventGroup[]> {
-  if (isLocalFixtureMode) return []
   const { data } = await sanityFetch({
     query: eventGroupsQuery,
     params: { locale },

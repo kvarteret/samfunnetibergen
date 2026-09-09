@@ -1,6 +1,5 @@
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "@/lib/sanity/client"
-import { isLocalFixtureMode } from "@/lib/sanity/offline"
 import {
   publicEventBySlugQuery,
   publicEventChildrenQuery,
@@ -49,7 +48,6 @@ export async function fetchPublicEventSet({
   events: PublicEvent[]
   occurrences: PublicOccurrence[]
 }> {
-  if (isLocalFixtureMode) return { events: [], occurrences: [] }
   const rows = await sanityClient.fetch(
     publicEventsQuery,
     {
@@ -74,7 +72,6 @@ export async function fetchPublicPromotedParentEvents({
   to,
   includeInternal = false,
 }: PublicEventSetOptions): Promise<PublicEvent[]> {
-  if (isLocalFixtureMode) return []
   const rows = await sanityClient.fetch(
     publicPromotedParentEventsQuery,
     {
@@ -93,7 +90,6 @@ export async function fetchPublicEventChildren(
   locale: AppLocale,
   includeInternal = false,
 ): Promise<PublicEvent[]> {
-  if (isLocalFixtureMode) return []
   const rows = await sanityClient.fetch(
     publicEventChildrenQuery,
     {
@@ -113,7 +109,6 @@ export async function fetchPublicEventBySlug(
   locale: AppLocale,
   includeInternal = false,
 ): Promise<PublicEventDetailResult | null> {
-  if (isLocalFixtureMode) return null
   const row = await sanityClient.fetch(
     publicEventBySlugQuery,
     {
@@ -143,7 +138,6 @@ export async function fetchPublicEventBySlug(
 }
 
 export async function fetchPublicEventSlugs(today: string): Promise<string[]> {
-  if (isLocalFixtureMode) return []
   const rows = await sanityClient.fetch(
     publishedEventSlugsQuery,
     { today },
