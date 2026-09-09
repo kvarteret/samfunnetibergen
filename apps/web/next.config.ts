@@ -17,6 +17,11 @@ function localNetworkOrigins(): string[] {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: localNetworkOrigins(),
+  // Tag assets and server actions with the Vercel deployment id so an open tab
+  // keeps talking to the build it loaded. Without this, a tab that loaded an
+  // older build posts a server action id the current deployment no longer has,
+  // which breaks in-flight form submissions after a deploy.
+  deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },

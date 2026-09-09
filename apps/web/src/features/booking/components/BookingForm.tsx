@@ -25,7 +25,11 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
+import {
+  GENERIC_SUBMIT_ERROR,
+  isStaleDeploymentError,
+  STALE_DEPLOYMENT_ERROR,
+} from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
@@ -354,14 +358,21 @@ export function BookingForm({
             }
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
+              const staleDeployment = isStaleDeploymentError(error)
+              form.setErrorMap({
+                onServer: (staleDeployment
+                  ? STALE_DEPLOYMENT_ERROR
+                  : GENERIC_SUBMIT_ERROR) as never,
+              })
               requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
                 {
                   form_id: "room_booking",
                   validation_stage: "client",
-                  failure_branch: "unexpected_submission_failure",
+                  failure_branch: staleDeployment
+                    ? "stale_deployment"
+                    : "unexpected_submission_failure",
                   rejection_message:
                     error instanceof Error ? error.message : String(error),
                   rejection_name:
