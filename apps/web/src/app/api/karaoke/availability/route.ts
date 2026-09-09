@@ -1,7 +1,7 @@
 import { fetchKaraokeAvailability } from "@/features/karaoke/actions/karaoke-availability"
+import { jsonGet } from "@/lib/route-helpers"
 
 // Stable read endpoint for the karaoke availability calendar. See ADR 010.
-// Read-only, so no same-origin CSRF gate is required.
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
@@ -18,14 +18,8 @@ export async function GET(request: Request) {
     return Response.json({ detail: "Invalid start or end" }, { status: 400 })
   }
 
-  try {
-    const bookings = await fetchKaraokeAvailability(start, end)
-    return Response.json(bookings)
-  } catch (error) {
-    console.error("[karaoke/availability] failed to load calendar:", error)
-    return Response.json(
-      { detail: "Failed to load availability" },
-      { status: 500 },
-    )
-  }
+  return jsonGet(
+    () => fetchKaraokeAvailability(start, end),
+    "Failed to load availability",
+  )
 }

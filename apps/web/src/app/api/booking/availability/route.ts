@@ -1,8 +1,8 @@
 import { fetchRoomAvailability } from "@/features/booking/actions/room-availability"
 import type { BookerType } from "@/lib/integrations/crescat/room-booking"
+import { jsonGet } from "@/lib/route-helpers"
 
 // Stable read endpoint for the room availability calendar. See ADR 010.
-// Read-only, so no same-origin CSRF gate is required.
 
 const BOOKER_TYPES: readonly BookerType[] = ["ekstern", "studentorg", "intern"]
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -28,14 +28,8 @@ export async function GET(request: Request) {
     )
   }
 
-  try {
-    const bookings = await fetchRoomAvailability(bookerType, start, end)
-    return Response.json(bookings)
-  } catch (error) {
-    console.error("[booking/availability] failed to load calendar:", error)
-    return Response.json(
-      { detail: "Failed to load availability" },
-      { status: 500 },
-    )
-  }
+  return jsonGet(
+    () => fetchRoomAvailability(bookerType, start, end),
+    "Failed to load availability",
+  )
 }
