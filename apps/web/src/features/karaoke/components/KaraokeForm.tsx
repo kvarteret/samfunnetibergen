@@ -16,15 +16,11 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import {
-  GENERIC_SUBMIT_ERROR,
-  isStaleDeploymentError,
-  STALE_DEPLOYMENT_ERROR,
-} from "@/lib/submission-messages"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
-import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
+import { submitKaraokeBookingRequest } from "../api/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
@@ -97,7 +93,7 @@ export function KaraokeForm({
     onSubmit: async ({ value, formApi }) => {
       bookingSubmissionIdRef.current ??= crypto.randomUUID()
       submissionAttemptRef.current += 1
-      const result = await submitKaraokeBooking({
+      const result = await submitKaraokeBookingRequest({
         ...value,
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
@@ -208,21 +204,14 @@ export function KaraokeForm({
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              const staleDeployment = isStaleDeploymentError(error)
-              form.setErrorMap({
-                onServer: (staleDeployment
-                  ? STALE_DEPLOYMENT_ERROR
-                  : GENERIC_SUBMIT_ERROR) as never,
-              })
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("karaoke_booking")
               posthog.captureException(
                 new Error("Unexpected karaoke booking submission failure"),
                 {
                   form_id: "karaoke_booking",
                   validation_stage: "client",
-                  failure_branch: staleDeployment
-                    ? "stale_deployment"
-                    : "unexpected_submission_failure",
+                  failure_branch: "unexpected_submission_failure",
                   rejection_message:
                     error instanceof Error ? error.message : String(error),
                   rejection_name:

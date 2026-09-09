@@ -1,6 +1,7 @@
 import { submitRoomBooking } from "@/features/booking/actions/submit-room-booking"
 import type { BookingFormState } from "@/features/booking/domain/bookingFormSchema"
 import type { SubmissionTelemetry } from "@/lib/booking/telemetry"
+import { isSameOriginRequest } from "@/lib/csrf"
 
 // The room-booking submit boundary. It exists as a stable URL so a browser
 // tab that loaded an older build still reaches the current deployment after a
@@ -35,41 +36,4 @@ export async function POST(request: Request) {
   // behaviour lives in submitRoomBooking, which returns a serializable Result.
   const result = await submitRoomBooking(body as BookingSubmitInput)
   return Response.json(result)
-}
-
-/**
- * Reject requests whose Origin header names a different host than the request
- * itself, which is the standard same-origin gate for a state-changing JSON
- * endpoint.
- *
- * Browsers attach an Origin header to every POST. A cross-origin attacker
- * cannot forge it to our host (Origin is a forbidden header), so a mismatching
- * Origin is conclusive. Requests without an Origin (curl, server-to-server
- * callers, some non-browser clients) are not subject to browser CSRF and pass.
- * A cross-origin JSON POST would also be stopped earlier by the CORS preflight
- * because this route sends no CORS allow headers.
- */
-function isSameOriginRequest(request: Request): boolean {
-  const origin = request.headers.get("origin")
-  if (!origin) return true
-
-  let originHost: string
-  try {
-    originHost = new URL(origin).host
-  } catch {
-    return false
-  }
-
-  // Prefer the Host header (present in production and local dev). Fall back to
-  // the request URL's host, which covers synthetic Request objects in tests.
-  const requestHost = request.headers.get("host") ?? safeRequestUrlHost(request)
-  return requestHost !== null && originHost === requestHost
-}
-
-function safeRequestUrlHost(request: Request): string | null {
-  try {
-    return new URL(request.url).host
-  } catch {
-    return null
-  }
 }

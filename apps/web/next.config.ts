@@ -1,7 +1,7 @@
+import { resolve } from "node:path"
 import { withPostHogConfig } from "@posthog/nextjs-config"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
-import { resolve } from "node:path"
 import { networkInterfaces } from "os"
 
 import { legacyStudioRedirects } from "./src/lib/studio-url"
@@ -18,9 +18,10 @@ function localNetworkOrigins(): string[] {
 const nextConfig: NextConfig = {
   allowedDevOrigins: localNetworkOrigins(),
   // Tag assets and server actions with the Vercel deployment id so an open tab
-  // keeps talking to the build it loaded. Without this, a tab that loaded an
-  // older build posts a server action id the current deployment no longer has,
-  // which breaks in-flight form submissions after a deploy.
+  // keeps talking to the build it loaded and prefetched data stays consistent.
+  // Submit forms now use stable route handlers (ADR 010); this still protects
+  // asset fetches, client-side navigations, and the read-only availability
+  // actions from version skew after a deploy.
   deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   images: {
     remotePatterns: [

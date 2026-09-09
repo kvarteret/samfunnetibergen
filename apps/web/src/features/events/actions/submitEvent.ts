@@ -1,18 +1,23 @@
-"use server"
+// Server-only event-submission logic (document creation and image upload).
+// The HTTP boundaries that invoke these are the stable route handlers at
+// apps/web/src/app/api/events/route.ts and apps/web/src/app/api/events/image/
+// route.ts. This module must not be imported from client components; it is
+// intentionally not a Next.js server action so the submit endpoints' identity
+// is the stable /api/events URL rather than a build-time action id (ADR 010).
 
 import { createClient } from "@sanity/client"
 import { nanoid } from "nanoid"
 import { err, ok, type Result } from "@/lib/result"
 import {
   captureSubmitFailure,
-  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
-  isSubmissionRateLimited,
+  getValidationDiagnostics,
   INVALID_PAYLOAD_ERROR,
+  isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
-import type { FormState } from "../domain/formState"
 import { eventFormSchema } from "../domain/eventFormSchema"
+import type { FormState } from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,

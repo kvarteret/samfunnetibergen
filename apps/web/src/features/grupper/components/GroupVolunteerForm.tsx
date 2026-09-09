@@ -22,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import { isStaleDeploymentError } from "@/lib/submission-messages"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
 import {
@@ -291,11 +290,8 @@ export function GroupVolunteerForm({
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              const staleDeployment = isStaleDeploymentError(error)
               form.setErrorMap({
-                onServer: (staleDeployment
-                  ? t("staleDeploymentError")
-                  : t("submitErrorFallback")) as never,
+                onServer: t("submitErrorFallback") as never,
               })
               requestExceptionFeedback("volunteer_application")
               posthog.captureException(
@@ -303,9 +299,7 @@ export function GroupVolunteerForm({
                 {
                   form_id: "volunteer_application",
                   validation_stage: "client",
-                  failure_branch: staleDeployment
-                    ? "stale_deployment"
-                    : "unexpected_submission_failure",
+                  failure_branch: "unexpected_submission_failure",
                   rejection_message:
                     error instanceof Error ? error.message : String(error),
                   rejection_name:
