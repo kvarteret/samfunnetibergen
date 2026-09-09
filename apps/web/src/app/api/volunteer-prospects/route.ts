@@ -89,6 +89,17 @@ export async function POST(request: Request) {
   // Personal owns the durable route and client-key counters. This
   // stateless proxy supplies the signed dimensions after local validation.
   const values: VolunteerFormValues = parsed.data
+
+  // Website-only local development has no Personal checkout or database.
+  // Keep schema and honeypot validation above, then acknowledge the request
+  // locally without attempting a network write.
+  if (process.env.KVARTERET_OFFLINE_SUBMISSIONS === "1") {
+    return NextResponse.json(
+      { registrationId: "local-stub", local: true },
+      { status: 201 },
+    )
+  }
+
   let idempotencyKey: string
   try {
     idempotencyKey = resolveVolunteerProspectIdempotencyKey(

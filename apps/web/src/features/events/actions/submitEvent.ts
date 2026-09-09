@@ -69,6 +69,9 @@ export async function uploadEventImage(
     if (await isSubmissionRateLimited("uploadEventImage", UPLOAD_LIMIT)) {
       return err(RATE_LIMIT_ERROR)
     }
+    if (process.env.KV_LOCAL_FIXTURES === "1") {
+      return err("Image uploads are disabled in local fixture mode")
+    }
     const client = getWriteClient()
     const buffer = Buffer.from(await file.arrayBuffer())
     const asset = await client.assets.upload("image", buffer, {
@@ -138,6 +141,10 @@ export async function submitEvent(
 
   if (await isSubmissionRateLimited("submitEvent")) {
     return err(RATE_LIMIT_ERROR)
+  }
+
+  if (process.env.KV_LOCAL_FIXTURES === "1") {
+    return ok("local-stub")
   }
 
   const validatedInput: SubmitEventInput = {

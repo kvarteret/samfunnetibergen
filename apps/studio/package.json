@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "sanity dev",
+    "dev": "node ../../scripts/run-managed.mjs sanity dev",
     "build": "sanity build",
-    "studio": "sanity dev",
+    "studio": "node ../../scripts/run-managed.mjs sanity dev",
     "studio:build": "sanity build",
     "studio:deploy": "sanity deploy",
     "studio:register": "sanity deploy --external",

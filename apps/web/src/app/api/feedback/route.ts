@@ -40,6 +40,13 @@ export async function POST(request: Request) {
     return Response.json({ ok: true }, { status: 200 })
   }
 
+  // Website-only local development has no Personal checkout or database.
+  // Keep validation and honeypot handling real, but make the final write an
+  // explicit local stub so this route cannot fall back to production.
+  if (process.env.KVARTERET_OFFLINE_SUBMISSIONS === "1") {
+    return Response.json({ ok: true, local: true }, { status: 200 })
+  }
+
   const feedbackType = ALLOWED_TYPES.has(String(raw.type))
     ? String(raw.type)
     : "improvement"

@@ -7,9 +7,9 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev": "next dev -p 3187",
-    "build": "next build",
-    "start": "next start -p 3187",
+    "dev": "node ../../scripts/run-managed.mjs next dev -p 3187",
+    "build": "node ../../scripts/run-managed.mjs next build",
+    "start": "node ../../scripts/run-managed.mjs next start -p 3187",
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
     "events:audit:broadcast": "tsx scripts/audit-broadcast-readiness.ts",

@@ -20,6 +20,7 @@ import {
 } from "../queries"
 import { compact, cleanOpeningHours, type FetchOptions } from "./shared"
 import { DEFAULT_LOCALE } from "../localized"
+import { isLocalFixtureMode } from "../offline"
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
@@ -47,6 +48,7 @@ export async function fetchHomePageContent(
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<HomePageContent | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: homePageNbQuery,
     params: { locale },
@@ -58,6 +60,7 @@ export async function fetchHomePageContent(
 export async function fetchNavbar(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<NavbarContent | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({ query: navbarQuery, params: { locale } })
   return data
 }
@@ -75,6 +78,7 @@ export async function fetchSponsorsPageContent(
 }
 
 export async function fetchPageSlugs(): Promise<string[]> {
+  if (isLocalFixtureMode) return []
   const pages = await sanityClient.fetch(
     pageSlugsQuery,
     {},
@@ -91,6 +95,7 @@ export async function fetchPageBySlug(
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
 ): Promise<PageContent | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: pageBySlugQuery,
     params: { slug, locale },
@@ -100,6 +105,7 @@ export async function fetchPageBySlug(
 }
 
 export async function fetchKontaktPage(locale: AppLocale = DEFAULT_LOCALE) {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: kontaktPageQuery,
     params: { locale },
@@ -108,6 +114,7 @@ export async function fetchKontaktPage(locale: AppLocale = DEFAULT_LOCALE) {
 }
 
 export async function fetchFooter(locale: AppLocale = DEFAULT_LOCALE) {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({ query: footerQuery, params: { locale } })
   if (!data) return data
   return {
@@ -123,6 +130,7 @@ export async function fetchFooter(locale: AppLocale = DEFAULT_LOCALE) {
 export async function fetchHouseHours(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<HouseHoursContent | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: houseHoursQuery,
     params: { locale },
@@ -145,6 +153,7 @@ export async function fetchHouseHours(
 export async function fetchSiteLogo(
   options: FetchOptions = {},
 ): Promise<SiteLogoContent | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: siteLogoQuery,
     stega: options.stega,
@@ -153,6 +162,7 @@ export async function fetchSiteLogo(
 }
 
 export async function fetchLinkInBio(locale: AppLocale = DEFAULT_LOCALE) {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: linkInBioQuery,
     params: { locale },
@@ -167,6 +177,7 @@ export type UsefulInfoPage = NonNullable<
 export async function fetchUsefulInfoPage(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<UsefulInfoPage | null> {
+  if (isLocalFixtureMode) return null
   const { data } = await sanityFetch({
     query: usefulInfoPageQuery,
     params: { locale },
