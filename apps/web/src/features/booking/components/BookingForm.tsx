@@ -34,7 +34,7 @@ import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
-import { submitRoomBooking } from "../actions/submit-room-booking"
+import { submitRoomBookingRequest } from "../api/submit-room-booking"
 import {
   durationHoursBetween,
   findRoomConflicts,
@@ -139,7 +139,7 @@ export function BookingForm({
     onSubmit: async ({ value, formApi }) => {
       bookingSubmissionIdRef.current ??= crypto.randomUUID()
       submissionAttemptRef.current += 1
-      const result = await submitRoomBooking({
+      const result = await submitRoomBookingRequest({
         ...value,
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
