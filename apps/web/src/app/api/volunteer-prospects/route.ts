@@ -19,6 +19,7 @@ import {
   captureSubmitFailure,
   getValidationDiagnostics,
 } from "@/lib/submission"
+import { remoteWritesDisabled } from "@/lib/runtime-mode"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
@@ -84,6 +85,11 @@ export async function POST(request: Request) {
       { detail: "Ugyldig forespørsel — påkrevde felt mangler." },
       { status: 400 },
     )
+  }
+
+  // The local kv profile validates the form but never contacts Personal.
+  if (remoteWritesDisabled()) {
+    return NextResponse.json({ registrationId: "local" }, { status: 201 })
   }
 
   // Personal owns the durable route and client-key counters. This

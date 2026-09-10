@@ -1,6 +1,7 @@
 import "server-only"
 
 import { injectActiveTraceContext } from "@/lib/observability"
+import { remoteWritesDisabled } from "@/lib/runtime-mode"
 
 export interface NowPlayingState {
   authorized: boolean
@@ -54,6 +55,8 @@ function parseNowPlaying(payload: unknown): NowPlayingState {
 }
 
 export async function fetchNowPlaying(): Promise<NowPlayingState | null> {
+  if (remoteWritesDisabled()) return null
+
   const headers: Record<string, string> = { Accept: "application/json" }
   injectActiveTraceContext(headers)
   const response = await fetch(`${PERSONAL_APP_BASE_URL}/api/now-playing`, {

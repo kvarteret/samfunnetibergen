@@ -8,6 +8,7 @@ import {
   isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
+import { remoteWritesDisabled } from "@/lib/runtime-mode"
 
 const PERSONAL_APP_BASE_URL =
   process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
@@ -48,6 +49,10 @@ export async function POST(request: Request) {
     : "improvement"
   const contactEmail =
     typeof raw.contactEmail === "string" ? raw.contactEmail.trim() : null
+
+  if (remoteWritesDisabled()) {
+    return Response.json({ ok: true, local: true }, { status: 200 })
+  }
 
   try {
     const outboundHeaders: Record<string, string> = {

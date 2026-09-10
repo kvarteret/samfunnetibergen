@@ -1,15 +1,10 @@
 import { emitOperationalEvent } from "@/lib/observability"
+import { remoteWritesDisabled } from "@/lib/runtime-mode"
 import { isSubmissionRateLimited, RATE_LIMIT_ERROR } from "@/lib/submission"
 
 export async function POST(request: Request) {
   if (await isSubmissionRateLimited("slack-feedback")) {
     return Response.json({ detail: RATE_LIMIT_ERROR }, { status: 429 })
-  }
-
-  const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK
-
-  if (!webhookUrl) {
-    return Response.json({ detail: "Webhook not configured" }, { status: 500 })
   }
 
   let body: unknown
@@ -38,6 +33,16 @@ export async function POST(request: Request) {
 
   if (!message) {
     return Response.json({ detail: "Message is required" }, { status: 400 })
+  }
+
+  if (remoteWritesDisabled()) {
+    return Response.json({ ok: true, local: true }, { status: 200 })
+  }
+
+  const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL
+
+  if (!webhookUrl) {
+    return Response.json({ detail: "Webhook not configured" }, { status: 500 })
   }
 
   try {
