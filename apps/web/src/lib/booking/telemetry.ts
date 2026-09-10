@@ -1,10 +1,16 @@
 import { randomUUID } from "node:crypto"
 import { cookies } from "next/headers"
+import { after } from "next/server"
+import type { BookingAnalyticsOwner } from "./analytics-ownership"
 import { z } from "zod"
 import { CrescatSubmissionOutcomeUnknownError } from "@/lib/integrations/crescat/client"
-import { emitOperationalEvent } from "@/lib/observability"
-import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/distinct-id"
-import { getPostHogClient } from "@/lib/posthog-server"
+import {
+  emitOperationalEvent,
+  prepareOperationalEvent,
+  recordDiagnostic,
+} from "@/lib/observability"
+
+import { getPostHogClient, getBookingPostHogClient } from "@/lib/posthog-server"
 
 /** Client-supplied retry correlation for a booking submission. The browser
  * reuses the UUID across retries of the same populated form and increments
@@ -13,6 +19,7 @@ import { getPostHogClient } from "@/lib/posthog-server"
 export interface SubmissionTelemetry {
   bookingSubmissionId?: string
   submissionAttempt?: number
+  analyticsDisabled?: boolean
 }
 
 export type BookingKind = "room" | "karaoke"
@@ -22,30 +29,44 @@ export type BookingOutcome =
   | "failed"
   | "outcome_unknown"
 
-const PSEUDONYMOUS_DISTINCT_ID = /^[A-Za-z0-9][A-Za-z0-9._:$-]{0,255}$/
-
-function serverBookingAnalyticsEnabled(): boolean {
-  return (
-    process.env.BOOKING_ANALYTICS_OWNERSHIP?.trim().toLowerCase() === "server"
-  )
+export function resolveBookingAnalyticsOwner(): BookingAnalyticsOwner {
+  const mode = process.env.BOOKING_ANALYTICS_OWNERSHIP?.trim().toLowerCase()
+  return mode === "server" || mode === "disabled" ? mode : "legacy"
 }
 
-async function getBookingDistinctId(): Promise<string> {
-  try {
-    const cookieStore = await cookies()
-    const distinctId = getPostHogDistinctIdFromCookie(cookieStore.toString())
-    return distinctId && PSEUDONYMOUS_DISTINCT_ID.test(distinctId)
-      ? distinctId
-      : "anonymous"
-  } catch {
-    return "anonymous"
+export function parseBookingIdentity(raw: string | undefined): {
+  distinctId: string
+  identityScope: "aggregate" | "pseudonymous"
+} {
+  const fallback = {
+    distinctId: "anonymous",
+    identityScope: "aggregate" as const,
   }
+  if (!raw || raw.length > 8192) return fallback
+  try {
+    const value = JSON.parse(raw) as { distinct_id?: unknown }
+    // PostHog's current browser-generated IDs are UUIDs (including UUIDv7).
+    const id = z.string().uuid().safeParse(value.distinct_id)
+    return id.success
+      ? { distinctId: id.data, identityScope: "pseudonymous" }
+      : fallback
+  } catch {
+    return fallback
+  }
+}
+
+async function getBookingIdentity() {
+  const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+  if (!token) return parseBookingIdentity(undefined)
+  const jar = await cookies()
+  return parseBookingIdentity(jar.get(`ph_${token}_posthog`)?.value)
 }
 
 export async function emitBookingOutcome(input: {
   bookingKind: BookingKind
   outcome: BookingOutcome
   bookingSubmissionId: string
+  analyticsOwner?: BookingAnalyticsOwner
   reasonCode?: string
   failureStage?: string
   durationMs?: number
@@ -53,70 +74,63 @@ export async function emitBookingOutcome(input: {
 }): Promise<string> {
   const eventId = randomUUID()
   const occurredAt = new Date()
+  const owner = input.analyticsOwner ?? resolveBookingAnalyticsOwner()
   const event = `booking.request.${input.outcome}`
-  const fields = {
+  const occurrence = prepareOperationalEvent(event, {
     event_id: eventId,
     occurred_at: occurredAt.toISOString(),
     domain_event_id: eventId,
-    schema_version: 1,
     source: "server",
     booking_kind: input.bookingKind,
     booking_submission_id: input.bookingSubmissionId,
-    outcome: input.outcome,
     reason_code: input.reasonCode,
     failure_stage: input.failureStage,
     duration_ms: input.durationMs,
     provider_http_status: input.providerHttpStatus,
-  }
-
+  })
+  if (!occurrence) return eventId
   try {
-    emitOperationalEvent(event, fields)
+    emitOperationalEvent(event, occurrence.fields)
   } catch {
-    // Logging must not change the booking response.
+    recordDiagnostic("sink_failure")
   }
 
-  if (input.outcome === "accepted" && serverBookingAnalyticsEnabled()) {
+  if (input.outcome === "accepted" && owner === "server") {
     try {
-      const distinctId = await getBookingDistinctId()
-      const delivery = getPostHogClient()
-        .captureImmediate({
-          distinctId,
-          event:
-            input.bookingKind === "room"
-              ? "room_booking_submitted"
-              : "karaoke_booking_submitted",
-          uuid: eventId,
-          timestamp: occurredAt,
-          properties: {
-            $process_person_profile: false,
-            event_id: eventId,
-            domain_event_id: eventId,
-            schema_version: 1,
-            source: "server",
-            booking_kind: input.bookingKind,
-            booking_submission_id: input.bookingSubmissionId,
-            outcome: "accepted",
-            duration_ms: input.durationMs,
-            provider_http_status: input.providerHttpStatus,
-          },
-        })
-        .catch(() => undefined)
-      let timeout: ReturnType<typeof setTimeout> | undefined
-      try {
-        await Promise.race([
-          delivery,
-          new Promise<void>(resolve => {
-            timeout = setTimeout(resolve, 2_000)
-          }),
-        ])
-      } finally {
-        if (timeout !== undefined) clearTimeout(timeout)
-      }
+      after(async () => {
+        try {
+          const identity = await getBookingIdentity()
+          const fields = occurrence.fields
+          await getBookingPostHogClient().captureImmediate({
+            distinctId: identity.distinctId,
+            event:
+              input.bookingKind === "room"
+                ? "room_booking_submitted"
+                : "karaoke_booking_submitted",
+            uuid: eventId,
+            timestamp: occurredAt,
+            properties: {
+              $process_person_profile: false,
+              identity_scope: identity.identityScope,
+              event_id: eventId,
+              domain_event_id: eventId,
+              schema_version: 1,
+              source: "server",
+              booking_kind: fields.booking_kind,
+              booking_submission_id: fields.booking_submission_id,
+              outcome: fields.outcome,
+              duration_ms: fields.duration_ms,
+              provider_http_status: fields.provider_http_status,
+            },
+          })
+        } catch {
+          recordDiagnostic("sink_failure")
+        }
+      })
     } catch {
-      // Analytics is a best-effort projection and must not alter booking success.
+      recordDiagnostic("sink_failure")
     }
   }
-
   return eventId
 }
 

@@ -30,7 +30,8 @@ class InfoAndAboveProcessor implements LogRecordProcessor {
     if (
       (logRecord.severityNumber ?? 0) < INFO_SEVERITY &&
       !DEBUG_DOMAIN_EVENTS.has(eventName)
-    ) return
+    )
+      return
     try {
       this.delegate.onEmit(logRecord)
     } catch {

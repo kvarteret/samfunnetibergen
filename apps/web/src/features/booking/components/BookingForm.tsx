@@ -4,6 +4,7 @@ import { useForm, useStore } from "@tanstack/react-form"
 import { ArrowRight, Loader2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
+import { browserOwnsBookingConversion } from "@/lib/booking/analytics-ownership"
 import { type FormEvent, useEffect, useId, useRef, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -144,6 +145,7 @@ export function BookingForm({
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
         submissionAttempt: submissionAttemptRef.current,
+        analyticsDisabled: posthog.has_opted_out_capturing(),
       })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
@@ -153,6 +155,23 @@ export function BookingForm({
       if (honeypot.trim()) return
 
       try {
+        if (browserOwnsBookingConversion(result)) {
+          posthog.capture("room_booking_submitted", {
+            booking_submission_id: bookingSubmissionIdRef.current,
+            booker_type: value.bookerType,
+            crescat_http_status: result.value,
+            end_date: value.endDate || value.startDate,
+            end_time: value.endTime,
+            free_or_paid: value.freeOrPaid,
+            open_or_closed: value.openOrClosed,
+            promote: value.promote === "ja",
+            room_id: value.selectedRoomIds[0],
+            room_ids: value.selectedRoomIds,
+            start_date: value.startDate,
+            start_time: value.startTime,
+            submission_attempt: submissionAttemptRef.current,
+          })
+        }
         posthog.capture("booking_success_shown", {
           booking_kind: "room",
           submission_attempt: submissionAttemptRef.current,
@@ -160,6 +179,8 @@ export function BookingForm({
       } catch {
         // The success UI must not depend on analytics availability.
       }
+      bookingSubmissionIdRef.current = null
+      submissionAttemptRef.current = 0
     },
   })
   const values = useStore(form.store, state => state.values)

@@ -1,11 +1,17 @@
 "use server"
 
+import type {
+  BookingAnalyticsOwner,
+  BookingAnalyticsResult,
+} from "@/lib/booking/analytics-ownership"
+
 import { z } from "zod"
 
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
   emitBookingOutcome,
+  resolveBookingAnalyticsOwner,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
@@ -128,6 +134,18 @@ function enrichDescription(
 
 export async function submitKaraokeBooking(
   input: KaraokeFormState & { honeypot?: string } & SubmissionTelemetry,
+): Promise<Result<number> & BookingAnalyticsResult> {
+  const analyticsOwner =
+    input.analyticsDisabled === true
+      ? "disabled"
+      : resolveBookingAnalyticsOwner()
+  const result = await submitKaraokeBookingWithOwner(input, analyticsOwner)
+  return { ...result, analytics_owner: analyticsOwner }
+}
+
+async function submitKaraokeBookingWithOwner(
+  input: KaraokeFormState & { honeypot?: string } & SubmissionTelemetry,
+  analyticsOwner: BookingAnalyticsOwner,
 ): Promise<Result<number>> {
   const { bookingSubmissionId, submissionAttempt } =
     resolveSubmissionTelemetry(input)
@@ -252,6 +270,7 @@ export async function submitKaraokeBooking(
       await emitBookingOutcome({
         bookingKind: "karaoke",
         outcome: "accepted",
+        analyticsOwner,
         bookingSubmissionId,
         durationMs: Math.round(performance.now() - startedAt),
         providerHttpStatus: result.value,

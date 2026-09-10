@@ -24,3 +24,20 @@ export function getPostHogClient(): PostHog {
   }
   return posthogClient
 }
+
+// Immediate post-response conversions have their own bounded transport policy.
+let bookingClient: PostHog | null = null
+export function getBookingPostHogClient(): PostHog {
+  bookingClient ??= new PostHog(
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!,
+    {
+      host: POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0,
+      requestTimeout: 2000,
+      fetchRetryCount: 0,
+      disableGeoip: true,
+    },
+  )
+  return bookingClient
+}

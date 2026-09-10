@@ -1,5 +1,10 @@
 "use server"
 
+import type {
+  BookingAnalyticsOwner,
+  BookingAnalyticsResult,
+} from "@/lib/booking/analytics-ownership"
+
 import { z } from "zod"
 
 import {
@@ -20,6 +25,7 @@ import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
   emitBookingOutcome,
+  resolveBookingAnalyticsOwner,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
@@ -174,17 +180,23 @@ async function isAllowedByOpeningHours(
 
 export async function submitRoomBooking(
   input: BookingFormState & { honeypot?: string } & SubmissionTelemetry,
-): Promise<Result<number>> {
+): Promise<Result<number> & BookingAnalyticsResult> {
+  const analyticsOwner =
+    input.analyticsDisabled === true
+      ? "disabled"
+      : resolveBookingAnalyticsOwner()
   const { bookingSubmissionId, submissionAttempt } =
     resolveSubmissionTelemetry(input)
   return withOperationalSpan("booking.submit", async span => {
     span.setAttribute("booking_submission_id", bookingSubmissionId)
     span.setAttribute("submission_attempt", submissionAttempt)
-    return submitRoomBookingWithinSpan(
+    const result = await submitRoomBookingWithinSpan(
       input,
       bookingSubmissionId,
       submissionAttempt,
+      analyticsOwner,
     )
+    return { ...result, analytics_owner: analyticsOwner }
   })
 }
 
@@ -192,6 +204,7 @@ async function submitRoomBookingWithinSpan(
   input: BookingFormState & { honeypot?: string },
   bookingSubmissionId: string,
   submissionAttempt: number,
+  analyticsOwner: BookingAnalyticsOwner,
 ): Promise<Result<number>> {
   const startedAt = performance.now()
   // Silently accept honeypot hits — nothing is forwarded to Crescat.
@@ -262,7 +275,10 @@ async function submitRoomBookingWithinSpan(
     }
 
     if (await hasVenueCalendarConflict(parsed.data)) {
-      await captureRoomBookingRejection("calendar_conflict", bookingSubmissionId)
+      await captureRoomBookingRejection(
+        "calendar_conflict",
+        bookingSubmissionId,
+      )
       return err(
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
       )
@@ -279,6 +295,7 @@ async function submitRoomBookingWithinSpan(
       await emitBookingOutcome({
         bookingKind: "room",
         outcome: "accepted",
+        analyticsOwner,
         bookingSubmissionId,
         durationMs: Math.round(performance.now() - startedAt),
         providerHttpStatus: result.value,

@@ -2,6 +2,7 @@
 
 import { useForm, useStore } from "@tanstack/react-form"
 import posthog from "posthog-js"
+import { browserOwnsBookingConversion } from "@/lib/booking/analytics-ownership"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
 import { ErrorSummary } from "@/components/ui/error-summary"
@@ -102,6 +103,7 @@ export function KaraokeForm({
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
         submissionAttempt: submissionAttemptRef.current,
+        analyticsDisabled: posthog.has_opted_out_capturing(),
       })
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
@@ -112,6 +114,19 @@ export function KaraokeForm({
       if (honeypot.trim()) return
 
       try {
+        const submitted = deriveKaraokeState(value)
+        if (browserOwnsBookingConversion(result)) {
+          posthog.capture("karaoke_booking_submitted", {
+            price_type: value.priceType,
+            number_of_people: submitted.people,
+            duration_hours: value.duration,
+            total_price: submitted.totalPrice,
+            start_date: submitted.bookingStartDate,
+            crescat_http_status: result.value,
+            booking_submission_id: bookingSubmissionIdRef.current,
+            submission_attempt: submissionAttemptRef.current,
+          })
+        }
         posthog.capture("booking_success_shown", {
           booking_kind: "karaoke",
           submission_attempt: submissionAttemptRef.current,
@@ -120,6 +135,8 @@ export function KaraokeForm({
         // A successful Crescat booking must not become a visible failure if
         // client analytics is unavailable.
       }
+      bookingSubmissionIdRef.current = null
+      submissionAttemptRef.current = 0
     },
   })
   const values = useStore(form.store, state => state.values)

@@ -16,7 +16,18 @@ const {
   spanSetAttributeMock: vi.fn(),
 }))
 
+const afterCallbacks = vi.hoisted(() => [] as Array<() => Promise<void>>)
+vi.mock("next/server", () => ({
+  after: (callback: () => Promise<void>) => afterCallbacks.push(callback),
+}))
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => undefined }),
+}))
+
 vi.mock("@/lib/posthog-server", () => ({
+  getBookingPostHogClient: () => ({
+    captureImmediate: posthogCaptureImmediateMock,
+  }),
   getPostHogClient: () => ({
     capture: posthogCaptureMock,
     captureImmediate: posthogCaptureImmediateMock,
@@ -24,7 +35,8 @@ vi.mock("@/lib/posthog-server", () => ({
   }),
 }))
 
-vi.mock("@/lib/observability", () => ({
+vi.mock("@/lib/observability", async importOriginal => ({
+  ...(await importOriginal<typeof import("@/lib/observability")>()),
   currentTraceFields: () => ({
     trace_id: "abcdef0123456789abcdef0123456789",
     span_id: "abcdef0123456789",
@@ -109,6 +121,7 @@ describe("submitRoomBooking", () => {
     emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
     fetchVenueCalendarMock.mockReset().mockResolvedValue([])
+    afterCallbacks.length = 0
     posthogCaptureMock.mockReset()
     posthogCaptureImmediateMock.mockReset().mockResolvedValue(undefined)
     spanSetAttributeMock.mockReset()
@@ -156,7 +169,7 @@ describe("submitRoomBooking", () => {
 
     const result = await submitRoomBooking(standardPayload())
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: false,
       error:
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
@@ -210,6 +223,8 @@ describe("submitRoomBooking", () => {
         outcome: "accepted",
       }),
     )
+    expect(posthogCaptureImmediateMock).not.toHaveBeenCalled()
+    for (const callback of afterCallbacks) await callback()
     expect(posthogCaptureImmediateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         event: "room_booking_submitted",

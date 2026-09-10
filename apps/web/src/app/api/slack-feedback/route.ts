@@ -39,7 +39,8 @@ export async function POST(request: Request) {
     return Response.json({ ok: true, local: true }, { status: 200 })
   }
 
-  const webhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL
+  const webhookUrl =
+    process.env.SLACK_FEEDBACK_WEBHOOK ?? process.env.SLACK_FEEDBACK_WEBHOOK_URL
 
   if (!webhookUrl) {
     return Response.json({ detail: "Webhook not configured" }, { status: 500 })
