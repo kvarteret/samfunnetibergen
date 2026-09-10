@@ -1,4 +1,8 @@
-"use server"
+// Server-only room-booking submission logic. The HTTP boundary that invokes
+// this is the stable route handler at apps/web/src/app/api/booking/route.ts.
+// This module must not be imported from client components; it is intentionally
+// not a Next.js server action so the submit endpoint's identity is the stable
+// /api/booking URL rather than a build-time action id (see ADR 010).
 
 import { z } from "zod"
 
@@ -13,15 +17,15 @@ import {
 } from "@/features/booking/domain/bookingFormSchema"
 import { buildBookingPayload } from "@/features/booking/domain/formState"
 import {
-  calendarSlugForBookerType,
-  fetchVenueCalendar,
-} from "@/lib/integrations/crescat/calendar"
-import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
+import {
+  calendarSlugForBookerType,
+  fetchVenueCalendar,
+} from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {

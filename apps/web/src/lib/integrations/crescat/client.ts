@@ -1,4 +1,6 @@
-"use server"
+// Server-only Crescat HTTP adapter. Only the booking and karaoke submit
+// modules (which run inside the /api route handlers) import this; it must
+// never be imported from a client component. Not a server action (ADR 010).
 
 import { injectActiveTraceContext } from "@/lib/observability"
 import { err, ok } from "@/lib/result"

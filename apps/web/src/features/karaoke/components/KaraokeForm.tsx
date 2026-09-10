@@ -1,6 +1,7 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
@@ -16,15 +17,11 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import {
-  GENERIC_SUBMIT_ERROR,
-  isStaleDeploymentError,
-  STALE_DEPLOYMENT_ERROR,
-} from "@/lib/submission-messages"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
-import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
-import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
+import { getKaraokeAvailability } from "../api/availability"
+import { submitKaraokeBookingRequest } from "../api/submit-karaoke-booking"
 import {
   KARAOKE_DATE_COUNT,
   slotOverlapsKaraokeBookings,
@@ -48,6 +45,8 @@ import {
 import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
 import { KaraokeFormContext } from "./karaokeFormContext"
 
+const EMPTY_BOOKINGS: CresatBooking[] = []
+
 interface KaraokeFormProps {
   room: KaraokeRoom
   bookableHours?: OpeningHours | null
@@ -64,7 +63,6 @@ export function KaraokeForm({
   initialNow,
 }: KaraokeFormProps) {
   const uid = useId()
-  const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
   const bookingSubmissionIdRef = useRef<string | null>(null)
   const submissionAttemptRef = useRef(0)
@@ -97,7 +95,7 @@ export function KaraokeForm({
     onSubmit: async ({ value, formApi }) => {
       bookingSubmissionIdRef.current ??= crypto.randomUUID()
       submissionAttemptRef.current += 1
-      const result = await submitKaraokeBooking({
+      const result = await submitKaraokeBookingRequest({
         ...value,
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
@@ -149,11 +147,16 @@ export function KaraokeForm({
   const { visibleErrors, markSubmitAttempt, errorFor } =
     useFormErrors(validationErrors)
 
-  useEffect(() => {
-    const end = new Date(today)
-    end.setDate(end.getDate() + KARAOKE_DATE_COUNT)
-    fetchKaraokeAvailability(today, isoDate(end)).then(setBookings)
-  }, [today])
+  const { data: karaokeAvailability } = useQuery({
+    queryKey: ["karaokeAvailability", today],
+    queryFn: () => {
+      const end = new Date(today)
+      end.setDate(end.getDate() + KARAOKE_DATE_COUNT)
+      return getKaraokeAvailability(today, isoDate(end))
+    },
+    placeholderData: keepPreviousData,
+  })
+  const bookings: CresatBooking[] = karaokeAvailability ?? EMPTY_BOOKINGS
 
   useEffect(() => {
     if (!values.startDate || values.startSlotMin === null) return
@@ -208,21 +211,14 @@ export function KaraokeForm({
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              const staleDeployment = isStaleDeploymentError(error)
-              form.setErrorMap({
-                onServer: (staleDeployment
-                  ? STALE_DEPLOYMENT_ERROR
-                  : GENERIC_SUBMIT_ERROR) as never,
-              })
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("karaoke_booking")
               posthog.captureException(
                 new Error("Unexpected karaoke booking submission failure"),
                 {
                   form_id: "karaoke_booking",
                   validation_stage: "client",
-                  failure_branch: staleDeployment
-                    ? "stale_deployment"
-                    : "unexpected_submission_failure",
+                  failure_branch: "unexpected_submission_failure",
                   rejection_message:
                     error instanceof Error ? error.message : String(error),
                   rejection_name:

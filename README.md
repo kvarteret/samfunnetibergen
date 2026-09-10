@@ -25,6 +25,19 @@ The repository uses Node 24.16.0 and npm for dependency installation and
 command execution. `package-lock.json` is the authoritative dependency
 lockfile; Bun is not part of the current local, CI, or production setup.
 
+## Recommended local startup
+
+From the sibling `infra` checkout, run:
+
+```sh
+kv start samfunnet
+```
+
+This is the minimum-barrier development path. It runs the local website against
+published production Sanity content, keeps submissions local, disables remote
+writes, and does not require a Vaultwarden login, `BW_SESSION`, or a local
+environment file. Use the infra checkout for full production-service profiles.
+
 ## Remote Codex development
 
 See [Set up Codex for remote work](docs/how-to/codex-environments.md) for the

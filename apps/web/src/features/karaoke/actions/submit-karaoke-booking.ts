@@ -1,4 +1,9 @@
-"use server"
+// Server-only karaoke-booking submission logic. The HTTP boundary that
+// invokes this is the stable route handler at
+// apps/web/src/app/api/karaoke/route.ts. This module must not be imported
+// from client components; it is intentionally not a Next.js server action so
+// the submit endpoint's identity is the stable /api/karaoke URL rather than a
+// build-time action id (see ADR 010).
 
 import { z } from "zod"
 

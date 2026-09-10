@@ -1,6 +1,7 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { ArrowRight, Loader2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
@@ -25,16 +26,12 @@ import {
 } from "@/lib/opening-hours"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
-import {
-  GENERIC_SUBMIT_ERROR,
-  isStaleDeploymentError,
-  STALE_DEPLOYMENT_ERROR,
-} from "@/lib/submission-messages"
+import { GENERIC_SUBMIT_ERROR } from "@/lib/submission-messages"
 import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
-import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
-import { fetchRoomAvailability } from "../actions/room-availability"
-import { submitRoomBooking } from "../actions/submit-room-booking"
+import { getRoomAvailability } from "../api/availability"
+import { getBookableRooms } from "../api/bookable-rooms"
+import { submitRoomBookingRequest } from "../api/submit-room-booking"
 import {
   durationHoursBetween,
   findRoomConflicts,
@@ -88,12 +85,10 @@ export function BookingForm({
 }: BookingFormProps) {
   const t = useTranslations("RoomBooking")
   const uid = useId()
-  const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
   const bookingSubmissionIdRef = useRef<string | null>(null)
   const submissionAttemptRef = useRef(0)
   const honeypotId = `${uid}-hp`
-  const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(useCurrentTime(initialNow))
   const defaultValues = {
     ...initialBookingState,
@@ -139,7 +134,7 @@ export function BookingForm({
     onSubmit: async ({ value, formApi }) => {
       bookingSubmissionIdRef.current ??= crypto.randomUUID()
       submissionAttemptRef.current += 1
-      const result = await submitRoomBooking({
+      const result = await submitRoomBookingRequest({
         ...value,
         honeypot,
         bookingSubmissionId: bookingSubmissionIdRef.current,
@@ -185,48 +180,43 @@ export function BookingForm({
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
   const bookerType = values.bookerType
 
+  const { data: bookableRooms } = useQuery({
+    queryKey: ["bookableRooms", bookerType],
+    queryFn: () => getBookableRooms(bookerType),
+    placeholderData: keepPreviousData,
+  })
+  const rooms: BookingRoom[] = bookableRooms ?? initialRooms
+
+  useEffect(() => {
+    if (!bookableRooms) return
+    const nextIds = new Set(bookableRooms.map(r => r.crescatRoomId))
+    const stillOffered = form.state.values.selectedRoomIds.filter(id =>
+      nextIds.has(id),
+    )
+    form.setFieldValue(
+      "selectedRoomIds",
+      stillOffered.length ? stillOffered : [],
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookableRooms])
+
   const selectedRooms = rooms.filter(room =>
     values.selectedRoomIds.includes(room.crescatRoomId),
   )
 
-  useEffect(() => {
-    let active = true
-    fetchBookableRoomsForBooker(bookerType).then(next => {
-      if (!active) return
-      setRooms(next)
-      const nextIds = new Set(next.map(r => r.crescatRoomId))
-      const stillOffered = form.state.values.selectedRoomIds.filter(id =>
-        nextIds.has(id),
-      )
-      form.setFieldValue(
-        "selectedRoomIds",
-        stillOffered.length ? stillOffered : [],
-      )
-    })
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookerType])
+  const availabilityWindowStart = values.startDate || today
 
-  const selectedStartDate = values.startDate
-
-  useEffect(() => {
-    let active = true
-    // Fetch around the selected date when available, otherwise fetch from today.
-    const windowStart = selectedStartDate || today
-    fetchRoomAvailability(
-      bookerType,
-      windowStart,
-      addDaysDateOnly(windowStart, DATE_COUNT),
-    ).then(result => {
-      if (active) setBookings(result)
-    })
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookerType, selectedStartDate])
+  const { data: roomAvailability } = useQuery({
+    queryKey: ["roomAvailability", bookerType, availabilityWindowStart],
+    queryFn: () =>
+      getRoomAvailability(
+        bookerType,
+        availabilityWindowStart,
+        addDaysDateOnly(availabilityWindowStart, DATE_COUNT),
+      ),
+    placeholderData: keepPreviousData,
+  })
+  const bookings: CresatBooking[] = roomAvailability ?? []
 
   const selectedRoomIds = values.selectedRoomIds
   const primaryRoom = selectedRooms[0]
@@ -358,21 +348,14 @@ export function BookingForm({
             }
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
-              const staleDeployment = isStaleDeploymentError(error)
-              form.setErrorMap({
-                onServer: (staleDeployment
-                  ? STALE_DEPLOYMENT_ERROR
-                  : GENERIC_SUBMIT_ERROR) as never,
-              })
+              form.setErrorMap({ onServer: GENERIC_SUBMIT_ERROR as never })
               requestExceptionFeedback("room_booking")
               posthog.captureException(
                 new Error("Unexpected room booking submission failure"),
                 {
                   form_id: "room_booking",
                   validation_stage: "client",
-                  failure_branch: staleDeployment
-                    ? "stale_deployment"
-                    : "unexpected_submission_failure",
+                  failure_branch: "unexpected_submission_failure",
                   rejection_message:
                     error instanceof Error ? error.message : String(error),
                   rejection_name:

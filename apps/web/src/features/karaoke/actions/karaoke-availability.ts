@@ -1,4 +1,6 @@
-"use server"
+// Server-only availability lookup. The client fetch goes through the stable
+// GET /api/karaoke/availability route handler; the karaoke submit module calls
+// this directly server-side. Not a server action (see ADR 010).
 
 import {
   type CresatBooking,
