@@ -20,13 +20,21 @@ import {
 
 const INFO_SEVERITY = 9
 const POSTHOG_OTLP_BASE_URL = "https://eu.i.posthog.com/i/v1"
+const DEBUG_DOMAIN_EVENTS = new Set(["volunteer.prospect.forwarded"])
 
 class InfoAndAboveProcessor implements LogRecordProcessor {
   constructor(private readonly delegate: LogRecordProcessor) {}
 
   onEmit(logRecord: SdkLogRecord): void {
-    if ((logRecord.severityNumber ?? 0) >= INFO_SEVERITY) {
+    const eventName = String(logRecord.attributes?.event ?? "")
+    if (
+      (logRecord.severityNumber ?? 0) < INFO_SEVERITY &&
+      !DEBUG_DOMAIN_EVENTS.has(eventName)
+    ) return
+    try {
       this.delegate.onEmit(logRecord)
+    } catch {
+      // Logging export is best effort and must not break the request pipeline.
     }
   }
 

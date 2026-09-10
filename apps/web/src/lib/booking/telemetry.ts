@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto"
+import { cookies } from "next/headers"
 import { z } from "zod"
 import { CrescatSubmissionOutcomeUnknownError } from "@/lib/integrations/crescat/client"
 import { emitOperationalEvent } from "@/lib/observability"
+import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/distinct-id"
 import { getPostHogClient } from "@/lib/posthog-server"
 
 /** Client-supplied retry correlation for a booking submission. The browser
@@ -20,6 +22,26 @@ export type BookingOutcome =
   | "failed"
   | "outcome_unknown"
 
+const PSEUDONYMOUS_DISTINCT_ID = /^[A-Za-z0-9][A-Za-z0-9._:$-]{0,255}$/
+
+function serverBookingAnalyticsEnabled(): boolean {
+  return (
+    process.env.BOOKING_ANALYTICS_OWNERSHIP?.trim().toLowerCase() === "server"
+  )
+}
+
+async function getBookingDistinctId(): Promise<string> {
+  try {
+    const cookieStore = await cookies()
+    const distinctId = getPostHogDistinctIdFromCookie(cookieStore.toString())
+    return distinctId && PSEUDONYMOUS_DISTINCT_ID.test(distinctId)
+      ? distinctId
+      : "anonymous"
+  } catch {
+    return "anonymous"
+  }
+}
+
 export async function emitBookingOutcome(input: {
   bookingKind: BookingKind
   outcome: BookingOutcome
@@ -30,9 +52,11 @@ export async function emitBookingOutcome(input: {
   providerHttpStatus?: number
 }): Promise<string> {
   const eventId = randomUUID()
+  const occurredAt = new Date()
   const event = `booking.request.${input.outcome}`
   const fields = {
     event_id: eventId,
+    occurred_at: occurredAt.toISOString(),
     domain_event_id: eventId,
     schema_version: 1,
     source: "server",
@@ -51,17 +75,18 @@ export async function emitBookingOutcome(input: {
     // Logging must not change the booking response.
   }
 
-  if (input.outcome === "accepted") {
+  if (input.outcome === "accepted" && serverBookingAnalyticsEnabled()) {
     try {
+      const distinctId = await getBookingDistinctId()
       const delivery = getPostHogClient()
         .captureImmediate({
-          distinctId: "anonymous",
+          distinctId,
           event:
             input.bookingKind === "room"
               ? "room_booking_submitted"
               : "karaoke_booking_submitted",
           uuid: eventId,
-          timestamp: new Date(),
+          timestamp: occurredAt,
           properties: {
             $process_person_profile: false,
             event_id: eventId,

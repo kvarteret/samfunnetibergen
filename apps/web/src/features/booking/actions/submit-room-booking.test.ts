@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest"
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest"
 
 const {
   captureExceptionMock,
@@ -104,6 +104,7 @@ function standardPayload(
 
 describe("submitRoomBooking", () => {
   beforeEach(() => {
+    vi.stubEnv("BOOKING_ANALYTICS_OWNERSHIP", "server")
     captureExceptionMock.mockReset()
     emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
@@ -111,6 +112,10 @@ describe("submitRoomBooking", () => {
     posthogCaptureMock.mockReset()
     posthogCaptureImmediateMock.mockReset().mockResolvedValue(undefined)
     spanSetAttributeMock.mockReset()
+  })
+
+  afterAll(() => {
+    vi.unstubAllEnvs()
   })
 
   test("rejects payload with missing required field", async () => {
@@ -217,6 +222,26 @@ describe("submitRoomBooking", () => {
         }),
       }),
     )
+  })
+
+  test("keeps canonical server conversion disabled in legacy ownership mode", async () => {
+    vi.stubEnv("BOOKING_ANALYTICS_OWNERSHIP", "legacy")
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response("", {
+          status: 200,
+          headers: [
+            ["set-cookie", "XSRF-TOKEN=abc123; Path=/"],
+            ["set-cookie", "crescat_session=xyz; Path=/"],
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(new Response("", { status: 201 }))
+
+    const result = await submitRoomBooking(standardPayload())
+
+    expect(result.ok).toBe(true)
+    expect(posthogCaptureImmediateMock).not.toHaveBeenCalled()
   })
 
   test("sends x-xsrf-token header on POST", async () => {

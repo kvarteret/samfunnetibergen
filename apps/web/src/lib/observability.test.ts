@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { buildOperationalAttributes } from "./observability"
+import {
+  buildOperationalAttributes,
+  diagnosticCounts,
+  emitOperationalEvent,
+} from "./observability"
 
 describe("operational observability", () => {
   it("keeps only allowlisted scalar fields and redacts sensitive values", () => {
@@ -39,5 +43,16 @@ describe("operational observability", () => {
       booking_kind: "room",
       provider_http_status: 201,
     })
+  })
+
+  it("drops invalid operational events and records a bounded diagnostic", () => {
+    const before = diagnosticCounts().invalid_field ?? 0
+
+    emitOperationalEvent("booking.request.accepted", {
+      booking_kind: "room",
+      unknown_field: "must not reach a sink",
+    })
+
+    expect(diagnosticCounts().invalid_field).toBeGreaterThan(before)
   })
 })

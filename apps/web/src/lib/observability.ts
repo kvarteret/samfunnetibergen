@@ -11,6 +11,9 @@ import { logs, SeverityNumber } from "@opentelemetry/api-logs"
 
 const tracer = trace.getTracer("samfunnetibergen")
 const logger = logs.getLogger("samfunnetibergen")
+const diagnosticCounters = new Map<string, number>()
+const MAX_DIAGNOSTIC_COUNTER_KEYS = 32
+const MAX_STRING_FIELD_LENGTH = 512
 const RECOVERABLE_BOOKING_FAILURE_STAGES = new Set([
   "network",
   "crescat_timeout",
@@ -43,48 +46,167 @@ const ALLOWED_FIELDS = new Set([
   "trace_id",
 ])
 
+const ALLOWED_OUTCOMES = new Set([
+  "accepted",
+  "rejected",
+  "failed",
+  "outcome_unknown",
+  "success",
+  "failure",
+])
+const ENVELOPE_FIELDS = new Set([
+  "event_id",
+  "schema_version",
+  "occurred_at",
+  "environment",
+  "service",
+  "outcome",
+])
+const EVENT_FIELDS: Record<string, Set<string>> = {
+  "booking.request.accepted": new Set([
+    "booking_submission_id",
+    "domain_event_id",
+    "booking_kind",
+    "source",
+    "provider_http_status",
+    "duration_ms",
+  ]),
+  "booking.request.rejected": new Set([
+    "booking_submission_id",
+    "domain_event_id",
+    "booking_kind",
+    "source",
+    "reason_code",
+    "failure_stage",
+    "duration_ms",
+  ]),
+  "booking.request.failed": new Set([
+    "booking_submission_id",
+    "domain_event_id",
+    "booking_kind",
+    "source",
+    "failure_stage",
+    "reason_code",
+    "duration_ms",
+    "provider_http_status",
+  ]),
+  "booking.request.outcome_unknown": new Set([
+    "booking_submission_id",
+    "domain_event_id",
+    "booking_kind",
+    "source",
+    "failure_stage",
+    "reason_code",
+    "duration_ms",
+    "provider_http_status",
+  ]),
+  "volunteer.prospect.forwarded": new Set(["registration_id"]),
+  "public.events.fetch.failed": new Set(["failure_stage", "error_category"]),
+  "feedback.forward.failed": new Set([
+    "failure_stage",
+    "error_category",
+    "status_code",
+  ]),
+  "slack.feedback.failed": new Set([
+    "failure_stage",
+    "error_category",
+    "status_code",
+  ]),
+}
+const EVENT_FIELD_VALUES: Record<string, Record<string, Set<string>>> = {
+  "booking.request.accepted": {
+    booking_kind: new Set(["room", "karaoke"]),
+    source: new Set(["server"]),
+  },
+  "booking.request.rejected": {
+    booking_kind: new Set(["room", "karaoke"]),
+    source: new Set(["server"]),
+    reason_code: new Set(["opening_hours", "calendar_conflict"]),
+  },
+  "booking.request.failed": {
+    booking_kind: new Set(["room", "karaoke"]),
+    source: new Set(["server"]),
+    failure_stage: new Set([
+      "schema_validation",
+      "normalized_payload",
+      "rate_limit",
+      "crescat_response",
+      "crescat_session",
+      "crescat_timeout",
+      "crescat_outcome_unknown",
+      "network",
+      "unexpected",
+    ]),
+  },
+  "booking.request.outcome_unknown": {
+    booking_kind: new Set(["room", "karaoke"]),
+    source: new Set(["server"]),
+  },
+}
+
 const EVENT_CATALOG = {
   "booking.request.accepted": {
     message: "Booking request accepted by Crescat",
     severityNumber: SeverityNumber.INFO,
     severityText: "INFO",
+    defaultOutcome: "accepted",
   },
   "booking.request.rejected": {
     message: "Booking request rejected by business rules",
     severityNumber: SeverityNumber.INFO,
     severityText: "INFO",
+    defaultOutcome: "rejected",
   },
   "booking.request.failed": {
     message: "Booking request could not be submitted",
     severityNumber: SeverityNumber.ERROR,
     severityText: "ERROR",
+    defaultOutcome: "failed",
   },
   "booking.request.outcome_unknown": {
     message: "Booking request outcome could not be confirmed",
     severityNumber: SeverityNumber.WARN,
     severityText: "WARN",
+    defaultOutcome: "outcome_unknown",
   },
   "volunteer.prospect.forwarded": {
     message: "Volunteer prospect forwarded to Personal",
     severityNumber: SeverityNumber.DEBUG,
     severityText: "DEBUG",
+    defaultOutcome: "success",
   },
   "public.events.fetch.failed": {
     message: "Public event collection unavailable",
     severityNumber: SeverityNumber.ERROR,
     severityText: "ERROR",
+    defaultOutcome: "failed",
   },
   "feedback.forward.failed": {
     message: "Feedback forwarding failed",
     severityNumber: SeverityNumber.ERROR,
     severityText: "ERROR",
+    defaultOutcome: "failed",
   },
   "slack.feedback.failed": {
     message: "Slack feedback delivery failed",
     severityNumber: SeverityNumber.ERROR,
     severityText: "ERROR",
+    defaultOutcome: "failed",
   },
 } as const
+
+function recordDiagnostic(kind: string): void {
+  const key =
+    !diagnosticCounters.has(kind) &&
+    diagnosticCounters.size >= MAX_DIAGNOSTIC_COUNTER_KEYS
+      ? "other"
+      : kind
+  diagnosticCounters.set(key, (diagnosticCounters.get(key) ?? 0) + 1)
+}
+
+export function diagnosticCounts(): Record<string, number> {
+  return Object.fromEntries(diagnosticCounters)
+}
 
 function eventMessage(
   event: string,
@@ -146,7 +268,29 @@ export function emitOperationalEvent(
   fields: Record<string, OperationalField> = {},
 ): void {
   const definition = EVENT_CATALOG[event as keyof typeof EVENT_CATALOG]
-  if (!definition) return
+  if (!definition) {
+    recordDiagnostic("unknown_event")
+    return
+  }
+  const reserved = new Set([
+    "event_id",
+    "occurred_at",
+    "schema_version",
+    "service",
+    "environment",
+  ])
+  const eventFields = {
+    schema_version: 1,
+    event_id: fields.event_id ?? randomUUID(),
+    occurred_at: fields.occurred_at ?? new Date().toISOString(),
+    service: "samfunnetibergen",
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
+    outcome: definition.defaultOutcome,
+    ...Object.fromEntries(
+      Object.entries(fields).filter(([key]) => !reserved.has(key)),
+    ),
+  }
+  if (!isValidOperationalFields(event, eventFields)) return
   const severityNumber =
     event === "booking.request.failed" &&
     RECOVERABLE_BOOKING_FAILURE_STAGES.has(String(fields.failure_stage))
@@ -154,15 +298,6 @@ export function emitOperationalEvent(
       : definition.severityNumber
   const severityText =
     severityNumber === SeverityNumber.WARN ? "WARN" : definition.severityText
-  const eventFields = {
-    schema_version: 1,
-    event_id: randomUUID(),
-    occurred_at: new Date().toISOString(),
-    service: "samfunnetibergen",
-    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
-    outcome: "success",
-    ...fields,
-  }
   try {
     logger.emit({
       severityNumber,
@@ -172,7 +307,58 @@ export function emitOperationalEvent(
     })
   } catch {
     // Operational telemetry is a projection and must not change the request.
+    recordDiagnostic("sink_failure")
   }
+}
+
+function isValidOperationalFields(
+  event: string,
+  fields: Record<string, OperationalField>,
+): boolean {
+  let valid = true
+  for (const [key, value] of Object.entries(fields)) {
+    if (!ALLOWED_FIELDS.has(key) || value === undefined) {
+      if (!ALLOWED_FIELDS.has(key)) {
+        recordDiagnostic("invalid_field")
+        valid = false
+      }
+      continue
+    }
+    if (
+      !ENVELOPE_FIELDS.has(key) &&
+      !(EVENT_FIELDS[event]?.has(key) ?? false)
+    ) {
+      recordDiagnostic("invalid_field")
+      valid = false
+      continue
+    }
+    const allowedValues = EVENT_FIELD_VALUES[event]?.[key]
+    if (allowedValues && !allowedValues.has(String(value))) {
+      recordDiagnostic("invalid_enum")
+      valid = false
+      continue
+    }
+    if (typeof value === "string" && value.length > MAX_STRING_FIELD_LENGTH) {
+      recordDiagnostic("invalid_field")
+      valid = false
+    }
+    if (key === "outcome" && !ALLOWED_OUTCOMES.has(String(value))) {
+      recordDiagnostic("invalid_outcome")
+      valid = false
+    }
+    if (
+      key === "event_id" &&
+      !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$/.test(String(value))
+    ) {
+      recordDiagnostic("invalid_envelope")
+      valid = false
+    }
+    if (key === "occurred_at" && Number.isNaN(Date.parse(String(value)))) {
+      recordDiagnostic("invalid_envelope")
+      valid = false
+    }
+  }
+  return valid
 }
 
 export function buildOperationalAttributes(
@@ -187,7 +373,13 @@ export function buildOperationalAttributes(
 
   for (const [key, value] of Object.entries(fields)) {
     if (ALLOWED_FIELDS.has(key) && value !== undefined) {
+      if (typeof value === "string" && value.length > MAX_STRING_FIELD_LENGTH) {
+        recordDiagnostic("invalid_field")
+        continue
+      }
       attributes[key] = sanitizeFieldValue(value)
+    } else if (value !== undefined) {
+      recordDiagnostic("invalid_field")
     }
   }
 

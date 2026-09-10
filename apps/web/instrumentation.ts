@@ -18,31 +18,44 @@ export const onRequestError: Instrumentation.onRequestError = async (
   context,
 ) => {
   if (process.env.NEXT_RUNTIME !== "nodejs") return
+  try {
+    const posthog = getPostHogClient()
+    const distinctId =
+      getPostHogDistinctIdFromCookie(request.headers.cookie) ?? "anonymous"
+    const digest =
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof error.digest === "string"
+        ? error.digest
+        : undefined
 
-  const posthog = getPostHogClient()
-  const distinctId =
-    getPostHogDistinctIdFromCookie(request.headers.cookie) ?? "anonymous"
-  const digest =
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof error.digest === "string"
-      ? error.digest
-      : undefined
-
-  posthog.captureException(
-    toPostHogException(error),
-    distinctId,
-    getServerRequestExceptionProperties({
-      source: "next-on-request-error",
-      digest,
-      method: request.method,
-      router_kind: context.routerKind,
-      route_path: context.routePath,
-      route_type: context.routeType,
-      render_source: context.renderSource,
-      revalidate_reason: context.revalidateReason,
-    }),
-  )
-  await posthog.flush()
+    posthog.captureException(
+      toPostHogException(error),
+      distinctId,
+      getServerRequestExceptionProperties({
+        source: "next-on-request-error",
+        digest,
+        method: request.method,
+        router_kind: context.routerKind,
+        route_path: context.routePath,
+        route_type: context.routeType,
+        render_source: context.renderSource,
+        revalidate_reason: context.revalidateReason,
+      }),
+    )
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    try {
+      await Promise.race([
+        posthog.flush(),
+        new Promise<void>(resolve => {
+          timeout = setTimeout(resolve, 2_000)
+        }),
+      ])
+    } finally {
+      if (timeout !== undefined) clearTimeout(timeout)
+    }
+  } catch {
+    // Error reporting cannot change the failed request or error response.
+  }
 }
