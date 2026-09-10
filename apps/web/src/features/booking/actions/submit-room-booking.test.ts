@@ -5,18 +5,21 @@ const {
   emitOperationalEventMock,
   fetchVenueCalendarMock,
   posthogCaptureMock,
+  posthogCaptureImmediateMock,
   spanSetAttributeMock,
 } = vi.hoisted(() => ({
   captureExceptionMock: vi.fn(),
   emitOperationalEventMock: vi.fn(),
   fetchVenueCalendarMock: vi.fn(),
   posthogCaptureMock: vi.fn(),
+  posthogCaptureImmediateMock: vi.fn().mockResolvedValue(undefined),
   spanSetAttributeMock: vi.fn(),
 }))
 
 vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: () => ({
     capture: posthogCaptureMock,
+    captureImmediate: posthogCaptureImmediateMock,
     captureException: captureExceptionMock,
   }),
 }))
@@ -106,6 +109,7 @@ describe("submitRoomBooking", () => {
     fetchMock.mockReset()
     fetchVenueCalendarMock.mockReset().mockResolvedValue([])
     posthogCaptureMock.mockReset()
+    posthogCaptureImmediateMock.mockReset().mockResolvedValue(undefined)
     spanSetAttributeMock.mockReset()
   })
 
@@ -152,16 +156,8 @@ describe("submitRoomBooking", () => {
       error:
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
     })
-    expect(posthogCaptureMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        event: "booking_rejected",
-        properties: expect.objectContaining({
-          booking_kind: "room",
-          reason_code: "calendar_conflict",
-          outcome: "rejected",
-        }),
-      }),
-    )
+    expect(posthogCaptureMock).not.toHaveBeenCalled()
+    expect(posthogCaptureImmediateMock).not.toHaveBeenCalled()
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
       "booking.request.rejected",
       expect.objectContaining({
@@ -207,6 +203,18 @@ describe("submitRoomBooking", () => {
         booking_kind: "room",
         provider_http_status: 201,
         outcome: "accepted",
+      }),
+    )
+    expect(posthogCaptureImmediateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "room_booking_submitted",
+        uuid: expect.any(String),
+        properties: expect.objectContaining({
+          domain_event_id: expect.any(String),
+          booking_submission_id: bookingSubmissionId,
+          source: "server",
+          schema_version: 1,
+        }),
       }),
     )
   })

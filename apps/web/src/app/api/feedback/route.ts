@@ -115,15 +115,19 @@ export async function POST(request: Request) {
   }
 
   const page = typeof raw.page === "string" ? raw.page : "ukjent"
-  getPostHogClient().capture({
-    distinctId: "anonymous",
-    event: "feedback_submitted",
-    properties: {
-      feedback_type: feedbackType,
-      page,
-      contact_allowed: Boolean(contactEmail),
-    },
-  })
+  try {
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: "feedback_submitted",
+      properties: {
+        feedback_type: feedbackType,
+        page,
+        contact_allowed: Boolean(contactEmail),
+      },
+    })
+  } catch {
+    // Analytics availability must not change a successful feedback response.
+  }
 
   return Response.json({ ok: true }, { status: 200 })
 }

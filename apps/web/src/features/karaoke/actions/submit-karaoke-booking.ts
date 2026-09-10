@@ -203,7 +203,7 @@ export async function submitKaraokeBooking(
     )
 
     if (!slotAllowed) {
-      emitBookingOutcome({
+      await emitBookingOutcome({
         bookingKind: "karaoke",
         outcome: "rejected",
         bookingSubmissionId,
@@ -214,7 +214,7 @@ export async function submitKaraokeBooking(
     }
 
     if (await hasKaraokeConflict(parsed.data)) {
-      emitBookingOutcome({
+      await emitBookingOutcome({
         bookingKind: "karaoke",
         outcome: "rejected",
         bookingSubmissionId,
@@ -249,7 +249,7 @@ export async function submitKaraokeBooking(
     const result = await postEventRequest(KARAOKE_SLUG, body)
 
     if (result.ok) {
-      emitBookingOutcome({
+      await emitBookingOutcome({
         bookingKind: "karaoke",
         outcome: "accepted",
         bookingSubmissionId,
@@ -259,6 +259,7 @@ export async function submitKaraokeBooking(
       return result
     }
 
+    const failureStage = classifyBookingFailureStage(result.error)
     captureSubmitFailure(
       "karaoke_booking",
       new Error("Crescat karaoke booking request failed"),
@@ -271,16 +272,16 @@ export async function submitKaraokeBooking(
     )
     captureBookingFailureEvent(
       "karaoke_booking_submit_failed",
-      classifyBookingFailureStage(result.error),
+      failureStage,
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitBookingOutcome({
+    await emitBookingOutcome({
       bookingKind: "karaoke",
       outcome: "failed",
       bookingSubmissionId,
       durationMs: Math.round(performance.now() - startedAt),
-      failureStage: "crescat",
+      failureStage,
     })
     return err(GENERIC_SUBMIT_ERROR)
   } catch (error) {
@@ -300,7 +301,7 @@ export async function submitKaraokeBooking(
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitBookingOutcome({
+    await emitBookingOutcome({
       bookingKind: "karaoke",
       outcome:
         failureStage === "crescat_outcome_unknown"

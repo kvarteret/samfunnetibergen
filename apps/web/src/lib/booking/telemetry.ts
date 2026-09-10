@@ -20,7 +20,7 @@ export type BookingOutcome =
   | "failed"
   | "outcome_unknown"
 
-export function emitBookingOutcome(input: {
+export async function emitBookingOutcome(input: {
   bookingKind: BookingKind
   outcome: BookingOutcome
   bookingSubmissionId: string
@@ -28,11 +28,14 @@ export function emitBookingOutcome(input: {
   failureStage?: string
   durationMs?: number
   providerHttpStatus?: number
-}): string {
+}): Promise<string> {
   const eventId = randomUUID()
   const event = `booking.request.${input.outcome}`
   const fields = {
     event_id: eventId,
+    domain_event_id: eventId,
+    schema_version: 1,
+    source: "server",
     booking_kind: input.bookingKind,
     booking_submission_id: input.bookingSubmissionId,
     outcome: input.outcome,
@@ -48,24 +51,45 @@ export function emitBookingOutcome(input: {
     // Logging must not change the booking response.
   }
 
-  try {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: `booking_${input.outcome}`,
-      properties: {
-        $process_person_profile: false,
-        event_id: eventId,
-        booking_kind: input.bookingKind,
-        booking_submission_id: input.bookingSubmissionId,
-        outcome: input.outcome,
-        reason_code: input.reasonCode,
-        failure_stage: input.failureStage,
-        duration_ms: input.durationMs,
-        provider_http_status: input.providerHttpStatus,
-      },
-    })
-  } catch {
-    // Analytics is a best-effort projection.
+  if (input.outcome === "accepted") {
+    try {
+      const delivery = getPostHogClient()
+        .captureImmediate({
+          distinctId: "anonymous",
+          event:
+            input.bookingKind === "room"
+              ? "room_booking_submitted"
+              : "karaoke_booking_submitted",
+          uuid: eventId,
+          timestamp: new Date(),
+          properties: {
+            $process_person_profile: false,
+            event_id: eventId,
+            domain_event_id: eventId,
+            schema_version: 1,
+            source: "server",
+            booking_kind: input.bookingKind,
+            booking_submission_id: input.bookingSubmissionId,
+            outcome: "accepted",
+            duration_ms: input.durationMs,
+            provider_http_status: input.providerHttpStatus,
+          },
+        })
+        .catch(() => undefined)
+      let timeout: ReturnType<typeof setTimeout> | undefined
+      try {
+        await Promise.race([
+          delivery,
+          new Promise<void>(resolve => {
+            timeout = setTimeout(resolve, 2_000)
+          }),
+        ])
+      } finally {
+        if (timeout !== undefined) clearTimeout(timeout)
+      }
+    } catch {
+      // Analytics is a best-effort projection and must not alter booking success.
+    }
   }
 
   return eventId

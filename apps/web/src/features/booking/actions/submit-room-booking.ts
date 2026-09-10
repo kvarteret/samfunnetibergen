@@ -108,11 +108,11 @@ const payloadSchema = z.object({
 
 export type RoomBookingPayload = z.input<typeof payloadSchema>
 
-function captureRoomBookingRejection(
+async function captureRoomBookingRejection(
   reason: "calendar_conflict" | "opening_hours",
   bookingSubmissionId: string,
-): void {
-  emitBookingOutcome({
+): Promise<void> {
+  await emitBookingOutcome({
     bookingKind: "room",
     outcome: "rejected",
     bookingSubmissionId,
@@ -257,12 +257,12 @@ async function submitRoomBookingWithinSpan(
 
   try {
     if (!(await isAllowedByOpeningHours(parsed.data))) {
-      captureRoomBookingRejection("opening_hours", bookingSubmissionId)
+      await captureRoomBookingRejection("opening_hours", bookingSubmissionId)
       return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
     }
 
     if (await hasVenueCalendarConflict(parsed.data)) {
-      captureRoomBookingRejection("calendar_conflict", bookingSubmissionId)
+      await captureRoomBookingRejection("calendar_conflict", bookingSubmissionId)
       return err(
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
       )
@@ -276,7 +276,7 @@ async function submitRoomBookingWithinSpan(
     )
 
     if (result.ok) {
-      emitBookingOutcome({
+      await emitBookingOutcome({
         bookingKind: "room",
         outcome: "accepted",
         bookingSubmissionId,
@@ -286,6 +286,7 @@ async function submitRoomBookingWithinSpan(
       return result
     }
 
+    const failureStage = classifyBookingFailureStage(result.error)
     captureSubmitFailure("room_booking", new Error(result.error), {
       source: "submit-room-booking",
       failure_branch: "crescat_request_failed",
@@ -296,16 +297,16 @@ async function submitRoomBookingWithinSpan(
     })
     captureBookingFailureEvent(
       "room_booking_submit_failed",
-      classifyBookingFailureStage(result.error),
+      failureStage,
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitBookingOutcome({
+    await emitBookingOutcome({
       bookingKind: "room",
       outcome: "failed",
       bookingSubmissionId,
       durationMs: Math.round(performance.now() - startedAt),
-      failureStage: "crescat",
+      failureStage,
     })
     return err(GENERIC_SUBMIT_ERROR)
   } catch (error) {
@@ -323,7 +324,7 @@ async function submitRoomBookingWithinSpan(
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitBookingOutcome({
+    await emitBookingOutcome({
       bookingKind: "room",
       outcome:
         failureStage === "crescat_outcome_unknown"

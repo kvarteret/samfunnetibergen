@@ -11,6 +11,12 @@ import { logs, SeverityNumber } from "@opentelemetry/api-logs"
 
 const tracer = trace.getTracer("samfunnetibergen")
 const logger = logs.getLogger("samfunnetibergen")
+const RECOVERABLE_BOOKING_FAILURE_STAGES = new Set([
+  "network",
+  "crescat_timeout",
+  "crescat_session",
+  "rate_limit",
+])
 
 const ALLOWED_FIELDS = new Set([
   "event_id",
@@ -19,7 +25,9 @@ const ALLOWED_FIELDS = new Set([
   "environment",
   "service",
   "booking_submission_id",
+  "domain_event_id",
   "booking_kind",
+  "source",
   "provider_http_status",
   "crescat_http_status",
   "duration_ms",
@@ -137,11 +145,15 @@ export function emitOperationalEvent(
   event: string,
   fields: Record<string, OperationalField> = {},
 ): void {
-  const definition = EVENT_CATALOG[event as keyof typeof EVENT_CATALOG] ?? {
-    message: "Application event",
-    severityNumber: SeverityNumber.INFO,
-    severityText: "INFO",
-  }
+  const definition = EVENT_CATALOG[event as keyof typeof EVENT_CATALOG]
+  if (!definition) return
+  const severityNumber =
+    event === "booking.request.failed" &&
+    RECOVERABLE_BOOKING_FAILURE_STAGES.has(String(fields.failure_stage))
+      ? SeverityNumber.WARN
+      : definition.severityNumber
+  const severityText =
+    severityNumber === SeverityNumber.WARN ? "WARN" : definition.severityText
   const eventFields = {
     schema_version: 1,
     event_id: randomUUID(),
@@ -151,12 +163,16 @@ export function emitOperationalEvent(
     outcome: "success",
     ...fields,
   }
-  logger.emit({
-    severityNumber: definition.severityNumber,
-    severityText: definition.severityText,
-    body: eventMessage(event, eventFields, definition.message),
-    attributes: buildOperationalAttributes(event, eventFields),
-  })
+  try {
+    logger.emit({
+      severityNumber,
+      severityText,
+      body: eventMessage(event, eventFields, definition.message),
+      attributes: buildOperationalAttributes(event, eventFields),
+    })
+  } catch {
+    // Operational telemetry is a projection and must not change the request.
+  }
 }
 
 export function buildOperationalAttributes(
