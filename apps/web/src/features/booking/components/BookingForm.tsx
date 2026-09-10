@@ -153,24 +153,12 @@ export function BookingForm({
       if (honeypot.trim()) return
 
       try {
-        posthog.capture("room_booking_submitted", {
-          booking_submission_id: bookingSubmissionIdRef.current,
-          booker_type: value.bookerType,
-          crescat_http_status: result.value,
-          end_date: value.endDate || value.startDate,
-          end_time: value.endTime,
-          free_or_paid: value.freeOrPaid,
-          open_or_closed: value.openOrClosed,
-          promote: value.promote === "ja",
-          room_id: value.selectedRoomIds[0],
-          room_ids: value.selectedRoomIds,
-          start_date: value.startDate,
-          start_time: value.startTime,
+        posthog.capture("booking_success_shown", {
+          booking_kind: "room",
           submission_attempt: submissionAttemptRef.current,
         })
       } catch {
-        // A successful Crescat booking must not become a visible failure if
-        // client analytics is unavailable.
+        // The success UI must not depend on analytics availability.
       }
     },
   })

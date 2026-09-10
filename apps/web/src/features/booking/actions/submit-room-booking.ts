@@ -19,6 +19,7 @@ import {
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
+  emitBookingOutcome,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
@@ -28,17 +29,12 @@ import {
   buildRoomBooking,
   slugForBookerType,
 } from "@/lib/integrations/crescat/room-booking"
-import {
-  currentTraceFields,
-  emitOperationalEvent,
-  withOperationalSpan,
-} from "@/lib/observability"
+import { withOperationalSpan } from "@/lib/observability"
 import {
   hasOpeningHoursRows,
   isSlotAllowedForCombinedHours,
 } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
-import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
 import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
 import {
@@ -114,37 +110,14 @@ export type RoomBookingPayload = z.input<typeof payloadSchema>
 
 function captureRoomBookingRejection(
   reason: "calendar_conflict" | "opening_hours",
-  payload: z.output<typeof payloadSchema>,
   bookingSubmissionId: string,
 ): void {
-  const traceFields = currentTraceFields()
-  try {
-    getPostHogClient().capture({
-      distinctId: "anonymous",
-      event: "room_booking_rejected",
-      properties: {
-        $process_person_profile: false,
-        booking_submission_id: bookingSubmissionId,
-        booker_type: payload.bookerType,
-        end_date: payload.endDate ?? payload.startDate,
-        end_time: payload.endTime,
-        failure_reason: reason,
-        form_id: "room_booking",
-        room_ids: payload.roomIds,
-        source: "server_validation",
-        start_date: payload.startDate,
-        start_time: payload.startTime,
-        trace_id: traceFields.trace_id,
-      },
-    })
-  } catch {
-    // A rejected booking must still return useful feedback if analytics fails.
-  }
-
-  emitOperationalEvent("booking.rejected", {
-    booking_submission_id: bookingSubmissionId,
-    failure_stage: reason,
+  emitBookingOutcome({
+    bookingKind: "room",
     outcome: "rejected",
+    bookingSubmissionId,
+    reasonCode: reason,
+    failureStage: reason,
   })
 }
 
@@ -284,20 +257,12 @@ async function submitRoomBookingWithinSpan(
 
   try {
     if (!(await isAllowedByOpeningHours(parsed.data))) {
-      captureRoomBookingRejection(
-        "opening_hours",
-        parsed.data,
-        bookingSubmissionId,
-      )
+      captureRoomBookingRejection("opening_hours", bookingSubmissionId)
       return err("Valgt tidspunkt er ikke tilgjengelig for dette rommet.")
     }
 
     if (await hasVenueCalendarConflict(parsed.data)) {
-      captureRoomBookingRejection(
-        "calendar_conflict",
-        parsed.data,
-        bookingSubmissionId,
-      )
+      captureRoomBookingRejection("calendar_conflict", bookingSubmissionId)
       return err(
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
       )
@@ -311,16 +276,13 @@ async function submitRoomBookingWithinSpan(
     )
 
     if (result.ok) {
-      try {
-        emitOperationalEvent("booking.submitted", {
-          booking_submission_id: bookingSubmissionId,
-          crescat_http_status: result.value,
-          duration_ms: Math.round(performance.now() - startedAt),
-          outcome: "accepted",
-        })
-      } catch {
-        // A successful Crescat booking remains successful if analytics fails.
-      }
+      emitBookingOutcome({
+        bookingKind: "room",
+        outcome: "accepted",
+        bookingSubmissionId,
+        durationMs: Math.round(performance.now() - startedAt),
+        providerHttpStatus: result.value,
+      })
       return result
     }
 
@@ -338,14 +300,16 @@ async function submitRoomBookingWithinSpan(
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitOperationalEvent("booking.failed", {
-      booking_submission_id: bookingSubmissionId,
-      duration_ms: Math.round(performance.now() - startedAt),
-      failure_stage: "crescat",
+    emitBookingOutcome({
+      bookingKind: "room",
       outcome: "failed",
+      bookingSubmissionId,
+      durationMs: Math.round(performance.now() - startedAt),
+      failureStage: "crescat",
     })
     return err(GENERIC_SUBMIT_ERROR)
   } catch (error) {
+    const failureStage = classifyBookingFailureStage(error)
     captureSubmitFailure("room_booking", error, {
       source: "submit-room-booking",
       failure_branch: "unexpected_submission_failure",
@@ -355,15 +319,19 @@ async function submitRoomBookingWithinSpan(
     })
     captureBookingFailureEvent(
       "room_booking_submit_failed",
-      classifyBookingFailureStage(error),
+      failureStage,
       bookingSubmissionId,
       submissionAttempt,
     )
-    emitOperationalEvent("booking.failed", {
-      booking_submission_id: bookingSubmissionId,
-      duration_ms: Math.round(performance.now() - startedAt),
-      failure_stage: "unexpected",
-      outcome: "failed",
+    emitBookingOutcome({
+      bookingKind: "room",
+      outcome:
+        failureStage === "crescat_outcome_unknown"
+          ? "outcome_unknown"
+          : "failed",
+      bookingSubmissionId,
+      durationMs: Math.round(performance.now() - startedAt),
+      failureStage,
     })
     return err(GENERIC_SUBMIT_ERROR)
   }

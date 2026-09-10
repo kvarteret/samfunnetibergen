@@ -219,9 +219,9 @@ export async function POST(request: Request) {
         } | null
         const registrationId = data?.registrationId
         span.setAttribute("registration_id", registrationId ?? "")
-        emitOperationalEvent("volunteer.application.submitted", {
+        emitOperationalEvent("volunteer.prospect.forwarded", {
           registration_id: registrationId,
-          outcome: "accepted",
+          outcome: "success",
         })
         return NextResponse.json({ registrationId }, { status: 201 })
       },

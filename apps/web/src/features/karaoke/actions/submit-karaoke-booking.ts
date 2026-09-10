@@ -5,6 +5,7 @@ import { z } from "zod"
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
+  emitBookingOutcome,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
@@ -189,6 +190,7 @@ export async function submitKaraokeBooking(
     return err(INVALID_PAYLOAD_ERROR)
   }
 
+  const startedAt = performance.now()
   try {
     const houseHours = await fetchHouseHours()
     const slotAllowed = isSlotAllowed(
@@ -201,10 +203,24 @@ export async function submitKaraokeBooking(
     )
 
     if (!slotAllowed) {
+      emitBookingOutcome({
+        bookingKind: "karaoke",
+        outcome: "rejected",
+        bookingSubmissionId,
+        reasonCode: "opening_hours",
+        failureStage: "opening_hours",
+      })
       return err("Valgt tidspunkt er ikke tilgjengelig for booking.")
     }
 
     if (await hasKaraokeConflict(parsed.data)) {
+      emitBookingOutcome({
+        bookingKind: "karaoke",
+        outcome: "rejected",
+        bookingSubmissionId,
+        reasonCode: "calendar_conflict",
+        failureStage: "calendar_conflict",
+      })
       return err(
         "Valgt tidsrom overlapper en eksisterende booking. Velg et annet tidspunkt.",
       )
@@ -233,6 +249,13 @@ export async function submitKaraokeBooking(
     const result = await postEventRequest(KARAOKE_SLUG, body)
 
     if (result.ok) {
+      emitBookingOutcome({
+        bookingKind: "karaoke",
+        outcome: "accepted",
+        bookingSubmissionId,
+        durationMs: Math.round(performance.now() - startedAt),
+        providerHttpStatus: result.value,
+      })
       return result
     }
 
@@ -252,8 +275,16 @@ export async function submitKaraokeBooking(
       bookingSubmissionId,
       submissionAttempt,
     )
+    emitBookingOutcome({
+      bookingKind: "karaoke",
+      outcome: "failed",
+      bookingSubmissionId,
+      durationMs: Math.round(performance.now() - startedAt),
+      failureStage: "crescat",
+    })
     return err(GENERIC_SUBMIT_ERROR)
   } catch (error) {
+    const failureStage = classifyBookingFailureStage(error)
     captureSubmitFailure(
       "karaoke_booking",
       new Error("Unexpected karaoke booking submission failure"),
@@ -265,10 +296,20 @@ export async function submitKaraokeBooking(
     )
     captureBookingFailureEvent(
       "karaoke_booking_submit_failed",
-      classifyBookingFailureStage(error),
+      failureStage,
       bookingSubmissionId,
       submissionAttempt,
     )
+    emitBookingOutcome({
+      bookingKind: "karaoke",
+      outcome:
+        failureStage === "crescat_outcome_unknown"
+          ? "outcome_unknown"
+          : "failed",
+      bookingSubmissionId,
+      durationMs: Math.round(performance.now() - startedAt),
+      failureStage,
+    })
     return err(GENERIC_SUBMIT_ERROR)
   }
 }

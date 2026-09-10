@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { z } from "zod"
-
+import { CrescatSubmissionOutcomeUnknownError } from "@/lib/integrations/crescat/client"
+import { emitOperationalEvent } from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 
 /** Client-supplied retry correlation for a booking submission. The browser
@@ -10,6 +11,64 @@ import { getPostHogClient } from "@/lib/posthog-server"
 export interface SubmissionTelemetry {
   bookingSubmissionId?: string
   submissionAttempt?: number
+}
+
+export type BookingKind = "room" | "karaoke"
+export type BookingOutcome =
+  | "accepted"
+  | "rejected"
+  | "failed"
+  | "outcome_unknown"
+
+export function emitBookingOutcome(input: {
+  bookingKind: BookingKind
+  outcome: BookingOutcome
+  bookingSubmissionId: string
+  reasonCode?: string
+  failureStage?: string
+  durationMs?: number
+  providerHttpStatus?: number
+}): string {
+  const eventId = randomUUID()
+  const event = `booking.request.${input.outcome}`
+  const fields = {
+    event_id: eventId,
+    booking_kind: input.bookingKind,
+    booking_submission_id: input.bookingSubmissionId,
+    outcome: input.outcome,
+    reason_code: input.reasonCode,
+    failure_stage: input.failureStage,
+    duration_ms: input.durationMs,
+    provider_http_status: input.providerHttpStatus,
+  }
+
+  try {
+    emitOperationalEvent(event, fields)
+  } catch {
+    // Logging must not change the booking response.
+  }
+
+  try {
+    getPostHogClient().capture({
+      distinctId: "anonymous",
+      event: `booking_${input.outcome}`,
+      properties: {
+        $process_person_profile: false,
+        event_id: eventId,
+        booking_kind: input.bookingKind,
+        booking_submission_id: input.bookingSubmissionId,
+        outcome: input.outcome,
+        reason_code: input.reasonCode,
+        failure_stage: input.failureStage,
+        duration_ms: input.durationMs,
+        provider_http_status: input.providerHttpStatus,
+      },
+    })
+  } catch {
+    // Analytics is a best-effort projection.
+  }
+
+  return eventId
 }
 
 export function resolveSubmissionTelemetry(input: SubmissionTelemetry): {
@@ -63,6 +122,9 @@ export function captureBookingFailureEvent(
  * review dashboards group on. A Crescat error message mentioning "sesjon" is a
  * session problem; otherwise a rejected response. */
 export function classifyBookingFailureStage(failure: unknown): string {
+  if (failure instanceof CrescatSubmissionOutcomeUnknownError) {
+    return "crescat_outcome_unknown"
+  }
   if (typeof failure === "string") {
     return failure.includes("sesjon") ? "crescat_session" : "crescat_response"
   }

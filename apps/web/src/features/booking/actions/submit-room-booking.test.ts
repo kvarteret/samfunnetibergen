@@ -154,20 +154,18 @@ describe("submitRoomBooking", () => {
     })
     expect(posthogCaptureMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: "room_booking_rejected",
+        event: "booking_rejected",
         properties: expect.objectContaining({
-          failure_reason: "calendar_conflict",
-          room_ids: [95],
-          source: "server_validation",
-          start_date: "2026-12-24",
-          start_time: "20:00",
+          booking_kind: "room",
+          reason_code: "calendar_conflict",
+          outcome: "rejected",
         }),
       }),
     )
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
-      "booking.rejected",
+      "booking.request.rejected",
       expect.objectContaining({
-        failure_stage: "calendar_conflict",
+        reason_code: "calendar_conflict",
         outcome: "rejected",
       }),
     )
@@ -202,12 +200,12 @@ describe("submitRoomBooking", () => {
     expect(postHeaders.traceparent).toBe(
       "00-abcdef0123456789abcdef0123456789-abcdef0123456789-01",
     )
-    expect(posthogCaptureMock).not.toHaveBeenCalled()
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
-      "booking.submitted",
+      "booking.request.accepted",
       expect.objectContaining({
         booking_submission_id: bookingSubmissionId,
-        crescat_http_status: 201,
+        booking_kind: "room",
+        provider_http_status: 201,
         outcome: "accepted",
       }),
     )

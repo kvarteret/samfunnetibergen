@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import {
   type Attributes,
   context,
@@ -12,11 +13,18 @@ const tracer = trace.getTracer("samfunnetibergen")
 const logger = logs.getLogger("samfunnetibergen")
 
 const ALLOWED_FIELDS = new Set([
+  "event_id",
+  "schema_version",
+  "occurred_at",
+  "environment",
+  "service",
   "booking_submission_id",
+  "booking_kind",
   "crescat_http_status",
   "duration_ms",
   "error_category",
   "failure_stage",
+  "reason_code",
   "origin_trace_id",
   "outcome",
   "registration_id",
@@ -24,6 +32,59 @@ const ALLOWED_FIELDS = new Set([
   "status",
   "trace_id",
 ])
+
+const EVENT_CATALOG = {
+  "booking.request.accepted": {
+    message: "Booking request accepted by Crescat",
+    severityNumber: SeverityNumber.INFO,
+    severityText: "INFO",
+  },
+  "booking.request.rejected": {
+    message: "Booking request rejected by business rules",
+    severityNumber: SeverityNumber.INFO,
+    severityText: "INFO",
+  },
+  "booking.request.failed": {
+    message: "Booking request could not be submitted",
+    severityNumber: SeverityNumber.ERROR,
+    severityText: "ERROR",
+  },
+  "booking.request.outcome_unknown": {
+    message: "Booking request outcome could not be confirmed",
+    severityNumber: SeverityNumber.WARN,
+    severityText: "WARN",
+  },
+  "volunteer.prospect.forwarded": {
+    message: "Volunteer prospect forwarded to Personal",
+    severityNumber: SeverityNumber.DEBUG,
+    severityText: "DEBUG",
+  },
+} as const
+
+function eventMessage(
+  event: string,
+  fields: Record<string, OperationalField>,
+  fallback: string,
+): string {
+  if (!event.startsWith("booking.request.")) return fallback
+  const kind = fields.booking_kind === "karaoke" ? "Karaoke" : "Room"
+  if (event.endsWith("accepted")) {
+    return `${kind} booking request accepted by Crescat`
+  }
+  if (event.endsWith("rejected")) {
+    const reason =
+      fields.reason_code === "opening_hours"
+        ? "time unavailable"
+        : fields.reason_code === "calendar_conflict"
+          ? "time conflicts with an existing booking"
+          : "business rules"
+    return `${kind} booking request rejected: ${reason}`
+  }
+  if (event.endsWith("outcome_unknown")) {
+    return `${kind} booking request outcome could not be confirmed`
+  }
+  return `${kind} booking request could not be submitted`
+}
 
 export type OperationalField = boolean | number | string | undefined
 
@@ -59,11 +120,25 @@ export function emitOperationalEvent(
   event: string,
   fields: Record<string, OperationalField> = {},
 ): void {
-  logger.emit({
+  const definition = EVENT_CATALOG[event as keyof typeof EVENT_CATALOG] ?? {
+    message: "Application event",
     severityNumber: SeverityNumber.INFO,
     severityText: "INFO",
-    body: SENSITIVE_VALUE.test(event) ? "[redacted]" : event,
-    attributes: buildOperationalAttributes(event, fields),
+  }
+  const eventFields = {
+    schema_version: 1,
+    event_id: randomUUID(),
+    occurred_at: new Date().toISOString(),
+    service: "samfunnetibergen",
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
+    outcome: "success",
+    ...fields,
+  }
+  logger.emit({
+    severityNumber: definition.severityNumber,
+    severityText: definition.severityText,
+    body: eventMessage(event, eventFields, definition.message),
+    attributes: buildOperationalAttributes(event, eventFields),
   })
 }
 

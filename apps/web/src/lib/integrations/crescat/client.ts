@@ -6,6 +6,14 @@ import type { CresatResult, EventRequestBody } from "./types"
 
 const BASE_URL = "https://app.crescat.io"
 
+export class CrescatSubmissionOutcomeUnknownError extends Error {
+  constructor(cause?: unknown) {
+    super("Crescat submission outcome could not be confirmed")
+    this.name = "CrescatSubmissionOutcomeUnknownError"
+    this.cause = cause
+  }
+}
+
 // These are the only public Crescat forms this server is allowed to contact.
 // Return complete constant URLs so request input can never influence the
 // outbound origin or path.
@@ -90,11 +98,16 @@ export async function postEventRequest(
     referer: url,
   }
   injectActiveTraceContext(headers)
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    })
+  } catch (error) {
+    throw new CrescatSubmissionOutcomeUnknownError(error)
+  }
 
   if (res.status === 201 || res.status === 200) {
     return ok(res.status)

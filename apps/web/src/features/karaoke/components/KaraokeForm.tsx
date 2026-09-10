@@ -111,16 +111,9 @@ export function KaraokeForm({
 
       if (honeypot.trim()) return
 
-      const submitted = deriveKaraokeState(value)
       try {
-        posthog.capture("karaoke_booking_submitted", {
-          price_type: value.priceType,
-          number_of_people: submitted.people,
-          duration_hours: value.duration,
-          total_price: submitted.totalPrice,
-          start_date: submitted.bookingStartDate,
-          crescat_http_status: result.value,
-          booking_submission_id: bookingSubmissionIdRef.current,
+        posthog.capture("booking_success_shown", {
+          booking_kind: "karaoke",
           submission_attempt: submissionAttemptRef.current,
         })
       } catch {
