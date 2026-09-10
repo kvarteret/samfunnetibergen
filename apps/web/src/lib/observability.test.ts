@@ -28,4 +28,16 @@ describe("operational observability", () => {
 
     expect(attributes.error_category).toBe("[redacted]")
   })
+
+  it("preserves approved provider status fields", () => {
+    const attributes = buildOperationalAttributes("booking.request.accepted", {
+      booking_kind: "room",
+      provider_http_status: 201,
+    })
+
+    expect(attributes).toMatchObject({
+      booking_kind: "room",
+      provider_http_status: 201,
+    })
+  })
 })

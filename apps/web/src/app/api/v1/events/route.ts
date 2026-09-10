@@ -1,6 +1,6 @@
 import {
-  publicApiErrorResponse,
   publicApiConditionalJsonResponse,
+  publicApiErrorResponse,
   publicApiHeadResponse,
   publicApiOptionsResponse,
 } from "@/features/events/api/http"
@@ -11,6 +11,7 @@ import {
 import { publicCollectionResponseSchema } from "@/features/events/api/schemas"
 import { serializePublicOccurrence } from "@/features/events/api/serializers"
 import { fetchPublicEventSet } from "@/features/events/server/public-events"
+import { emitOperationalEvent } from "@/lib/observability"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 function invalidRequest(message: string): Response {
@@ -22,7 +23,11 @@ function errorResponse(error: unknown): Response {
     return invalidRequest(error.message)
   }
 
-  console.error("[public-events-api] Failed to fetch event collection", error)
+  emitOperationalEvent("public.events.fetch.failed", {
+    outcome: "failure",
+    failure_stage: "fetch_or_serialize",
+    error_category: error instanceof Error ? error.name : "unknown",
+  })
   return publicApiErrorResponse(
     "internal_error",
     "The public event collection is temporarily unavailable.",

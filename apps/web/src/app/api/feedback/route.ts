@@ -1,4 +1,7 @@
-import { injectActiveTraceContext } from "@/lib/observability"
+import {
+  emitOperationalEvent,
+  injectActiveTraceContext,
+} from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
   captureSubmitFailure,
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     }
     injectActiveTraceContext(outboundHeaders)
-    await fetch(`${PERSONAL_APP_BASE_URL}/api/v1/feedback`, {
+    const response = await fetch(`${PERSONAL_APP_BASE_URL}/api/v1/feedback`, {
       method: "POST",
       headers: outboundHeaders,
       body: JSON.stringify({
@@ -65,8 +68,34 @@ export async function POST(request: Request) {
       }),
       signal: AbortSignal.timeout(5_000),
     })
+
+    if (!response.ok) {
+      emitOperationalEvent("feedback.forward.failed", {
+        outcome: "failure",
+        failure_stage: "personal_backend_rejected",
+        status_code: response.status,
+      })
+      captureSubmitFailure(
+        "feedback",
+        new Error(`Personal feedback endpoint returned ${response.status}`),
+        {
+          source: "feedback-route",
+          failure_branch: "personal_backend_rejected",
+          status_code: response.status,
+          feedback_type: feedbackType,
+        },
+      )
+      return Response.json(
+        { detail: "Failed to submit feedback" },
+        { status: 502 },
+      )
+    }
   } catch (error) {
-    console.error("[feedback] Failed to forward to personal backend:", error)
+    emitOperationalEvent("feedback.forward.failed", {
+      outcome: "failure",
+      failure_stage: "personal_backend_request_failed",
+      error_category: error instanceof Error ? error.name : "unknown",
+    })
     captureSubmitFailure("feedback", error, {
       source: "feedback-route",
       failure_branch: "personal_backend_request_failed",

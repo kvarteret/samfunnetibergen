@@ -131,10 +131,10 @@ describe("POST /api/volunteer-prospects", () => {
     expect(JSON.stringify(requestInit.headers)).not.toContain(CLIENT_IP)
     expect(posthogCaptureMock).not.toHaveBeenCalled()
     expect(emitOperationalEventMock).toHaveBeenCalledWith(
-      "volunteer.application.submitted",
+      "volunteer.prospect.forwarded",
       expect.objectContaining({
         registration_id: 42,
-        outcome: "accepted",
+        outcome: "success",
       }),
     )
     expect(withOperationalSpanMock).toHaveBeenCalledWith(

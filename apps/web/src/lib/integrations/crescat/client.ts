@@ -1,5 +1,3 @@
-"use server"
-
 import { injectActiveTraceContext } from "@/lib/observability"
 import { err, ok } from "@/lib/result"
 import type { CresatResult, EventRequestBody } from "./types"

@@ -20,6 +20,7 @@ const ALLOWED_FIELDS = new Set([
   "service",
   "booking_submission_id",
   "booking_kind",
+  "provider_http_status",
   "crescat_http_status",
   "duration_ms",
   "error_category",
@@ -30,6 +31,7 @@ const ALLOWED_FIELDS = new Set([
   "registration_id",
   "span_id",
   "status",
+  "status_code",
   "trace_id",
 ])
 
@@ -58,6 +60,21 @@ const EVENT_CATALOG = {
     message: "Volunteer prospect forwarded to Personal",
     severityNumber: SeverityNumber.DEBUG,
     severityText: "DEBUG",
+  },
+  "public.events.fetch.failed": {
+    message: "Public event collection unavailable",
+    severityNumber: SeverityNumber.ERROR,
+    severityText: "ERROR",
+  },
+  "feedback.forward.failed": {
+    message: "Feedback forwarding failed",
+    severityNumber: SeverityNumber.ERROR,
+    severityText: "ERROR",
+  },
+  "slack.feedback.failed": {
+    message: "Slack feedback delivery failed",
+    severityNumber: SeverityNumber.ERROR,
+    severityText: "ERROR",
   },
 } as const
 

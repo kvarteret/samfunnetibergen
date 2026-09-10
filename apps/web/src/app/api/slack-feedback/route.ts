@@ -1,3 +1,4 @@
+import { emitOperationalEvent } from "@/lib/observability"
 import { isSubmissionRateLimited, RATE_LIMIT_ERROR } from "@/lib/submission"
 
 export async function POST(request: Request) {
@@ -48,13 +49,21 @@ export async function POST(request: Request) {
     })
 
     if (!response.ok) {
-      console.error("[slack-feedback] Slack responded with", response.status)
+      emitOperationalEvent("slack.feedback.failed", {
+        outcome: "failure",
+        failure_stage: "provider_rejected",
+        status_code: response.status,
+      })
       return Response.json({ detail: "Failed to send" }, { status: 502 })
     }
 
     return Response.json({ ok: true }, { status: 200 })
   } catch (error) {
-    console.error("[slack-feedback]", error)
+    emitOperationalEvent("slack.feedback.failed", {
+      outcome: "failure",
+      failure_stage: "provider_request_failed",
+      error_category: error instanceof Error ? error.name : "unknown",
+    })
     return Response.json({ detail: "Failed to send" }, { status: 502 })
   }
 }
