@@ -13,17 +13,32 @@ npm ci
 npm run dev:web
 ```
 
-Open [http://localhost:3187](http://localhost:3187) with your browser. Run
+ 
+
+<details>
+
+<summary>Tip: Ensure you have the right version of node! We use mise</summary>
+
+[Mise](https://mise.jdx.dev/) replaces tools such as `direnv` `pyenv`, `nvm`, `asdf`, and `make`. It provides directory based environment switching and auto-configuration of desired language-runtime version based on [mise.toml](./mise.toml).
+
+
+```sh
+mise trust
+```
+
+Mise is told the trust the config file in this repo. Use mise activate to activate the environment.
+
+
+
+Something off? Use `which` node to check that `mise` has shimmed your node. You may need to uninstall nvm. That's fine, mise is better.
+
+</details>
+
+Open [http://localhost:3187](http://localhost:3187) with your browser.
+
+Optional: Run
+
 `npm run dev:studio` in another terminal to start the local Studio.
-
-The website source is under `apps/web/src`. Studio source, Sanity
-configuration, and Sanity-only scripts are under `apps/studio`. Pure event
-generation and inheritance logic shared by both applications is under
-`packages/content-domain`.
-
-The repository uses Node 24.16.0 and npm for dependency installation and
-command execution. `package-lock.json` is the authoritative dependency
-lockfile; Bun is not part of the current local, CI, or production setup.
 
 ## Remote Codex development
 
