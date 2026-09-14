@@ -113,7 +113,10 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
       {hasChildren ? (
         <>
           <AccordionPrimitive.Header>
-            <AccordionPrimitive.Trigger className={linkCls} type="button">
+            <AccordionPrimitive.Trigger
+              className={cn(linkCls, "group")}
+              type="button"
+            >
               {item.label}
               <ChevronDown
                 aria-hidden

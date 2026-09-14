@@ -27,6 +27,13 @@ describe("formatHumanDate", () => {
     expect(formatHumanDate(eventDate("2026-09-21"), labels)).toBe("Mandag")
   })
 
+  test("uses the Oslo calendar day on a UTC server", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-09-13T22:30:00Z"))
+
+    expect(formatHumanDate(eventDate("2026-09-14"), labels)).toBe("I dag")
+  })
+
   test("localizes weekday names", () => {
     const date = new Date("2026-09-16T12:00:00Z")
 

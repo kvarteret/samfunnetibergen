@@ -1,9 +1,11 @@
-import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
+import { TZDate } from "@date-fns/tz"
+import { differenceInCalendarDays } from "date-fns"
 import type { AppLocale } from "@/i18n/routing"
 import type { EventDateEntry } from "../components/EventCard"
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
+const EVENT_TIME_ZONE = "Europe/Oslo"
 const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   dateStyle: "long",
   timeZone: "Europe/Oslo",
@@ -24,12 +26,13 @@ export function formatHumanDate(
   date: EventDateEntry,
   labels: Pick<PrimaryDateLabels, "today" | "tomorrow" | "weekday">,
 ): string | null {
-  const eventDate = new Date(`${date.startDate}T00:00:00`)
-  const daysUntil = differenceInCalendarDays(eventDate, new Date())
+  const eventDate = TZDate.tz(EVENT_TIME_ZONE, date.startDate)
+  const now = TZDate.tz(EVENT_TIME_ZONE, new Date())
+  const daysUntil = differenceInCalendarDays(eventDate, now)
 
   if (daysUntil < 0 || daysUntil > 7) return null
-  if (isToday(eventDate)) return labels.today
-  if (isTomorrow(eventDate)) return labels.tomorrow
+  if (daysUntil === 0) return labels.today
+  if (daysUntil === 1) return labels.tomorrow
   return labels.weekday(eventDate)
 }
 
@@ -46,7 +49,7 @@ export function formatPrimaryDate(
   date: EventDateEntry,
   labels: PrimaryDateLabels,
 ): string {
-  const eventDate = new Date(`${date.startDate}T00:00:00`)
+  const eventDate = TZDate.tz(EVENT_TIME_ZONE, date.startDate)
   const timeRange = date.startTime
     ? formatTimeRange(date.startTime, date.endTime)
     : null
