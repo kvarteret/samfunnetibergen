@@ -35,7 +35,9 @@ persist.
   English localization strings, including language-switch close behavior.
 - [x] (2026-09-14) Ran TypeGen, repository tests/typechecks, lint/format checks,
   web build, and responsive browser verification with implementation states.
-- [ ] Commit, push, and open a GitHub PR without merging or deploying.
+- [x] (2026-09-14) Committed as `ecb3a91`, pushed `codex/mobile-navbar-menu`,
+  and opened [PR #140](https://github.com/kvarteret/samfunnetibergen/pull/140)
+  against `develop`; no merge or deploy performed.
 
 ## Surprises & Discoveries
 
@@ -107,7 +109,7 @@ persist.
 
 ## Outcomes & Retrospective
 
-Implementation and verification are complete; PR delivery remains. The mobile
+Implementation, verification, and PR delivery are complete. The mobile
 dialog now starts collapsed, allows only one primary group at a time, derives
 Vergeordning from published section metadata, keeps Enda mer under Mer, closes
 on links and language navigation, scrolls on short viewports, localizes its
@@ -285,4 +287,6 @@ Collapsible, and the repository's `cn` utility are the dependencies to reuse.
   Vergeordning anchor source-backed through the useful-info section `_key`.
 - 2026-09-14: Implementation and verification completed; recorded the
   source-backed metadata behavior, Node/Turbopack environment workaround, and
-  full check/browser evidence. PR delivery is the remaining step.
+  full check/browser evidence.
+- 2026-09-14: Committed as `ecb3a91`, pushed `codex/mobile-navbar-menu`, and
+  opened PR #140 against `develop`; no merge or deploy performed.
