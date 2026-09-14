@@ -46,8 +46,9 @@ whole event card to its existing localized detail page.
   orange hover backgrounds, unified flat card surfaces across events, groups,
   rooms, sponsors, and services, and aligned event media to 16:9 with white
   weekly-card text on the homepage red surface.
-- [ ] Commit the scoped changes, push the branch, and create a pull request
-  without merging or deploying.
+- [x] (2026-09-14 21:12 Europe/Oslo) Committed the scoped changes, pushed
+  `codex/hs-refresh`, and created PR #143 against `develop`; no merge or
+  deployment was performed.
 
 ## Surprises & Discoveries
 
