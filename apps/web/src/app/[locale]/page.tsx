@@ -6,15 +6,16 @@ import { getTranslations } from "next-intl/server"
 import { type EventDateEntry, type EventSummary } from "@/features/events"
 import {
   computeAllDates,
+  formatHumanDate,
   formatPrimaryDate,
   getRecurringLabel,
 } from "@/features/events/domain/dates"
+import type { PublicEvent } from "@/features/events/domain/events"
 import {
   isPromotableEventKind,
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
-import type { PublicEvent } from "@/features/events/domain/events"
 import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
@@ -70,6 +71,8 @@ type EventCardLabels = {
   recurringMonthly: string
   recurringGeneric: string
 }
+
+type HumanDateLabels = Pick<EventCardLabels, "today" | "tomorrow" | "inNDays">
 
 function toEventSummary(
   event: SanityEvent,
@@ -190,19 +193,29 @@ function capitalize(value: string) {
   return value ? `${value[0]?.toUpperCase()}${value.slice(1)}` : value
 }
 
-function formatPromotedDate(date: EventDateEntry, locale: AppLocale) {
-  const parsed = parseEventDate(date.startDate)
-  return parsed
-    ? dateFormatter(locale, promotedDateOptions).format(parsed)
-    : null
-}
-
-function formatUpcomingDateTime(date: EventDateEntry, locale: AppLocale) {
+function formatPromotedDate(
+  date: EventDateEntry,
+  locale: AppLocale,
+  labels: HumanDateLabels,
+) {
   const parsed = parseEventDate(date.startDate)
   if (!parsed) return null
-  const dateLabel = capitalize(
-    dateFormatter(locale, upcomingDateOptions).format(parsed),
+  return (
+    formatHumanDate(date, labels) ??
+    dateFormatter(locale, promotedDateOptions).format(parsed)
   )
+}
+
+function formatUpcomingDateTime(
+  date: EventDateEntry,
+  locale: AppLocale,
+  labels: HumanDateLabels,
+) {
+  const parsed = parseEventDate(date.startDate)
+  if (!parsed) return null
+  const dateLabel =
+    formatHumanDate(date, labels) ??
+    capitalize(dateFormatter(locale, upcomingDateOptions).format(parsed))
   return date.startTime
     ? `${dateLabel}, ${locale === "en" ? "at" : "kl."} ${date.startTime}`
     : dateLabel
@@ -349,6 +362,7 @@ function HomePromotedEvents({
             <HomePromotedEventCard
               event={toEventSummary(event, today, labels)}
               index={index}
+              labels={labels}
               locale={locale}
             />
           </div>
@@ -385,6 +399,7 @@ function HomeUpcomingEvents({
             >
               <HomeUpcomingEventCard
                 event={toEventSummary(event, today, labels)}
+                labels={labels}
                 locale={locale}
               />
             </div>
@@ -453,16 +468,18 @@ function SectionMark({ className }: { className?: string }) {
 function HomePromotedEventCard({
   event,
   index,
+  labels,
   locale,
 }: {
   event: EventSummary
   index: number
+  labels: HumanDateLabels
   locale: AppLocale
 }) {
   const dates = event.resolvedDates ?? event.dates
   const visibleDates = dates
     .slice(0, 3)
-    .map(date => formatPromotedDate(date, locale))
+    .map(date => formatPromotedDate(date, locale, labels))
     .filter(Boolean)
   const extraDates = Math.max(0, dates.length - visibleDates.length)
   const imageUrl = event.imageUrl
@@ -522,14 +539,16 @@ function HomePromotedEventCard({
 
 function HomeUpcomingEventCard({
   event,
+  labels,
   locale,
 }: {
   event: EventSummary
+  labels: HumanDateLabels
   locale: AppLocale
 }) {
   const primaryDate = (event.resolvedDates ?? event.dates)[0]
   const dateLabel = primaryDate
-    ? formatUpcomingDateTime(primaryDate, locale)
+    ? formatUpcomingDateTime(primaryDate, locale, labels)
     : null
   const imageUrl = event.imageUrl
     ? sanityImageUrl(event.imageUrl, { height: 480, width: 640 })

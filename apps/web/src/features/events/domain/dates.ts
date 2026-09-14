@@ -21,26 +21,30 @@ export interface PrimaryDateLabels {
   inNDays: (n: number) => string
 }
 
+export function formatHumanDate(
+  date: EventDateEntry,
+  labels: Pick<PrimaryDateLabels, "today" | "tomorrow" | "inNDays">,
+): string | null {
+  const eventDate = new Date(`${date.startDate}T00:00:00`)
+  const daysUntil = differenceInCalendarDays(eventDate, new Date())
+
+  if (daysUntil < 0 || daysUntil > 7) return null
+  if (isToday(eventDate)) return labels.today
+  if (isTomorrow(eventDate)) return labels.tomorrow
+  return labels.inNDays(daysUntil)
+}
+
 export function formatPrimaryDate(
   date: EventDateEntry,
   labels: PrimaryDateLabels,
 ): string {
   const eventDate = new Date(`${date.startDate}T00:00:00`)
-  const daysUntil = differenceInCalendarDays(eventDate, new Date())
   const timeRange = date.startTime
     ? formatTimeRange(date.startTime, date.endTime)
     : null
 
-  let dayLabel: string
-  if (isToday(eventDate)) {
-    dayLabel = labels.today
-  } else if (isTomorrow(eventDate)) {
-    dayLabel = labels.tomorrow
-  } else if (daysUntil > 0 && daysUntil <= 7) {
-    dayLabel = labels.inNDays(daysUntil)
-  } else {
-    dayLabel = longDateFormatter.format(eventDate)
-  }
+  const dayLabel =
+    formatHumanDate(date, labels) ?? longDateFormatter.format(eventDate)
 
   return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }
