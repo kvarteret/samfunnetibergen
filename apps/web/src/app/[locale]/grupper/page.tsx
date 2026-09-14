@@ -117,7 +117,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
               : t("intro")}
           </p>
         </header>
-        <ValgomatenInfobox />
+        <ValgomatenInfobox groups={groups}/>
       </div>
 
       {content?.sections?.length ? (
