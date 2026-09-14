@@ -32,23 +32,3 @@ export const footerQuery = defineQuery(`{
         "hours": openingHours ${openingHoursProjection}
     }, [])
 }`)
-
-export const navbarQuery =
-  defineQuery(`*[_type == "navbar" && _id == "navbar"][0] {
-    "items": coalesce(items[] {
-        _key,
-                "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),
-        href,
-        externalUrl,
-        "children": coalesce(children[] {
-            _key,
-            "groupLabel": coalesce(localizedGroupLabel[language == $locale && defined(value) && value != ""][0].value, localizedGroupLabel[language == "nb" && defined(value) && value != ""][0].value),
-            "items": coalesce(items[] {
-                _key,
-                    "label": coalesce(localizedLabel[language == $locale && defined(value) && value != ""][0].value, localizedLabel[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),
-                href,
-                externalUrl
-            }, [])
-        }, [])
-    }, [])
-}`)

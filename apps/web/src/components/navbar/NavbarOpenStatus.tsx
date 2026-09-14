@@ -2,20 +2,20 @@
 
 import { Popover } from "@base-ui/react/popover"
 import { ChevronDown } from "lucide-react"
-import { useMemo } from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { useMemo } from "react"
 import {
   type ClosedDate,
   formatOpeningDate,
   formatOpeningHoursTime,
-  type OpeningHours,
   isoDate,
+  type OpeningHours,
   openingHoursDaySummaries,
   openingHoursStatusAt,
   type VacationMode,
 } from "@/lib/opening-hours"
-import { cn } from "@/lib/utils"
 import { useCurrentTime } from "@/lib/use-current-time"
+import { cn } from "@/lib/utils"
 
 type NavbarOpenStatusProps = {
   openingHours?: OpeningHours | null

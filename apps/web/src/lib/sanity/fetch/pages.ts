@@ -5,21 +5,21 @@ import type { AppLocale } from "@/i18n/routing"
 import { hasOpeningHoursRows } from "@/lib/opening-hours"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
+import { DEFAULT_LOCALE } from "../localized"
 import {
   footerQuery,
   homePageNbQuery,
   houseHoursQuery,
   kontaktPageQuery,
   linkInBioQuery,
-  navbarQuery,
   pageBySlugQuery,
   pageSlugsQuery,
   siteLogoQuery,
   sponsorsPageQuery,
+  usefulInfoNavigationQuery,
   usefulInfoPageQuery,
 } from "../queries"
-import { compact, cleanOpeningHours, type FetchOptions } from "./shared"
-import { DEFAULT_LOCALE } from "../localized"
+import { cleanOpeningHours, compact, type FetchOptions } from "./shared"
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
@@ -35,14 +35,6 @@ export type SponsorsPageContent = NonNullable<
 
 export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
 
-export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
-
-export type NavItem = NonNullable<NavbarContent["items"]>[number]
-
-export type NavGroup = NonNullable<NavItem["children"]>[number]
-
-export type NavLeaf = NonNullable<NavGroup["items"]>[number]
-
 export async function fetchHomePageContent(
   locale: AppLocale = DEFAULT_LOCALE,
   options: FetchOptions = {},
@@ -52,13 +44,6 @@ export async function fetchHomePageContent(
     params: { locale },
     stega: options.stega,
   })
-  return data
-}
-
-export async function fetchNavbar(
-  locale: AppLocale = DEFAULT_LOCALE,
-): Promise<NavbarContent | null> {
-  const { data } = await sanityFetch({ query: navbarQuery, params: { locale } })
   return data
 }
 
@@ -164,12 +149,23 @@ export type UsefulInfoPage = NonNullable<
   ClientReturn<typeof usefulInfoPageQuery>
 >
 
+export type UsefulInfoNavigation = NonNullable<
+  ClientReturn<typeof usefulInfoNavigationQuery>
+>
+
 export async function fetchUsefulInfoPage(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<UsefulInfoPage | null> {
   const { data } = await sanityFetch({
     query: usefulInfoPageQuery,
     params: { locale },
+  })
+  return data
+}
+
+export async function fetchUsefulInfoNavigation(): Promise<UsefulInfoNavigation | null> {
+  const { data } = await sanityFetch({
+    query: usefulInfoNavigationQuery,
   })
   return data
 }

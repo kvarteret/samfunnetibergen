@@ -1,23 +1,24 @@
 "use client"
 
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
 import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
-import type {
-  NavGroup,
-  NavItem,
-  NavLeaf,
-  SiteLogoContent,
-} from "@/lib/sanity/fetch"
+import { Link } from "@/i18n/navigation"
+import type { SiteLogoContent } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
-import { PaperMenuSection } from "./PaperPicker"
 import { LanguageSwitcher } from "./LanguageSwitcher"
-import { useTranslations } from "next-intl"
+import type {
+  NavigationGroup,
+  NavigationItem,
+  NavigationLink,
+} from "./navigation-items"
+import { PaperMenuSection } from "./PaperPicker"
 
 type MobileMenuProps = {
-  items: NavItem[]
+  items: NavigationItem[]
   logo?: SiteLogoContent | null
 }
 
@@ -29,7 +30,9 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
 
-  const close = () => setOpen(false)
+  const close = () => {
+    setOpen(false)
+  }
 
   return (
     <Dialog.Root onOpenChange={setOpen} open={open}>
@@ -41,10 +44,10 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden">
+        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden">
           <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
-          <div className="shrink-0">
+          <div className="shrink-0 pt-[env(safe-area-inset-top)]">
             <div className={navShellClass}>
               <Link
                 aria-label="Samfunnet i Bergen"
@@ -69,14 +72,19 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 
           <nav
             aria-label={t("mobileAriaLabel")}
-            className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
-            {items.map(item => (
-              <MobileNavItem item={item} key={item._key} onClose={close} />
-            ))}
+            <AccordionPrimitive.Root
+              className="flex min-h-full flex-col divide-y-2 divide-border"
+              multiple={false}
+            >
+              {items.map(item => (
+                <MobileNavItem item={item} key={item.id} onClose={close} />
+              ))}
+            </AccordionPrimitive.Root>
           </nav>
-          <div className="border-t-2 border-border p-4">
-            <LanguageSwitcher />
+          <div className="shrink-0 border-t-2 border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <LanguageSwitcher onNavigate={close} />
           </div>
         </Dialog.Popup>
       </Dialog.Portal>
@@ -87,64 +95,106 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 // ─── MobileNavItem ────────────────────────────────────────────────────────────
 
 interface MobileNavItemProps {
-  item: NavItem
+  item: NavigationItem
   onClose: () => void
 }
 
 function MobileNavItem({ item, onClose }: MobileNavItemProps) {
-  const isVolunteer = item._key === "static-volunteer"
+  const mobileItem = item.mobile
+    ? { ...item, href: item.mobile.href, children: item.mobile.groups }
+    : item
+  const hasChildren =
+    mobileItem.children?.some(group => group.links.length > 0) ?? false
   const linkCls = cn(
-    "block cursor-pointer border-2 border-transparent px-6 py-5 font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
-    isVolunteer &&
+    "flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 border-2 border-transparent px-6 py-2.5 text-left font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
+    item.highlight &&
       "border-primary bg-primary text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground",
   )
 
   return (
-    <div>
-      {renderNavItemLabel(item, onClose, linkCls)}
-
-      {item.children?.map((group: NavGroup) =>
-        group.items?.map((leaf: NavLeaf) => {
-          const isLeafExternal = !leaf.href && Boolean(leaf.externalUrl)
-          return isLeafExternal ? (
-            <a
-              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-              href={leaf.externalUrl!}
-              key={leaf._key}
-              onClick={onClose}
-              rel="noreferrer"
-              target="_blank"
+    <AccordionPrimitive.Item value={item.id}>
+      {hasChildren ? (
+        <>
+          <AccordionPrimitive.Header>
+            <AccordionPrimitive.Trigger
+              className={cn(linkCls, "group")}
+              type="button"
             >
-              {leaf.label}
-              <ExternalLink
-                aria-hidden="true"
-                className="ml-2 inline size-3.5 shrink-0"
+              {item.label}
+              <ChevronDown
+                aria-hidden
+                className="size-[1em] shrink-0 text-foreground-muted transition-transform group-data-panel-open:rotate-180"
+                strokeWidth={1.75}
               />
-            </a>
-          ) : (
-            <Link
-              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-              href={leaf.href ?? leaf.externalUrl ?? "#"}
-              key={leaf._key}
-              onClick={onClose}
-            >
-              {leaf.label}
-            </Link>
-          )
-        }),
+            </AccordionPrimitive.Trigger>
+          </AccordionPrimitive.Header>
+
+          <AccordionPrimitive.Panel className="divide-y divide-border/50">
+            {mobileItem.children?.map((group: NavigationGroup) =>
+              group.links.map(link => (
+                <MobileNavLink key={link.id} link={link} onClose={onClose} />
+              )),
+            )}
+            {item.includePaperMenu && <PaperMenuSection mobile />}
+          </AccordionPrimitive.Panel>
+        </>
+      ) : (
+        renderNavItemLabel(mobileItem, onClose, linkCls)
       )}
-      {item._key === "static-more" && <PaperMenuSection mobile />}
-    </div>
+    </AccordionPrimitive.Item>
+  )
+}
+
+function MobileNavLink({
+  link,
+  onClose,
+}: {
+  link: NavigationLink
+  onClose: () => void
+}) {
+  const className =
+    "flex min-h-11 items-center border-2 border-transparent px-10 py-2.5 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+
+  if (link.kind === "external") {
+    return (
+      <a
+        className={className}
+        href={link.href ?? "#"}
+        onClick={onClose}
+        rel="noreferrer"
+        target="_blank"
+      >
+        {link.label}
+        <ExternalLink
+          aria-hidden="true"
+          className="ml-2 inline size-3.5 shrink-0"
+        />
+      </a>
+    )
+  }
+
+  if (link.kind === "plain") {
+    return (
+      <a className={className} href={link.href ?? "#"} onClick={onClose}>
+        {link.label}
+      </a>
+    )
+  }
+
+  return (
+    <Link className={className} href={link.href ?? "#"} onClick={onClose}>
+      {link.label}
+    </Link>
   )
 }
 
 function renderNavItemLabel(
-  item: NavLeaf,
+  item: NavigationLink,
   onClose: () => void,
   linkCls: string,
 ) {
-  const hasLink = item.href || item.externalUrl
-  if (!hasLink)
+  const href = item.href
+  if (!href)
     return (
       <p className={cn(linkCls, "flex items-center justify-between")}>
         {item.label}
@@ -155,11 +205,11 @@ function renderNavItemLabel(
         />
       </p>
     )
-  if (item.externalUrl && !item.href) {
+  if (item.kind === "external") {
     return (
       <a
         className={linkCls}
-        href={item.externalUrl}
+        href={href}
         onClick={onClose}
         rel="noreferrer"
         target="_blank"
@@ -172,8 +222,15 @@ function renderNavItemLabel(
       </a>
     )
   }
+  if (item.kind === "plain") {
+    return (
+      <a className={linkCls} href={href} onClick={onClose}>
+        {item.label}
+      </a>
+    )
+  }
   return (
-    <Link className={linkCls} href={item.href ?? "#"} onClick={onClose}>
+    <Link className={linkCls} href={href} onClick={onClose}>
       {item.label}
     </Link>
   )

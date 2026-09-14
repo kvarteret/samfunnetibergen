@@ -7,6 +7,7 @@ const localizedEyebrow = `coalesce(localizedEyebrow[language == $locale && defin
 const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedAnswer = `coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)`
+
 import {
   editorialSectionProjection,
   infoAccordionBlockProjection,
@@ -138,6 +139,16 @@ export const usefulInfoPageQuery =
         _type == "infoAddressBlock" => ${infoAddressBlockProjection},
         _type == "infoAccordionBlock" => ${infoAccordionBlockProjection}
     }, [])
+}`)
+
+// Stable published Sanity array key for the Vergeordningen section.
+export const VERGEORDNING_SECTION_KEY = "7d0eec2032cc"
+
+export const usefulInfoNavigationQuery =
+  defineQuery(`*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {
+    "vergeordningSection": sections[_key == "${VERGEORDNING_SECTION_KEY}"][0] {
+        _key
+    }
 }`)
 
 export const linkInBioQuery =

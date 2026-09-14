@@ -8,7 +8,13 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
-import { fetchFooter, fetchHouseHours, fetchSiteLogo } from "@/lib/sanity/fetch"
+import {
+  fetchFooter,
+  fetchHouseHours,
+  fetchSiteLogo,
+  fetchUsefulInfoNavigation,
+} from "@/lib/sanity/fetch"
+import { getVergeordningHref } from "@/lib/sanity/useful-info-navigation"
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -20,13 +26,18 @@ export default async function LocaleLayout({
 }: LayoutProps<"/[locale]">) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
-  const [messages, footer, houseHours, siteLogo] = await Promise.all([
-    getMessages(),
-    fetchFooter(locale),
-    fetchHouseHours(locale),
-    fetchSiteLogo(),
-  ])
+  const [messages, footer, houseHours, siteLogo, usefulInfoNavigation] =
+    await Promise.all([
+      getMessages(),
+      fetchFooter(locale),
+      fetchHouseHours(locale),
+      fetchSiteLogo(),
+      fetchUsefulInfoNavigation(),
+    ])
   const initialNow = new Date().toISOString()
+  const vergeordningHref = getVergeordningHref(
+    usefulInfoNavigation?.vergeordningSection,
+  )
 
   return (
     <NextIntlClientProvider messages={messages}>
@@ -37,6 +48,7 @@ export default async function LocaleLayout({
               houseHours={houseHours}
               initialNow={initialNow}
               logo={siteLogo}
+              vergeordningHref={vergeordningHref}
             />
             <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-14">
               {children}

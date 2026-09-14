@@ -3,6 +3,7 @@
 import { Collapsible } from "@base-ui/react/collapsible"
 import { NavigationMenu } from "@base-ui/react/navigation-menu"
 import { Check, ChevronDown, ChevronLeft } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRef, useSyncExternalStore } from "react"
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -39,6 +40,7 @@ function setPaperStyle(paper: PaperStyle) {
 }
 
 export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
+  const t = useTranslations("Navigation")
   const paper = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -51,8 +53,8 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <Collapsible.Root className="border-t-2 border-border/30">
-      <Collapsible.Trigger className="group flex w-full cursor-pointer items-center justify-between px-10 py-4 font-heading text-foreground focus-brutal">
-        Enda mer
+      <Collapsible.Trigger className="group flex min-h-11 w-full cursor-pointer items-center justify-between px-10 py-2.5 font-heading text-foreground focus-brutal">
+        {t("moreSettings")}
         <ChevronDown
           aria-hidden
           className="size-[1em] group-data-panel-open:rotate-180"
@@ -71,6 +73,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
 }
 
 function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
+  const t = useTranslations("Navigation")
   const triggerRef = useRef<HTMLButtonElement>(null)
 
   return (
@@ -81,7 +84,7 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
             className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:bg-accent focus-brutal data-popup-open:bg-accent"
             ref={triggerRef}
           >
-            Enda mer
+            {t("moreSettings")}
             <ChevronLeft
               aria-hidden
               className="size-[1em] transition-transform group-data-popup-open:-translate-x-0.5"
@@ -129,10 +132,21 @@ function PaperChoices({
   className?: string
   paper: PaperStyle
 }) {
+  const t = useTranslations("Navigation")
+
+  const labels = {
+    grid: t("paperGrid"),
+    dots: t("paperDots"),
+    ruled: t("paperRuled"),
+    none: t("paperBlank"),
+  } satisfies Record<PaperStyle, string>
+
   return (
     <fieldset className={cn("space-y-2", className)}>
-      <legend className="sr-only">Velg papir</legend>
-      <p className="font-heading uppercase tracking-widest">Velg papir</p>
+      <legend className="sr-only">{t("choosePaper")}</legend>
+      <p className="font-heading uppercase tracking-widest">
+        {t("choosePaper")}
+      </p>
       <RadioGroup<PaperStyle>
         className="grid grid-cols-3 gap-2"
         name="paper"
@@ -147,7 +161,7 @@ function PaperChoices({
             value={option.value}
           >
             <PaperSwatch paper={option.value} />
-            <span>{option.label}</span>
+            <span>{labels[option.value]}</span>
             {paper === option.value && (
               <Check aria-hidden className="absolute top-1 right-1 size-3" />
             )}
