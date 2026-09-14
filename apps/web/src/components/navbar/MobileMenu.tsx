@@ -3,7 +3,8 @@
 import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useTranslations } from "next-intl"
+import { useId, useState } from "react"
 import type {
   NavGroup,
   NavItem,
@@ -12,9 +13,12 @@ import type {
 } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
-import { PaperMenuSection } from "./PaperPicker"
 import { LanguageSwitcher } from "./LanguageSwitcher"
-import { useTranslations } from "next-intl"
+import {
+  resetMobileMenuState,
+  toggleMobileMenuGroup,
+} from "./mobile-menu-state"
+import { PaperMenuSection } from "./PaperPicker"
 
 type MobileMenuProps = {
   items: NavItem[]
@@ -28,11 +32,22 @@ const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
+  const [openItemKey, setOpenItemKey] = useState<string | null>(null)
+  const [menuSessionKey, setMenuSessionKey] = useState(0)
 
-  const close = () => setOpen(false)
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    setOpenItemKey(resetMobileMenuState())
+    if (nextOpen) setMenuSessionKey(key => key + 1)
+  }
+
+  const close = () => {
+    setOpen(false)
+    setOpenItemKey(resetMobileMenuState())
+  }
 
   return (
-    <Dialog.Root onOpenChange={setOpen} open={open}>
+    <Dialog.Root onOpenChange={handleOpenChange} open={open}>
       <Dialog.Trigger
         aria-label={t("openMenu")}
         className="p-3 text-foreground focus-brutal lg:hidden"
@@ -41,10 +56,13 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col bg-background lg:hidden">
+        <Dialog.Popup
+          className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden"
+          key={menuSessionKey}
+        >
           <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
-          <div className="shrink-0">
+          <div className="shrink-0 pt-[env(safe-area-inset-top)]">
             <div className={navShellClass}>
               <Link
                 aria-label="Samfunnet i Bergen"
@@ -69,14 +87,24 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 
           <nav
             aria-label={t("mobileAriaLabel")}
-            className="flex flex-1 flex-col divide-y-2 divide-border overflow-y-auto"
+            className="flex min-h-0 flex-1 flex-col divide-y-2 divide-border overflow-y-auto overscroll-contain"
           >
             {items.map(item => (
-              <MobileNavItem item={item} key={item._key} onClose={close} />
+              <MobileNavItem
+                isOpen={openItemKey === item._key}
+                item={item}
+                key={item._key}
+                onClose={close}
+                onToggle={() =>
+                  setOpenItemKey(currentKey =>
+                    toggleMobileMenuGroup(currentKey, item._key),
+                  )
+                }
+              />
             ))}
           </nav>
-          <div className="border-t-2 border-border p-4">
-            <LanguageSwitcher />
+          <div className="shrink-0 border-t-2 border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <LanguageSwitcher onNavigate={close} />
           </div>
         </Dialog.Popup>
       </Dialog.Portal>
@@ -87,54 +115,101 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 // ─── MobileNavItem ────────────────────────────────────────────────────────────
 
 interface MobileNavItemProps {
+  isOpen: boolean
   item: NavItem
   onClose: () => void
+  onToggle: () => void
 }
 
-function MobileNavItem({ item, onClose }: MobileNavItemProps) {
+function MobileNavItem({
+  isOpen,
+  item,
+  onClose,
+  onToggle,
+}: MobileNavItemProps) {
   const isVolunteer = item._key === "static-volunteer"
+  const panelId = useId()
+  const hasChildren = item.children?.some(group => group.items?.length) ?? false
   const linkCls = cn(
-    "block cursor-pointer border-2 border-transparent px-6 py-5 font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
+    "flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 border-2 border-transparent px-6 py-2.5 text-left font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
     isVolunteer &&
       "border-primary bg-primary text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground",
   )
 
   return (
     <div>
-      {renderNavItemLabel(item, onClose, linkCls)}
-
-      {item.children?.map((group: NavGroup) =>
-        group.items?.map((leaf: NavLeaf) => {
-          const isLeafExternal = !leaf.href && Boolean(leaf.externalUrl)
-          return isLeafExternal ? (
-            <a
-              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-              href={leaf.externalUrl!}
-              key={leaf._key}
-              onClick={onClose}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {leaf.label}
-              <ExternalLink
-                aria-hidden="true"
-                className="ml-2 inline size-3.5 shrink-0"
-              />
-            </a>
-          ) : (
-            <Link
-              className="block cursor-pointer border-2 border-transparent border-t-border/50 px-10 py-3 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
-              href={leaf.href ?? leaf.externalUrl ?? "#"}
-              key={leaf._key}
-              onClick={onClose}
-            >
-              {leaf.label}
-            </Link>
-          )
-        }),
+      {hasChildren ? (
+        <button
+          aria-controls={panelId}
+          aria-expanded={isOpen}
+          className={linkCls}
+          onClick={onToggle}
+          type="button"
+        >
+          {item.label}
+          <ChevronDown
+            aria-hidden
+            className={cn(
+              "size-[1em] shrink-0 text-foreground-muted transition-transform",
+              isOpen && "rotate-180",
+            )}
+            strokeWidth={1.75}
+          />
+        </button>
+      ) : (
+        renderNavItemLabel(item, onClose, linkCls)
       )}
-      {item._key === "static-more" && <PaperMenuSection mobile />}
+
+      {isOpen && hasChildren && (
+        <div className="divide-y divide-border/50" id={panelId}>
+          {item.children?.map((group: NavGroup) =>
+            group.items?.map((leaf: NavLeaf) => (
+              <MobileNavLink leaf={leaf} key={leaf._key} onClose={onClose} />
+            )),
+          )}
+          {item._key === "static-more" && <PaperMenuSection mobile />}
+        </div>
+      )}
     </div>
+  )
+}
+
+function MobileNavLink({
+  leaf,
+  onClose,
+}: {
+  leaf: NavLeaf
+  onClose: () => void
+}) {
+  const className =
+    "flex min-h-11 items-center border-2 border-transparent px-10 py-2.5 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+
+  if (!leaf.href && leaf.externalUrl) {
+    return (
+      <a
+        className={className}
+        href={leaf.externalUrl}
+        onClick={onClose}
+        rel="noreferrer"
+        target="_blank"
+      >
+        {leaf.label}
+        <ExternalLink
+          aria-hidden="true"
+          className="ml-2 inline size-3.5 shrink-0"
+        />
+      </a>
+    )
+  }
+
+  return (
+    <Link
+      className={className}
+      href={leaf.href ?? leaf.externalUrl ?? "#"}
+      onClick={onClose}
+    >
+      {leaf.label}
+    </Link>
   )
 }
 

@@ -7,6 +7,7 @@ const localizedEyebrow = `coalesce(localizedEyebrow[language == $locale && defin
 const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedAnswer = `coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)`
+
 import {
   editorialSectionProjection,
   infoAccordionBlockProjection,
@@ -137,6 +138,18 @@ export const usefulInfoPageQuery =
         _type == "editorialSection" => ${editorialSectionProjection},
         _type == "infoAddressBlock" => ${infoAddressBlockProjection},
         _type == "infoAccordionBlock" => ${infoAccordionBlockProjection}
+    }, [])
+}`)
+
+export const usefulInfoNavigationQuery =
+  defineQuery(`*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {
+    "sections": coalesce(sections[] {
+        _key,
+        "label": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),
+        "isVergeordning": coalesce(
+            count(localizedTitle[value match "*verge*"]) > 0 || count(localizedTitle[value match "*guardian*"]) > 0 || count(localizedHeading[value match "*verge*"]) > 0 || count(localizedHeading[value match "*guardian*"]) > 0,
+            false
+        )
     }, [])
 }`)
 

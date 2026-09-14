@@ -9,15 +9,20 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import type { HouseHoursContent, SiteLogoContent } from "@/lib/sanity/fetch"
-import type { NavGroup, NavItem, NavLeaf } from "@/lib/sanity/fetch"
+import type {
+  HouseHoursContent,
+  NavGroup,
+  NavItem,
+  NavLeaf,
+  SiteLogoContent,
+} from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
-import { MobileMenu } from "./MobileMenu"
-import { NavbarScrollShell } from "./NavbarScrollShell"
-import { NavbarOpenStatus } from "./NavbarOpenStatus"
-import { PaperMenuSection } from "./PaperPicker"
 import { LanguageSwitcher } from "./LanguageSwitcher"
+import { MobileMenu } from "./MobileMenu"
+import { NavbarOpenStatus } from "./NavbarOpenStatus"
+import { NavbarScrollShell } from "./NavbarScrollShell"
+import { PaperMenuSection } from "./PaperPicker"
 
 const moreItem: NavItem = {
   _key: "static-more",
@@ -138,6 +143,69 @@ function orderedNavItems(t: (key: string) => string) {
   ]
 }
 
+function mobileNavItems(
+  items: NavItem[],
+  vergeordningHref: string | null,
+  t: (key: string) => string,
+) {
+  return items.map(item => {
+    if (item._key === bookingItem._key) {
+      return {
+        ...item,
+        href: null,
+        children: [
+          {
+            _key: "mobile-booking-links",
+            groupLabel: null,
+            items: [
+              {
+                _key: "mobile-booking-all-rooms",
+                label: t("allRooms"),
+                href: item.href,
+                externalUrl: null,
+              },
+              ...(item.children?.flatMap(group => group.items ?? []) ?? []),
+            ],
+          },
+        ],
+      }
+    }
+
+    if (item._key === usefulInfoItem._key) {
+      return {
+        ...item,
+        href: null,
+        children: [
+          {
+            _key: "mobile-useful-info-links",
+            groupLabel: null,
+            items: [
+              {
+                _key: "mobile-useful-info-overview",
+                label: t("overview"),
+                href: item.href,
+                externalUrl: null,
+              },
+              ...(vergeordningHref
+                ? [
+                    {
+                      _key: "mobile-useful-info-vergeordning",
+                      label: t("vergeordning"),
+                      href: vergeordningHref,
+                      externalUrl: null,
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ],
+      }
+    }
+
+    return item
+  })
+}
+
 function resolveHref(item: {
   href?: string | null
   externalUrl?: string | null
@@ -158,13 +226,16 @@ export function Navbar({
   houseHours,
   logo,
   initialNow,
+  vergeordningHref,
 }: {
   houseHours?: HouseHoursContent | null
   logo?: SiteLogoContent | null
   initialNow: string
+  vergeordningHref?: string | null
 }) {
   const t = useTranslations("Navigation")
   const items = orderedNavItems(t)
+  const mobileItems = mobileNavItems(items, vergeordningHref ?? null, t)
 
   return (
     <NavbarScrollShell>
@@ -197,7 +268,7 @@ export function Navbar({
           <LanguageSwitcher />
         </div>
 
-        <MobileMenu items={items} logo={logo} />
+        <MobileMenu items={mobileItems} logo={logo} />
       </nav>
     </NavbarScrollShell>
   )

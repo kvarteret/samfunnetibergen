@@ -1,6 +1,7 @@
 "use client"
 
 import { Check } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useSyncExternalStore } from "react"
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -36,6 +37,7 @@ function setTheme(theme: ThemeName) {
 }
 
 export function ThemeChoices({ className }: { className?: string }) {
+  const t = useTranslations("Navigation")
   const theme = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -44,8 +46,8 @@ export function ThemeChoices({ className }: { className?: string }) {
 
   return (
     <fieldset className={cn("space-y-2", className)}>
-      <legend className="sr-only">Velg tema</legend>
-      <p className="font-heading uppercase tracking-widest">Tema</p>
+      <legend className="sr-only">{t("theme")}</legend>
+      <p className="font-heading uppercase tracking-widest">{t("theme")}</p>
       <RadioGroup<ThemeName>
         className="grid grid-cols-2 gap-2"
         name="theme"

@@ -5,6 +5,7 @@ import type { AppLocale } from "@/i18n/routing"
 import { hasOpeningHoursRows } from "@/lib/opening-hours"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
+import { DEFAULT_LOCALE } from "../localized"
 import {
   footerQuery,
   homePageNbQuery,
@@ -16,10 +17,10 @@ import {
   pageSlugsQuery,
   siteLogoQuery,
   sponsorsPageQuery,
+  usefulInfoNavigationQuery,
   usefulInfoPageQuery,
 } from "../queries"
-import { compact, cleanOpeningHours, type FetchOptions } from "./shared"
-import { DEFAULT_LOCALE } from "../localized"
+import { cleanOpeningHours, compact, type FetchOptions } from "./shared"
 
 export type HouseHoursContent = NonNullable<
   ClientReturn<typeof houseHoursQuery>
@@ -164,11 +165,25 @@ export type UsefulInfoPage = NonNullable<
   ClientReturn<typeof usefulInfoPageQuery>
 >
 
+export type UsefulInfoNavigation = NonNullable<
+  ClientReturn<typeof usefulInfoNavigationQuery>
+>
+
 export async function fetchUsefulInfoPage(
   locale: AppLocale = DEFAULT_LOCALE,
 ): Promise<UsefulInfoPage | null> {
   const { data } = await sanityFetch({
     query: usefulInfoPageQuery,
+    params: { locale },
+  })
+  return data
+}
+
+export async function fetchUsefulInfoNavigation(
+  locale: AppLocale = DEFAULT_LOCALE,
+): Promise<UsefulInfoNavigation | null> {
+  const { data } = await sanityFetch({
+    query: usefulInfoNavigationQuery,
     params: { locale },
   })
   return data
