@@ -12,7 +12,6 @@ import {
   houseHoursQuery,
   kontaktPageQuery,
   linkInBioQuery,
-  navbarQuery,
   pageBySlugQuery,
   pageSlugsQuery,
   siteLogoQuery,
@@ -35,14 +34,6 @@ export type SponsorsPageContent = NonNullable<
 >
 
 export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
-
-type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
-
-export type NavItem = NonNullable<NavbarContent["items"]>[number]
-
-export type NavGroup = NonNullable<NavItem["children"]>[number]
-
-export type NavLeaf = NonNullable<NavGroup["items"]>[number]
 
 export async function fetchHomePageContent(
   locale: AppLocale = DEFAULT_LOCALE,
