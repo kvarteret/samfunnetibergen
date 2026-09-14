@@ -2,26 +2,27 @@
 
 import { Popover } from "@base-ui/react/popover"
 import { ChevronDown } from "lucide-react"
-import { useMemo } from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { useMemo } from "react"
 import {
   type ClosedDate,
   formatOpeningDate,
   formatOpeningHoursTime,
-  type OpeningHours,
   isoDate,
+  type OpeningHours,
   openingHoursDaySummaries,
   openingHoursStatusAt,
   type VacationMode,
 } from "@/lib/opening-hours"
-import { cn } from "@/lib/utils"
 import { useCurrentTime } from "@/lib/use-current-time"
+import { cn } from "@/lib/utils"
 
 type NavbarOpenStatusProps = {
   openingHours?: OpeningHours | null
   closedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
   initialNow: string
+  className?: string
 }
 
 const DAY_COUNT = 7
@@ -31,6 +32,7 @@ export function NavbarOpenStatus({
   closedDates,
   vacationMode,
   initialNow,
+  className,
 }: NavbarOpenStatusProps) {
   const now = useCurrentTime(initialNow)
   const locale = useLocale() as "nb" | "en"
@@ -70,7 +72,12 @@ export function NavbarOpenStatus({
 
   return (
     <Popover.Root>
-      <Popover.Trigger className="group flex min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal">
+      <Popover.Trigger
+        className={cn(
+          "group flex min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal",
+          className,
+        )}
+      >
         <span
           className={cn(
             "shrink-0 font-heading",
