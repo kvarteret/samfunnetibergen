@@ -437,7 +437,10 @@
     "filterAria": "Filtrer grupper",
     "quizPrompt": "Vil du bli frivillig, men er usikker på hvilken gruppe du bør velge?",
     "quizButton": "Ta Valgomaten",
+    "quizTitle": "Valgomaten",
+    "quizClose": "Lukk Valgomaten",
     "quizNotReady": "Valgomaten er ikke ferdig ennå :(",
+
     "quizContactBefore": "Ta kontakt med",
     "quizContactAfter": "for å høre mer om hva som kan passe deg!"
   },

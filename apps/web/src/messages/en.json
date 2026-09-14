@@ -562,6 +562,8 @@
     "filterAria": "Filter groups",
     "quizPrompt": "Would you like to volunteer but are unsure which group to choose?",
     "quizButton": "Take the quiz",
+    "quizTitle": "Volunteer quiz",
+    "quizClose": "Close volunteer quiz",
     "quizNotReady": "The quiz is not ready yet :(",
     "quizContactBefore": "Contact",
     "quizContactAfter": "to learn more about what might suit you!"

@@ -1,18 +1,43 @@
 "use client"
 
-import { HelpCircle } from "lucide-react"
+import { HelpCircle, X } from "lucide-react"
 import posthog from "posthog-js"
 import { useState, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
+import { SortingHatDemo } from "./SortingHatDemo"
 
 const RARITIES = {
-  Common: { name: "Ordinær", bg: "bg-blue-600", border: "border-blue-800", weight: 50 },
-  Uncommon: { name: "Uvanlig", bg: "bg-purple-600", border: "border-purple-800", weight: 20 },
-  Rare: { name: "Sjelden", bg: "bg-pink-500", border: "border-pink-700", weight: 15 },
-  Legendary: { name: "Legendarisk", bg: "bg-primary", border: "border-red-700", weight: 10 },
-  Mythic: { name: "Mytisk", bg: "bg-yellow-500", border: "border-yellow-600", weight: 5 },
-  
+  Common: {
+    name: "Ordinær",
+    bg: "bg-blue-600",
+    border: "border-blue-800",
+    weight: 50,
+  },
+  Uncommon: {
+    name: "Uvanlig",
+    bg: "bg-purple-600",
+    border: "border-purple-800",
+    weight: 20,
+  },
+  Rare: {
+    name: "Sjelden",
+    bg: "bg-pink-500",
+    border: "border-pink-700",
+    weight: 15,
+  },
+  Legendary: {
+    name: "Legendarisk",
+    bg: "bg-primary",
+    border: "border-red-700",
+    weight: 10,
+  },
+  Mythic: {
+    name: "Mytisk",
+    bg: "bg-yellow-500",
+    border: "border-yellow-600",
+    weight: 5,
+  },
 } as const
 
 type Rarity = keyof typeof RARITIES
@@ -61,7 +86,7 @@ function GroupUnboxing() {
         break
       }
     }
-    const filteredPool = ITEM_POOL.filter((item) => item.rarity === chosenRarity)
+    const filteredPool = ITEM_POOL.filter(item => item.rarity === chosenRarity)
     const finalPool = filteredPool.length ? filteredPool : ITEM_POOL
     return finalPool[Math.floor(Math.random() * finalPool.length)]
   }
@@ -96,7 +121,8 @@ function GroupUnboxing() {
         const innerItemRandomPadding = Math.floor(Math.random() * 60) + 30
         const centerPadding = parentWidth / 2
 
-        const finalTranslateX = itemOffset - centerPadding + innerItemRandomPadding
+        const finalTranslateX =
+          itemOffset - centerPadding + innerItemRandomPadding
 
         setEnableTransition(true)
         setTransformStyle(`translateX(-${finalTranslateX}px)`)
@@ -149,10 +175,16 @@ function GroupUnboxing() {
             : "bg-primary border-primary text-slate-950 hover:bg-primary/50 active:scale-95 shadow-lg shadow-primary-500/20"
         }`}
       >
-        {isSpinning ? "Åpner..." : generatedItems.length === 0 ? "RULL" : "RULL PÅ NYTT"}
+        {isSpinning
+          ? "Åpner..."
+          : generatedItems.length === 0
+            ? "RULL"
+            : "RULL PÅ NYTT"}
       </button>
       {winner && !isSpinning && (
-        <div className={`mt-8 animate-bounce p-4 ${RARITIES[winner.rarity].bg} rounded-lg flex flex-col items-center max-w-sm text-center`}>
+        <div
+          className={`mt-8 animate-bounce p-4 ${RARITIES[winner.rarity].bg} rounded-lg flex flex-col items-center max-w-sm text-center`}
+        >
           <p className="text-sm font-semibold tracking-widest text-yellow-400 uppercase">
             Du Fikk
           </p>
@@ -197,6 +229,22 @@ export function ValgomatenInfobox() {
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-heading text-lg leading-tight text-foreground">
+              {t("quizTitle")}
+            </p>
+            <button
+              aria-label={t("quizClose")}
+              className="rounded-full p-1 text-foreground hover:bg-primary/10 focus-brutal"
+              onClick={() => setClicked(false)}
+              type="button"
+            >
+              <X aria-hidden="true" className="size-5" />
+            </button>
+          </div>
+          <div className="h-[min(70vh,38rem)] min-h-96 w-full">
+            <SortingHatDemo />
+          </div>
           <GroupUnboxing />
         </div>
       )}
