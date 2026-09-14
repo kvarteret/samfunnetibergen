@@ -91,7 +91,7 @@ function ServicesSection({ t }: { t: BookingTranslations }) {
       <div className="grid gap-4 sm:grid-cols-2">
         {services.map(({ icon: Icon, title, description, href }) => (
           <Link
-            className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
+            className="group flex flex-col gap-4 bg-card p-5 focus-brutal"
             href={href}
             key={href}
           >

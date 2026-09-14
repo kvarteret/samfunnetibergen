@@ -1,11 +1,11 @@
 import { cva } from "class-variance-authority"
 
 export const selectionControlVariants = cva(
-  "cursor-pointer rounded-base border-2 border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
+  "cursor-pointer rounded-base border border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
   {
     variants: {
       selected: {
-        false: "hover:bg-muted",
+        false: "",
         true: "",
       },
       appearance: {
@@ -23,12 +23,14 @@ export const selectionControlVariants = cva(
       {
         appearance: "solid",
         selected: true,
-        className: "bg-primary text-primary-foreground",
+        className:
+          "bg-primary text-primary-foreground hs:bg-secondary hs:text-secondary-foreground",
       },
       {
         appearance: "soft",
         selected: true,
-        className: "border-primary bg-primary/5 text-foreground",
+        className:
+          "border-primary bg-primary/5 text-foreground hs:border-secondary hs:bg-secondary/5",
       },
     ],
     defaultVariants: {

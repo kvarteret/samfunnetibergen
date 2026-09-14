@@ -61,7 +61,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
         <section className="grid gap-6 md:grid-cols-2">
           {sponsors.map(sponsor => (
             <article
-              className="flex min-h-full flex-col gap-5 panel shadow-shadow"
+              className="flex min-h-full flex-col gap-5 bg-card p-5"
               key={sponsor._key}
             >
               {sponsor.logoUrl ? (

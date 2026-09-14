@@ -166,7 +166,7 @@ function HomeBarPreviewCard({
       aria-label={translations("goToBar", {
         bar: room.title ?? translations("barFallback"),
       })}
-      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden panel p-0 transition-colors hover:border-primary focus-brutal"
+      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden bg-card focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">

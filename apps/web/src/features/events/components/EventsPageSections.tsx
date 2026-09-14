@@ -98,11 +98,12 @@ export function EventsPageSections({
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
       {filteredEvents.map(event => (
         <EventCard
           event={toEventSummary(event, precomputedDates)}
           key={event._id}
+          variant="catalogue"
         />
       ))}
     </div>

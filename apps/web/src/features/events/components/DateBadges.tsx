@@ -55,7 +55,7 @@ export function DateBadges({
         <span
           key={d._key}
           className={cn(
-            "border border-border font-heading text-foreground-muted bg-muted",
+            "rounded-base border-0 bg-accent font-heading text-accent-foreground",
             size === "small" ? "px-2.5 py-1 text-sm" : "px-2 py-0.5 text-sm",
           )}
         >
@@ -65,7 +65,7 @@ export function DateBadges({
       {overflow > 0 && (
         <span
           className={cn(
-            "border border-border font-heading text-foreground-muted bg-muted",
+            "rounded-base border-0 bg-accent font-heading text-accent-foreground",
             size === "small" ? "px-2.5 py-1 text-sm" : "px-2 py-0.5 text-sm",
           )}
         >

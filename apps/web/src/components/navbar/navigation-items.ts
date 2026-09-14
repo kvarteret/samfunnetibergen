@@ -26,6 +26,39 @@ export type NavigationItem = NavigationLink & {
   mobile?: MobileNavigation
 }
 
+function normalizePath(path: string) {
+  const withoutQuery = path.split(/[?#]/, 1)[0] || "/"
+  if (withoutQuery === "/") return "/"
+  return withoutQuery.replace(/\/+$/, "")
+}
+
+function isInternalHref(href: string | null): href is string {
+  return Boolean(href && !/^[a-z][a-z\d+.-]*:/i.test(href))
+}
+
+function matchesPath(pathname: string, href: string) {
+  const currentPath = normalizePath(pathname)
+  const targetPath = normalizePath(href)
+  return (
+    currentPath === targetPath ||
+    (targetPath !== "/" && currentPath.startsWith(`${targetPath}/`))
+  )
+}
+
+export function isNavigationLinkActive(link: NavigationLink, pathname: string) {
+  return isInternalHref(link.href) && matchesPath(pathname, link.href)
+}
+
+export function isNavigationItemActive(item: NavigationItem, pathname: string) {
+  const links = [
+    item,
+    ...(item.children?.flatMap(group => group.links) ?? []),
+    ...(item.mobile?.groups.flatMap(group => group.links) ?? []),
+  ]
+
+  return links.some(link => isNavigationLinkActive(link, pathname))
+}
+
 export type NavigationTranslationKey =
   | "volunteer"
   | "events"

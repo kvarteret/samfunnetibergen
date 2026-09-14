@@ -27,8 +27,8 @@ export function EventsPageFilters() {
     })
 
   return (
-    <div className="space-y-6 border-y-2 border-border py-6">
-      <div className="space-y-3">
+    <div className="space-y-8">
+      <div className="space-y-8">
         <div className="flex flex-wrap items-center gap-3">
           <SegmentedControl
             onValueChange={value => {
@@ -52,7 +52,7 @@ export function EventsPageFilters() {
             }
           />
         </div>
-        <p className="font-heading uppercase tracking-widest">
+        <p className="font-heading text-sm uppercase tracking-[0.16em]">
           {t("filterResultCount", { count: filteredEvents.length })}
         </p>
       </div>
@@ -76,7 +76,7 @@ export function EventsPageFilters() {
                 )
                 return (
                   <div className="space-y-3" key={group._id}>
-                    <h2 className="font-heading uppercase tracking-widest">
+                    <h2 className="font-heading text-3xl uppercase tracking-[0.12em] sm:text-4xl">
                       {t("filterType")} — {group.name}
                     </h2>
                     <ToggleGroup
@@ -104,7 +104,7 @@ export function EventsPageFilters() {
               })}
               {taxonomy.organizerGroups.length > 0 && (
                 <div className="space-y-3">
-                  <h2 className="font-heading uppercase tracking-widest">
+                  <h2 className="font-heading text-3xl uppercase tracking-[0.12em] sm:text-4xl">
                     {t("filterOrganizer")}
                   </h2>
                   <ToggleGroup

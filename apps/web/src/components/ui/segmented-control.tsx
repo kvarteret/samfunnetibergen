@@ -44,6 +44,7 @@ export function SegmentedControl<T extends string>({
     >
       {options.map(option => (
         <RadioGroupItem
+          className={variant === "pills" ? "rounded-full" : undefined}
           key={option.value}
           size={sizeByVariant[variant]}
           value={option.value}

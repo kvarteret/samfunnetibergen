@@ -3,10 +3,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
-import { type EventDateEntry, type EventSummary } from "@/features/events"
+import {
+  EventCard,
+  type EventDateEntry,
+  type EventSummary,
+} from "@/features/events"
 import {
   computeAllDates,
-  formatHumanDate,
   formatPrimaryDate,
   formatWeekday,
   getRecurringLabel,
@@ -28,10 +31,8 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { fetchBarPreviews, fetchHomePageContent } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
@@ -72,8 +73,6 @@ type EventCardLabels = {
   recurringMonthly: string
   recurringGeneric: string
 }
-
-type HumanDateLabels = Pick<EventCardLabels, "today" | "tomorrow" | "weekday">
 
 function toEventSummary(
   event: SanityEvent,
@@ -165,65 +164,6 @@ function toEventSummary(
         }
       : null,
   }
-}
-
-function dateFormatter(locale: AppLocale, options: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", options)
-}
-
-const promotedDateOptions: Intl.DateTimeFormatOptions = {
-  day: "numeric",
-  month: "long",
-  timeZone: "Europe/Oslo",
-}
-
-const upcomingDateOptions: Intl.DateTimeFormatOptions = {
-  day: "2-digit",
-  month: "2-digit",
-  timeZone: "Europe/Oslo",
-  weekday: "long",
-}
-
-function parseEventDate(dateStr: string) {
-  if (!dateStr) return null
-  const date = new Date(`${dateStr}T12:00:00`)
-  return Number.isNaN(date.getTime()) ? null : date
-}
-
-function capitalize(value: string) {
-  return value ? `${value[0]?.toUpperCase()}${value.slice(1)}` : value
-}
-
-function formatPromotedDate(
-  date: EventDateEntry,
-  locale: AppLocale,
-  labels: HumanDateLabels,
-) {
-  const parsed = parseEventDate(date.startDate)
-  if (!parsed) return null
-  return (
-    formatHumanDate(date, labels) ??
-    dateFormatter(locale, promotedDateOptions).format(parsed)
-  )
-}
-
-function formatUpcomingDateTime(
-  date: EventDateEntry,
-  locale: AppLocale,
-  labels: HumanDateLabels,
-) {
-  const parsed = parseEventDate(date.startDate)
-  if (!parsed) return null
-  const dateLabel =
-    formatHumanDate(date, labels) ??
-    capitalize(dateFormatter(locale, upcomingDateOptions).format(parsed))
-  return date.startTime
-    ? `${dateLabel}, ${locale === "en" ? "at" : "kl."} ${date.startTime}`
-    : dateLabel
-}
-
-function eventHref(event: EventSummary, locale: AppLocale) {
-  return `/${locale}/arrangementer/${event.slug}`
 }
 
 export default async function Home({ params }: PageProps<"/[locale]">) {
@@ -360,11 +300,11 @@ function HomePromotedEvents({
             )}
             key={event._id}
           >
-            <HomePromotedEventCard
+            <EventCard
               event={toEventSummary(event, today, labels)}
-              index={index}
-              labels={labels}
-              locale={locale}
+              priority={index === 0}
+              trackingSurface="home-promoted"
+              variant="promoted"
             />
           </div>
         ))}
@@ -398,10 +338,11 @@ function HomeUpcomingEvents({
               className="w-[min(21rem,calc(100vw-3rem))] shrink-0 md:w-[21rem] xl:w-[calc((100%-4rem)/5)]"
               key={event._id}
             >
-              <HomeUpcomingEventCard
+              <EventCard
                 event={toEventSummary(event, today, labels)}
-                labels={labels}
-                locale={locale}
+                size="small"
+                trackingSurface="home-upcoming"
+                variant="slider"
               />
             </div>
           ))}
@@ -427,6 +368,7 @@ function HomeEventsHeader({
       className={cn(
         "flex flex-wrap items-center gap-4",
         label ? "justify-between" : "justify-end",
+        onPrimary && "text-primary-foreground",
       )}
     >
       {label && (
@@ -463,128 +405,5 @@ function SectionMark({ className }: { className?: string }) {
       <path d="M446.830048,455.000000 C446.803772,417.519806 446.854279,380.539185 446.658630,343.559875 C446.633698,338.841675 448.227203,337.615479 452.721588,337.670013 C469.543213,337.874176 486.376007,337.993652 503.189331,337.556427 C508.577515,337.416290 509.445709,339.180420 509.433899,344.016479 C509.285370,404.816986 509.338470,465.618011 509.339050,526.418884 C509.339111,533.748291 509.198975,541.081116 509.387268,548.405579 C509.482391,552.106079 508.128418,553.297363 504.434784,553.261963 C487.278839,553.097351 470.118256,553.017578 452.964600,553.268250 C448.077118,553.339661 446.681213,551.688904 446.708618,546.951050 C446.884918,516.468201 446.817993,485.983856 446.830048,455.000000 Z" />
       <path d="M528.681274,524.999878 C528.680481,464.682892 528.679138,404.865906 528.680420,345.048920 C528.680542,337.721924 528.686890,337.722382 536.110474,337.716827 C552.439270,337.704590 568.772034,337.888031 585.094421,337.557953 C589.898621,337.460815 591.419739,338.670898 591.402039,343.590942 C591.233765,390.410858 591.287109,437.231567 591.289490,484.052063 C591.290527,505.046265 591.198242,526.041809 591.430664,547.033630 C591.483093,551.771423 590.152161,553.410461 585.252930,553.331116 C568.428589,553.058472 551.594971,553.058289 534.770081,553.308472 C529.887878,553.381042 528.357483,551.742981 528.579895,546.990295 C528.914490,539.840942 528.676270,532.664734 528.681274,524.999878 Z" />
     </svg>
-  )
-}
-
-function HomePromotedEventCard({
-  event,
-  index,
-  labels,
-  locale,
-}: {
-  event: EventSummary
-  index: number
-  labels: HumanDateLabels
-  locale: AppLocale
-}) {
-  const dates = event.resolvedDates ?? event.dates
-  const visibleDates = dates
-    .slice(0, 3)
-    .map(date => formatPromotedDate(date, locale, labels))
-    .filter(Boolean)
-  const extraDates = Math.max(0, dates.length - visibleDates.length)
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1200 })
-    : null
-
-  return (
-    <article className="min-w-0">
-      <Link
-        className="group block focus-brutal"
-        href={eventHref(event, locale)}
-        {...eventTrackingAttributes(event, "home-promoted")}
-      >
-        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-          {imageUrl ? (
-            <Image
-              alt={event.imageCaption ?? event.title}
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              fill
-              priority={index === 0}
-              sizes="(max-width: 768px) 100vw, 33vw"
-              src={imageUrl}
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-card p-6 text-center font-heading text-foreground-muted">
-              {event.title}
-            </div>
-          )}
-        </div>
-        <div className="mt-4 space-y-3">
-          <h2 className="text-3xl leading-none tracking-normal sm:text-4xl md:text-3xl lg:text-4xl">
-            {event.title}
-          </h2>
-          {visibleDates.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {visibleDates.map(date => (
-                <span
-                  className="rounded-full bg-primary px-2.5 py-1 font-heading text-sm leading-none text-primary-foreground"
-                  key={date}
-                >
-                  {date}
-                </span>
-              ))}
-              {extraDates > 0 && (
-                <span className="rounded-full bg-primary px-2.5 py-1 font-heading text-sm leading-none text-primary-foreground">
-                  +{extraDates}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </Link>
-    </article>
-  )
-}
-
-function HomeUpcomingEventCard({
-  event,
-  labels,
-  locale,
-}: {
-  event: EventSummary
-  labels: HumanDateLabels
-  locale: AppLocale
-}) {
-  const primaryDate = (event.resolvedDates ?? event.dates)[0]
-  const dateLabel = primaryDate
-    ? formatUpcomingDateTime(primaryDate, locale, labels)
-    : null
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 480, width: 640 })
-    : null
-
-  return (
-    <Link
-      className="group grid min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-3 focus-brutal sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-4 xl:grid-cols-1"
-      href={eventHref(event, locale)}
-      {...eventTrackingAttributes(event, "home-upcoming")}
-    >
-      <div className="relative aspect-4/3 min-w-0 overflow-hidden bg-primary-foreground/15">
-        {imageUrl ? (
-          <Image
-            alt={event.imageCaption ?? event.title}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            fill
-            sizes="(max-width: 640px) 8rem, (max-width: 1280px) 40vw, 12rem"
-            src={imageUrl}
-            unoptimized={shouldLoadImageDirectly(imageUrl)}
-          />
-        ) : (
-          <div className="h-full bg-primary-foreground/15" />
-        )}
-      </div>
-      <div className="min-w-0 space-y-1">
-        {dateLabel && (
-          <p className="font-heading text-sm leading-tight opacity-80">
-            {dateLabel}
-          </p>
-        )}
-        <h2 className="text-xl leading-tight transition-colors group-hover:underline group-hover:underline-offset-4">
-          {event.title}
-        </h2>
-      </div>
-    </Link>
   )
 }

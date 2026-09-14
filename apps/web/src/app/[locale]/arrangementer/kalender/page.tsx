@@ -54,6 +54,7 @@ export default async function CalendarPage({
     <EventCalendarPage
       arrangements={eventSet.events}
       backLabel={t("back")}
+      eyebrowLabel={t("eyebrow")}
       listLabel={t("list")}
       locale={locale}
       occurrences={eventSet.occurrences}

@@ -123,7 +123,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
       {content?.sections?.length ? (
         <section className="grid gap-6 md:grid-cols-2">
           {content.sections.map(section => (
-            <article className="panel space-y-4" key={section._key}>
+            <article className="space-y-4 bg-card p-5" key={section._key}>
               {section.title ? (
                 <h2 className="font-heading text-3xl leading-none text-foreground">
                   {section.title}

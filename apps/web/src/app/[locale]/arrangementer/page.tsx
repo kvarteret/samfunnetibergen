@@ -113,6 +113,7 @@ export default async function EventsPage({
       arrangements={arrangements}
       backLabel={t("back")}
       calendarLabel={t("calendar")}
+      eyebrowLabel={t("eyebrow")}
       precomputedDates={precomputedDates}
       searchParams={resolvedSearchParams}
       title={t("title")}
