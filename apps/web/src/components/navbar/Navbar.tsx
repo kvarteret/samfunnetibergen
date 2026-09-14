@@ -241,47 +241,34 @@ export function Navbar({
     <NavbarScrollShell>
       <nav
         aria-label={t("ariaLabel")}
-        className="mx-auto flex max-w-7xl flex-col px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
+        className="mx-auto flex max-w-7xl items-center justify-between px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
       >
-        <div className="flex w-full items-center justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link
-              aria-label="Samfunnet i Bergen"
-              className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
-              href="/"
-            >
-              <BrandLogo
-                className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
-                logo={logo}
-              />
-            </Link>
+        <div className="flex min-w-0 items-center gap-4">
+          <Link
+            aria-label="Samfunnet i Bergen"
+            className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
+            href="/"
+          >
+            <BrandLogo
+              className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
+              logo={logo}
+            />
+          </Link>
 
-            <div className="hidden lg:block">
-              <NavbarOpenStatus
-                closedDates={houseHours?.houseClosedDates}
-                initialNow={initialNow}
-                openingHours={houseHours?.openingHours}
-                vacationMode={houseHours?.vacationMode}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <DesktopNav items={items} />
-            <LanguageSwitcher />
-            <MobileMenu items={mobileItems} logo={logo} />
-          </div>
-        </div>
-
-        <div className="-mx-6 sm:-mx-10 lg:hidden">
           <NavbarOpenStatus
-            className="w-full max-w-none px-6 py-3 sm:px-10"
             closedDates={houseHours?.houseClosedDates}
             initialNow={initialNow}
             openingHours={houseHours?.openingHours}
             vacationMode={houseHours?.vacationMode}
           />
         </div>
+
+        <div className="flex items-center gap-3">
+          <DesktopNav items={items} />
+          <LanguageSwitcher />
+        </div>
+
+        <MobileMenu items={mobileItems} logo={logo} />
       </nav>
     </NavbarScrollShell>
   )

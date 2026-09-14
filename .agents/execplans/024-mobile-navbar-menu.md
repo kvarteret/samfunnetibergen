@@ -290,9 +290,8 @@ Collapsible, and the repository's `cn` utility are the dependencies to reuse.
   full check/browser evidence.
 - 2026-09-14: Committed as `ecb3a91`, pushed `codex/mobile-navbar-menu`, and
   opened PR #140 against `develop`; no merge or deploy performed.
-- 2026-09-14: Follow-up refinement moved the opening status into a second
-  mobile-only row, kept the detail visible, and removed the row border per
-  review feedback; desktop remains inline.
+- 2026-09-14: The opening-status two-row/clipping follow-up was intentionally
+  left out of PR #140 per review feedback; the status remains inline here.
 - 2026-09-14: Added shared date-fns-backed human date labels for homepage
   promoted/upcoming events through seven days ahead, preserving existing
   formatting afterward; corrected the English relative-date translations and

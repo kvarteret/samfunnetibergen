@@ -32,10 +32,12 @@ export default async function LocaleLayout({
       fetchFooter(locale),
       fetchHouseHours(locale),
       fetchSiteLogo(),
-      fetchUsefulInfoNavigation(locale),
+      fetchUsefulInfoNavigation(),
     ])
   const initialNow = new Date().toISOString()
-  const vergeordningHref = getVergeordningHref(usefulInfoNavigation?.sections)
+  const vergeordningHref = getVergeordningHref(
+    usefulInfoNavigation?.vergeordningSection,
+  )
 
   return (
     <NextIntlClientProvider messages={messages}>

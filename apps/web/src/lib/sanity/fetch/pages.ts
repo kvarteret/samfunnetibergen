@@ -179,12 +179,9 @@ export async function fetchUsefulInfoPage(
   return data
 }
 
-export async function fetchUsefulInfoNavigation(
-  locale: AppLocale = DEFAULT_LOCALE,
-): Promise<UsefulInfoNavigation | null> {
+export async function fetchUsefulInfoNavigation(): Promise<UsefulInfoNavigation | null> {
   const { data } = await sanityFetch({
     query: usefulInfoNavigationQuery,
-    params: { locale },
   })
   return data
 }

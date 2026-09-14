@@ -1,9 +1,8 @@
 import { stegaClean } from "@sanity/client/stega"
+import { VERGEORDNING_SECTION_KEY } from "./queries/pages"
 
 export interface UsefulInfoNavigationSection {
   _key: string | null
-  isVergeordning?: boolean | null
-  label?: string | null
 }
 
 /**
@@ -12,12 +11,9 @@ export interface UsefulInfoNavigationSection {
  * reason to omit the shortcut rather than invent a fragment.
  */
 export function getVergeordningHref(
-  sections: readonly (UsefulInfoNavigationSection | null)[] | null | undefined,
+  section: UsefulInfoNavigationSection | null | undefined,
 ): string | null {
-  const section = sections?.find(
-    candidate => candidate?.isVergeordning && candidate._key,
-  )
   const key = section?._key ? stegaClean(section._key) : null
 
-  return key ? `/nyttig#${key}` : null
+  return key === VERGEORDNING_SECTION_KEY ? `/nyttig#${key}` : null
 }

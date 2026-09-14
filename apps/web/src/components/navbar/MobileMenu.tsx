@@ -1,10 +1,11 @@
 "use client"
 
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
 import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { useId, useState } from "react"
+import { useState } from "react"
 import type {
   NavGroup,
   NavItem,
@@ -14,10 +15,6 @@ import type {
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
 import { LanguageSwitcher } from "./LanguageSwitcher"
-import {
-  resetMobileMenuState,
-  toggleMobileMenuGroup,
-} from "./mobile-menu-state"
 import { PaperMenuSection } from "./PaperPicker"
 
 type MobileMenuProps = {
@@ -32,18 +29,13 @@ const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
-  const [openItemKey, setOpenItemKey] = useState<string | null>(null)
-  const [menuSessionKey, setMenuSessionKey] = useState(0)
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
-    setOpenItemKey(resetMobileMenuState())
-    if (nextOpen) setMenuSessionKey(key => key + 1)
   }
 
   const close = () => {
     setOpen(false)
-    setOpenItemKey(resetMobileMenuState())
   }
 
   return (
@@ -56,10 +48,7 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Popup
-          className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden"
-          key={menuSessionKey}
-        >
+        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden">
           <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
           <div className="shrink-0 pt-[env(safe-area-inset-top)]">
@@ -87,21 +76,16 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 
           <nav
             aria-label={t("mobileAriaLabel")}
-            className="flex min-h-0 flex-1 flex-col divide-y-2 divide-border overflow-y-auto overscroll-contain"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
-            {items.map(item => (
-              <MobileNavItem
-                isOpen={openItemKey === item._key}
-                item={item}
-                key={item._key}
-                onClose={close}
-                onToggle={() =>
-                  setOpenItemKey(currentKey =>
-                    toggleMobileMenuGroup(currentKey, item._key),
-                  )
-                }
-              />
-            ))}
+            <AccordionPrimitive.Root
+              className="flex min-h-full flex-col divide-y-2 divide-border"
+              multiple={false}
+            >
+              {items.map(item => (
+                <MobileNavItem item={item} key={item._key} onClose={close} />
+              ))}
+            </AccordionPrimitive.Root>
           </nav>
           <div className="shrink-0 border-t-2 border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <LanguageSwitcher onNavigate={close} />
@@ -115,20 +99,12 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 // ─── MobileNavItem ────────────────────────────────────────────────────────────
 
 interface MobileNavItemProps {
-  isOpen: boolean
   item: NavItem
   onClose: () => void
-  onToggle: () => void
 }
 
-function MobileNavItem({
-  isOpen,
-  item,
-  onClose,
-  onToggle,
-}: MobileNavItemProps) {
+function MobileNavItem({ item, onClose }: MobileNavItemProps) {
   const isVolunteer = item._key === "static-volunteer"
-  const panelId = useId()
   const hasChildren = item.children?.some(group => group.items?.length) ?? false
   const linkCls = cn(
     "flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 border-2 border-transparent px-6 py-2.5 text-left font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
@@ -137,40 +113,33 @@ function MobileNavItem({
   )
 
   return (
-    <div>
+    <AccordionPrimitive.Item value={item._key}>
       {hasChildren ? (
-        <button
-          aria-controls={panelId}
-          aria-expanded={isOpen}
-          className={linkCls}
-          onClick={onToggle}
-          type="button"
-        >
-          {item.label}
-          <ChevronDown
-            aria-hidden
-            className={cn(
-              "size-[1em] shrink-0 text-foreground-muted transition-transform",
-              isOpen && "rotate-180",
+        <>
+          <AccordionPrimitive.Header>
+            <AccordionPrimitive.Trigger className={linkCls} type="button">
+              {item.label}
+              <ChevronDown
+                aria-hidden
+                className="size-[1em] shrink-0 text-foreground-muted transition-transform group-data-panel-open:rotate-180"
+                strokeWidth={1.75}
+              />
+            </AccordionPrimitive.Trigger>
+          </AccordionPrimitive.Header>
+
+          <AccordionPrimitive.Panel className="divide-y divide-border/50">
+            {item.children?.map((group: NavGroup) =>
+              group.items?.map((leaf: NavLeaf) => (
+                <MobileNavLink leaf={leaf} key={leaf._key} onClose={onClose} />
+              )),
             )}
-            strokeWidth={1.75}
-          />
-        </button>
+            {item._key === "static-more" && <PaperMenuSection mobile />}
+          </AccordionPrimitive.Panel>
+        </>
       ) : (
         renderNavItemLabel(item, onClose, linkCls)
       )}
-
-      {isOpen && hasChildren && (
-        <div className="divide-y divide-border/50" id={panelId}>
-          {item.children?.map((group: NavGroup) =>
-            group.items?.map((leaf: NavLeaf) => (
-              <MobileNavLink leaf={leaf} key={leaf._key} onClose={onClose} />
-            )),
-          )}
-          {item._key === "static-more" && <PaperMenuSection mobile />}
-        </div>
-      )}
-    </div>
+    </AccordionPrimitive.Item>
   )
 }
 

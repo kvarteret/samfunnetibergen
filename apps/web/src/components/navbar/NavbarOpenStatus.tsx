@@ -22,7 +22,6 @@ type NavbarOpenStatusProps = {
   closedDates?: ClosedDate[] | null
   vacationMode?: VacationMode | null
   initialNow: string
-  className?: string
 }
 
 const DAY_COUNT = 7
@@ -32,7 +31,6 @@ export function NavbarOpenStatus({
   closedDates,
   vacationMode,
   initialNow,
-  className,
 }: NavbarOpenStatusProps) {
   const now = useCurrentTime(initialNow)
   const locale = useLocale() as "nb" | "en"
@@ -72,12 +70,7 @@ export function NavbarOpenStatus({
 
   return (
     <Popover.Root>
-      <Popover.Trigger
-        className={cn(
-          "group flex min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal",
-          className,
-        )}
-      >
+      <Popover.Trigger className="group flex min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal">
         <span
           className={cn(
             "shrink-0 font-heading",

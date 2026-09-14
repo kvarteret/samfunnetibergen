@@ -141,16 +141,14 @@ export const usefulInfoPageQuery =
     }, [])
 }`)
 
+// Stable published Sanity array key for the Vergeordningen section.
+export const VERGEORDNING_SECTION_KEY = "7d0eec2032cc"
+
 export const usefulInfoNavigationQuery =
   defineQuery(`*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {
-    "sections": coalesce(sections[] {
-        _key,
-        "label": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),
-        "isVergeordning": coalesce(
-            count(localizedTitle[value match "*verge*"]) > 0 || count(localizedTitle[value match "*guardian*"]) > 0 || count(localizedHeading[value match "*verge*"]) > 0 || count(localizedHeading[value match "*guardian*"]) > 0,
-            false
-        )
-    }, [])
+    "vergeordningSection": sections[_key == "${VERGEORDNING_SECTION_KEY}"][0] {
+        _key
+    }
 }`)
 
 export const linkInBioQuery =
