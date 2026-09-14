@@ -47,7 +47,6 @@
   "EventCard": {
     "today": "I dag",
     "tomorrow": "I morgen",
-    "inNDays": "Om {n} dager",
     "recurringDaily": "Hver dag",
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",

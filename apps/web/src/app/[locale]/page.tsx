@@ -8,6 +8,7 @@ import {
   computeAllDates,
   formatHumanDate,
   formatPrimaryDate,
+  formatWeekday,
   getRecurringLabel,
 } from "@/features/events/domain/dates"
 import type { PublicEvent } from "@/features/events/domain/events"
@@ -65,14 +66,14 @@ type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
 type EventCardLabels = {
   today: string
   tomorrow: string
-  inNDays: (n: number) => string
+  weekday: (date: Date) => string
   recurringDaily: string
   recurringWeekly: string
   recurringMonthly: string
   recurringGeneric: string
 }
 
-type HumanDateLabels = Pick<EventCardLabels, "today" | "tomorrow" | "inNDays">
+type HumanDateLabels = Pick<EventCardLabels, "today" | "tomorrow" | "weekday">
 
 function toEventSummary(
   event: SanityEvent,
@@ -94,7 +95,7 @@ function toEventSummary(
     ? {
         today: labels.today,
         tomorrow: labels.tomorrow,
-        inNDays: labels.inNDays,
+        weekday: labels.weekday,
       }
     : undefined
   const primaryDate = resolvedDates[0]
@@ -251,7 +252,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const eventCardLabels: EventCardLabels = {
     today: t("today"),
     tomorrow: t("tomorrow"),
-    inNDays: (n: number) => t("inNDays", { n }),
+    weekday: (date: Date) => formatWeekday(date, locale),
     recurringDaily: t("recurringDaily"),
     recurringWeekly: t("recurringWeekly"),
     recurringMonthly: t("recurringMonthly"),

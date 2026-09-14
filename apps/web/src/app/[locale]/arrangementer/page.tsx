@@ -4,13 +4,14 @@ import { EventsPage as EventsPageContent } from "@/features/events"
 import {
   computeAllDates,
   formatPrimaryDate,
+  formatWeekday,
   getRecurringLabel,
   type PrimaryDateLabels,
   type RecurringLabels,
 } from "@/features/events/domain/dates"
-import type { AppLocale } from "@/i18n/routing"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
 import { fetchPublicEventSet } from "@/features/events/server/public-events"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -61,7 +62,7 @@ export default async function EventsPage({
   const primaryDateLabels: PrimaryDateLabels = {
     today: cardT("today"),
     tomorrow: cardT("tomorrow"),
-    inNDays: (n: number) => cardT("inNDays", { n }),
+    weekday: (date: Date) => formatWeekday(date, locale),
   }
   const recurringLabels: RecurringLabels = {
     daily: cardT("recurringDaily"),

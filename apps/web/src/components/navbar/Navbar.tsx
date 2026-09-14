@@ -266,9 +266,8 @@ export function Navbar({
         <div className="flex items-center gap-3">
           <DesktopNav items={items} />
           <LanguageSwitcher />
+          <MobileMenu items={mobileItems} logo={logo} />
         </div>
-
-        <MobileMenu items={mobileItems} logo={logo} />
       </nav>
     </NavbarScrollShell>
   )

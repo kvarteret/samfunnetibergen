@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { formatHumanDate } from "./dates"
+import { formatHumanDate, formatWeekday } from "./dates"
 
 const labels = {
   today: "I dag",
   tomorrow: "I morgen",
-  inNDays: (days: number) => `Om ${days} dager`,
+  weekday: (date: Date) => formatWeekday(date, "nb"),
 }
 
 function eventDate(startDate: string) {
@@ -22,7 +22,16 @@ describe("formatHumanDate", () => {
 
     expect(formatHumanDate(eventDate("2026-09-14"), labels)).toBe("I dag")
     expect(formatHumanDate(eventDate("2026-09-15"), labels)).toBe("I morgen")
-    expect(formatHumanDate(eventDate("2026-09-21"), labels)).toBe("Om 7 dager")
+    expect(formatHumanDate(eventDate("2026-09-16"), labels)).toBe("Onsdag")
+    expect(formatHumanDate(eventDate("2026-09-17"), labels)).toBe("Torsdag")
+    expect(formatHumanDate(eventDate("2026-09-21"), labels)).toBe("Mandag")
+  })
+
+  test("localizes weekday names", () => {
+    const date = new Date("2026-09-16T12:00:00Z")
+
+    expect(formatWeekday(date, "nb")).toBe("Onsdag")
+    expect(formatWeekday(date, "en")).toBe("Wednesday")
   })
 
   test("falls back outside the seven-day window", () => {

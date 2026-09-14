@@ -30,16 +30,12 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen)
-  }
-
   const close = () => {
     setOpen(false)
   }
 
   return (
-    <Dialog.Root onOpenChange={handleOpenChange} open={open}>
+    <Dialog.Root onOpenChange={setOpen} open={open}>
       <Dialog.Trigger
         aria-label={t("openMenu")}
         className="p-3 text-foreground focus-brutal lg:hidden"

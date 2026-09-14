@@ -36,7 +36,7 @@ export type SponsorsPageContent = NonNullable<
 
 export type PageContent = NonNullable<ClientReturn<typeof pageBySlugQuery>>
 
-export type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
+type NavbarContent = NonNullable<ClientReturn<typeof navbarQuery>>
 
 export type NavItem = NonNullable<NavbarContent["items"]>[number]
 
@@ -53,13 +53,6 @@ export async function fetchHomePageContent(
     params: { locale },
     stega: options.stega,
   })
-  return data
-}
-
-export async function fetchNavbar(
-  locale: AppLocale = DEFAULT_LOCALE,
-): Promise<NavbarContent | null> {
-  const { data } = await sanityFetch({ query: navbarQuery, params: { locale } })
   return data
 }
 

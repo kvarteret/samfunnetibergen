@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, isToday, isTomorrow } from "date-fns"
-
+import type { AppLocale } from "@/i18n/routing"
 import type { EventDateEntry } from "../components/EventCard"
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
@@ -9,7 +9,7 @@ const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
   timeZone: "Europe/Oslo",
 })
 
-export function formatTimeRange(start: string, end?: string | null): string {
+function formatTimeRange(start: string, end?: string | null): string {
   if (end) return `kl. ${start}–${end}`
   return `kl. ${start}`
 }
@@ -17,13 +17,12 @@ export function formatTimeRange(start: string, end?: string | null): string {
 export interface PrimaryDateLabels {
   today: string
   tomorrow: string
-  /** Returns "Om N dager" for the given number of days */
-  inNDays: (n: number) => string
+  weekday: (date: Date) => string
 }
 
 export function formatHumanDate(
   date: EventDateEntry,
-  labels: Pick<PrimaryDateLabels, "today" | "tomorrow" | "inNDays">,
+  labels: Pick<PrimaryDateLabels, "today" | "tomorrow" | "weekday">,
 ): string | null {
   const eventDate = new Date(`${date.startDate}T00:00:00`)
   const daysUntil = differenceInCalendarDays(eventDate, new Date())
@@ -31,7 +30,16 @@ export function formatHumanDate(
   if (daysUntil < 0 || daysUntil > 7) return null
   if (isToday(eventDate)) return labels.today
   if (isTomorrow(eventDate)) return labels.tomorrow
-  return labels.inNDays(daysUntil)
+  return labels.weekday(eventDate)
+}
+
+export function formatWeekday(date: Date, locale: AppLocale): string {
+  const weekday = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    timeZone: "Europe/Oslo",
+    weekday: "long",
+  }).format(date)
+
+  return weekday.charAt(0).toLocaleUpperCase(locale) + weekday.slice(1)
 }
 
 export function formatPrimaryDate(
