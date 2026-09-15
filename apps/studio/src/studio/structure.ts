@@ -40,19 +40,16 @@ function pageListItem(
   title: string,
   slugs: string[],
 ) {
-  return S.listItem()
-    .id(id)
-    .title(title)
-    .icon(icons.document)
-    .child(
-      S.documentList()
-        .apiVersion(STRUCTURE_API_VERSION)
-        .title(title)
-        .schemaType("page")
-        .filter("_type == 'page' && slug.current in $slugs")
-        .params({ slugs })
-        .defaultOrdering([{ field: "title", direction: "asc" }]),
-    )
+  return S.listItem().id(id).title(title).icon(icons.document).child(
+    S.documentList()
+      .apiVersion(STRUCTURE_API_VERSION)
+      .title(title)
+      .schemaType("page")
+      .filter("_type == 'page' && slug.current in $slugs")
+      // Page titles are localized array fields; the former scalar `title`
+      // ordering makes Sanity reject the entire list query.
+      .params({ slugs }),
+  )
 }
 
 type ArrangementListOptions = {
