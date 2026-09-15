@@ -51,7 +51,7 @@
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
     "recurringGeneric": "Gjentagende",
-    "timePrefix": "kl.",
+    "timePrefix": "",
     "statusCancelled": "Kansellert"
   },
   "EventsPage": {
@@ -575,9 +575,9 @@
   "OpeningHours": {
     "open": "Åpent",
     "closed": "Stengt",
-    "closesAt": "Stenger kl. {time}",
-    "opensAt": "Åpner {day} kl. {time}",
-    "opensAtTime": "Åpner kl. {time}",
+    "closesAt": "Stenger {time}",
+    "opensAt": "Åpner {day} {time}",
+    "opensAtTime": "Åpner {time}",
     "noOpeningHours": "Ingen åpningstid funnet",
     "title": "Åpningstider",
     "daySunday": "søndag",

@@ -51,9 +51,8 @@ function formatDayLabel(date: string, locale: AppLocale) {
 function formatTime(occurrence: CalendarOccurrence, prefix: string) {
   const { startTime, endTime } = occurrence.schedule
   if (!startTime) return null
-  return endTime
-    ? `${prefix} ${startTime}–${endTime}`
-    : `${prefix} ${startTime}`
+  const range = endTime ? `${startTime}–${endTime}` : startTime
+  return prefix ? `${prefix} ${range}` : range
 }
 
 function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {

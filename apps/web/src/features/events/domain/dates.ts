@@ -12,8 +12,8 @@ const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
 })
 
 function formatTimeRange(start: string, end?: string | null): string {
-  if (end) return `kl. ${start}–${end}`
-  return `kl. ${start}`
+  if (end) return `${start}–${end}`
+  return start
 }
 
 export interface PrimaryDateLabels {

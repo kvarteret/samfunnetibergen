@@ -30,7 +30,7 @@ export type EventSummary = {
   resolvedDates?: EventDateEntry[]
   /** Precomputed server-side. Falls back to null if absent. */
   recurringLabel?: string | null
-  /** Precomputed server-side label for the primary date (e.g. "I dag, kl. 21:00–02:00"). */
+  /** Precomputed server-side label for the primary date (e.g. "I dag, 21:00–02:00"). */
   primaryDateLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null

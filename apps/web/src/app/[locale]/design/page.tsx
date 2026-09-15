@@ -240,7 +240,7 @@ export default function DesignGallery({
       <Section header={<SectionHeader number="10" title="DetailRow" />}>
         <div className="max-w-md space-y-3">
           <DetailRow label="Dato">12. juni 2026</DetailRow>
-          <DetailRow label="Tid">kl. 21:00–02:00</DetailRow>
+          <DetailRow label="Tid">21:00–02:00</DetailRow>
           <DetailRow label="Sted">Grøndahls</DetailRow>
         </div>
       </Section>
