@@ -104,6 +104,7 @@ describe("public occurrence schedules", () => {
       endTime: "02:30",
       startsAt: "2026-10-25T20:00:00.000Z",
       endsAt: "2026-10-26T01:30:00.000Z",
+      doorsOpenAt: "2026-10-25T20:00:00.000Z",
       timeZone: "Europe/Oslo",
     })
   })
@@ -115,6 +116,7 @@ describe("public occurrence schedules", () => {
     expect(schedule.endDate).toBeNull()
     expect(schedule.startsAt).toBeNull()
     expect(schedule.endsAt).toBeNull()
+    expect(schedule.doorsOpenAt).toBeNull()
   })
 
   it("flattens every matching date in global stable order", () => {
