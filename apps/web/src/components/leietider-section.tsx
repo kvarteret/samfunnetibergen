@@ -25,7 +25,10 @@ export function LeietiderSection({
         </h2>
         <LeietiderBody body={section.body} />
       </div>
-      <Disclosure className="md:hidden" summary={t("page.viewRentalHours")}>
+      <Disclosure
+        className="hs:bg-secondary/10 md:hidden"
+        summary={t("page.viewRentalHours")}
+      >
         <LeietiderBody body={section.body} />
       </Disclosure>
     </section>
