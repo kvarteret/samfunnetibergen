@@ -27,32 +27,38 @@ export function Navbar({
     <NavbarScrollShell>
       <nav
         aria-label={t("ariaLabel")}
-        className="mx-auto flex max-w-7xl items-center justify-between px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
+        className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 px-6 transition-[padding] duration-300 ease-out sm:px-10 lg:px-14"
       >
-        <div className="flex min-w-0 items-center gap-4">
-          <Link
-            aria-label="Samfunnet i Bergen"
-            className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
-            href="/"
-          >
-            <BrandLogo
-              className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
-              logo={logo}
-            />
-          </Link>
-
-          <NavbarOpenStatus
-            closedDates={houseHours?.houseClosedDates}
-            initialNow={initialNow}
-            openingHours={houseHours?.openingHours}
-            vacationMode={houseHours?.vacationMode}
+        <Link
+          aria-label="Samfunnet i Bergen"
+          className="block py-4 transition-[padding,opacity] duration-300 ease-out hover:opacity-75 focus-brutal group-data-[scrolled=true]/nav:py-2.5"
+          href="/"
+        >
+          <BrandLogo
+            className="h-12 w-auto transition-[height] duration-300 ease-out group-data-[scrolled=true]/nav:h-8 sm:h-[3.75rem] sm:group-data-[scrolled=true]/nav:h-10"
+            logo={logo}
           />
-        </div>
+        </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           <DesktopNav items={items} />
           <LanguageSwitcher />
           <MobileMenu items={items} logo={logo} />
+        </div>
+
+        {/* The opening status always owns the second row so it never competes
+            with the navigation items for space. At the top of the page it is
+            shown; once scrolled it transitions away in step with the navbar
+            (300ms ease-out), leaving a single-row navbar. */}
+        <div className="grid w-full grid-rows-[1fr] opacity-100 transition-[grid-template-rows,opacity] duration-300 ease-out group-data-[scrolled=true]/nav:grid-rows-[0fr] group-data-[scrolled=true]/nav:opacity-0">
+          <div className="min-h-0 overflow-clip [overflow-clip-margin:4px]">
+            <NavbarOpenStatus
+              closedDates={houseHours?.houseClosedDates}
+              initialNow={initialNow}
+              openingHours={houseHours?.openingHours}
+              vacationMode={houseHours?.vacationMode}
+            />
+          </div>
         </div>
       </nav>
     </NavbarScrollShell>

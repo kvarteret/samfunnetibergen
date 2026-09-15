@@ -70,7 +70,7 @@ export function NavbarOpenStatus({
 
   return (
     <Popover.Root>
-      <Popover.Trigger className="group flex min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal">
+      <Popover.Trigger className="group flex w-fit min-w-0 max-w-[min(28rem,calc(100vw-10rem))] cursor-pointer items-center gap-1.5 py-2 text-left font-heading text-sm focus-brutal">
         <span
           className={cn(
             "shrink-0 font-heading",
