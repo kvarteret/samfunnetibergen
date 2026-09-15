@@ -29,13 +29,19 @@ const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
   const [open, setOpen] = useState(false)
+  const [menuSessionKey, setMenuSessionKey] = useState(0)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen) setMenuSessionKey(key => key + 1)
+  }
 
   const close = () => {
     setOpen(false)
   }
 
   return (
-    <Dialog.Root onOpenChange={setOpen} open={open}>
+    <Dialog.Root onOpenChange={handleOpenChange} open={open}>
       <Dialog.Trigger
         aria-label={t("openMenu")}
         className="p-3 text-foreground focus-brutal lg:hidden"
@@ -44,7 +50,10 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden">
+        <Dialog.Popup
+          className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden"
+          key={menuSessionKey}
+        >
           <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
           <div className="shrink-0 pt-[env(safe-area-inset-top)]">
