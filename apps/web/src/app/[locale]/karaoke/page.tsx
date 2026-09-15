@@ -1,5 +1,6 @@
 import { Mic } from "lucide-react"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 import {
   activateRequestLocale,
@@ -70,6 +71,7 @@ export default async function KaraokePage({
 
   return (
     <article className="flex w-full flex-col gap-10">
+      <Breadcrumbs path="/karaoke" />
       <KaraokePageIntro />
       <KaraokeForm
         initialNow={new Date().toISOString()}

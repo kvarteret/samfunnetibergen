@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 
 import { JsonLd } from "@/components/JsonLd"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
@@ -72,6 +73,10 @@ export default async function EventPage({ params }: EventPageProps) {
         className="flex w-full flex-col gap-8"
         {...eventTrackingAttributes(eventData, "event-detail")}
       >
+        <Breadcrumbs
+          current={eventData.title}
+          path={`/arrangementer/${resolvedParams.event}`}
+        />
         <EventStatusNotice event={eventData} t={t} />
         <EventDetailHero
           event={eventData}

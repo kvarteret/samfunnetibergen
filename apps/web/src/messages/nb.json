@@ -631,5 +631,21 @@
       "value": "Annet / ikke student",
       "label": "Annet / ikke student"
     }
-  ]
+  ],
+  "Breadcrumbs": {
+    "ariaLabel": "Brødsmulesti",
+    "home": "Forsiden",
+    "events": "Arrangementer",
+    "calendar": "Kalender",
+    "newEvent": "Nytt arrangement",
+    "groups": "Bli frivillig",
+    "volunteer": "Bli frivillig",
+    "rooms": "Booking",
+    "book": "Book rom",
+    "karaoke": "Karaoke",
+    "useful": "Nyttig info",
+    "contact": "Kontakt",
+    "sponsors": "Sponsorer",
+    "design": "Designsystem"
+  }
 }

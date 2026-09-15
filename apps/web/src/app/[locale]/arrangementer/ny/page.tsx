@@ -1,4 +1,5 @@
 import { CalendarPlus } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { EventForm } from "@/features/events"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
@@ -42,6 +43,7 @@ export default async function NyttArrangementPage({
 
   return (
     <article className="flex w-full flex-col gap-12">
+      <Breadcrumbs path="/arrangementer/ny" />
       <SubmitEventPageIntro />
       <EventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
     </article>

@@ -634,5 +634,21 @@
     "closedNow": "Closed now",
     "holidayReopens": "We reopen {date}",
     "holidayClosed": "Closed."
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Breadcrumb",
+    "home": "Home",
+    "events": "Events",
+    "calendar": "Calendar",
+    "newEvent": "New event",
+    "groups": "Volunteer",
+    "volunteer": "Volunteer",
+    "rooms": "Booking",
+    "book": "Book room",
+    "karaoke": "Karaoke",
+    "useful": "Useful information",
+    "contact": "Contact",
+    "sponsors": "Sponsors",
+    "design": "Design system"
   }
 }

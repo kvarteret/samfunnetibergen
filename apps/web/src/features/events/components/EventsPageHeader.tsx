@@ -5,38 +5,16 @@ import { Link } from "@/i18n/navigation"
 interface EventsPageHeaderProps {
   actionHref: string
   actionLabel: string
-  breadcrumbLabel: string
   title: string
 }
 
 export function EventsPageHeader({
   actionHref,
   actionLabel,
-  breadcrumbLabel,
   title,
 }: EventsPageHeaderProps) {
   return (
     <header className="space-y-8">
-      <nav
-        aria-label={breadcrumbLabel}
-        className="text-base text-foreground-muted"
-      >
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link
-              className="underline underline-offset-4 hover:no-underline focus-brutal"
-              href="/"
-            >
-              {breadcrumbLabel}
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-foreground">
-            {title}
-          </li>
-        </ol>
-      </nav>
-
       <div className="flex flex-wrap items-end justify-between gap-6">
         <h1 className="wrap-break-word text-4xl leading-none sm:text-6xl">
           {title}

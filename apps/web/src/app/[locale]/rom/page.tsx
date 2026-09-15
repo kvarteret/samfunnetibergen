@@ -1,4 +1,5 @@
 import { Users } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { LeietiderSection } from "@/components/leietider-section"
 import { Button } from "@/components/ui/button"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -75,6 +76,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   return (
     <div className="space-y-16">
+      <Breadcrumbs path="/rom" />
       <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="flex flex-col justify-between gap-6">
           <div className="space-y-4">

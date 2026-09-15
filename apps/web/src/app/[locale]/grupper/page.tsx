@@ -1,3 +1,4 @@
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
   Accordion,
   AccordionItem,
@@ -98,6 +99,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
 
   return (
     <div className="space-y-12">
+      <Breadcrumbs path="/grupper" />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <header className="space-y-5">
           {content?.eyebrow &&

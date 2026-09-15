@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { DetailRow } from "@/components/ui/detail-row"
 import { BoolSpec } from "@/features/rooms"
 import {
@@ -114,6 +115,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
   return (
     <article>
+      <Breadcrumbs className="mb-8" current={title} path={`/rom/${slug}`} />
       {imageOnlySlides.length > 0 && (
         <div>
           <ImageCarousel slides={imageOnlySlides} />

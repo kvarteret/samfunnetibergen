@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react"
 import Image from "next/image"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -41,6 +42,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
 
   return (
     <div className="space-y-12">
+      <Breadcrumbs path="/sponsorer" />
       <header className="space-y-5">
         {content?.eyebrow ? (
           <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">

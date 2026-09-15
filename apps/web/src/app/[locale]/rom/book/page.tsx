@@ -6,6 +6,7 @@ import {
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { HowToBookSection } from "@/components/how-to-book-section"
 import { LeietiderSection } from "@/components/leietider-section"
 import { BookingForm } from "@/features/booking"
@@ -151,6 +152,7 @@ export default async function BookRoomPage({
 
   return (
     <article className="flex w-full flex-col gap-10">
+      <Breadcrumbs path="/rom/book" />
       <header className="space-y-4">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
           <div className="space-y-4">

@@ -10,7 +10,6 @@ import { EventsPageSections } from "./EventsPageSections"
 
 interface EventsPageProps {
   arrangements: PublicEvent[]
-  backLabel: string
   calendarLabel: string
   precomputedDates: Map<
     string,
@@ -27,7 +26,6 @@ interface EventsPageProps {
 
 export function EventsPage({
   arrangements,
-  backLabel,
   calendarLabel,
   precomputedDates,
   searchParams,
@@ -42,7 +40,6 @@ export function EventsPage({
         <EventsPageHeader
           actionHref="/arrangementer/kalender"
           actionLabel={calendarLabel}
-          breadcrumbLabel={backLabel}
           title={title}
         />
 

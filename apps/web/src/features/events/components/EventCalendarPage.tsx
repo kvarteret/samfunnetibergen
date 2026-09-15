@@ -10,7 +10,6 @@ import { EventsPageHeader } from "./EventsPageHeader"
 
 interface EventCalendarPageProps {
   arrangements: PublicEvent[]
-  backLabel: string
   listLabel: string
   locale: AppLocale
   occurrences: PublicOccurrence[]
@@ -21,7 +20,6 @@ interface EventCalendarPageProps {
 
 export function EventCalendarPage({
   arrangements,
-  backLabel,
   listLabel,
   locale,
   occurrences,
@@ -39,7 +37,6 @@ export function EventCalendarPage({
         <EventsPageHeader
           actionHref="/arrangementer"
           actionLabel={listLabel}
-          breadcrumbLabel={backLabel}
           title={title}
         />
 
