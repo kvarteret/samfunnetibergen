@@ -290,9 +290,9 @@ export function DateTimePicker({
           month: "flex-1 min-w-0 flex flex-col gap-4",
           nav: "absolute inset-x-0 top-0 flex w-full items-center justify-between",
           button_previous:
-            "size-8 flex items-center justify-center border border-border hover:bg-muted transition-colors select-none aria-disabled:opacity-50",
+            "size-8 flex items-center justify-center border border-border transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
           button_next:
-            "size-8 flex items-center justify-center border border-border hover:bg-muted transition-colors select-none aria-disabled:opacity-50",
+            "size-8 flex items-center justify-center border border-border transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
           month_caption:
             "flex h-12 w-full items-center justify-center px-10 mb-2",
           caption_label:
@@ -302,8 +302,9 @@ export function DateTimePicker({
             "flex-1 text-center text-xs font-semibold uppercase tracking-wider text-foreground-muted select-none py-1",
           week: "flex w-full",
           day: "group/day relative flex-1 p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l [&:last-child[data-selected=true]_button]:rounded-r",
-          today: "bg-muted/60 data-[selected=true]:bg-transparent",
-          disabled: "opacity-25",
+          today:
+            "bg-secondary-50 font-semibold data-[selected=true]:bg-transparent",
+          disabled: "cursor-not-allowed opacity-35",
           hidden: "invisible",
           range_start:
             "relative isolate z-0 rounded-l bg-muted after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-muted",
@@ -318,9 +319,9 @@ export function DateTimePicker({
             return (
               <CalendarDayButton
                 className={cn(
-                  "aspect-auto h-11 w-full rounded-none text-sm font-normal hover:bg-muted/80 hover:rounded",
+                  "aspect-auto h-11 w-full rounded-none text-sm font-normal transition-colors hover:rounded hover:bg-muted/80 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
                   mods.occupied &&
-                    "line-through text-destructive/70 !opacity-70",
+                    "bg-[var(--unavailable-background)] text-[var(--unavailable-foreground)] line-through !opacity-70",
                   mods.beyond_range && "opacity-40",
                 )}
                 day={day}
@@ -334,7 +335,7 @@ export function DateTimePicker({
                     ? ({
                         backgroundColor: "var(--muted)",
                         backgroundImage:
-                          "repeating-linear-gradient(90deg, oklch(from var(--primary) calc(l * 0.9) c h) 0, oklch(from var(--primary) calc(l * 0.9) c h) 24px, transparent 24px, transparent 48px)",
+                          "repeating-linear-gradient(90deg, color-mix(in srgb, var(--state) 35%, transparent) 0, color-mix(in srgb, var(--state) 35%, transparent) 24px, transparent 24px, transparent 48px)",
                       } as React.CSSProperties)
                     : undefined
                 }
