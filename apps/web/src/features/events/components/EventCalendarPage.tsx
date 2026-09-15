@@ -4,14 +4,13 @@ import type {
   PublicOccurrence,
 } from "@/features/events/domain/events"
 import type { AppLocale } from "@/i18n/routing"
-import { EventsPageFilters } from "./EventsPageFilters"
 import { EventCalendar } from "./EventCalendar"
+import { EventsPageFilters } from "./EventsPageFilters"
 import { EventsPageHeader } from "./EventsPageHeader"
 
 interface EventCalendarPageProps {
   arrangements: PublicEvent[]
   backLabel: string
-  eyebrowLabel: string
   listLabel: string
   locale: AppLocale
   occurrences: PublicOccurrence[]
@@ -23,7 +22,6 @@ interface EventCalendarPageProps {
 export function EventCalendarPage({
   arrangements,
   backLabel,
-  eyebrowLabel,
   listLabel,
   locale,
   occurrences,
@@ -42,7 +40,6 @@ export function EventCalendarPage({
           actionHref="/arrangementer"
           actionLabel={listLabel}
           breadcrumbLabel={backLabel}
-          eyebrowLabel={eyebrowLabel}
           title={title}
         />
 

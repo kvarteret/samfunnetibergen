@@ -12,7 +12,6 @@ interface EventsPageProps {
   arrangements: PublicEvent[]
   backLabel: string
   calendarLabel: string
-  eyebrowLabel: string
   precomputedDates: Map<
     string,
     {
@@ -30,7 +29,6 @@ export function EventsPage({
   arrangements,
   backLabel,
   calendarLabel,
-  eyebrowLabel,
   precomputedDates,
   searchParams,
   title,
@@ -45,7 +43,6 @@ export function EventsPage({
           actionHref="/arrangementer/kalender"
           actionLabel={calendarLabel}
           breadcrumbLabel={backLabel}
-          eyebrowLabel={eyebrowLabel}
           title={title}
         />
 

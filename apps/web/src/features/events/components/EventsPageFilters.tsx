@@ -28,7 +28,7 @@ export function EventsPageFilters() {
     })
 
   return (
-    <Collapsible.Root className="border-y-2 border-border py-5">
+    <Collapsible.Root>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
           <SegmentedControl
@@ -55,14 +55,9 @@ export function EventsPageFilters() {
         </div>
         {(taxonomy.eventTypes.length > 0 ||
           taxonomy.organizerGroups.length > 0) && (
-          <Collapsible.Trigger className="group inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-base border-2 border-border bg-card px-4 text-sm font-heading text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
+          <Collapsible.Trigger className="group inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-base bg-card px-4 text-sm font-heading text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
             <SlidersHorizontal aria-hidden className="size-4" />
             {t("filterMore")}
-            {activeFilterCount > 0 && (
-              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs text-background">
-                {activeFilterCount}
-              </span>
-            )}
             <ChevronDown
               aria-hidden
               className="size-4 transition-transform group-data-panel-open:rotate-180"
@@ -72,10 +67,10 @@ export function EventsPageFilters() {
       </div>
 
       <Collapsible.Panel>
-        <div className="mt-5 rounded-base border border-border/25 bg-card p-4 sm:p-6">
+        <div className="mt-5 rounded-base bg-card p-4 sm:p-6">
           {taxonomy.eventTypes.length > 0 && (
             <fieldset className="min-w-0">
-              <legend className="mb-4 text-xs font-heading uppercase tracking-widest text-foreground-muted">
+              <legend className="mb-4 text-sm font-heading text-foreground-muted">
                 {t("filterType")}
               </legend>
               <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -89,7 +84,7 @@ export function EventsPageFilters() {
                   )
                   return (
                     <fieldset className="min-w-0" key={group._id}>
-                      <legend className="mb-2 text-sm font-heading">
+                      <legend className="mb-3 text-xl font-heading">
                         {group.name}
                       </legend>
                       <ToggleGroup
@@ -120,11 +115,11 @@ export function EventsPageFilters() {
             </fieldset>
           )}
           {taxonomy.organizerGroups.length > 0 && (
-            <fieldset className="mt-6 min-w-0 border-t border-border/20 pt-5">
+            <fieldset className="mt-6 min-w-0 pt-5">
               <legend className="sr-only">{t("filterOrganizer")}</legend>
               <p
                 aria-hidden
-                className="mb-3 text-xs font-heading uppercase tracking-widest text-foreground-muted"
+                className="mb-3 text-sm font-heading text-foreground-muted"
               >
                 {t("filterOrganizer")}
               </p>
