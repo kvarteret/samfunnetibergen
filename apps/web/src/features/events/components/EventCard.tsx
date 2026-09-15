@@ -273,7 +273,7 @@ function EventCardHeader({
   timeLabel?: string | null
 }) {
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", cardVariant !== "slider" && "flex-1")}>
       <div
         className={cn(
           "flex flex-wrap items-center gap-x-2 gap-y-2",
