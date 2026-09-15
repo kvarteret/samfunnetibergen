@@ -87,7 +87,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
               />
             </div>
           ) : null}
-          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground">
+          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground group-hover:underline group-hover:underline-offset-2">
             {group.name}
           </h3>
         </div>

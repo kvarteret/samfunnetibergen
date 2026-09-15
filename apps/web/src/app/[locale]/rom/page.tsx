@@ -127,7 +127,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
                 <RoomImage image={room.image} title={title} />
                 <div className="flex flex-1 flex-col gap-4 pt-3">
                   <div className="space-y-2">
-                    <h2 className="font-heading text-2xl leading-tight text-foreground">
+                    <h2 className="font-heading text-2xl leading-tight text-foreground group-hover:underline group-hover:underline-offset-2">
                       {title}
                     </h2>
                     {room.summary ? (

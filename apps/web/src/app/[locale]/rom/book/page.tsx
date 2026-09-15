@@ -98,7 +98,9 @@ function ServicesSection({ t }: { t: BookingTranslations }) {
           >
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
-              <h3 className="font-heading text-xl text-foreground">{title}</h3>
+              <h3 className="font-heading text-xl text-foreground group-hover:underline group-hover:underline-offset-2">
+                {title}
+              </h3>
               <p>{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">

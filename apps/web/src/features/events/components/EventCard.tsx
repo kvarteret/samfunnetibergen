@@ -61,7 +61,7 @@ export type EventSummary = {
 
 // ─── Variants ─────────────────────────────────────────────────────────────────
 
-const eventCardVariants = cva("block h-full min-w-0 focus-brutal", {
+const eventCardVariants = cva("group block h-full min-w-0 focus-brutal", {
   variants: {
     variant: {
       default: "",
@@ -295,7 +295,7 @@ function EventCardHeader({
 
       <h2
         className={cn(
-          "font-heading leading-tight",
+          "font-heading leading-tight group-hover:underline group-hover:underline-offset-2",
           editorialHeadingClass({
             cardSize,
             cardVariant,

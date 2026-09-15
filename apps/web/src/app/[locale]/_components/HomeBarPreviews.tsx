@@ -166,7 +166,7 @@ function HomeBarPreviewCard({
       aria-label={translations("goToBar", {
         bar: room.title ?? translations("barFallback"),
       })}
-      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden bg-card focus-brutal"
+      className="group grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden bg-card focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">
@@ -184,7 +184,7 @@ function HomeBarPreviewCard({
       <div className="flex min-w-0 flex-col justify-between gap-5 p-5">
         <div className="space-y-3">
           <div className="min-w-0">
-            <p className="font-heading text-xl text-foreground">
+            <p className="font-heading text-xl text-foreground group-hover:underline group-hover:underline-offset-2">
               {room.bar || room.title}
             </p>
             {isOpen ? (
