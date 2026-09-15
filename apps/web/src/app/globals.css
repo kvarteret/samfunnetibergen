@@ -263,6 +263,14 @@
     --ring: #eb3b3b;
 
     --shadow-color: #af1010;
+    /* HS retires the neobrutalist hard offset for soft, theme-tinted elevation. */
+    --shadow-hard-sm-value: 0 1px 2px -1px
+      color-mix(in srgb, var(--shadow-color) 24%, transparent);
+    --shadow: 0 2px 4px -2px color-mix(in srgb, var(--shadow-color) 22%, transparent),
+      0 6px 14px -4px color-mix(in srgb, var(--shadow-color) 18%, transparent);
+    --shadow-hard-lg-value: 0 4px 8px -3px
+        color-mix(in srgb, var(--shadow-color) 22%, transparent),
+      0 14px 30px -8px color-mix(in srgb, var(--shadow-color) 26%, transparent);
     --radius: 0.375rem;
     --font-display: var(--font-fraunces);
     --body-font: var(--font-dm-sans);
@@ -482,7 +490,8 @@
 
 @utility btn-brutal {
   border: 2px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--shadow-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 
   @media (prefers-reduced-motion: no-preference) {
     transition:
@@ -491,12 +500,12 @@
 
     &:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-lg-value);
     }
 
     &:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-sm-value);
     }
   }
 }
@@ -513,12 +522,12 @@
 
     &:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-lg-value);
     }
 
     &:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-sm-value);
     }
   }
 }
@@ -536,6 +545,7 @@
 @utility panel {
   background-color: var(--color-panel);
   color: var(--color-panel-foreground);
+  border-radius: var(--radius);
   padding: 1.25rem;
 }
 

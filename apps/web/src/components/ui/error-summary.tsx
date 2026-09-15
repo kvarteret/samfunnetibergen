@@ -33,7 +33,7 @@ export function ErrorSummary({
   return (
     <div
       className={cn(
-        "border-2 border-destructive bg-destructive/10 p-5 shadow-shadow",
+        "rounded-base border-2 border-destructive bg-destructive/10 p-5 shadow-shadow",
         className,
       )}
       ref={ref}

@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Link, usePathname } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
-import { isNavigationItemActive } from "./navigation-items"
 import type {
   NavigationGroup,
   NavigationItem,
   NavigationLink,
 } from "./navigation-items"
+import { isNavigationItemActive } from "./navigation-items"
 import { PaperMenuSection } from "./PaperPicker"
 
 export function DesktopNav({ items }: { items: NavigationItem[] }) {
@@ -52,7 +52,7 @@ function DesktopNavItem({
           className={cn(
             active && activeClass,
             item.highlight &&
-              "border-primary bg-primary px-4 text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+              "rounded-base border-primary bg-primary px-4 text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
           )}
           render={<NavItemLink active={active} item={item} />}
           variant="top"
