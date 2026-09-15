@@ -371,9 +371,24 @@
   }
   html {
     @apply bg-background font-sans;
+    /* The sticky navbar changes height as the page scrolls. Without a stable
+       scrollbar gutter the vertical scrollbar can appear/disappear, changing
+       the layout width across the `lg` breakpoint; and scroll anchoring then
+       rewrites the scroll position. Together those feed the scroll state back
+       into itself and re-run the navbar transition. Pin both. */
+    scrollbar-gutter: stable;
+    overflow-anchor: none;
+  }
+
+  /* Browsers without scrollbar-gutter support: always reserve the bar. */
+  @supports not (scrollbar-gutter: stable) {
+    html {
+      overflow-y: scroll;
+    }
   }
   body {
     @apply bg-background text-foreground font-sans font-base;
+    overflow-anchor: none;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
