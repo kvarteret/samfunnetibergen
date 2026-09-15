@@ -87,11 +87,42 @@
     --cream-900: oklch(25% 0.011 87);
     --cream-950: oklch(15% 0.008 87);
 
+    /* ── House orange (HS) ──
+       Raw HS house-style palette. The default theme's secondary is the navy
+       ramp; both are surfaced through the theme-aware --secondary-* scale
+       below. Steps are anchored so HS reproduces the exact house colours
+       (#fbebd5 / #f2a33a / #75400b) without opacity tricks. */
+    --orange-50: oklch(94.7% 0.034 76);
+    --orange-100: oklch(91.3% 0.057 74.7);
+    --orange-200: oklch(87.9% 0.08 73.4);
+    --orange-300: oklch(84.4% 0.102 72);
+    --orange-400: oklch(81% 0.125 70.7);
+    --orange-500: oklch(77.6% 0.148 69.4);
+    --orange-600: oklch(70.6% 0.138 67.2);
+    --orange-700: oklch(63.7% 0.127 65.1);
+    --orange-800: oklch(56.7% 0.117 62.9);
+    --orange-900: oklch(49.8% 0.106 60.8);
+    --orange-950: oklch(42.8% 0.096 58.6);
+
     /* ── Semantic tokens ── */
     --background: #fff7e4;
     --foreground: var(--navy-950);
     --primary: var(--amber-500);
     --primary-foreground: var(--navy-950);
+    /* Secondary scale. Each theme maps it to its own hue so stepped utilities
+       (bg-secondary-50, text-secondary-950, ...) stay theme-safe instead of
+       reaching for opacity. Default theme maps to navy. */
+    --secondary-50: var(--navy-50);
+    --secondary-100: var(--navy-100);
+    --secondary-200: var(--navy-200);
+    --secondary-300: var(--navy-300);
+    --secondary-400: var(--navy-400);
+    --secondary-500: var(--navy-500);
+    --secondary-600: var(--navy-600);
+    --secondary-700: var(--navy-700);
+    --secondary-800: var(--navy-800);
+    --secondary-900: var(--navy-900);
+    --secondary-950: var(--navy-950);
     --secondary: var(--navy-700);
     --secondary-foreground: var(--cream-200);
     --accent: var(--gold-400);
@@ -116,6 +147,10 @@
     --card-foreground: var(--navy-950);
     --popover: var(--cream-100);
     --popover-foreground: var(--navy-950);
+    /* Supporting-surface fill for panels (sidebars, callouts, disclosures).
+       Themeable so call sites reuse one class instead of per-theme paints. */
+    --panel: var(--card);
+    --panel-foreground: var(--foreground);
     --border: var(--navy-950);
     --input: var(--navy-950);
     --ring: var(--amber-500);
@@ -195,20 +230,33 @@
 
     --primary: #eb3b3b;
     --primary-foreground: #ffffff;
-    --secondary: #f2a33a;
+    --secondary-50: var(--orange-50);
+    --secondary-100: var(--orange-100);
+    --secondary-200: var(--orange-200);
+    --secondary-300: var(--orange-300);
+    --secondary-400: var(--orange-400);
+    --secondary-500: var(--orange-500);
+    --secondary-600: var(--orange-600);
+    --secondary-700: var(--orange-700);
+    --secondary-800: var(--orange-800);
+    --secondary-900: var(--orange-900);
+    --secondary-950: var(--orange-950);
+    --secondary: var(--secondary-500);
     --secondary-foreground: #241d1b;
-    --accent: #fbebd5;
-    --accent-foreground: #75400b;
+    --accent: var(--secondary-50);
+    --accent-foreground: var(--secondary-950);
 
     --state: #62666b;
     --state-foreground: #ffffff;
 
-    --muted: #fbebd5;
-    --muted-foreground: #75400b;
+    --muted: var(--secondary-50);
+    --muted-foreground: var(--secondary-950);
     --card: #faf7f2;
     --card-foreground: #241d1b;
     --popover: #faf7f2;
     --popover-foreground: #241d1b;
+    --panel: var(--secondary-50);
+    --panel-foreground: var(--secondary-950);
 
     --border: #ded8d1;
     --input: #ded8d1;
@@ -251,6 +299,17 @@
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-50:         var(--secondary-50);
+  --color-secondary-100:        var(--secondary-100);
+  --color-secondary-200:        var(--secondary-200);
+  --color-secondary-300:        var(--secondary-300);
+  --color-secondary-400:        var(--secondary-400);
+  --color-secondary-500:        var(--secondary-500);
+  --color-secondary-600:        var(--secondary-600);
+  --color-secondary-700:        var(--secondary-700);
+  --color-secondary-800:        var(--secondary-800);
+  --color-secondary-900:        var(--secondary-900);
+  --color-secondary-950:        var(--secondary-950);
   --color-accent:               var(--accent);
   --color-accent-foreground:    var(--accent-foreground);
   --color-destructive:          var(--destructive);
@@ -265,6 +324,8 @@
   --color-card-foreground:      var(--card-foreground);
   --color-popover:              var(--popover);
   --color-popover-foreground:   var(--popover-foreground);
+  --color-panel:                var(--panel);
+  --color-panel-foreground:     var(--panel-foreground);
   --color-border:               var(--border);
   --color-input:                var(--input);
   --color-ring:                 var(--ring);
@@ -473,7 +534,8 @@
 }
 
 @utility panel {
-  background-color: var(--color-card);
+  background-color: var(--color-panel);
+  color: var(--color-panel-foreground);
   padding: 1.25rem;
 }
 

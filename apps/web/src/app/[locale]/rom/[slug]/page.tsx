@@ -189,7 +189,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
   return (
     <section className="space-y-6">
       <hr className="border-border" />
-      <dl className="max-w-md divide-y divide-border">
+      <dl className="panel max-w-md divide-y divide-border">
         {room.floor != null && (
           <DetailRow label="Etasje" layout="labelColumn">
             {room.floor}. etasje

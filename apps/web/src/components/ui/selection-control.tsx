@@ -30,7 +30,7 @@ export const selectionControlVariants = cva(
         appearance: "soft",
         selected: true,
         className:
-          "border-primary bg-primary/5 text-foreground hs:border-secondary hs:bg-secondary/5",
+          "border-primary bg-primary/5 text-foreground hs:border-secondary hs:bg-secondary-50",
       },
     ],
     defaultVariants: {
