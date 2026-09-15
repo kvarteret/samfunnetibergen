@@ -50,7 +50,11 @@ const documentSearchQuery = `*[
     lower(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")) match $search ||
     lower(coalesce(slug.current, "")) match $search
   )
-][0...30] | order(coalesce(title, name) asc) {
+][0...30] | order(coalesce(
+  localizedTitle[language == "nb" && defined(value) && value != ""][0].value,
+  localizedName[language == "nb" && defined(value) && value != ""][0].value,
+  slug.current
+) asc) {
   "value": "document:" + select(
     _id in path("drafts.**") => string::split(_id, "drafts.")[1],
     _id
