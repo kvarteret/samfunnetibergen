@@ -64,7 +64,7 @@ export function SelectField({
           aria-describedby={error && errorId ? errorId : undefined}
           aria-invalid={!!error}
           className={cn(
-            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-base border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
+            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-base border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none aria-invalid:border-destructive aria-invalid:bg-destructive/5 hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
             className,
           )}
           id={id}

@@ -1,12 +1,12 @@
 import { cva } from "class-variance-authority"
 
 export const selectionControlVariants = cva(
-  "cursor-pointer rounded-base border border-border bg-card text-foreground focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
+  "cursor-pointer rounded-base border border-border bg-card text-foreground transition-colors active:translate-y-px focus-brutal disabled:cursor-not-allowed disabled:opacity-45",
   {
     variants: {
       selected: {
-        false: "",
-        true: "",
+        false: "hover:bg-muted",
+        true: "hover:brightness-[0.98]",
       },
       appearance: {
         solid: "",

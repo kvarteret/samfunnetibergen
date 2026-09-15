@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { selectionControlVariants } from "./selection-control"
 
 interface ToggleGroupProps<T extends string> {
-  options: Array<{ value: T; label: string }>
+  options: Array<{ value: T; label: string; disabled?: boolean }>
   value: T[]
   onValueChange: (value: T[]) => void
   className?: string
@@ -38,6 +38,7 @@ export function ToggleGroup<T extends string>({
               }),
             )
           }
+          disabled={option.disabled}
           key={option.value}
           value={option.value}
         >
