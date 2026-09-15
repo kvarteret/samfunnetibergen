@@ -93,9 +93,7 @@ const publicTimedScheduleSchema = z.strictObject({
   doorsOpenAt: z.iso
     .datetime({ offset: true })
     .nullable()
-    .describe(
-      "UTC doors-open timestamp. Currently equal to startsAt; may diverge when the data model gains a separate doors time.",
-    ),
+    .describe("UTC doors-open timestamp. Currently equal to startsAt."),
   timeZone: z
     .literal("Europe/Oslo")
     .describe("Local time zone used by the editorial schedule."),
