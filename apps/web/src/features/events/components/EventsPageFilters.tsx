@@ -4,9 +4,11 @@ import { Collapsible } from "@base-ui/react/collapsible"
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { SegmentedControl } from "@/components/ui/segmented-control"
+import { selectionControlVariants } from "@/components/ui/selection-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { countEventFilters } from "@/features/events/domain/eventUtils"
+import { cn } from "@/lib/utils"
 
 export function EventsPageFilters() {
   const t = useTranslations("EventsPage")
@@ -55,7 +57,12 @@ export function EventsPageFilters() {
         </div>
         {(taxonomy.eventTypes.length > 0 ||
           taxonomy.organizerGroups.length > 0) && (
-          <Collapsible.Trigger className="group inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-base bg-card px-4 text-sm font-heading text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
+          <Collapsible.Trigger
+            className={cn(
+              selectionControlVariants({ size: "default" }),
+              "group gap-2 px-4 transition-colors hover:bg-muted data-panel-open:bg-muted",
+            )}
+          >
             <SlidersHorizontal aria-hidden className="size-4" />
             {t("filterMore")}
             <ChevronDown
