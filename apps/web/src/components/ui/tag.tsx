@@ -9,6 +9,8 @@ const tagVariants = cva(
     variants: {
       variant: {
         neutral: "border-border bg-card text-foreground",
+        accent:
+          "border-0 bg-accent text-accent-foreground normal-case tracking-normal",
         success: "border-border bg-success text-success-foreground",
         warning: "border-border bg-primary text-primary-foreground",
         destructive:

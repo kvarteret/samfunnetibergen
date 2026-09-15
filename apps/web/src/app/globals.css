@@ -87,11 +87,42 @@
     --cream-900: oklch(25% 0.011 87);
     --cream-950: oklch(15% 0.008 87);
 
+    /* ── House orange (HS) ──
+       Raw HS house-style palette. The default theme's secondary is the navy
+       ramp; both are surfaced through the theme-aware --secondary-* scale
+       below. Steps are anchored so HS reproduces the exact house colours
+       (#fbebd5 / #f2a33a / #75400b) without opacity tricks. */
+    --orange-50: oklch(94.7% 0.034 76);
+    --orange-100: oklch(91.3% 0.057 74.7);
+    --orange-200: oklch(87.9% 0.08 73.4);
+    --orange-300: oklch(84.4% 0.102 72);
+    --orange-400: oklch(81% 0.125 70.7);
+    --orange-500: oklch(77.6% 0.148 69.4);
+    --orange-600: oklch(70.6% 0.138 67.2);
+    --orange-700: oklch(63.7% 0.127 65.1);
+    --orange-800: oklch(56.7% 0.117 62.9);
+    --orange-900: oklch(49.8% 0.106 60.8);
+    --orange-950: oklch(42.8% 0.096 58.6);
+
     /* ── Semantic tokens ── */
     --background: #fff7e4;
     --foreground: var(--navy-950);
     --primary: var(--amber-500);
     --primary-foreground: var(--navy-950);
+    /* Secondary scale. Each theme maps it to its own hue so stepped utilities
+       (bg-secondary-50, text-secondary-950, ...) stay theme-safe instead of
+       reaching for opacity. Default theme maps to navy. */
+    --secondary-50: var(--navy-50);
+    --secondary-100: var(--navy-100);
+    --secondary-200: var(--navy-200);
+    --secondary-300: var(--navy-300);
+    --secondary-400: var(--navy-400);
+    --secondary-500: var(--navy-500);
+    --secondary-600: var(--navy-600);
+    --secondary-700: var(--navy-700);
+    --secondary-800: var(--navy-800);
+    --secondary-900: var(--navy-900);
+    --secondary-950: var(--navy-950);
     --secondary: var(--navy-700);
     --secondary-foreground: var(--cream-200);
     --accent: var(--gold-400);
@@ -116,6 +147,14 @@
     --card-foreground: var(--navy-950);
     --popover: var(--cream-100);
     --popover-foreground: var(--navy-950);
+    /* Supporting-surface fill for panels (sidebars, callouts, disclosures).
+       Themeable so call sites reuse one class instead of per-theme paints. */
+    --panel: var(--card);
+    --panel-foreground: var(--foreground);
+    --panel-warm: var(--secondary-50);
+    --panel-warm-foreground: var(--secondary-950);
+    --panel-shadow: 0 4px 14px -8px
+      color-mix(in srgb, var(--secondary-700) 20%, transparent);
     --border: var(--navy-950);
     --input: var(--navy-950);
     --ring: var(--amber-500);
@@ -128,6 +167,8 @@
     /* ── Heading family (themeable) ── */
     --font-display: var(--font-hegval-display);
     --body-font: var(--font-hegval-display);
+    --heading-weight: 800;
+    --body-weight: 500;
 
     /* ── Footer surface (themeable) ── */
     --footer: var(--card);
@@ -186,48 +227,71 @@
     --paper-position: 0 0;
   }
 
-  /* ── Theme: HS ──
-     White background, soft-red surfaces, red primary, dark-red shadows,
-     selectively rounded controls, serif headings. Overrides only the semantic
-     tokens; every component re-skins through them. */
+  /* ── Theme: HS ── */
   :root[data-theme="hs"] {
-    --background: #ffffff;
-    --foreground: #1a1414;
+    --background: #faf7f2;
+    --foreground: #241d1b;
 
     --primary: #eb3b3b;
     --primary-foreground: #ffffff;
-    --secondary: #eb3b3b;
-    --secondary-foreground: #ffffff;
-    --accent: #ffe8e8;
-    --accent-foreground: #eb3b3b;
+    --secondary-50: var(--orange-50);
+    --secondary-100: var(--orange-100);
+    --secondary-200: var(--orange-200);
+    --secondary-300: var(--orange-300);
+    --secondary-400: var(--orange-400);
+    --secondary-500: var(--orange-500);
+    --secondary-600: var(--orange-600);
+    --secondary-700: var(--orange-700);
+    --secondary-800: var(--orange-800);
+    --secondary-900: var(--orange-900);
+    --secondary-950: var(--orange-950);
+    --secondary: var(--secondary-500);
+    --secondary-foreground: #241d1b;
+    --accent: var(--secondary-50);
+    --accent-foreground: var(--secondary-950);
 
     --state: #62666b;
     --state-foreground: #ffffff;
 
-    --muted: #ffe8e8;
-    --muted-foreground: #8a2b2b;
-    --card: #ffe8e8;
-    --card-foreground: #1a1414;
-    --popover: #ffffff;
-    --popover-foreground: #1a1414;
+    --muted: var(--secondary-50);
+    --muted-foreground: var(--secondary-950);
+    --card: #faf7f2;
+    --card-foreground: #241d1b;
+    --popover: #faf7f2;
+    --popover-foreground: #241d1b;
+    --panel: #e9e9e7;
+    --panel-foreground: #241d1b;
+    --panel-warm: var(--secondary-50);
+    --panel-warm-foreground: var(--secondary-950);
+    --panel-shadow: 0 4px 14px -8px
+      color-mix(in srgb, var(--secondary-800) 24%, transparent);
 
-    --border: #eb3b3b;
-    --input: #eb3b3b;
+    --border: #ded8d1;
+    --input: #ded8d1;
     --ring: #eb3b3b;
 
-    --shadow-color: #af1010;
+    --shadow-color: #827b75;
+    /* HS retires the neobrutalist hard offset for soft, theme-tinted elevation. */
+    --shadow-hard-sm-value: 0 1px 2px -1px
+      color-mix(in srgb, var(--shadow-color) 24%, transparent);
+    --shadow: 0 2px 4px -2px color-mix(in srgb, var(--shadow-color) 22%, transparent),
+      0 6px 14px -4px color-mix(in srgb, var(--shadow-color) 18%, transparent);
+    --shadow-hard-lg-value: 0 4px 8px -3px
+        color-mix(in srgb, var(--shadow-color) 22%, transparent),
+      0 14px 30px -8px color-mix(in srgb, var(--shadow-color) 26%, transparent);
     --radius: 0.375rem;
+    --font-display: var(--font-fraunces);
+    --body-font: var(--font-dm-sans);
+    --heading-weight: 650;
+    --body-weight: 400;
 
     --footer: #eb3b3b;
     --footer-foreground: #ffffff;
     --footer-border: #ffffff;
-
-    --font-display: var(--font-source-serif);
-    --body-font: var(--font-lora);
   }
 
-  /* HS footer: links underline on hover */
-  [data-theme="hs"] .footer-surface a:hover {
+  /* House-style footer: links underline on hover. */
+  :root[data-theme="hs"] .footer-surface a:hover {
     text-decoration-line: underline;
     text-underline-offset: 3px;
   }
@@ -236,7 +300,7 @@
 /* @theme inline inlines color-mix() directly into utility classes, so CSS variable
    overrides inside @layer base have no effect. This rule is outside any layer and
    therefore beats @layer utilities, forcing muted text to white in the hs footer. */
-[data-theme="hs"] .footer-surface .text-foreground-muted {
+:root[data-theme="hs"] .footer-surface .text-foreground-muted {
   color: var(--footer-foreground);
 }
 
@@ -251,6 +315,17 @@
   --color-primary-foreground:   var(--primary-foreground);
   --color-secondary:            var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-50:         var(--secondary-50);
+  --color-secondary-100:        var(--secondary-100);
+  --color-secondary-200:        var(--secondary-200);
+  --color-secondary-300:        var(--secondary-300);
+  --color-secondary-400:        var(--secondary-400);
+  --color-secondary-500:        var(--secondary-500);
+  --color-secondary-600:        var(--secondary-600);
+  --color-secondary-700:        var(--secondary-700);
+  --color-secondary-800:        var(--secondary-800);
+  --color-secondary-900:        var(--secondary-900);
+  --color-secondary-950:        var(--secondary-950);
   --color-accent:               var(--accent);
   --color-accent-foreground:    var(--accent-foreground);
   --color-destructive:          var(--destructive);
@@ -265,6 +340,10 @@
   --color-card-foreground:      var(--card-foreground);
   --color-popover:              var(--popover);
   --color-popover-foreground:   var(--popover-foreground);
+  --color-panel:                var(--panel);
+  --color-panel-foreground:     var(--panel-foreground);
+  --color-panel-warm:           var(--panel-warm);
+  --color-panel-warm-foreground: var(--panel-warm-foreground);
   --color-border:               var(--border);
   --color-input:                var(--input);
   --color-ring:                 var(--ring);
@@ -279,8 +358,8 @@
 
   --radius-base: var(--radius);
 
-  --font-weight-base:    500;
-  --font-weight-heading: 800;
+  --font-weight-base:    var(--body-weight);
+  --font-weight-heading: var(--heading-weight);
 }
 
 @utility unavailable-slot {
@@ -302,9 +381,24 @@
   }
   html {
     @apply bg-background font-sans;
+    /* The sticky navbar changes height as the page scrolls. Without a stable
+       scrollbar gutter the vertical scrollbar can appear/disappear, changing
+       the layout width across the `lg` breakpoint; and scroll anchoring then
+       rewrites the scroll position. Together those feed the scroll state back
+       into itself and re-run the navbar transition. Pin both. */
+    scrollbar-gutter: stable;
+    overflow-anchor: none;
+  }
+
+  /* Browsers without scrollbar-gutter support: always reserve the bar. */
+  @supports not (scrollbar-gutter: stable) {
+    html {
+      overflow-y: scroll;
+    }
   }
   body {
     @apply bg-background text-foreground font-sans font-base;
+    overflow-anchor: none;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
@@ -421,7 +515,8 @@
 
 @utility btn-brutal {
   border: 2px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--shadow-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 
   @media (prefers-reduced-motion: no-preference) {
     transition:
@@ -430,12 +525,12 @@
 
     &:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-lg-value);
     }
 
     &:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-sm-value);
     }
   }
 }
@@ -452,12 +547,12 @@
 
     &:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-lg-value);
     }
 
     &:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--shadow-color);
+      box-shadow: var(--shadow-hard-sm-value);
     }
   }
 }
@@ -473,9 +568,16 @@
 }
 
 @utility panel {
-  border: 2px solid var(--color-border);
-  background-color: var(--color-card);
+  background-color: var(--color-panel);
+  color: var(--color-panel-foreground);
+  border-radius: var(--radius);
+  box-shadow: var(--panel-shadow);
   padding: 1.25rem;
+}
+
+@utility panel-warm {
+  background-color: var(--color-panel-warm);
+  color: var(--color-panel-warm-foreground);
 }
 
 @utility grid-auto-side {

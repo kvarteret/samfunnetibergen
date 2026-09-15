@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import type { EventDateEntry } from "@/features/events"
 import { EventsPage as EventsPageContent } from "@/features/events"
 import {
@@ -109,13 +110,15 @@ export default async function EventsPage({
   }
 
   return (
-    <EventsPageContent
-      arrangements={arrangements}
-      backLabel={t("back")}
-      calendarLabel={t("calendar")}
-      precomputedDates={precomputedDates}
-      searchParams={resolvedSearchParams}
-      title={t("title")}
-    />
+    <>
+      <Breadcrumbs className="mb-8" path="/arrangementer" />
+      <EventsPageContent
+        arrangements={arrangements}
+        calendarLabel={t("calendar")}
+        precomputedDates={precomputedDates}
+        searchParams={resolvedSearchParams}
+        title={t("title")}
+      />
+    </>
   )
 }

@@ -1,5 +1,6 @@
 import { Mic } from "lucide-react"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
 import {
   activateRequestLocale,
@@ -70,6 +71,7 @@ export default async function KaraokePage({
 
   return (
     <article className="flex w-full flex-col gap-10">
+      <Breadcrumbs path="/karaoke" />
       <KaraokePageIntro />
       <KaraokeForm
         initialNow={new Date().toISOString()}
@@ -121,12 +123,10 @@ function SameDayKaraokeNotice() {
         <li>
           På <strong className="font-heading text-foreground">hverdager</strong>{" "}
           må bookinger for samme dag gjøres{" "}
-          <strong className="font-heading text-foreground">
-            før kl. 12:00.
-          </strong>
+          <strong className="font-heading text-foreground">før 12:00.</strong>
         </li>
         <li>
-          Etter kl. 12:00, eller på{" "}
+          Etter 12:00, eller på{" "}
           <strong className="font-heading text-foreground">
             lørdager og søndager,
           </strong>{" "}

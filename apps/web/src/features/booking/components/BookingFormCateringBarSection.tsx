@@ -80,7 +80,7 @@ function CateringInfoDialog() {
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger className="inline-flex items-center gap-1.5 border-2 border-border bg-card px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-foreground-muted transition-colors hover:border-primary hover:text-foreground focus-brutal">
+      <Dialog.Trigger className="inline-flex items-center gap-1.5 border-2 border-border bg-card px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-foreground-muted transition-colors hover:bg-muted hover:text-foreground focus-brutal">
         <Info aria-hidden className="size-3.5" />
         {t("catering.cateringInfo")}
       </Dialog.Trigger>

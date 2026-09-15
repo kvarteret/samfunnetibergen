@@ -3,6 +3,7 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ComponentType, ReactNode } from "react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
@@ -81,6 +82,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
       {...groupTrackingAttributes(group, "group-detail")}
     >
       <div className="space-y-8">
+        <Breadcrumbs
+          className="mb-8"
+          current={group.name ?? group.slug}
+          path={`/grupper/${slug}`}
+        />
         <GroupMasthead
           logoUrl={group.logoUrl}
           name={group.name}
