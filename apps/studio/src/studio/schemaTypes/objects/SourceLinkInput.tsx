@@ -47,19 +47,21 @@ const documentSearchQuery = `*[
   _type in $types &&
   !(_id in path("versions.**")) &&
   (
-    lower(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "")) match $search ||
+    lower(coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, title, name, "")) match $search ||
     lower(coalesce(slug.current, "")) match $search
   )
 ][0...30] | order(coalesce(
   localizedTitle[language == "nb" && defined(value) && value != ""][0].value,
   localizedName[language == "nb" && defined(value) && value != ""][0].value,
+  title,
+  name,
   slug.current
 ) asc) {
   "value": "document:" + select(
     _id in path("drafts.**") => string::split(_id, "drafts.")[1],
     _id
   ),
-  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "Dokument uten tittel"),
+  "title": coalesce(localizedTitle[language == "nb" && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, title, name, "Dokument uten tittel"),
   "subtitle": select(
     defined(slug.current) => "/" + slug.current,
     _type

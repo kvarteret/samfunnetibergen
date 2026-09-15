@@ -60,14 +60,30 @@ export const page = defineType({
   preview: {
     select: {
       title: "localizedTitle",
+      legacyTitle: "title",
       slug: "slug.current",
     },
-    prepare({ title, slug }) {
+    prepare({ title, legacyTitle, slug }) {
+      const localizedTitle = Array.isArray(title)
+        ? title.find(
+            item =>
+              item?.language === "nb" &&
+              typeof item.value === "string" &&
+              item.value.trim(),
+          )?.value
+        : typeof title === "string" && title.trim()
+          ? title
+          : undefined
+      const fallbackTitle =
+        typeof legacyTitle === "string" && legacyTitle.trim()
+          ? legacyTitle
+          : slug
+            ? slug
+                .replace(/[-_]+/g, " ")
+                .replace(/^./, (value: string) => value.toUpperCase())
+            : "Side"
       return {
-        title:
-          (Array.isArray(title)
-            ? title.find(item => item?.language === "nb")?.value
-            : title) ?? "Side",
+        title: localizedTitle ?? fallbackTitle,
         subtitle: slug ? `/${slug}` : "Mangler slug",
       }
     },
