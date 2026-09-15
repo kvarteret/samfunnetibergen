@@ -283,6 +283,16 @@ export function DateTimePicker({
 
   return (
     <div className="space-y-6">
+      <p
+        aria-live="polite"
+        className="font-heading text-sm uppercase tracking-widest text-foreground-muted"
+      >
+        {t(
+          isSelectingEnd
+            ? "dateTime.selectEndDate"
+            : "dateTime.selectStartDate",
+        )}
+      </p>
       <Calendar
         className="w-full p-0"
         classNames={{
@@ -319,7 +329,10 @@ export function DateTimePicker({
             return (
               <CalendarDayButton
                 className={cn(
-                  "aspect-auto h-11 w-full rounded-none text-sm font-normal transition-colors hover:rounded hover:bg-muted/80 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
+                  "aspect-auto h-11 w-full rounded-none text-sm font-normal transition-colors hover:rounded focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
+                  isSelectingEnd
+                    ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
+                    : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
                   mods.occupied &&
                     "bg-[var(--unavailable-background)] text-[var(--unavailable-foreground)] line-through !opacity-70",
                   mods.beyond_range && "opacity-40",

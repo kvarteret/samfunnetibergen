@@ -154,6 +154,8 @@
     "dateTime": {
       "houseClosed": "The house is closed on this day. Choose another date.",
       "selectDate": "Choose a date to see available times.",
+      "selectEndDate": "Choose an end date",
+      "selectStartDate": "Choose a start date",
       "noAvailableTimes": "No times are available for the selected room during this period.",
       "getInOut": "Get-in / get-out",
       "getIn": "Get-in",

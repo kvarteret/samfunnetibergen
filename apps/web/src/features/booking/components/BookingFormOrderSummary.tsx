@@ -66,7 +66,7 @@ export function BookingFormOrderSummary({
 
   return (
     <aside>
-      <div className="panel p-0">
+      <div className="panel panel-warm p-0">
         <p className="border-b-2 border-border bg-muted/50 px-5 py-3 font-heading text-sm uppercase tracking-widest text-foreground">
           {t("summary.booker", {
             booker:

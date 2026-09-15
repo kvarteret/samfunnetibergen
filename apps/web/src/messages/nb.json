@@ -153,6 +153,8 @@
     "dateTime": {
       "houseClosed": "Huset er stengt denne dagen. Velg en annen dato.",
       "selectDate": "Velg en dato for å se ledige tidspunkt.",
+      "selectEndDate": "Velg sluttdato",
+      "selectStartDate": "Velg startdato",
       "noAvailableTimes": "Ingen tilgjengelige tidspunkt for valgt rom i dette tidsrommet.",
       "getInOut": "Get-in / get-out",
       "getIn": "Get-in",
