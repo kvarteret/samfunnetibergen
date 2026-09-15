@@ -19,11 +19,14 @@ export function LeietiderSection({
 
   return (
     <section aria-label={section.title} className={cn("space-y-2", className)}>
-      <div className="hidden space-y-3 panel md:block">
+      <div className="panel-warm hidden space-y-3 panel md:block">
         <h2 className="font-heading text-xl leading-tight">{section.title}</h2>
         <LeietiderBody body={section.body} />
       </div>
-      <Disclosure className="md:hidden" summary={t("page.viewRentalHours")}>
+      <Disclosure
+        className="panel-warm md:hidden"
+        summary={t("page.viewRentalHours")}
+      >
         <LeietiderBody body={section.body} />
       </Disclosure>
     </section>

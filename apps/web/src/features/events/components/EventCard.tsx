@@ -84,9 +84,9 @@ const eventCardSurfaceVariants = cva("h-full overflow-hidden gap-0 py-0", {
   variants: {
     variant: {
       default: "bg-card",
-      catalogue: "border-0 bg-transparent shadow-none",
-      promoted: "border-0 bg-transparent shadow-none",
-      slider: "border-0 bg-transparent shadow-none text-primary-foreground",
+      catalogue: "border-0 bg-card shadow-none",
+      promoted: "border-0 bg-card shadow-none",
+      slider: "border-0 bg-primary shadow-none text-primary-foreground",
     },
   },
   defaultVariants: {

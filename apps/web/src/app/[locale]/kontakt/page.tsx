@@ -1,6 +1,6 @@
 import { Mail, Phone } from "lucide-react"
-import { Avatar } from "@/components/ui/avatar"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { Avatar } from "@/components/ui/avatar"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -120,7 +120,7 @@ export default async function KontaktPage({
           ))}
         </div>
 
-        <aside className="space-y-6 panel self-start">
+        <aside className="panel-warm space-y-6 panel self-start">
           <AddressBlock label="Besøksadresse" value={page?.visitAddress} />
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
