@@ -29,7 +29,7 @@ export function EventsPageFilters() {
 
   return (
     <Collapsible.Root>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <div className="min-w-0">
           <SegmentedControl
             onValueChange={value => {
@@ -139,7 +139,7 @@ export function EventsPageFilters() {
         </div>
       </Collapsible.Panel>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1">
         <p
           aria-live="polite"
           aria-atomic="true"
