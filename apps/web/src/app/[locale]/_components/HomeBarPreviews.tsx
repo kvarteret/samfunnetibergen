@@ -3,6 +3,7 @@
 import { Music2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { SectionMark } from "@/components/section-mark"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -102,10 +103,9 @@ export function HomeBarPreviews({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
-          {t("bars")}
-        </p>
+      <div className="flex items-center gap-4 pb-2">
+        <SectionMark className="text-primary" />
+        <h2 className="text-base tracking-wide sm:text-lg">{t("bars")}</h2>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
