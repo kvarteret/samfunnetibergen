@@ -42,6 +42,7 @@ type InstitutionOption = {
 }
 
 type GroupVolunteerFormProps = {
+  groupId: string
   groupSlug: string
   groupName: string
   subGroups?: SubGroup[]
@@ -70,6 +71,7 @@ function friendFieldId(index: number) {
 }
 
 export function GroupVolunteerForm({
+  groupId,
   groupSlug,
   groupName,
   subGroups,
@@ -147,6 +149,7 @@ export function GroupVolunteerForm({
 
       try {
         posthog.capture("volunteer_application_submitted", {
+          group_id: groupId,
           first_choice_group_slug: value.firstChoiceGroupSlug,
           has_second_choice: Boolean(value.secondChoiceGroupSlug),
           has_friend_referrals: value.friendEmails.length > 0,
@@ -182,6 +185,7 @@ export function GroupVolunteerForm({
     if (hasStartedRef.current) return
     hasStartedRef.current = true
     posthog.capture("volunteer_application_started", {
+      group_id: groupId,
       first_choice_group_slug: selectedSlug,
     })
   }
