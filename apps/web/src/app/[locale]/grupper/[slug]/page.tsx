@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
@@ -82,6 +83,11 @@ export default async function GroupPage({ params }: GroupPageProps) {
       {...groupTrackingAttributes(group, "group-detail")}
     >
       <div className="space-y-8">
+        <ContentPageViewTracking
+          content={{ _id: group._id, slug: group.slug, title: group.name }}
+          contentType="group"
+          locale={locale}
+        />
         <Breadcrumbs
           className="mb-8"
           current={group.name ?? group.slug}
@@ -123,6 +129,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.slug && (
           <section className="panel">
             <GroupVolunteerForm
+              groupId={group._id}
               groupSlug={group.slug}
               groupName={group.name ?? group.slug}
               institutionOptions={institutionOptions}

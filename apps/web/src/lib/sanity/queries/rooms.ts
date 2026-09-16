@@ -87,6 +87,7 @@ export const bookableRoomsQuery =
 
 export const roomBySlugQuery =
   defineQuery(`*[_type == "room" && slug.current == $slug][0] {
+    _id,
     crescatRoomId,
     "title": ${localizedRoomTitle},
     "slug": coalesce(slug.current, ""),

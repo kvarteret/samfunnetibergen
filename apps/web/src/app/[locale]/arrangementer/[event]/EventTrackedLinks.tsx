@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 interface EventTicketButtonProps {
   ticketUrl: string
   label: string
+  eventId: string
   eventTitle: string
   eventSlug: string
 }
@@ -14,6 +15,7 @@ interface EventTicketButtonProps {
 export function EventTicketButton({
   ticketUrl,
   label,
+  eventId,
   eventTitle,
   eventSlug,
 }: EventTicketButtonProps) {
@@ -24,6 +26,7 @@ export function EventTicketButton({
       size="default"
       onClick={() => {
         posthog.capture("ticket_link_clicked", {
+          event_id: eventId,
           event_title: eventTitle,
           event_slug: eventSlug,
           ticket_url: ticketUrl,
@@ -39,6 +42,7 @@ export function EventTicketButton({
 interface EventFacebookButtonProps {
   facebookUrl: string
   label: string
+  eventId: string
   eventTitle: string
   eventSlug: string
 }
@@ -46,6 +50,7 @@ interface EventFacebookButtonProps {
 export function EventFacebookButton({
   facebookUrl,
   label,
+  eventId,
   eventTitle,
   eventSlug,
 }: EventFacebookButtonProps) {
@@ -55,6 +60,7 @@ export function EventFacebookButton({
       variant="neutral"
       onClick={() => {
         posthog.capture("facebook_event_link_clicked", {
+          event_id: eventId,
           event_title: eventTitle,
           event_slug: eventSlug,
           facebook_url: facebookUrl,
