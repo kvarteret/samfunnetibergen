@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { DM_Mono, Lora, Source_Serif_4 } from "next/font/google"
+import { DM_Mono, DM_Sans, Fraunces } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import { getLocale } from "next-intl/server"
@@ -15,16 +15,15 @@ import { themePreferenceScript } from "@/lib/theme-preference"
 
 import "./globals.css"
 
-const sourceSerif4 = Source_Serif_4({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["700", "900"],
-  variable: "--font-source-serif",
+  variable: "--font-fraunces",
   display: "swap",
 })
 
-const lora = Lora({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-lora",
+  variable: "--font-dm-sans",
   display: "swap",
 })
 
@@ -71,7 +70,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-paper="grid"
       data-theme="hs"
       lang={locale}
-      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${sourceSerif4.variable} ${lora.variable} ${dmMono.variable} h-full antialiased`}
+      className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${fraunces.variable} ${dmSans.variable} ${dmMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

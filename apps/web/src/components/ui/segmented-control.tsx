@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "./radio-group"
 
 interface SegmentedControlProps<T extends string> {
-  options: Array<{ value: T; label: string }>
+  options: Array<{ value: T; label: string; disabled?: boolean }>
   value: T
   onValueChange: (value: T) => void
   className?: string
@@ -44,6 +44,8 @@ export function SegmentedControl<T extends string>({
     >
       {options.map(option => (
         <RadioGroupItem
+          className={variant === "pills" ? "rounded-full" : undefined}
+          disabled={option.disabled}
           key={option.value}
           size={sizeByVariant[variant]}
           value={option.value}

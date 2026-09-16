@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 
 import { JsonLd } from "@/components/JsonLd"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { NyttigPage } from "@/features/nyttig"
 import {
   activateRequestLocale,
@@ -47,6 +48,11 @@ export default async function UsefulInfoPage({
   return (
     <>
       {faqJsonLd && <JsonLd data={faqJsonLd} />}
+      <Breadcrumbs
+        className="mb-8"
+        current={page.title ?? undefined}
+        path="/nyttig"
+      />
       <NyttigPage page={page} />
     </>
   )

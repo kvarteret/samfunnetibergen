@@ -51,19 +51,20 @@
     "recurringWeekly": "Hver uke",
     "recurringMonthly": "Hver måned",
     "recurringGeneric": "Gjentagende",
-    "timePrefix": "kl.",
+    "timePrefix": "",
     "statusCancelled": "Kansellert"
   },
   "EventsPage": {
     "title": "Arrangementer",
     "calendarTitle": "Arrangementskalender",
-    "back": "Tilbake til forsiden",
-    "calendar": "Vis kalender",
-    "list": "Vis som liste",
+    "back": "Forsiden",
+    "calendar": "Kalendervisning",
+    "list": "Listevisning",
     "empty": "Ingen kommende arrangementer akkurat nå.",
     "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",
     "filterAll": "Alle",
     "filterMore": "Alle filter",
+    "filterReset": "Nullstill filtre",
     "filterType": "Type arrangement",
     "filterOrganizer": "Arrangør",
     "filterResultCount": "{count, plural, =0 {Ingen arrangementer} one {# arrangement} other {# arrangementer}}",
@@ -152,6 +153,8 @@
     "dateTime": {
       "houseClosed": "Huset er stengt denne dagen. Velg en annen dato.",
       "selectDate": "Velg en dato for å se ledige tidspunkt.",
+      "selectEndDate": "Velg sluttdato",
+      "selectStartDate": "Velg startdato",
       "noAvailableTimes": "Ingen tilgjengelige tidspunkt for valgt rom i dette tidsrommet.",
       "getInOut": "Get-in / get-out",
       "getIn": "Get-in",
@@ -574,9 +577,9 @@
   "OpeningHours": {
     "open": "Åpent",
     "closed": "Stengt",
-    "closesAt": "Stenger kl. {time}",
-    "opensAt": "Åpner {day} kl. {time}",
-    "opensAtTime": "Åpner kl. {time}",
+    "closesAt": "Stenger {time}",
+    "opensAt": "Åpner {day} {time}",
+    "opensAtTime": "Åpner {time}",
     "noOpeningHours": "Ingen åpningstid funnet",
     "title": "Åpningstider",
     "daySunday": "søndag",
@@ -630,5 +633,21 @@
       "value": "Annet / ikke student",
       "label": "Annet / ikke student"
     }
-  ]
+  ],
+  "Breadcrumbs": {
+    "ariaLabel": "Brødsmulesti",
+    "home": "Forsiden",
+    "events": "Arrangementer",
+    "calendar": "Kalender",
+    "newEvent": "Nytt arrangement",
+    "groups": "Bli frivillig",
+    "volunteer": "Bli frivillig",
+    "rooms": "Booking",
+    "book": "Book rom",
+    "karaoke": "Karaoke",
+    "useful": "Nyttig info",
+    "contact": "Kontakt",
+    "sponsors": "Sponsorer",
+    "design": "Designsystem"
+  }
 }

@@ -3,6 +3,7 @@
 import { Music2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { SectionMark } from "@/components/section-mark"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -102,10 +103,9 @@ export function HomeBarPreviews({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between pb-2">
-        <p className="font-heading text-xl text-foreground-muted">
-          {t("bars")}
-        </p>
+      <div className="flex items-center gap-4 pb-2">
+        <SectionMark className="text-primary" />
+        <h2 className="text-base tracking-wide sm:text-lg">{t("bars")}</h2>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rooms.map(room => (
@@ -166,7 +166,7 @@ function HomeBarPreviewCard({
       aria-label={translations("goToBar", {
         bar: room.title ?? translations("barFallback"),
       })}
-      className="grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden panel p-0 transition-colors hover:border-primary focus-brutal"
+      className="group grid min-h-60 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden bg-card focus-brutal"
       href={href}
     >
       <div className="relative min-h-full bg-muted">
@@ -184,7 +184,7 @@ function HomeBarPreviewCard({
       <div className="flex min-w-0 flex-col justify-between gap-5 p-5">
         <div className="space-y-3">
           <div className="min-w-0">
-            <p className="font-heading text-xl text-foreground">
+            <p className="font-heading text-xl text-foreground group-hover:underline group-hover:underline-offset-2">
               {room.bar || room.title}
             </p>
             {isOpen ? (

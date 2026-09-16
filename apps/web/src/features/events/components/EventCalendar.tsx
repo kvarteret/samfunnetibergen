@@ -51,9 +51,8 @@ function formatDayLabel(date: string, locale: AppLocale) {
 function formatTime(occurrence: CalendarOccurrence, prefix: string) {
   const { startTime, endTime } = occurrence.schedule
   if (!startTime) return null
-  return endTime
-    ? `${prefix} ${startTime}–${endTime}`
-    : `${prefix} ${startTime}`
+  const range = endTime ? `${startTime}–${endTime}` : startTime
+  return prefix ? `${prefix} ${range}` : range
 }
 
 function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
@@ -70,7 +69,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       href={`/arrangementer/${event.slug}`}
     >
       {imageUrl ? (
-        <div className="relative aspect-[5/3] w-full overflow-hidden bg-muted md:aspect-4/3">
+        <div className="relative aspect-video w-full overflow-hidden bg-muted">
           <Image
             alt={event.imageCaption ?? event.title}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -81,7 +80,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
           />
         </div>
       ) : (
-        <div className="flex aspect-[5/3] items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted md:aspect-4/3">
+        <div className="flex aspect-video items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
           <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
           <span>{event.title}</span>
         </div>

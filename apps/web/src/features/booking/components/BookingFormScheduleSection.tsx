@@ -12,7 +12,12 @@ import {
   X,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { type MouseEvent, type ReactNode, useState } from "react"
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  useState,
+} from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CheckboxField } from "@/components/ui/checkbox-field"
@@ -264,14 +269,23 @@ function RoomCard({
 
   return (
     <div
+      aria-disabled={occupied || undefined}
+      aria-pressed={occupied ? undefined : selected}
       className={cn(
-        "relative flex flex-col overflow-hidden border-2 transition-colors",
-        occupied ? "border-border bg-card cursor-default" : "cursor-pointer",
-        !occupied && selected
-          ? "border-state bg-state/5"
-          : !occupied && "border-border bg-card",
+        "relative flex flex-col overflow-hidden border-2 transition-colors focus-brutal",
+        occupied
+          ? "cursor-default border-border bg-card"
+          : "cursor-pointer border-border bg-card hover:bg-muted",
+        !occupied && selected ? "border-state bg-state/5" : undefined,
       )}
       onClick={() => !occupied && onToggle()}
+      onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+        if (occupied || (event.key !== "Enter" && event.key !== " ")) return
+        event.preventDefault()
+        onToggle()
+      }}
+      role="button"
+      tabIndex={occupied ? -1 : 0}
     >
       {!isCrescatOnly && (
         <div className="relative aspect-video bg-muted">
@@ -425,7 +439,7 @@ function AddRoomButton({
       <button
         aria-label={t("schedule.removeRoomAria")}
         className={cn(
-          "flex items-center gap-1.5 border-2 border-state bg-state px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-state-foreground transition-colors hover:opacity-90 focus-brutal",
+          "flex items-center gap-1.5 border-2 border-state bg-state px-2.5 py-1 font-heading text-xs uppercase tracking-widest text-state-foreground transition-opacity hover:opacity-90 focus-brutal",
           className,
         )}
         onClick={handleClick}
@@ -441,7 +455,7 @@ function AddRoomButton({
     <button
       aria-label={t("schedule.addRoom")}
       className={cn(
-        "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:border-state hover:bg-state hover:text-state-foreground focus-brutal",
+        "flex size-8 items-center justify-center border-2 border-border bg-card text-foreground transition-colors hover:bg-muted active:translate-y-px focus-brutal",
         className,
       )}
       onClick={handleClick}
@@ -475,7 +489,7 @@ function RoomInfoTrigger({
       <Popover.Trigger
         aria-label={t("schedule.moreInfoAria", { room: roomName })}
         className={cn(
-          "flex cursor-pointer items-center gap-1.5 border-2 border-border bg-card/90 px-2.5 py-1 font-heading text-xs tracking-widest text-foreground-muted backdrop-blur-sm transition-colors hover:border-primary hover:text-foreground focus-brutal",
+          "flex cursor-pointer items-center gap-1.5 border-2 border-border bg-card px-2.5 py-1 font-heading text-xs tracking-widest text-foreground-muted transition-colors hover:bg-muted hover:text-foreground focus-brutal",
           className,
         )}
         closeDelay={100}

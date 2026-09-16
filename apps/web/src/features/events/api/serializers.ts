@@ -78,6 +78,7 @@ function serializePublicSchedule(
         kind: "timed",
         startsAt: schedule.startsAt,
         endsAt: schedule.endsAt,
+        doorsOpenAt: schedule.doorsOpenAt,
         timeZone: schedule.timeZone,
       }
     : {

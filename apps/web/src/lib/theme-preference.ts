@@ -39,6 +39,9 @@ try {
   var t = localStorage.getItem("${THEME_STORAGE_KEY}");
   if (t === "hs" || t === "skyss") {
     document.documentElement.dataset.theme = t;
+  } else if (t) {
+    localStorage.removeItem("${THEME_STORAGE_KEY}");
+    document.documentElement.dataset.theme = "hs";
   }
 } catch {}
 `

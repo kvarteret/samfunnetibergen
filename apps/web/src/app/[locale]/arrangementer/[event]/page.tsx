@@ -2,6 +2,7 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
 import {
@@ -76,6 +77,10 @@ export default async function EventPage({ params }: EventPageProps) {
           content={eventData}
           contentType="arrangement"
           locale={locale}
+        />
+        <Breadcrumbs
+          current={eventData.title}
+          path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
         <EventDetailHero

@@ -56,7 +56,7 @@ export function EventFormRecurrenceBuilder({
   }
 
   return (
-    <div className="space-y-5 border-2 border-border bg-secondary/10 p-6">
+    <div className="space-y-5 border-2 border-border bg-secondary-50 p-6">
       <RecurrenceHeader />
       <fieldset className="space-y-2">
         <legend className=" text-foreground-muted">Gjentas</legend>

@@ -6,6 +6,7 @@ import {
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { HowToBookSection } from "@/components/how-to-book-section"
 import { LeietiderSection } from "@/components/leietider-section"
 import { BookingForm } from "@/features/booking"
@@ -91,13 +92,15 @@ function ServicesSection({ t }: { t: BookingTranslations }) {
       <div className="grid gap-4 sm:grid-cols-2">
         {services.map(({ icon: Icon, title, description, href }) => (
           <Link
-            className="group flex flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
+            className="group flex flex-col gap-4 bg-card p-5 focus-brutal"
             href={href}
             key={href}
           >
             <Icon aria-hidden className="size-6 text-primary" />
             <div className="space-y-1.5">
-              <h3 className="font-heading text-xl text-foreground">{title}</h3>
+              <h3 className="font-heading text-xl text-foreground group-hover:underline group-hover:underline-offset-2">
+                {title}
+              </h3>
               <p>{description}</p>
             </div>
             <span className="mt-auto inline-flex items-center gap-2 font-heading text-foreground group-hover:underline group-hover:underline-offset-4">
@@ -151,6 +154,7 @@ export default async function BookRoomPage({
 
   return (
     <article className="flex w-full flex-col gap-10">
+      <Breadcrumbs path="/rom/book" />
       <header className="space-y-4">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
           <div className="space-y-4">
