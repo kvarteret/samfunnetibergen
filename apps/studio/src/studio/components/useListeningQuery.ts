@@ -23,15 +23,11 @@ export function useListeningQuery<T>({
 }: ListeningQueryOptions<T>): { data: T; loading: boolean } {
   const client = useClient({ apiVersion: API_VERSION })
   const [data, setData] = useState(initialValue)
-  const [loading, setLoading] = useState(enabled)
+  const [settledKey, setSettledKey] = useState<string | null>(null)
   const paramsKey = JSON.stringify(params ?? {})
 
   useEffect(() => {
-    if (!enabled) {
-      setData(initialValue)
-      setLoading(false)
-      return undefined
-    }
+    if (!enabled) return undefined
 
     let active = true
     const queryParams = JSON.parse(paramsKey) as QueryParams
@@ -45,12 +41,10 @@ export function useListeningQuery<T>({
         // Keep transient Studio connectivity failures from becoming
         // unhandled promise rejections. A later mutation retries the query.
       } finally {
-        if (active) setLoading(false)
+        if (active) setSettledKey(paramsKey)
       }
     }
 
-    setData(initialValue)
-    setLoading(true)
     void refresh()
     const subscription = client
       .listen(listenQuery, queryParams, {
@@ -66,15 +60,13 @@ export function useListeningQuery<T>({
       active = false
       subscription.unsubscribe()
     }
-  }, [
-    client,
-    enabled,
-    initialValue,
-    listenQuery,
-    paramsKey,
-    perspective,
-    query,
-  ])
+  }, [client, enabled, listenQuery, paramsKey, perspective, query])
 
-  return { data, loading }
+  // Derived rather than written from the effect. Calling setState synchronously
+  // inside an effect schedules an extra render before the browser paints, which
+  // `react-hooks/set-state-in-effect` now flags; deriving also means a live
+  // subscription update no longer flashes the loading state.
+  if (!enabled) return { data: initialValue, loading: false }
+
+  return { data, loading: settledKey !== paramsKey }
 }

@@ -43,8 +43,10 @@
     "test:domain": "npm --workspace @samfunnet/content-domain run test",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
-    "lint": "npm run lint:web",
+    "check:allow-scripts": "node scripts/check-allow-scripts.mjs",
+    "lint": "npm run lint:web && npm run lint:studio",
     "lint:web": "npm --workspace @samfunnet/web run lint",
+    "lint:studio": "npm --workspace @samfunnet/studio run lint",
     "check": "npx --no-install biome check --write ."
   },
   "devDependencies": {
@@ -75,13 +77,12 @@
     "@sanity/client": "8.6.2"
   },
   "allowScripts": {
-    "@parcel/watcher@2.5.6": true,
-    "@posthog/cli@0.7.34": true,
-    "core-js@3.49.0": true,
-    "esbuild@0.28.1": true,
-    "fsevents@3.0.0": true,
-    "@swc/core@1.15.24": true,
-    "sharp@0.34.5": true,
+    "@parcel/watcher@2.6.0": true,
+    "@posthog/cli@0.16.2": true,
+    "@swc/core@1.16.2": true,
+    "core-js@3.50.0": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true
   }
 }

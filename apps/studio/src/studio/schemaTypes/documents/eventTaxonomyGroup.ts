@@ -3,7 +3,7 @@ import {
   orderRankField,
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
-import { defineField, defineType } from "sanity"
+import { defineType } from "sanity"
 import { localizedArrayField } from "../shared/localizedFields"
 
 export const eventTaxonomyGroup = defineType({

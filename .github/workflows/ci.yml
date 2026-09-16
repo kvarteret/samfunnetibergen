@@ -56,6 +56,9 @@ jobs:
       - name: Biome format check
         run: npm run format:check
 
+      - name: Verify allowScripts allowlists
+        run: npm run check:allow-scripts
+
       - name: Lint
         run: npm run lint
 

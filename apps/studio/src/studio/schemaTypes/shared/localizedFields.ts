@@ -81,9 +81,9 @@ export function localizedArrayField(
     name,
     title,
     type,
-    validation: (rule: any) => {
+    validation: rule => {
       const chain = required ? rule.required() : rule
-      return chain.custom((value: unknown, context: unknown) =>
+      return chain.custom((value: unknown) =>
         validateLocalizedArray(value, {
           required,
         }),

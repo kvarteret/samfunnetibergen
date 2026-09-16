@@ -30,7 +30,10 @@ export function StudentGroupLabelsInput(props: StringInputProps) {
   const language = getLanguage(
     useFormValue([...props.path.slice(0, -1), "language"]),
   )
-  const selectedLabels = parseStudentGroupLabels(props.value)
+  const selectedLabels = useMemo(
+    () => parseStudentGroupLabels(props.value),
+    [props.value],
+  )
   const [query, setQuery] = useState("")
 
   const options = useMemo(() => {
@@ -43,7 +46,7 @@ export function StudentGroupLabelsInput(props: StringInputProps) {
       title: label,
       value: label,
     }))
-  }, [language, selectedLabels.join("\n")])
+  }, [language, selectedLabels])
 
   const updateLabels = (nextLabels: string[]) => {
     props.onChange(set(nextLabels.join("\n")))
