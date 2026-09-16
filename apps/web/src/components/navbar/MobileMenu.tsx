@@ -5,11 +5,15 @@ import { Dialog } from "@base-ui/react/dialog"
 import { ChevronDown, ExternalLink, Menu, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
-import { Link } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 import type { SiteLogoContent } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
 import { LanguageSwitcher } from "./LanguageSwitcher"
+import {
+  isNavigationItemActive,
+  isNavigationLinkActive,
+} from "./navigation-items"
 import type {
   NavigationGroup,
   NavigationItem,
@@ -28,14 +32,21 @@ const brandLinkClass = "block py-2.5 transition-opacity hover:opacity-75"
 
 export function MobileMenu({ items, logo }: MobileMenuProps) {
   const t = useTranslations("Navigation")
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [menuSessionKey, setMenuSessionKey] = useState(0)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen) setMenuSessionKey(key => key + 1)
+  }
 
   const close = () => {
     setOpen(false)
   }
 
   return (
-    <Dialog.Root onOpenChange={setOpen} open={open}>
+    <Dialog.Root onOpenChange={handleOpenChange} open={open}>
       <Dialog.Trigger
         aria-label={t("openMenu")}
         className="p-3 text-foreground focus-brutal lg:hidden"
@@ -44,7 +55,10 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Popup className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden">
+        <Dialog.Popup
+          className="fixed inset-0 z-100 flex flex-col overflow-hidden bg-background lg:hidden"
+          key={menuSessionKey}
+        >
           <Dialog.Title className="sr-only">{t("mainMenu")}</Dialog.Title>
 
           <div className="shrink-0 pt-[env(safe-area-inset-top)]">
@@ -79,7 +93,12 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
               multiple={false}
             >
               {items.map(item => (
-                <MobileNavItem item={item} key={item.id} onClose={close} />
+                <MobileNavItem
+                  item={item}
+                  key={item.id}
+                  onClose={close}
+                  pathname={pathname}
+                />
               ))}
             </AccordionPrimitive.Root>
           </nav>
@@ -97,16 +116,21 @@ export function MobileMenu({ items, logo }: MobileMenuProps) {
 interface MobileNavItemProps {
   item: NavigationItem
   onClose: () => void
+  pathname: string
 }
 
-function MobileNavItem({ item, onClose }: MobileNavItemProps) {
+function MobileNavItem({ item, onClose, pathname }: MobileNavItemProps) {
   const mobileItem = item.mobile
     ? { ...item, href: item.mobile.href, children: item.mobile.groups }
     : item
   const hasChildren =
     mobileItem.children?.some(group => group.links.length > 0) ?? false
+  const active = isNavigationItemActive(item, pathname)
+  const activeClass =
+    "after:absolute after:inset-x-6 after:bottom-0 after:h-0.5 after:bg-[#eb3b3b]"
   const linkCls = cn(
-    "flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 border-2 border-transparent px-6 py-2.5 text-left font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal",
+    "relative flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 border-2 border-transparent px-6 py-2.5 text-left font-heading text-2xl text-foreground hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:shadow-none focus-brutal",
+    active && activeClass,
     item.highlight &&
       "border-primary bg-primary text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground",
   )
@@ -132,14 +156,19 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
           <AccordionPrimitive.Panel className="divide-y divide-border/50">
             {mobileItem.children?.map((group: NavigationGroup) =>
               group.links.map(link => (
-                <MobileNavLink key={link.id} link={link} onClose={onClose} />
+                <MobileNavLink
+                  key={link.id}
+                  link={link}
+                  onClose={onClose}
+                  pathname={pathname}
+                />
               )),
             )}
             {item.includePaperMenu && <PaperMenuSection mobile />}
           </AccordionPrimitive.Panel>
         </>
       ) : (
-        renderNavItemLabel(mobileItem, onClose, linkCls)
+        renderNavItemLabel(mobileItem, onClose, linkCls, active)
       )}
     </AccordionPrimitive.Item>
   )
@@ -148,18 +177,25 @@ function MobileNavItem({ item, onClose }: MobileNavItemProps) {
 function MobileNavLink({
   link,
   onClose,
+  pathname,
 }: {
   link: NavigationLink
   onClose: () => void
+  pathname: string
 }) {
-  const className =
-    "flex min-h-11 items-center border-2 border-transparent px-10 py-2.5 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm focus-brutal"
+  const active = isNavigationLinkActive(link, pathname)
+  const className = cn(
+    "relative flex min-h-11 items-center border-2 border-transparent px-10 py-2.5 text-foreground-muted hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground-muted hs:hover:shadow-none focus-brutal",
+    active &&
+      "after:absolute after:inset-x-10 after:bottom-0 after:h-0.5 after:bg-[#eb3b3b]",
+  )
 
   if (link.kind === "external") {
     return (
       <a
         className={className}
         href={link.href ?? "#"}
+        aria-current={active ? "page" : undefined}
         onClick={onClose}
         rel="noreferrer"
         target="_blank"
@@ -175,14 +211,24 @@ function MobileNavLink({
 
   if (link.kind === "plain") {
     return (
-      <a className={className} href={link.href ?? "#"} onClick={onClose}>
+      <a
+        aria-current={active ? "page" : undefined}
+        className={className}
+        href={link.href ?? "#"}
+        onClick={onClose}
+      >
         {link.label}
       </a>
     )
   }
 
   return (
-    <Link className={className} href={link.href ?? "#"} onClick={onClose}>
+    <Link
+      aria-current={active ? "page" : undefined}
+      className={className}
+      href={link.href ?? "#"}
+      onClick={onClose}
+    >
       {link.label}
     </Link>
   )
@@ -192,6 +238,7 @@ function renderNavItemLabel(
   item: NavigationLink,
   onClose: () => void,
   linkCls: string,
+  active: boolean,
 ) {
   const href = item.href
   if (!href)
@@ -208,6 +255,7 @@ function renderNavItemLabel(
   if (item.kind === "external") {
     return (
       <a
+        aria-current={active ? "page" : undefined}
         className={linkCls}
         href={href}
         onClick={onClose}
@@ -224,13 +272,23 @@ function renderNavItemLabel(
   }
   if (item.kind === "plain") {
     return (
-      <a className={linkCls} href={href} onClick={onClose}>
+      <a
+        aria-current={active ? "page" : undefined}
+        className={linkCls}
+        href={href}
+        onClick={onClose}
+      >
         {item.label}
       </a>
     )
   }
   return (
-    <Link className={linkCls} href={href} onClick={onClose}>
+    <Link
+      aria-current={active ? "page" : undefined}
+      className={linkCls}
+      href={href}
+      onClick={onClose}
+    >
       {item.label}
     </Link>
   )

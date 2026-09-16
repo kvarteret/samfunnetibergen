@@ -5,11 +5,11 @@
 
 export type EventStatus = "scheduled" | "cancelled"
 
-/** The complete set of fields a child may inherit from its parent
- * (execplan 008, Decision D7). Everything else — isPromoted, eventStatus,
- * approvalStatus, slug, dates, room/location, eventKind, parentEvent,
- * submission metadata — never inherits, enforced by this list being the
- * only thing the resolver reads from the parent. */
+/** The complete set of fields a child may inherit from its parent.
+ * Everything else — isPromoted, eventStatus, approvalStatus, slug, dates,
+ * room/location, eventKind, parentEvent, submission metadata — never inherits,
+ * enforced by this list being the only thing the resolver reads from the
+ * parent. */
 export const INHERITED_FIELDS = [
   "title",
   "description",

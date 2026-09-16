@@ -150,8 +150,8 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
 
         {!single && (
           <>
-            <CarouselPrevious className="left-3 rounded-none border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
-            <CarouselNext className="right-3 rounded-none border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
+            <CarouselPrevious className="left-3 rounded-base border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
+            <CarouselNext className="right-3 rounded-base border-2 border-border bg-background/90 p-1.5 shadow-shadow disabled:opacity-30 hover:bg-background [&_svg]:size-5" />
           </>
         )}
 

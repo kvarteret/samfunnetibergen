@@ -1,8 +1,17 @@
-±# ADR 003: Sanity live editing architecture
+# ADR 003: Sanity live editing architecture
 
-**Status:** Accepted  
+**Status:** Accepted; superseded in part by ADR 007
 **Date:** 2026-06-01
 **Updated:** 2026-06-12
+
+## Superseding note (2026-09-16)
+
+ADR 007 replaced the embedded Studio with a separate Studio deployment. The
+repository no longer embeds Studio at `/studio`; those paths are now permanent
+redirects to `https://studio.samfunnetibergen.no`. Live-editing behavior below
+still stands, but all paths moved: editor-owned source is now
+`apps/studio/src/studio/`, and frontend queries and fetch helpers are now
+`apps/web/src/lib/sanity/`.
 
 ## Context
 
@@ -10,16 +19,17 @@ We compared this repository with
 [`sanity-io/sanity-template-nextjs-clean`](https://github.com/sanity-io/sanity-template-nextjs-clean/)
 at commit `4d14b797a3425834d9abd635dc764b31b8088e61`.
 
-The repository embeds Studio at `/studio`, keeps editor-owned source under
-`src/studio/`, and keeps frontend queries and fetch helpers under
-`src/lib/sanity/`.
+At the time of this decision the repository embedded Studio at `/studio` and
+kept all Sanity source in one `src/` tree. ADR 007 later split the deployment:
+editor-owned source now lives under `apps/studio/src/studio/` and frontend
+queries and fetch helpers under `apps/web/src/lib/sanity/`.
 
 ## Decision
 
 Use `defineLive` from `next-sanity/live` as the single frontend synchronization
 boundary.
 
-- `src/lib/sanity/fetcher.ts` exports `sanityFetch` and `SanityLive`.
+- `apps/web/src/lib/sanity/fetcher.ts` exports `sanityFetch` and `SanityLive`.
 - `SANITY_API_READ_TOKEN` is supplied as the server and browser Viewer token.
 - `<SanityLive />` renders globally.
 - `<VisualEditing />` renders only when authenticated Draft Mode is enabled.

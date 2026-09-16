@@ -58,13 +58,14 @@
   "EventsPage": {
     "title": "Arrangementer",
     "calendarTitle": "Event calendar",
-    "back": "Tilbake til forsiden",
-    "calendar": "View calendar",
-    "list": "View as list",
+    "back": "Forsiden",
+    "calendar": "Calendar view",
+    "list": "List view",
     "empty": "Ingen kommende arrangementer akkurat nå.",
     "error": "Vi klarte ikke å hente arrangementene akkurat nå. Prøv igjen litt senere.",
     "filterAll": "Alle",
     "filterMore": "Alle filter",
+    "filterReset": "Reset filters",
     "filterType": "Type arrangement",
     "filterOrganizer": "Arrangør",
     "filterResultCount": "{count, plural, =0 {Ingen arrangementer} one {# arrangement} other {# arrangementer}}",
@@ -153,6 +154,8 @@
     "dateTime": {
       "houseClosed": "The house is closed on this day. Choose another date.",
       "selectDate": "Choose a date to see available times.",
+      "selectEndDate": "Choose an end date",
+      "selectStartDate": "Choose a start date",
       "noAvailableTimes": "No times are available for the selected room during this period.",
       "getInOut": "Get-in / get-out",
       "getIn": "Get-in",
@@ -635,5 +638,21 @@
     "closedNow": "Closed now",
     "holidayReopens": "We reopen {date}",
     "holidayClosed": "Closed."
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Breadcrumb",
+    "home": "Home",
+    "events": "Events",
+    "calendar": "Calendar",
+    "newEvent": "New event",
+    "groups": "Volunteer",
+    "volunteer": "Volunteer",
+    "rooms": "Booking",
+    "book": "Book room",
+    "karaoke": "Karaoke",
+    "useful": "Useful information",
+    "contact": "Contact",
+    "sponsors": "Sponsors",
+    "design": "Design system"
   }
 }

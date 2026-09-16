@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 
 import ReactMarkdown from "react-markdown"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -48,8 +49,15 @@ export default async function DynamicPage({ params }: PageProps) {
   if (!page) notFound()
 
   return (
-    <div className="paper-prose prose prose-neutral max-w-4xl dark:prose-invert">
-      <ReactMarkdown>{page.content ?? ""}</ReactMarkdown>
-    </div>
+    <>
+      <Breadcrumbs
+        className="mb-8"
+        current={page.title ?? slug}
+        path={`/${slug}`}
+      />
+      <div className="paper-prose prose prose-neutral max-w-4xl dark:prose-invert">
+        <ReactMarkdown>{page.content ?? ""}</ReactMarkdown>
+      </div>
+    </>
   )
 }

@@ -40,11 +40,6 @@ Optional: Run
 
 `npm run dev:studio` in another terminal to start the local Studio.
 
-## Remote Codex development
-
-See [Set up Codex for remote work](docs/how-to/codex-environments.md) for the
-repository-specific setup for local worktrees, Remote Control, and Codex Cloud.
-
 ## Deployment
 
 The website Vercel project uses `apps/web` as its Root Directory. Studio is a

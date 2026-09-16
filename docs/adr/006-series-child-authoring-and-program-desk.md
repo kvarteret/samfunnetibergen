@@ -18,7 +18,7 @@ remain separate approval queues.
 ## Implementation note (2026-07-08)
 
 The recommended path (keep materialized instances; make them desk-second-class)
-landed in `src/studio/structure.ts`:
+landed in `apps/studio/src/studio/structure.ts`:
 
 - `BROWSE_EVENT_KINDS` (`single`, `seriesParent`, `festivalParent`) is applied
   to every historical browse list. Generated instances no
@@ -212,7 +212,7 @@ Program
 
 Every list under "Trenger handling", "Innhold", and "Visninger" excludes
 instance kinds; only "Absolutt alle" includes them. This replaces the M7 queues
-added in ADR 005's execplan (Serier/Festivaler/Genererte/… as flat sibling
+added alongside ADR 005 (Serier/Festivaler/Genererte/… as flat sibling
 lists) with an IA that groups by *purpose* and hides generated noise.
 
 ### E. Cleaning up the current "Quiz!" state
@@ -278,9 +278,9 @@ The forking choice is section A vs. the Alternative:
 ## Rollout (if recommended path is approved)
 
 1. Add `BROWSE_EVENT_KINDS` (`single`, `seriesParent`, `festivalParent`) to
-   `src/lib/sanity/queries` mirror or inline in `structure.ts`; apply it to
+   `apps/web/src/lib/sanity/queries` mirror or inline in `structure.ts`; apply it to
    every browse-list filter.
-2. Rebuild `src/studio/structure.ts` Program section to the tree in section D,
+2. Rebuild `apps/studio/src/studio/structure.ts` Program section to the tree in section D,
    including the Serier/Festivaler drill-in child resolvers (section A).
 3. Confirm/fix instance preview parent-title resolution (section C).
 4. No content migration; no public query change; no feed change.

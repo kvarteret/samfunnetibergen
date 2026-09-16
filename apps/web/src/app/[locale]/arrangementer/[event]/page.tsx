@@ -2,7 +2,8 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
-
+import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
 import {
   flattenPublicOccurrences,
@@ -72,6 +73,15 @@ export default async function EventPage({ params }: EventPageProps) {
         className="flex w-full flex-col gap-8"
         {...eventTrackingAttributes(eventData, "event-detail")}
       >
+        <ContentPageViewTracking
+          content={eventData}
+          contentType="arrangement"
+          locale={locale}
+        />
+        <Breadcrumbs
+          current={eventData.title}
+          path={`/arrangementer/${resolvedParams.event}`}
+        />
         <EventStatusNotice event={eventData} t={t} />
         <EventDetailHero
           event={eventData}
@@ -179,6 +189,7 @@ function EventDetailHero({
           <EventTicketButton
             ticketUrl={event.ticketUrl}
             label={ticketsLabel}
+            eventId={event._id}
             eventTitle={event.title}
             eventSlug={eventSlug}
           />
@@ -446,6 +457,7 @@ function EventDetailActions({
         <EventFacebookButton
           facebookUrl={event.facebookUrl}
           label={t("facebook")}
+          eventId={event._id}
           eventTitle={event.title}
           eventSlug={eventSlug}
         />

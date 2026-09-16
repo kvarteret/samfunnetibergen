@@ -107,6 +107,7 @@ export type PublicSchedule = {
   endTime: string | null
   startsAt: string | null
   endsAt: string | null
+  doorsOpenAt: string | null
   timeZone: PublicTimeZone
 }
 
@@ -287,16 +288,23 @@ export function normalizePublicSchedule(date: PublicEventDate): PublicSchedule {
       : date.startDate
     : null
 
+  const startsAt = startTime ? toOsloTimestamp(date.startDate, startTime) : null
+
   return {
     startDate: date.startDate,
     startTime,
     endDate,
     endTime,
-    startsAt: startTime ? toOsloTimestamp(date.startDate, startTime) : null,
+    startsAt,
     endsAt:
       endDate && endTime && startTime
         ? toOsloTimestamp(endDate, endTime)
         : null,
+    // Doors open together with the program start until the data model
+    // distinguishes the two. Exposing doorsOpenAt as its own field now lets
+    // API consumers read it without a breaking change when real door times
+    // are added later.
+    doorsOpenAt: startsAt,
     timeZone: OSLO_TIME_ZONE,
   }
 }

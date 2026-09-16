@@ -8,8 +8,9 @@ contain adapters or runtime wiring.
 ## ExecPlans
 
 When writing complex features or significant refactors, use an ExecPlan (as
-described in `.agents/PLANS.md`) from design to implementation. ExecPlans live
-under `.agents/execplans/` and must be maintained in accordance with PLANS.md.
+described in `.agents/PLANS.md`) from design to implementation. ExecPlans are
+ephemeral working documents: write them under `.agents/execplans/` (gitignored,
+never committed) and maintain them in accordance with PLANS.md.
 
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know

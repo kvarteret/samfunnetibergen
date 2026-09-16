@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { EventCalendarPage } from "@/features/events"
 import { startOfCurrentWeek } from "@/features/events/domain/calendar"
 import { fetchPublicEventSet } from "@/features/events/server/public-events"
@@ -51,15 +52,17 @@ export default async function CalendarPage({
   ])
 
   return (
-    <EventCalendarPage
-      arrangements={eventSet.events}
-      backLabel={t("back")}
-      listLabel={t("list")}
-      locale={locale}
-      occurrences={eventSet.occurrences}
-      searchParams={resolvedSearchParams}
-      title={t("calendarTitle")}
-      today={today}
-    />
+    <>
+      <Breadcrumbs className="mb-8" path="/arrangementer/kalender" />
+      <EventCalendarPage
+        arrangements={eventSet.events}
+        listLabel={t("list")}
+        locale={locale}
+        occurrences={eventSet.occurrences}
+        searchParams={resolvedSearchParams}
+        title={t("calendarTitle")}
+        today={today}
+      />
+    </>
   )
 }

@@ -1,76 +1,49 @@
 # Agent Guidance
 
-This directory is the canonical instruction surface for agents working in this
-repo. Keep generic guidance here so Claude, Codex, and Pi can share it.
+Canonical shared guidance surface for agents working in this repository. Keep
+generic guidance here so Claude, Codex, and Pi share one source.
 
-## Verify Claims First
+## Where things live
 
-Before documenting ownership, runtime behavior, or repo interactions, verify the
-claim from source in the current checkout. Do not rely on older docs if source
-and docs disagree.
+- ExecPlan format and rules: `.agents/PLANS.md`. ExecPlans themselves are
+  ephemeral working documents, gitignored under `.agents/execplans/`.
+- Architecture decisions: `docs/adr/` (index in `docs/adr/README.md`).
+- Procedures and runbooks: `docs/how-to/`.
+- Published contracts: `docs/reference/`.
+- Reusable skills: `.agents/skills/`.
+- Tool adapters, runtime wiring only: `.pi/`, `.codex/`.
 
-Current verified boundaries:
+## Verify claims first
 
-- Public arrangement pages and the versioned JSON API read published Sanity
-  data through the shared event service in
-  `apps/web/src/features/events/server/public-events.ts`. Website preview
-  handling is isolated in `public-events-page.ts`; both are backed by
-  `apps/web/src/lib/sanity/queries/events.ts`. The website pages,
-  `/api/v1/events`, and `/api/v1/openapi.json` are consumers of that boundary.
-  Event detail pages embed Schema.org Event data; there is no standalone
-  linked-data feed or iCalendar route in current source.
-- Public volunteer prospect submissions are validated locally, then proxied to
-  `kvarteret-personal` from `src/app/api/volunteer-prospects/route.ts`.
-- Generated `kvarteret-personal` client files live under
-  `src/lib/integrations/kvarteret-personal-api/`, but that path is ignored by
-  `.gitignore`; do not introduce deploy-critical imports from it unless the
-  generated files are intentionally committed or the deployment path is
-  otherwise verified.
+Before documenting ownership, runtime behavior, or repository interactions,
+verify the claim from current source in this checkout. Read the actual caller and
+callee files, not only docs. If docs disagree with source, update the docs to
+match source and name the source files used as evidence.
 
-## Verification and Full-Cycle Checks
+## Verification
 
-Choose verification based on the current source and the checks that already
-ran; do not run a full build-and-test cycle by habit.
+Choose verification based on the current source and the checks that already ran;
+do not run a full build-and-test cycle by habit.
 
-- First inspect the working tree, touched paths, and the current PR or CI
-  check result. A passing check for an older commit does not cover newer local
-  changes.
-- If the exact current commit has a successful `Workspace checks` run and no
-  relevant files changed afterward, do not repeat the full test and production
-  build cycle locally solely for confirmation. Run the narrowest relevant
-  checks instead, and report that the broader checks are covered by CI.
+- Inspect the working tree, touched paths, and the current PR or CI result. A
+  passing check for an older commit does not cover newer local changes.
+- If the exact current commit has a successful `Workspace checks` run
+  (`.github/workflows/ci.yml`) and no relevant files changed afterward, run the
+  narrowest relevant checks instead of repeating the full cycle, and say the
+  broader checks are covered by CI.
 - Run the full cycle when checks are absent, queued, failed, or stale; when
-  dependency or lock files, build configuration, workflows, routing, Sanity
-  schema/query/type generation, or deployment-sensitive code changed; or when
-  the user explicitly requests release-level verification.
-- For focused web changes, prefer the commands and source-specific checks in
-  `verifying-web-changes`. Include `npm run sanity:typegen` for schema/query
-  changes and review generated type drift.
-- Production release workflows may retain their own validation because they
-  release the merged `develop` commit into production. Do not remove release
-  gates merely because a PR check passed unless the merge/release process
-  proves that the exact release source was validated.
-- In the final report, name the checks that ran, identify checks supplied by
-  CI, and explain any intentionally skipped full-cycle checks.
+  dependency, lock, build, workflow, routing, Sanity schema/query/typegen, or
+  deployment-sensitive code changed; or when release-level verification is
+  requested.
+- In the final report, name the checks that ran and any intentionally skipped
+  full-cycle checks.
 
 ## Skills
 
-- `documenting-repo-interactions`: verify and document source-backed repo
-  boundaries.
-- `security-audit`: perform calibrated security reviews with concrete data flow.
-- `verifying-web-changes`: choose the narrowest source, build, and runtime
-  checks for this Next.js/Sanity app.
-- `working-with-sanity-arrangements`: work on arrangement pages, the events API,
-  and submission flow without confusing Sanity and `kvarteret-personal`
-  ownership.
-- `sanity-typegen-types`: regenerate and consume Sanity types correctly,
-  keeping required fields nullable and parsing at the fetch boundary.
-- `react-doctor`: optional React health scan copied from the generic PostHog
-  skill.
-- `writing-skills`: add or update focused agent skills in this directory.
+- `.agents/skills/samfunnetibergen-production-release/`: release the website to
+  production through GitHub Actions, Vercel staging, smoke tests, and promotion.
+- `.agents/skills/react-doctor/`: optional React health scan.
 
-## Tool Adapters
-
-- `.pi/README.md` is only a Pi adapter. Keep generic Pi guidance here instead.
-- `.claude/` may contain Claude-specific settings, launch config, or imported
-  third-party skills. Do not duplicate generic rules there.
+Add new skills under `.agents/skills/<name>/SKILL.md` with a clear
+job-to-be-done and trigger terms. Do not duplicate guidance from this file or
+from `docs/`.

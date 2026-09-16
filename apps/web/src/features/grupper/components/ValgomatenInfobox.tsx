@@ -211,7 +211,7 @@ export function ValgomatenInfobox() {
   }
 
   return (
-    <aside className="space-y-4 border-2 border-primary/40 bg-primary/5">
+    <aside className="space-y-4 border-2 border-primary/40 bg-primary/5 p-5">
       {!clicked ? (
         <div className="p-4 flex flex-col gap-4">
           <div className="flex items-start gap-3">

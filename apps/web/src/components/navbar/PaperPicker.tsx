@@ -81,7 +81,7 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
       <NavigationMenu.List className="list-none border-t-2 border-border/30 p-3">
         <NavigationMenu.Item value="paper">
           <NavigationMenu.Trigger
-            className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:bg-accent focus-brutal data-popup-open:bg-accent"
+            className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:underline focus-brutal data-popup-open:underline"
             ref={triggerRef}
           >
             {t("moreSettings")}

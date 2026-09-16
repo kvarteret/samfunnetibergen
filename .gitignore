@@ -58,8 +58,6 @@ yarn-error.log*
 next-env.d.ts
 .env.local
 
-# hey-api generated files — committed intentionally (see scripts/)
-
 # HAR captures (may contain session cookies / PII)
 *.har
 
@@ -68,5 +66,6 @@ sonar-project.properties
 .ralph/
 .scannerwork/
 .agents/design-system.md
+.agents/execplans/
 .env.vercel.production
 .env.vercel.preview

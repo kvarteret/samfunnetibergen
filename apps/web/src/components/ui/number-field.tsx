@@ -67,7 +67,7 @@ export function NumberField({
           aria-describedby={ariaDescribedBy}
           aria-invalid={ariaInvalid || undefined}
           className={cn(
-            "min-w-0 flex-1 rounded-base border-2 border-border bg-card px-3 py-2 font-base tabular-nums text-foreground outline-none placeholder:text-foreground-muted disabled:cursor-not-allowed disabled:opacity-50 focus-brutal",
+            "min-w-0 flex-1 rounded-base border-2 border-border bg-card px-3 py-2 font-base tabular-nums text-foreground outline-none placeholder:text-foreground-muted aria-invalid:border-destructive aria-invalid:bg-destructive/5 disabled:cursor-not-allowed disabled:opacity-50 focus-brutal",
             showControls && "text-center",
             inputClassName,
           )}

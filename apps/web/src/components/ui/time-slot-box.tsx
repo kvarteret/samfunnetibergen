@@ -41,7 +41,7 @@ export function TimeSlotBox({
           {label}
         </p>
         <Popover.Trigger
-          className="w-full cursor-pointer border-2 border-border bg-card px-3 py-2 text-left font-mono text-lg tabular-nums text-foreground transition-colors hover:border-primary focus-brutal"
+          className="w-full cursor-pointer border-2 border-border bg-card px-3 py-2 text-left font-mono text-lg tabular-nums text-foreground transition-colors hover:bg-muted focus-brutal"
           id={id}
         >
           {value || "--:--"}

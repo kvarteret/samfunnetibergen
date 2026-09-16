@@ -15,7 +15,7 @@ programmatic path available without building on top of the venue management UI i
 
 We reverse-engineered the request format by capturing HAR traces of real Crescat form submissions.
 The integration started as a karaoke-only feature and has since been generalized to drive any of
-the venue's event-request forms. It lives in `src/lib/integrations/crescat/`.
+the venue's event-request forms. It lives in `apps/web/src/lib/integrations/crescat/`.
 
 ## Decision
 
@@ -38,7 +38,7 @@ the venue's event-request forms. It lives in `src/lib/integrations/crescat/`.
 User submits form
   → server action (e.g. submitRoomBooking / submitKaraokeBooking)
       → build*Request (constructs EventRequestBody for a specific form)
-      → postEventRequest(slug, body)   (src/lib/integrations/crescat/client.ts)
+      → postEventRequest(slug, body)   (apps/web/src/lib/integrations/crescat/client.ts)
           1. GET  /event-requests/{slug}   ← fetches XSRF-TOKEN + crescat_session cookies
           2. POST /event-requests/{slug}   ← submits booking with cookies + token header
           → returns Result<number> (ok = HTTP status; err = user-facing message)
@@ -94,11 +94,11 @@ npm run crescat:introspect -- --diff <slug>   # compare live template vs fields.
 npm run crescat:introspect -- --save <slug>   # write fixture file
 npm run crescat:introspect -- --save-all      # refresh all known-slug fixtures
 npm run crescat:introspect -- --rooms <cal>   # print /resources for a calendar
-npm run crescat:introspect -- --rooms-coverage# list rooms vs Sanity coverage per calendar
+npm run crescat:introspect -- --rooms-coverage   # list rooms vs Sanity coverage per calendar
 ```
 
 **Fixtures.** Three normalized templates are committed under
-`src/lib/integrations/crescat/__fixtures__/forms/` for the standard, intern, and karaoke forms.
+`apps/web/src/lib/integrations/crescat/__fixtures__/forms/` for the standard, intern, and karaoke forms.
 These are the contract: the automated `fields.contract.test.ts` (vitest) diffs each fixture against
 the registry in `fields.ts` and fails when any registry-field is missing from a fixture. Run
 `--save-all` after a form change to regenerate fixtures, then fix `fields.ts` until the contract

@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { OpenStatus } from "@/features/bars"
 import {
   formatVacationModeNotice,
   formatWeekdays,
@@ -315,15 +314,11 @@ function formatOpeningTimeLabel(
 
 function OpeningHoursColumn({
   rooms,
-  houseClosedDates,
-  openingHours,
   vacationMode,
   initialNow,
   locale,
 }: {
   rooms: RoomHours[]
-  houseClosedDates: FooterData["houseClosedDates"]
-  openingHours: FooterData["openingHours"]
   vacationMode: FooterData["vacationMode"]
   initialNow: string
   locale: "nb" | "en"
@@ -342,18 +337,9 @@ function OpeningHoursColumn({
       <div className="space-y-4">
         {roomsWithHours.map(room => (
           <div key={room.slug}>
-            <div className="mb-1.5 flex items-baseline justify-between gap-3">
-              <p className="text-sm font-medium text-foreground-muted uppercase tracking-wide">
-                {room.title}
-              </p>
-              <OpenStatus
-                rooms={[{ openingHours: room.hours }]}
-                houseClosedDates={houseClosedDates}
-                initialNow={initialNow}
-                openingHours={openingHours}
-                vacationMode={vacationMode}
-              />
-            </div>
+            <p className="mb-1.5 text-sm font-medium text-foreground-muted uppercase tracking-wide">
+              {room.title}
+            </p>
             <dl className="space-y-1">
               {vacationNotice ? (
                 <div className="flex justify-between gap-4">
@@ -410,8 +396,6 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
           </div>
           <OpeningHoursColumn
             rooms={roomHours}
-            houseClosedDates={data.houseClosedDates}
-            openingHours={data.openingHours}
             vacationMode={data.vacationMode}
             initialNow={initialNow}
             locale={locale as "nb" | "en"}

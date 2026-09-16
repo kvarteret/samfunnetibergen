@@ -1,15 +1,15 @@
-import { CalendarDays, CalendarPlus } from "lucide-react"
+import { CalendarPlus } from "lucide-react"
 
 import { EventsProvider } from "@/features/events/context/EventsContext"
 import type { PublicEvent } from "@/features/events/domain/events"
 import { Link } from "@/i18n/navigation"
 import type { EventDateEntry } from "./EventCard"
 import { EventsPageFilters } from "./EventsPageFilters"
+import { EventsPageHeader } from "./EventsPageHeader"
 import { EventsPageSections } from "./EventsPageSections"
 
 interface EventsPageProps {
   arrangements: PublicEvent[]
-  backLabel: string
   calendarLabel: string
   precomputedDates: Map<
     string,
@@ -26,7 +26,6 @@ interface EventsPageProps {
 
 export function EventsPage({
   arrangements,
-  backLabel,
   calendarLabel,
   precomputedDates,
   searchParams,
@@ -37,25 +36,12 @@ export function EventsPage({
       initialEvents={arrangements}
       initialSearchParams={searchParams}
     >
-      <div className="flex flex-col gap-10">
-        <header className="space-y-5">
-          <Link
-            className="inline-flex font-heading uppercase tracking-widest underline underline-offset-4 focus-brutal"
-            href="/"
-          >
-            {backLabel}
-          </Link>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h1 className="font-heading text-4xl">{title}</h1>
-            <Link
-              className="inline-flex items-center gap-2 font-heading uppercase tracking-widest underline underline-offset-4 focus-brutal"
-              href="/arrangementer/kalender"
-            >
-              <CalendarDays className="size-4" aria-hidden />
-              {calendarLabel}
-            </Link>
-          </div>
-        </header>
+      <div className="flex flex-col gap-12">
+        <EventsPageHeader
+          actionHref="/arrangementer/kalender"
+          actionLabel={calendarLabel}
+          title={title}
+        />
 
         <EventsPageFilters />
 

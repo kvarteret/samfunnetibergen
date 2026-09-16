@@ -1,4 +1,5 @@
 import { Mail, Phone } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Avatar } from "@/components/ui/avatar"
 import {
   activateRequestLocale,
@@ -41,7 +42,7 @@ function AddressBlock({
   return (
     <div className="space-y-2">
       <p className="font-heading uppercase tracking-widest">{label}</p>
-      <p className=" leading-6 text-foreground whitespace-pre-line">{value}</p>
+      <p className=" leading-6 whitespace-pre-line">{value}</p>
     </div>
   )
 }
@@ -96,6 +97,7 @@ export default async function KontaktPage({
 
   return (
     <article className="flex w-full flex-col gap-12">
+      <Breadcrumbs path="/kontakt" />
       <header className="space-y-2">
         <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
           Kontakt
@@ -118,7 +120,7 @@ export default async function KontaktPage({
           ))}
         </div>
 
-        <aside className="space-y-6 self-start panel">
+        <aside className="panel-warm space-y-6 panel self-start">
           <AddressBlock label="Besøksadresse" value={page?.visitAddress} />
           <AddressBlock label="Postadresse" value={page?.postAddress} />
           {page?.generalContact && (
@@ -126,7 +128,7 @@ export default async function KontaktPage({
               <p className="font-heading uppercase tracking-widest">
                 Generell kontakt
               </p>
-              <p className=" leading-6 text-foreground whitespace-pre-line">
+              <p className=" leading-6 whitespace-pre-line">
                 {page.generalContact}
               </p>
             </div>
@@ -136,7 +138,7 @@ export default async function KontaktPage({
               <p className="font-heading uppercase tracking-widest">
                 Pressekontakt
               </p>
-              <p className=" leading-6 text-foreground whitespace-pre-line">
+              <p className=" leading-6 whitespace-pre-line">
                 {page.pressContact}
               </p>
             </div>

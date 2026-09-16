@@ -1,11 +1,14 @@
 "use client"
 
 import { Collapsible } from "@base-ui/react/collapsible"
+import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { SegmentedControl } from "@/components/ui/segmented-control"
+import { selectionControlVariants } from "@/components/ui/selection-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { countEventFilters } from "@/features/events/domain/eventUtils"
+import { cn } from "@/lib/utils"
 
 export function EventsPageFilters() {
   const t = useTranslations("EventsPage")
@@ -27,9 +30,9 @@ export function EventsPageFilters() {
     })
 
   return (
-    <div className="space-y-6 border-y-2 border-border py-6">
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
+    <Collapsible.Root>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="min-w-0">
           <SegmentedControl
             onValueChange={value => {
               if (value === "all") {
@@ -52,77 +55,116 @@ export function EventsPageFilters() {
             }
           />
         </div>
-        <p className="font-heading uppercase tracking-widest">
-          {t("filterResultCount", { count: filteredEvents.length })}
-        </p>
+        {(taxonomy.eventTypes.length > 0 ||
+          taxonomy.organizerGroups.length > 0) && (
+          <Collapsible.Trigger
+            className={cn(
+              selectionControlVariants({ size: "default" }),
+              "group gap-2 px-4 transition-colors hover:bg-muted data-panel-open:bg-muted",
+            )}
+          >
+            <SlidersHorizontal aria-hidden className="size-4" />
+            {t("filterMore")}
+            <ChevronDown
+              aria-hidden
+              className="size-4 transition-transform group-data-panel-open:rotate-180"
+            />
+          </Collapsible.Trigger>
+        )}
       </div>
 
-      {(taxonomy.eventTypes.length > 0 ||
-        taxonomy.organizerGroups.length > 0) && (
-        <Collapsible.Root>
-          <Collapsible.Trigger className="cursor-pointer font-heading uppercase tracking-widest text-foreground underline underline-offset-4 focus-brutal">
-            {t("filterMore")}
-            {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-          </Collapsible.Trigger>
-          <Collapsible.Panel>
-            <div className="mt-6 space-y-8">
-              {taxonomy.taxonomyGroups.map(group => {
-                const groupEventTypes = taxonomy.eventTypes.filter(
-                  et => et.taxonomyGroupName === group.name,
-                )
-                if (groupEventTypes.length === 0) return null
-                const groupEventTypeIds = new Set(
-                  groupEventTypes.map(eventType => eventType._id),
-                )
-                return (
-                  <div className="space-y-3" key={group._id}>
-                    <h2 className="font-heading uppercase tracking-widest">
-                      {t("filterType")} — {group.name}
-                    </h2>
-                    <ToggleGroup
-                      onValueChange={selectedGroupIds =>
-                        setFilters({
-                          ...filters,
-                          eventTypeIds: [
-                            ...filters.eventTypeIds.filter(
-                              id => !groupEventTypeIds.has(id),
-                            ),
-                            ...selectedGroupIds,
-                          ],
-                        })
-                      }
-                      options={groupEventTypes.map(eventType => ({
-                        value: eventType._id,
-                        label: eventType.name,
-                      }))}
-                      value={filters.eventTypeIds.filter(id =>
-                        groupEventTypeIds.has(id),
-                      )}
-                    />
-                  </div>
-                )
-              })}
-              {taxonomy.organizerGroups.length > 0 && (
-                <div className="space-y-3">
-                  <h2 className="font-heading uppercase tracking-widest">
-                    {t("filterOrganizer")}
-                  </h2>
-                  <ToggleGroup
-                    onValueChange={organizerGroupIds =>
-                      setFilters({ ...filters, organizerGroupIds })
-                    }
-                    options={taxonomy.organizerGroups.map(group => ({
-                      value: group._id,
-                      label: group.name,
-                    }))}
-                    value={filters.organizerGroupIds}
-                  />
-                </div>
-              )}
-            </div>
-          </Collapsible.Panel>
-        </Collapsible.Root>
-      )}
-    </div>
+      <Collapsible.Panel>
+        <div className="mt-5 rounded-base bg-card p-4 sm:p-6">
+          {taxonomy.eventTypes.length > 0 && (
+            <fieldset className="min-w-0">
+              <legend className="mb-4 text-sm font-heading text-foreground-muted">
+                {t("filterType")}
+              </legend>
+              <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-4">
+                {taxonomy.taxonomyGroups.map(group => {
+                  const groupEventTypes = taxonomy.eventTypes.filter(
+                    et => et.taxonomyGroupName === group.name,
+                  )
+                  if (groupEventTypes.length === 0) return null
+                  const groupEventTypeIds = new Set(
+                    groupEventTypes.map(eventType => eventType._id),
+                  )
+                  return (
+                    <fieldset className="min-w-0" key={group._id}>
+                      <legend className="mb-3 text-xl font-heading">
+                        {group.name}
+                      </legend>
+                      <ToggleGroup
+                        className="text-sm"
+                        onValueChange={selectedGroupIds =>
+                          setFilters({
+                            ...filters,
+                            eventTypeIds: [
+                              ...filters.eventTypeIds.filter(
+                                id => !groupEventTypeIds.has(id),
+                              ),
+                              ...selectedGroupIds,
+                            ],
+                          })
+                        }
+                        options={groupEventTypes.map(eventType => ({
+                          value: eventType._id,
+                          label: eventType.name,
+                        }))}
+                        value={filters.eventTypeIds.filter(id =>
+                          groupEventTypeIds.has(id),
+                        )}
+                      />
+                    </fieldset>
+                  )
+                })}
+              </div>
+            </fieldset>
+          )}
+          {taxonomy.organizerGroups.length > 0 && (
+            <fieldset className="mt-6 min-w-0 pt-5">
+              <legend className="sr-only">{t("filterOrganizer")}</legend>
+              <p
+                aria-hidden
+                className="mb-3 text-sm font-heading text-foreground-muted"
+              >
+                {t("filterOrganizer")}
+              </p>
+              <ToggleGroup
+                className="text-sm"
+                onValueChange={organizerGroupIds =>
+                  setFilters({ ...filters, organizerGroupIds })
+                }
+                options={taxonomy.organizerGroups.map(group => ({
+                  value: group._id,
+                  label: group.name,
+                }))}
+                value={filters.organizerGroupIds}
+              />
+            </fieldset>
+          )}
+        </div>
+      </Collapsible.Panel>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          className="text-sm text-foreground-muted"
+        >
+          {t("filterResultCount", { count: filteredEvents.length })}
+        </p>
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={clearAll}
+            className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-heading underline-offset-4 hover:underline focus-brutal"
+          >
+            <X aria-hidden className="size-3.5" />
+            {t("filterReset")}
+          </button>
+        )}
+      </div>
+    </Collapsible.Root>
   )
 }

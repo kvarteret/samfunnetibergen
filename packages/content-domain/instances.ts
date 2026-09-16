@@ -120,7 +120,7 @@ export function semesterWindowsAround(
 }
 
 /** Strip a `drafts.` prefix so draft and published parents yield the same
- * child ids (Decision D3 in execplan 008). */
+ * child ids. */
 export function publishedIdOf(id: string): string {
   return id.replace(/^drafts\./, "")
 }
@@ -207,7 +207,7 @@ export function expandOccurrencesInRange(
 /** Build the complete child document generation would write. Inheritable
  * content fields (title, description, image, pricing, links, …) are
  * deliberately absent so the child inherits everything from the parent
- * until an editor overrides a field (execplan 008, Decision D7). */
+ * until an editor overrides a field. */
 export function buildInstanceDocument(
   parent: GenerationParent,
   occurrence: Occurrence,

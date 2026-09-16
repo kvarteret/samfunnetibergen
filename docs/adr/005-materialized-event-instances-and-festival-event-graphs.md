@@ -1,13 +1,13 @@
 # ADR 005: Materialized event instances and festival event graphs
 
-**Status:** Proposed  
+**Status:** Accepted (implemented)  
 **Date:** 2026-07-07
 
 ## Context
 
 Samfunnet i Bergen currently stores public arrangements in Sanity as
 `arrangement` documents. The website reads those documents through
-`src/lib/sanity/queries/events.ts` and `src/lib/sanity/fetch/events.ts`, then
+`apps/web/src/lib/sanity/queries/events.ts` and `apps/web/src/lib/sanity/fetch/events.ts`, then
 renders them on the homepage, arrangement listing, arrangement detail pages, and
 JSON-LD event feed.
 
@@ -287,16 +287,13 @@ conversion scripts are written. The rollout reduces to:
 2. Remove read-time RRULE expansion from public surfaces; keep RRULE parsing
    for editor preview and generation.
 
-Execution detail lives in
-`.agents/execplans/008-materialized-event-instances.md`.
-
 Public recurring submissions remain possible. They enter the editorial workflow
 as pending `seriesParent` documents; an editor approves the parent and runs
 generation before the series appears in public listings (as children).
 
 ## Implementation Notes
 
-Update the Sanity schema under `src/studio/schemaTypes/documents/arrangement.ts`
+Update the Sanity schema under `apps/studio/src/studio/schemaTypes/documents/arrangement.ts`
 with the new fields, kind-conditional validation, and the graph-shape
 constraint on `parentEvent`, then regenerate TypeGen.
 
@@ -309,7 +306,7 @@ Update Studio desk structure with editorial queues: series parents, festival
 parents, children per parent, pending generated children, cancelled events,
 and the "series needing regeneration" queue.
 
-Update frontend queries under `src/lib/sanity/queries/events.ts`:
+Update frontend queries under `apps/web/src/lib/sanity/queries/events.ts`:
 
 - concrete event listings and feeds fetch `single`, `seriesInstance`, and
   `festivalSession` (with the `coalesce` legacy contract) and project
@@ -319,14 +316,14 @@ Update frontend queries under `src/lib/sanity/queries/events.ts`:
 - promoted surfaces fetch promoted parents separately from promoted concrete
   events.
 
-Add an event-resolution domain layer under `src/features/events/domain/`
+Add an event-resolution domain layer under `apps/web/src/features/events/domain/`
 (e.g. `resolveEvent.ts`) that merges child fields with inherited parent fields
 and computes effective status before cards, detail pages, homepage promoted
 events, and feeds render. Website and app consume the same resolution rules;
 the resolution logic is pure and unit-tested.
 
-Implement generation under `src/features/events/domain/` reusing the existing
-`rrule` dependency (`src/features/events/domain/recurrence.ts`). All occurrence
+Implement generation under `apps/web/src/features/events/domain/` reusing the existing
+`rrule` dependency (`apps/web/src/features/events/domain/recurrence.ts`). All occurrence
 math is done in Europe/Oslo (`TZDate` from `@date-fns/tz`, already used by the
 feed) so DST transitions do not shift weekly occurrences by an hour or a day.
 

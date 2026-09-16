@@ -27,6 +27,7 @@ describe("public events OpenAPI document", () => {
     expect(serialized).toContain("facebook")
     expect(serialized).toContain("timed")
     expect(serialized).toContain("date")
+    expect(serialized).toContain("doorsOpenAt")
   })
 
   it("serves JSON with the public API protocol headers", async () => {

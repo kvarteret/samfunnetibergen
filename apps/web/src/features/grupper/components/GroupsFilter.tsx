@@ -71,7 +71,7 @@ export function GroupsFilter({
 function GroupCard({ group }: { group: StudentGroupSummary }) {
   return (
     <Link
-      className="group flex min-h-full flex-col gap-4 panel shadow-shadow transition-transform hover:-translate-y-1"
+      className="group flex min-h-full flex-col gap-4 bg-card p-5 focus-brutal"
       href={`/grupper/${group.slug}`}
       {...groupTrackingAttributes(group, "groups-card")}
     >
@@ -87,7 +87,7 @@ function GroupCard({ group }: { group: StudentGroupSummary }) {
               />
             </div>
           ) : null}
-          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground">
+          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground group-hover:underline group-hover:underline-offset-2">
             {group.name}
           </h3>
         </div>

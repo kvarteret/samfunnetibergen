@@ -2,6 +2,8 @@ import { Clock, ExternalLink, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
 import { BoolSpec } from "@/features/rooms"
@@ -22,6 +24,7 @@ import {
 } from "@/lib/opening-hours"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import { roomTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import type { SourcedImage } from "@/lib/sanity/fetch"
 import {
   fetchHouseHours,
@@ -113,7 +116,13 @@ export default async function RoomPage({ params }: RoomPageProps) {
   const panoramaSlide = carouselSlides.find(s => s.type === "panorama")
 
   return (
-    <article>
+    <article {...roomTrackingAttributes(room, "room-detail")}>
+      <ContentPageViewTracking
+        content={{ _id: room._id, slug: room.slug, title }}
+        contentType="room"
+        locale={locale}
+      />
+      <Breadcrumbs className="mb-8" current={title} path={`/rom/${slug}`} />
       {imageOnlySlides.length > 0 && (
         <div>
           <ImageCarousel slides={imageOnlySlides} />
@@ -188,8 +197,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
 
   return (
     <section className="space-y-6">
-      <hr className="border-border" />
-      <dl className="max-w-md divide-y divide-border">
+      <dl className="panel panel-warm max-w-md">
         {room.floor != null && (
           <DetailRow label="Etasje" layout="labelColumn">
             {room.floor}. etasje

@@ -1,4 +1,5 @@
 import { Users } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { LeietiderSection } from "@/components/leietider-section"
 import { Button } from "@/components/ui/button"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -50,7 +51,7 @@ function RoomImage({
   return (
     <ImageWithFallback
       alt={image?.alt || title}
-      aspectRatio="16/10"
+      aspectRatio="16/9"
       fallback={
         <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
           {title}
@@ -75,6 +76,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   return (
     <div className="space-y-16">
+      <Breadcrumbs path="/rom" />
       <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="flex flex-col justify-between gap-6">
           <div className="space-y-4">
@@ -118,14 +120,14 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
             return (
               <Link
-                className="group flex min-h-full flex-col overflow-hidden panel p-0 shadow-shadow transition-transform hover:-translate-y-1"
+                className="group flex min-h-full flex-col overflow-hidden focus-brutal"
                 href={`/rom/${room.slug}`}
                 key={room.slug}
               >
                 <RoomImage image={room.image} title={title} />
-                <div className="flex flex-1 flex-col gap-4 p-5">
+                <div className="flex flex-1 flex-col gap-4 pt-3">
                   <div className="space-y-2">
-                    <h2 className="font-heading text-3xl leading-none text-foreground">
+                    <h2 className="font-heading text-2xl leading-tight text-foreground group-hover:underline group-hover:underline-offset-2">
                       {title}
                     </h2>
                     {room.summary ? (
