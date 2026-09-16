@@ -45,7 +45,7 @@
     "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.7.0",
     "nanoid": "^5.1.11",
-    "next": "16.3.1",
+    "next": "16.3.5",
     "next-intl": "^4.9.0",
     "next-sanity": "^13.2.3",
     "posthog-js": "^1.386.8",
@@ -62,16 +62,24 @@
     "zod": "^4.4.3"
   },
   "overrides": {
-    "fast-uri": "3.1.4",
+    "fast-uri": "3.1.7",
     "ws": "8.21.0",
-    "qs": "6.15.3",
+    "qs": "6.16.0",
     "postcss": "8.5.18",
-    "hono": "4.12.27",
-    "dompurify": "3.4.12",
-    "ip-address": "10.2.0",
-    "sharp": "0.35.3",
+    "hono": "4.13.8",
+    "dompurify": "3.4.13",
+    "ip-address": "10.4.0",
+    "sharp": "0.35.4",
     "prismjs": "1.30.0",
-    "adm-zip": "0.6.0"
+    "adm-zip": "0.6.1",
+    "js-yaml@^3": "3.15.2",
+    "js-yaml@^4": "4.3.2",
+    "smol-toml": "1.7.1",
+    "fflate@^0.4": "0.4.9",
+    "baseline-browser-mapping": "2.11.24",
+    "browserslist": "4.29.0",
+    "undici@^7": "7.29.0",
+    "uuid@^10": "11.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -80,11 +88,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.1",
+    "eslint-config-next": "16.3.5",
     "shadcn": "^4.1.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "allowScripts": {
     "@parcel/watcher@2.5.6": true,
