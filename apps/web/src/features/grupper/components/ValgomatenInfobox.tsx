@@ -5,39 +5,15 @@ import posthog from "posthog-js"
 import { useState, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import { SortingHatDemo } from "./SortingHatDemo"
+import Link from "next/link"
+import { StudentGroupSummary } from "@/lib/sanity/fetch"
 
 const RARITIES = {
-  Common: {
-    name: "Ordinær",
-    bg: "bg-blue-600",
-    border: "border-blue-800",
-    weight: 50,
-  },
-  Uncommon: {
-    name: "Uvanlig",
-    bg: "bg-purple-600",
-    border: "border-purple-800",
-    weight: 20,
-  },
-  Rare: {
-    name: "Sjelden",
-    bg: "bg-pink-500",
-    border: "border-pink-700",
-    weight: 15,
-  },
-  Legendary: {
-    name: "Legendarisk",
-    bg: "bg-primary",
-    border: "border-red-700",
-    weight: 10,
-  },
-  Mythic: {
-    name: "Mytisk",
-    bg: "bg-yellow-500",
-    border: "border-yellow-600",
-    weight: 5,
-  },
+  Common: { name: "Allmenn", bg: "bg-blue-600", border: "border-blue-800", weight: 50 },
+  Uncommon: { name: "Alminnelig", bg: "bg-purple-600", border: "border-purple-800", weight: 20 },
+  Rare: { name: "Sjelden", bg: "bg-pink-500", border: "border-pink-700", weight: 15 },
+  Legendary: { name: "Legendarisk", bg: "bg-primary", border: "border-red-700", weight: 10 },
+  Mythic: { name: "Mytisk", bg: "bg-yellow-500", border: "border-yellow-600", weight: 5 },
 } as const
 
 type Rarity = keyof typeof RARITIES
@@ -46,24 +22,53 @@ type Item = {
   id: number
   name: string
   rarity: Rarity
+  slug: string
 }
 
 const ITEM_POOL: Item[] = [
-  { id: 1, name: "Stjernesalen", rarity: "Common" },
-  { id: 2, name: "Kraft etaten", rarity: "Common" },
-  { id: 3, name: "Kjøkkenet", rarity: "Uncommon" },
-  { id: 4, name: "PR-gruppen", rarity: "Uncommon" },
-  { id: 5, name: "Skjenkegruppen", rarity: "Uncommon" },
-  { id: 6, name: "Quizgruppen", rarity: "Rare" },
-  { id: 7, name: "Sosial departamanget", rarity: "Legendary" },
-  { id: 8, name: "E-tjenesten", rarity: "Mythic" },
-]
+  { id: 1, name: "Skjenkegruppen", slug: "skjenkegruppen", rarity: "Common" },
+  { id: 2, name: "Kraftetaten", slug: "kraftetaten", rarity: "Uncommon" },
+  { id: 3, name: "E-tjenesten", slug: "e-tjenesten", rarity: "Legendary" },
+  {
+    id: 4,
+    name: "Kommunikasjonavdelingen",
+    slug: "kommunikasjonavdelingen",
+    rarity: "Rare",
+  },
+  {
+    id: 5,
+    name: "Sosialdepartementet",
+    slug: "sosialdepartementet",
+    rarity: "Mythic",
+  },
+  { id: 6, name: "Quiz", slug: "quiz", rarity: "Rare" },
+  { id: 7, name: "Rettsvesenet", slug: "rettsvesenet", rarity: "Legendary" },
+  { id: 8, name: "Aktuelt", slug: "aktuelt", rarity: "Common" },
+  { id: 9, name: "Romvesenet", slug: "romvesenet", rarity: "Mythic" },
+  { id: 10, name: "Debatt", slug: "debatt", rarity: "Common" },
+  { id: 11, name: "Vaktetaten", slug: "vaktetaten", rarity: "Common" },
+  { id: 12, name: "Fest", slug: "fest", rarity: "Common" },
+  {
+    id: 13,
+    name: "Finansdepartementet",
+    slug: "finansdepartementet",
+    rarity: "Rare",
+  },
+  { id: 14, name: "HELLO", slug: "hello", rarity: "Rare" },
+  { id: 15, name: "Upop", slug: "upop", rarity: "Common" },
+  {
+    id: 16,
+    name: "Diskodepartementet",
+    slug: "diskodepartementet",
+    rarity: "Uncommon",
+  },
+];
 
 const WINNING_INDEX = 40
 const TOTAL_ITEMS = 50
 const SPIN_DURATION_MS = 7000
 
-function GroupUnboxing() {
+function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
   const [isSpinning, setIsSpinning] = useState(false)
   const [generatedItems, setGeneratedItems] = useState<Item[]>([])
   const [winner, setWinner] = useState<Item | null>(null)
@@ -91,36 +96,35 @@ function GroupUnboxing() {
     return finalPool[Math.floor(Math.random() * finalPool.length)]
   }
 
+  const ITEM_WIDTH = 112 // w-28
+  const GAP = 8 // gap-2
+  const STEP = ITEM_WIDTH + GAP // distance from one item's left edge to the next
+
   const handleSpin = () => {
     if (isSpinning) return
 
-    // Clear any pending timeouts from a previous spin.
     if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current)
     if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current)
 
     setIsSpinning(true)
     setWinner(null)
-
-    // Step 1: snap the strip back to the start with no transition.
     setEnableTransition(false)
     setTransformStyle("translateX(0px)")
 
     const list = Array.from({ length: TOTAL_ITEMS }, () => getRandomItem())
     setGeneratedItems(list)
 
-    // Step 2: on the next frame(s), turn the transition back on and set
-    // the target transform so the browser animates from 0 -> target,
-    // exactly like the first spin.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (!containerRef.current || !containerRef.current.parentElement) return
 
         const parentWidth = containerRef.current.parentElement.offsetWidth
-        const itemOffset = WINNING_INDEX * 128
+        const itemOffset = WINNING_INDEX * STEP
+        const margin = 12
+        const innerItemRandomPadding =
+          margin + Math.random() * (ITEM_WIDTH - margin * 2)
 
-        const innerItemRandomPadding = Math.floor(Math.random() * 60) + 30
         const centerPadding = parentWidth / 2
-
         const finalTranslateX =
           itemOffset - centerPadding + innerItemRandomPadding
 
@@ -131,7 +135,7 @@ function GroupUnboxing() {
 
     finishTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false)
-      setWinner(list[WINNING_INDEX])
+      setWinner(list[WINNING_INDEX-1])
     }, SPIN_DURATION_MS)
   }
 
@@ -194,13 +198,18 @@ function GroupUnboxing() {
           >
             {RARITIES[winner.rarity].name}
           </span>
+          <Button>
+            <Link href={`http://localhost:3187/nb/grupper/${winner.slug}`}>
+              MELD DEG INN HER
+            </Link>
+          </Button>
         </div>
       )}
     </div>
   )
 }
 
-export function ValgomatenInfobox() {
+export function ValgomatenInfobox({groups}: {groups: StudentGroupSummary[]}) {
   const t = useTranslations("GroupsPage")
   const [clicked, setClicked] = useState(false)
 
@@ -242,10 +251,7 @@ export function ValgomatenInfobox() {
               <X aria-hidden="true" className="size-5" />
             </button>
           </div>
-          <div className="h-[min(70vh,38rem)] min-h-96 w-full">
-            <SortingHatDemo />
-          </div>
-          <GroupUnboxing />
+          <GroupUnboxing groups={groups} />
         </div>
       )}
     </aside>
