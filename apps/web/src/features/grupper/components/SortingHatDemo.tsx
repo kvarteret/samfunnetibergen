@@ -151,7 +151,7 @@ export function SortingHatDemo() {
           const headX = (earMidX * displayedWidth - cropX) / width
           // Pose landmarks sit inside the head. Move the brim above the ear line
           // so the hat sits on the crown instead of covering the face.
-          const crownY = earMidY - earSpan * 0.60
+          const crownY = earMidY - earSpan * 0.6
           const headY = (crownY * displayedHeight - cropY) / height
           const visibleHeight =
             2 *
@@ -181,9 +181,9 @@ export function SortingHatDemo() {
             -2.86,
           )
           headOccluder.scale.set(
-            headWorldWidth * 0.56,
+            headWorldWidth * 0.85,
             headWorldHeight * 0.55,
-            headWorldWidth * 0.52,
+            headWorldWidth * 0.8,
           )
           headOccluder.visible = true
           // Keep the hat steady while still following deliberate head movement.
