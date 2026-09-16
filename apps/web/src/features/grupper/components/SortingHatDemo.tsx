@@ -40,6 +40,17 @@ export function SortingHatDemo() {
     let modelBounds: THREE.Box3 | null = null
     let modelWidth = 1
     const hatScaleFactor = 1.45
+    const headOccluder = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 32, 20),
+      new THREE.MeshBasicMaterial({
+        colorWrite: false,
+        depthWrite: true,
+        depthTest: true,
+      }),
+    )
+    headOccluder.visible = false
+    headOccluder.renderOrder = 0
+    scene.add(headOccluder)
     let animationFrame = 0
     let lastVideoTime = -1
     let hasTrackingTarget = false
@@ -63,6 +74,18 @@ export function SortingHatDemo() {
       const size = modelBounds.getSize(new THREE.Vector3())
       modelWidth = size.x
       model.position.z = -3
+      model.renderOrder = 1
+      model.traverse(object => {
+        if (!(object instanceof THREE.Mesh)) return
+        object.renderOrder = 1
+        if (Array.isArray(object.material)) {
+          object.material.forEach(material => {
+            material.side = THREE.FrontSide
+          })
+        } else {
+          object.material.side = THREE.FrontSide
+        }
+      })
       scene.add(model)
     })
 
@@ -126,7 +149,9 @@ export function SortingHatDemo() {
           const earMidX = (leftEar.x + rightEar.x) / 2
           const earMidY = (leftEar.y + rightEar.y) / 2
           const headX = (earMidX * displayedWidth - cropX) / width
-          const crownY = earMidY - earSpan * 0.72
+          // Pose landmarks sit inside the head. Move the brim above the ear line
+          // so the hat sits on the crown instead of covering the face.
+          const crownY = earMidY - earSpan * 0.60
           const headY = (crownY * displayedHeight - cropY) / height
           const visibleHeight =
             2 *
@@ -138,12 +163,29 @@ export function SortingHatDemo() {
           // makes it slightly wider than the head without making it jump in size.
           const modelScale =
             (headWorldWidth * 1.15 * hatScaleFactor) / modelWidth
+          const headPositionX =
+            ((headX * 2 - 1) * visibleHeight * camera.aspect) / 2
+          const headPositionY = (-(headY * 2 - 1) * visibleHeight) / 2
           targetPosition.set(
-            ((headX * 2 - 1) * visibleHeight * camera.aspect) / 2,
-            (-(headY * 2 - 1) * visibleHeight) / 2 +
-              (modelBounds ? -modelBounds.min.y * modelScale : 0),
+            headPositionX,
+            headPositionY + (modelBounds ? -modelBounds.min.y * modelScale : 0),
             -3,
           )
+          // A depth-only head shape hides the hat's inner hole and rear brim,
+          // while leaving the real camera image visible underneath.
+          const headWorldHeight =
+            ((earSpan * displayedHeight) / height) * visibleHeight
+          headOccluder.position.set(
+            headPositionX,
+            headPositionY + headWorldHeight * 0.55,
+            -2.86,
+          )
+          headOccluder.scale.set(
+            headWorldWidth * 0.56,
+            headWorldHeight * 0.55,
+            headWorldWidth * 0.52,
+          )
+          headOccluder.visible = true
           // Keep the hat steady while still following deliberate head movement.
           const positionSmoothing = hasTrackingTarget ? 0.14 : 1
           const scaleSmoothing = hasTrackingTarget ? 0.12 : 1
@@ -151,6 +193,7 @@ export function SortingHatDemo() {
           model.scale.setScalar(
             THREE.MathUtils.lerp(model.scale.x, modelScale, scaleSmoothing),
           )
+          model.visible = true
           hasTrackingTarget = true
         }
       }
