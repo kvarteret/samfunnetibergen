@@ -124,7 +124,7 @@ export function PromotedArrangementPicker({
 
   return (
     <Card border padding={3} radius={2}>
-      <Stack space={3}>
+      <Stack gap={3}>
         <Flex align="center" gap={2}>
           <TextInput
             aria-label="Søk etter arrangement"
@@ -152,11 +152,11 @@ export function PromotedArrangementPicker({
             Ingen kommende arrangementer passer søket.
           </Text>
         ) : (
-          <Stack space={2}>
+          <Stack gap={2}>
             {visibleCandidates.map(candidate => (
               <Card border key={candidate._id} padding={3} radius={2}>
                 <Flex align="center" gap={3} justify="space-between">
-                  <Stack space={2}>
+                  <Stack gap={2}>
                     <Text weight="semibold">
                       {candidate.title ?? "Arrangement uten tittel"}
                     </Text>

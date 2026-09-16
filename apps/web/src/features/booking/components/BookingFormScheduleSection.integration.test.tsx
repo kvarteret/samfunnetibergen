@@ -159,19 +159,19 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     ).toHaveLength(1)
   })
 
-  test.each([
-    undefined,
-    999,
-  ])("shows all rooms with initialRoomId=%s", async initialRoomId => {
-    await act(async () =>
-      root.render(
-        <ScheduleHarness initialRoomId={initialRoomId} rooms={rooms} />,
-      ),
-    )
-    expect(container.textContent).toContain("Tivoli")
-    expect(container.textContent).toContain("Teglverket")
-    expect(container.textContent).not.toContain("Legg til flere rom")
-  })
+  test.each([undefined, 999])(
+    "shows all rooms with initialRoomId=%s",
+    async initialRoomId => {
+      await act(async () =>
+        root.render(
+          <ScheduleHarness initialRoomId={initialRoomId} rooms={rooms} />,
+        ),
+      )
+      expect(container.textContent).toContain("Tivoli")
+      expect(container.textContent).toContain("Teglverket")
+      expect(container.textContent).not.toContain("Legg til flere rom")
+    },
+  )
 
   test("falls back when the direct room disappears from the offer", async () => {
     await act(async () =>

@@ -32,4 +32,18 @@ export default defineCliConfig({
       : "../../apps/web/src/lib/sanity/sanity.types.ts",
     overloadClientMethods: true,
   },
+  // `lexorank` (used by @sanity/orderable-document-list) ships
+  // TypeScript-compiled CommonJS whose barrel entry uses
+  // `Object.defineProperty(exports, ...)` and `__exportStar(require(...))`.
+  // The CLI's schema-extraction worker runs the studio config through a Vite
+  // SSR module runner that inlines dependencies, and its CommonJS detector does
+  // not recognise that shape, so evaluating the module throws
+  // `ReferenceError: exports is not defined` and both `sanity schema extract`
+  // and `sanity build` fail. Loading it as an external Node module keeps the
+  // CommonJS semantics intact.
+  vite: {
+    ssr: {
+      external: ["lexorank"],
+    },
+  },
 })

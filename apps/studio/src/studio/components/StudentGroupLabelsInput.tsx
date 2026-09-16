@@ -1,4 +1,5 @@
-import { Autocomplete, Card, Flex, Stack, Text } from "@sanity/ui"
+import { Card, Flex, Stack, Text } from "@sanity/ui"
+import { Autocomplete } from "@sanity/ui/autocomplete"
 import { useMemo, useState } from "react"
 import { type StringInputProps, set, useFormValue } from "sanity"
 
@@ -50,7 +51,7 @@ export function StudentGroupLabelsInput(props: StringInputProps) {
   }
 
   return (
-    <Stack space={2}>
+    <Stack gap={2}>
       {selectedLabels.length > 0 ? (
         <Flex gap={2} wrap="wrap">
           {selectedLabels.map(label => (

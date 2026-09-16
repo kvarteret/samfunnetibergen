@@ -30,46 +30,46 @@ function getItem(items: NavigationItem[], id: string): NavigationItem {
 }
 
 describe("buildNavigation", () => {
-  test.each([
-    "nb",
-    "en",
-  ] as const)("keeps canonical desktop and mobile destinations for %s", locale => {
-    const items = buildNavigation(
-      key => `${locale}:${translations[key]}`,
-      "/nyttig#vergeordning-key",
-    )
-    const booking = getItem(items, "booking")
-    const useful = getItem(items, "useful")
-    const more = getItem(items, "more")
+  test.each(["nb", "en"] as const)(
+    "keeps canonical desktop and mobile destinations for %s",
+    locale => {
+      const items = buildNavigation(
+        key => `${locale}:${translations[key]}`,
+        "/nyttig#vergeordning-key",
+      )
+      const booking = getItem(items, "booking")
+      const useful = getItem(items, "useful")
+      const more = getItem(items, "more")
 
-    expect(booking.label).toBe(`${locale}:Booking`)
-    expect(booking.href).toBe("/rom")
-    expect(booking.children?.[0]?.links.map(link => link.href)).toEqual([
-      "/karaoke",
-    ])
-    expect(booking.mobile?.href).toBeNull()
-    expect(booking.mobile?.groups[0]?.links.map(link => link.href)).toEqual([
-      "/rom",
-      "/karaoke",
-    ])
+      expect(booking.label).toBe(`${locale}:Booking`)
+      expect(booking.href).toBe("/rom")
+      expect(booking.children?.[0]?.links.map(link => link.href)).toEqual([
+        "/karaoke",
+      ])
+      expect(booking.mobile?.href).toBeNull()
+      expect(booking.mobile?.groups[0]?.links.map(link => link.href)).toEqual([
+        "/rom",
+        "/karaoke",
+      ])
 
-    expect(useful.mobile?.groups[0]?.links.map(link => link.href)).toEqual([
-      "/nyttig",
-      "/nyttig#vergeordning-key",
-    ])
+      expect(useful.mobile?.groups[0]?.links.map(link => link.href)).toEqual([
+        "/nyttig",
+        "/nyttig#vergeordning-key",
+      ])
 
-    const moreLinks = more.children?.[0]?.links ?? []
-    expect(moreLinks.find(link => link.id === "link-in-bio")).toMatchObject({
-      href: "/linkibio",
-      kind: "plain",
-    })
-    expect(
-      moreLinks.find(link => link.id === "public-documents"),
-    ).toMatchObject({
-      href: "https://drive.google.com/drive/folders/0B0B-uQZgv7V3NHY0V0lXQUQ2elU?resourcekey=0-YYvE5cj9cKfVcTP4_p0w0Q",
-      kind: "external",
-    })
-  })
+      const moreLinks = more.children?.[0]?.links ?? []
+      expect(moreLinks.find(link => link.id === "link-in-bio")).toMatchObject({
+        href: "/linkibio",
+        kind: "plain",
+      })
+      expect(
+        moreLinks.find(link => link.id === "public-documents"),
+      ).toMatchObject({
+        href: "https://drive.google.com/drive/folders/0B0B-uQZgv7V3NHY0V0lXQUQ2elU?resourcekey=0-YYvE5cj9cKfVcTP4_p0w0Q",
+        kind: "external",
+      })
+    },
+  )
 
   test("matches localized sections and their intended descendants", () => {
     const items = buildNavigation(

@@ -16,8 +16,8 @@ import {
   Spinner,
   Stack,
   Text,
-  useToast,
 } from "@sanity/ui"
+import { useToast } from "@sanity/ui/toast"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useClient } from "sanity"
 import { IntentLink } from "sanity/router"
@@ -365,7 +365,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
                   ? `Plass ${position + 1}`
                   : `Kø ${position - 2}`}
               </Badge>
-              <Stack flex={1} space={2}>
+              <Stack flex={1} gap={2}>
                 <IntentLink
                   intent="edit"
                   params={{
@@ -405,9 +405,9 @@ export function PromotedArrangementList({ today }: { today: string }) {
   }
 
   return (
-    <Stack space={4}>
+    <Stack gap={4}>
       <Card border padding={4} radius={2} tone="primary">
-        <Stack space={3}>
+        <Stack gap={3}>
           <Flex align="center" gap={2} wrap="wrap">
             <Badge tone="positive">{visibleCount} vises</Badge>
             {queuedDocuments.length > 0 ? (
@@ -427,7 +427,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
         <Droppable droppableId={VISIBLE_DROPPABLE_ID}>
           {provided => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
-              <Stack space={2}>
+              <Stack gap={2}>
                 {visibleDocuments.map((document, index) =>
                   renderDocument(document, index, "visible"),
                 )}
@@ -475,7 +475,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
               style={{ minHeight: 52 }}
               {...provided.droppableProps}
             >
-              <Stack space={2}>
+              <Stack gap={2}>
                 {queuedDocuments.map((document, index) =>
                   renderDocument(document, index, "queue"),
                 )}
@@ -502,7 +502,7 @@ export function PromotedArrangementsPane() {
 
   return (
     <Card height="fill" overflow="auto" padding={4}>
-      <Stack space={4}>
+      <Stack gap={4}>
         <Heading size={2}>Fremhevede arrangementer</Heading>
         <PromotedArrangementList today={today} />
       </Stack>

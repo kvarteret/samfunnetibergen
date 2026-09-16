@@ -102,7 +102,7 @@ function ArrangementBrowser() {
 
   return (
     <Card height="fill" overflow="auto" padding={4}>
-      <Stack space={4}>
+      <Stack gap={4}>
         <Flex align="center" gap={3} justify="space-between" wrap="wrap">
           <Heading size={2}>Arrangementer</Heading>
           <Button
@@ -112,8 +112,8 @@ function ArrangementBrowser() {
             text="Nullstill filtre"
           />
         </Flex>
-        <Grid columns={[1, 1, 3]} gap={3}>
-          <Stack space={2}>
+        <Grid gridTemplateColumns={[1, 1, 3]} gap={3}>
+          <Stack gap={2}>
             <Text
               as="label"
               htmlFor={`${filterId}-query`}
@@ -130,7 +130,7 @@ function ArrangementBrowser() {
               value={filters.query}
             />
           </Stack>
-          <Stack space={2}>
+          <Stack gap={2}>
             <Text
               as="label"
               htmlFor={`${filterId}-format`}
@@ -155,7 +155,7 @@ function ArrangementBrowser() {
               <option value="festivals">Festivaler</option>
             </Select>
           </Stack>
-          <Stack space={2}>
+          <Stack gap={2}>
             <Text
               as="label"
               htmlFor={`${filterId}-status`}
@@ -180,7 +180,7 @@ function ArrangementBrowser() {
               <option value="cancelled">Kansellert</option>
             </Select>
           </Stack>
-          <Stack space={2}>
+          <Stack gap={2}>
             <Text
               as="label"
               htmlFor={`${filterId}-category`}
@@ -204,7 +204,7 @@ function ArrangementBrowser() {
               ))}
             </Select>
           </Stack>
-          <Stack space={2}>
+          <Stack gap={2}>
             <Text
               as="label"
               htmlFor={`${filterId}-type`}
@@ -247,13 +247,13 @@ function ArrangementBrowser() {
           </Flex>
         ) : results.length === 0 ? (
           <Card border padding={5} radius={2} tone="transparent">
-            <Stack space={3}>
+            <Stack gap={3}>
               <Heading size={1}>Ingen arrangementer passer filtrene</Heading>
               <Text muted>Prøv å nullstille eller endre ett av filtrene.</Text>
             </Stack>
           </Card>
         ) : (
-          <Stack space={2}>
+          <Stack gap={2}>
             {results.map(item => {
               const status = arrangementListStatus(item, today)
               const statusLabel = ARRANGEMENT_LIST_STATUS_LABELS[status]
@@ -281,7 +281,7 @@ function ArrangementBrowser() {
               return (
                 <Card border key={item._id} padding={3} radius={2}>
                   <Flex align="center" gap={3} justify="space-between">
-                    <Stack space={2}>
+                    <Stack gap={2}>
                       <IntentLink
                         intent="edit"
                         params={{

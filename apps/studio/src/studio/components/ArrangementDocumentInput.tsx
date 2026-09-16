@@ -1,5 +1,6 @@
 import { resolveEffectiveStatus } from "@samfunnet/content-domain/resolve-event"
-import { Card, Flex, Select, Stack, Text, useToast } from "@sanity/ui"
+import { Card, Flex, Select, Stack, Text } from "@sanity/ui"
+import { useToast } from "@sanity/ui/toast"
 import { useState } from "react"
 import type { ObjectInputProps, SanityDocument } from "sanity"
 import { useClient } from "sanity"
@@ -184,7 +185,7 @@ function ArrangementStatusInput({
   return (
     <Card border padding={3} radius={2} tone={toneFor(status)}>
       <Flex align="center" gap={3} justify="space-between" wrap="wrap">
-        <Stack space={2}>
+        <Stack gap={2}>
           <Text size={1} weight="semibold">
             Status
           </Text>
@@ -228,7 +229,7 @@ export function ArrangementDocumentInput(props: ObjectInputProps) {
   return (
     <>
       <ArrangementActionStyles />
-      <Stack space={4}>
+      <Stack gap={4}>
         {document?.approvalStatus === "approved" ? (
           <ArrangementStatusInput document={document} />
         ) : null}

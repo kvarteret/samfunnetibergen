@@ -65,9 +65,9 @@ export function FestivalDayShortcutInput() {
 
   return (
     <Card border padding={3} radius={2} tone="primary">
-      <Stack space={3}>
+      <Stack gap={3}>
         <Flex align="center" gap={3} justify="space-between" wrap="wrap">
-          <Stack space={2}>
+          <Stack gap={2}>
             <Text weight="semibold">Festivaldager</Text>
             <Text muted size={1}>
               {days.length === 0
@@ -93,7 +93,7 @@ export function FestivalDayShortcutInput() {
           />
         </Flex>
         {days.length > 0 ? (
-          <Stack space={1}>
+          <Stack gap={1}>
             {days.map(day => (
               <Card key={day._id} border padding={2} radius={2} tone="default">
                 <IntentLink
