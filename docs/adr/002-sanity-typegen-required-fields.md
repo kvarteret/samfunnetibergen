@@ -28,7 +28,7 @@ Frontend GROQ projections establish the rendering contract:
 - missing `[0]` document queries remain nullable and are handled at the route
   boundary.
 
-Raw generated types remain internal to `src/lib/sanity/`. Fetch helpers export
+Raw generated types remain internal to `apps/web/src/lib/sanity/`. Fetch helpers export
 domain aliases and perform any TypeGen-only normalization that GROQ cannot
 express cleanly.
 
@@ -36,8 +36,8 @@ TypeGen is configured under `typegen` in `sanity.cli.ts`. The
 `SANITY_TYPEGEN_TARGET` environment variable selects the frontend or Studio
 output while `npm run sanity:typegen` regenerates both:
 
-- `src/lib/sanity/sanity.types.ts`
-- `src/studio/sanity.types.ts`
+- `apps/web/src/lib/sanity/sanity.types.ts`
+- `apps/studio/src/studio/sanity.types.ts`
 
 ## Consequences
 
