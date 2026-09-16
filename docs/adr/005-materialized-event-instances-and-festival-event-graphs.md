@@ -287,9 +287,6 @@ conversion scripts are written. The rollout reduces to:
 2. Remove read-time RRULE expansion from public surfaces; keep RRULE parsing
    for editor preview and generation.
 
-Execution detail lives in
-`.agents/execplans/008-materialized-event-instances.md`.
-
 Public recurring submissions remain possible. They enter the editorial workflow
 as pending `seriesParent` documents; an editor approves the parent and runs
 generation before the series appears in public listings (as children).

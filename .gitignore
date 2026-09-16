@@ -68,5 +68,6 @@ sonar-project.properties
 .ralph/
 .scannerwork/
 .agents/design-system.md
+.agents/execplans/
 .env.vercel.production
 .env.vercel.preview

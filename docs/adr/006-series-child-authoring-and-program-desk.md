@@ -212,7 +212,7 @@ Program
 
 Every list under "Trenger handling", "Innhold", and "Visninger" excludes
 instance kinds; only "Absolutt alle" includes them. This replaces the M7 queues
-added in ADR 005's execplan (Serier/Festivaler/Genererte/… as flat sibling
+added alongside ADR 005 (Serier/Festivaler/Genererte/… as flat sibling
 lists) with an IA that groups by *purpose* and hides generated noise.
 
 ### E. Cleaning up the current "Quiz!" state

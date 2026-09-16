@@ -1,4 +1,4 @@
-// One-shot codemod for ExecPlan 002 M1: rewrite imports from the deleted
+// One-shot codemod: rewrite imports from the deleted
 // grab-bag "@/components/ui/form-fields" to per-component modules.
 // Idempotent: once no file imports from form-fields, it is a no-op.
 import { execSync } from "node:child_process"

@@ -3,9 +3,9 @@
 ## Status
 
 Suggestions — nothing here is implemented. Approved items should graduate into
-an ExecPlan (`.agents/execplans/`), most naturally as milestones alongside or
-after `002-design-system-hardening.md` (which fixes structural debt; this RFC
-proposes design improvements on top).
+an ExecPlan (format described in `.agents/PLANS.md`), most naturally as
+milestones that build on the structural debt fixes; this RFC proposes design
+improvements on top.
 
 ## Named direction
 
@@ -50,8 +50,8 @@ spirit of GOV.UK's famous yellow focus, translated to our palette: e.g.
 `outline: 3px solid var(--foreground); outline-offset: 2px; background:
 var(--gold-300)` on focusable text targets, or for boxy controls a solid
 `box-shadow: 0 0 0 3px var(--foreground)` ring. One token, applied to every
-interactive primitive, documented as non-negotiable. This subsumes ExecPlan
-002 M2's focus work — same effort, but the result is a designed state instead
+interactive primitive, documented as non-negotiable. This supersedes the
+earlier focus work — same effort, but the result is a designed state instead
 of a default ring.
 
 ### 2. NHS-pattern form errors: `FieldError` + `ErrorSummary`
@@ -172,8 +172,8 @@ elements).
 ## Suggested sequencing
 
 1, 2, 3 are the high-value core (focus, errors, success semantics) and
-naturally merge with or follow ExecPlan 002's M2/M3. 4 and 5 are small
+naturally merge with or follow the structural debt fixes. 4 and 5 are small
 self-contained primitives. 6 and 7 are systematization passes. 8 is a
-one-file change. If approved, fold 1 into 002 M2 (amend that milestone), keep
-the rest as a new ExecPlan `003-design-system-direction.md` with the gallery
-page (002 M5) extended to showcase each new state and primitive.
+one-file change. If approved, fold 1 into the structural debt work and keep
+the rest as a new design-direction ExecPlan with the gallery page extended to
+showcase each new state and primitive.
