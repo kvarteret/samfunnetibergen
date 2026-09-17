@@ -1,19 +1,64 @@
 "use client"
 
 import { HelpCircle, X } from "lucide-react"
+import dynamic from "next/dynamic"
 import posthog from "posthog-js"
-import { useState, useRef } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { StudentGroupSummary } from "@/lib/sanity/fetch"
+import { Link } from "@/i18n/navigation"
+import type { StudentGroupSummary } from "@/lib/sanity/fetch"
+import { cn } from "@/lib/utils"
+
+// `three` and the pose tracker are heavy, so only load them once the visitor
+// opens the quiz.
+const SortingHatDemo = dynamic(
+  () => import("./SortingHatDemo").then(module => module.SortingHatDemo),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid h-full w-full place-items-center rounded-lg bg-black">
+        <div
+          aria-label="Laster sorteringshatten"
+          className="size-10 animate-spin rounded-full border-4 border-white/30 border-t-white"
+          role="status"
+        />
+      </div>
+    ),
+  },
+)
 
 const RARITIES = {
-  Common: { name: "Allmenn", bg: "bg-blue-600", border: "border-blue-800", weight: 50 },
-  Uncommon: { name: "Alminnelig", bg: "bg-purple-600", border: "border-purple-800", weight: 20 },
-  Rare: { name: "Sjelden", bg: "bg-pink-500", border: "border-pink-700", weight: 15 },
-  Legendary: { name: "Legendarisk", bg: "bg-primary", border: "border-red-700", weight: 10 },
-  Mythic: { name: "Mytisk", bg: "bg-yellow-500", border: "border-yellow-600", weight: 5 },
+  Common: {
+    name: "Allmenn",
+    bg: "bg-blue-600",
+    border: "border-blue-800",
+    weight: 50,
+  },
+  Uncommon: {
+    name: "Alminnelig",
+    bg: "bg-purple-600",
+    border: "border-purple-800",
+    weight: 20,
+  },
+  Rare: {
+    name: "Sjelden",
+    bg: "bg-pink-500",
+    border: "border-pink-700",
+    weight: 15,
+  },
+  Legendary: {
+    name: "Legendarisk",
+    bg: "bg-primary",
+    border: "border-red-700",
+    weight: 10,
+  },
+  Mythic: {
+    name: "Mytisk",
+    bg: "bg-yellow-500",
+    border: "border-yellow-600",
+    weight: 5,
+  },
 } as const
 
 type Rarity = keyof typeof RARITIES
@@ -62,7 +107,7 @@ const ITEM_POOL: Item[] = [
     slug: "diskodepartementet",
     rarity: "Uncommon",
   },
-];
+]
 
 const WINNING_INDEX = 40
 const TOTAL_ITEMS = 50
@@ -79,6 +124,17 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
   const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const finishTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Prefer the names from Sanity when the slug matches so the reveal links to
+  // a group that actually exists.
+  const pool = useMemo(
+    () =>
+      ITEM_POOL.map(item => {
+        const group = groups.find(candidate => candidate.slug === item.slug)
+        return group ? { ...item, name: group.name } : item
+      }),
+    [groups],
+  )
+
   const getRandomItem = (): Item => {
     const rand = Math.random() * 100
     let cumulativeWeight = 0
@@ -91,8 +147,8 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
         break
       }
     }
-    const filteredPool = ITEM_POOL.filter(item => item.rarity === chosenRarity)
-    const finalPool = filteredPool.length ? filteredPool : ITEM_POOL
+    const filteredPool = pool.filter(item => item.rarity === chosenRarity)
+    const finalPool = filteredPool.length ? filteredPool : pool
     return finalPool[Math.floor(Math.random() * finalPool.length)]
   }
 
@@ -135,14 +191,14 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
 
     finishTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false)
-      setWinner(list[WINNING_INDEX-1])
+      setWinner(list[WINNING_INDEX - 1])
     }, SPIN_DURATION_MS)
   }
 
   return (
-    <div className="flex flex-col items-center justify-center text-white p-4">
-      <div className="relative w-full max-w-4xl h-40 bg-primary/30 border-2 border-primary overflow-hidden flex items-center shadow-inner">
-        <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-secondary z-10 shadow-secondary" />
+    <div className="flex w-full flex-col items-center gap-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 pt-16 text-white">
+      <div className="relative flex h-32 w-full max-w-4xl items-center overflow-hidden border-2 border-primary bg-primary/30 shadow-inner sm:h-40">
+        <div className="absolute top-0 bottom-0 left-1/2 z-10 w-1 bg-secondary shadow-secondary" />
 
         <div
           ref={containerRef}
@@ -157,12 +213,12 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
           {generatedItems.map((item, idx) => (
             <div
               key={idx}
-              className={`w-28 h-28 shrink-0 flex flex-col justify-between items-center p-2 rounded border-b-4 ${RARITIES[item.rarity].bg} ${RARITIES[item.rarity].border} bg-opacity-20 shadow-md backdrop-blur-sm`}
+              className={`flex h-24 w-24 shrink-0 flex-col items-center justify-between rounded border-b-4 p-2 sm:h-28 sm:w-28 ${RARITIES[item.rarity].bg} ${RARITIES[item.rarity].border} shadow-md backdrop-blur-sm`}
             >
-              <span className="text-[10px] text-slate-400 self-start font-mono">
+              <span className="self-start font-mono text-[10px] text-slate-400">
                 #{idx + 1}
               </span>
-              <p className="text-[10px] text-center font truncate w-full pb-8">
+              <p className="w-full truncate pb-8 text-center text-[10px]">
                 {item.name}
               </p>
             </div>
@@ -171,13 +227,14 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
       </div>
 
       <button
-        onClick={handleSpin}
-        disabled={isSpinning}
-        className={`mt-8 px-8 py-3 text-lg font-bold rounded-lg border uppercase text-white tracking-wider transition-all duration-200 cursor-pointer ${
+        className={`cursor-pointer rounded-lg border px-8 py-3 text-lg font-bold tracking-wider text-white uppercase transition-all duration-200 ${
           isSpinning
-            ? "bg-primary border-primary text-slate-500 cursor-not-allowed"
-            : "bg-primary border-primary text-slate-950 hover:bg-primary/50 active:scale-95 shadow-lg shadow-primary-500/20"
+            ? "cursor-not-allowed border-primary bg-primary text-slate-500"
+            : "border-primary bg-primary text-slate-950 shadow-lg shadow-primary-500/20 hover:bg-primary/50 active:scale-95"
         }`}
+        disabled={isSpinning}
+        onClick={handleSpin}
+        type="button"
       >
         {isSpinning
           ? "Åpner..."
@@ -187,21 +244,22 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
       </button>
       {winner && !isSpinning && (
         <div
-          className={`mt-8 animate-bounce p-4 ${RARITIES[winner.rarity].bg} rounded-lg flex flex-col items-center max-w-sm text-center`}
+          className={`mt-2 flex max-w-sm animate-bounce flex-col items-center rounded-lg p-4 text-center ${RARITIES[winner.rarity].bg}`}
         >
           <p className="text-sm font-semibold tracking-widest text-yellow-400 uppercase">
             Du Fikk
           </p>
-          <h2 className="text-xl font-bold mt-1">{winner.name}</h2>
+          <h2 className="mt-1 text-xl font-bold">{winner.name}</h2>
           <span
-            className={`mt-2 px-3 py-1 rounded-full text-xs font-bold ${RARITIES[winner.rarity].bg}`}
+            className={`mt-2 rounded-full px-3 py-1 text-xs font-bold ${RARITIES[winner.rarity].bg}`}
           >
             {RARITIES[winner.rarity].name}
           </span>
-          <Button>
-            <Link href={`http://localhost:3187/nb/grupper/${winner.slug}`}>
-              MELD DEG INN HER
-            </Link>
+          <Button
+            className="mt-3"
+            render={<Link href={`/grupper/${winner.slug}`} />}
+          >
+            MELD DEG INN HER
           </Button>
         </div>
       )}
@@ -209,9 +267,14 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
   )
 }
 
-export function ValgomatenInfobox({groups}: {groups: StudentGroupSummary[]}) {
+export function ValgomatenInfobox({
+  groups,
+}: {
+  groups: StudentGroupSummary[]
+}) {
   const t = useTranslations("GroupsPage")
   const [clicked, setClicked] = useState(false)
+  const [cameraActive, setCameraActive] = useState(false)
 
   const handleClick = () => {
     if (clicked) return
@@ -219,10 +282,24 @@ export function ValgomatenInfobox({groups}: {groups: StudentGroupSummary[]}) {
     setClicked(true)
   }
 
+  const handleCameraActiveChange = useCallback((active: boolean) => {
+    setCameraActive(active)
+  }, [])
+
+  const handleClose = () => {
+    setClicked(false)
+    setCameraActive(false)
+  }
+
   return (
-    <aside className="space-y-4 border-2 border-primary/40 bg-primary/5 p-5">
+    <aside
+      className={cn(
+        "space-y-4 border-2 border-primary/40 bg-primary/5 p-5",
+        clicked && cameraActive ? "lg:w-[min(46rem,92vw)]" : "lg:w-80",
+      )}
+    >
       {!clicked ? (
-        <div className="p-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 p-4">
           <div className="flex items-start gap-3">
             <HelpCircle
               aria-hidden="true"
@@ -244,14 +321,18 @@ export function ValgomatenInfobox({groups}: {groups: StudentGroupSummary[]}) {
             </p>
             <button
               aria-label={t("quizClose")}
-              className="rounded-full p-1 text-foreground hover:bg-primary/10 focus-brutal"
-              onClick={() => setClicked(false)}
+              className="focus-brutal rounded-full p-1 text-foreground hover:bg-primary/10"
+              onClick={handleClose}
               type="button"
             >
               <X aria-hidden="true" className="size-5" />
             </button>
           </div>
-          <GroupUnboxing groups={groups} />
+          <div className="h-[min(70vh,38rem)] min-h-96 w-full overflow-hidden rounded-lg">
+            <SortingHatDemo onActiveChange={handleCameraActiveChange}>
+              <GroupUnboxing groups={groups} />
+            </SortingHatDemo>
+          </div>
         </div>
       )}
     </aside>

@@ -2,12 +2,25 @@
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import * as THREE from "three"
+import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
+import { cn } from "@/lib/utils"
 
-export function SortingHatDemo() {
+type SortingHatDemoProps = {
+  children?: ReactNode
+  onActiveChange?: (active: boolean) => void
+  className?: string
+}
+
+export function SortingHatDemo({
+  children,
+  onActiveChange,
+  className,
+}: SortingHatDemoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [cameraStarted, setCameraStarted] = useState(false)
+  const [modelReady, setModelReady] = useState(false)
   const [facing, setFacing] = useState<"user" | "environment">("environment")
   const [error, setError] = useState<string | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -87,6 +100,7 @@ export function SortingHatDemo() {
         }
       })
       scene.add(model)
+      setModelReady(true)
     })
 
     const render = () => {
@@ -213,7 +227,9 @@ export function SortingHatDemo() {
     }
   }, [])
 
-  const startCamera = async () => {
+  const startCamera = async (
+    requestedFacing: "user" | "environment" = facing,
+  ) => {
     setError(null)
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("Dette nettleservinduet støtter ikke kamera.")
@@ -223,7 +239,7 @@ export function SortingHatDemo() {
       streamRef.current?.getTracks().forEach(track => track.stop())
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: facing },
+          facingMode: { ideal: requestedFacing },
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         },
@@ -242,12 +258,12 @@ export function SortingHatDemo() {
           })
         }
       }
-      const { FilesetResolver, PoseLandmarker } =
-        await import("@mediapipe/tasks-vision")
+      const { FilesetResolver, PoseLandmarker } = await import(
+        "@mediapipe/tasks-vision"
+      )
       const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm",
       )
-      setCameraStarted(true)
       trackerRef.current = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath:
@@ -260,8 +276,11 @@ export function SortingHatDemo() {
         minPosePresenceConfidence: 0.5,
         minTrackingConfidence: 0.5,
       })
+      setCameraStarted(true)
+      onActiveChange?.(true)
     } catch (cameraError) {
       console.error("Camera or pose tracker failed", cameraError)
+      onActiveChange?.(false)
       setError(
         "Kamera eller bevegelsessporing kunne ikke startes. Tillat kamera og prøv igjen.",
       )
@@ -269,7 +288,12 @@ export function SortingHatDemo() {
   }
 
   return (
-    <div className="relative h-full min-h-96 overflow-hidden rounded-lg bg-black">
+    <div
+      className={cn(
+        "relative h-full min-h-96 w-full overflow-hidden rounded-lg bg-black",
+        className,
+      )}
+    >
       <video
         ref={videoRef}
         className="absolute inset-0 size-full object-cover"
@@ -281,30 +305,45 @@ export function SortingHatDemo() {
         ref={canvasRef}
         className="absolute inset-0 size-full touch-none"
       />
+      {!modelReady ? (
+        <div className="absolute inset-0 z-30 grid place-items-center bg-black/70">
+          <div
+            aria-label="Laster sorteringshatten"
+            className="size-10 animate-spin rounded-full border-4 border-white/30 border-t-white"
+            role="status"
+          />
+        </div>
+      ) : null}
       {!cameraStarted ? (
         <button
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white px-5 py-3 font-bold text-gray-900"
-          onClick={startCamera}
+          className="absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white px-5 py-3 font-bold text-gray-900"
+          onClick={() => void startCamera()}
           type="button"
         >
           📷 Start kamera
         </button>
       ) : null}
       {error ? (
-        <p className="absolute inset-x-4 top-4 rounded-lg bg-red-950/90 p-4 text-white">
+        <p className="absolute inset-x-4 top-16 z-30 rounded-lg bg-red-950/90 p-4 text-white">
           {error}
         </p>
       ) : null}
-      <button
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-slate-800 px-4 py-3 font-bold text-white"
-        onClick={() => {
-          setFacing(value => (value === "environment" ? "user" : "environment"))
-          void startCamera()
-        }}
-        type="button"
-      >
-        Bytt kamera
-      </button>
+      {children ? (
+        <div className="absolute inset-x-0 bottom-0 z-20">{children}</div>
+      ) : null}
+      {cameraStarted ? (
+        <button
+          className="absolute top-4 right-4 z-30 rounded-full bg-slate-800/90 px-3 py-2 text-sm font-bold text-white"
+          onClick={() => {
+            const nextFacing = facing === "environment" ? "user" : "environment"
+            setFacing(nextFacing)
+            void startCamera(nextFacing)
+          }}
+          type="button"
+        >
+          Bytt kamera
+        </button>
+      ) : null}
     </div>
   )
 }
