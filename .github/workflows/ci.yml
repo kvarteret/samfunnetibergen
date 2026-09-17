@@ -18,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -53,10 +55,45 @@ jobs:
       - name: Generate Next.js route types
         run: npm run route-typegen
 
+      # Sanity TypeGen output is a compilation input, not a runtime dependency:
+      # the generated files contain only types, nothing imports them as values,
+      # and they are committed. So the drift check only needs to run when an
+      # input that can change the emitted types changed. Those inputs are the
+      # schema (all of `apps/studio`, whose custom inputs pull in
+      # `packages/content-domain`), the query/fragment globs, and the toolchain
+      # (a dependency bump changes the output — Sanity 6.14 is what added the
+      # global `SanityQueries` registry). It fails open: if the base commit is
+      # not available, the check runs rather than being skipped.
+      - name: Detect Sanity typegen inputs
+        id: sanity_changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "sanity_changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git diff --quiet "$BASE_SHA" HEAD -- \
+            apps/studio \
+            apps/web/src/lib/sanity \
+            packages \
+            package.json \
+            package-lock.json; then
+            echo "sanity_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "sanity_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate Sanity types
+        if: steps.sanity_changes.outputs.sanity_changed == 'true'
         run: npm run sanity:typegen
 
       - name: Verify generated Sanity types are clean
+        if: steps.sanity_changes.outputs.sanity_changed == 'true'
         run: git diff --exit-code -- apps/web/src/lib/sanity/sanity.types.ts apps/studio/src/studio/sanity.types.ts
 
       - name: TypeScript check

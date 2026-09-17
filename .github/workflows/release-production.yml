@@ -96,12 +96,9 @@ jobs:
       - name: Generate Next.js route types
         run: npm run route-typegen
 
-      - name: Generate Sanity types
-        run: npm run sanity:typegen
-
-      - name: Verify generated Sanity types are clean
-        run: git diff --exit-code -- apps/web/src/lib/sanity/sanity.types.ts apps/studio/src/studio/sanity.types.ts
-
+      # Sanity TypeGen is a compilation input that is committed and contains
+      # only types, so the release build does not regenerate it. Drift is
+      # gated on pull requests, where the typegen inputs changed.
       - name: TypeScript check
         run: npm run typecheck
 
