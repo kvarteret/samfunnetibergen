@@ -8,7 +8,10 @@ import {
   useMemo,
   useState,
 } from "react"
-
+import type {
+  PublicEvent,
+  PublicOccurrence,
+} from "@/features/events/domain/events"
 import {
   buildTaxonomyFromEvents,
   type EventFilters,
@@ -17,10 +20,6 @@ import {
   parseEventFilters,
   serializeEventFilters,
 } from "@/features/events/domain/eventUtils"
-import type {
-  PublicEvent,
-  PublicOccurrence,
-} from "@/features/events/domain/events"
 
 type EventsContextValue = {
   events: PublicEvent[]

@@ -13,15 +13,15 @@ import {
 } from "@/features/booking/domain/bookingFormSchema"
 import { buildBookingPayload } from "@/features/booking/domain/formState"
 import {
-  calendarSlugForBookerType,
-  fetchVenueCalendar,
-} from "@/lib/integrations/crescat/calendar"
-import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
   resolveSubmissionTelemetry,
   type SubmissionTelemetry,
 } from "@/lib/booking/telemetry"
+import {
+  calendarSlugForBookerType,
+  fetchVenueCalendar,
+} from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {

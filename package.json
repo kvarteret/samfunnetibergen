@@ -43,36 +43,43 @@
     "test:domain": "npm --workspace @samfunnet/content-domain run test",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
-    "lint": "npm run lint:web",
-    "lint:web": "npm --workspace @samfunnet/web run lint",
+    "lint": "npx --no-install biome check .",
+    "check:allow-scripts": "node scripts/check-allow-scripts.mjs",
     "check": "npx --no-install biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
-    "@types/node": "^20",
-    "@vitest/coverage-v8": "^4.1.8",
-    "typescript": "^5",
-    "vitest": "^4.1.8"
+    "@biomejs/biome": "2.5.14",
+    "@types/node": "^24.13.5",
+    "@vitest/coverage-v8": "^5.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   },
   "overrides": {
-    "fast-uri": "3.1.5",
+    "fast-uri": "3.1.7",
     "ws": "8.21.0",
-    "qs": "6.15.3",
-    "hono": "4.13.2",
+    "qs": "6.16.0",
+    "hono": "4.13.8",
     "dompurify": "3.4.13",
-    "ip-address": "10.2.0",
-    "sharp": "0.35.3",
+    "ip-address": "10.4.0",
+    "sharp": "0.35.4",
     "prismjs": "1.30.0",
-    "adm-zip": "0.6.0"
+    "adm-zip": "0.6.1",
+    "js-yaml@^3": "3.15.2",
+    "js-yaml@^4": "4.3.2",
+    "smol-toml": "1.7.1",
+    "fflate@^0.4": "0.4.9",
+    "baseline-browser-mapping": "2.11.24",
+    "browserslist": "4.29.0",
+    "undici@^7": "7.29.0",
+    "uuid@^10": "11.1.1",
+    "@sanity/client": "8.6.2"
   },
   "allowScripts": {
-    "@parcel/watcher@2.5.6": true,
-    "@posthog/cli@0.7.34": true,
-    "core-js@3.49.0": true,
-    "esbuild@0.28.1": true,
-    "fsevents@3.0.0": true,
-    "@swc/core@1.15.24": true,
-    "sharp@0.34.5": true,
-    "unrs-resolver@1.12.2": true
+    "@parcel/watcher@2.6.0": true,
+    "@posthog/cli@0.16.2": true,
+    "@swc/core@1.16.2": true,
+    "core-js@3.50.0": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }

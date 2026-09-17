@@ -1,6 +1,6 @@
 import type { IdentifiedSanityDocumentStub, SanityClient } from "@sanity/client"
 import { icons } from "@sanity/icons"
-import { useToast } from "@sanity/ui"
+import { useToast } from "@sanity/ui/toast"
 import { useState } from "react"
 import type { DocumentActionProps, SanityDocument } from "sanity"
 import { useClient, useCurrentUser } from "sanity"

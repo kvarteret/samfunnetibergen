@@ -1,7 +1,3 @@
-import { Button, Card, Dialog, Flex, Stack, Text, useToast } from "@sanity/ui"
-import { useState } from "react"
-import { useClient } from "sanity"
-
 import {
   buildInstanceDocument,
   diffInstances,
@@ -12,6 +8,10 @@ import {
   type SemesterWindow,
   semesterWindowsAround,
 } from "@samfunnet/content-domain/instances"
+import { Button, Card, Dialog, Flex, Stack, Text } from "@sanity/ui"
+import { useToast } from "@sanity/ui/toast"
+import { useState } from "react"
+import { useClient } from "sanity"
 
 const API_VERSION = "2026-07-29"
 const EXISTING_DAYS_QUERY = `*[
@@ -142,8 +142,8 @@ export function SeriesSemesterExpansion({
   return (
     <>
       <Card border padding={3} radius={2}>
-        <Stack space={3}>
-          <Stack space={2}>
+        <Stack gap={3}>
+          <Stack gap={2}>
             <Text size={1} weight="semibold">
               Semesterutvidelse
             </Text>
@@ -223,7 +223,7 @@ function SemesterPicker({
 
   return (
     <Card padding={4}>
-      <Stack space={4}>
+      <Stack gap={4}>
         <Text muted size={1}>
           Velg programperioden som skal opprettes eller oppdateres.
         </Text>

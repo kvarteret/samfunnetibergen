@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: TanStack's validator generics are invariant, so the shared form context must erase them; see the note below.
 import type { ReactFormExtendedApi } from "@tanstack/react-form"
 
 // Form sections share a context across forms whose validator generics differ.
@@ -8,7 +9,6 @@ import type { ReactFormExtendedApi } from "@tanstack/react-form"
 // express "any validator for these values" with unknown/union types. The
 // erasure is kept here, at the shared context boundary, instead of repeated
 // unsafe casts at every provider.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type AppFormApi<TValues> = ReactFormExtendedApi<
   TValues,
   any,
@@ -23,4 +23,3 @@ export type AppFormApi<TValues> = ReactFormExtendedApi<
   any,
   unknown
 >
-/* eslint-enable @typescript-eslint/no-explicit-any */

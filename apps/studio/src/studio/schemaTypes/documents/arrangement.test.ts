@@ -8,6 +8,24 @@ function fieldNames(schema: { fields?: Array<{ name: string }> }) {
   return (schema.fields ?? []).map(field => field.name)
 }
 
+// Schema fields are a union of every field builder used in this studio, and not
+// every member declares `hidden`/`readOnly`/`initialValue`. These tests only
+// inspect the assembled definitions, so read them through a loose shape.
+type InspectableField = {
+  name?: string
+  title?: unknown
+  description?: unknown
+  hidden?: (context: never) => unknown
+  readOnly?: (context: never) => unknown
+  initialValue?: unknown
+}
+
+function inspectableFields(schema: {
+  fields?: readonly unknown[]
+}): InspectableField[] {
+  return (schema.fields ?? []) as unknown as InspectableField[]
+}
+
 describe("editorial arrangement schema", () => {
   it("opens with every field visible in the Alle group", () => {
     expect(arrangement.groups?.[0]).toMatchObject({
@@ -18,7 +36,7 @@ describe("editorial arrangement schema", () => {
   })
 
   it("hides storage-only fields and removes retired fields", () => {
-    const fields = arrangement.fields ?? []
+    const fields = inspectableFields(arrangement)
     expect(fields.find(field => field.name === "eventKind")?.hidden).toBe(true)
     expect(fields.find(field => field.name === "parentEvent")?.hidden).toBe(
       true,
@@ -34,16 +52,16 @@ describe("editorial arrangement schema", () => {
   })
 
   it("keeps festival image inheritance explicit", () => {
-    const field = arrangement.fields?.find(
-      candidate => candidate.name === "useFestivalImage",
+    const field = inspectableFields(arrangement).find(
+      field => field.name === "useFestivalImage",
     )
     expect(field?.title).toBe("Bruk festivalbildet")
     expect(field?.initialValue).toBe(true)
   })
 
   it("shows the festival-day shortcut only on festival parents", () => {
-    const field = arrangement.fields?.find(
-      candidate => candidate.name === "festivalDayShortcut",
+    const field = inspectableFields(arrangement).find(
+      field => field.name === "festivalDayShortcut",
     )
     expect(field?.title).toBe("Festivaldager")
     expect(
@@ -62,7 +80,9 @@ describe("editorial arrangement schema", () => {
   })
 
   it("explains the seed date and program-period generation", () => {
-    const dates = arrangement.fields?.find(field => field.name === "dates")
+    const dates = inspectableFields(arrangement).find(
+      field => field.name === "dates",
+    )
     expect(dates?.description).toContain("seriens første dag")
     expect(dates?.description).toContain("Datoen forankrer mønsteret")
     expect(dates?.description).toContain(
@@ -84,7 +104,7 @@ describe("editorial arrangement schema", () => {
   })
 
   it("does not expose technical storage words in field copy", () => {
-    const copy = (arrangement.fields ?? [])
+    const copy = inspectableFields(arrangement)
       .flatMap(field => [
         typeof field.title === "string" ? field.title : "",
         typeof field.description === "string" ? field.description : "",

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Tag } from "@/components/ui/tag"
 import {
   type ClosedDate,
@@ -10,7 +11,6 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useCurrentTime } from "@/lib/use-current-time"
-import { useTranslations } from "next-intl"
 
 export interface OpenStatusRoom {
   openingHours?: OpeningHours | null

@@ -1,8 +1,8 @@
+import { networkInterfaces } from "node:os"
+import { resolve } from "node:path"
 import { withPostHogConfig } from "@posthog/nextjs-config"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
-import { resolve } from "node:path"
-import { networkInterfaces } from "os"
 
 import { legacyStudioRedirects } from "./src/lib/studio-url"
 

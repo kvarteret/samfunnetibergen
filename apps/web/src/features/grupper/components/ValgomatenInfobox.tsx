@@ -2,9 +2,9 @@
 
 import { HelpCircle, X } from "lucide-react"
 import dynamic from "next/dynamic"
+import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"

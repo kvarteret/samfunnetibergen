@@ -24,8 +24,8 @@ export const sourcedImage = defineType({
         "internationalizedArrayString",
         {},
       ),
-      validation: (rule: any) =>
-        rule.custom((value: unknown, context: any) => {
+      validation: rule =>
+        rule.custom((value, context) => {
           const parent = context.parent as { image?: unknown } | undefined
           return validateLocalizedArray(value, {
             required: Boolean(parent?.image),

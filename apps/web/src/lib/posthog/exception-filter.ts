@@ -58,7 +58,7 @@ export function dropDocumentUrlExceptions(
     ? undefined
     : window.location.href,
 ): CaptureResult | null {
-  if (!event || event.event !== "$exception" || !documentUrl) return event
+  if (event?.event !== "$exception" || !documentUrl) return event
 
   const documentOrigin = parseAbsoluteUrl(documentUrl)?.origin
   if (!documentOrigin) return event

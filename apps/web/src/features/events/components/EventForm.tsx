@@ -134,7 +134,6 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         dates.map(d => (d.id === firstId ? { ...d, startDate: today } : d)),
       )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const eventTypeSelectOptions = eventTypeOptions(eventTypes)

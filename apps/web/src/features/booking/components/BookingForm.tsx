@@ -206,7 +206,6 @@ export function BookingForm({
     return () => {
       active = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType])
 
   const selectedStartDate = values.startDate
@@ -225,7 +224,6 @@ export function BookingForm({
     return () => {
       active = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookerType, selectedStartDate])
 
   const selectedRoomIds = values.selectedRoomIds

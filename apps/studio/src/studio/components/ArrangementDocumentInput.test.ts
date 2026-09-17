@@ -29,12 +29,12 @@ describe("arrangement document status input", () => {
     ).toEqual(["cancelled", "approved"])
   })
 
-  it.each([
-    "completed",
-    "archived",
-  ] as const)("keeps derived %s read-only", status => {
-    expect(editableArrangementStatuses(document, status)).toEqual([status])
-  })
+  it.each(["completed", "archived"] as const)(
+    "keeps derived %s read-only",
+    status => {
+      expect(editableArrangementStatuses(document, status)).toEqual([status])
+    },
+  )
 
   it("uses the latest approved child date for a parent", () => {
     expect(

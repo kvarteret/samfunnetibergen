@@ -1,13 +1,11 @@
 "use client"
 
 import { icons } from "@sanity/icons"
+import { Card, Stack, Text } from "@sanity/ui"
 import {
   Autocomplete,
   type BaseAutocompleteOption,
-  Card,
-  Stack,
-  Text,
-} from "@sanity/ui"
+} from "@sanity/ui/autocomplete"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ObjectInputMember,
@@ -197,9 +195,9 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
   }
 
   return (
-    <Stack space={4}>
+    <Stack gap={4}>
       <ObjectInputMember member={labelMember} {...renderProps} />
-      <Stack space={2}>
+      <Stack gap={2}>
         <Text
           as="label"
           htmlFor={`${props.id}-destination`}
@@ -228,7 +226,7 @@ export function SourceLinkInput(props: ObjectInputProps<SourceLinkValue>) {
           placeholder="Søk etter dokument eller lim inn /sti, URL, mailto: eller tel:"
           renderOption={option => (
             <Card padding={3} radius={2}>
-              <Stack space={2}>
+              <Stack gap={2}>
                 <Text size={1} weight="medium">
                   {option.title}
                 </Text>

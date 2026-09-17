@@ -1,11 +1,11 @@
 /** @vitest-environment jsdom */
 
+import { NextIntlClientProvider } from "next-intl"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
-import { NextIntlClientProvider } from "next-intl"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { TimeRangeSlider } from "./time-range-slider"
 import messages from "@/messages/nb.json"
+import { TimeRangeSlider } from "./time-range-slider"
 
 describe("TimeRangeSlider controlled time reconciliation", () => {
   let container: HTMLDivElement

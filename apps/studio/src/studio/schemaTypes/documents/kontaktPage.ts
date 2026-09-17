@@ -79,8 +79,7 @@ export const kontaktPage = defineType({
   title: "Kontakt og organisasjon",
   type: "document",
   icon: icons.envelope,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore – experimental API not yet in typedefs
+  // @ts-expect-error – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],
   groups: [
     { name: "org", title: "Organisasjon", default: true },

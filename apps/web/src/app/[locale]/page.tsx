@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
-
+import { SectionMark } from "@/components/section-mark"
 import {
   EventCard,
   type EventDateEntry,
@@ -31,7 +31,6 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { SectionMark } from "@/components/section-mark"
 import { fetchBarPreviews, fetchHomePageContent } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { cn } from "@/lib/utils"

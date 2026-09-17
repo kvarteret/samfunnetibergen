@@ -114,16 +114,14 @@ describe("dropDocumentUrlExceptions", () => {
     expect(dropDocumentUrlExceptions(event, DOCUMENT_URL)).toBe(event)
   })
 
-  it.each([
-    undefined,
-    null,
-    "not-a-list",
-    [],
-  ])("keeps an exception with an unusable $exception_list (%s)", exceptionList => {
-    const event = exceptionEvent(exceptionList)
+  it.each([undefined, null, "not-a-list", []])(
+    "keeps an exception with an unusable $exception_list (%s)",
+    exceptionList => {
+      const event = exceptionEvent(exceptionList)
 
-    expect(dropDocumentUrlExceptions(event, DOCUMENT_URL)).toBe(event)
-  })
+      expect(dropDocumentUrlExceptions(event, DOCUMENT_URL)).toBe(event)
+    },
+  )
 
   it("keeps a frame with a non-URL filename", () => {
     const event = exceptionEvent(throwing("[native code]"))

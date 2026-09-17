@@ -1,12 +1,12 @@
 "use client"
 
 import { Loader2, Send } from "lucide-react"
+import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
 import { type FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field-group"
 import { Textarea } from "@/components/ui/textarea"
-import { useTranslations } from "next-intl"
 
 const FIELD_ID = "slack-feedback-message"
 const ERROR_ID = "slack-feedback-error"

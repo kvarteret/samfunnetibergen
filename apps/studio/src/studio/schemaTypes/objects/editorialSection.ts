@@ -1,5 +1,5 @@
 import { icons } from "@sanity/icons"
-import { defineField, defineType } from "sanity"
+import { defineType } from "sanity"
 import { localizedArrayField } from "../shared/localizedFields"
 
 export const editorialSection = defineType({

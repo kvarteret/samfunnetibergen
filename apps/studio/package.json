@@ -17,21 +17,20 @@
     "sanity:audit:i18n": "sanity exec scripts/audit-i18n-content.ts --with-user-token",
     "sanity:audit": "sanity exec scripts/audit-sanity-content.ts --with-user-token",
     "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
-    "@portabletext/markdown": "^1.4.4",
+    "@portabletext/markdown": "^2.2.0",
     "@samfunnet/content-domain": "0.1.0",
     "@sanity/assist": "^6.1.17",
-    "@sanity/client": "^7.25.0",
+    "@sanity/client": "^8.6.2",
     "@sanity/icons": "^5.2.1",
     "@sanity/language-filter": "^5.0.16",
     "@sanity/orderable-document-list": "^2.0.18",
     "@sanity/vision": "^6.7.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "rrule": "^2.8.1",
     "sanity": "^6.7.0",
     "sanity-plugin-internationalized-array": "^5.1.27",
@@ -39,12 +38,11 @@
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^24.13.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.1.8",
-    "eslint": "^9",
-    "typescript": "^5",
-    "vitest": "^4.1.8"
+    "@vitest/coverage-v8": "^5.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   }
 }

@@ -68,6 +68,7 @@ export function PanoramaEmbed({
         sandbox="allow-scripts allow-same-origin"
         src={src}
         style={{ pointerEvents: active ? "auto" : "none" }}
+        title="360°-visning"
       />
       {!active && (
         <div

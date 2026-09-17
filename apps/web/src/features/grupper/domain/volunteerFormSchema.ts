@@ -110,10 +110,7 @@ export const volunteerFormSchema = z
           message: "E-postadressene må være ulike.",
         })
       }
-      if (
-        normalizedFriends.findIndex(candidate => candidate === friendEmail) !==
-        index
-      ) {
+      if (normalizedFriends.indexOf(friendEmail) !== index) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["friendEmails", index],

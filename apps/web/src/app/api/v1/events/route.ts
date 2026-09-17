@@ -1,11 +1,12 @@
 import {
-  publicApiErrorResponse,
   publicApiConditionalJsonResponse,
+  publicApiErrorResponse,
   publicApiHeadResponse,
   publicApiOptionsResponse,
 } from "@/features/events/api/http"
 import {
   InvalidPublicEventsRequest,
+  type PublicEventsCollectionRequest,
   parsePublicEventsCollectionRequest,
 } from "@/features/events/api/request"
 import { publicCollectionResponseSchema } from "@/features/events/api/schemas"
@@ -31,7 +32,7 @@ function errorResponse(error: unknown): Response {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  let parsed
+  let parsed: PublicEventsCollectionRequest
   try {
     parsed = parsePublicEventsCollectionRequest(request.url)
   } catch (error) {

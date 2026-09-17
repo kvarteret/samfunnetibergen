@@ -131,8 +131,8 @@ export const arrangement = defineType({
           group: "core",
         },
       ),
-      validation: (rule: any) =>
-        rule.custom((value: unknown, context: any) => {
+      validation: rule =>
+        rule.custom((value, context) => {
           const base = validateLocalizedArray(value)
           if (base !== true) return base
           const kind = eventKindOf(context.document)
@@ -211,8 +211,8 @@ export const arrangement = defineType({
         "internationalizedArrayPortableTextContent",
         { group: "core" },
       ),
-      validation: (rule: any) =>
-        rule.custom((value: unknown, context: any) => {
+      validation: rule =>
+        rule.custom((value, context) => {
           const base = validateLocalizedArray(value)
           if (base !== true) return base
           if (eventKindOf(context.document) !== "festivalParent") return true

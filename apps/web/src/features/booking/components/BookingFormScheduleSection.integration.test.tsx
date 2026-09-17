@@ -6,11 +6,11 @@ import type { ComponentProps } from "react"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
+import messages from "@/messages/nb.json"
 import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormContext } from "./bookingFormContext"
-import messages from "@/messages/nb.json"
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ children, href, ...props }: ComponentProps<"a">) => (
@@ -159,19 +159,19 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     ).toHaveLength(1)
   })
 
-  test.each([
-    undefined,
-    999,
-  ])("shows all rooms with initialRoomId=%s", async initialRoomId => {
-    await act(async () =>
-      root.render(
-        <ScheduleHarness initialRoomId={initialRoomId} rooms={rooms} />,
-      ),
-    )
-    expect(container.textContent).toContain("Tivoli")
-    expect(container.textContent).toContain("Teglverket")
-    expect(container.textContent).not.toContain("Legg til flere rom")
-  })
+  test.each([undefined, 999])(
+    "shows all rooms with initialRoomId=%s",
+    async initialRoomId => {
+      await act(async () =>
+        root.render(
+          <ScheduleHarness initialRoomId={initialRoomId} rooms={rooms} />,
+        ),
+      )
+      expect(container.textContent).toContain("Tivoli")
+      expect(container.textContent).toContain("Teglverket")
+      expect(container.textContent).not.toContain("Legg til flere rom")
+    },
+  )
 
   test("falls back when the direct room disappears from the offer", async () => {
     await act(async () =>

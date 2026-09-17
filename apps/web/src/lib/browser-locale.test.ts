@@ -10,13 +10,12 @@ describe("localeFromAcceptLanguage", () => {
     expect(localeFromAcceptLanguage(acceptLanguage)).toBe("nb")
   })
 
-  test.each([
-    "en-US,en;q=0.9,nb;q=0.8",
-    "de-DE,de;q=0.9,en;q=0.8",
-    "fr",
-  ])("uses English for %s", acceptLanguage => {
-    expect(localeFromAcceptLanguage(acceptLanguage)).toBe("en")
-  })
+  test.each(["en-US,en;q=0.9,nb;q=0.8", "de-DE,de;q=0.9,en;q=0.8", "fr"])(
+    "uses English for %s",
+    acceptLanguage => {
+      expect(localeFromAcceptLanguage(acceptLanguage)).toBe("en")
+    },
+  )
 
   test("keeps the default locale when the header is absent", () => {
     expect(localeFromAcceptLanguage()).toBe("nb")

@@ -16,7 +16,7 @@ export function slotOverlapsKaraokeBookings(
   durationHours: number,
   bookings: CresatBooking[],
 ): boolean {
-  const baseDateMs = crescatLocalDateTimeMs(date + "T00:00:00")
+  const baseDateMs = crescatLocalDateTimeMs(`${date}T00:00:00`)
   const slotStartMs = baseDateMs + slotStartMin * 60 * 1000
   const slotEndMs = slotStartMs + durationHours * 3600 * 1000
   return bookings.some(booking =>

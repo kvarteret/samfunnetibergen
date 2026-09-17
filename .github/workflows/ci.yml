@@ -8,8 +8,106 @@ permissions:
   contents: read
 
 jobs:
+  # Fast, independent steps that all share the installed workspace. They are
+  # separate from `builds` so a slow production build no longer delays lint,
+  # type generation, typecheck, and tests.
   checks:
-    name: Format, Lint, Typecheck, Test, Build
+    name: Format, lint, types, and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: npm
+
+      - run: npm ci
+
+      # `tsc --noEmit` is incremental for apps/web and apps/studio, so a warm
+      # `.tsbuildinfo` roughly halves the typecheck step. The key pins the
+      # lockfile and source so a stale build info can only be restored by the
+      # same pull request; TypeScript revalidates it regardless.
+      - name: Restore TypeScript incremental build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/web/tsconfig.tsbuildinfo
+            apps/studio/tsconfig.tsbuildinfo
+          key: tsbuildinfo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('apps/**/*.ts', 'apps/**/*.tsx', 'packages/**/*.ts') }}
+          restore-keys: |
+            tsbuildinfo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            tsbuildinfo-${{ runner.os }}-
+
+      - name: Biome format check
+        run: npm run format:check
+
+      - name: Verify allowScripts allowlists
+        run: npm run check:allow-scripts
+
+      - name: Lint (Biome)
+        run: npm run lint
+
+      - name: Generate Next.js route types
+        run: npm run route-typegen
+
+      # Sanity TypeGen output is a compilation input, not a runtime dependency:
+      # the generated files contain only types, nothing imports them as values,
+      # and they are committed. So the drift check only needs to run when an
+      # input that can change the emitted types changed. Those inputs are the
+      # schema (all of `apps/studio`, whose custom inputs pull in
+      # `packages/content-domain`), the query/fragment globs, and the toolchain
+      # (a dependency bump changes the output — Sanity 6.14 is what added the
+      # global `SanityQueries` registry). It fails open: if the base commit is
+      # not available, the check runs rather than being skipped.
+      - name: Detect Sanity typegen inputs
+        id: sanity_changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "sanity_changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git diff --quiet "$BASE_SHA" HEAD -- \
+            apps/studio \
+            apps/web/src/lib/sanity \
+            packages \
+            package.json \
+            package-lock.json; then
+            echo "sanity_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "sanity_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate Sanity types
+        if: steps.sanity_changes.outputs.sanity_changed == 'true'
+        run: npm run sanity:typegen
+
+      - name: Verify generated Sanity types are clean
+        if: steps.sanity_changes.outputs.sanity_changed == 'true'
+        run: git diff --exit-code -- apps/web/src/lib/sanity/sanity.types.ts apps/studio/src/studio/sanity.types.ts
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm run test
+
+  # Next 16 uses Turbopack with an on-disk build cache in `apps/web/.next/cache`.
+  # The cache is content-addressed, so restoring an earlier pull-request state
+  # lets unchanged modules skip recompilation. It is keyed on the pull request
+  # scope, so it never mixes production environment values into a PR build.
+  builds:
+    name: Production builds
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -53,26 +151,15 @@ jobs:
             echo "studio_changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Biome format check
-        run: npm run format:check
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Generate Next.js route types
-        run: npm run route-typegen
-
-      - name: Generate Sanity types
-        run: npm run sanity:typegen
-
-      - name: Verify generated Sanity types are clean
-        run: git diff --exit-code -- apps/web/src/lib/sanity/sanity.types.ts apps/studio/src/studio/sanity.types.ts
-
-      - name: TypeScript check
-        run: npm run typecheck
-
-      - name: Tests
-        run: npm run test
+      - name: Restore Next.js build cache
+        if: steps.app_changes.outputs.web_changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('apps/web/**/*.ts', 'apps/web/**/*.tsx', 'apps/web/**/*.js', 'apps/web/**/*.jsx', 'apps/web/next.config.ts', 'packages/content-domain/**/*.ts') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            nextjs-${{ runner.os }}-
 
       - name: Website production build
         if: steps.app_changes.outputs.web_changed == 'true'
@@ -81,3 +168,23 @@ jobs:
       - name: Studio production build
         if: steps.app_changes.outputs.studio_changed == 'true'
         run: npm run build:studio
+
+  # Branch protection on `develop` requires the status check named exactly
+  # "Format, Lint, Typecheck, Test, Build". This no-op aggregator keeps that
+  # name reporting while the work happens in the parallel jobs above.
+  workspace-checks:
+    name: Format, Lint, Typecheck, Test, Build
+    needs: [checks, builds]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require the checks and builds jobs to pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ needs.checks.result }}" != "success" || "${{ needs.builds.result }}" != "success" ]]; then
+            echo "checks=${{ needs.checks.result }} builds=${{ needs.builds.result }}" >&2
+            exit 1
+          fi
+          echo "checks and builds succeeded"

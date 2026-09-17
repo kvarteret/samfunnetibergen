@@ -1,9 +1,9 @@
 "use client"
 
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import * as THREE from "three"
 import type { ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
+import * as THREE from "three"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { cn } from "@/lib/utils"
 
 type SortingHatDemoProps = {
@@ -220,7 +220,9 @@ export function SortingHatDemo({
         cancelAnimationFrame(trackAnimationRef.current)
       resizeObserver.disconnect()
       window.removeEventListener("resize", resize)
-      streamRef.current?.getTracks().forEach(track => track.stop())
+      streamRef.current?.getTracks().forEach(track => {
+        track.stop()
+      })
       trackerRef.current?.close()
       renderer.dispose()
     }
@@ -233,7 +235,9 @@ export function SortingHatDemo({
       return
     }
     try {
-      streamRef.current?.getTracks().forEach(track => track.stop())
+      streamRef.current?.getTracks().forEach(track => {
+        track.stop()
+      })
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: "user" },

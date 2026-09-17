@@ -1,4 +1,4 @@
-import { type AppLocale } from "@/i18n/routing"
+import type { AppLocale } from "@/i18n/routing"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 
 import { publicDateSchema, publicLocaleSchema } from "./schemas"

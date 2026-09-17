@@ -5,10 +5,10 @@ import { NextIntlClientProvider } from "next-intl"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
+import messages from "@/messages/nb.json"
 import { initialBookingState } from "../domain/formState"
 import { BookingFormEventDetailsSection } from "./BookingFormEventDetailsSection"
 import { BookingFormContext } from "./bookingFormContext"
-import messages from "@/messages/nb.json"
 
 function EventDetailsHarness({
   startTime = "15:00",

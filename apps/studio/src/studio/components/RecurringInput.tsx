@@ -1,3 +1,4 @@
+import type { GenerationSeed } from "@samfunnet/content-domain/instances"
 import { Card, Checkbox, Flex, Select, Stack, Text } from "@sanity/ui"
 import { useEffect, useMemo, useState } from "react"
 import { RRule } from "rrule"
@@ -9,8 +10,6 @@ import {
   useDocumentOperation,
   useFormValue,
 } from "sanity"
-
-import type { GenerationSeed } from "@samfunnet/content-domain/instances"
 
 import { SeriesSemesterExpansion } from "./SeriesSemesterExpansion"
 
@@ -133,14 +132,14 @@ export function RecurringInput(props: BooleanInputProps) {
 
   return (
     <Card border padding={3} radius={2}>
-      <Stack space={4}>
+      <Stack gap={4}>
         <Flex align="center" gap={3}>
           <Checkbox
             checked={Boolean(props.value)}
             disabled={Boolean(props.readOnly) || childCount > 0}
             onChange={event => toggle(event.currentTarget.checked)}
           />
-          <Stack flex={1} space={2}>
+          <Stack flex={1} gap={2}>
             <Text weight="semibold">Gjentakelse</Text>
             <Text muted size={1}>
               Opprett en serie med egne dager som kan redigeres hver for seg.
@@ -154,8 +153,8 @@ export function RecurringInput(props: BooleanInputProps) {
           </Text>
         ) : null}
         {props.value ? (
-          <Stack space={3}>
-            <Stack space={2}>
+          <Stack gap={3}>
+            <Stack gap={2}>
               <Text size={1} weight="semibold">
                 Mønster
               </Text>
@@ -195,7 +194,7 @@ export function RecurringInput(props: BooleanInputProps) {
                 ))}
               </Flex>
             ) : null}
-            <Stack space={2}>
+            <Stack gap={2}>
               <Text muted size={1}>
                 Første dato over forankrer mønsteret.
               </Text>

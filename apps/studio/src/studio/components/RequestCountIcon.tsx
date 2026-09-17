@@ -33,7 +33,6 @@ export function RequestCountIcon() {
       {count > 0 ? (
         <Badge
           fontSize={0}
-          mode="default"
           padding={1}
           radius="full"
           tone="critical"
