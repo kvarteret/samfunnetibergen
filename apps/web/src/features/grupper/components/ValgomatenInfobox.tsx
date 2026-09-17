@@ -3,7 +3,7 @@
 import { HelpCircle, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import posthog from "posthog-js"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
@@ -117,12 +117,11 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
   const [isSpinning, setIsSpinning] = useState(false)
   const [generatedItems, setGeneratedItems] = useState<Item[]>([])
   const [winner, setWinner] = useState<Item | null>(null)
-  const [transformStyle, setTransformStyle] = useState("translateX(0px)")
-  const [enableTransition, setEnableTransition] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const spinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([])
   const finishTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingSpinRef = useRef(false)
 
   // Prefer the names from Sanity when the slug matches so the reveal links to
   // a group that actually exists.
@@ -152,120 +151,139 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
     return finalPool[Math.floor(Math.random() * finalPool.length)]
   }
 
-  const ITEM_WIDTH = 112 // w-28
-  const GAP = 8 // gap-2
-  const STEP = ITEM_WIDTH + GAP // distance from one item's left edge to the next
-
   const handleSpin = () => {
     if (isSpinning) return
 
-    if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current)
     if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current)
 
     setIsSpinning(true)
     setWinner(null)
-    setEnableTransition(false)
-    setTransformStyle("translateX(0px)")
 
+    // Snap back to the start before the new items render. The reel transform is
+    // driven imperatively below so it never races React's commit.
+    const container = containerRef.current
+    if (container) {
+      container.style.transition = "none"
+      container.style.transform = "translateX(0px)"
+    }
+
+    // The reel content changes here, so centering is measured after React has
+    // committed the new items (see the effect below).
+    pendingSpinRef.current = true
     const list = Array.from({ length: TOTAL_ITEMS }, () => getRandomItem())
     setGeneratedItems(list)
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!containerRef.current || !containerRef.current.parentElement) return
-
-        const parentWidth = containerRef.current.parentElement.offsetWidth
-        const itemOffset = WINNING_INDEX * STEP
-        const margin = 12
-        const innerItemRandomPadding =
-          margin + Math.random() * (ITEM_WIDTH - margin * 2)
-
-        const centerPadding = parentWidth / 2
-        const finalTranslateX =
-          itemOffset - centerPadding + innerItemRandomPadding
-
-        setEnableTransition(true)
-        setTransformStyle(`translateX(-${finalTranslateX}px)`)
-      })
-    })
-
     finishTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false)
-      setWinner(list[WINNING_INDEX - 1])
+      setWinner(list[WINNING_INDEX])
     }, SPIN_DURATION_MS)
   }
 
-  return (
-    <div className="flex w-full flex-col items-center gap-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 pt-16 text-white">
-      <div className="relative flex h-32 w-full max-w-4xl items-center overflow-hidden border-2 border-primary bg-primary/30 shadow-inner sm:h-40">
-        <div className="absolute top-0 bottom-0 left-1/2 z-10 w-1 bg-secondary shadow-secondary" />
+  // Runs after the freshly spun items are in the DOM (and after the reset frame
+  // has painted) so we can measure the real position of the winning item
+  // instead of assuming a fixed stride.
+  useEffect(() => {
+    if (!pendingSpinRef.current) return
+    pendingSpinRef.current = false
 
-        <div
-          ref={containerRef}
-          className="flex gap-2 px-[50%]"
-          style={{
-            transform: transformStyle,
-            transition: enableTransition
-              ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0.6, 0.1, 1)`
-              : "none",
-          }}
-        >
+    const container = containerRef.current
+    const parent = container?.parentElement
+    const winningItem = itemRefs.current[WINNING_INDEX]
+    if (!container || !parent || !winningItem) return
+
+    const parentRect = parent.getBoundingClientRect()
+    const itemRect = winningItem.getBoundingClientRect()
+    const itemCenter = itemRect.left + itemRect.width / 2 - parentRect.left
+    // Land a little off-center inside the item so it does not stop pixel-perfect
+    // every time, while keeping the marker well within the winning item.
+    const jitter = (Math.random() - 0.5) * itemRect.width * 0.2
+    const finalTranslateX = itemCenter - parentRect.width / 2 + jitter
+
+    container.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0.6, 0.1, 1)`
+    container.style.transform = `translateX(-${finalTranslateX}px)`
+  }, [generatedItems])
+
+  return (
+    <div className="flex w-full flex-col items-center gap-2 rounded-lg bg-black/80 p-3 text-white backdrop-blur-sm">
+      <div className="relative flex h-20 w-full max-w-2xl items-center overflow-hidden rounded-md bg-black/40">
+        <div className="absolute top-0 bottom-0 left-1/2 z-10 w-0.5 -translate-x-1/2 bg-secondary" />
+
+        <div ref={containerRef} className="flex gap-2 px-[50%]">
           {generatedItems.map((item, idx) => (
             <div
               key={idx}
-              className={`flex h-24 w-24 shrink-0 flex-col items-center justify-between rounded border-b-4 p-2 sm:h-28 sm:w-28 ${RARITIES[item.rarity].bg} ${RARITIES[item.rarity].border} shadow-md backdrop-blur-sm`}
+              ref={element => {
+                itemRefs.current[idx] = element
+              }}
+              className={`flex h-14 w-28 shrink-0 items-center justify-center rounded border-b-4 px-2 text-center text-[10px] leading-tight shadow-md ${RARITIES[item.rarity].bg} ${RARITIES[item.rarity].border}`}
             >
-              <span className="self-start font-mono text-[10px] text-slate-400">
-                #{idx + 1}
-              </span>
-              <p className="w-full truncate pb-8 text-center text-[10px]">
-                {item.name}
-              </p>
+              <p className="w-full truncate">{item.name}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <button
-        className={`cursor-pointer rounded-lg border px-8 py-3 text-lg font-bold tracking-wider text-white uppercase transition-all duration-200 ${
-          isSpinning
-            ? "cursor-not-allowed border-primary bg-primary text-slate-500"
-            : "border-primary bg-primary text-slate-950 shadow-lg shadow-primary-500/20 hover:bg-primary/50 active:scale-95"
-        }`}
-        disabled={isSpinning}
-        onClick={handleSpin}
-        type="button"
-      >
-        {isSpinning
-          ? "Åpner..."
-          : generatedItems.length === 0
-            ? "RULL"
-            : "RULL PÅ NYTT"}
-      </button>
-      {winner && !isSpinning && (
-        <div
-          className={`mt-2 flex max-w-sm animate-bounce flex-col items-center rounded-lg p-4 text-center ${RARITIES[winner.rarity].bg}`}
-        >
-          <p className="text-sm font-semibold tracking-widest text-yellow-400 uppercase">
-            Du Fikk
-          </p>
-          <h2 className="mt-1 text-xl font-bold">{winner.name}</h2>
-          <span
-            className={`mt-2 rounded-full px-3 py-1 text-xs font-bold ${RARITIES[winner.rarity].bg}`}
+      <div className="flex w-full max-w-2xl flex-col items-stretch gap-2">
+        {winner && !isSpinning ? (
+          <>
+            <div
+              className={`flex min-w-0 animate-bounce-3 items-center justify-between gap-3 rounded-md px-3 py-2 ${RARITIES[winner.rarity].bg}`}
+            >
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold tracking-widest text-yellow-400 uppercase">
+                  Du fikk
+                </p>
+                <p className="truncate text-sm font-bold leading-tight">
+                  {winner.name}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-black/20 px-2 py-0.5 text-[10px] font-bold">
+                {RARITIES[winner.rarity].name}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                className="flex-1"
+                render={<Link href={`/grupper/${winner.slug}`} />}
+                size="sm"
+              >
+                MELD DEG INN HER
+              </Button>
+              <button
+                aria-label="Spinn igjen"
+                className="rounded-base border border-white/30 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                onClick={handleSpin}
+                type="button"
+              >
+                ↻
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            className={cn(
+              "cursor-pointer rounded-md px-6 py-1.5 text-sm font-bold tracking-wider uppercase transition-all duration-200",
+              isSpinning
+                ? "cursor-not-allowed bg-primary/50 text-slate-300"
+                : "bg-primary text-slate-950 hover:bg-primary/80 active:scale-95",
+            )}
+            disabled={isSpinning}
+            onClick={handleSpin}
+            type="button"
           >
-            {RARITIES[winner.rarity].name}
-          </span>
-          <Button
-            className="mt-3"
-            render={<Link href={`/grupper/${winner.slug}`} />}
-          >
-            MELD DEG INN HER
-          </Button>
-        </div>
-      )}
+            {isSpinning
+              ? "Åpner..."
+              : generatedItems.length === 0
+                ? "RULL"
+                : "RULL PÅ NYTT"}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
+
+type Mode = "hat" | "wheel"
 
 export function ValgomatenInfobox({
   groups,
@@ -273,13 +291,13 @@ export function ValgomatenInfobox({
   groups: StudentGroupSummary[]
 }) {
   const t = useTranslations("GroupsPage")
-  const [clicked, setClicked] = useState(false)
+  const [mode, setMode] = useState<Mode | null>(null)
   const [cameraActive, setCameraActive] = useState(false)
 
-  const handleClick = () => {
-    if (clicked) return
-    posthog.capture("valgomaten_clicked")
-    setClicked(true)
+  const handleOpen = (nextMode: Mode) => {
+    if (mode) return
+    posthog.capture("valgomaten_clicked", { mode: nextMode })
+    setMode(nextMode)
   }
 
   const handleCameraActiveChange = useCallback((active: boolean) => {
@@ -287,7 +305,7 @@ export function ValgomatenInfobox({
   }, [])
 
   const handleClose = () => {
-    setClicked(false)
+    setMode(null)
     setCameraActive(false)
   }
 
@@ -295,10 +313,10 @@ export function ValgomatenInfobox({
     <aside
       className={cn(
         "space-y-4 border-2 border-primary/40 bg-primary/5 p-5",
-        clicked && cameraActive ? "lg:w-[min(46rem,92vw)]" : "lg:w-80",
+        mode === "hat" && cameraActive ? "lg:w-[min(46rem,92vw)]" : "lg:w-80",
       )}
     >
-      {!clicked ? (
+      {!mode ? (
         <div className="flex flex-col gap-4 p-4">
           <div className="flex items-start gap-3">
             <HelpCircle
@@ -309,15 +327,26 @@ export function ValgomatenInfobox({
               {t("quizPrompt")}
             </p>
           </div>
-          <Button onClick={handleClick} type="button" variant="default">
+          <Button
+            onClick={() => handleOpen("hat")}
+            type="button"
+            variant="default"
+          >
             {t("quizButton")}
+          </Button>
+          <Button
+            onClick={() => handleOpen("wheel")}
+            type="button"
+            variant="neutral"
+          >
+            {t("quizButtonWheel")}
           </Button>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <p className="font-heading text-lg leading-tight text-foreground">
-              {t("quizTitle")}
+              {mode === "hat" ? t("quizTitle") : t("quizTitleWheel")}
             </p>
             <button
               aria-label={t("quizClose")}
@@ -328,11 +357,15 @@ export function ValgomatenInfobox({
               <X aria-hidden="true" className="size-5" />
             </button>
           </div>
-          <div className="h-[min(70vh,38rem)] min-h-96 w-full overflow-hidden rounded-lg">
-            <SortingHatDemo onActiveChange={handleCameraActiveChange}>
-              <GroupUnboxing groups={groups} />
-            </SortingHatDemo>
-          </div>
+          {mode === "hat" ? (
+            <div className="h-[min(70vh,38rem)] min-h-96 w-full overflow-hidden rounded-lg">
+              <SortingHatDemo onActiveChange={handleCameraActiveChange}>
+                <GroupUnboxing groups={groups} />
+              </SortingHatDemo>
+            </div>
+          ) : (
+            <GroupUnboxing groups={groups} />
+          )}
         </div>
       )}
     </aside>

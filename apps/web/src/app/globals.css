@@ -597,6 +597,21 @@
   }
 }
 
+/* Winner reveal in the volunteer quiz: bounce a few times, then settle. */
+@keyframes valgomat-bounce {
+  0%,
+  100% {
+    transform: translateY(-8%);
+  }
+  50% {
+    transform: translateY(0);
+  }
+}
+
+@utility animate-bounce-3 {
+  animation: valgomat-bounce 1s ease-in-out 3;
+}
+
 /* P3 boost for supported displays */
 @supports (color: color(display-p3 0 0 0)) {
   :root {

@@ -21,7 +21,6 @@ export function SortingHatDemo({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [cameraStarted, setCameraStarted] = useState(false)
   const [modelReady, setModelReady] = useState(false)
-  const [facing, setFacing] = useState<"user" | "environment">("environment")
   const [error, setError] = useState<string | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const trackerRef = useRef<
@@ -227,9 +226,7 @@ export function SortingHatDemo({
     }
   }, [])
 
-  const startCamera = async (
-    requestedFacing: "user" | "environment" = facing,
-  ) => {
+  const startCamera = async () => {
     setError(null)
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("Dette nettleservinduet støtter ikke kamera.")
@@ -239,7 +236,7 @@ export function SortingHatDemo({
       streamRef.current?.getTracks().forEach(track => track.stop())
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: requestedFacing },
+          facingMode: { ideal: "user" },
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         },
@@ -330,19 +327,6 @@ export function SortingHatDemo({
       ) : null}
       {children ? (
         <div className="absolute inset-x-0 bottom-0 z-20">{children}</div>
-      ) : null}
-      {cameraStarted ? (
-        <button
-          className="absolute top-4 right-4 z-30 rounded-full bg-slate-800/90 px-3 py-2 text-sm font-bold text-white"
-          onClick={() => {
-            const nextFacing = facing === "environment" ? "user" : "environment"
-            setFacing(nextFacing)
-            void startCamera(nextFacing)
-          }}
-          type="button"
-        >
-          Bytt kamera
-        </button>
       ) : null}
     </div>
   )
