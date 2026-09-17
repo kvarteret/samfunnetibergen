@@ -612,6 +612,22 @@
   animation: valgomat-bounce 1s ease-in-out 3;
 }
 
+/* Volunteer quiz: equaliser bars shown while the reel spins with sound on. */
+@keyframes valgomat-sound-bar {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@utility animate-sound-bar {
+  animation: valgomat-sound-bar 0.55s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
 /* P3 boost for supported displays */
 @supports (color: color(display-p3 0 0 0)) {
   :root {

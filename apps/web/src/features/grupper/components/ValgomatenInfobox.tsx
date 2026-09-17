@@ -1,6 +1,6 @@
 "use client"
 
-import { HelpCircle, X } from "lucide-react"
+import { HelpCircle, LifeBuoy, Volume2, VolumeX, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
@@ -8,6 +8,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import type { StudentGroupSummary } from "@/lib/sanity/fetch"
+import {
+  useWheelSpinSound,
+  type WheelSpinSoundControls,
+} from "@/lib/use-wheel-spin-sound"
 import { cn } from "@/lib/utils"
 
 // `three` and the pose tracker are heavy, so only load them once the visitor
@@ -112,8 +116,48 @@ const ITEM_POOL: Item[] = [
 const WINNING_INDEX = 40
 const TOTAL_ITEMS = 50
 const SPIN_DURATION_MS = 7000
+/** Staggered start offsets for the equaliser shown while the reel spins. */
+const SOUND_BAR_DELAYS_MS = [0, 110, 220, 330]
+
+/** Equaliser bars: a visible stand-in for the spinning sound. */
+function WheelSoundBars() {
+  return (
+    <span aria-hidden="true" className="flex h-3.5 items-end gap-0.5">
+      {SOUND_BAR_DELAYS_MS.map(delay => (
+        <span
+          className="h-full w-0.5 animate-sound-bar rounded-full bg-current"
+          key={delay}
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </span>
+  )
+}
+
+function WheelSoundToggle({ sound }: { sound: WheelSpinSoundControls }) {
+  const t = useTranslations("GroupsPage")
+  if (!sound.supported) return null
+
+  return (
+    <button
+      aria-label={sound.muted ? t("quizSoundOn") : t("quizSoundOff")}
+      aria-pressed={!sound.muted}
+      className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-base border border-white/30 text-white transition-colors hover:bg-white/10 focus-brutal"
+      onClick={sound.toggleMuted}
+      type="button"
+    >
+      {sound.muted ? (
+        <VolumeX aria-hidden="true" className="size-4" />
+      ) : (
+        <Volume2 aria-hidden="true" className="size-4" />
+      )}
+    </button>
+  )
+}
 
 function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
+  const t = useTranslations("GroupsPage")
+  const sound = useWheelSpinSound()
   const [isSpinning, setIsSpinning] = useState(false)
   const [generatedItems, setGeneratedItems] = useState<Item[]>([])
   const [winner, setWinner] = useState<Item | null>(null)
@@ -158,6 +202,7 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
 
     setIsSpinning(true)
     setWinner(null)
+    sound.start(SPIN_DURATION_MS)
 
     // Snap back to the start before the new items render. The reel transform is
     // driven imperatively below so it never races React's commit.
@@ -176,8 +221,18 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
     finishTimeoutRef.current = setTimeout(() => {
       setIsSpinning(false)
       setWinner(list[WINNING_INDEX])
+      sound.celebrate()
     }, SPIN_DURATION_MS)
   }
+
+  // A spin that is still in flight must not outlive the quiz panel it belongs
+  // to: it would keep ticking (and, on the win, try to play) after unmount.
+  useEffect(
+    () => () => {
+      if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current)
+    },
+    [],
+  )
 
   // Runs after the freshly spun items are in the DOM (and after the reset frame
   // has painted) so we can measure the real position of the winning item
@@ -231,7 +286,7 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
             >
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold tracking-widest text-yellow-400 uppercase">
-                  Du fikk
+                  {t("quizResultLabel")}
                 </p>
                 <p className="truncate text-sm font-bold leading-tight">
                   {winner.name}
@@ -247,36 +302,51 @@ function GroupUnboxing({ groups }: { groups: StudentGroupSummary[] }) {
                 render={<Link href={`/grupper/${winner.slug}`} />}
                 size="sm"
               >
-                MELD DEG INN HER
+                {t("quizJoinCta")}
               </Button>
               <button
-                aria-label="Spinn igjen"
-                className="rounded-base border border-white/30 px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                aria-label={t("quizSpinAgain")}
+                className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-base border border-white/30 text-sm font-bold text-white transition-colors hover:bg-white/10 focus-brutal"
                 onClick={handleSpin}
                 type="button"
               >
                 ↻
               </button>
+              <WheelSoundToggle sound={sound} />
             </div>
           </>
         ) : (
-          <button
-            className={cn(
-              "cursor-pointer rounded-md px-6 py-1.5 text-sm font-bold tracking-wider uppercase transition-all duration-200",
-              isSpinning
-                ? "cursor-not-allowed bg-primary/50 text-slate-300"
-                : "bg-primary text-slate-950 hover:bg-primary/80 active:scale-95",
-            )}
-            disabled={isSpinning}
-            onClick={handleSpin}
-            type="button"
-          >
-            {isSpinning
-              ? "Åpner..."
-              : generatedItems.length === 0
-                ? "RULL"
-                : "RULL PÅ NYTT"}
-          </button>
+          <div className="flex items-stretch gap-2">
+            <button
+              className={cn(
+                "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-1.5 text-sm font-bold tracking-wider uppercase transition-all duration-200 focus-brutal",
+                isSpinning
+                  ? "cursor-not-allowed bg-primary/50 text-slate-300"
+                  : "bg-primary text-slate-950 hover:bg-primary/80 active:scale-95",
+              )}
+              disabled={isSpinning}
+              onClick={handleSpin}
+              type="button"
+            >
+              {isSpinning ? (
+                <>
+                  <LifeBuoy
+                    aria-hidden="true"
+                    className="size-4 shrink-0 animate-spin"
+                  />
+                  <span>{t("quizSpinning")}</span>
+                  {sound.muted ? null : <WheelSoundBars />}
+                </>
+              ) : (
+                <span>
+                  {generatedItems.length === 0
+                    ? t("quizSpin")
+                    : t("quizSpinAgainCta")}
+                </span>
+              )}
+            </button>
+            <WheelSoundToggle sound={sound} />
+          </div>
         )}
       </div>
     </div>
