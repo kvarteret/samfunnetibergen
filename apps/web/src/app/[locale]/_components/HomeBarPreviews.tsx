@@ -2,21 +2,21 @@
 
 import { Music2 } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { SectionMark } from "@/components/section-mark"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
-  formatVacationModeNotice,
   formatOpeningHoursRow,
+  formatVacationModeNotice,
   isOpenAtForCombinedHours,
   isoDate,
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
 import { useCurrentTime } from "@/lib/use-current-time"
-import { useTranslations } from "next-intl"
 
 interface NowPlayingState {
   authorized: boolean

@@ -68,7 +68,7 @@ gh run watch "$run_id" --exit-status
 
 The workflow must finish successfully. It runs, in order:
 
-1. format, route and Sanity TypeGen, workspace TypeScript, and test checks;
+1. format, lint, route and Sanity TypeGen, workspace TypeScript, and test checks;
 2. Vercel production environment pull and production build;
 3. staged Vercel deployment;
 4. HTTP smoke tests for the supplied paths, plus JSON/content-type checks for

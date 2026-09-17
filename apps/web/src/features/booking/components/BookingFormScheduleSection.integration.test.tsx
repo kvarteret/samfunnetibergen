@@ -6,11 +6,11 @@ import type { ComponentProps } from "react"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
+import messages from "@/messages/nb.json"
 import { initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormContext } from "./bookingFormContext"
-import messages from "@/messages/nb.json"
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ children, href, ...props }: ComponentProps<"a">) => (

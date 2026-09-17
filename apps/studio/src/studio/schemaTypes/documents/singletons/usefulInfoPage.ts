@@ -7,7 +7,7 @@ export const usefulInfoPage = defineType({
   title: "Nyttig info",
   type: "document",
   icon: icons["info-outline"],
-  // @ts-ignore – experimental API not yet in typedefs
+  // @ts-expect-error – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],
   groups: [{ name: "content", title: "Innhold", default: true }],
   fields: [

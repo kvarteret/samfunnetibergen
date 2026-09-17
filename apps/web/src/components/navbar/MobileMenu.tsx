@@ -10,14 +10,14 @@ import type { SiteLogoContent } from "@/lib/sanity/fetch"
 import { cn } from "@/lib/utils"
 import { BrandLogo } from "./BrandLogo"
 import { LanguageSwitcher } from "./LanguageSwitcher"
-import {
-  isNavigationItemActive,
-  isNavigationLinkActive,
-} from "./navigation-items"
 import type {
   NavigationGroup,
   NavigationItem,
   NavigationLink,
+} from "./navigation-items"
+import {
+  isNavigationItemActive,
+  isNavigationLinkActive,
 } from "./navigation-items"
 import { PaperMenuSection } from "./PaperPicker"
 

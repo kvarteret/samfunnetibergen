@@ -5,14 +5,14 @@ import { nanoid } from "nanoid"
 import { err, ok, type Result } from "@/lib/result"
 import {
   captureSubmitFailure,
-  getValidationDiagnostics,
   GENERIC_SUBMIT_ERROR,
-  isSubmissionRateLimited,
+  getValidationDiagnostics,
   INVALID_PAYLOAD_ERROR,
+  isSubmissionRateLimited,
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
-import type { FormState } from "../domain/formState"
 import { eventFormSchema } from "../domain/eventFormSchema"
+import type { FormState } from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
-
-import { JsonLd } from "@/components/JsonLd"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { JsonLd } from "@/components/JsonLd"
 import { NyttigPage } from "@/features/nyttig"
 import {
   activateRequestLocale,

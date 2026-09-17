@@ -5,6 +5,7 @@ import { stegaClean } from "@sanity/client/stega"
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "../client"
 import { sanityFetch } from "../fetcher"
+import { DEFAULT_LOCALE } from "../localized"
 import {
   barPreviewsQuery,
   bookableRoomsQuery,
@@ -14,12 +15,11 @@ import {
   roomsQuery,
 } from "../queries"
 import {
-  compact,
   cleanOpeningHours,
+  compact,
   type FetchOptions,
   withRequiredKeys,
 } from "./shared"
-import { DEFAULT_LOCALE } from "../localized"
 
 export type EditorialSection = NonNullable<
   NonNullable<ClientReturn<typeof roomsPageQuery>>["sections"]

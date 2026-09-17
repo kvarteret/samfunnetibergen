@@ -1,5 +1,5 @@
-import { toPlainText } from "@portabletext/toolkit"
 import { escapeHTML, toHTML } from "@portabletext/to-html"
+import { toPlainText } from "@portabletext/toolkit"
 
 type PortableTextValue = readonly Record<string, unknown>[]
 

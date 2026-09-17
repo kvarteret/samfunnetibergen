@@ -1,8 +1,7 @@
 import { icons } from "@sanity/icons"
 import { defineField, defineType } from "sanity"
-
-import { SourceLinkInput } from "./SourceLinkInput"
 import { localizedArrayField } from "../shared/localizedFields"
+import { SourceLinkInput } from "./SourceLinkInput"
 
 const internalPathPattern = /^\/(?!\/)/
 

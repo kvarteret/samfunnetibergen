@@ -78,6 +78,7 @@ function UploadedImagePreview({
   return (
     <div className="space-y-3">
       <div className="relative aspect-video w-full overflow-hidden border-2 border-border">
+        {/* biome-ignore lint/performance/noImgElement: blob preview of a freshly uploaded file */}
         <img
           alt="Forhåndsvisning av opplastet bilde"
           className="h-full w-full object-cover"

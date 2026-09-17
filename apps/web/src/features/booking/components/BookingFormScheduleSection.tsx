@@ -29,10 +29,10 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
-import {
-  type ClosedDate,
-  type OpeningHours,
-  type VacationMode,
+import type {
+  ClosedDate,
+  OpeningHours,
+  VacationMode,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
 import type { BookerType } from "../domain/formState"

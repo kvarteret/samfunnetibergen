@@ -48,7 +48,7 @@ export const footer = defineType({
   title: "Bunntekst",
   type: "document",
   icon: icons.component,
-  // @ts-ignore – experimental API not yet in typedefs
+  // @ts-expect-error – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],
   fields: [
     defineField({

@@ -1,3 +1,4 @@
+import type { GenerationSeed } from "@samfunnet/content-domain/instances"
 import { Card, Checkbox, Flex, Select, Stack, Text } from "@sanity/ui"
 import { useEffect, useMemo, useState } from "react"
 import { RRule } from "rrule"
@@ -9,8 +10,6 @@ import {
   useDocumentOperation,
   useFormValue,
 } from "sanity"
-
-import type { GenerationSeed } from "@samfunnet/content-domain/instances"
 
 import { SeriesSemesterExpansion } from "./SeriesSemesterExpansion"
 

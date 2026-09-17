@@ -3,18 +3,18 @@ import { visionTool } from "@sanity/vision"
 import { defineConfig, defineLocaleResourceBundle } from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
-import { markdownSchema } from "sanity-plugin-markdown"
 import { internationalizedArray } from "sanity-plugin-internationalized-array"
+import { markdownSchema } from "sanity-plugin-markdown"
 import { dataset, projectId } from "./src/env"
 import { arrangementDocumentActions } from "./src/studio/actions/arrangementDocumentActions"
 import { singletonTypeNames } from "./src/studio/documentTypes"
-import { studentGroupLabelValue } from "./src/studio/schemaTypes/documents/studentGroup"
 import {
   resolve,
   resolvePresentationInitialUrl,
   resolvePresentationOrigins,
 } from "./src/studio/presentation/resolve"
 import { schemaTypes } from "./src/studio/schemaTypes"
+import { studentGroupLabelValue } from "./src/studio/schemaTypes/documents/studentGroup"
 import { structure } from "./src/studio/structure"
 import { festivalDayInitialValue } from "./src/studio/templates/arrangementTemplates"
 

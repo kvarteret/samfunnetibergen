@@ -3,8 +3,8 @@ import { addDays, parseISO } from "date-fns"
 import { isoDate, minutesToTime } from "@/lib/opening-hours"
 
 import { timeToMinutes } from "@/lib/time"
-export { timeToMinutes }
-export { minutesToTime as minutesToTimeOfDay }
+
+export { minutesToTime as minutesToTimeOfDay, timeToMinutes }
 
 /** Add hours to "HH:MM" string, returning "HH:MM" (wraps past 24h). */
 export function addHours(time: string, hours: number): string {

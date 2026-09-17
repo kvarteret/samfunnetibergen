@@ -287,7 +287,7 @@ describe("buildInternalBooking", () => {
         s.content.parent_id === 11068,
     )
     expect(catering).toBeDefined()
-    if (catering && catering.content && "fields" in catering.content) {
+    if (catering?.content && "fields" in catering.content) {
       const ids = catering.content.fields.map((f: { id: number }) => f.id)
       expect(ids).not.toContain(4365154)
       expect(ids).not.toContain(4382234)

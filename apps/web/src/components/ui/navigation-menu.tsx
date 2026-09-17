@@ -2,7 +2,6 @@
 
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu"
 import { ChevronDown } from "lucide-react"
-import type * as React from "react"
 
 import { cn } from "@/lib/utils"
 

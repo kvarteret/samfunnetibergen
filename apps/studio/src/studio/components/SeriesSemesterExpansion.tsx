@@ -1,8 +1,3 @@
-import { Button, Card, Dialog, Flex, Stack, Text } from "@sanity/ui"
-import { useToast } from "@sanity/ui/toast"
-import { useState } from "react"
-import { useClient } from "sanity"
-
 import {
   buildInstanceDocument,
   diffInstances,
@@ -13,6 +8,10 @@ import {
   type SemesterWindow,
   semesterWindowsAround,
 } from "@samfunnet/content-domain/instances"
+import { Button, Card, Dialog, Flex, Stack, Text } from "@sanity/ui"
+import { useToast } from "@sanity/ui/toast"
+import { useState } from "react"
+import { useClient } from "sanity"
 
 const API_VERSION = "2026-07-29"
 const EXISTING_DAYS_QUERY = `*[

@@ -4,11 +4,11 @@ import {
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
 import { defineArrayMember, defineField, defineType } from "sanity"
+import { StudentGroupLabelsInput } from "../../components/StudentGroupLabelsInput"
 import {
   getPublishedDocumentId,
   wouldCreateGroupCycle,
 } from "../../contentPolicies"
-import { StudentGroupLabelsInput } from "../../components/StudentGroupLabelsInput"
 import { studentGroupSlugFromName } from "../../groupSlugs"
 import { localizedArrayField } from "../shared/localizedFields"
 

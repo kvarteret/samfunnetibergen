@@ -1,6 +1,6 @@
 import type { KaraokeBookingPayload, PriceType } from "../types"
-import { addHours, minutesToTimeOfDay, resolveSlotDate } from "./time"
 import type { KaraokeFormState } from "./karaokeFormSchema"
+import { addHours, minutesToTimeOfDay, resolveSlotDate } from "./time"
 
 export type { KaraokeFormState } from "./karaokeFormSchema"
 
@@ -50,10 +50,10 @@ export function deriveKaraokeState(
         ? resolveSlotDate(state.startDate, state.startSlotMin)
         : "",
     endTime: addHours(startTime, state.duration),
-    people: Number.parseInt(state.numberOfPeople) || 0,
+    people: Number.parseInt(state.numberOfPeople, 10) || 0,
     totalPrice: calcKaraokePrice(
       state.priceType,
-      Number.parseInt(state.numberOfPeople) || 0,
+      Number.parseInt(state.numberOfPeople, 10) || 0,
       state.duration,
     ),
   }

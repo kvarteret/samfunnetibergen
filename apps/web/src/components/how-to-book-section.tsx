@@ -1,5 +1,5 @@
-import type { EditorialSection } from "@/lib/sanity/fetch"
 import { PortableTextContent } from "@/lib/portable-text-components"
+import type { EditorialSection } from "@/lib/sanity/fetch"
 
 interface HowToBookSectionProps {
   section: EditorialSection | null | undefined

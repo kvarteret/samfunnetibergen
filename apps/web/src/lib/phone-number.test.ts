@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest"
 import { formatPhoneNumber } from "react-phone-number-input/max"
+import { describe, expect, test } from "vitest"
 import {
   isE164PhoneNumber,
   isOptionalE164PhoneNumber,

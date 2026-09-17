@@ -9,10 +9,10 @@ permissions:
 
 jobs:
   # Fast, independent steps that all share the installed workspace. They are
-  # separate from `builds` so a slow production build no longer delays type
-  # generation, typecheck, and tests.
+  # separate from `builds` so a slow production build no longer delays lint,
+  # type generation, typecheck, and tests.
   checks:
-    name: Format, types, and tests
+    name: Format, lint, types, and tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -46,6 +46,9 @@ jobs:
 
       - name: Verify allowScripts allowlists
         run: npm run check:allow-scripts
+
+      - name: Lint (Biome)
+        run: npm run lint
 
       - name: Generate Next.js route types
         run: npm run route-typegen

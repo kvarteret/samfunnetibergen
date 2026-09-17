@@ -1,11 +1,11 @@
-import { DragHandleIcon } from "@sanity/icons/DragHandle"
-import { TrashIcon } from "@sanity/icons/Trash"
 import {
   DragDropContext,
   Draggable,
   Droppable,
   type DropResult,
 } from "@hello-pangea/dnd"
+import { DragHandleIcon } from "@sanity/icons/DragHandle"
+import { TrashIcon } from "@sanity/icons/Trash"
 import {
   Badge,
   Box,
@@ -25,12 +25,12 @@ import { IntentLink } from "sanity/router"
 import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
   applyFeaturedSelection,
+  type FeaturedSelectionDocument,
   getFeaturedVisibleCount,
   moveFeaturedDocumentBetweenSections,
   normalizedArrangementId,
   selectFeaturedDocuments,
   selectionNeedsNormalization,
-  type FeaturedSelectionDocument,
 } from "./featuredArrangementSelection"
 import { PromotedArrangementPicker } from "./PromotedArrangementPicker"
 import { PROMOTABLE_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"

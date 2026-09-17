@@ -43,6 +43,7 @@
     "test:domain": "npm --workspace @samfunnet/content-domain run test",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
+    "lint": "npx --no-install biome check .",
     "check:allow-scripts": "node scripts/check-allow-scripts.mjs",
     "check": "npx --no-install biome check --write ."
   },

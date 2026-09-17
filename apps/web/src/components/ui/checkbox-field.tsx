@@ -2,7 +2,7 @@
 
 import { Checkbox } from "@base-ui/react/checkbox"
 import { Check } from "lucide-react"
-import { type ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import { FieldGroup } from "@/components/ui/field-group"
 import { cn } from "@/lib/utils"

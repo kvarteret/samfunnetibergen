@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
   Accordion,
@@ -15,7 +16,6 @@ import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import type { GroupsPageContent, StudentGroupSummary } from "@/lib/sanity/fetch"
 import { fetchGroupsPageContent, fetchStudentGroups } from "@/lib/sanity/fetch"
-import { getTranslations } from "next-intl/server"
 
 export const revalidate = 300
 
