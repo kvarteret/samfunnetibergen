@@ -100,7 +100,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
   return (
     <div className="space-y-12">
       <Breadcrumbs path="/grupper" />
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
         <header className="space-y-5">
           {content?.eyebrow &&
           (locale === "nb" || content.hasEnglishTranslation) ? (
@@ -119,7 +119,7 @@ export default async function GroupsPage({ params }: GroupsPageProps) {
               : t("intro")}
           </p>
         </header>
-        <ValgomatenInfobox />
+        <ValgomatenInfobox groups={groups} />
       </div>
 
       {content?.sections?.length ? (

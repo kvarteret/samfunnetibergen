@@ -564,7 +564,11 @@
     "categoryOther": "Other groups",
     "filterAria": "Filter groups",
     "quizPrompt": "Would you like to volunteer but are unsure which group to choose?",
-    "quizButton": "Take the quiz",
+    "quizButton": "Try the Sorting Hat",
+    "quizButtonWheel": "Spin the wheel",
+    "quizTitle": "The Sorting Hat",
+    "quizTitleWheel": "Spin the wheel",
+    "quizClose": "Close the Sorting Hat",
     "quizNotReady": "The quiz is not ready yet :(",
     "quizContactBefore": "Contact",
     "quizContactAfter": "to learn more about what might suit you!"
