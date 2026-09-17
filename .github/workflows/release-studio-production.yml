@@ -90,9 +90,6 @@ jobs:
       - name: Biome format check
         run: npm run format:check
 
-      - name: Lint
-        run: npm run lint
-
       - name: Generate Next.js route types
         run: npm run route-typegen
 

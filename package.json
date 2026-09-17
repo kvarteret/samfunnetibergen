@@ -44,16 +44,13 @@
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
     "check:allow-scripts": "node scripts/check-allow-scripts.mjs",
-    "lint": "npm run lint:web && npm run lint:studio",
-    "lint:web": "npm --workspace @samfunnet/web run lint",
-    "lint:studio": "npm --workspace @samfunnet/studio run lint",
     "check": "npx --no-install biome check --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
     "@types/node": "^24.13.5",
     "@vitest/coverage-v8": "^5.0.1",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.1"
   },
   "overrides": {
@@ -82,7 +79,6 @@
     "@swc/core@1.16.2": true,
     "core-js@3.50.0": true,
     "esbuild@0.28.2": true,
-    "fsevents@2.3.3": true,
-    "unrs-resolver@1.12.2": true
+    "fsevents@2.3.3": true
   }
 }

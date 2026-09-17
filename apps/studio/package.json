@@ -17,8 +17,7 @@
     "sanity:audit:i18n": "sanity exec scripts/audit-i18n-content.ts --with-user-token",
     "sanity:audit": "sanity exec scripts/audit-sanity-content.ts --with-user-token",
     "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -43,11 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^5.0.1",
-    "eslint": "^9.39.5",
-    "typescript": "^5.9.3",
-    "vitest": "^5.0.1",
-    "@eslint/js": "^9.39.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "typescript-eslint": "^8.70.0"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   }
 }

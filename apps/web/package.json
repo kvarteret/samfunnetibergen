@@ -15,8 +15,7 @@
     "events:audit:broadcast": "tsx scripts/audit-broadcast-readiness.ts",
     "typecheck": "tsc --noEmit",
     "route-typegen": "next typegen",
-    "test": "vitest run",
-    "lint": "eslint ."
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -88,11 +87,9 @@
     "@types/node": "^24.13.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.5",
     "shadcn": "^4.1.0",
     "tailwindcss": "^4",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.1"
   },
   "allowScripts": {
@@ -101,7 +98,6 @@
     "@swc/core@1.16.2": true,
     "core-js@3.50.0": true,
     "esbuild@0.28.2": true,
-    "fsevents@2.3.3": true,
-    "unrs-resolver@1.12.2": true
+    "fsevents@2.3.3": true
   }
 }

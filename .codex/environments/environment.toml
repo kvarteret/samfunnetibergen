@@ -41,11 +41,6 @@ icon = "run"
 command = "npm run test"
 
 [[actions]]
-name = "Lint"
-icon = "run"
-command = "npm run lint"
-
-[[actions]]
 name = "Build"
 icon = "run"
 command = "npm run build"

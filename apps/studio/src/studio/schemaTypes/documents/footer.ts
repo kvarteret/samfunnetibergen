@@ -48,7 +48,6 @@ export const footer = defineType({
   title: "Bunntekst",
   type: "document",
   icon: icons.component,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore – experimental API not yet in typedefs
   __experimental_actions: ["update", "publish"],
   fields: [

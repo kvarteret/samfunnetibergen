@@ -73,7 +73,7 @@ Watch the run and inspect its staged URL:
     gh run watch "$run_id" --exit-status
     gh run view "$run_id" --json status,conclusion,headSha,url
 
-The workflow checks formatting, lint, route and Sanity TypeGen drift, all
+The workflow checks formatting, route and Sanity TypeGen drift, all
 workspace tests and typechecks, and the Studio production build. It then pulls
 the Studio Vercel environment, builds from the checked-out SHA, deploys without
 moving the production domain, and smoke-tests the root, a deep Studio route,
