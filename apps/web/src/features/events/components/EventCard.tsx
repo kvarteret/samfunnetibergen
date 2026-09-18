@@ -1,12 +1,12 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin } from "lucide-react"
-import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { ContentImage } from "@/components/ui/content-image"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -219,37 +219,30 @@ function EventCardMedia({
   if (!imageUrl && !isEditorial) return null
 
   return (
-    <div
+    <ContentImage
+      alt={event.imageCaption ?? event.title}
+      aspectRatio={16 / 9}
       className={cn(
-        "group/image relative w-full shrink-0 overflow-hidden bg-muted",
-        "aspect-video",
+        "group/image shrink-0",
         cardSize === "small" && !isEditorial && "border-2 border-border",
       )}
-    >
-      {imageUrl ? (
-        <Image
-          alt={event.imageCaption ?? event.title}
-          className={cn(
-            "object-cover",
-            isEditorial &&
-              "transition-transform duration-300 group-hover/image:scale-105",
-          )}
-          fill
-          priority={priority}
-          sizes={
-            cardVariant === "slider"
-              ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
-              : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
-          }
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">
+      fallback={
+        <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-heading text-foreground-muted">
           {event.title}
         </div>
+      }
+      imageClassName={cn(
+        isEditorial &&
+          "transition-transform duration-300 group-hover/image:scale-105",
       )}
-    </div>
+      priority={priority}
+      sizes={
+        cardVariant === "slider"
+          ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
+          : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
+      }
+      src={imageUrl}
+    />
   )
 }
 

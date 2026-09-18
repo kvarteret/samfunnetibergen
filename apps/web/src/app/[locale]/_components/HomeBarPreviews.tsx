@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { SectionMark } from "@/components/section-mark"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { ContentImage } from "@/components/ui/content-image"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
@@ -16,6 +16,7 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { useCurrentTime } from "@/lib/use-current-time"
 
 interface NowPlayingState {
@@ -159,6 +160,8 @@ function HomeBarPreviewCard({
     locale,
   )
   const imageUrl = room.image?.assetUrl
+    ? sanityImageUrl(room.image.assetUrl, { height: 720, width: 960 })
+    : null
   const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 
   return (
@@ -170,13 +173,14 @@ function HomeBarPreviewCard({
       href={href}
     >
       <div className="relative min-h-full bg-muted">
-        <ImageWithFallback
+        <ContentImage
           alt={room.image?.alt ?? room.title ?? translations("barImageAlt")}
-          aspectRatio=""
+          aspectRatio={null}
           className="min-h-full"
           fallback={
             <Music2 aria-hidden className="size-10 text-foreground-muted" />
           }
+          objectFit="cover"
           sizes="(min-width: 1024px) 25vw, 50vw"
           src={imageUrl}
         />

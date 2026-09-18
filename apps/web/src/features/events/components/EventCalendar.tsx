@@ -1,14 +1,14 @@
 "use client"
 
 import { ArrowDown, CalendarDays } from "lucide-react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
+import { ContentImage } from "@/components/ui/content-image"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import {
   buildCalendarMonths,
@@ -68,23 +68,19 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
       href={`/arrangementer/${event.slug}`}
     >
-      {imageUrl ? (
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          <Image
-            alt={event.imageCaption ?? event.title}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            fill
-            sizes="(max-width: 768px) 30vw, 16rem"
-            src={imageUrl}
-            unoptimized={shouldLoadImageDirectly(imageUrl)}
-          />
-        </div>
-      ) : (
-        <div className="flex aspect-video items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
-          <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
-          <span>{event.title}</span>
-        </div>
-      )}
+      <ContentImage
+        alt={event.imageCaption ?? event.title}
+        aspectRatio={16 / 9}
+        fallback={
+          <div className="flex h-full w-full items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
+            <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
+            <span>{event.title}</span>
+          </div>
+        }
+        imageClassName="transition-transform duration-300 group-hover:scale-105"
+        sizes="(max-width: 768px) 30vw, 16rem"
+        src={imageUrl}
+      />
       <div className="space-y-2 p-0 pt-2 md:p-3">
         <p className="font-heading text-2xl leading-tight group-hover:underline group-hover:underline-offset-2 md:text-base">
           {event.title}

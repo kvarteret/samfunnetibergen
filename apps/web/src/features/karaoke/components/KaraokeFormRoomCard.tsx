@@ -3,8 +3,9 @@
 import { ExternalLink, Mic } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { ContentImage } from "@/components/ui/content-image"
 import { Link } from "@/i18n/navigation"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
 interface KaraokeFormRoomCardProps {
@@ -16,11 +17,19 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
-      <ImageWithFallback
+      <ContentImage
         alt={firstImage?.alt ?? room.title}
         className="border-2 border-border/50"
         fallback={<Mic className="size-10 text-foreground-muted" aria-hidden />}
-        src={firstImage?.assetUrl}
+        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+        src={
+          firstImage?.assetUrl
+            ? sanityImageUrl(firstImage.assetUrl, {
+                height: 600,
+                width: 800,
+              })
+            : null
+        }
       />
       <div className="space-y-1">
         <Link

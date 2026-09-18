@@ -1,13 +1,14 @@
 import { MapPin, X } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { ContentImage } from "@/components/ui/content-image"
 import { DetailRow } from "@/components/ui/detail-row"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
 import type {
   ClosedDate,
   OpeningHours,
   VacationMode,
 } from "@/lib/opening-hours"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { type BookingFormState, composeCatering } from "../domain/formState"
 import { computePriceSummary } from "../domain/pricing"
 import type { BookingRoom } from "../types"
@@ -197,13 +198,20 @@ function SelectedRoomCard({
           )}
         </div>
         <div className="w-20 shrink-0 overflow-hidden">
-          <ImageWithFallback
+          <ContentImage
             alt={room.image?.alt ?? roomName}
             fallback={
               <MapPin aria-hidden className="size-4 text-foreground-muted" />
             }
             sizes="80px"
-            src={room.image?.assetUrl}
+            src={
+              room.image?.assetUrl
+                ? sanityImageUrl(room.image.assetUrl, {
+                    height: 240,
+                    width: 320,
+                  })
+                : null
+            }
           />
         </div>
         <button
@@ -224,7 +232,7 @@ function SelectedRoomCard({
   return (
     <div className="relative">
       {!isCrescatOnly && (
-        <ImageWithFallback
+        <ContentImage
           alt={room.image?.alt ?? roomName}
           fallback={
             <span className="flex items-center gap-2 text-foreground-muted">
@@ -233,7 +241,14 @@ function SelectedRoomCard({
             </span>
           }
           sizes="(min-width: 1024px) 360px, 100vw"
-          src={room.image?.assetUrl}
+          src={
+            room.image?.assetUrl
+              ? sanityImageUrl(room.image.assetUrl, {
+                  height: 540,
+                  width: 960,
+                })
+              : null
+          }
         />
       )}
       <div className="border-b-2 border-border p-5">

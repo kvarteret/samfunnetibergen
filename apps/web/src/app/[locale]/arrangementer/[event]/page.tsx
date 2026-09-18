@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { ContentImage } from "@/components/ui/content-image"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
@@ -198,17 +199,14 @@ function EventDetailHero({
 
       <div className="overflow-hidden border-2 border-border bg-muted">
         {imageUrl ? (
-          <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
-            <Image
-              alt={event.imageCaption ?? event.title}
-              className="object-cover"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 80vw"
-              src={imageUrl}
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
-            />
-          </div>
+          <ContentImage
+            alt={event.imageCaption ?? event.title}
+            maxAspectRatio={21 / 9}
+            minAspectRatio={4 / 3}
+            priority
+            sizes="(max-width: 1024px) 100vw, 80vw"
+            src={imageUrl}
+          />
         ) : (
           <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
             <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
@@ -357,7 +355,7 @@ function EventDetailRoomLink({
                 src={roomImageUrl}
                 alt={roomTitle ?? ""}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="176px"
                 unoptimized={shouldLoadImageDirectly(roomImageUrl)}
               />

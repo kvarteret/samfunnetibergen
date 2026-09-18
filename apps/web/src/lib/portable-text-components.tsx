@@ -1,7 +1,7 @@
-import Image from "next/image"
 import { PortableText } from "next-sanity"
 
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { ContentImage } from "@/components/ui/content-image"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 
 type PortableTextBlock = {
@@ -102,16 +102,12 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
 
   return (
     <figure className="my-10">
-      <div className="relative aspect-video overflow-hidden border-2 border-border">
-        <Image
-          alt={value.alt ?? ""}
-          className="object-cover"
-          fill
-          sizes="(max-width: 1280px) 100vw, 1280px"
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
-        />
-      </div>
+      <ContentImage
+        alt={value.alt ?? ""}
+        className="border-2 border-border"
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        src={imageUrl}
+      />
       {value.caption && (
         <figcaption className="mt-2 text-foreground-muted">
           {value.caption}
