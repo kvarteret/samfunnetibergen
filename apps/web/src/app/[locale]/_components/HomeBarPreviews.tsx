@@ -182,12 +182,9 @@ function HomeBarPreviewCard({
           <SanityImage
             alt={image.alt ?? room.title ?? translations("barImageAlt")}
             className="min-h-full w-full object-cover"
-            crop={image.crop ?? undefined}
-            hotspot={image.hotspot ?? undefined}
+            image={image}
             height={720}
-            id={image.id}
             mode="cover"
-            preview={image.lqip ?? undefined}
             sizes="(min-width: 1024px) 25vw, 50vw"
             width={960}
           />

@@ -226,12 +226,8 @@ function EventCardMedia({
             isEditorial &&
               "transition-transform duration-300 group-hover/image:scale-105",
           )}
-          crop={image.crop ?? undefined}
-          hotspot={image.hotspot ?? undefined}
-          id={image.id}
+          image={image}
           loading={priority ? "eager" : "lazy"}
-          mode="contain"
-          preview={image.lqip ?? undefined}
           sizes={
             cardVariant === "slider"
               ? "(max-width: 640px) calc(100vw - 3rem), 21rem"

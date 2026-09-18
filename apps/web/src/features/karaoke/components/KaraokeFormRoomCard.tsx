@@ -20,11 +20,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         <SanityImage
           alt={firstImage.alt ?? room.title}
           className="h-auto w-full border-2 border-border/50"
-          crop={firstImage.crop ?? undefined}
-          hotspot={firstImage.hotspot ?? undefined}
-          id={firstImage.id}
-          mode="contain"
-          preview={firstImage.lqip ?? undefined}
+          image={firstImage}
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
           width={800}
         />

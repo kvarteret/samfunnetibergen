@@ -71,8 +71,7 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
                   <SanityImage
                     alt={sponsor.logoAlt ?? sponsor.title ?? ""}
                     className="h-full w-full object-contain object-left"
-                    id={sponsor.logoId}
-                    mode="contain"
+                    image={{ id: sponsor.logoId }}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     width={960}
                   />

@@ -111,11 +111,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
             <SanityImage
               alt={group.image.alt ?? t("logoAlt", { group: group.name ?? "" })}
               className="h-auto w-full border-2 border-border"
-              crop={group.image.crop ?? undefined}
-              hotspot={group.image.hotspot ?? undefined}
-              id={group.image.id}
-              mode="contain"
-              preview={group.image.lqip ?? undefined}
+              image={group.image}
               sizes="(min-width: 1024px) 60vw, 100vw"
               width={1600}
             />

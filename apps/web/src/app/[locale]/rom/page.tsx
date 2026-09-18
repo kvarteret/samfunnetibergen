@@ -50,11 +50,7 @@ function RoomImage({
         <SanityImage
           alt={image.alt || title}
           className="h-full w-full object-contain"
-          crop={image.crop ?? undefined}
-          hotspot={image.hotspot ?? undefined}
-          id={image.id}
-          mode="contain"
-          preview={image.lqip ?? undefined}
+          image={image}
           sizes="(max-width: 768px) 100vw, 50vw"
           width={1200}
         />

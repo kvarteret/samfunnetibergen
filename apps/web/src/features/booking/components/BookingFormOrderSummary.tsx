@@ -201,11 +201,7 @@ function SelectedRoomCard({
             <SanityImage
               alt={room.image.alt ?? roomName}
               className="h-auto w-full object-contain"
-              crop={room.image.crop ?? undefined}
-              hotspot={room.image.hotspot ?? undefined}
-              id={room.image.id}
-              mode="contain"
-              preview={room.image.lqip ?? undefined}
+              image={room.image}
               sizes="80px"
               width={320}
             />
@@ -238,11 +234,7 @@ function SelectedRoomCard({
             <SanityImage
               alt={room.image.alt ?? roomName}
               className="h-auto w-full object-contain"
-              crop={room.image.crop ?? undefined}
-              hotspot={room.image.hotspot ?? undefined}
-              id={room.image.id}
-              mode="contain"
-              preview={room.image.lqip ?? undefined}
+              image={room.image}
               sizes="(min-width: 1024px) 360px, 100vw"
               width={960}
             />

@@ -107,11 +107,12 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
       <SanityImage
         alt={value.alt ?? ""}
         className="h-auto w-full border-2 border-border"
-        crop={value.crop ?? undefined}
-        hotspot={value.hotspot ?? undefined}
-        id={value.id}
-        mode="contain"
-        preview={value.lqip ?? undefined}
+        image={{
+          id: value.id,
+          crop: value.crop,
+          hotspot: value.hotspot,
+          lqip: value.lqip,
+        }}
         sizes="(max-width: 1280px) 100vw, 1280px"
         width={1280}
       />

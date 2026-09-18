@@ -129,12 +129,9 @@ export function ImageCarousel({ slides }: ImageCarouselProps) {
                   <SanityImage
                     alt={slide.alt}
                     className="h-full w-full object-cover"
-                    crop={slide.image.crop ?? undefined}
-                    hotspot={slide.image.hotspot ?? undefined}
-                    id={slide.image.id}
+                    image={slide.image}
                     loading={i === 0 ? "eager" : "lazy"}
                     mode="cover"
-                    preview={slide.image.lqip ?? undefined}
                     sizes="100vw"
                     width={1920}
                     height={1080}

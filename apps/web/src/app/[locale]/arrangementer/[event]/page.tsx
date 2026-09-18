@@ -187,12 +187,8 @@ function EventDetailHero({
           <SanityImage
             alt={event.imageCaption ?? event.title}
             className="mx-auto block h-auto max-h-[36rem] w-auto max-w-full object-contain"
-            crop={image.crop ?? undefined}
-            hotspot={image.hotspot ?? undefined}
-            id={image.id}
+            image={image}
             loading="eager"
-            mode="contain"
-            preview={image.lqip ?? undefined}
             sizes="(max-width: 1024px) 100vw, 80vw"
             width={1600}
           />
@@ -340,11 +336,7 @@ function EventDetailRoomLink({
             <SanityImage
               alt={roomTitle ?? ""}
               className="block aspect-4/3 w-full object-contain"
-              crop={roomImage.crop ?? undefined}
-              hotspot={roomImage.hotspot ?? undefined}
-              id={roomImage.id}
-              mode="contain"
-              preview={roomImage.lqip ?? undefined}
+              image={roomImage}
               sizes="176px"
               width={352}
             />

@@ -70,11 +70,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
           <SanityImage
             alt={event.imageCaption ?? event.title}
             className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-            crop={image.crop ?? undefined}
-            hotspot={image.hotspot ?? undefined}
-            id={image.id}
-            mode="contain"
-            preview={image.lqip ?? undefined}
+            image={image}
             sizes="(max-width: 768px) 30vw, 16rem"
             width={280}
           />

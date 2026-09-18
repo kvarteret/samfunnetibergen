@@ -296,11 +296,7 @@ function RoomCard({
                 "h-full w-full object-contain",
                 occupied && "grayscale",
               )}
-              crop={room.image.crop ?? undefined}
-              hotspot={room.image.hotspot ?? undefined}
-              id={room.image.id}
-              mode="contain"
-              preview={room.image.lqip ?? undefined}
+              image={room.image}
               sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
               width={640}
             />
