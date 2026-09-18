@@ -15,6 +15,7 @@ export const INHERITED_FIELDS = [
   "description",
   "imageUrl",
   "imageCaption",
+  "image",
   "organizerGroup",
   "organizerText",
   "eventType",

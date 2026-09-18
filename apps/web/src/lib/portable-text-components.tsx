@@ -1,7 +1,6 @@
 import { PortableText } from "next-sanity"
 
-import { ContentImage } from "@/components/ui/content-image"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { cn } from "@/lib/utils"
 
 type PortableTextBlock = {
@@ -20,9 +19,17 @@ type PortableTextChildrenProps = {
 }
 
 type PortableTextImageValue = {
-  imageUrl?: string
+  id?: string
   alt?: string
   caption?: string
+  crop?: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  hotspot?: { x: number; y: number } | null
+  lqip?: string | null
 }
 
 type PortableTextLinkValue = {
@@ -91,22 +98,22 @@ const portableTextComponents = {
 }
 
 function PortableTextImage({ value }: { value: PortableTextImageValue }) {
-  if (!value.imageUrl) {
+  if (!value.id) {
     return null
   }
 
-  const imageUrl = sanityImageUrl(value.imageUrl, {
-    height: 720,
-    width: 1280,
-  })
-
   return (
     <figure className="my-10">
-      <ContentImage
+      <SanityImage
         alt={value.alt ?? ""}
-        className="border-2 border-border"
+        className="h-auto w-full border-2 border-border"
+        crop={value.crop ?? undefined}
+        hotspot={value.hotspot ?? undefined}
+        id={value.id}
+        mode="contain"
+        preview={value.lqip ?? undefined}
         sizes="(max-width: 1280px) 100vw, 1280px"
-        src={imageUrl}
+        width={1280}
       />
       {value.caption && (
         <figcaption className="mt-2 text-foreground-muted">

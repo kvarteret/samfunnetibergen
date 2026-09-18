@@ -5,7 +5,7 @@ import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Avatar } from "@/components/ui/avatar"
-import { ContentImage } from "@/components/ui/content-image"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -54,7 +54,13 @@ export async function generateMetadata({ params }: GroupPageProps) {
     canonicalPath: `/${localeParam}/grupper/${slug}`,
     title: `${group.name} | ${locale === "en" ? "Groups" : "Grupper"}`,
     description: group.summary,
-    imageUrl: group.image?.assetUrl,
+    imageUrl: group.image?.id
+      ? sanityImageUrl(group.image.id, {
+          height: 630,
+          mode: "cover",
+          width: 1200,
+        })
+      : undefined,
   })
 }
 
@@ -100,16 +106,18 @@ export default async function GroupPage({ params }: GroupPageProps) {
           summary={group.summary}
         />
 
-        {group.image?.assetUrl ? (
+        {group.image?.id ? (
           <figure className="space-y-2">
-            <ContentImage
+            <SanityImage
               alt={group.image.alt ?? t("logoAlt", { group: group.name ?? "" })}
-              className="border-2 border-border"
+              className="h-auto w-full border-2 border-border"
+              crop={group.image.crop ?? undefined}
+              hotspot={group.image.hotspot ?? undefined}
+              id={group.image.id}
+              mode="contain"
+              preview={group.image.lqip ?? undefined}
               sizes="(min-width: 1024px) 60vw, 100vw"
-              src={sanityImageUrl(group.image.assetUrl, {
-                height: 1000,
-                width: 1600,
-              })}
+              width={1600}
             />
             {group.image.caption ? (
               <figcaption className="text-lg italic text-foreground-muted">

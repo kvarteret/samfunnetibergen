@@ -78,7 +78,6 @@ export function buildPreviewEvent(
     priceMedlem: state.priceMedlem ? Number(state.priceMedlem) : null,
     ticketUrl: state.ticketUrl || null,
     facebookUrl: state.facebookUrl || null,
-    imageUrl: imagePreviewUrl,
     imageCaption: null,
     room: selectedRoom
       ? { _id: selectedRoom._id, title: selectedRoom.title, slug: "" }

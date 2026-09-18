@@ -1,3 +1,4 @@
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 import {
@@ -23,8 +24,15 @@ function websiteEventUrl(event: PublicEvent, options: PublicApiLinkOptions) {
 }
 
 function serializeImage(event: PublicEvent) {
-  return event.imageUrl
-    ? { url: event.imageUrl, caption: event.imageCaption }
+  return event.image
+    ? {
+        url: sanityImageUrl(event.image.id, {
+          height: 630,
+          mode: "cover",
+          width: 1200,
+        }),
+        caption: event.imageCaption,
+      }
     : null
 }
 
@@ -51,7 +59,13 @@ function serializeLocation(event: PublicEvent): PublicApiEvent["location"] {
       name: event.room.title,
       slug: event.room.slug,
       floor: event.room.floor,
-      imageUrl: event.room.imageUrl,
+      imageUrl: event.room.image
+        ? sanityImageUrl(event.room.image.id, {
+            height: 630,
+            mode: "cover",
+            width: 1200,
+          })
+        : null,
     }
   }
 

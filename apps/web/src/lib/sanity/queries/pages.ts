@@ -16,6 +16,7 @@ import {
 
 export const siteLogoQuery =
   defineQuery(`*[_type == "siteLogo" && _id == "siteLogo"][0] {
+    "assetId": logo.asset._ref,
     "assetUrl": logo.asset->url,
     "width": coalesce(logo.asset->metadata.dimensions.width, 0),
     "height": coalesce(logo.asset->metadata.dimensions.height, 0)
@@ -63,6 +64,7 @@ export const sponsorsPageQuery =
         _key,
         "title": coalesce(${localizedTitle}, "[Mangler sponsornavn]"),
         website,
+        "logoId": logo.asset._ref,
         "logoUrl": logo.asset->url,
         "logoAlt": coalesce(localizedLogoAlt[language == $locale && defined(value) && value != ""][0].value, localizedLogoAlt[language == "nb" && defined(value) && value != ""][0].value, ${localizedTitle}),
         "description": coalesce(coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] ${portableTextProjection}, [])

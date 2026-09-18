@@ -60,7 +60,7 @@ export function assessBroadcastReadiness(
   }
   if (!schedule.startsAt) issues.push("missing_start_time")
   if (!schedule.endsAt) issues.push("missing_end_time")
-  if (!event.imageUrl) issues.push("missing_image")
+  if (!event.image) issues.push("missing_image")
   if (!hasKeyword(occurrence)) issues.push("missing_keyword")
   // Ticket URLs are useful purchase metadata, but neither editors nor the
   // source systems can guarantee that every event has a stable ticket page.

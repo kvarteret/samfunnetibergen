@@ -3,9 +3,8 @@
 import { ExternalLink, Mic } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
-import { ContentImage } from "@/components/ui/content-image"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { Link } from "@/i18n/navigation"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
 import type { KaraokeRoom, KaraokeRoomImage } from "../types"
 
 interface KaraokeFormRoomCardProps {
@@ -17,20 +16,23 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
 
   return (
     <Card className="space-y-4 bg-card p-5 py-5">
-      <ContentImage
-        alt={firstImage?.alt ?? room.title}
-        className="border-2 border-border/50"
-        fallback={<Mic className="size-10 text-foreground-muted" aria-hidden />}
-        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-        src={
-          firstImage?.assetUrl
-            ? sanityImageUrl(firstImage.assetUrl, {
-                height: 600,
-                width: 800,
-              })
-            : null
-        }
-      />
+      {firstImage?.id ? (
+        <SanityImage
+          alt={firstImage.alt ?? room.title}
+          className="h-auto w-full border-2 border-border/50"
+          crop={firstImage.crop ?? undefined}
+          hotspot={firstImage.hotspot ?? undefined}
+          id={firstImage.id}
+          mode="contain"
+          preview={firstImage.lqip ?? undefined}
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          width={800}
+        />
+      ) : (
+        <div className="flex aspect-video w-full items-center justify-center bg-muted">
+          <Mic className="size-10 text-foreground-muted" aria-hidden />
+        </div>
+      )}
       <div className="space-y-1">
         <Link
           className="group flex items-center gap-1.5 font-heading text-foreground hover:text-primary transition-colors focus-brutal"

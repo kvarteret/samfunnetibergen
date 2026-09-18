@@ -2,7 +2,7 @@ import { Users } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { LeietiderSection } from "@/components/leietider-section"
 import { Button } from "@/components/ui/button"
-import { ContentImage } from "@/components/ui/content-image"
+import { SanityImage } from "@/components/ui/sanity-image"
 
 import { Link } from "@/i18n/navigation"
 import {
@@ -13,7 +13,6 @@ import {
 import { buildPageMetadata } from "@/lib/page-metadata"
 import type { RoomSummary, SourcedImage } from "@/lib/sanity/fetch"
 import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
 
 export const revalidate = 300
 
@@ -38,11 +37,6 @@ export async function generateMetadata({ params }: RoomsPageProps) {
   })
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) =>
-  image?.assetUrl
-    ? sanityImageUrl(image.assetUrl, { height: 900, width: 1200 })
-    : undefined
-
 function RoomImage({
   image,
   title,
@@ -50,20 +44,26 @@ function RoomImage({
   image: RoomSummary["image"]
   title: string
 }) {
-  const src = imageUrl(image)
-
   return (
-    <ContentImage
-      alt={image?.alt || title}
-      aspectRatio={16 / 9}
-      fallback={
+    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden bg-muted">
+      {image?.id ? (
+        <SanityImage
+          alt={image.alt || title}
+          className="h-full w-full object-contain"
+          crop={image.crop ?? undefined}
+          hotspot={image.hotspot ?? undefined}
+          id={image.id}
+          mode="contain"
+          preview={image.lqip ?? undefined}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          width={1200}
+        />
+      ) : (
         <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
           {title}
         </span>
-      }
-      sizes="(max-width: 768px) 100vw, 50vw"
-      src={src}
-    />
+      )}
+    </div>
   )
 }
 

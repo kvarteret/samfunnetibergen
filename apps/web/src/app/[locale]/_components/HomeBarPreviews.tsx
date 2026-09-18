@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { SectionMark } from "@/components/section-mark"
-import { ContentImage } from "@/components/ui/content-image"
+import { SanityImage } from "@/components/ui/sanity-image"
 import type { AppLocale } from "@/i18n/routing"
 import {
   type ClosedDate,
@@ -16,7 +16,6 @@ import {
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { useCurrentTime } from "@/lib/use-current-time"
 
 interface NowPlayingState {
@@ -30,8 +29,16 @@ interface NowPlayingState {
 }
 
 interface BarPreviewImage {
-  assetUrl?: string | null
+  id?: string | null
   alt?: string | null
+  hotspot?: { x: number; y: number } | null
+  crop?: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  lqip?: string | null
 }
 
 export interface HomeBarPreviewRoom {
@@ -159,9 +166,7 @@ function HomeBarPreviewCard({
     vacationMode,
     locale,
   )
-  const imageUrl = room.image?.assetUrl
-    ? sanityImageUrl(room.image.assetUrl, { height: 720, width: 960 })
-    : null
+  const image = room.image
   const href = room.slug ? `/${locale}/rom/${room.slug}` : `/${locale}/rom`
 
   return (
@@ -173,17 +178,24 @@ function HomeBarPreviewCard({
       href={href}
     >
       <div className="relative min-h-full bg-muted">
-        <ContentImage
-          alt={room.image?.alt ?? room.title ?? translations("barImageAlt")}
-          aspectRatio={null}
-          className="min-h-full"
-          fallback={
+        {image?.id ? (
+          <SanityImage
+            alt={image.alt ?? room.title ?? translations("barImageAlt")}
+            className="min-h-full w-full object-cover"
+            crop={image.crop ?? undefined}
+            hotspot={image.hotspot ?? undefined}
+            height={720}
+            id={image.id}
+            mode="cover"
+            preview={image.lqip ?? undefined}
+            sizes="(min-width: 1024px) 25vw, 50vw"
+            width={960}
+          />
+        ) : (
+          <div className="flex min-h-full items-center justify-center">
             <Music2 aria-hidden className="size-10 text-foreground-muted" />
-          }
-          objectFit="cover"
-          sizes="(min-width: 1024px) 25vw, 50vw"
-          src={imageUrl}
-        />
+          </div>
+        )}
       </div>
       <div className="flex min-w-0 flex-col justify-between gap-5 p-5">
         <div className="space-y-3">

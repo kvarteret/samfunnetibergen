@@ -2,11 +2,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { ContentImage } from "@/components/ui/content-image"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { Tag } from "@/components/ui/tag"
+import type { PublicImageSource } from "@/features/events/domain/events"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -40,14 +40,14 @@ export type EventSummary = {
   priceMedlem?: number | null
   ticketUrl?: string | null
   facebookUrl?: string | null
-  imageUrl?: string | null
+  image?: PublicImageSource | null
   imageCaption?: string | null
   room?: {
     _id: string
     title: string
     slug: string
     floor?: number | null
-    imageUrl?: string | null
+    image?: PublicImageSource | null
   } | null
   roomText?: string | null
   organizerGroup?: { _id: string; name: string; slug: string } | null
@@ -142,14 +142,6 @@ export function EventCard({
   const roomFloor = event.room?.floor
   const href = `/arrangementer/${event.slug}`
   const timeLabel = event.primaryDateLabel
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
-      )
-    : null
 
   return (
     <Link
@@ -162,7 +154,7 @@ export function EventCard({
           cardSize={cardSize}
           cardVariant={cardVariant}
           event={event}
-          imageUrl={imageUrl}
+          image={event.image ?? null}
           isEditorial={isEditorial}
           priority={priority}
         />
@@ -205,44 +197,54 @@ function EventCardMedia({
   cardSize,
   cardVariant,
   event,
-  imageUrl,
+  image,
   isEditorial,
   priority,
 }: {
   cardSize: EventCardSize
   cardVariant: EventCardVariant
   event: EventSummary
-  imageUrl: string | null
+  image: PublicImageSource | null
   isEditorial: boolean
   priority: boolean
 }) {
-  if (!imageUrl && !isEditorial) return null
+  if (!image && !isEditorial) return null
 
   return (
-    <ContentImage
-      alt={event.imageCaption ?? event.title}
-      aspectRatio={16 / 9}
+    <div
       className={cn(
-        "group/image shrink-0",
+        "group/image relative w-full shrink-0 overflow-hidden bg-muted",
+        "aspect-video",
         cardSize === "small" && !isEditorial && "border-2 border-border",
       )}
-      fallback={
-        <div className="flex h-full w-full items-center justify-center bg-muted p-6 text-center font-heading text-foreground-muted">
+    >
+      {image ? (
+        <SanityImage
+          alt={event.imageCaption ?? event.title}
+          className={cn(
+            "h-full w-full object-contain",
+            isEditorial &&
+              "transition-transform duration-300 group-hover/image:scale-105",
+          )}
+          crop={image.crop ?? undefined}
+          hotspot={image.hotspot ?? undefined}
+          id={image.id}
+          loading={priority ? "eager" : "lazy"}
+          mode="contain"
+          preview={image.lqip ?? undefined}
+          sizes={
+            cardVariant === "slider"
+              ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
+              : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
+          }
+          width={cardVariant === "slider" ? 640 : 1200}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">
           {event.title}
         </div>
-      }
-      imageClassName={cn(
-        isEditorial &&
-          "transition-transform duration-300 group-hover/image:scale-105",
       )}
-      priority={priority}
-      sizes={
-        cardVariant === "slider"
-          ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
-          : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
-      }
-      src={imageUrl}
-    />
+    </div>
   )
 }
 
