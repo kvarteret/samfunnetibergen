@@ -131,6 +131,7 @@ function toEventSummary(
     priceMedlem: event.priceMedlem ?? null,
     ticketUrl: event.ticketUrl ?? null,
     facebookUrl: event.facebookUrl ?? null,
+    image: event.image ?? null,
     imageCaption: event.imageCaption ?? null,
     room: event.room
       ? {
@@ -138,6 +139,7 @@ function toEventSummary(
           title: event.room.title,
           slug: event.room.slug,
           floor: event.room.floor ?? null,
+          image: event.room.image ?? null,
         }
       : null,
     roomText: event.roomText ?? null,

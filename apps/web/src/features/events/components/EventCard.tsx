@@ -40,7 +40,10 @@ export type EventSummary = {
   priceMedlem?: number | null
   ticketUrl?: string | null
   facebookUrl?: string | null
-  image?: PublicImageSource | null
+  /** Required so a summary builder cannot silently drop the artwork. */
+  image: PublicImageSource | null
+  /** Local blob preview for the submission form, which is not a Sanity asset. */
+  previewImageUrl?: string | null
   imageCaption?: string | null
   room?: {
     _id: string
@@ -156,6 +159,7 @@ export function EventCard({
           event={event}
           image={event.image ?? null}
           isEditorial={isEditorial}
+          previewImageUrl={event.previewImageUrl ?? null}
           priority={priority}
         />
 
@@ -199,6 +203,7 @@ function EventCardMedia({
   event,
   image,
   isEditorial,
+  previewImageUrl,
   priority,
 }: {
   cardSize: EventCardSize
@@ -206,9 +211,10 @@ function EventCardMedia({
   event: EventSummary
   image: PublicImageSource | null
   isEditorial: boolean
+  previewImageUrl: string | null
   priority: boolean
 }) {
-  if (!image && !isEditorial) return null
+  if (!image && !previewImageUrl && !isEditorial) return null
 
   return (
     <div
@@ -234,6 +240,13 @@ function EventCardMedia({
               : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
           }
           width={cardVariant === "slider" ? 640 : 1200}
+        />
+      ) : previewImageUrl ? (
+        // biome-ignore lint/performance/noImgElement: blob preview of a freshly uploaded file
+        <img
+          alt={event.imageCaption ?? event.title}
+          className="h-full w-full object-contain"
+          src={previewImageUrl}
         />
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">
