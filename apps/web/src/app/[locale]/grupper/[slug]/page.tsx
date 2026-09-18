@@ -1,11 +1,11 @@
 import { ExternalLink, Globe, Mail } from "lucide-react"
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Avatar } from "@/components/ui/avatar"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { GroupVolunteerForm } from "@/features/grupper"
 import {
   activateRequestLocale,
@@ -19,6 +19,7 @@ import {
   fetchStudentGroupBySlug,
   fetchStudentGroupSlugs,
 } from "@/lib/sanity/fetch"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import enMessages from "@/messages/en.json"
 import nbMessages from "@/messages/nb.json"
 
@@ -53,7 +54,13 @@ export async function generateMetadata({ params }: GroupPageProps) {
     canonicalPath: `/${localeParam}/grupper/${slug}`,
     title: `${group.name} | ${locale === "en" ? "Groups" : "Grupper"}`,
     description: group.summary,
-    imageUrl: group.image?.assetUrl,
+    imageUrl: group.image?.id
+      ? sanityImageUrl(group.image.id, {
+          height: 630,
+          mode: "cover",
+          width: 1200,
+        })
+      : undefined,
   })
 }
 
@@ -99,19 +106,15 @@ export default async function GroupPage({ params }: GroupPageProps) {
           summary={group.summary}
         />
 
-        {group.image?.assetUrl ? (
+        {group.image?.id ? (
           <figure className="space-y-2">
-            <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
-              <Image
-                alt={
-                  group.image.alt ?? t("logoAlt", { group: group.name ?? "" })
-                }
-                className="object-cover"
-                fill
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                src={group.image.assetUrl}
-              />
-            </div>
+            <SanityImage
+              alt={group.image.alt ?? t("logoAlt", { group: group.name ?? "" })}
+              className="h-auto w-full border-2 border-border"
+              image={group.image}
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              width={1600}
+            />
             {group.image.caption ? (
               <figcaption className="text-lg italic text-foreground-muted">
                 {group.image.caption}

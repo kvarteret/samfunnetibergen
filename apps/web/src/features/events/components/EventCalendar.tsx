@@ -1,14 +1,13 @@
 "use client"
 
 import { ArrowDown, CalendarDays } from "lucide-react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
+import { SanityImage } from "@/components/ui/sanity-image"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import {
   buildCalendarMonths,
@@ -58,9 +57,7 @@ function formatTime(occurrence: CalendarOccurrence, prefix: string) {
 function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 180, width: 280 })
-    : null
+  const image = event.image
   const time = formatTime(occurrence, t("timePrefix"))
 
   return (
@@ -68,15 +65,14 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
       href={`/arrangementer/${event.slug}`}
     >
-      {imageUrl ? (
+      {image ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          <Image
+          <SanityImage
             alt={event.imageCaption ?? event.title}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            fill
+            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            image={image}
             sizes="(max-width: 768px) 30vw, 16rem"
-            src={imageUrl}
-            unoptimized={shouldLoadImageDirectly(imageUrl)}
+            width={280}
           />
         </div>
       ) : (

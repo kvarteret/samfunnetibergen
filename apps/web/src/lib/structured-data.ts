@@ -5,6 +5,7 @@ import {
   DEFAULT_PUBLIC_VENUE_NAME,
   type PublicOccurrence,
 } from "@/features/events/domain/events"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 
 const SCHEMA_CONTEXT = "https://schema.org"
 const KVARTERET_MAP_URL =
@@ -231,7 +232,12 @@ export function buildEventStructuredDataNode(
   if (schedule.endsAt) node.endDate = schedule.endsAt
   const description = toPlainTextContent(event.description)
   if (description) node.description = description
-  if (event.imageUrl) node.image = event.imageUrl
+  if (event.image)
+    node.image = sanityImageUrl(event.image.id, {
+      height: 630,
+      mode: "cover",
+      width: 1200,
+    })
   node.location = location
 
   const keywords = buildKeywords(event)

@@ -1,10 +1,10 @@
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import type { ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { SanityImage } from "@/components/ui/sanity-image"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
@@ -17,7 +17,7 @@ import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { resolveSiteUrl } from "@/lib/site-url"
 import {
   buildEventStructuredData,
@@ -83,12 +83,7 @@ export default async function EventPage({ params }: EventPageProps) {
           path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
-        <EventDetailHero
-          event={eventData}
-          eventSlug={resolvedParams.event}
-          ticketsLabel={t("tickets")}
-          partOfLabel={t("partOf")}
-        />
+        <EventDetailHero event={eventData} partOfLabel={t("partOf")} />
         <EventDetailDescription
           event={eventData}
           eventSlug={resolvedParams.event}
@@ -121,7 +116,13 @@ export async function generateMetadata({ params }: EventPageProps) {
     canonicalPath: `/${locale}/arrangementer/${resolvedParams.event}`,
     title: eventData.title,
     description: toPlainTextContent(eventData.description),
-    imageUrl: eventData.imageUrl,
+    imageUrl: eventData.image
+      ? sanityImageUrl(eventData.image.id, {
+          height: 630,
+          mode: "cover",
+          width: 1200,
+        })
+      : null,
     openGraphType: "article",
   })
 
@@ -149,18 +150,12 @@ function EventStatusNotice({
 
 function EventDetailHero({
   event,
-  eventSlug,
-  ticketsLabel,
   partOfLabel,
 }: {
   event: EventDetail
-  eventSlug: string
-  ticketsLabel: string
   partOfLabel: string
 }) {
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
-    : null
+  const image = event.image
 
   return (
     <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
@@ -185,30 +180,18 @@ function EventDetailHero({
             </Link>
           </p>
         )}
-        {event.ticketUrl && (
-          <EventTicketButton
-            ticketUrl={event.ticketUrl}
-            label={ticketsLabel}
-            eventId={event._id}
-            eventTitle={event.title}
-            eventSlug={eventSlug}
-          />
-        )}
       </div>
 
       <div className="overflow-hidden border-2 border-border bg-muted">
-        {imageUrl ? (
-          <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
-            <Image
-              alt={event.imageCaption ?? event.title}
-              className="object-cover"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 80vw"
-              src={imageUrl}
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
-            />
-          </div>
+        {image ? (
+          <SanityImage
+            alt={event.imageCaption ?? event.title}
+            className="mx-auto block h-auto max-h-[36rem] w-auto max-w-full object-contain"
+            image={image}
+            loading="eager"
+            sizes="(max-width: 1024px) 100vw, 80vw"
+            width={1600}
+          />
         ) : (
           <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
             <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
@@ -337,9 +320,7 @@ function EventDetailRoomLink({
   roomTitle?: string | null
 }) {
   const roomFloor = event.room?.floor
-  const roomImageUrl = event.room?.imageUrl
-    ? sanityImageUrl(event.room.imageUrl, { height: 264, width: 352 })
-    : null
+  const roomImage = event.room?.image ?? null
 
   return (
     <span className="group relative inline-block">
@@ -349,19 +330,16 @@ function EventDetailRoomLink({
       >
         {roomTitle}
       </Link>
-      {(roomImageUrl != null || roomFloor != null) && (
+      {(roomImage || roomFloor != null) && (
         <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
-          {roomImageUrl && (
-            <span className="relative block aspect-4/3 w-full">
-              <Image
-                src={roomImageUrl}
-                alt={roomTitle ?? ""}
-                fill
-                className="object-cover"
-                sizes="176px"
-                unoptimized={shouldLoadImageDirectly(roomImageUrl)}
-              />
-            </span>
+          {roomImage && (
+            <SanityImage
+              alt={roomTitle ?? ""}
+              className="block aspect-4/3 w-full object-contain"
+              image={roomImage}
+              sizes="176px"
+              width={352}
+            />
           )}
           {roomFloor != null && (
             <span className="px-2 py-1 text-sm text-muted-foreground">
@@ -452,7 +430,16 @@ function EventDetailActions({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col items-start gap-4">
+      {event.ticketUrl && (
+        <EventTicketButton
+          ticketUrl={event.ticketUrl}
+          label={t("tickets")}
+          eventId={event._id}
+          eventTitle={event.title}
+          eventSlug={eventSlug}
+        />
+      )}
       {event.facebookUrl && (
         <EventFacebookButton
           facebookUrl={event.facebookUrl}

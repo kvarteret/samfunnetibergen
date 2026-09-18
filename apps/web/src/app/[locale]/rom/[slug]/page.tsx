@@ -31,6 +31,7 @@ import {
   fetchRoomBySlug,
   fetchRoomSlugs,
 } from "@/lib/sanity/fetch"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 
 export const revalidate = 300
 
@@ -46,8 +47,6 @@ export async function generateStaticParams() {
   return locales.flatMap(({ locale }) => slugs.map(slug => ({ locale, slug })))
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
-
 export async function generateMetadata({ params }: RoomPageProps) {
   const { slug, locale: localeParam } = await params
   const locale = await resolvePageLocale(
@@ -57,7 +56,14 @@ export async function generateMetadata({ params }: RoomPageProps) {
   if (!room) return {}
 
   const title = room.title ?? slug
-  const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
+  const firstImage = room.images?.[0]
+  const firstImageUrl = firstImage?.id
+    ? sanityImageUrl(firstImage.id, {
+        height: 630,
+        mode: "cover",
+        width: 1200,
+      })
+    : undefined
 
   return buildPageMetadata({
     locale,
@@ -85,13 +91,17 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
   const imageSlides: CarouselSlide[] = (room.images ?? []).flatMap(
     (image: SourcedImage) => {
-      const src = imageUrl(image)
-      return src
+      return image.id
         ? [
             {
               _key: image._key,
               type: "image" as const,
-              src,
+              image: {
+                id: image.id,
+                hotspot: image.hotspot ?? null,
+                crop: image.crop ?? null,
+                lqip: image.lqip ?? null,
+              },
               alt: image.alt || title,
               caption: image.caption,
             },

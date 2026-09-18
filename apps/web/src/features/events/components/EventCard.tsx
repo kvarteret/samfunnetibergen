@@ -1,12 +1,12 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin } from "lucide-react"
-import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { Tag } from "@/components/ui/tag"
+import type { PublicImageSource } from "@/features/events/domain/events"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -40,14 +40,17 @@ export type EventSummary = {
   priceMedlem?: number | null
   ticketUrl?: string | null
   facebookUrl?: string | null
-  imageUrl?: string | null
+  /** Required so a summary builder cannot silently drop the artwork. */
+  image: PublicImageSource | null
+  /** Local blob preview for the submission form, which is not a Sanity asset. */
+  previewImageUrl?: string | null
   imageCaption?: string | null
   room?: {
     _id: string
     title: string
     slug: string
     floor?: number | null
-    imageUrl?: string | null
+    image?: PublicImageSource | null
   } | null
   roomText?: string | null
   organizerGroup?: { _id: string; name: string; slug: string } | null
@@ -142,14 +145,6 @@ export function EventCard({
   const roomFloor = event.room?.floor
   const href = `/arrangementer/${event.slug}`
   const timeLabel = event.primaryDateLabel
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
-      )
-    : null
 
   return (
     <Link
@@ -162,8 +157,9 @@ export function EventCard({
           cardSize={cardSize}
           cardVariant={cardVariant}
           event={event}
-          imageUrl={imageUrl}
+          image={event.image ?? null}
           isEditorial={isEditorial}
+          previewImageUrl={event.previewImageUrl ?? null}
           priority={priority}
         />
 
@@ -205,18 +201,20 @@ function EventCardMedia({
   cardSize,
   cardVariant,
   event,
-  imageUrl,
+  image,
   isEditorial,
+  previewImageUrl,
   priority,
 }: {
   cardSize: EventCardSize
   cardVariant: EventCardVariant
   event: EventSummary
-  imageUrl: string | null
+  image: PublicImageSource | null
   isEditorial: boolean
+  previewImageUrl: string | null
   priority: boolean
 }) {
-  if (!imageUrl && !isEditorial) return null
+  if (!image && !previewImageUrl && !isEditorial) return null
 
   return (
     <div
@@ -226,23 +224,29 @@ function EventCardMedia({
         cardSize === "small" && !isEditorial && "border-2 border-border",
       )}
     >
-      {imageUrl ? (
-        <Image
+      {image ? (
+        <SanityImage
           alt={event.imageCaption ?? event.title}
           className={cn(
-            "object-cover",
+            "h-full w-full object-contain",
             isEditorial &&
               "transition-transform duration-300 group-hover/image:scale-105",
           )}
-          fill
-          priority={priority}
+          image={image}
+          loading={priority ? "eager" : "lazy"}
           sizes={
             cardVariant === "slider"
               ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
               : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
           }
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
+          width={cardVariant === "slider" ? 640 : 1200}
+        />
+      ) : previewImageUrl ? (
+        // biome-ignore lint/performance/noImgElement: blob preview of a freshly uploaded file
+        <img
+          alt={event.imageCaption ?? event.title}
+          className="h-full w-full object-contain"
+          src={previewImageUrl}
         />
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">

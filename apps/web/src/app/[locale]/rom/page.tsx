@@ -2,7 +2,7 @@ import { Users } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { LeietiderSection } from "@/components/leietider-section"
 import { Button } from "@/components/ui/button"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { SanityImage } from "@/components/ui/sanity-image"
 
 import { Link } from "@/i18n/navigation"
 import {
@@ -37,8 +37,6 @@ export async function generateMetadata({ params }: RoomsPageProps) {
   })
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
-
 function RoomImage({
   image,
   title,
@@ -46,20 +44,22 @@ function RoomImage({
   image: RoomSummary["image"]
   title: string
 }) {
-  const src = imageUrl(image)
-
   return (
-    <ImageWithFallback
-      alt={image?.alt || title}
-      aspectRatio="16/9"
-      fallback={
+    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden bg-muted">
+      {image?.id ? (
+        <SanityImage
+          alt={image.alt || title}
+          className="h-full w-full object-contain"
+          image={image}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          width={1200}
+        />
+      ) : (
         <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
           {title}
         </span>
-      }
-      sizes="(max-width: 768px) 100vw, 50vw"
-      src={src}
-    />
+      )}
+    </div>
   )
 }
 

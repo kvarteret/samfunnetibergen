@@ -1,7 +1,7 @@
 import { MapPin, X } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { DetailRow } from "@/components/ui/detail-row"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { SanityImage } from "@/components/ui/sanity-image"
 
 import type {
   ClosedDate,
@@ -197,14 +197,19 @@ function SelectedRoomCard({
           )}
         </div>
         <div className="w-20 shrink-0 overflow-hidden">
-          <ImageWithFallback
-            alt={room.image?.alt ?? roomName}
-            fallback={
+          {room.image?.id ? (
+            <SanityImage
+              alt={room.image.alt ?? roomName}
+              className="h-auto w-full object-contain"
+              image={room.image}
+              sizes="80px"
+              width={320}
+            />
+          ) : (
+            <div className="flex aspect-video w-full items-center justify-center bg-muted">
               <MapPin aria-hidden className="size-4 text-foreground-muted" />
-            }
-            sizes="80px"
-            src={room.image?.assetUrl}
-          />
+            </div>
+          )}
         </div>
         <button
           aria-label={t("summary.removeRoom", { room: roomName })}
@@ -224,17 +229,24 @@ function SelectedRoomCard({
   return (
     <div className="relative">
       {!isCrescatOnly && (
-        <ImageWithFallback
-          alt={room.image?.alt ?? roomName}
-          fallback={
-            <span className="flex items-center gap-2 text-foreground-muted">
-              <MapPin aria-hidden className="size-4" />
-              {t("summary.room")}
-            </span>
-          }
-          sizes="(min-width: 1024px) 360px, 100vw"
-          src={room.image?.assetUrl}
-        />
+        <>
+          {room.image?.id ? (
+            <SanityImage
+              alt={room.image.alt ?? roomName}
+              className="h-auto w-full object-contain"
+              image={room.image}
+              sizes="(min-width: 1024px) 360px, 100vw"
+              width={960}
+            />
+          ) : (
+            <div className="flex aspect-video w-full items-center justify-center bg-muted">
+              <span className="flex items-center gap-2 text-foreground-muted">
+                <MapPin aria-hidden className="size-4" />
+                {t("summary.room")}
+              </span>
+            </div>
+          )}
+        </>
       )}
       <div className="border-b-2 border-border p-5">
         <div className="flex items-start justify-between gap-2">
