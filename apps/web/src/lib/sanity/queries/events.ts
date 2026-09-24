@@ -17,6 +17,12 @@ export const eventRoomsQuery = defineQuery(`
     "slug": coalesce(slug.current, "")
 }`)
 
+export const eventTaxonomyGroupsQuery = defineQuery(`
+    *[_type == "eventTaxonomyGroup"] | order(orderRank asc, ${localizedName} asc) {
+    _id,
+    "name": ${localizedName}
+}`)
+
 export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, ${localizedName} asc) {
     _id,
@@ -25,6 +31,15 @@ export const eventTypesQuery = defineQuery(`
         _id,
         "name": ${localizedName}
     }
+}`)
+
+// Discovery includes inactive types because published events can still refer to them.
+export const publicEventTaxonomyTypesQuery = defineQuery(`
+    *[_type == "eventType"] | order(taxonomyGroup->orderRank asc, orderRank asc, ${localizedName} asc) {
+    _id,
+    "name": ${localizedName},
+    "taxonomyGroupId": taxonomyGroup->_id,
+    "isActive": coalesce(isActive, true)
 }`)
 
 export const eventGroupsQuery = defineQuery(`

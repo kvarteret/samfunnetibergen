@@ -37,6 +37,12 @@ const publicTaxonomyEventTypeSchema = z.strictObject({
   name: z.string(),
 })
 
+const publicTaxonomyEventTypeDetailSchema =
+  publicTaxonomyEventTypeSchema.extend({
+    taxonomyGroupId: z.string().min(1).nullable(),
+    isActive: z.boolean(),
+  })
+
 const publicTaxonomyEventTypeGroupSchema = z.strictObject({
   id: z.string().min(1),
   name: z.string(),
@@ -51,6 +57,7 @@ const publicTaxonomyRoomSchema = z.strictObject({
 
 export const publicEventTaxonomySchema = z.strictObject({
   eventTypeGroups: z.array(publicTaxonomyEventTypeGroupSchema),
+  eventTypes: z.array(publicTaxonomyEventTypeDetailSchema),
   rooms: z.array(publicTaxonomyRoomSchema),
 })
 

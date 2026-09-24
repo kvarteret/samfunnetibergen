@@ -6,7 +6,7 @@ the shared event service and applies localization, inherited fields, status,
 visibility, and Europe/Oslo schedule rules before returning JSON. Clients must
 use this API rather than querying Sanity or scraping website pages.
 
-## Endpoint
+## Event occurrences
 
 `GET /api/v1/events` returns every matching public occurrence. The default
 range starts today in Europe/Oslo and has no upper bound. `locale=nb` (the
@@ -77,9 +77,48 @@ to the supported HTML subset before they leave the API.
 The website event detail page continues to use the shared server service
 directly. There is no separate event-detail HTTP endpoint.
 
+## Taxonomy discovery
+
+`GET /api/v1/events/taxonomy` returns the published Sanity categories, event
+types, and rooms used to interpret IDs in the events feed. `locale=nb` is the
+default; `locale=en` requests English names with Norwegian as the field-level
+fallback. No date range is needed. Unknown query parameters return `400`.
+
+The response has three lists:
+
+    {
+      "eventTypeGroups": [
+        {
+          "id": "group-music",
+          "name": "Konserter",
+          "eventTypes": [{ "id": "type-concert", "name": "Konsert" }]
+        }
+      ],
+      "eventTypes": [
+        {
+          "id": "type-concert",
+          "name": "Konsert",
+          "taxonomyGroupId": "group-music",
+          "isActive": true
+        }
+      ],
+      "rooms": [
+        { "id": "room-teglverket", "name": "Teglverket", "slug": "teglverket" }
+      ]
+    }
+
+The top-level `eventTypes` list includes inactive types because existing
+published events may still refer to them. `isActive` reports the type's Sanity
+active flag. A type whose category is missing
+has `taxonomyGroupId: null` and remains in this list; category groups with no
+types remain in `eventTypeGroups`. The nested `eventTypes` arrays are a
+convenient grouped view of the same IDs. These IDs are source identifiers, not
+Broadcast category names. Consumers should map the IDs to their own taxonomy;
+the names may change through editing or localization.
+
 ## Caching and protocol
 
-The API is anonymous and supports cross-origin `GET`, `HEAD`, and `OPTIONS`.
+Both endpoints are anonymous and support cross-origin `GET`, `HEAD`, and `OPTIONS`.
 Successful responses use a 60-second shared cache with five minutes of
 stale-while-revalidate and include an `ETag`. A matching `If-None-Match` header
 returns `304` without a body. `HEAD` has the same status and headers as `GET`
@@ -90,8 +129,10 @@ The OpenAPI document is available at
 
 ## Broadcast
 
-Broadcast polls the complete default snapshot and uses the occurrence `id` as
-its stable match key. Run the non-mutating source audit before handoff:
+Broadcast polls the complete default event snapshot and uses the occurrence
+`id` as its stable match key. It can use the taxonomy endpoint to discover
+source room and event type IDs for its mapping. Run the non-mutating source
+audit before handoff:
 
     npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only
 

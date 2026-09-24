@@ -2,7 +2,11 @@ import "server-only"
 
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "@/lib/sanity/client"
-import { eventRoomsQuery, eventTypesQuery } from "@/lib/sanity/queries"
+import {
+  eventRoomsQuery,
+  eventTaxonomyGroupsQuery,
+  publicEventTaxonomyTypesQuery,
+} from "@/lib/sanity/queries"
 import type { PublicEventTaxonomy } from "../api/schemas"
 
 const TAXONOMY_QUERY_OPTIONS = {
@@ -15,42 +19,46 @@ const TAXONOMY_QUERY_OPTIONS = {
 type TaxonomyTypeRow = {
   _id: string
   name: string
-  taxonomyGroup: { _id: string; name: string } | null
+  taxonomyGroupId: string | null
+  isActive: boolean
 }
+type TaxonomyGroupRow = { _id: string; name: string }
 type TaxonomyRoomRow = { _id: string; title: string; slug: string }
 
 export async function fetchPublicEventTaxonomy(
   locale: AppLocale,
 ): Promise<PublicEventTaxonomy> {
-  const [typeRows, roomRows] = await Promise.all([
-    sanityClient.fetch(eventTypesQuery, { locale }, TAXONOMY_QUERY_OPTIONS),
+  const [groupRows, typeRows, roomRows] = await Promise.all([
+    sanityClient.fetch(
+      eventTaxonomyGroupsQuery,
+      { locale },
+      TAXONOMY_QUERY_OPTIONS,
+    ),
+    sanityClient.fetch(
+      publicEventTaxonomyTypesQuery,
+      { locale },
+      TAXONOMY_QUERY_OPTIONS,
+    ),
     sanityClient.fetch(eventRoomsQuery, { locale }, TAXONOMY_QUERY_OPTIONS),
   ])
+  const groups = groupRows as TaxonomyGroupRow[]
   const types = typeRows as TaxonomyTypeRow[]
   const rooms = roomRows as TaxonomyRoomRow[]
-  const groups = new Map<
-    string,
-    {
-      id: string
-      name: string
-      eventTypes: Array<{ id: string; name: string }>
-    }
-  >()
-
-  for (const type of types) {
-    const group = type.taxonomyGroup
-    if (!group) continue
-    const current = groups.get(group._id) ?? {
-      id: group._id,
-      name: group.name,
-      eventTypes: [],
-    }
-    current.eventTypes.push({ id: type._id, name: type.name })
-    groups.set(group._id, current)
-  }
 
   return {
-    eventTypeGroups: Array.from(groups.values()),
+    eventTypeGroups: groups.map(group => ({
+      id: group._id,
+      name: group.name,
+      eventTypes: types
+        .filter(type => type.taxonomyGroupId === group._id)
+        .map(type => ({ id: type._id, name: type.name })),
+    })),
+    eventTypes: types.map(type => ({
+      id: type._id,
+      name: type.name,
+      taxonomyGroupId: type.taxonomyGroupId,
+      isActive: type.isActive,
+    })),
     rooms: rooms.map(room => ({
       id: room._id,
       name: room.title,

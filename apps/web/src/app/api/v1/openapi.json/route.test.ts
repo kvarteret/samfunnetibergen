@@ -42,6 +42,8 @@ describe("public events OpenAPI document", () => {
     )
     expect(taxonomy).toContain("eventTypeGroups")
     expect(taxonomy).toContain("eventTypes")
+    expect(taxonomy).toContain("taxonomyGroupId")
+    expect(taxonomy).toContain("isActive")
     expect(taxonomy).toContain("rooms")
   })
 

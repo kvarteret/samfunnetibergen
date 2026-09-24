@@ -93,7 +93,7 @@ export function buildPublicEventsOpenApi(
           operationId: "getEventTaxonomy",
           summary: "Discover event types, category groups, and rooms",
           description:
-            "Returns the currently published event taxonomy, including every event type nested under its category group and all room IDs. IDs match those used by the events feed. The response is localized to Norwegian by default.",
+            "Returns all published category groups, event types, and rooms. The top-level eventTypes list includes inactive and ungrouped types so IDs in the events feed remain discoverable; isActive reports each type's Sanity active flag. IDs match those used by the events feed. Names are localized to Norwegian by default.",
           security: [],
           parameters: [
             {
