@@ -1,10 +1,18 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import { se } from "date-fns/locale"
 import { ArrowRight, Loader2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
-import { type FormEvent, useEffect, useId, useRef, useState } from "react"
+import {
+  type FormEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -63,6 +71,13 @@ export type BookingFormValues = BookingFormState
 const DATE_COUNT = 7
 const TIVOLI_CRESCAT_ROOM_ID = 95
 
+function saveBookingDraft(values: BookingFormValues) {
+  localStorage.setItem(
+    "bookingData",
+    JSON.stringify({ ...values, acceptTerms: false }),
+  )
+}
+
 interface BookingFormProps {
   initialRooms: BookingRoom[]
   initialRoomId?: number
@@ -90,23 +105,29 @@ export function BookingForm({
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
+  const [isClearing, setIsClearing] = useState(false)
   const bookingSubmissionIdRef = useRef<string | null>(null)
   const submissionAttemptRef = useRef(0)
+  const hasHydratedDraftRef = useRef(false)
   const honeypotId = `${uid}-hp`
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const today = isoDate(useCurrentTime(initialNow))
-  const defaultValues = {
-    ...initialBookingState,
-    ticketTypes: initialBookingState.ticketTypes.map(ticket => ({
-      ...ticket,
-      name: t("ticket.regularDefault"),
-    })),
-    selectedRoomIds:
-      initialRoomId != null &&
-      initialRooms.some(r => r.crescatRoomId === initialRoomId)
-        ? [initialRoomId]
-        : [],
-  } as BookingFormValues
+  const defaultValues = useMemo(
+    () =>
+      ({
+        ...initialBookingState,
+        ticketTypes: initialBookingState.ticketTypes.map(ticket => ({
+          ...ticket,
+          name: t("ticket.regularDefault"),
+        })),
+        selectedRoomIds:
+          initialRoomId != null &&
+          initialRooms.some(r => r.crescatRoomId === initialRoomId)
+            ? [initialRoomId]
+            : [],
+      }) as BookingFormValues,
+    [initialRoomId, initialRooms, t],
+  )
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
     startDate: `${uid}-startDate`,
@@ -125,6 +146,11 @@ export function BookingForm({
   }
   const form = useForm({
     defaultValues,
+    listeners: {
+      onChange: ({ formApi }) => {
+        if (hasHydratedDraftRef.current) saveBookingDraft(formApi.state.values)
+      },
+    },
     validators: {
       onChange: bookingFormSchema,
       onSubmit: bookingFormSchema,
@@ -150,6 +176,7 @@ export function BookingForm({
         requestExceptionFeedback("room_booking")
         throw new Error(result.error)
       }
+      localStorage.removeItem("bookingData")
       if (honeypot.trim()) return
 
       try {
@@ -175,6 +202,33 @@ export function BookingForm({
     },
   })
   const values = useStore(form.store, state => state.values)
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("bookingData")
+
+    if (!savedDraft) {
+      hasHydratedDraftRef.current = true
+      saveBookingDraft(defaultValues)
+      return
+    }
+
+    try {
+      const parsedDraft = JSON.parse(savedDraft)
+      const restoredValues = {
+        ...defaultValues,
+        ...parsedDraft,
+        acceptTerms: false,
+      }
+
+      form.reset(restoredValues, { keepDefaultValues: true })
+      hasHydratedDraftRef.current = true
+      saveBookingDraft(restoredValues)
+    } catch {
+      localStorage.removeItem("bookingData")
+      hasHydratedDraftRef.current = true
+    }
+  }, [form])
+
   const isSubmitting = useStore(form.store, state => state.isSubmitting)
   const isSubmitSuccessful = useStore(
     form.store,
@@ -245,7 +299,8 @@ export function BookingForm({
   }
 
   const hasConflict =
-    !!values.startDate && selectedRoomIds.some(id => roomOccupancy.has(id))
+    !!values.startDate &&
+    selectedRoomIds.some((id: number) => roomOccupancy.has(id))
 
   const occupiedRanges = occupiedMinuteRanges(
     bookings,
@@ -322,6 +377,10 @@ export function BookingForm({
   }
 
   const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
+
+  // const saveBookingData = () => {
+  //   sessionStorage.setItem("bookingData", JSON.stringify(values))
+  // }
 
   return (
     <BookingFormContext.Provider value={form}>
@@ -486,6 +545,29 @@ export function BookingForm({
                       <ArrowRight aria-hidden />
                       {t("form.submit")}
                     </>
+                  )}
+                </Button>
+                <Button
+                  className="w-full sm:float-right sm:ml-4 sm:w-auto"
+                  disabled={isClearing}
+                  onClick={() => {
+                    setIsClearing(true)
+                    window.setTimeout(() => {
+                      localStorage.removeItem("bookingData")
+                      form.reset()
+                      window.setTimeout(() => setIsClearing(false), 1200)
+                    }, 50)
+                  }}
+                  size="sm"
+                  type="button"
+                >
+                  {isClearing ? (
+                    <>
+                      <Loader2 aria-hidden className="animate-spin" />
+                      {t("form.cleared")}
+                    </>
+                  ) : (
+                    t("form.clear")
                   )}
                 </Button>
                 {visibleErrors.length > 0 && (

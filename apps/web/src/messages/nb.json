@@ -307,6 +307,8 @@
       "genericErrorTitle": "Det oppstod en feil",
       "submit": "Send bookingforespørsel",
       "submitting": "Sender inn...",
+      "clear": "Rense skjemaet?",
+      "cleared": "Renset skjema!",
       "validationSummaryTitle": "Det er et problem",
       "unexpectedError": "Noe gikk galt. Prøv igjen senere."
     },
@@ -389,7 +391,7 @@
     "secondChoiceEmptyState": "Ingen andrevalg valgt ennå.",
     "optionalLabel": "Valgfritt",
     "clearSecondChoice": "Fjern andrevalg",
-    "submitIdle": "Bli Frivillig",
+    "submitIdle": "Bli Frivilig",
     "submitPending": "Sender...",
     "successTitle": "Registrering sendt",
     "errorTitle": "Noe gikk galt",
