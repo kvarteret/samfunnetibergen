@@ -8,6 +8,7 @@ import {
 import {
   publicCollectionResponseSchema,
   publicErrorResponseSchema,
+  publicEventTaxonomySchema,
 } from "@/features/events/api/schemas"
 import { resolveSiteUrl } from "@/lib/site-url"
 
@@ -87,6 +88,85 @@ export function buildPublicEventsOpenApi(
     servers: [{ url: siteUrl }],
     security: [],
     paths: {
+      "/api/v1/events/taxonomy": {
+        get: {
+          operationId: "getEventTaxonomy",
+          summary: "Discover event types, category groups, and rooms",
+          description:
+            "Returns the currently published event taxonomy, including every event type nested under its category group and all room IDs. IDs match those used by the events feed. The response is localized to Norwegian by default.",
+          security: [],
+          parameters: [
+            {
+              name: "locale",
+              in: "query",
+              required: false,
+              description: "Localized names; Norwegian is the default.",
+              schema: { type: "string", enum: ["nb", "en"], default: "nb" },
+            },
+            {
+              name: "If-None-Match",
+              in: "header",
+              required: false,
+              description: "ETag from an earlier response.",
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Current event types, category groups, and rooms",
+              headers: { ETag: etagHeader },
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/PublicEventTaxonomyResponse",
+                  },
+                },
+              },
+            },
+            "304": notModifiedResponse,
+            "400": {
+              description: "Invalid request",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/PublicErrorResponse" },
+                },
+              },
+            },
+            "500": {
+              description: "Temporary server failure",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/PublicErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+        head: {
+          operationId: "headEventTaxonomy",
+          summary: "Check the event taxonomy snapshot",
+          parameters: [
+            {
+              name: "locale",
+              in: "query",
+              required: false,
+              schema: { type: "string", enum: ["nb", "en"], default: "nb" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Taxonomy is available",
+              headers: { ETag: etagHeader },
+            },
+            "304": notModifiedResponse,
+          },
+        },
+        options: {
+          operationId: "optionsEventTaxonomy",
+          summary: "Inspect taxonomy API CORS policy",
+          responses: { "204": { description: "CORS preflight accepted" } },
+        },
+      },
       "/api/v1/events": {
         get: {
           operationId: "listEvents",
@@ -152,6 +232,7 @@ export function buildPublicEventsOpenApi(
     components: {
       schemas: {
         PublicEventsResponse: jsonSchema(publicCollectionResponseSchema),
+        PublicEventTaxonomyResponse: jsonSchema(publicEventTaxonomySchema),
         PublicErrorResponse: jsonSchema(publicErrorResponseSchema),
       },
     },

@@ -8,13 +8,22 @@ describe("public events OpenAPI document", () => {
 
     expect(document.openapi).toBe("3.1.0")
     expect(document.servers).toEqual([{ url: "https://api.example.test" }])
-    expect(Object.keys(document.paths)).toEqual(["/api/v1/events"])
+    expect(Object.keys(document.paths)).toEqual([
+      "/api/v1/events/taxonomy",
+      "/api/v1/events",
+    ])
     expect(document.security).toEqual([])
     expect(document.paths["/api/v1/events"]).toHaveProperty("get")
     expect(document.paths["/api/v1/events"]).toHaveProperty("head")
     expect(document.paths["/api/v1/events"]).toHaveProperty("options")
+    expect(document.paths["/api/v1/events/taxonomy"]).toHaveProperty("get")
+    expect(document.paths["/api/v1/events/taxonomy"]).toHaveProperty("head")
+    expect(document.paths["/api/v1/events/taxonomy"]).toHaveProperty("options")
     expect(JSON.stringify(document)).not.toContain("includeInternal")
     expect(document.components.schemas).toHaveProperty("PublicEventsResponse")
+    expect(document.components.schemas).toHaveProperty(
+      "PublicEventTaxonomyResponse",
+    )
     expect(document.components.schemas).toHaveProperty("PublicErrorResponse")
     const serialized = JSON.stringify(
       document.components.schemas.PublicEventsResponse,
@@ -28,6 +37,12 @@ describe("public events OpenAPI document", () => {
     expect(serialized).toContain("timed")
     expect(serialized).toContain("date")
     expect(serialized).toContain("doorsOpenAt")
+    const taxonomy = JSON.stringify(
+      document.components.schemas.PublicEventTaxonomyResponse,
+    )
+    expect(taxonomy).toContain("eventTypeGroups")
+    expect(taxonomy).toContain("eventTypes")
+    expect(taxonomy).toContain("rooms")
   })
 
   it("serves JSON with the public API protocol headers", async () => {
