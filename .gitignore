@@ -29,6 +29,7 @@ node_modules/
 /dist
 /apps/web/dist
 /apps/studio/dist
+/apps/statutter/dist
 /tmp
 
 # misc

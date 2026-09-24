@@ -13,8 +13,10 @@
   "scripts": {
     "dev": "npm run dev:web",
     "dev:web": "npm --workspace @samfunnet/web run dev",
+    "dev:statutter": "npm --workspace @samfunnet/statutter run dev",
     "dev:studio": "npm --workspace @samfunnet/studio run dev",
-    "build": "npm run build:web && npm run build:studio",
+    "build": "npm run build:web && npm run build:studio && npm run build:statutter",
+    "build:statutter": "npm --workspace @samfunnet/statutter run build",
     "build:web": "npm --workspace @samfunnet/web run build",
     "build:studio": "npm --workspace @samfunnet/studio run build",
     "start": "npm --workspace @samfunnet/web run start",
