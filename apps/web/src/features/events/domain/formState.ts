@@ -1,6 +1,7 @@
 import type { EventGroup, EventRoom, EventType } from "@/lib/sanity/fetch"
 import type { EventSummary } from "../components/EventCard"
 import type { EventFormDate, EventFormState } from "./eventFormSchema"
+import type { EventImageCrop } from "./eventImage"
 
 export type DateEntry = EventFormDate
 export type FormState = EventFormState
@@ -49,6 +50,7 @@ export const initialState: FormState = {
 export function buildPreviewEvent(
   state: FormState,
   imagePreviewUrl: string | null,
+  imageCrop: EventImageCrop | null,
   rooms: EventRoom[],
   groups: EventGroup[],
   eventTypes: EventType[],
@@ -79,6 +81,7 @@ export function buildPreviewEvent(
     ticketUrl: state.ticketUrl || null,
     facebookUrl: state.facebookUrl || null,
     imageUrl: imagePreviewUrl,
+    previewCrop: imageCrop,
     imageCaption: null,
     room: selectedRoom
       ? { _id: selectedRoom._id, title: selectedRoom.title, slug: "" }

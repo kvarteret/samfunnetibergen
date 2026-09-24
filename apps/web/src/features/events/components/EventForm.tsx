@@ -23,6 +23,7 @@ import {
 } from "@/lib/submission-messages"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { eventFormSchema } from "../domain/eventFormSchema"
+import { selectionFromCrop } from "../domain/eventImage"
 import {
   buildPreviewEvent,
   type FormState,
@@ -95,7 +96,15 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
         imageAssetId = uploadResult.value
       }
 
-      const result = await submitEvent({ ...value, imageAssetId, honeypot })
+      const result = await submitEvent({
+        ...value,
+        imageAssetId,
+        imageSelection:
+          imageAssetId && image.crop
+            ? selectionFromCrop(image.crop, image.focus)
+            : undefined,
+        honeypot,
+      })
 
       if (!result.ok) {
         formApi.setErrorMap({ onServer: result.error as never })
@@ -143,6 +152,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   const previewEvent = buildPreviewEvent(
     values,
     image.imagePreviewUrl,
+    image.crop,
     rooms,
     groups,
     eventTypes,
@@ -228,6 +238,10 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
           <EventFormImageSection
             imagePreviewUrl={image.imagePreviewUrl}
             imageUploadError={image.imageUploadError}
+            crop={image.crop}
+            focus={image.focus}
+            onCropChange={image.setCrop}
+            onFocusChange={image.setFocus}
             onImageChange={image.onImageChange}
             onRemoveImage={image.onRemoveImage}
           />

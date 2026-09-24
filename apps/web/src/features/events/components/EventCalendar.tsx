@@ -1,14 +1,13 @@
 "use client"
 
 import { ArrowDown, CalendarDays } from "lucide-react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
-import { sanityImageUrl } from "@/lib/sanity/image-url"
+import { eventImageUrl } from "@/lib/sanity/event-image-url"
 import { cn } from "@/lib/utils"
 import {
   buildCalendarMonths,
@@ -16,6 +15,7 @@ import {
   type CalendarMonth,
   type CalendarOccurrence,
 } from "../domain/calendar"
+import { EventImageFrame } from "./EventImageFrame"
 
 const OSLO_TIME_ZONE = "Europe/Oslo"
 
@@ -58,9 +58,7 @@ function formatTime(occurrence: CalendarOccurrence, prefix: string) {
 function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { fit: "max", width: 280 })
-    : null
+  const imageUrl = eventImageUrl(event.imageUrl, event.image, 320)
   const time = formatTime(occurrence, t("timePrefix"))
 
   return (
@@ -68,22 +66,17 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
       href={`/arrangementer/${event.slug}`}
     >
-      {imageUrl ? (
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          <Image
-            alt={event.imageCaption ?? event.title}
-            className="object-contain"
-            fill
-            sizes="(max-width: 768px) 30vw, 16rem"
-            src={imageUrl}
-          />
-        </div>
-      ) : (
-        <div className="flex aspect-video items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
-          <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
-          <span>{event.title}</span>
-        </div>
-      )}
+      <EventImageFrame
+        alt={event.imageCaption ?? event.title}
+        fallback={
+          <span className="flex items-center gap-1.5 p-2 text-center font-heading text-xs text-foreground-muted">
+            <CalendarDays className="size-4 shrink-0" aria-hidden />
+            <span className="line-clamp-2">{event.title}</span>
+          </span>
+        }
+        sizes="(max-width: 768px) 30vw, 16rem"
+        src={imageUrl}
+      />
       <div className="space-y-2 p-0 pt-2 md:p-3">
         <p className="font-heading text-2xl leading-tight group-hover:underline group-hover:underline-offset-2 md:text-base">
           {event.title}

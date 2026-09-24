@@ -32,6 +32,11 @@ describe("public event domain", () => {
           { _type: "block", children: [{ text: "Inherited details" }] },
         ],
         imageUrl: "https://cdn.example.test/parent.jpg",
+        image: {
+          asset: { _ref: "image-parent-1600x900-jpg" },
+          crop: { top: 0, bottom: 0, left: 0.1, right: 0.1 },
+          hotspot: { x: 0.5, y: 0.5, width: 0.04, height: 0.04 },
+        },
         isFree: true,
       },
       slug: "series-day",
@@ -49,6 +54,7 @@ describe("public event domain", () => {
       { _type: "block", children: [{ text: "Inherited details" }] },
     ])
     expect(event.imageUrl).toBe("https://cdn.example.test/parent.jpg")
+    expect(event.image?.crop?.left).toBe(0.1)
     expect(event.isFree).toBe(true)
     expect(event.eventStatus).toBe("cancelled")
     expect(event.parentEvent).toMatchObject({
@@ -71,6 +77,7 @@ describe("public event domain", () => {
         slug: "festival",
         title: "Festival",
         imageUrl: "https://cdn.example.test/festival.jpg",
+        image: { asset: { _ref: "image-festival-1600x900-jpg" } },
         room: {
           _id: "room-parent",
           title: "Main room",
@@ -87,6 +94,7 @@ describe("public event domain", () => {
     })
 
     expect(event.imageUrl).toBeNull()
+    expect(event.image).toBeNull()
     expect(event.room).toBeNull()
   })
 })

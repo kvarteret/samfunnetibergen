@@ -1,7 +1,7 @@
 "use client"
 
 import { type ChangeEvent, useCallback, useEffect, useState } from "react"
-
+import type { EventImageCrop } from "./eventImage"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
   formatEventImageMaxSize,
@@ -12,6 +12,10 @@ export interface EventImageController {
   imageFile: File | null
   imagePreviewUrl: string | null
   imageUploadError: string
+  crop: EventImageCrop | null
+  focus: { x: number; y: number }
+  setCrop: (crop: EventImageCrop) => void
+  setFocus: (focus: { x: number; y: number }) => void
   onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
   onRemoveImage: () => void
   reset: () => void
@@ -25,6 +29,8 @@ export function useEventImage(): EventImageController {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageUploadError, setImageUploadError] = useState("")
+  const [crop, setCrop] = useState<EventImageCrop | null>(null)
+  const [focus, setFocus] = useState({ x: 0.5, y: 0.5 })
 
   useEffect(() => {
     return () => {
@@ -64,6 +70,8 @@ export function useEventImage(): EventImageController {
       return previewUrl
     })
     setImageFile(file)
+    setCrop(null)
+    setFocus({ x: 0.5, y: 0.5 })
   }, [])
 
   const onRemoveImage = useCallback(() => {
@@ -75,12 +83,18 @@ export function useEventImage(): EventImageController {
     })
     setImageFile(null)
     setImageUploadError("")
+    setCrop(null)
+    setFocus({ x: 0.5, y: 0.5 })
   }, [])
 
   return {
     imageFile,
     imagePreviewUrl,
     imageUploadError,
+    crop,
+    focus,
+    setCrop,
+    setFocus,
     onImageChange,
     onRemoveImage,
     reset: onRemoveImage,
