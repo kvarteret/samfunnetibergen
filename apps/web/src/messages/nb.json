@@ -391,7 +391,7 @@
     "secondChoiceEmptyState": "Ingen andrevalg valgt ennå.",
     "optionalLabel": "Valgfritt",
     "clearSecondChoice": "Fjern andrevalg",
-    "submitIdle": "Bli Frivilig",
+    "submitIdle": "Bli Frivillig",
     "submitPending": "Sender...",
     "successTitle": "Registrering sendt",
     "errorTitle": "Noe gikk galt",
