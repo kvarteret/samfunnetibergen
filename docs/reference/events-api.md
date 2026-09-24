@@ -79,27 +79,22 @@ directly. There is no separate event-detail HTTP endpoint.
 
 ## Taxonomy discovery
 
-`GET /api/v1/events/taxonomy` returns the published Sanity categories, event
-types, and rooms used to interpret IDs in the events feed. `locale=nb` is the
-default; `locale=en` requests English names with Norwegian as the field-level
-fallback. No date range is needed. Unknown query parameters return `400`.
+`GET /api/v1/events/taxonomy` returns active published event types grouped by
+Sanity category and all published rooms for interpreting IDs in the events feed.
+`locale=nb` is the default; `locale=en` requests English names with Norwegian
+as the field-level fallback. No date range is needed. Unknown query parameters
+return `400`.
 
-The response has three lists:
+The response has two lists:
 
     {
       "eventTypeGroups": [
         {
-          "id": "group-music",
+          "id": "eventTaxonomyGroup-musikk",
           "name": "Konserter",
-          "eventTypes": [{ "id": "type-concert", "name": "Konsert" }]
-        }
-      ],
-      "eventTypes": [
-        {
-          "id": "type-concert",
-          "name": "Konsert",
-          "taxonomyGroupId": "group-music",
-          "isActive": true
+          "eventTypes": [
+            { "id": "eventType-516d6356-5b19-422d-8548-68918fd05038", "name": "Konsert" }
+          ]
         }
       ],
       "rooms": [
@@ -107,14 +102,12 @@ The response has three lists:
       ]
     }
 
-The top-level `eventTypes` list includes inactive types because existing
-published events may still refer to them. `isActive` reports the type's Sanity
-active flag. A type whose category is missing
-has `taxonomyGroupId: null` and remains in this list; category groups with no
-types remain in `eventTypeGroups`. The nested `eventTypes` arrays are a
-convenient grouped view of the same IDs. These IDs are source identifiers, not
-Broadcast category names. Consumers should map the IDs to their own taxonomy;
-the names may change through editing or localization.
+`eventTypeGroups` contains currently active published event types grouped by
+category; `rooms` contains all published rooms. The example ID is illustrative;
+request the endpoint for current IDs. These are Sanity source identifiers, not
+Broadcast category names. Consumers should map IDs to their own taxonomy and
+handle an unmapped ID explicitly. Names may change through editing or
+localization.
 
 ## Caching and protocol
 

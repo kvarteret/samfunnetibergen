@@ -8,31 +8,18 @@ import { fetchPublicEventTaxonomy } from "./public-taxonomy"
 describe("fetchPublicEventTaxonomy", () => {
   beforeEach(() => fetchMock.mockReset())
 
-  it("returns all published groups, types, and rooms for feed ID mapping", async () => {
+  it("groups dynamic event types by Sanity taxonomy group and returns all rooms", async () => {
     fetchMock
-      .mockResolvedValueOnce([
-        { _id: "group-music", name: "Konserter" },
-        { _id: "group-social", name: "Sosialt" },
-        { _id: "group-empty", name: "Annet" },
-      ])
       .mockResolvedValueOnce([
         {
           _id: "type-concert",
           name: "Konsert",
-          taxonomyGroupId: "group-music",
-          isActive: true,
+          taxonomyGroup: { _id: "group-music", name: "Konserter" },
         },
         {
           _id: "type-pub",
           name: "Pub",
-          taxonomyGroupId: "group-social",
-          isActive: false,
-        },
-        {
-          _id: "type-legacy",
-          name: "Legacy",
-          taxonomyGroupId: null,
-          isActive: false,
+          taxonomyGroup: { _id: "group-social", name: "Sosialt" },
         },
       ])
       .mockResolvedValueOnce([
@@ -51,33 +38,12 @@ describe("fetchPublicEventTaxonomy", () => {
           name: "Sosialt",
           eventTypes: [{ id: "type-pub", name: "Pub" }],
         },
-        { id: "group-empty", name: "Annet", eventTypes: [] },
-      ],
-      eventTypes: [
-        {
-          id: "type-concert",
-          name: "Konsert",
-          taxonomyGroupId: "group-music",
-          isActive: true,
-        },
-        {
-          id: "type-pub",
-          name: "Pub",
-          taxonomyGroupId: "group-social",
-          isActive: false,
-        },
-        {
-          id: "type-legacy",
-          name: "Legacy",
-          taxonomyGroupId: null,
-          isActive: false,
-        },
       ],
       rooms: [
         { id: "room-teglverket", name: "Teglverket", slug: "teglverket" },
       ],
     })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
       { locale: "nb" },

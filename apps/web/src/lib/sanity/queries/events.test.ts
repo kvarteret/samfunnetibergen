@@ -2,14 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import {
   eventRoomsQuery,
-  eventTaxonomyGroupsQuery,
   eventTypesQuery,
   previewEventBySlugQuery,
   previewEventChildrenQuery,
   publicEventBySlugQuery,
   publicEventChildrenQuery,
   publicEventsQuery,
-  publicEventTaxonomyTypesQuery,
   publicPromotedParentEventsQuery,
   publishedEventSlugsQuery,
 } from "./events"
@@ -18,16 +16,10 @@ describe("event discovery taxonomy queries", () => {
   it("projects localized room, type, and category IDs from Sanity", () => {
     expect(eventRoomsQuery).toContain('_type == "room"')
     expect(eventRoomsQuery).toContain('"title": coalesce(localizedTitle')
-    expect(eventTaxonomyGroupsQuery).toContain('_type == "eventTaxonomyGroup"')
-    expect(publicEventTaxonomyTypesQuery).toContain('_type == "eventType"')
-    expect(publicEventTaxonomyTypesQuery).not.toContain("isActive != false")
-    expect(eventTypesQuery).toContain("isActive != false")
-    expect(publicEventTaxonomyTypesQuery).toContain(
-      '"taxonomyGroupId": taxonomyGroup->_id',
+    expect(eventTypesQuery).toContain(
+      '_type == "eventType" && isActive != false',
     )
-    expect(publicEventTaxonomyTypesQuery).toContain(
-      '"isActive": coalesce(isActive, true)',
-    )
+    expect(eventTypesQuery).toContain('"taxonomyGroup": taxonomyGroup->')
   })
 })
 

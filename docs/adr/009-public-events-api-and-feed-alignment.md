@@ -60,12 +60,11 @@ cancellation behavior, and how a missing occurrence is reconciled.
 
 ## Addendum: taxonomy discovery (2026-09-24)
 
-`GET /api/v1/events/taxonomy` is an additive discovery endpoint for the source
-IDs used by the complete event snapshot. It returns published category groups,
-event types, and rooms without changing `/api/v1/events`. The event type list
-includes inactive and ungrouped types so consumers can still map IDs referenced
-by published events. The endpoint does not prescribe Broadcast category or room
-mappings; those remain consumer decisions. Its response is documented in
+`GET /api/v1/events/taxonomy` is an additive discovery endpoint to help map the
+source IDs in the complete event snapshot. It returns active published event types
+grouped by category and all published rooms without changing `/api/v1/events`.
+The endpoint does not prescribe Broadcast category or room mappings; those
+remain consumer decisions. Its response is documented in
 `docs/reference/events-api.md` and the generated OpenAPI document.
 
 ## Verification

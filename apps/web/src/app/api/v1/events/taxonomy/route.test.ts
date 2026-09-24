@@ -17,20 +17,6 @@ const taxonomy = {
       eventTypes: [{ id: "eventType-konsert", name: "Konsert" }],
     },
   ],
-  eventTypes: [
-    {
-      id: "eventType-konsert",
-      name: "Konsert",
-      taxonomyGroupId: "eventTaxonomyGroup-musikk",
-      isActive: true,
-    },
-    {
-      id: "eventType-legacy",
-      name: "Legacy",
-      taxonomyGroupId: null,
-      isActive: false,
-    },
-  ],
   rooms: [{ id: "room-teglverket", name: "Teglverket", slug: "teglverket" }],
 }
 
