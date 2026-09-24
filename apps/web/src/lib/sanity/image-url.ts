@@ -1,6 +1,7 @@
 type SanityImageSize = {
-  height: number
+  height?: number
   width: number
+  fit?: "crop" | "max"
 }
 
 export function isSanityImageUrl(src: string) {
@@ -16,8 +17,8 @@ export function sanityImageUrl(src: string, size: SanityImageSize) {
 
   const url = new URL(src)
   url.searchParams.set("auto", "format")
-  url.searchParams.set("fit", "crop")
-  url.searchParams.set("h", String(size.height))
+  url.searchParams.set("fit", size.fit ?? "crop")
+  if (size.height) url.searchParams.set("h", String(size.height))
   url.searchParams.set("q", "82")
   url.searchParams.set("w", String(size.width))
   return url.toString()

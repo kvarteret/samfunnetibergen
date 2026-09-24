@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { sanityImageUrl } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -146,8 +146,8 @@ export function EventCard({
     ? sanityImageUrl(
         event.imageUrl,
         cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
+          ? { fit: "max", width: 640 }
+          : { fit: "max", width: 1200 },
       )
     : null
 
@@ -229,11 +229,7 @@ function EventCardMedia({
       {imageUrl ? (
         <Image
           alt={event.imageCaption ?? event.title}
-          className={cn(
-            "object-cover",
-            isEditorial &&
-              "transition-transform duration-300 group-hover/image:scale-105",
-          )}
+          className="object-contain"
           fill
           priority={priority}
           sizes={
@@ -242,7 +238,7 @@ function EventCardMedia({
               : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
           }
           src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
+          unoptimized={imageUrl.startsWith("blob:")}
         />
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">

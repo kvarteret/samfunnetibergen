@@ -159,7 +159,7 @@ function EventDetailHero({
   partOfLabel: string
 }) {
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
+    ? sanityImageUrl(event.imageUrl, { fit: "max", width: 1600 })
     : null
 
   return (
@@ -198,19 +198,18 @@ function EventDetailHero({
 
       <div className="overflow-hidden border-2 border-border bg-muted">
         {imageUrl ? (
-          <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
+          <div className="relative aspect-video">
             <Image
               alt={event.imageCaption ?? event.title}
-              className="object-cover"
+              className="object-contain"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 80vw"
               src={imageUrl}
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
             />
           </div>
         ) : (
-          <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
+          <div className="flex aspect-video items-center justify-center p-8 text-center">
             <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
               {event.title}
             </p>

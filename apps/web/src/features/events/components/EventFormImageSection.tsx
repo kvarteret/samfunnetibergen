@@ -36,9 +36,11 @@ export function EventFormImageSection({
     <FormSection number={number} title="Bilde">
       <FieldGroup>
         <FieldHint>
-          JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
-          listinga og på arrangementssiden. Bildet lastes opp når du sender inn
-          skjemaet.
+          Bruk et liggende bilde i 16:9, helst 1600 × 900 piksler. Hele bildet
+          vises i arrangementslisten og på arrangementssiden. Andre formater får
+          luft rundt seg. Hold tekst og logo unna kantene. JPEG, PNG eller WebP
+          - maks {formatEventImageMaxSize()}. Bildet lastes opp når du sender
+          inn skjemaet.
         </FieldHint>
 
         {imagePreviewUrl ? (
@@ -77,14 +79,18 @@ function UploadedImagePreview({
 }: UploadedImagePreviewProps) {
   return (
     <div className="space-y-3">
-      <div className="relative aspect-video w-full overflow-hidden border-2 border-border">
+      <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
         {/* biome-ignore lint/performance/noImgElement: blob preview of a freshly uploaded file */}
         <img
           alt="Forhåndsvisning av opplastet bilde"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
           src={imagePreviewUrl}
         />
       </div>
+      <p className="text-sm text-foreground-muted">
+        Slik vises bildet i 16:9-rammen i arrangementslisten og på
+        arrangementssiden.
+      </p>
       {imageUploadError && (
         <FieldError id="event-image-upload-error">
           {imageUploadError}
