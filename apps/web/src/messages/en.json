@@ -308,6 +308,8 @@
       "genericErrorTitle": "Something went wrong",
       "submit": "Send booking request",
       "submitting": "Sending...",
+      "clear": "Clear the form?",
+      "cleared": "Cleared the form!",
       "validationSummaryTitle": "There is a problem",
       "unexpectedError": "Something went wrong. Please try again later."
     },
