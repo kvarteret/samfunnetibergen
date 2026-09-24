@@ -17,12 +17,6 @@ export const eventRoomsQuery = defineQuery(`
     "slug": coalesce(slug.current, "")
 }`)
 
-export const eventTaxonomyGroupsQuery = defineQuery(`
-    *[_type == "eventTaxonomyGroup"] | order(orderRank asc, ${localizedName} asc) {
-    _id,
-    "name": ${localizedName}
-}`)
-
 export const eventTypesQuery = defineQuery(`
     *[_type == "eventType" && isActive != false] | order(taxonomyGroup->orderRank asc, orderRank asc, ${localizedName} asc) {
     _id,

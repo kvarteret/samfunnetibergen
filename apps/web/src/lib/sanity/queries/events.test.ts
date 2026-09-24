@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   eventRoomsQuery,
-  eventTaxonomyGroupsQuery,
   eventTypesQuery,
   previewEventBySlugQuery,
   previewEventChildrenQuery,
@@ -17,7 +16,6 @@ describe("event discovery taxonomy queries", () => {
   it("projects localized room, type, and category IDs from Sanity", () => {
     expect(eventRoomsQuery).toContain('_type == "room"')
     expect(eventRoomsQuery).toContain('"title": coalesce(localizedTitle')
-    expect(eventTaxonomyGroupsQuery).toContain('_type == "eventTaxonomyGroup"')
     expect(eventTypesQuery).toContain(
       '_type == "eventType" && isActive != false',
     )

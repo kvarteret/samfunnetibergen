@@ -11,10 +11,6 @@ describe("fetchPublicEventTaxonomy", () => {
   it("groups dynamic event types by Sanity taxonomy group and returns all rooms", async () => {
     fetchMock
       .mockResolvedValueOnce([
-        { _id: "group-music", name: "Konserter" },
-        { _id: "group-social", name: "Sosialt" },
-      ])
-      .mockResolvedValueOnce([
         {
           _id: "type-concert",
           name: "Konsert",
@@ -47,7 +43,7 @@ describe("fetchPublicEventTaxonomy", () => {
         { id: "room-teglverket", name: "Teglverket", slug: "teglverket" },
       ],
     })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
       { locale: "nb" },
