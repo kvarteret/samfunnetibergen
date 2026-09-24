@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  eventRoomsQuery,
+  eventTypesQuery,
   previewEventBySlugQuery,
   previewEventChildrenQuery,
   publicEventBySlugQuery,
@@ -9,6 +11,17 @@ import {
   publicPromotedParentEventsQuery,
   publishedEventSlugsQuery,
 } from "./events"
+
+describe("event discovery taxonomy queries", () => {
+  it("projects localized room, type, and category IDs from Sanity", () => {
+    expect(eventRoomsQuery).toContain('_type == "room"')
+    expect(eventRoomsQuery).toContain('"title": coalesce(localizedTitle')
+    expect(eventTypesQuery).toContain(
+      '_type == "eventType" && isActive != false',
+    )
+    expect(eventTypesQuery).toContain('"taxonomyGroup": taxonomyGroup->')
+  })
+})
 
 describe("event detail query", () => {
   it("keeps every approved event reachable after its dates pass", () => {
