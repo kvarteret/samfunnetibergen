@@ -31,7 +31,7 @@ export const eventImageSelectionSchema = z
 export type EventImageSelection = z.infer<typeof eventImageSelectionSchema>
 export type EventImageCrop = EventImageSelection["crop"]
 export type EventImageSource = {
-  asset: { _ref: string }
+  asset?: { _ref: string } | null
   crop?: EventImageCrop | null
   hotspot?: EventImageSelection["hotspot"] | null
 }
@@ -48,6 +48,43 @@ export function cropFromPercent(area: {
     top: clamp(area.y / 100),
     right: clamp(1 - (area.x + area.width) / 100),
     bottom: clamp(1 - (area.y + area.height) / 100),
+  }
+}
+
+export function focusCropAtPoint(
+  crop: EventImageCrop,
+  point: { x: number; y: number },
+  zoom: number,
+): {
+  crop: EventImageCrop
+  focus: { x: number; y: number }
+  zoom: number
+} {
+  const width = 1 - crop.left - crop.right
+  const height = 1 - crop.top - crop.bottom
+  const sourceX = crop.left + point.x * width
+  const sourceY = crop.top + point.y * height
+  // A crop at minimum zoom may fill the image on one axis, leaving no room to pan.
+  const nextZoom = Math.max(zoom, 1.25)
+  const nextWidth = width * (zoom / nextZoom)
+  const nextHeight = height * (zoom / nextZoom)
+  const clamp = (value: number, maximum: number) =>
+    Math.min(maximum, Math.max(0, value))
+  const left = clamp(sourceX - nextWidth / 2, 1 - nextWidth)
+  const top = clamp(sourceY - nextHeight / 2, 1 - nextHeight)
+
+  return {
+    crop: {
+      left,
+      top,
+      right: 1 - left - nextWidth,
+      bottom: 1 - top - nextHeight,
+    },
+    focus: {
+      x: (sourceX - left) / nextWidth,
+      y: (sourceY - top) / nextHeight,
+    },
+    zoom: nextZoom,
   }
 }
 

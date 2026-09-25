@@ -3,14 +3,22 @@
 import { Dialog } from "@base-ui/react/dialog"
 import { Crop, Trash2, X } from "lucide-react"
 import { type ChangeEvent, useState } from "react"
-import Cropper from "react-easy-crop"
+import Cropper, {
+  getInitialCropFromCroppedAreaPercentages,
+  type MediaSize,
+  type Size,
+} from "react-easy-crop"
 
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FieldError } from "@/components/ui/field-error"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageDropzone } from "@/components/ui/image-dropzone"
-import { cropFromPercent, type EventImageCrop } from "../domain/eventImage"
+import {
+  cropFromPercent,
+  type EventImageCrop,
+  focusCropAtPoint,
+} from "../domain/eventImage"
 import { formatEventImageMaxSize } from "../domain/imageUpload"
 import { EventImageFrame } from "./EventImageFrame"
 
@@ -102,8 +110,34 @@ function UploadedImagePreview({
 }: UploadedImagePreviewProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
+  const [mediaSize, setMediaSize] = useState<MediaSize | null>(null)
+  const [cropSize, setCropSize] = useState<Size | null>(null)
   const [open, setOpen] = useState(true)
   const showEditor = Boolean(onCropChange && onFocusChange && focus)
+
+  const moveFocus = (point: { x: number; y: number }) => {
+    if (!crop || !mediaSize || !cropSize) return
+
+    const selection = focusCropAtPoint(crop, point, zoom)
+    const area = {
+      x: selection.crop.left * 100,
+      y: selection.crop.top * 100,
+      width: (1 - selection.crop.left - selection.crop.right) * 100,
+      height: (1 - selection.crop.top - selection.crop.bottom) * 100,
+    }
+    const next = getInitialCropFromCroppedAreaPercentages(
+      area,
+      mediaSize,
+      0,
+      cropSize,
+      1,
+      3,
+    )
+    setPosition(next.crop)
+    setZoom(next.zoom)
+    onCropChange?.(selection.crop)
+    onFocusChange?.(selection.focus)
+  }
 
   return (
     <div className="space-y-3">
@@ -150,6 +184,8 @@ function UploadedImagePreview({
                     onCropComplete={area =>
                       onCropChange?.(cropFromPercent(area))
                     }
+                    onCropSizeChange={setCropSize}
+                    onMediaLoaded={setMediaSize}
                     onZoomChange={setZoom}
                     zoom={zoom}
                   />
@@ -171,8 +207,9 @@ function UploadedImagePreview({
                   value={zoom}
                 />
                 <p className="text-sm text-foreground-muted">
-                  Klikk i forhåndsvisningen for å plassere fokuspunktet for
-                  andre bildeformater.
+                  Klikk i forhåndsvisningen for å flytte utsnittet mot motivet
+                  du vil vise. Første klikk zoomer litt inn slik at bildet kan
+                  flyttes.
                 </p>
                 <div className="relative mx-auto w-full max-w-xl">
                   <EventImageFrame
@@ -191,7 +228,7 @@ function UploadedImagePreview({
                           event.currentTarget.getBoundingClientRect()
                         const clamp = (value: number) =>
                           Math.min(0.98, Math.max(0.02, value))
-                        onFocusChange?.({
+                        moveFocus({
                           x: clamp(
                             (event.clientX - bounds.left) / bounds.width,
                           ),
@@ -209,7 +246,7 @@ function UploadedImagePreview({
                         else if (event.key === "ArrowDown") next.y += delta
                         else return
                         event.preventDefault()
-                        onFocusChange?.({
+                        moveFocus({
                           x: Math.min(0.98, Math.max(0.02, next.x)),
                           y: Math.min(0.98, Math.max(0.02, next.y)),
                         })

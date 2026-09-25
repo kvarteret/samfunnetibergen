@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   cropFromPercent,
   eventImageSelectionSchema,
+  focusCropAtPoint,
   selectionFromCrop,
 } from "./eventImage"
 
@@ -29,5 +30,23 @@ describe("event image selection", () => {
         hotspot: { ...selection.hotspot, x: 0.01 },
       }).success,
     ).toBe(false)
+  })
+
+  it("moves a full-width crop toward the chosen focus point", () => {
+    const result = focusCropAtPoint(
+      { left: 0, right: 0, top: 0.2, bottom: 0.2 },
+      { x: 0.9, y: 0.5 },
+      1,
+    )
+
+    expect(result.zoom).toBe(1.25)
+    expect(result.crop.left).toBeCloseTo(0.2)
+    expect(result.crop.right).toBeCloseTo(0)
+    expect(result.focus.x).toBeCloseTo(0.875)
+    expect(
+      eventImageSelectionSchema.safeParse(
+        selectionFromCrop(result.crop, result.focus),
+      ).success,
+    ).toBe(true)
   })
 })
