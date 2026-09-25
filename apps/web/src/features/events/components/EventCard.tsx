@@ -1,14 +1,15 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin } from "lucide-react"
-import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { eventImageUrl } from "@/lib/sanity/event-image-url"
 import { cn } from "@/lib/utils"
+import type { EventImageCrop, EventImageSource } from "../domain/eventImage"
 import { DateBadges } from "./DateBadges"
+import { EventImageFrame } from "./EventImageFrame"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,8 @@ export type EventSummary = {
   ticketUrl?: string | null
   facebookUrl?: string | null
   imageUrl?: string | null
+  image?: EventImageSource | null
+  previewCrop?: EventImageCrop | null
   imageCaption?: string | null
   room?: {
     _id: string
@@ -142,14 +145,11 @@ export function EventCard({
   const roomFloor = event.room?.floor
   const href = `/arrangementer/${event.slug}`
   const timeLabel = event.primaryDateLabel
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
-      )
-    : null
+  const imageUrl = eventImageUrl(
+    event.imageUrl,
+    event.image,
+    cardVariant === "slider" ? 640 : 1200,
+  )
 
   return (
     <Link
@@ -219,37 +219,26 @@ function EventCardMedia({
   if (!imageUrl && !isEditorial) return null
 
   return (
-    <div
+    <EventImageFrame
+      alt={event.imageCaption ?? event.title}
       className={cn(
-        "group/image relative w-full shrink-0 overflow-hidden bg-muted",
-        "aspect-video",
+        "shrink-0",
         cardSize === "small" && !isEditorial && "border-2 border-border",
       )}
-    >
-      {imageUrl ? (
-        <Image
-          alt={event.imageCaption ?? event.title}
-          className={cn(
-            "object-cover",
-            isEditorial &&
-              "transition-transform duration-300 group-hover/image:scale-105",
-          )}
-          fill
-          priority={priority}
-          sizes={
-            cardVariant === "slider"
-              ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
-              : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
-          }
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">
+      fallback={
+        <span className="line-clamp-3 p-6 text-center font-heading text-foreground-muted">
           {event.title}
-        </div>
-      )}
-    </div>
+        </span>
+      }
+      previewCrop={event.previewCrop}
+      priority={priority}
+      sizes={
+        cardVariant === "slider"
+          ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
+          : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
+      }
+      src={imageUrl}
+    />
   )
 }
 

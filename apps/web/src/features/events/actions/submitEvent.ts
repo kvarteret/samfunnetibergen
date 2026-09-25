@@ -12,6 +12,10 @@ import {
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
 import { eventFormSchema } from "../domain/eventFormSchema"
+import {
+  type EventImageSelection,
+  eventImageSelectionSchema,
+} from "../domain/eventImage"
 import type { FormState } from "../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
@@ -46,6 +50,7 @@ export type EventDate = {
 
 export type SubmitEventInput = FormState & {
   imageAssetId?: string
+  imageSelection?: EventImageSelection
   // Hidden anti-bot field; must stay empty for real submissions.
   honeypot?: string
 }
@@ -136,6 +141,16 @@ export async function submitEvent(
     return err(INVALID_PAYLOAD_ERROR)
   }
 
+  const imageSelectionParsed = input.imageSelection
+    ? eventImageSelectionSchema.safeParse(input.imageSelection)
+    : null
+  if (
+    imageSelectionParsed?.success === false ||
+    (input.imageSelection && !input.imageAssetId)
+  ) {
+    return err(INVALID_PAYLOAD_ERROR)
+  }
+
   if (await isSubmissionRateLimited("submitEvent")) {
     return err(RATE_LIMIT_ERROR)
   }
@@ -143,6 +158,9 @@ export async function submitEvent(
   const validatedInput: SubmitEventInput = {
     ...formParsed.data,
     imageAssetId: input.imageAssetId,
+    imageSelection: imageSelectionParsed?.success
+      ? imageSelectionParsed.data
+      : undefined,
   }
 
   try {
@@ -245,6 +263,15 @@ function buildEventDocument(input: SubmitEventInput) {
     doc.image = {
       _type: "image",
       asset: { _type: "reference", _ref: input.imageAssetId },
+      ...(input.imageSelection
+        ? {
+            crop: { _type: "sanity.imageCrop", ...input.imageSelection.crop },
+            hotspot: {
+              _type: "sanity.imageHotspot",
+              ...input.imageSelection.hotspot,
+            },
+          }
+        : {}),
     }
   }
   setRef(doc, "room", input.room)
