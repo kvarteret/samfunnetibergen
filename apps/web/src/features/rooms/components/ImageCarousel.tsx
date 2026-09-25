@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
 
 import {
@@ -11,11 +10,22 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { SanityImage } from "@/components/ui/sanity-image"
 
 type ImageSlide = {
   _key: string
   type: "image"
-  src: string
+  image: {
+    id: string
+    hotspot: { x: number; y: number } | null
+    crop: {
+      top: number
+      bottom: number
+      left: number
+      right: number
+    } | null
+    lqip: string | null
+  }
   alt: string
   caption?: string | null
 }
@@ -29,21 +39,8 @@ type PanoramaSlide = {
 
 export type CarouselSlide = ImageSlide | PanoramaSlide
 
-// Back-compat alias used by the old API
-type CarouselImage = {
-  _key: string
-  src: string
-  alt: string
-  caption?: string | null
-}
-
-function normalise(images: CarouselImage[]): ImageSlide[] {
-  return images.map(img => ({ ...img, type: "image" as const }))
-}
-
 interface ImageCarouselProps {
-  images?: CarouselImage[]
-  slides?: CarouselSlide[]
+  slides: CarouselSlide[]
 }
 
 export function PanoramaEmbed({
@@ -88,8 +85,8 @@ export function PanoramaEmbed({
   )
 }
 
-export function ImageCarousel({ images, slides }: ImageCarouselProps) {
-  const allSlides: CarouselSlide[] = slides ?? normalise(images ?? [])
+export function ImageCarousel({ slides }: ImageCarouselProps) {
+  const allSlides: CarouselSlide[] = slides
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
 
@@ -129,13 +126,15 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
                     src={slide.iframeSrc}
                   />
                 ) : (
-                  <Image
+                  <SanityImage
                     alt={slide.alt}
-                    className="object-cover"
-                    fill
-                    priority={i === 0}
+                    className="h-full w-full object-cover"
+                    image={slide.image}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    mode="cover"
                     sizes="100vw"
-                    src={slide.src}
+                    width={1920}
+                    height={1080}
                   />
                 )}
               </div>

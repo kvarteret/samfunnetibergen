@@ -1,7 +1,6 @@
-import Image from "next/image"
 import { PortableText } from "next-sanity"
 
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { cn } from "@/lib/utils"
 
 type PortableTextBlock = {
@@ -20,9 +19,17 @@ type PortableTextChildrenProps = {
 }
 
 type PortableTextImageValue = {
-  imageUrl?: string
+  id?: string
   alt?: string
   caption?: string
+  crop?: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  hotspot?: { x: number; y: number } | null
+  lqip?: string | null
 }
 
 type PortableTextLinkValue = {
@@ -91,27 +98,24 @@ const portableTextComponents = {
 }
 
 function PortableTextImage({ value }: { value: PortableTextImageValue }) {
-  if (!value.imageUrl) {
+  if (!value.id) {
     return null
   }
 
-  const imageUrl = sanityImageUrl(value.imageUrl, {
-    height: 720,
-    width: 1280,
-  })
-
   return (
     <figure className="my-10">
-      <div className="relative aspect-video overflow-hidden border-2 border-border">
-        <Image
-          alt={value.alt ?? ""}
-          className="object-cover"
-          fill
-          sizes="(max-width: 1280px) 100vw, 1280px"
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
-        />
-      </div>
+      <SanityImage
+        alt={value.alt ?? ""}
+        className="h-auto w-full border-2 border-border"
+        image={{
+          id: value.id,
+          crop: value.crop,
+          hotspot: value.hotspot,
+          lqip: value.lqip,
+        }}
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        width={1280}
+      />
       {value.caption && (
         <figcaption className="mt-2 text-foreground-muted">
           {value.caption}

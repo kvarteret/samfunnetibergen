@@ -25,8 +25,8 @@ import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { Disclosure } from "@/components/ui/disclosure"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
-import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
+import { SanityImage } from "@/components/ui/sanity-image"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import type {
@@ -288,16 +288,21 @@ function RoomCard({
       tabIndex={occupied ? -1 : 0}
     >
       {!isCrescatOnly && (
-        <div className="relative aspect-video bg-muted">
-          <ImageWithFallback
-            alt={room.image?.alt ?? roomName}
-            className={cn(occupied && "grayscale")}
-            fallback={
-              <Building2 aria-hidden className="size-8 text-foreground-muted" />
-            }
-            sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
-            src={room.image?.assetUrl}
-          />
+        <div className="relative flex aspect-video items-center justify-center bg-muted">
+          {room.image?.id ? (
+            <SanityImage
+              alt={room.image.alt ?? roomName}
+              className={cn(
+                "h-full w-full object-contain",
+                occupied && "grayscale",
+              )}
+              image={room.image}
+              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+              width={640}
+            />
+          ) : (
+            <Building2 aria-hidden className="size-8 text-foreground-muted" />
+          )}
           {occupied && (
             <div className="absolute inset-0 flex flex-col bg-black/55">
               <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">

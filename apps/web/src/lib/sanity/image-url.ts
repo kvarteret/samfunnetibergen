@@ -1,28 +1,21 @@
-type SanityImageSize = {
-  height: number
-  width: number
-}
+import { buildSrc } from "sanity-image"
 
-export function isSanityImageUrl(src: string) {
-  try {
-    return new URL(src).hostname === "cdn.sanity.io"
-  } catch {
-    return false
-  }
-}
+import { dataset, projectId } from "./env"
 
-export function sanityImageUrl(src: string, size: SanityImageSize) {
-  if (!isSanityImageUrl(src)) return src
+export const sanityImageBaseUrl = `https://cdn.sanity.io/images/${projectId}/${dataset}/`
 
-  const url = new URL(src)
-  url.searchParams.set("auto", "format")
-  url.searchParams.set("fit", "crop")
-  url.searchParams.set("h", String(size.height))
-  url.searchParams.set("q", "82")
-  url.searchParams.set("w", String(size.width))
-  return url.toString()
-}
-
-export function shouldLoadImageDirectly(src: string) {
-  return src.startsWith("blob:") || isSanityImageUrl(src)
+/**
+ * Absolute CDN URL for consumers that need a URL rather than an element:
+ * Open Graph tags, structured data and the public events API. Rendering goes
+ * through `<SanityImage>`, which builds its own `srcSet`.
+ */
+export function sanityImageUrl(
+  id: string,
+  {
+    height,
+    mode = "contain",
+    width,
+  }: { height?: number; mode?: "contain" | "cover"; width: number },
+) {
+  return buildSrc({ baseUrl: sanityImageBaseUrl, height, id, mode, width }).src
 }

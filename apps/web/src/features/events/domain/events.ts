@@ -54,12 +54,50 @@ export type PublicEventType = {
   } | null
 }
 
+/**
+ * The image data a render component needs. `sanity-image` builds CDN URLs and
+ * `srcSet`s from `id`, honours the hotspot/crop an editor set in the Studio,
+ * and shows `lqip` while the full asset loads. Consumers that need a URL
+ * (events API, Open Graph, structured data) derive one from `PublicImageSource`.
+ */
+export type PublicImageSource = {
+  id: string
+  hotspot: { x: number; y: number } | null
+  crop: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  lqip: string | null
+}
+
+export type RawPublicImageSource = {
+  id?: string | null
+  hotspot?: { x: number; y: number } | null
+  crop?: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  lqip?: string | null
+}
+
+export type RawPublicRoom = {
+  _id: string
+  title: string
+  slug: string
+  floor?: number | null
+  image?: RawPublicImageSource | null
+}
+
 export type PublicRoom = {
   _id: string
   title: string
   slug: string
   floor: number | null
-  imageUrl: string | null
+  image: PublicImageSource | null
 }
 
 type PublicPortableTextBlock = {
@@ -83,7 +121,7 @@ export type PublicEvent = {
   slug: string
   title: string
   description: PublicPortableTextBlock[]
-  imageUrl: string | null
+  image: PublicImageSource | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
   organizerText: string | null
@@ -132,7 +170,7 @@ export type RawPublicParent = {
   eventStatus?: EventStatus | null
   title?: string | null
   description?: readonly unknown[] | null
-  imageUrl?: string | null
+  image?: RawPublicImageSource | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -143,7 +181,7 @@ export type RawPublicParent = {
   priceMedlem?: number | null
   ticketUrl?: string | null
   facebookUrl?: string | null
-  room?: PublicRoom | null
+  room?: RawPublicRoom | null
   roomText?: string | null
   slug?: string | null
   isInternalEvent?: boolean | null
@@ -164,7 +202,7 @@ export type RawPublicEvent = {
   slug?: string | null
   title?: string | null
   description?: readonly unknown[] | null
-  imageUrl?: string | null
+  image?: RawPublicImageSource | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -175,7 +213,7 @@ export type RawPublicEvent = {
   priceMedlem?: number | null
   ticketUrl?: string | null
   facebookUrl?: string | null
-  room?: PublicRoom | null
+  room?: RawPublicRoom | null
   roomText?: string | null
   isInternalEvent?: boolean | null
   useFestivalImage?: boolean | null
@@ -197,6 +235,34 @@ function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== "string") return null
   const normalized = value.trim()
   return normalized || null
+}
+
+function normalizeImageSource(
+  image: RawPublicImageSource | null | undefined,
+): PublicImageSource | null {
+  const id = normalizeString(image?.id)
+  if (!id) return null
+
+  return {
+    id,
+    hotspot: image?.hotspot ?? null,
+    crop: image?.crop ?? null,
+    lqip: normalizeString(image?.lqip),
+  }
+}
+
+function normalizePublicRoom(
+  room: RawPublicRoom | null | undefined,
+): PublicRoom | null {
+  if (!room) return null
+
+  return {
+    _id: room._id,
+    title: room.title,
+    slug: room.slug,
+    floor: room.floor ?? null,
+    image: normalizeImageSource(room.image),
+  }
 }
 
 function latestTimestamp(
@@ -342,7 +408,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     cleanChild.useFestivalImage !== false
   const effectiveParent =
     cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageCaption: null }
+      ? { ...cleanParent, image: null, imageCaption: null }
       : cleanParent
   const content = resolveEventContent(cleanChild, effectiveParent)
   const dates = (Array.isArray(content.dates) ? content.dates : []).flatMap(
@@ -376,7 +442,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     description: Array.isArray(content.description)
       ? (content.description as PublicPortableTextBlock[])
       : [],
-    imageUrl: normalizeString(content.imageUrl),
+    image: normalizeImageSource(content.image),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
     organizerText: normalizeString(content.organizerText),
@@ -387,7 +453,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     priceMedlem: content.priceMedlem ?? null,
     ticketUrl: normalizeString(content.ticketUrl),
     facebookUrl: normalizeString(content.facebookUrl),
-    room: content.room ?? null,
+    room: normalizePublicRoom(content.room),
     roomText: normalizeString(content.roomText),
     parentEvent: cleanParent
       ? {
