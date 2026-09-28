@@ -32,6 +32,30 @@ const publicEventTypeSchema = z.strictObject({
   name: z.string(),
 })
 
+const publicTaxonomyEventTypeSchema = z.strictObject({
+  id: z.string().min(1),
+  name: z.string(),
+})
+
+const publicTaxonomyEventTypeGroupSchema = z.strictObject({
+  id: z.string().min(1),
+  name: z.string(),
+  eventTypes: z.array(publicTaxonomyEventTypeSchema),
+})
+
+const publicTaxonomyRoomSchema = z.strictObject({
+  id: z.string().min(1),
+  name: z.string(),
+  slug: z.string(),
+})
+
+export const publicEventTaxonomySchema = z.strictObject({
+  eventTypeGroups: z.array(publicTaxonomyEventTypeGroupSchema),
+  rooms: z.array(publicTaxonomyRoomSchema),
+})
+
+export type PublicEventTaxonomy = z.infer<typeof publicEventTaxonomySchema>
+
 const publicOrganizerSchema = z.union([
   z.strictObject({
     kind: z.literal("group"),
