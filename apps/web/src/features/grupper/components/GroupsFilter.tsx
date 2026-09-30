@@ -71,18 +71,19 @@ export function GroupsFilter({
 function GroupCard({ group }: { group: StudentGroupSummary }) {
   return (
     <Link
-      className="group flex min-h-full flex-col gap-4 bg-card p-5 focus-brutal"
+      className="group flex min-h-full flex-col gap-4 bg-card focus-brutal"
       href={`/grupper/${group.slug}`}
       {...groupTrackingAttributes(group, "groups-card")}
     >
       <div className="space-y-3">
         <div className="flex min-w-0 items-start gap-4">
           {group.logoUrl ? (
-            <div className="relative size-12 shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted">
+            <div className="relative size-14 shrink-0">
               <Image
                 alt={`${group.name} logo`}
-                className="object-contain p-1"
+                className="object-contain"
                 fill
+                sizes="56px"
                 src={group.logoUrl}
               />
             </div>
