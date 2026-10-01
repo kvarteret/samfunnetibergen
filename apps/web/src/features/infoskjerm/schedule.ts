@@ -37,7 +37,6 @@ export type ScreenPromotion = {
   title: string
   date: string
   dateLabel: string
-  startTime: string | null
   room: string | null
   imageUrl: string | null
 }

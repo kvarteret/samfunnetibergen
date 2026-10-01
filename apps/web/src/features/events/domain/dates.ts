@@ -25,9 +25,10 @@ export interface PrimaryDateLabels {
 export function formatHumanDate(
   date: EventDateEntry,
   labels: Pick<PrimaryDateLabels, "today" | "tomorrow" | "weekday">,
+  referenceNow: Date = new Date(),
 ): string | null {
   const eventDate = TZDate.tz(EVENT_TIME_ZONE, date.startDate)
-  const now = TZDate.tz(EVENT_TIME_ZONE, new Date())
+  const now = TZDate.tz(EVENT_TIME_ZONE, referenceNow)
   const daysUntil = differenceInCalendarDays(eventDate, now)
 
   if (daysUntil < 0 || daysUntil > 7) return null
@@ -48,6 +49,7 @@ export function formatWeekday(date: Date, locale: AppLocale): string {
 export function formatPrimaryDate(
   date: EventDateEntry,
   labels: PrimaryDateLabels,
+  referenceNow: Date = new Date(),
 ): string {
   const eventDate = TZDate.tz(EVENT_TIME_ZONE, date.startDate)
   const timeRange = date.startTime
@@ -55,7 +57,8 @@ export function formatPrimaryDate(
     : null
 
   const dayLabel =
-    formatHumanDate(date, labels) ?? longDateFormatter.format(eventDate)
+    formatHumanDate(date, labels, referenceNow) ??
+    longDateFormatter.format(eventDate)
 
   return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }

@@ -49,3 +49,20 @@ describe("formatHumanDate", () => {
     expect(formatHumanDate(eventDate("2026-09-22"), labels)).toBeNull()
   })
 })
+
+test("accepts an explicit reference instant across Oslo midnight", () => {
+  expect(
+    formatHumanDate(
+      eventDate("2026-09-14"),
+      labels,
+      new Date("2026-09-13T22:30:00Z"),
+    ),
+  ).toBe("I dag")
+  expect(
+    formatHumanDate(
+      eventDate("2026-09-14"),
+      labels,
+      new Date("2026-09-13T21:30:00Z"),
+    ),
+  ).toBe("I morgen")
+})

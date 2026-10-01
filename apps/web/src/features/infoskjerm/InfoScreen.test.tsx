@@ -2,7 +2,8 @@
 import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
-import { InfoScreen, type ScreenRoomHours } from "./InfoScreen"
+import { InfoScreen } from "./InfoScreen"
+import type { ScreenRoomHours } from "./opening-hours"
 import {
   PAGE_DURATION_MS,
   REFRESH_INTERVAL_MS,
@@ -105,7 +106,6 @@ it("reserves promoted previews and rotates daily pages of three without losing e
             title: "Neste ukes konsert",
             date: "2026-10-08",
             dateLabel: "Torsdag, 20:00",
-            startTime: "20:00",
             room: "Teglverket",
             imageUrl: null,
           },

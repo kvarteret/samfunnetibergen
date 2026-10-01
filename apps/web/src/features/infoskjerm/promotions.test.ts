@@ -74,9 +74,24 @@ it("shows the earliest future date and does not invent promotions when the pool 
   expect(result[0]).toEqual(
     expect.objectContaining({
       date: "2026-10-02",
-      startTime: "19:00",
       dateLabel: "I morgen, 19:00",
     }),
   )
   expect(selectScreenPromotions([], "2026-10-01", new Set())).toEqual([])
+})
+
+it("uses the supplied Oslo day for labels even when the system clock disagrees", () => {
+  vi.setSystemTime(new Date("2026-12-01T12:00:00Z"))
+  const result = selectScreenPromotions(
+    [
+      promotion("tomorrow", {
+        dates: [
+          { _key: "tomorrow", startDate: "2026-10-02", startTime: "19:00" },
+        ],
+      }),
+    ],
+    "2026-10-01",
+    new Set(),
+  )
+  expect(result[0].dateLabel).toBe("I morgen, 19:00")
 })

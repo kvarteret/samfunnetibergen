@@ -49,13 +49,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.eyebrow {
-  font-size: 1.7cqw;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .headingRow {
   display: flex;
   align-items: flex-end;

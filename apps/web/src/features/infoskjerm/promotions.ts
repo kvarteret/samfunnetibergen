@@ -51,12 +51,15 @@ export function selectScreenPromotions(
         id: event._id,
         title: event.title,
         date: date.startDate,
-        dateLabel: formatPrimaryDate(date, {
-          today: messages.EventCard.today,
-          tomorrow: messages.EventCard.tomorrow,
-          weekday: date => formatWeekday(date, "nb"),
-        }),
-        startTime: date.startTime?.slice(0, 5) ?? null,
+        dateLabel: formatPrimaryDate(
+          date,
+          {
+            today: messages.EventCard.today,
+            tomorrow: messages.EventCard.tomorrow,
+            weekday: date => formatWeekday(date, "nb"),
+          },
+          new Date(`${today}T12:00:00+01:00`),
+        ),
         room: event.room?.title || event.roomText || null,
         imageUrl: event.imageUrl,
       }
