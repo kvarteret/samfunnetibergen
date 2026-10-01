@@ -33,3 +33,23 @@ Run `npm run route-typegen`, `npm run typecheck`, `npm test`, and `npm run build
 With both services running locally, open a scheduled event. Try tapping twenty times: the heart fills at twelve, emits confetti, and the total increases by exactly twelve. Further clicks do nothing. Reload after saving and expect the same count and full heart. A second browser contributes to the same event total; two tabs sharing a cookie share the same twelve-click limit. Retry a lost response and expect no duplicate contribution. Verify keyboard tapping, compact mobile layout, no unsolicited sound on load, and reduced-motion behavior.
 
 The heart is original SVG, with CSS/Web Animations and synthesized Web Audio. Animation design was inspired by Josh Comeau's [CSS and JavaScript animation explanation](https://www.joshwcomeau.com/animation/css-vs-javascript/); no private source or artwork was copied.
+
+
+## PostHog tracking
+
+`apps/web/src/features/event-interest/components/analytics.ts` uses the existing website PostHog browser client. Every event includes `event_slug` and `locale`; filter or break down by these properties to compare events or languages.
+
+| Event | When it fires | Additional properties |
+| --- | --- | --- |
+| `event_interest_loaded` | A valid load completes, including reloads and successful load retries | `taps`, `count` |
+| `event_interest_tapped` | The enabled heart accepts a local tap | `taps` (optimistic personal fill) |
+| `event_interest_full` | A local tap first fills the heart | `taps` |
+| `event_interest_batch_saved` | A batch receives a valid backend acknowledgement | `requested_clicks`, `taps`, `count` |
+| `event_interest_failed` | Loading, cookie initialization, or saving fails | `phase`: `load`, `initialize`, or `save` |
+| `event_interest_retried` | The visitor presses retry | `phase`: `load` or `save` |
+
+For engagement, trend `event_interest_tapped` by event slug. For a funnel, use loaded → tapped → full. To inspect saving reliability, compare failed and retried events by phase with batch acknowledgements. Full-heart events describe optimistic local interaction and do not fire when a full heart is restored from storage. Loaded events count successful loads, not unique visitors or visibility impressions.
+
+A saved-batch event reports requested clicks and the backend's current totals; the backend can clamp a batch when another tab has already filled the shared source. Do not sum `requested_clicks`, `taps`, or `count` to calculate authoritative event totals. Those remain in PostgreSQL. Lost-response retries emit a saved-batch event only after acknowledgement, but analytics can be blocked or lost independently of persistence.
+
+The helper sends no source cookie, source hash, batch UUID, account identifier, or error payload. It sets `$ip` to null to prevent IP enrichment for these events. The existing PostHog client still attaches its standard analytics identity and browser properties; this tracking does not change site-wide analytics or replay settings. Analytics failures cannot interrupt the heart. Localhost tracking remains disabled unless `NEXT_PUBLIC_POSTHOG_ENABLE_LOCALHOST=true` is explicitly set.

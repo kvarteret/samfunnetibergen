@@ -17,6 +17,7 @@ import {
   MAX_BATCH_CLICKS,
   validInterest,
 } from "../domain/interest"
+import { captureInterest } from "./analytics"
 import styles from "./EventInterest.module.css"
 
 export function EventInterest({ eventSlug }: { eventSlug: string }) {
@@ -56,16 +57,24 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
       desired.current = result.taps
       setTaps(result.taps)
       setSaved(result)
+      captureInterest("loaded", eventSlug, locale, {
+        taps: result.taps,
+        count: result.count,
+      })
     } catch {
-      if (mounted.current) setFailed(true)
+      if (mounted.current && sequence === loadSequence.current) {
+        setFailed(true)
+        captureInterest("failed", eventSlug, locale, { phase: "load" })
+      }
     }
-  }, [endpoint])
+  }, [endpoint, eventSlug, locale])
 
   const flush = useCallback(async () => {
     if (busy.current || unsaved.current === 0) return
     busy.current = true
     setSending(true)
     setFailed(false)
+    let phase: "initialize" | "save" = "initialize"
     try {
       if (!initialized.current) {
         // Establish the source cookie before any database write. If the first
@@ -79,6 +88,7 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
         if (!response.ok) throw new Error("Unable to initialize")
         initialized.current = true
       }
+      phase = "save"
       // Keep the same batch ID after a lost response. New clicks queue behind it;
       // independent tabs send distinct batches, so every click counts once.
       while (mounted.current && unsaved.current > 0) {
@@ -103,14 +113,22 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
         desired.current = result.taps + unsaved.current
         setTaps(desired.current)
         setSaved(result)
+        captureInterest("batch_saved", eventSlug, locale, {
+          requested_clicks: batch.clicks,
+          taps: result.taps,
+          count: result.count,
+        })
       }
     } catch {
-      if (mounted.current) setFailed(true)
+      if (mounted.current) {
+        setFailed(true)
+        captureInterest("failed", eventSlug, locale, { phase })
+      }
     } finally {
       busy.current = false
       if (mounted.current) setSending(false)
     }
-  }, [endpoint])
+  }, [endpoint, eventSlug, locale])
 
   useEffect(() => {
     mounted.current = true
@@ -198,6 +216,9 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
     unsaved.current += 1
     const justFilled =
       previous < FULL_HEART_TAPS && desired.current === FULL_HEART_TAPS
+    captureInterest("tapped", eventSlug, locale, { taps: desired.current })
+    if (justFilled)
+      captureInterest("full", eventSlug, locale, { taps: desired.current })
     celebrate()
     void playSound(justFilled, Math.min(FULL_HEART_TAPS, desired.current))
     if (
@@ -392,7 +413,12 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
           <button
             className={styles.action}
             type="button"
-            onClick={() => void (saved === null ? load() : flush())}
+            onClick={() => {
+              captureInterest("retried", eventSlug, locale, {
+                phase: saved === null ? "load" : "save",
+              })
+              void (saved === null ? load() : flush())
+            }}
           >
             {t("retry")}
           </button>
