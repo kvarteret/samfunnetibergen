@@ -19,12 +19,16 @@ import { PhoneNumberField } from "@/components/ui/phone-number-field"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
 import { Textarea } from "@/components/ui/textarea"
-import { getFormValidationIssues } from "@/lib/form-validation-errors"
+import {
+  type FormValidationIssue,
+  getFormValidationIssues,
+} from "@/lib/form-validation-errors"
 import { requestExceptionFeedback } from "@/lib/posthog/exception-feedback"
 import { captureInvalidFormSubmission } from "@/lib/posthog/form-validation"
 import { isStaleDeploymentError } from "@/lib/submission-messages"
 import { useFieldAria } from "@/lib/use-field-aria"
 import { useFormErrors } from "@/lib/use-form-errors"
+import { parseVolunteerRejection } from "../domain/volunteer-rejection"
 import {
   VOLUNTEER_FORM_LIMITS,
   type VolunteerFormValues,
@@ -77,6 +81,8 @@ export function GroupVolunteerForm({
   subGroups,
   institutionOptions,
 }: GroupVolunteerFormProps) {
+  const [submittedGroups, setSubmittedGroups] = useState<string[]>([])
+  const [serverIssues, setServerIssues] = useState<FormValidationIssue[]>([])
   const uid = useId()
   const t = useTranslations("GroupVolunteerForm")
   const tv = useTranslations("Validation")
@@ -120,6 +126,12 @@ export function GroupVolunteerForm({
       })
 
       if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        const rejection = parseVolunteerRejection(
+          data?.detail,
+          t("submitErrorFallback"),
+        )
+        setServerIssues(rejection.issues)
         const detail =
           response.status === 429
             ? t("submitRateLimited", {
@@ -129,16 +141,10 @@ export function GroupVolunteerForm({
                     1,
                 ),
               })
-            : await response
-                .json()
-                .then(data =>
-                  data && typeof data.detail === "string"
-                    ? data.detail
-                    : t("submitErrorFallback"),
-                )
-                .catch(() => t("submitErrorFallback"))
-        formApi.setErrorMap({ onServer: detail })
-        requestExceptionFeedback("volunteer_application")
+            : rejection.message
+        formApi.setErrorMap({ onServer: detail as never })
+        if (!rejection.issues.length)
+          requestExceptionFeedback("volunteer_application")
         throw new Error(detail)
       }
 
@@ -146,6 +152,14 @@ export function GroupVolunteerForm({
         registrationId?: number | string
       } | null
       if (honeypot.trim()) return
+      setSubmittedGroups(
+        [value.firstChoiceGroupSlug, value.secondChoiceGroupSlug]
+          .filter(Boolean)
+          .map(
+            slug =>
+              groupChoices.find(group => group.slug === slug)?.name ?? slug,
+          ),
+      )
 
       try {
         posthog.capture("volunteer_application_submitted", {
@@ -209,10 +223,10 @@ export function GroupVolunteerForm({
   const errorMap = useStore(form.store, state => state.errorMap)
   const submitError =
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
-  const validationErrors: ErrorSummaryItem[] = getFormValidationIssues(
-    errorMap.onChange,
-    errorMap.onSubmit,
-  ).map(issue => ({
+  const validationErrors: ErrorSummaryItem[] = [
+    ...getFormValidationIssues(errorMap.onChange, errorMap.onSubmit),
+    ...serverIssues,
+  ].map(issue => ({
     fieldId: volunteerFieldId(issue.path, fieldIds),
     message: translateValidationMessage(issue.message, tv),
   }))
@@ -239,7 +253,9 @@ export function GroupVolunteerForm({
       <FormSection title={t("title")}>
         <Alert variant="success">
           <AlertTitle>{t("successTitle")}</AlertTitle>
-          <AlertDescription>{t("submittedMessage")}</AlertDescription>
+          <AlertDescription>
+            {t("submittedMessage", { groups: submittedGroups.join(", ") })}
+          </AlertDescription>
         </Alert>
       </FormSection>
     )
@@ -281,6 +297,9 @@ export function GroupVolunteerForm({
             placeholder={t("secondChoicePlaceholder")}
             value={secondChoiceSlug}
           />
+          <p className="text-sm text-foreground-muted">
+            {t("independentApplicationsHelp")}
+          </p>
         </FieldGroup>
       )}
 
@@ -288,10 +307,12 @@ export function GroupVolunteerForm({
         <form
           className="space-y-6"
           noValidate
+          onChange={() => setServerIssues([])}
           onFocusCapture={markStarted}
           onSubmit={(e: FormEvent) => {
             e.preventDefault()
             markSubmitAttempt()
+            setServerIssues([])
             form.setErrorMap({ onServer: undefined })
             void form.handleSubmit().catch((error: unknown) => {
               if (form.state.errorMap.onServer) return
@@ -599,6 +620,7 @@ function volunteerFieldId(
   if (path === "secondChoiceGroupSlug") return fieldIds.secondChoiceGroupSlug
   const friendMatch = /^friendEmails\[(\d+)\]/.exec(path)
   if (friendMatch) return friendFieldId(Number(friendMatch[1]))
+  if (path === "friendEmails") return friendFieldId(0)
   return fieldIds.firstName
 }
 

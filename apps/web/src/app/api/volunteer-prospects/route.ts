@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server"
 import {
+  parseVolunteerRejection,
+  volunteerRejectionDiagnostics,
+} from "@/features/grupper/domain/volunteer-rejection"
+import {
   type VolunteerFormValues,
   volunteerFormSchema,
   volunteerHoneypotSchema,
@@ -172,12 +176,23 @@ export async function POST(request: Request) {
           const errorBody = (await response.json().catch(() => null)) as {
             detail?: unknown
           } | null
-          // Forward the Personal backend's own message (e.g. duplicate email)
-          // when it is a plain string; anything structured stays server-side.
-          const detail =
-            typeof errorBody?.detail === "string"
-              ? errorBody.detail
-              : GENERIC_ERROR
+          const rejection = parseVolunteerRejection(
+            errorBody?.detail,
+            GENERIC_ERROR,
+          )
+          const validationFailure =
+            response.status === 400 || response.status === 422
+          const diagnostics = volunteerRejectionDiagnostics(
+            rejection,
+            response.headers.get("X-Kvarteret-Rejection-Code"),
+          )
+          emitOperationalEvent("volunteer.application.rejected", {
+            status: response.status,
+            outcome: validationFailure
+              ? "validation_rejected"
+              : "upstream_rejected",
+            ...diagnostics,
+          })
           const retryAfterSeconds =
             response.status === 429
               ? Number(response.headers.get("retry-after")) || 60
@@ -191,6 +206,8 @@ export async function POST(request: Request) {
                 failure_branch: "personal_backend_rejected",
                 ...currentTraceFields(),
                 status: response.status,
+                validation_stage: validationFailure ? "upstream" : undefined,
+                ...diagnostics,
                 retry_after_seconds: retryAfterSeconds,
                 first_choice_group_slug: requestBody.first_choice_group_slug,
                 has_second_choice: Boolean(
@@ -200,7 +217,7 @@ export async function POST(request: Request) {
             )
           }
           return NextResponse.json(
-            { detail },
+            { detail: rejection.detail },
             {
               status:
                 response.status === 409 || response.status === 429
@@ -216,6 +233,7 @@ export async function POST(request: Request) {
 
         const data = (await response.json().catch(() => null)) as {
           registrationId?: number | string
+          registrationIds?: number[]
         } | null
         const registrationId = data?.registrationId
         span.setAttribute("registration_id", registrationId ?? "")
@@ -223,7 +241,15 @@ export async function POST(request: Request) {
           registration_id: registrationId,
           outcome: "accepted",
         })
-        return NextResponse.json({ registrationId }, { status: 201 })
+        return NextResponse.json(
+          {
+            registrationId,
+            ...(Array.isArray(data?.registrationIds)
+              ? { registrationIds: data.registrationIds }
+              : {}),
+          },
+          { status: 201 },
+        )
       },
     )
   } catch (error) {

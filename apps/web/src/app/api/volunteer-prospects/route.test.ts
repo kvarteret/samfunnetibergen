@@ -105,6 +105,25 @@ describe("POST /api/volunteer-prospects", () => {
     withOperationalSpanMock.mockClear()
   })
 
+  it("preserves all independent application IDs from Personal", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json(
+        { registrationId: 42, registrationIds: [42, 43] },
+        { status: 201 },
+      ),
+    )
+    const response = await POST(
+      volunteerRequest(
+        JSON.stringify({ ...validPayload, secondChoiceGroupSlug: "halvtimen" }),
+      ),
+    )
+    expect(response.status).toBe(201)
+    expect(await response.json()).toEqual({
+      registrationId: 42,
+      registrationIds: [42, 43],
+    })
+  })
+
   it("forwards the Sanity group slug unchanged", async () => {
     fetchMock.mockResolvedValue(
       Response.json({ registrationId: 42 }, { status: 201 }),
@@ -386,6 +405,52 @@ describe("POST /api/volunteer-prospects", () => {
       detail: "En aktiv søknad med denne e-postadressen finnes allerede.",
     })
     expect(captureMock).not.toHaveBeenCalled()
+  })
+
+  it("preserves structured field feedback and reports value-free rejection diagnostics", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json(
+        {
+          detail: {
+            message: "Sjekk venneadressene.",
+            fieldErrors: {
+              friendEmails: { 0: "E-postadressene må være ulike." },
+            },
+          },
+        },
+        {
+          status: 400,
+          headers: { "X-Kvarteret-Rejection-Code": "field_validation" },
+        },
+      ),
+    )
+    const response = await POST(volunteerRequest())
+    expect(response.status).toBe(422)
+    expect(await response.json()).toEqual({
+      detail: {
+        message: "Sjekk venneadressene.",
+        fieldErrors: { "friendEmails[0]": "E-postadressene må være ulike." },
+      },
+    })
+    expect(captureMock).toHaveBeenCalledWith(
+      "volunteer_application",
+      expect.any(Error),
+      expect.objectContaining({
+        issue_count: 1,
+        field_paths: "friendEmails[]",
+        issue_codes: "field_validation",
+      }),
+    )
+    expect(emitOperationalEventMock).toHaveBeenCalledWith(
+      "volunteer.application.rejected",
+      expect.objectContaining({
+        issue_codes: "field_validation",
+        outcome: "validation_rejected",
+      }),
+    )
+    expect(JSON.stringify(captureMock.mock.calls)).not.toContain(
+      "Sjekk venneadressene",
+    )
   })
 
   it("preserves upstream throttling and retry guidance", async () => {

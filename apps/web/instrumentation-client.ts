@@ -1,5 +1,5 @@
 import posthog from "posthog-js"
-import { dropDocumentUrlExceptions } from "@/lib/posthog/exception-filter"
+import { prepareBrowserException } from "@/lib/posthog/browser-exception"
 
 const isLocalhost =
   typeof window !== "undefined" &&
@@ -22,7 +22,7 @@ if (
     capture_pageview: true,
     capture_pageleave: true,
     capture_exceptions: true,
-    before_send: dropDocumentUrlExceptions,
+    before_send: prepareBrowserException,
     disable_session_recording: false,
     session_recording: {
       maskAllInputs: true,
