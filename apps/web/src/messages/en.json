@@ -348,6 +348,22 @@
       "internal": "Internal"
     }
   },
+  "EventInterest": {
+    "title": "Looking forward to it?",
+    "maybe": "Might come",
+    "coming": "I’m coming!",
+    "definitely": "Can’t wait!",
+    "tapLabel": "{level} — tap the heart to show more enthusiasm.",
+    "loading": "Checking the mood …",
+    "saving": "Saving your enthusiasm …",
+    "saved": "Your enthusiasm is saved.",
+    "empty": "Interested",
+    "retry": "Try again",
+    "loadError": "Mood unavailable right now.",
+    "saveError": "Your response wasn’t saved.",
+    "maxTapLabel": "Full enthusiasm — thank you!",
+    "countLabel": "{count} total clicks"
+  },
   "EventPage": {
     "price": "Pris",
     "date": "Dato",

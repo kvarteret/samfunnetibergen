@@ -347,6 +347,22 @@
       "internal": "Intern"
     }
   },
+  "EventInterest": {
+    "title": "Gleder du deg?",
+    "maybe": "Kommer kanskje",
+    "coming": "Kommer!",
+    "definitely": "Gleder meg!",
+    "tapLabel": "{level} – trykk på hjertet for å vise mer entusiasme.",
+    "loading": "Henter stemningen …",
+    "saving": "Lagrer entusiasmen …",
+    "saved": "Din entusiasme er lagret.",
+    "empty": "Interessert",
+    "retry": "Prøv igjen",
+    "loadError": "Stemningen er utilgjengelig akkurat nå.",
+    "saveError": "Svaret ditt ble ikke lagret.",
+    "maxTapLabel": "Full jubel – takk!",
+    "countLabel": "{count} trykk totalt"
+  },
   "EventPage": {
     "price": "Pris",
     "date": "Dato",
@@ -455,7 +471,6 @@
     "quizSoundOff": "Skru av lyden",
     "quizSoundOn": "Skru på lyden",
     "quizNotReady": "Valgomaten er ikke ferdig ennå :(",
-
     "quizContactBefore": "Ta kontakt med",
     "quizContactAfter": "for å høre mer om hva som kan passe deg!"
   },
