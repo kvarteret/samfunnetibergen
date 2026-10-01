@@ -347,6 +347,25 @@
       "internal": "Intern"
     }
   },
+  "EventInterest": {
+    "title": "Blir du med?",
+    "maybe": "kommer kanskje",
+    "coming": "kommer!",
+    "definitely": "JEG KOMMER",
+    "tapLabel": "{level}. Trykk for å vise mer entusiasme.",
+    "hint": "Litt gira? Trykk. Veldig gira? Trykk mer.",
+    "maxHint": "Vi tar hintet. Vi sees!",
+    "score": "Stemning akkurat nå",
+    "loading": "Henter stemningen …",
+    "saving": "Lagrer entusiasmen …",
+    "saved": "Din entusiasme er lagret.",
+    "empty": "Vis hvor gira du er.",
+    "error": "Kunne ikke lagre eller hente svaret. Prøv igjen.",
+    "retry": "Prøv igjen",
+    "reset": "Fjern svaret mitt",
+    "privacyTitle": "Hvordan telles dette?",
+    "privacy": "Et lekent signal, ikke en påmelding. Hver nettleser bidrar med 0,25, 0,75 eller 1 poeng etter entusiasmen. Gjentatte trykk samles i ett svar. En tilfeldig informasjonskapsel for dette arrangementet husker svaret i opptil 90 dager. Vi bruker ikke IP-adresse eller fingeravtrykk. Du kan fjerne svaret når du vil."
+  },
   "EventPage": {
     "price": "Pris",
     "date": "Dato",

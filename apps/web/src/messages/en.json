@@ -348,6 +348,25 @@
       "internal": "Internal"
     }
   },
+  "EventInterest": {
+    "title": "Will you join us?",
+    "maybe": "might come",
+    "coming": "I’m coming!",
+    "definitely": "COUNT ME IN!",
+    "tapLabel": "{level}. Tap to show more enthusiasm.",
+    "hint": "A little excited? Tap. Really excited? Tap again.",
+    "maxHint": "Message received. See you there!",
+    "score": "The mood right now",
+    "loading": "Checking the mood …",
+    "saving": "Saving your enthusiasm …",
+    "saved": "Your enthusiasm is saved.",
+    "empty": "Show how excited you are.",
+    "error": "Could not save or load your response. Try again.",
+    "retry": "Try again",
+    "reset": "Remove my response",
+    "privacyTitle": "How is this counted?",
+    "privacy": "A playful signal, not a registration. Each browser contributes 0.25, 0.75 or 1 point depending on enthusiasm. Repeat taps become one response. A random cookie for this event remembers your response for up to 90 days. We use no IP address or fingerprint. You can remove your response at any time."
+  },
   "EventPage": {
     "price": "Pris",
     "date": "Dato",

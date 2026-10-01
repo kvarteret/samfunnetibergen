@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { EventInterest } from "@/features/event-interest/components/EventInterest"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
@@ -453,6 +454,9 @@ function EventDetailActions({
 }) {
   return (
     <div className="space-y-4">
+      {event.eventStatus === "scheduled" && (
+        <EventInterest key={eventSlug} eventSlug={eventSlug} />
+      )}
       {event.facebookUrl && (
         <EventFacebookButton
           facebookUrl={event.facebookUrl}
