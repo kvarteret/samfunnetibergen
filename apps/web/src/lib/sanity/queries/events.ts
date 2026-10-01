@@ -46,6 +46,7 @@ const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
     "description": ${localizedNullableDescription}[] ${portableTextProjection},
     "imageUrl": image.asset->url,
+    "image": image { asset, crop, hotspot },
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
     "organizerText": ${localizedNullableOrganizerText},

@@ -83,6 +83,51 @@ describe("submitEvent", () => {
     expect(document.dates[0]).toMatchObject({ startDate: "2026-08-20" })
   })
 
+  test("stores the chosen crop and focus point on the original Sanity image", async () => {
+    const imageSelection = {
+      crop: { top: 0.1, bottom: 0.1, left: 0, right: 0 },
+      hotspot: { x: 0.3, y: 0.5, width: 0.04, height: 0.04 },
+    }
+    const result = await submitEvent({
+      ...initialState,
+      title: "Testarrangement",
+      titleEnglish: "Test event",
+      dates: [{ ...initialState.dates[0], startDate: "2026-10-20" }],
+      submittedBy: "Kari Nordmann",
+      submittedByEmail: "kari@example.com",
+      imageAssetId: "image-abc123-1600x900-jpg",
+      imageSelection,
+    })
+
+    expect(result.ok).toBe(true)
+    expect(createMock.mock.calls[0]?.[0]).toMatchObject({
+      image: {
+        _type: "image",
+        asset: { _ref: "image-abc123-1600x900-jpg" },
+        crop: { _type: "sanity.imageCrop", ...imageSelection.crop },
+        hotspot: { _type: "sanity.imageHotspot", ...imageSelection.hotspot },
+      },
+    })
+  })
+
+  test("rejects image coordinates outside the uploaded image", async () => {
+    const result = await submitEvent({
+      ...initialState,
+      title: "Testarrangement",
+      titleEnglish: "Test event",
+      dates: [{ ...initialState.dates[0], startDate: "2026-10-20" }],
+      submittedBy: "Kari Nordmann",
+      submittedByEmail: "kari@example.com",
+      imageAssetId: "image-abc123-1600x900-jpg",
+      imageSelection: {
+        crop: { top: 0, bottom: 0, left: 0.7, right: 0.7 },
+        hotspot: { x: 0.5, y: 0.5, width: 0.04, height: 0.04 },
+      },
+    })
+    expect(result.ok).toBe(false)
+    expect(createMock).not.toHaveBeenCalled()
+  })
+
   test("rejects a submission without an English title", async () => {
     const result = await submitEvent({
       ...initialState,

@@ -9,6 +9,7 @@ import {
   cleanEventDate,
   cleanEventLogicFields,
 } from "@/lib/sanity/fetch/event-normalization"
+import type { EventImageSource } from "./eventImage"
 
 export const PUBLIC_EVENT_KINDS = [
   "single",
@@ -84,6 +85,7 @@ export type PublicEvent = {
   title: string
   description: PublicPortableTextBlock[]
   imageUrl: string | null
+  image: EventImageSource | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
   organizerText: string | null
@@ -133,6 +135,7 @@ export type RawPublicParent = {
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  image?: EventImageSource | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -165,6 +168,7 @@ export type RawPublicEvent = {
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  image?: EventImageSource | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -342,7 +346,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     cleanChild.useFestivalImage !== false
   const effectiveParent =
     cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageCaption: null }
+      ? { ...cleanParent, imageUrl: null, image: null, imageCaption: null }
       : cleanParent
   const content = resolveEventContent(cleanChild, effectiveParent)
   const dates = (Array.isArray(content.dates) ? content.dates : []).flatMap(
@@ -377,6 +381,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       ? (content.description as PublicPortableTextBlock[])
       : [],
     imageUrl: normalizeString(content.imageUrl),
+    image: content.image?.asset?._ref ? content.image : null,
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
     organizerText: normalizeString(content.organizerText),
