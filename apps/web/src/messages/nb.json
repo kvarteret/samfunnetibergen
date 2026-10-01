@@ -348,23 +348,20 @@
     }
   },
   "EventInterest": {
-    "title": "Blir du med?",
-    "maybe": "kommer kanskje",
-    "coming": "kommer!",
-    "definitely": "JEG KOMMER",
-    "tapLabel": "{level}. Trykk for å vise mer entusiasme.",
-    "hint": "Litt gira? Trykk. Veldig gira? Trykk mer.",
-    "maxHint": "Vi tar hintet. Vi sees!",
-    "score": "Stemning akkurat nå",
+    "title": "Gleder du deg?",
+    "maybe": "Kommer kanskje",
+    "coming": "Kommer!",
+    "definitely": "Gleder meg!",
+    "tapLabel": "{level} – trykk på hjertet for å vise mer entusiasme.",
     "loading": "Henter stemningen …",
     "saving": "Lagrer entusiasmen …",
     "saved": "Din entusiasme er lagret.",
-    "empty": "Vis hvor gira du er.",
-    "error": "Kunne ikke lagre eller hente svaret. Prøv igjen.",
+    "empty": "Interessert",
     "retry": "Prøv igjen",
-    "reset": "Fjern svaret mitt",
-    "privacyTitle": "Hvordan telles dette?",
-    "privacy": "Et lekent signal, ikke en påmelding. Hver nettleser bidrar med 0,25, 0,75 eller 1 poeng etter entusiasmen. Gjentatte trykk samles i ett svar. En tilfeldig informasjonskapsel for dette arrangementet husker svaret i opptil 90 dager. Vi bruker ikke IP-adresse eller fingeravtrykk. Du kan fjerne svaret når du vil."
+    "loadError": "Stemningen er utilgjengelig akkurat nå.",
+    "saveError": "Svaret ditt ble ikke lagret.",
+    "maxTapLabel": "Full jubel – takk!",
+    "countLabel": "{count} trykk totalt"
   },
   "EventPage": {
     "price": "Pris",
@@ -474,7 +471,6 @@
     "quizSoundOff": "Skru av lyden",
     "quizSoundOn": "Skru på lyden",
     "quizNotReady": "Valgomaten er ikke ferdig ennå :(",
-
     "quizContactBefore": "Ta kontakt med",
     "quizContactAfter": "for å høre mer om hva som kan passe deg!"
   },

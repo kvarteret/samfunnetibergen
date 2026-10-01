@@ -10,15 +10,14 @@ import {
   useState,
 } from "react"
 import {
+  type ClickBatch,
+  FULL_HEART_TAPS,
   type InterestState,
   interestLevel,
-  interestWeight,
-  MAX_TAPS,
-  validTaps,
+  MAX_BATCH_CLICKS,
+  validInterest,
 } from "../domain/interest"
 import styles from "./EventInterest.module.css"
-
-const particleAngles = Array.from({ length: 14 }, (_, index) => index * 137.5)
 
 export function EventInterest({ eventSlug }: { eventSlug: string }) {
   const t = useTranslations("EventInterest")
@@ -29,16 +28,17 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
   const [taps, setTaps] = useState(0)
   const [failed, setFailed] = useState(false)
   const [sending, setSending] = useState(false)
-  const [burst, setBurst] = useState(0)
+  const [confetti, setConfetti] = useState(false)
+  const audio = useRef<AudioContext | null>(null)
   const initialized = useRef(false)
   const loadSequence = useRef(0)
   const desired = useRef(0)
-  const acknowledged = useRef(0)
+  const unsaved = useRef(0)
+  const inFlight = useRef<ClickBatch | null>(null)
   const busy = useRef(false)
   const mounted = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const character = useRef<HTMLSpanElement>(null)
-  const panel = useRef<HTMLElement>(null)
   const animation = useRef<Animation | null>(null)
 
   const load = useCallback(async () => {
@@ -51,9 +51,9 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
       })
       if (!response.ok) throw new Error("Unavailable")
       const result: InterestState = await response.json()
-      if (!validTaps(result.taps)) throw new Error("Invalid response")
+      if (!validInterest(result)) throw new Error("Invalid response")
       if (!mounted.current || sequence !== loadSequence.current) return
-      desired.current = acknowledged.current = result.taps
+      desired.current = result.taps
       setTaps(result.taps)
       setSaved(result)
     } catch {
@@ -62,7 +62,7 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
   }, [endpoint])
 
   const flush = useCallback(async () => {
-    if (busy.current || desired.current === acknowledged.current) return
+    if (busy.current || unsaved.current === 0) return
     busy.current = true
     setSending(true)
     setFailed(false)
@@ -79,25 +79,28 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
         if (!response.ok) throw new Error("Unable to initialize")
         initialized.current = true
       }
-      // Absolute cumulative counts make retries safe. Serialize requests so the
-      // first cookie is established before later taps leave this browser.
-      while (mounted.current && desired.current !== acknowledged.current) {
-        const sent = desired.current
+      // Keep the same batch ID after a lost response. New clicks queue behind it;
+      // independent tabs send distinct batches, so every click counts once.
+      while (mounted.current && unsaved.current > 0) {
+        const batch = inFlight.current ?? {
+          clicks: Math.min(MAX_BATCH_CLICKS, unsaved.current),
+          batch_id: crypto.randomUUID(),
+        }
+        inFlight.current = batch
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taps: sent }),
+          body: JSON.stringify(batch),
           signal: AbortSignal.timeout(6000),
           keepalive: true,
         })
         if (!response.ok) throw new Error("Unable to save")
         const result: InterestState = await response.json()
-        if (!validTaps(result.taps)) throw new Error("Invalid response")
+        if (!validInterest(result)) throw new Error("Invalid response")
         if (!mounted.current) return
-        if (sent === 0) initialized.current = false
-        acknowledged.current = result.taps
-        // Another tab may have already saved a higher level.
-        if (sent > 0) desired.current = Math.max(desired.current, result.taps)
+        unsaved.current -= batch.clicks
+        inFlight.current = null
+        desired.current = result.taps + unsaved.current
         setTaps(desired.current)
         setSaved(result)
       }
@@ -120,235 +123,281 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
       mounted.current = false
       if (timer.current) clearTimeout(timer.current)
       animation.current?.cancel()
+      void audio.current?.close().catch(() => {})
+      audio.current = null
       document.removeEventListener("visibilitychange", onHide)
     }
   }, [load, flush])
 
   const level = interestLevel(taps)
-  const pending = saved !== null && taps !== saved.taps
+  const pending = unsaved.current > 0
+  const count = saved === null ? null : saved.count + unsaved.current
   const label =
     level === 0
-      ? "maybe"
+      ? "empty"
       : level === 1
         ? "maybe"
         : level === 2
           ? "coming"
           : "definitely"
-  const score =
-    saved === null
-      ? null
-      : saved.score - interestWeight(saved.taps) + interestWeight(taps)
 
   function celebrate() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-    setBurst(previous => previous + 1)
     animation.current?.cancel()
     animation.current =
       character.current?.animate(
         [
           { transform: "scale(1) rotate(0deg)" },
-          { transform: "scale(1.13, .82) rotate(-5deg)", offset: 0.22 },
-          { transform: "scale(.94, 1.14) rotate(4deg)", offset: 0.48 },
-          { transform: "scale(1.04, .97) rotate(-2deg)", offset: 0.75 },
+          { transform: "scale(.94, 1.04) rotate(-3deg)", offset: 0.22 },
+          { transform: "scale(1.08, .96) rotate(2deg)", offset: 0.48 },
+          { transform: "scale(.99, 1.02) rotate(-1deg)", offset: 0.75 },
           { transform: "scale(1) rotate(0deg)" },
         ],
-        { duration: 540, easing: "cubic-bezier(.22,.68,.3,1)" },
+        { duration: 380, easing: "cubic-bezier(.22,.68,.3,1)" },
       ) ?? null
   }
 
-  function tap() {
-    celebrate()
-    desired.current = Math.min(MAX_TAPS, desired.current + 1)
-    setTaps(desired.current)
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => void flush(), 350)
+  async function playSound(full: boolean, amount: number) {
+    try {
+      const context = audio.current ?? new AudioContext()
+      audio.current = context
+      await context.resume()
+      if (!mounted.current || context.state !== "running") return
+      const notes = full ? [660, 830, 990] : [360 + amount * 25]
+      for (const [index, frequency] of notes.entries()) {
+        const start = context.currentTime + index * 0.075
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        oscillator.type = "sine"
+        oscillator.frequency.setValueAtTime(frequency, start)
+        oscillator.frequency.exponentialRampToValueAtTime(
+          frequency * 0.7,
+          start + 0.12,
+        )
+        gain.gain.setValueAtTime(0, start)
+        gain.gain.linearRampToValueAtTime(0.045, start + 0.008)
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16)
+        oscillator.connect(gain)
+        gain.connect(context.destination)
+        oscillator.onended = () => {
+          oscillator.disconnect()
+          gain.disconnect()
+        }
+        oscillator.start(start)
+        oscillator.stop(start + 0.18)
+      }
+    } catch {
+      // Audio is optional: a blocked or unsupported context must not stop a tap.
+    }
   }
 
+  function tap() {
+    if (desired.current >= FULL_HEART_TAPS) return
+    const previous = desired.current
+    desired.current = previous + 1
+    unsaved.current += 1
+    const justFilled =
+      previous < FULL_HEART_TAPS && desired.current === FULL_HEART_TAPS
+    celebrate()
+    void playSound(justFilled, Math.min(FULL_HEART_TAPS, desired.current))
+    if (
+      justFilled &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      setConfetti(true)
+    setTaps(desired.current)
+    if (!timer.current)
+      timer.current = setTimeout(() => {
+        timer.current = null
+        void flush()
+      }, 350)
+  }
+
+  const status = failed
+    ? t(saved === null ? "loadError" : "saveError")
+    : sending || pending
+      ? t("saving")
+      : saved === null
+        ? t("loading")
+        : taps > 0
+          ? t("saved")
+          : ""
+
   return (
-    <section
-      ref={panel}
-      className={styles.panel}
-      aria-labelledby={`${id}-title`}
-      onPointerMove={event => {
-        if (
-          event.pointerType !== "mouse" ||
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        )
-          return
-        const rect = event.currentTarget.getBoundingClientRect()
-        const x = Math.max(
-          -1,
-          Math.min(
-            1,
-            (event.clientX - rect.left - rect.width / 2) / (rect.width / 2),
-          ),
-        )
-        const y = Math.max(
-          -1,
-          Math.min(
-            1,
-            (event.clientY - rect.top - rect.height / 2) / (rect.height / 2),
-          ),
-        )
-        event.currentTarget.style.setProperty("--look-x", `${x * 3}px`)
-        event.currentTarget.style.setProperty("--look-y", `${y * 2}px`)
-        event.currentTarget.style.setProperty("--tilt", `${x * 5}deg`)
-      }}
-      onPointerLeave={() => {
-        panel.current?.style.setProperty("--look-x", "0px")
-        panel.current?.style.setProperty("--look-y", "0px")
-        panel.current?.style.setProperty("--tilt", "0deg")
-      }}
-    >
-      <h2 id={`${id}-title`} className={styles.title}>
-        {t("title")}
-      </h2>
-      <div className={styles.stage} data-level={level}>
+    <section className={styles.panel} aria-label={t("title")}>
+      <div className={styles.row} data-level={level}>
         <button
           type="button"
           className={styles.button}
-          disabled={saved === null}
-          aria-label={t("tapLabel", { level: t(label) })}
-          aria-describedby={`${id}-hint`}
+          disabled={saved === null || taps >= FULL_HEART_TAPS}
+          aria-label={t(taps >= FULL_HEART_TAPS ? "maxTapLabel" : "tapLabel", {
+            level: t(label),
+          })}
+          title={t(taps >= FULL_HEART_TAPS ? "maxTapLabel" : "tapLabel", {
+            level: t(label),
+          })}
           onClick={tap}
+          onPointerMove={event => {
+            if (
+              event.pointerType !== "mouse" ||
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            )
+              return
+            const rect = event.currentTarget.getBoundingClientRect()
+            const x = Math.max(
+              -1,
+              Math.min(
+                1,
+                (event.clientX - rect.left - rect.width / 2) / (rect.width / 2),
+              ),
+            )
+            const y = Math.max(
+              -1,
+              Math.min(
+                1,
+                (event.clientY - rect.top - rect.height / 2) /
+                  (rect.height / 2),
+              ),
+            )
+            event.currentTarget.style.setProperty("--look-x", `${x * 3}px`)
+            event.currentTarget.style.setProperty("--look-y", `${y * 2}px`)
+            event.currentTarget.style.setProperty("--lean", `${x * 7}deg`)
+          }}
+          onPointerLeave={event => {
+            event.currentTarget.style.setProperty("--look-x", "0px")
+            event.currentTarget.style.setProperty("--look-y", "0px")
+            event.currentTarget.style.setProperty("--lean", "0deg")
+          }}
         >
-          <span className={styles.tilt}>
-            <span ref={character} className={styles.character}>
-              <span
-                className={styles.fill}
-                style={
-                  {
-                    "--fill": `${taps === 0 ? 0 : 18 + (taps / MAX_TAPS) * 82}%`,
-                  } as CSSProperties
-                }
+          <span ref={character} className={styles.character}>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 80 76"
+              className={styles.heart}
+            >
+              <defs>
+                <linearGradient
+                  id={`${id}-color`}
+                  x1="0"
+                  y1="0"
+                  x2="0.35"
+                  y2="1"
+                >
+                  <stop stopColor="var(--amber-300)" />
+                  <stop offset="1" stopColor="var(--color-primary)" />
+                </linearGradient>
+                <clipPath id={`${id}-shape`}>
+                  <path d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z" />
+                </clipPath>
+              </defs>
+              <path
+                className={styles.body}
+                d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z"
               />
-              <svg
-                className={styles.face}
-                aria-hidden="true"
-                viewBox="0 0 64 48"
-              >
+              <g clipPath={`url(#${id}-shape)`}>
+                <rect
+                  className={styles.fill}
+                  x="7"
+                  y="8"
+                  width="66"
+                  height="60"
+                  fill={`url(#${id}-color)`}
+                  style={{
+                    transform: `translateY(${60 * (1 - Math.min(1, taps / FULL_HEART_TAPS))}px)`,
+                  }}
+                />
+              </g>
+              <path
+                d="M17 25q2-7 9-7"
+                fill="none"
+                stroke="white"
+                strokeWidth="4"
+                strokeLinecap="round"
+                opacity=".65"
+              />
+              <g className={styles.face}>
                 <g className={styles.eyes}>
                   {level < 3 ? (
                     <>
-                      <ellipse cx="22" cy="20" rx="3" ry="4" />
-                      <ellipse cx="42" cy="20" rx="3" ry="4" />
+                      <ellipse cx="29" cy="36" rx="2.2" ry="3" />
+                      <ellipse cx="51" cy="36" rx="2.2" ry="3" />
                     </>
                   ) : (
                     <path
-                      d="M17 21q5-10 10 0M37 21q5-10 10 0"
+                      d="M25 37q4-7 8 0M47 37q4-7 8 0"
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="3"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
                     />
                   )}
                 </g>
                 {level < 2 ? (
                   <path
-                    d="M25 31q7 7 14 0"
+                    d="M35 45q5 5 10 0"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
                 ) : (
-                  <>
-                    <path d="M23 29h18q-1 14-9 14t-9-14" />
-                    <path d="M27 39q5-6 10 0" fill="#f26887" />
-                  </>
+                  <path d="M33 44h14q-1 10-7 10t-7-10" />
                 )}
-                <ellipse
-                  cx="14"
-                  cy="29"
-                  rx="5"
-                  ry="2.5"
-                  fill="#f26887"
-                  opacity={level ? ".7" : "0"}
-                />
-                <ellipse
-                  cx="50"
-                  cy="29"
-                  rx="5"
-                  ry="2.5"
-                  fill="#f26887"
-                  opacity={level ? ".7" : "0"}
-                />
-              </svg>
-              <span className={styles.label}>{t(label)}</span>
-              <span className={styles.shine} />
-            </span>
+              </g>
+            </svg>
           </span>
         </button>
-        {burst > 0 && (
-          <span key={burst} className={styles.particles} aria-hidden="true">
-            {particleAngles.slice(0, level >= 3 ? 14 : 8).map(angle => (
-              <span
-                key={angle}
-                style={
-                  {
-                    "--angle": `${angle}deg`,
-                    "--distance": `${58 + (angle % 4) * 18}px`,
-                    "--delay": `${(angle % 3) * 18}ms`,
-                  } as CSSProperties
-                }
-              >
-                {angle % 3 === 0 ? "✦" : angle % 3 < 1.5 ? "●" : "✧"}
-              </span>
-            ))}
+        {confetti && (
+          <span
+            className={styles.confetti}
+            aria-hidden="true"
+            onAnimationEnd={() => setConfetti(false)}
+          >
+            {Array.from({ length: 12 }, (_, index) => {
+              const angle = Math.PI + (index / 11) * Math.PI
+              const distance = 38 + (index % 3) * 13
+              return (
+                <i
+                  key={angle}
+                  style={
+                    {
+                      "--x": `${Math.cos(angle) * distance}px`,
+                      "--y": `${Math.sin(angle) * distance - 12}px`,
+                      "--turn": `${index * 67}deg`,
+                      "--confetti-color": [
+                        "var(--color-primary)",
+                        "var(--amber-300)",
+                        "#db7890",
+                      ][index % 3],
+                    } as CSSProperties
+                  }
+                />
+              )
+            })}
           </span>
         )}
       </div>
-      <p id={`${id}-hint`} className={styles.hint}>
-        {t(taps >= MAX_TAPS ? "maxHint" : "hint")}
-      </p>
-      <div className={styles.total}>
-        <span>{t("score")}</span>
-        <strong>
-          {score === null
-            ? "—"
-            : new Intl.NumberFormat(locale, {
-                maximumFractionDigits: 2,
-              }).format(score)}
-        </strong>
-      </div>
-      <p className={styles.status} role="status" aria-live="polite">
-        {failed
-          ? t("error")
-          : sending || pending
-            ? t("saving")
-            : saved === null
-              ? t("loading")
-              : taps > 0
-                ? t("saved")
-                : t("empty")}
-      </p>
-      <div className={styles.actions}>
+      <output
+        aria-live="off"
+        className={styles.count}
+        aria-label={count === null ? t("loading") : t("countLabel", { count })}
+      >
+        {count === null ? "—" : new Intl.NumberFormat(locale).format(count)}
+      </output>
+      <div className={styles.feedback} data-visible={failed}>
+        <p className={styles.status} role="status" aria-live="polite">
+          {status}
+        </p>
         {failed && (
           <button
+            className={styles.action}
             type="button"
             onClick={() => void (saved === null ? load() : flush())}
           >
             {t("retry")}
           </button>
         )}
-        {saved !== null && taps > 0 && (
-          <button
-            type="button"
-            disabled={sending || pending}
-            onClick={() => {
-              desired.current = 0
-              setTaps(0)
-              void flush()
-            }}
-          >
-            {t("reset")}
-          </button>
-        )}
       </div>
-      <details className={styles.privacy}>
-        <summary>{t("privacyTitle")}</summary>
-        <p>{t("privacy")}</p>
-      </details>
     </section>
   )
 }

@@ -16,6 +16,7 @@ import {
 import { fetchPublicEventBySlug } from "@/features/events/server/public-events"
 import { GET, POST } from "./route"
 
+const batch = { clicks: 4, batch_id: "550e8400-e29b-41d4-a716-446655440000" }
 const context = { params: Promise.resolve({ slug: "test-event" }) }
 function request(
   body: unknown,
@@ -42,29 +43,38 @@ beforeEach(() => {
   } as unknown as NonNullable<
     Awaited<ReturnType<typeof fetchPublicEventBySlug>>
   >)
-  vi.mocked(readInterest).mockResolvedValue({ taps: 0, score: 0 })
-  vi.mocked(saveInterest).mockResolvedValue({ taps: 4, score: 0.75 })
+  vi.mocked(readInterest).mockResolvedValue({ taps: 0, count: 0 })
+  vi.mocked(saveInterest).mockResolvedValue({ taps: 4, count: 4 })
 })
 describe("public event responses", () => {
   it("rejects cross-origin and invalid counts without backend writes", async () => {
     expect(
-      (await POST(request({ taps: 4 }, "https://elsewhere.com"), context))
-        .status,
+      (await POST(request(batch, "https://elsewhere.com"), context)).status,
     ).toBe(403)
-    for (const taps of [-1, 13, 1.5, "4", true])
-      expect((await POST(request({ taps }), context)).status).toBe(400)
+    for (const clicks of [-1, 0, 1001, 1.5, "4", true])
+      expect((await POST(request({ ...batch, clicks }), context)).status).toBe(
+        400,
+      )
+    expect(
+      (await POST(request({ clicks: 4, batch_id: "invalid" }), context)).status,
+    ).toBe(400)
     expect(saveInterest).not.toHaveBeenCalled()
   })
-  it("persists a bounded response and sets a scoped HttpOnly cookie only on interaction", async () => {
-    const response = await POST(request({ taps: 4 }), context)
+  it("persists a retry-safe batch and sets a scoped HttpOnly cookie only on interaction", async () => {
+    const response = await POST(request(batch), context)
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ taps: 4, score: 0.75 })
+    expect(saveInterest).toHaveBeenCalledWith(
+      "event-id",
+      expect.any(String),
+      batch,
+    )
+    expect(await response.json()).toEqual({ taps: 4, count: 4 })
     expect(response.headers.get("set-cookie")).toContain("HttpOnly")
     expect(response.headers.get("set-cookie")).toContain(
       "Path=/api/event-interest",
     )
     const cookie = response.headers.get("set-cookie")?.split(";")[0]
-    await POST(request({ taps: 8 }, undefined, cookie), context)
+    await POST(request({ ...batch, clicks: 8 }, undefined, cookie), context)
     expect(vi.mocked(saveInterest).mock.calls[0][1]).toBe(
       vi.mocked(saveInterest).mock.calls[1][1],
     )
@@ -85,7 +95,7 @@ describe("public event responses", () => {
   })
   it("rejects unpublished or cancelled events and fails honestly when unavailable", async () => {
     vi.mocked(fetchPublicEventBySlug).mockResolvedValue(null)
-    expect((await POST(request({ taps: 4 }), context)).status).toBe(404)
+    expect((await POST(request(batch), context)).status).toBe(404)
     expect(saveInterest).not.toHaveBeenCalled()
     vi.mocked(fetchPublicEventBySlug).mockRejectedValue(
       new Error("unavailable"),

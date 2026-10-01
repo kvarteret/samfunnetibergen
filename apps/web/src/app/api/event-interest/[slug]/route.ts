@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import {
   RETENTION_SECONDS,
-  validTaps,
+  validBatchId,
+  validClicks,
 } from "@/features/event-interest/domain/interest"
 import {
   createSourceCookie,
@@ -61,18 +62,21 @@ export async function POST(request: NextRequest, context: Context) {
   }
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     return error("Expected JSON", 415)
-  let taps: unknown
+  let clicks: unknown
+  let batchId: unknown
   let initialize = false
   try {
     const text = await request.text()
-    if (text.length > 128) return error("Request too large", 413)
+    if (text.length > 256) return error("Request too large", 413)
     const body = JSON.parse(text)
     initialize = body?.initialize === true
-    taps = initialize ? 0 : body?.taps
+    clicks = body?.clicks
+    batchId = body?.batch_id
   } catch {
     return error("Invalid JSON", 400)
   }
-  if (!validTaps(taps)) return error("Invalid taps", 400)
+  if (!initialize && (!validClicks(clicks) || !validBatchId(batchId)))
+    return error("Invalid click batch", 400)
 
   try {
     const event = await resolveEvent(request, context)
@@ -81,10 +85,6 @@ export async function POST(request: NextRequest, context: Context) {
     const name = sourceCookieName(event._id)
     let cookie = request.cookies.get(name)?.value
     let source = sourceHash(event._id, cookie)
-    if (!source && taps === 0 && !initialize)
-      return NextResponse.json(await readInterest(event._id, null), {
-        headers: noStore,
-      })
     const isNew = !source
     if (!source) {
       cookie = createSourceCookie(event._id)
@@ -93,15 +93,18 @@ export async function POST(request: NextRequest, context: Context) {
     if (!source || !cookie) throw new Error("Unable to initialize source")
     const result = initialize
       ? await readInterest(event._id, source)
-      : await saveInterest(event._id, source, taps)
+      : await saveInterest(event._id, source, {
+          clicks: clicks as number,
+          batch_id: batchId as string,
+        })
     const response = NextResponse.json(result, { headers: noStore })
-    if (isNew || (taps === 0 && !initialize))
-      response.cookies.set(name, taps === 0 && !initialize ? "" : cookie, {
+    if (isNew)
+      response.cookies.set(name, cookie, {
         httpOnly: true,
         secure: request.nextUrl.protocol === "https:",
         sameSite: "strict",
         path: "/api/event-interest",
-        maxAge: taps === 0 && !initialize ? 0 : RETENTION_SECONDS,
+        maxAge: RETENTION_SECONDS,
       })
     return response
   } catch {

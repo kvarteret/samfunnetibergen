@@ -1,10 +1,21 @@
 import "server-only"
 import { createHash, createHmac, randomUUID } from "node:crypto"
-import { type InterestState, validTaps } from "../domain/interest"
+import {
+  type ClickBatch,
+  type InterestState,
+  validBatchId,
+  validClicks,
+  validInterest,
+} from "../domain/interest"
 
 async function backendInterest(
   path: "read" | "response",
-  body: { event_id: string; source_hash: string | null; taps?: number },
+  body: {
+    event_id: string
+    source_hash: string | null
+    clicks?: number
+    batch_id?: string
+  },
 ): Promise<InterestState> {
   const secret = process.env.EVENT_INTEREST_SECRET
   if (!secret || secret.length < 32)
@@ -38,26 +49,25 @@ async function backendInterest(
   })
   if (!response.ok) throw new Error("Personal backend event response failed")
   const data = await response.json()
-  if (
-    !validTaps(data.taps) ||
-    typeof data.score !== "number" ||
-    !Number.isFinite(data.score) ||
-    data.score < 0
-  ) {
+  if (!validInterest(data))
     throw new Error("Invalid event response from personal backend")
-  }
-  return { taps: data.taps, score: data.score }
+  return data
 }
 
 export function readInterest(eventId: string, source: string | null) {
   return backendInterest("read", { event_id: eventId, source_hash: source })
 }
 
-export function saveInterest(eventId: string, source: string, taps: number) {
-  if (!validTaps(taps)) throw new Error("Invalid taps")
+export function saveInterest(
+  eventId: string,
+  source: string,
+  batch: ClickBatch,
+) {
+  if (!validClicks(batch.clicks) || !validBatchId(batch.batch_id))
+    throw new Error("Invalid click batch")
   return backendInterest("response", {
     event_id: eventId,
     source_hash: source,
-    taps,
+    ...batch,
   })
 }

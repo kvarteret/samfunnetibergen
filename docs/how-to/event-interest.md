@@ -1,41 +1,35 @@
-# Enable event enthusiasm responses
+# Enable the event heart counter
 
-Event detail pages show a character that fills as a visitor taps it: `kommer kanskje` at 1–3 taps, `kommer!` at 4–7, and `JEG KOMMER` at 8–12. These levels contribute 0.25, 0.75, and 1 point. Additional taps still animate after the cap. The displayed mood is a weighted signal, not a headcount or a registration.
+Scheduled public event pages show a small heart and the combined number of clicks for that event. Each accepted click adds one to the total. The heart stops accepting clicks when it is full. The heart fills over twelve personal taps, follows the cursor with its eyes, plays a soft tap sound, and emits a small confetti burst when it first fills. Reduced-motion preferences disable movement and confetti. The normal interface has no explanatory copy, stepped indicator, undo or information control; loading and saving are announced accessibly, while errors expose retry.
 
-The website validates published public event slugs through `apps/web/src/features/events/server/public-events.ts`. It groups browser taps, then proxies requests through `apps/web/src/app/api/event-interest/[slug]/route.ts` and `apps/web/src/features/event-interest/server/store.ts`. The sibling `kvarteret-personal` backend owns the response table and database transactions in `app/domain/event_interest/`. Event content remains in Sanity; this feature does not restore the backend's retired event-content API.
+The website validates published events through `apps/web/src/features/events/server/public-events.ts`, then calls its same-origin `apps/web/src/app/api/event-interest/[slug]/route.ts`. `apps/web/src/features/event-interest/server/store.ts` signs requests to the sibling `kvarteret-personal` backend. That backend owns click persistence in `app/domain/event_interest/`. Event content remains in Sanity.
 
-## Configure the services
+## Configure and deploy
 
-Apply the backend's additive Alembic migration `migrations/versions/20261001_1400_event_interest.py` through its normal migration process before enabling the website. This creates `public.event_interest`, enables row-level security without public policies, and revokes public access. The backend's existing database owner/service connection accesses the table.
+Requires the updated backend PR #69. Apply its migrations `20261001_1400` and `20261001_1500` before enabling this website change. The second migration creates `public.event_interest_clicks`, copies previously recorded taps with their original expiry, enables row-level security without public policies, and revokes public access. Use the backend's existing owner/service database connection.
 
-Set the same random `EVENT_INTEREST_SECRET` (at least 32 characters) in both services. Generate one with `openssl rand -hex 32`. Keep it server-side, outside Git and `NEXT_PUBLIC_*`. The website uses `PERSONAL_APP_BASE_URL`, defaulting to `https://personal.kvarteret.no`. The website does not need a Postgres driver or database credentials. Deploy the backend first, then the website. Until configured, the control shows an unavailable state with retry instead of pretending responses were saved.
+Set the same random server-only `EVENT_INTEREST_SECRET` (at least 32 characters) in both services. Generate it with `openssl rand -hex 32`; never expose it in `NEXT_PUBLIC_*` or Git. Set `PERSONAL_APP_BASE_URL` on the website; it defaults to `https://personal.kvarteret.no`. Deploy the backend before this website revision. The new `{clicks, batch_id}` write contract and `{taps, count}` response replace the unmerged weighted-response implementation; coordinate both revisions rather than mixing old and new clients.
 
-Schedule the backend cleanup script daily using its existing job runner:
+Schedule the backend's `uv run python -m scripts.cleanup_event_interest` daily. It removes expired batches and legacy response rows. Reads exclude expired batches even before cleanup; active writes also prune expired batches for their event.
 
-    uv run python -m scripts.cleanup_event_interest
+## Request contract and retries
 
-Run it with the backend's normal environment and database credentials. It removes expired response rows; repeated runs are safe. Reads exclude expired rows even before cleanup. Active writes also prune expired rows for the current event.
+GET `/api/event-interest/[slug]?locale=nb` returns `{taps, count}`. `taps` is this event-specific browser source's click count and `count` is the combined total. Reads do not set cookies. POST `{initialize:true}` creates or preserves the event-specific signed cookie without recording clicks. Actual writes send `{clicks:4, batch_id:"<UUID v4>"}`. Each batch contains 1–1000 requested clicks. The backend accepts only the remaining clicks up to twelve per event-specific browser source. This limit is atomic across tabs.
 
-## Verify the interaction
+The component groups rapid taps, saves batches serially and retains the same batch ID on failure. Clicks made while saving queue behind the in-flight batch. The backend uniquely identifies batches by event ID and batch ID, so a lost response and retry do not double-count; independent tabs sharing a cookie have different IDs, so both contribute. The displayed number includes pending local clicks and reconciles to the backend total on acknowledgement. A save error stays visible until retry succeeds. At twelve taps the heart is full, confetti fires and the button becomes disabled; further clicks cannot increase the count. Totals refresh on load and each acknowledged write, rather than streaming other visitors' clicks.
 
-Start the backend and website with matching secrets and point `PERSONAL_APP_BASE_URL` to the local backend. Open any scheduled public event. Tap once and expect 0.25 additional points; tap four times in total and expect 0.75; tap eight or more times and expect 1. Reload and expect the same expression and contribution. Select `Fjern svaret mitt` to remove it. English pages use English labels and share the same event response.
+The website signs POSTs to `/api/v1/event-interest/read` and `/response`. Bodies carry `event_id`, `source_hash` (nullable for reads), and `clicks` plus `batch_id` for writes. HMAC-SHA256 authenticates `event-interest-v1`, timestamp, UUID nonce, method, path and SHA256 body digest joined with newlines. Headers are `X-Kvarteret-Timestamp`, `X-Kvarteret-Nonce`, and `X-Kvarteret-Signature: v1=<hex>`. The backend rejects stale/replayed authentication requests and rate-limits traffic. A transport retry has a fresh authentication nonce but the same click-batch ID. All responses use `private, no-store`.
 
-GET `/api/event-interest/[slug]?locale=nb` returns `{taps, score}` without setting a cookie. POST `{initialize:true}` creates or preserves an event-specific browser cookie without storing a response. The client completes initialization before sending POST `{taps:4}`. This makes a lost first response safe to retry before any contribution is inserted. Subsequent writes send absolute cumulative counts, serialize in the browser, and preserve the greatest saved count in Postgres. POST `{taps:0}` deletes the response and cookie. All responses use `private, no-store`.
+## Retention and interpretation
 
-The website sends signed POST requests to backend `/api/v1/event-interest/read` and `/response`. Bodies carry `event_id`, `source_hash` (nullable for reads), and `taps` for writes. HMAC-SHA256 authenticates the `event-interest-v1`, timestamp, UUID nonce, method, path, and SHA256 body digest, joined with newline characters. The signature header is `X-Kvarteret-Signature: v1=<hex>`, alongside `X-Kvarteret-Timestamp` and `X-Kvarteret-Nonce`. The backend accepts timestamps within five minutes, rejects reused nonces, and applies a shared request limit. No signing secret reaches the browser.
+Counts are clicks retained for 90 days, not people, attendance or registrations. Every batch expires 90 days after creation. Previously stored taps keep their original expiry when migrated. Historical clicks beyond the old twelve-tap cap were never stored and cannot be recovered.
 
-## Source grouping and retention
+The event-specific cookie is created on explicit interaction, scoped to `/api/event-interest`, HttpOnly, SameSite=Strict, and Secure on HTTPS. It lasts at most 90 days and stores a random signed token. The database stores only the event ID, source HMAC digest, random batch ID, click quantity and expiry. No account ID, IP address, browser fingerprint or event-to-event browser identity is collected by this feature. Existing hosting logs and analytics have their own policies. Cookie grouping restores personal fill state and enforces the twelve-click limit. Clearing cookies or using another browser creates a separate source. The interface has no removal control.
 
-The cookie is created only after an explicit interaction, scoped to the event-response API, HttpOnly, SameSite=Strict, and Secure on HTTPS. Each event has its own cookie containing a random token, issue time, and an event-bound signature. Postgres stores only its HMAC digest, event ID, capped tap count, and expiry. Cookies and contributions have a fixed 90-day lifetime; repeat taps do not extend it. Removing a response deletes its row and expires its cookie. The reset control becomes available after pending writes finish.
+## Verify
 
-No IP address, fingerprint, account ID, or event-to-event browser identifier is collected by this feature. Existing hosting/access logs and site analytics have their own policies. Cookie-based grouping is approximate: a shared browser is one source, another browser or cleared cookie is another, and it cannot prevent determined manipulation. Secret rotation invalidates existing cookies; old contributions remain until expiry, so coordinated rotation can temporarily allow repeat contributions. Review the site's privacy notice and retention operations before production rollout.
+Run `npm run route-typegen`, `npm run typecheck`, `npm test`, and `npm run build`. Backend checks are `uv run pytest tests/api/event_interest`, with `EVENT_INTEREST_TEST_DATABASE_URL` set to a disposable PostgreSQL database for real persistence tests.
 
-## Tests
+With both services running locally, open a scheduled event. Try tapping twenty times: the heart fills at twelve, emits confetti, and the total increases by exactly twelve. Further clicks do nothing. Reload after saving and expect the same count and full heart. A second browser contributes to the same event total; two tabs sharing a cookie share the same twelve-click limit. Retry a lost response and expect no duplicate contribution. Verify keyboard tapping, compact mobile layout, no unsolicited sound on load, and reduced-motion behavior.
 
-Run `npm run test:web`, `npm run typecheck`, and `npm run build` in this repository. Run the personal backend's API and PostgreSQL tests:
-
-    EVENT_INTEREST_TEST_DATABASE_URL=postgresql+asyncpg://... uv run pytest tests/api/event_interest
-
-Use a disposable database for that test. It creates the response table if needed and removes its synthetic event rows. Tests cover weighted levels, bounded inputs, signed source cookies, same-origin writes, source initialization, auth/replay rejection, coalescing, concurrency, event isolation, deletion, and expiry.
-
-The animation is original SVG, CSS, and Web Animations, inspired by Josh Comeau's [cursor interaction and particle explanations](https://whimsy.joshwcomeau.com/). His [blog source is closed](https://www.joshwcomeau.com/blog/why-my-blog-is-closed-source/); no heart artwork or private source was copied.
+The heart is original SVG, with CSS/Web Animations and synthesized Web Audio. Animation design was inspired by Josh Comeau's [CSS and JavaScript animation explanation](https://www.joshwcomeau.com/animation/css-vs-javascript/); no private source or artwork was copied.
