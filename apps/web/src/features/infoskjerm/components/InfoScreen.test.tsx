@@ -2,13 +2,13 @@
 import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
-import { InfoScreen } from "./InfoScreen"
-import type { ScreenRoomHours } from "./opening-hours"
+import type { ScreenRoomHours } from "../domain/opening-hours"
 import {
   PAGE_DURATION_MS,
   REFRESH_INTERVAL_MS,
   type ScreenEvent,
-} from "./schedule"
+} from "../domain/schedule"
+import { InfoScreen } from "./InfoScreen"
 
 const { refresh, router } = vi.hoisted(() => {
   const refresh = vi.fn()

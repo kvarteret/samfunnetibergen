@@ -1,6 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest"
-import { describeWeather, parseScreenWeather } from "./weather"
-import { fetchScreenWeather } from "./weather-server"
+import { fetchScreenWeather } from "./weather"
 
 const now = new Date("2026-10-01T17:30:00Z")
 const forecast = {
@@ -26,18 +25,6 @@ const forecast = {
 
 afterEach(() => vi.unstubAllGlobals())
 
-it("uses the current hour's forecast rather than the first cached entry", () => {
-  expect(parseScreenWeather(forecast, now)).toEqual({
-    time: "2026-10-01T17:00:00Z",
-    temperature: 15,
-    symbol: "rain",
-  })
-  expect(
-    parseScreenWeather(forecast, new Date("2026-10-02T17:00:00Z")),
-  ).toBeNull()
-  expect(parseScreenWeather({ properties: {} }, now)).toBeNull()
-})
-
 it("identifies and caches MET requests on the server", async () => {
   const fetch = vi
     .fn()
@@ -60,14 +47,4 @@ it("lets the screen load when MET is unavailable or rejects the request", async 
   expect(await fetchScreenWeather(now)).toBeNull()
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 429 }))
   expect(await fetchScreenWeather(now)).toBeNull()
-})
-
-it.each([
-  ["clearsky_night", "moon"],
-  ["rainshowers_day", "rain"],
-  ["heavysnow", "snow"],
-  ["rainandthunder", "thunder"],
-  ["fog", "fog"],
-])("maps %s to the %s weather icon", (symbol, icon) => {
-  expect(describeWeather(symbol).icon).toBe(icon)
 })

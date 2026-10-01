@@ -1,6 +1,6 @@
 import "server-only"
 
-import { parseScreenWeather, type ScreenWeather } from "./weather"
+import { parseScreenWeather, type ScreenWeather } from "../domain/weather"
 
 const BERGEN_FORECAST_URL =
   "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.3894&lon=5.3221"

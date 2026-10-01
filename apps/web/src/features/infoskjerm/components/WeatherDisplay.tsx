@@ -8,7 +8,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react"
-import { describeWeather, type ScreenWeather } from "./weather"
+import { describeWeather, type ScreenWeather } from "../domain/weather"
 
 const weatherIcons = {
   sun: Sun,

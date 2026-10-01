@@ -7,18 +7,18 @@ import { SectionMark } from "@/components/section-mark"
 import { Button } from "@/components/ui/button"
 import type { SiteLogoContent } from "@/lib/sanity/fetch"
 import messages from "@/messages/nb.json"
-import type { ScreenRoomHours } from "./opening-hours"
-import { PromotedEvents } from "./PromotedEvents"
-import { ScreenEventCard } from "./ScreenEventCard"
-import { ScreenOpeningHours } from "./ScreenOpeningHours"
+import type { ScreenRoomHours } from "../domain/opening-hours"
 import {
   SCREEN_TIME_ZONE,
   type ScreenEvent,
   type ScreenPromotion,
-} from "./schedule"
-import { useInfoScreen } from "./useInfoScreen"
+} from "../domain/schedule"
+import { useInfoScreen } from "../domain/useInfoScreen"
+import type { ScreenWeather } from "../domain/weather"
+import { PromotedEvents } from "./PromotedEvents"
+import { ScreenEventCard } from "./ScreenEventCard"
+import { ScreenOpeningHours } from "./ScreenOpeningHours"
 import { WeatherDisplay } from "./WeatherDisplay"
-import type { ScreenWeather } from "./weather"
 
 const EMPTY_PROMOTIONS: ScreenPromotion[] = []
 

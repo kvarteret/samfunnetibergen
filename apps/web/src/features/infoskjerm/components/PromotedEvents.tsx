@@ -1,5 +1,5 @@
+import type { ScreenPromotion } from "../domain/schedule"
 import { ScreenEventImage } from "./ScreenEventImage"
-import type { ScreenPromotion } from "./schedule"
 
 export function PromotedEvents({ events }: { events: ScreenPromotion[] }) {
   return (

@@ -1,8 +1,8 @@
 import { MapPin } from "lucide-react"
 import { Tag } from "@/components/ui/tag"
 import { cn } from "@/lib/utils"
+import { isScreenEventExpired, type ScreenEvent } from "../domain/schedule"
 import { ScreenEventImage } from "./ScreenEventImage"
-import { isScreenEventExpired, type ScreenEvent } from "./schedule"
 
 export function ScreenEventCard({
   event,

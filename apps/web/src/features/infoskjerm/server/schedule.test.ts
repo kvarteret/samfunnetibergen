@@ -7,7 +7,7 @@ import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
-import { fetchScreenEvents } from "./server"
+import { fetchScreenEvents } from "./schedule"
 
 vi.mock("@/features/events/server/public-events", () => ({
   fetchPublicEventSet: vi.fn(),

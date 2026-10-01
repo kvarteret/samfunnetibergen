@@ -4,12 +4,12 @@ import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
-import { selectScreenPromotions } from "./promotions"
+import { selectScreenPromotions } from "../domain/promotions"
 import {
   getScreenDate,
   type ScreenEvent,
   type ScreenPromotion,
-} from "./schedule"
+} from "../domain/schedule"
 
 export async function fetchScreenEvents(now: Date): Promise<{
   date: string

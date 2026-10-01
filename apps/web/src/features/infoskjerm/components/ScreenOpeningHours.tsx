@@ -1,4 +1,7 @@
-import { getScreenRoomHours, type ScreenRoomHours } from "./opening-hours"
+import {
+  getScreenRoomHours,
+  type ScreenRoomHours,
+} from "../domain/opening-hours"
 
 export function ScreenOpeningHours({
   roomHours,

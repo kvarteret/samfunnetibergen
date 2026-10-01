@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import { connection } from "next/server"
-import { InfoScreen } from "@/features/infoskjerm/InfoScreen"
-import { fetchScreenEvents } from "@/features/infoskjerm/server"
-import { fetchScreenWeather } from "@/features/infoskjerm/weather-server"
+import { InfoScreen } from "@/features/infoskjerm/components/InfoScreen"
+import { fetchScreenEvents } from "@/features/infoskjerm/server/schedule"
+import { fetchScreenWeather } from "@/features/infoskjerm/server/weather"
 import { fetchFooter, fetchSiteLogo } from "@/lib/sanity/fetch"
 
 export const metadata: Metadata = {
