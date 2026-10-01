@@ -31,13 +31,13 @@ describe("public event domain", () => {
         description: [
           { _type: "block", children: [{ text: "Inherited details" }] },
         ],
-        imageUrl: "https://cdn.example.test/parent.jpg",
+        image: { id: "image-parent-1200x628-jpg" },
         isFree: true,
       },
       slug: "series-day",
       title: null,
       description: null,
-      imageUrl: null,
+      image: null,
       room: null,
       roomText: "Lille sal",
       dates: [date("2026-09-10", "18:00", "20:00")],
@@ -48,7 +48,7 @@ describe("public event domain", () => {
     expect(event.description).toEqual([
       { _type: "block", children: [{ text: "Inherited details" }] },
     ])
-    expect(event.imageUrl).toBe("https://cdn.example.test/parent.jpg")
+    expect(event.image?.id).toBe("image-parent-1200x628-jpg")
     expect(event.isFree).toBe(true)
     expect(event.eventStatus).toBe("cancelled")
     expect(event.parentEvent).toMatchObject({
@@ -70,13 +70,13 @@ describe("public event domain", () => {
         eventStatus: "scheduled",
         slug: "festival",
         title: "Festival",
-        imageUrl: "https://cdn.example.test/festival.jpg",
+        image: { id: "image-festival-1200x628-jpg" },
         room: {
           _id: "room-parent",
           title: "Main room",
           slug: "main-room",
           floor: 1,
-          imageUrl: null,
+          image: null,
         },
       },
       slug: "festival-session",
@@ -86,7 +86,7 @@ describe("public event domain", () => {
       dates: [date("2026-09-12", null, null)],
     })
 
-    expect(event.imageUrl).toBeNull()
+    expect(event.image).toBeNull()
     expect(event.room).toBeNull()
   })
 })

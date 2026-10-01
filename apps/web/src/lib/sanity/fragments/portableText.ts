@@ -10,7 +10,10 @@ export const portableTextProjection = `{
         }
     },
     _type == "image" => {
-        "imageUrl": asset->url,
+        "id": asset._ref,
+        hotspot,
+        crop,
+        "lqip": asset->metadata.lqip,
         alt,
         caption
     }

@@ -45,7 +45,12 @@ const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "f
 const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
     "description": ${localizedNullableDescription}[] ${portableTextProjection},
-    "imageUrl": image.asset->url,
+    "image": image {
+        "id": asset._ref,
+        hotspot,
+        crop,
+        "lqip": asset->metadata.lqip
+    },
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
     "organizerText": ${localizedNullableOrganizerText},
@@ -128,7 +133,12 @@ const publicEventProjection = `{
         "title": ${localizedTitle},
         "slug": coalesce(slug.current, ""),
         floor,
-        "imageUrl": images[0].image.asset->url
+        "image": images[0].image {
+            "id": asset._ref,
+            hotspot,
+            crop,
+            "lqip": asset->metadata.lqip
+        }
     },
     "roomText": ${localizedNullableRoomText},
     ${inheritableFieldsProjection}

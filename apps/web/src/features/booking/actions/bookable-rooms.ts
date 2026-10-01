@@ -81,7 +81,13 @@ function toSanityBookingRoom(room: SanityBookableRoom): BookingRoom {
     pricePerHour: room.pricePerHour,
     openingHours: room.openingHours ?? null,
     image: room.image
-      ? { assetUrl: room.image.assetUrl, alt: room.image.alt }
+      ? {
+          id: room.image.id,
+          alt: room.image.alt,
+          hotspot: room.image.hotspot ?? null,
+          crop: room.image.crop ?? null,
+          lqip: room.image.lqip ?? null,
+        }
       : null,
     source: "sanity",
     floor: room.floor,

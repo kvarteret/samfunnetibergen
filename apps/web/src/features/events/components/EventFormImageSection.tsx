@@ -81,7 +81,7 @@ function UploadedImagePreview({
         {/* biome-ignore lint/performance/noImgElement: blob preview of a freshly uploaded file */}
         <img
           alt="Forhåndsvisning av opplastet bilde"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
           src={imagePreviewUrl}
         />
       </div>

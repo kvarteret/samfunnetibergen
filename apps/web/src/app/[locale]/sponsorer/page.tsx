@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react"
-import Image from "next/image"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { SanityImage } from "@/components/ui/sanity-image"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -66,14 +66,14 @@ export default async function SponsorsPage({ params }: SponsorsPageProps) {
               className="flex min-h-full flex-col gap-5 bg-card p-5"
               key={sponsor._key}
             >
-              {sponsor.logoUrl ? (
+              {sponsor.logoId ? (
                 <div className="relative flex h-28 items-center justify-start">
-                  <Image
+                  <SanityImage
                     alt={sponsor.logoAlt ?? sponsor.title ?? ""}
-                    className="object-contain object-left"
-                    fill
+                    className="h-full w-full object-contain object-left"
+                    image={{ id: sponsor.logoId }}
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    src={sponsor.logoUrl}
+                    width={960}
                   />
                 </div>
               ) : null}

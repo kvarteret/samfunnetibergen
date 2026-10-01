@@ -19,9 +19,17 @@ export type KaraokeBookingPayload = {
 
 export interface KaraokeRoomImage {
   _key: string | null
-  assetUrl: string | null
+  id: string | null
   alt: string | null
   caption: string | null
+  hotspot: { x: number; y: number } | null
+  crop: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  lqip: string | null
 }
 
 export interface KaraokeRoom {

@@ -62,9 +62,12 @@ export default async function KaraokePage({
         capacityStanding: roomData.capacityStanding ?? null,
         images: (roomData.images ?? []).map((img: SourcedImage) => ({
           _key: img._key ?? null,
-          assetUrl: img.assetUrl ?? null,
+          id: img.id ?? null,
           alt: img.alt ?? null,
           caption: img.caption ?? null,
+          hotspot: img.hotspot ?? null,
+          crop: img.crop ?? null,
+          lqip: img.lqip ?? null,
         })),
       }
     : MAOS_FALLBACK

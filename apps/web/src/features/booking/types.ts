@@ -1,8 +1,16 @@
 import type { OpeningHours } from "@/lib/opening-hours"
 
 export interface BookingRoomImage {
-  assetUrl: string | null
+  id: string | null
   alt: string | null
+  hotspot: { x: number; y: number } | null
+  crop: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  } | null
+  lqip: string | null
 }
 
 // A room offered in the booking picker. The list is autofetched from Crescat's
