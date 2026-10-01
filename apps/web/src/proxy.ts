@@ -37,5 +37,5 @@ export default function proxy(request: NextRequest) {
 
 export const config = {
   matcher:
-    "/((?!api|ingest|studio|appen|linkibio|opengraph-image|_next|_vercel|.*\\..*).*)",
+    "/((?!api|ingest|studio|appen|linkibio|infoskjerm|opengraph-image|_next|_vercel|.*\\..*).*)",
 }
