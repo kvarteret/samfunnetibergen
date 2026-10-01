@@ -79,7 +79,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   return (
     <article
-      className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]"
       {...groupTrackingAttributes(group, "group-detail")}
     >
       <div className="space-y-8">
@@ -125,7 +125,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
       </div>
 
-      <aside className="space-y-6">
+      <aside className="min-w-0 space-y-6">
         {group.slug && (
           <section className="panel">
             <GroupVolunteerForm
@@ -164,7 +164,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     target={isEmail ? undefined : "_blank"}
                   >
                     <Icon aria-hidden className="size-4 shrink-0" />
-                    {platformLabel}
+                    <span className="min-w-0 [overflow-wrap:anywhere]">
+                      {platformLabel}
+                    </span>
                     {!isEmail && (
                       <ExternalLink aria-hidden className="size-3 shrink-0" />
                     )}
@@ -179,7 +181,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
                     href={`mailto:${group.email}`}
                   >
                     <Mail aria-hidden className="size-4 shrink-0" />
-                    {group.email}
+                    <span className="min-w-0 [overflow-wrap:anywhere]">
+                      {group.email}
+                    </span>
                   </a>
                 )}
                 {group.website && (

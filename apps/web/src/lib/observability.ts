@@ -22,6 +22,9 @@ const ALLOWED_FIELDS = new Set([
   "registration_id",
   "span_id",
   "status",
+  "issue_count",
+  "field_paths",
+  "issue_codes",
   "trace_id",
 ])
 
