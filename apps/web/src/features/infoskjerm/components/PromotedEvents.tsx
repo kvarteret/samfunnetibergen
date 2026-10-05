@@ -4,7 +4,7 @@ import { ScreenEventImage } from "./ScreenEventImage"
 export function PromotedEvents({ events }: { events: ScreenPromotion[] }) {
   return (
     <section
-      className="paper-surface h-[29cqw] shrink-0 px-[6cqw] py-[2.5cqw] text-foreground"
+      className="h-[29cqw] shrink-0 bg-background px-[6cqw] py-[2.5cqw] text-foreground"
       aria-label="Snart"
     >
       <h2 className="mb-[2cqw] text-[2.5cqw] font-heading">Snart</h2>
