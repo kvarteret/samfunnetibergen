@@ -15,6 +15,7 @@ import {
   getRecurringLabel,
 } from "@/features/events/domain/dates"
 import type { PublicEvent } from "@/features/events/domain/events"
+import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
 import {
   isPromotableEventKind,
   promotedCardGridStartClass,
@@ -119,6 +120,7 @@ function toEventSummary(
     _id: event._id,
     title: event.title,
     slug: event.slug,
+    eventKind: event.eventKind,
     isRecurring: event.isRecurring ?? undefined,
     rrule: event.rrule ?? null,
     dates,
@@ -185,9 +187,15 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     .filter(event => event.isPromoted)
   const promotedEvents = selectHomepagePromotedEvents(promotedCandidates, today)
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
-  const upcomingEvents = (events ?? [])
-    .filter(event => !promotedEventIds.has(event._id))
-    .slice(0, 30)
+  const featuredFestivalIds = new Set(
+    promotedEvents
+      .filter(event => event.eventKind === "festivalParent")
+      .map(event => event._id),
+  )
+  const upcomingEvents = filterToFirstInstances(
+    (events ?? []).filter(event => !promotedEventIds.has(event._id)),
+    featuredFestivalIds,
+  ).slice(0, 30)
 
   const eventCardLabels: EventCardLabels = {
     today: t("today"),

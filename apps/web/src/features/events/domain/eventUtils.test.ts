@@ -14,6 +14,20 @@ function event(id: string, kind: PublicEvent["eventKind"], parentId?: string) {
 }
 
 describe("first materialized event instances", () => {
+  it("omits days of a featured festival while keeping other festivals and events", () => {
+    const events = [
+      event("biff-first", "festivalSession", "biff"),
+      event("single", "single"),
+      event("biff-later", "festivalSession", "biff"),
+      event("other-first", "festivalSession", "other"),
+      event("other-later", "festivalSession", "other"),
+    ]
+
+    expect(
+      filterToFirstInstances(events, new Set(["biff"])).map(item => item._id),
+    ).toEqual(["single", "other-first"])
+  })
+
   it("keeps only the first child for each series or festival", () => {
     const events = [
       event("series-first", "seriesInstance", "series"),
