@@ -1,5 +1,6 @@
 "use client"
 
+import { Popover } from "@base-ui/react/popover"
 import { useLocale, useTranslations } from "next-intl"
 import {
   type CSSProperties,
@@ -247,127 +248,141 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
   return (
     <section className={styles.panel} aria-label={t("title")}>
       <div className={styles.row} data-level={level}>
-        <button
-          type="button"
-          className={styles.button}
-          disabled={saved === null || taps >= FULL_HEART_TAPS}
-          aria-label={t(taps >= FULL_HEART_TAPS ? "maxTapLabel" : "tapLabel", {
-            level: t(label),
-          })}
-          title={t(taps >= FULL_HEART_TAPS ? "maxTapLabel" : "tapLabel", {
-            level: t(label),
-          })}
-          onClick={tap}
-          onPointerMove={event => {
-            if (
-              event.pointerType !== "mouse" ||
-              window.matchMedia("(prefers-reduced-motion: reduce)").matches
-            )
-              return
-            const rect = event.currentTarget.getBoundingClientRect()
-            const x = Math.max(
-              -1,
-              Math.min(
-                1,
-                (event.clientX - rect.left - rect.width / 2) / (rect.width / 2),
-              ),
-            )
-            const y = Math.max(
-              -1,
-              Math.min(
-                1,
-                (event.clientY - rect.top - rect.height / 2) /
-                  (rect.height / 2),
-              ),
-            )
-            event.currentTarget.style.setProperty("--look-x", `${x * 3}px`)
-            event.currentTarget.style.setProperty("--look-y", `${y * 2}px`)
-            event.currentTarget.style.setProperty("--lean", `${x * 7}deg`)
-          }}
-          onPointerLeave={event => {
-            event.currentTarget.style.setProperty("--look-x", "0px")
-            event.currentTarget.style.setProperty("--look-y", "0px")
-            event.currentTarget.style.setProperty("--lean", "0deg")
-          }}
-        >
-          <span ref={character} className={styles.character}>
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 80 76"
-              className={styles.heart}
-            >
-              <defs>
-                <linearGradient
-                  id={`${id}-color`}
-                  x1="0"
-                  y1="0"
-                  x2="0.35"
-                  y2="1"
-                >
-                  <stop stopColor="var(--amber-300)" />
-                  <stop offset="1" stopColor="var(--color-primary)" />
-                </linearGradient>
-                <clipPath id={`${id}-shape`}>
-                  <path d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z" />
-                </clipPath>
-              </defs>
-              <path
-                className={styles.body}
-                d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z"
-              />
-              <g clipPath={`url(#${id}-shape)`}>
-                <rect
-                  className={styles.fill}
-                  x="7"
-                  y="8"
-                  width="66"
-                  height="60"
-                  fill={`url(#${id}-color)`}
-                  style={{
-                    transform: `translateY(${60 * (1 - Math.min(1, taps / FULL_HEART_TAPS))}px)`,
-                  }}
+        <Popover.Root>
+          <Popover.Trigger
+            openOnHover
+            type="button"
+            className={styles.button}
+            disabled={saved === null || taps >= FULL_HEART_TAPS}
+            aria-label={t(
+              taps >= FULL_HEART_TAPS ? "maxTapLabel" : "tapLabel",
+              {
+                level: t(label),
+              },
+            )}
+            onClick={tap}
+            onPointerMove={event => {
+              if (
+                event.pointerType !== "mouse" ||
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              )
+                return
+              const rect = event.currentTarget.getBoundingClientRect()
+              const x = Math.max(
+                -1,
+                Math.min(
+                  1,
+                  (event.clientX - rect.left - rect.width / 2) /
+                    (rect.width / 2),
+                ),
+              )
+              const y = Math.max(
+                -1,
+                Math.min(
+                  1,
+                  (event.clientY - rect.top - rect.height / 2) /
+                    (rect.height / 2),
+                ),
+              )
+              event.currentTarget.style.setProperty("--look-x", `${x * 3}px`)
+              event.currentTarget.style.setProperty("--look-y", `${y * 2}px`)
+              event.currentTarget.style.setProperty("--lean", `${x * 7}deg`)
+            }}
+            onPointerLeave={event => {
+              event.currentTarget.style.setProperty("--look-x", "0px")
+              event.currentTarget.style.setProperty("--look-y", "0px")
+              event.currentTarget.style.setProperty("--lean", "0deg")
+            }}
+          >
+            <span ref={character} className={styles.character}>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 80 76"
+                className={styles.heart}
+              >
+                <defs>
+                  <linearGradient
+                    id={`${id}-color`}
+                    x1="0"
+                    y1="0"
+                    x2="0.35"
+                    y2="1"
+                  >
+                    <stop stopColor="var(--amber-300)" />
+                    <stop offset="1" stopColor="var(--color-primary)" />
+                  </linearGradient>
+                  <clipPath id={`${id}-shape`}>
+                    <path d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z" />
+                  </clipPath>
+                </defs>
+                <path
+                  className={styles.body}
+                  d="M40 68C32 65 7 47 7 27C7 9 29 5 40 22C51 5 73 9 73 27C73 47 48 65 40 68Z"
                 />
-              </g>
-              <path
-                d="M17 25q2-7 9-7"
-                fill="none"
-                stroke="white"
-                strokeWidth="4"
-                strokeLinecap="round"
-                opacity=".65"
-              />
-              <g className={styles.face}>
-                <g className={styles.eyes}>
-                  {level < 3 ? (
-                    <>
-                      <ellipse cx="29" cy="36" rx="2.2" ry="3" />
-                      <ellipse cx="51" cy="36" rx="2.2" ry="3" />
-                    </>
-                  ) : (
+                <g clipPath={`url(#${id}-shape)`}>
+                  <rect
+                    className={styles.fill}
+                    x="7"
+                    y="8"
+                    width="66"
+                    height="60"
+                    fill={`url(#${id}-color)`}
+                    style={{
+                      transform: `translateY(${60 * (1 - Math.min(1, taps / FULL_HEART_TAPS))}px)`,
+                    }}
+                  />
+                </g>
+                <path
+                  d="M17 25q2-7 9-7"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  opacity=".65"
+                />
+                <g className={styles.face}>
+                  <g className={styles.eyes}>
+                    {level < 3 ? (
+                      <>
+                        <ellipse cx="29" cy="36" rx="2.2" ry="3" />
+                        <ellipse cx="51" cy="36" rx="2.2" ry="3" />
+                      </>
+                    ) : (
+                      <path
+                        d="M25 37q4-7 8 0M47 37q4-7 8 0"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                    )}
+                  </g>
+                  {level < 2 ? (
                     <path
-                      d="M25 37q4-7 8 0M47 37q4-7 8 0"
+                      d="M35 45q5 5 10 0"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                     />
+                  ) : (
+                    <path d="M33 44h14q-1 10-7 10t-7-10" />
                   )}
                 </g>
-                {level < 2 ? (
-                  <path
-                    d="M35 45q5 5 10 0"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                ) : (
-                  <path d="M33 44h14q-1 10-7 10t-7-10" />
-                )}
-              </g>
-            </svg>
-          </span>
-        </button>
+              </svg>
+            </span>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner side="top" sideOffset={8} className="z-[100]">
+              <Popover.Popup
+                initialFocus={false}
+                className="border-2 border-border bg-card px-3 py-2 text-sm text-foreground shadow-shadow outline-none"
+              >
+                <Popover.Title>{t("coming")}</Popover.Title>
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
         {confetti && (
           <span
             className={styles.confetti}
