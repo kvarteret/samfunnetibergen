@@ -93,22 +93,20 @@ it("adapts sparse daily pages and omits empty pagination", async () => {
   )
 })
 
-it("links the volunteer QR code to the groups page with second-floor campaign tracking", async () => {
+it("links the volunteer QR code to blifrivillig.no with second-floor campaign tracking", async () => {
   await render([])
   const link = container.querySelector(
     'a[aria-label="Bli frivillig – se gruppene"]',
   )
   const url = new URL(link?.getAttribute("href") ?? "")
-  expect(url.origin + url.pathname).toBe(
-    "https://www.samfunnetibergen.no/nb/grupper",
-  )
+  expect(url.origin + url.pathname).toBe("https://blifrivillig.no/")
   expect(url.searchParams.get("utm_source")).toBe("infoskjerm")
   expect(url.searchParams.get("utm_medium")).toBe("qr")
   expect(url.searchParams.get("utm_campaign")).toBe("second-floor-infoskjerm")
   expect(link?.querySelector("img")?.getAttribute("src")).toBe(
     "/infoskjerm/volunteer-qr.png",
   )
-  expect(container.querySelector("footer h2")?.textContent).toBe(
+  expect(container.querySelector("footer")?.textContent).toContain(
     "Bli frivillig!",
   )
 })
@@ -238,7 +236,7 @@ it("shows distinct room hours without a duplicate house status", async () => {
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
   expect(hours?.textContent).toContain("GrøndahlsStenger 01")
-  expect(hours?.textContent).toContain("StjernesalenÅpner 14 · Stenger 02")
+  expect(hours?.textContent).toContain("StjernesalenStengt")
   expect(hours?.querySelectorAll('[data-open="true"]')).toHaveLength(1)
   expect(hours?.querySelectorAll('[aria-label="Åpent"]')).toHaveLength(1)
   expect(hours?.querySelectorAll('[aria-label="Stengt"]')).toHaveLength(1)

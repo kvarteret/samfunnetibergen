@@ -23,7 +23,7 @@ import { WeatherDisplay } from "./WeatherDisplay"
 
 const EMPTY_PROMOTIONS: ScreenPromotion[] = []
 const VOLUNTEER_URL =
-  "https://www.samfunnetibergen.no/nb/grupper?utm_source=infoskjerm&utm_medium=qr&utm_campaign=second-floor-infoskjerm"
+  "https://blifrivillig.no/?utm_source=infoskjerm&utm_medium=qr&utm_campaign=second-floor-infoskjerm"
 
 const dayFormatter = new Intl.DateTimeFormat("nb-NO", {
   timeZone: SCREEN_TIME_ZONE,
@@ -90,7 +90,9 @@ export function InfoScreen({
             <h1 className="text-[8.6cqw] font-heading leading-[1.04] tracking-[-0.055em]">
               I dag på
               <br />
-              <span className="text-primary">Kvarteret.</span>
+              <span className="text-primary">
+                Kvarteret<span className="text-foreground">.</span>
+              </span>
             </h1>
             <SectionMark className="mb-[1cqw] h-[5cqw] w-auto text-primary" />
           </div>
@@ -156,7 +158,7 @@ export function InfoScreen({
 
         {promotions.length > 0 && <PromotedEvents events={promotions} />}
 
-        <footer className="flex shrink-0 items-center justify-between bg-primary px-[6cqw] pt-[2.5cqw] pb-[5cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
+        <footer className="flex shrink-0 items-center justify-between bg-primary pl-[6cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
           <div className="grid h-[8.2cqw] w-full grid-cols-[minmax(0,1fr)_auto_8.2cqw] grid-rows-2 items-center gap-x-[2cqw]">
             <p className="col-start-1 row-start-1 line-clamp-1 text-[2.8cqw] font-heading leading-[1.2] tracking-[-0.03em] [font-family:var(--font-display)] [overflow-wrap:anywhere]">
               {message}
@@ -171,9 +173,9 @@ export function InfoScreen({
             >
               {messages.Footer.credit}
             </Button>
-            <h2 className="col-start-2 row-start-2 text-[2.8cqw] font-heading leading-[1.2] [font-family:var(--font-fraunces)]">
+            <p className="col-start-2 row-start-2 text-center text-[2.2cqw] font-semibold leading-[1.2] [font-family:var(--font-fraunces)]">
               Bli frivillig!
-            </h2>
+            </p>
             <Link
               href={VOLUNTEER_URL}
               prefetch={false}
@@ -183,8 +185,8 @@ export function InfoScreen({
               <Image
                 src="/infoskjerm/volunteer-qr.png"
                 alt="QR-kode til gruppene på Samfunnet i Bergen"
-                width={530}
-                height={530}
+                width={490}
+                height={490}
                 unoptimized
                 className="size-[8.2cqw] [image-rendering:pixelated]"
               />
