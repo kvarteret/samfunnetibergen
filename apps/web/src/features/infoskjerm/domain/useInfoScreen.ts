@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { watchScreenDeployment } from "./deployment"
 import {
   EVENTS_PER_PAGE,
   getScreenDate,
@@ -31,6 +32,14 @@ export function useInfoScreen({
   const visibleEvents = events.slice(
     currentPage * eventsPerPage,
     (currentPage + 1) * eventsPerPage,
+  )
+
+  useEffect(
+    () =>
+      watchScreenDeployment(document.documentElement.dataset.dplId, () =>
+        window.location.reload(),
+      ),
+    [],
   )
 
   useEffect(() => {
