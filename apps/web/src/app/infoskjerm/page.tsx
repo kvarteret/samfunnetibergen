@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { connection } from "next/server"
 import { InfoScreen } from "@/features/infoskjerm/components/InfoScreen"
+import { getScreenMessage } from "@/features/infoskjerm/domain/message"
 import { fetchScreenEvents } from "@/features/infoskjerm/server/schedule"
 import { fetchScreenWeather } from "@/features/infoskjerm/server/weather"
 import { fetchFooter, fetchSiteLogo } from "@/lib/sanity/fetch"
@@ -15,7 +16,7 @@ export default async function InfoScreenPage({
 }: PageProps<"/infoskjerm">) {
   await connection()
   const { message } = await searchParams
-  const footerMessage = (Array.isArray(message) ? message[0] : message)?.trim()
+  const footerMessage = getScreenMessage(message)
   const now = new Date()
   const [{ date, events, promotions }, logo, weather, footer] =
     await Promise.all([
