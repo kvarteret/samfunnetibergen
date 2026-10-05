@@ -561,11 +561,7 @@ export function BookingForm({
                   size="sm"
                   type="button"
                 >
-                  {isClearing ? (
-                    t("form.cleared")
-                  ) : (
-                    t("form.clear")
-                  )}
+                  {isClearing ? t("form.cleared") : t("form.clear")}
                 </Button>
                 {visibleErrors.length > 0 && (
                   <ErrorSummary
