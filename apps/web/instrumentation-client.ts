@@ -1,5 +1,8 @@
 import posthog from "posthog-js"
-import { prepareBrowserException } from "@/lib/posthog/browser-exception"
+import {
+  isTrackingExcluded,
+  prepareBrowserEvent,
+} from "@/lib/posthog/tracking-exclusions"
 
 const isLocalhost =
   typeof window !== "undefined" &&
@@ -12,8 +15,10 @@ const routeLocale =
     : window.location.pathname.split("/")[1]
 
 if (
-  !isLocalhost ||
-  process.env.NEXT_PUBLIC_POSTHOG_ENABLE_LOCALHOST === "true"
+  !isTrackingExcluded(
+    typeof window === "undefined" ? undefined : window.location.href,
+  ) &&
+  (!isLocalhost || process.env.NEXT_PUBLIC_POSTHOG_ENABLE_LOCALHOST === "true")
 ) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: "/ingest",
@@ -22,7 +27,7 @@ if (
     capture_pageview: true,
     capture_pageleave: true,
     capture_exceptions: true,
-    before_send: prepareBrowserException,
+    before_send: prepareBrowserEvent,
     disable_session_recording: false,
     session_recording: {
       maskAllInputs: true,
