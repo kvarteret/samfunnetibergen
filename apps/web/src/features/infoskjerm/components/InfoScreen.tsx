@@ -153,14 +153,14 @@ export function InfoScreen({
 
         {promotions.length > 0 && <PromotedEvents events={promotions} />}
 
-        <footer className="flex shrink-0 items-center justify-between bg-primary px-[6cqw] py-[2cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
+        <footer className="flex shrink-0 items-center justify-between bg-primary px-[6cqw] pt-[2.5cqw] pb-[5cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
           <div className="w-full">
             {message && (
               <p className="mb-[1cqw] line-clamp-2 text-[2.8cqw] font-heading leading-[1.2] tracking-[-0.03em] [font-family:var(--font-display)] [overflow-wrap:anywhere]">
                 {message}
               </p>
             )}
-            <div className="flex items-center justify-between gap-[2cqw]">
+            <div className="flex flex-wrap items-center justify-between gap-x-[2cqw] gap-y-[1cqw]">
               <p className="text-[2.4cqw] font-semibold">samfunnetibergen.no</p>
               <Button
                 variant="plain"

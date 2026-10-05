@@ -1,17 +1,31 @@
+import { cn } from "@/lib/utils"
 import type { ScreenPromotion } from "../domain/schedule"
 import { ScreenEventImage } from "./ScreenEventImage"
 
 export function PromotedEvents({ events }: { events: ScreenPromotion[] }) {
   return (
     <section
-      className="h-[29cqw] shrink-0 bg-background px-[6cqw] py-[2.5cqw] text-foreground"
+      className={cn(
+        "shrink-0 bg-background px-[6cqw] py-[2.5cqw] text-foreground",
+        events.length === 3 ? "min-h-[44cqw]" : "min-h-[29cqw]",
+      )}
       aria-label="Snart"
     >
       <h2 className="mb-[2cqw] text-[2.5cqw] font-heading">Snart</h2>
-      <div className="grid grid-cols-2 gap-[3cqw]">
+      <div
+        className={cn(
+          "grid gap-[3cqw]",
+          events.length === 3 ? "grid-cols-3" : "grid-cols-2",
+        )}
+      >
         {events.map(event => (
           <article
-            className="grid grid-cols-[17cqw_minmax(0,1fr)] items-start gap-[1.5cqw]"
+            className={cn(
+              "grid items-start gap-[1.5cqw]",
+              events.length === 3
+                ? "grid-cols-1"
+                : "grid-cols-[17cqw_minmax(0,1fr)]",
+            )}
             key={event.id}
           >
             <ScreenEventImage imageUrl={event.imageUrl} variant="promoted" />
