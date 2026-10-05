@@ -89,7 +89,7 @@ it("adapts sparse daily pages and omits empty pagination", async () => {
   expect(container.querySelector("ol")?.getAttribute("data-count")).toBe("2")
   expect(container.textContent).not.toContain("Side")
   expect(container.querySelector("ol")?.style.gridTemplateRows).toBe(
-    "repeat(2, minmax(0, 1fr))",
+    "repeat(2, minmax(min-content, 1fr))",
   )
 })
 

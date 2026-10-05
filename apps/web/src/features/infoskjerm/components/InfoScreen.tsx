@@ -105,10 +105,10 @@ export function InfoScreen({
         >
           {events.length > 0 ? (
             <ol
-              className="m-0 grid min-h-0 flex-1 list-none p-0"
+              className="m-0 grid min-h-0 flex-1 list-none gap-y-[2cqw] p-0"
               data-count={visibleEvents.length}
               style={{
-                gridTemplateRows: `repeat(${visibleEvents.length}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${visibleEvents.length}, minmax(min-content, 1fr))`,
               }}
               start={currentPage * eventsPerPage + 1}
             >
