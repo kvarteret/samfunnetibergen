@@ -253,12 +253,14 @@ it.each([
   expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
 })
 
-it("refreshes every minute and immediately after Oslo midnight", async () => {
+it("refreshes at hour boundaries and immediately after Oslo midnight", async () => {
   vi.setSystemTime(new Date("2026-10-01T21:58:59Z"))
   await render([])
-  await act(async () => vi.advanceTimersByTime(REFRESH_INTERVAL_MS))
-  expect(refresh).toHaveBeenCalledTimes(1)
+  await act(async () => vi.advanceTimersByTime(60_000))
+  expect(refresh).not.toHaveBeenCalled()
   await act(async () => vi.advanceTimersByTime(1_000))
+  expect(refresh).toHaveBeenCalledTimes(1)
+  await act(async () => vi.advanceTimersByTime(REFRESH_INTERVAL_MS))
   expect(refresh).toHaveBeenCalledTimes(2)
 })
 

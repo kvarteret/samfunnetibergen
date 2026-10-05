@@ -34,6 +34,7 @@ it("requests only today's Norwegian public occurrences and preserves cancellatio
     locale: "nb",
     from: "2026-10-01",
     to: null,
+    live: true,
   })
   expect(result.date).toBe("2026-10-01")
   expect(result.events).toEqual([

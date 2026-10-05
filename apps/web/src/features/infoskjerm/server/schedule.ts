@@ -22,8 +22,14 @@ export async function fetchScreenEvents(now: Date): Promise<{
       locale: "nb",
       from: date,
       to: null,
+      live: true,
     }),
-    fetchPublicPromotedParentEvents({ locale: "nb", from: date, to: null }),
+    fetchPublicPromotedParentEvents({
+      locale: "nb",
+      from: date,
+      to: null,
+      live: true,
+    }),
   ])
   const todayOccurrences = occurrences.filter(
     occurrence => occurrence.schedule.startDate === date,

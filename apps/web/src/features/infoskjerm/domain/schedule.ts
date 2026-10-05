@@ -1,6 +1,6 @@
 export const EVENTS_PER_PAGE = 4
 export const PAGE_DURATION_MS = 15_000
-export const REFRESH_INTERVAL_MS = 60_000
+export const REFRESH_INTERVAL_MS = 60 * 60 * 1_000
 export const SCREEN_TIME_ZONE = "Europe/Oslo"
 
 const dateFormatter = new Intl.DateTimeFormat("en-CA", {

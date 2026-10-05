@@ -44,21 +44,20 @@ export function useInfoScreen({
 
   useEffect(() => {
     let currentDate = date
+    let currentHour = Math.floor(Date.parse(initialNow) / REFRESH_INTERVAL_MS)
     const tick = () => {
       const nextNow = new Date()
       setNow(nextNow)
       const nextDate = getScreenDate(nextNow)
-      if (nextDate !== currentDate) {
+      const nextHour = Math.floor(nextNow.getTime() / REFRESH_INTERVAL_MS)
+      if (nextDate !== currentDate || nextHour !== currentHour) {
         currentDate = nextDate
+        currentHour = nextHour
         router.refresh()
       }
     }
     tick()
     const clock = window.setInterval(tick, 1_000)
-    const refresh = window.setInterval(
-      () => router.refresh(),
-      REFRESH_INTERVAL_MS,
-    )
     const onVisible = () => {
       if (document.visibilityState === "visible") {
         tick()
@@ -68,10 +67,9 @@ export function useInfoScreen({
     document.addEventListener("visibilitychange", onVisible)
     return () => {
       window.clearInterval(clock)
-      window.clearInterval(refresh)
       document.removeEventListener("visibilitychange", onVisible)
     }
-  }, [date, router])
+  }, [date, initialNow, router])
 
   useEffect(() => {
     if (pageCount <= 1) return

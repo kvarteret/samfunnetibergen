@@ -21,6 +21,8 @@ export type PublicEventSetOptions = {
   from: string | null
   to: string | null
   includeInternal?: boolean
+  /** Subscribe this page's event queries through the existing SanityLive component. */
+  live?: boolean
 }
 
 export type PublicEventDetailResult = {
@@ -44,20 +46,18 @@ export async function fetchPublicEventSet({
   from,
   to,
   includeInternal = false,
+  live = false,
 }: PublicEventSetOptions): Promise<{
   events: PublicEvent[]
   occurrences: PublicOccurrence[]
 }> {
-  const rows = await sanityClient.fetch(
-    publicEventsQuery,
-    {
-      locale,
-      from,
-      to,
-      includeInternal,
-    },
-    PUBLIC_QUERY_OPTIONS,
-  )
+  const params = { locale, from, to, includeInternal }
+  const liveFetch = live
+    ? (await import("@/lib/sanity/fetcher")).sanityFetch
+    : null
+  const rows = liveFetch
+    ? (await liveFetch({ query: publicEventsQuery, params, stega: false })).data
+    : await sanityClient.fetch(publicEventsQuery, params, PUBLIC_QUERY_OPTIONS)
   const events = resolveRows(rows)
 
   return {
@@ -71,17 +71,25 @@ export async function fetchPublicPromotedParentEvents({
   from,
   to,
   includeInternal = false,
+  live = false,
 }: PublicEventSetOptions): Promise<PublicEvent[]> {
-  const rows = await sanityClient.fetch(
-    publicPromotedParentEventsQuery,
-    {
-      locale,
-      from,
-      to,
-      includeInternal,
-    },
-    PUBLIC_QUERY_OPTIONS,
-  )
+  const params = { locale, from, to, includeInternal }
+  const liveFetch = live
+    ? (await import("@/lib/sanity/fetcher")).sanityFetch
+    : null
+  const rows = liveFetch
+    ? (
+        await liveFetch({
+          query: publicPromotedParentEventsQuery,
+          params,
+          stega: false,
+        })
+      ).data
+    : await sanityClient.fetch(
+        publicPromotedParentEventsQuery,
+        params,
+        PUBLIC_QUERY_OPTIONS,
+      )
   return resolveRows(rows)
 }
 
