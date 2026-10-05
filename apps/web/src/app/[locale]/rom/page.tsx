@@ -13,6 +13,14 @@ import {
 import { buildPageMetadata } from "@/lib/page-metadata"
 import type { RoomSummary, SourcedImage } from "@/lib/sanity/fetch"
 import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
+import {
+  fetchHouseHours,
+  fetchPageBySlug,
+  fetchPublishedRoomsPageContent,
+} from "@/lib/sanity/fetch"
+
+import { PortableTextContent } from "@/lib/portable-text-components"
+import type { EditorialSection } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -36,6 +44,23 @@ export async function generateMetadata({ params }: RoomsPageProps) {
       content?.description ?? "Se rommene på Det Akademiske Kvarter.",
   })
 }
+
+
+function QuestionsSection({ section }: { section: EditorialSection }) {
+  return (
+    <div className="space-y-3 panel max-w-2xl">
+      {section.title ? (
+        <h2 className="font-heading text-xl leading-tight text-foreground">
+          {section.title}
+        </h2>
+      ) : null}
+      <div>
+        <PortableTextContent value={section.body} />
+      </div>
+    </div>
+  )
+}
+
 
 const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
@@ -74,6 +99,22 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   const leietiderSection = content?.sections?.find(s => s.title === "Leietider")
 
+  const [
+    houseHours,
+    roomsPageContent,
+    termsPage,
+    cancellationPage,
+  ] = await Promise.all([
+    fetchHouseHours(locale),
+    fetchPublishedRoomsPageContent(locale),
+    fetchPageBySlug("leievilkaar", locale),
+    fetchPageBySlug("avbestillingsvilkar", locale),
+  ])
+
+  const questionsSection = roomsPageContent?.sections?.find(s =>
+    ["Spørsmål og vilkår", "Questions and terms"].includes(s.title ?? ""),
+  )
+
   return (
     <div className="space-y-16">
       <Breadcrumbs path="/rom" />
@@ -97,6 +138,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             Book rom her
           </Button>
         </div>
+        
         <LeietiderSection
           className="lg:justify-self-end lg:[&>div]:h-full"
           section={leietiderSection}
@@ -167,6 +209,11 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
           })}
         </div>
       </section>
+      <div>
+        {questionsSection?.body?.length ? (
+        <QuestionsSection section={questionsSection} />
+      ) : null}
+      </div>
     </div>
   )
 }
