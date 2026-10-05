@@ -26,7 +26,7 @@ export function ScreenEventImage({
       className={cn(
         "relative grid aspect-[4/3] place-items-center overflow-hidden rounded-base",
         promoted
-          ? "w-full bg-background text-primary"
+          ? "w-[17cqw] bg-background text-primary"
           : pageSize === 1
             ? "col-start-2 mt-[2cqw] w-full max-w-[48cqw]"
             : pageSize === 2
