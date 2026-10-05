@@ -28,7 +28,7 @@ The event-specific cookie is created on explicit interaction, scoped to `/api/ev
 
 ## Verify
 
-Run `npm run route-typegen`, `npm run typecheck`, `npm test`, and `npm run build`. Backend checks are `uv run pytest tests/api/event_interest`, with `EVENT_INTEREST_TEST_DATABASE_URL` set to a disposable PostgreSQL database for real persistence tests.
+Run `pnpm run route-typegen`, `pnpm run typecheck`, `pnpm test`, and `pnpm run build`. Backend checks are `uv run pytest tests/api/event_interest`, with `EVENT_INTEREST_TEST_DATABASE_URL` set to a disposable PostgreSQL database for real persistence tests.
 
 With both services running locally, open a scheduled event. Try tapping twenty times: the heart fills at twelve, emits confetti, and the total increases by exactly twelve. Further clicks do nothing. Reload after saving and expect the same count and full heart. A second browser contributes to the same event total; two tabs sharing a cookie share the same twelve-click limit. Retry a lost response and expect no duplicate contribution. Verify keyboard tapping, compact mobile layout, no unsolicited sound on load, and reduced-motion behavior.
 

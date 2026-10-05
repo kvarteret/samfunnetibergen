@@ -1,8 +1,9 @@
-# Tool pins for working directly in this repo. The application uses Node/npm;
+# Tool pins for working directly in this repo. The application uses Node/pnpm;
 # shared infrastructure tools remain owned by ../infra/mise.toml.
 
 [tools]
 node = "24.16.0"
+pnpm = "10.34.6"
 
 # Puts the `kvarteret` / `kv` CLI on PATH when inside this repo.
 # The CLI lives in the sibling infra repo (see ../infra); clone it

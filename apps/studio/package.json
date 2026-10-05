@@ -22,12 +22,13 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@portabletext/markdown": "^2.2.0",
-    "@samfunnet/content-domain": "0.1.0",
+    "@samfunnet/content-domain": "workspace:*",
     "@sanity/assist": "^6.1.17",
     "@sanity/client": "^8.6.2",
     "@sanity/icons": "^5.2.1",
     "@sanity/language-filter": "^5.0.16",
     "@sanity/orderable-document-list": "^2.0.18",
+    "@sanity/ui": "4.2.1",
     "@sanity/vision": "^6.7.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -44,5 +45,6 @@
     "@vitest/coverage-v8": "^5.0.1",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
-  }
+  },
+  "packageManager": "pnpm@10.34.6"
 }

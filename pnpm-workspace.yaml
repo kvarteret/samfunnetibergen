@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - "@parcel/watcher@2.6.0"
+  - "@posthog/cli@0.16.2"
+  - "@swc/core@1.16.2"
+  - core-js@3.50.0
+  - esbuild@0.28.2
+  - sharp@0.35.4
+
+ignoredBuiltDependencies:
+  - fsevents
+
+strictDepBuilds: true

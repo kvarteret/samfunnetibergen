@@ -68,7 +68,8 @@ gh run watch "$run_id" --exit-status
 
 The workflow must finish successfully. It runs, in order:
 
-1. format, lint, route and Sanity TypeGen, workspace TypeScript, and test checks;
+1. format, lint, route type generation, workspace TypeScript, and test checks
+   (committed Sanity types are checked for drift in pull requests);
 2. Vercel production environment pull and production build;
 3. staged Vercel deployment;
 4. HTTP smoke tests for the supplied paths, plus JSON/content-type checks for
@@ -113,3 +114,10 @@ staged deployment URL, and promotion result.
 The workflow definition at
 `.github/workflows/release-production.yml` is the source of truth for inputs,
 checks, secrets, deployment behavior, and release-tag creation.
+
+Production builds restore `apps/web/.next/cache` from a production-only cache
+key, then build a fresh artifact with the release environment and metadata.
+Git deployments on `develop` and `main` are disabled in
+`apps/web/vercel.json`; feature branch previews remain enabled. Unrelated
+preview changes are filtered by `scripts/vercel-ignore-build.sh`, which builds
+when the previous successful deployment commit is unavailable.
