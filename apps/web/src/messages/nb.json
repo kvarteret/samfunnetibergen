@@ -350,7 +350,7 @@
   "EventInterest": {
     "title": "Gleder du deg?",
     "maybe": "Kommer kanskje",
-    "coming": "Kommer!",
+    "coming": "Jeg kommer!",
     "definitely": "Gleder meg!",
     "tapLabel": "{level} – trykk på hjertet for å vise mer entusiasme.",
     "loading": "Henter stemningen …",
