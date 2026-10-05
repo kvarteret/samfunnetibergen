@@ -39,6 +39,7 @@ function toEventSummary(
     _id: event._id,
     title: event.title,
     slug: event.slug,
+    eventKind: event.eventKind,
     isRecurring: event.isRecurring ?? undefined,
     rrule: event.rrule ?? null,
     dates,

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { CalendarDays, MapPin } from "lucide-react"
+import { CalendarDays, MapPin, Tent } from "lucide-react"
 import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,6 +23,12 @@ export type EventSummary = {
   _id: string
   title: string
   slug: string
+  eventKind?:
+    | "single"
+    | "seriesParent"
+    | "seriesInstance"
+    | "festivalParent"
+    | "festivalSession"
   isRecurring?: boolean
   rrule?: string | null
   dates: EventDateEntry[]
@@ -248,6 +254,16 @@ function EventCardMedia({
         <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">
           {event.title}
         </div>
+      )}
+      {(event.eventKind === "festivalParent" ||
+        event.eventKind === "festivalSession") && (
+        <Tag
+          variant="accent"
+          className="absolute bottom-3 right-3 gap-1.5 text-sm"
+        >
+          <Tent className="size-4" aria-hidden />
+          Festival
+        </Tag>
       )}
     </div>
   )

@@ -95,10 +95,21 @@ export function filterEvents(
  * Sanity boundary, so preserving input order makes the first row the earliest
  * visible instance without changing the shared query used by other surfaces.
  */
-export function filterToFirstInstances(events: PublicEvent[]): PublicEvent[] {
+export function filterToFirstInstances(
+  events: PublicEvent[],
+  featuredFestivalIds: ReadonlySet<string> = new Set(),
+): PublicEvent[] {
   const seenParents = new Set<string>()
 
   return events.filter(event => {
+    if (
+      event.eventKind === "festivalSession" &&
+      event.parentEvent &&
+      featuredFestivalIds.has(event.parentEvent._id)
+    ) {
+      return false
+    }
+
     const isMaterializedInstance =
       event.eventKind === "seriesInstance" ||
       event.eventKind === "festivalSession"
