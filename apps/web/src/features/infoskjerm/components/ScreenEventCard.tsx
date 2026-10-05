@@ -44,7 +44,7 @@ export function ScreenEventCard({
             "font-heading leading-[1.13] tracking-[-0.025em] [overflow-wrap:anywhere]",
             pageSize <= 2
               ? "line-clamp-4 text-[4.8cqw]"
-              : "line-clamp-3 text-[4.2cqw]",
+              : "line-clamp-3 text-[3.6cqw]",
           )}
         >
           {event.title}
