@@ -63,20 +63,23 @@ it("switches from the closing time to the next opening after closure", () => {
     getScreenRoomHours(daytime, new Date("2026-10-01T16:00:00Z"))[0],
   ).toMatchObject({
     isOpen: false,
-    label: "Stengt. Åpner 12",
+    label: "Stengt. Åpner torsdag 12",
   })
 })
 
 it.each([
-  { closedDates: [{ date: "2026-10-01" }] },
-  { vacationMode: { enabled: true, from: "2026-10-01", to: "2026-10-03" } },
+  { closedDates: [{ date: "2026-10-01" }], label: "Stengt. Åpner i morgen 12" },
+  {
+    vacationMode: { enabled: true, from: "2026-10-01", to: "2026-10-03" },
+    label: "Stengt. Åpner torsdag 12",
+  },
 ])("honors closure exceptions: %j", exceptions => {
   expect(
     getScreenRoomHours(
       { ...hours, ...exceptions },
       new Date("2026-10-01T12:00:00Z"),
     )[0],
-  ).toMatchObject({ isOpen: false, label: "Stengt. Åpner 12" })
+  ).toMatchObject({ isOpen: false, label: exceptions.label })
 })
 
 it("shows only Stengt when no future opening is scheduled", () => {
@@ -87,3 +90,38 @@ it("shows only Stengt when no future opening is scheduled", () => {
     )[0],
   ).toMatchObject({ isOpen: false, label: "Stengt" })
 })
+
+const stjernesalen: ScreenRoomHours = {
+  rooms: [
+    {
+      title: "Stjernesalen",
+      slug: "stjernesalen",
+      hours: {
+        rows: [
+          {
+            weekdays: [1, 2, 3, 4, 5],
+            status: "open",
+            duration: { start: "12:00", end: "18:00" },
+          },
+        ],
+      },
+    },
+  ],
+}
+
+it.each([
+  ["2026-10-02T08:00:00Z", "Stengt. Åpner 12"],
+  ["2026-10-01T16:00:00Z", "Stengt. Åpner i morgen 12"],
+  ["2026-10-02T16:00:00Z", "Stengt. Åpner mandag 12"],
+  ["2026-10-04T16:00:00Z", "Stengt. Åpner i morgen 12"],
+  ["2026-10-04T22:00:00Z", "Stengt. Åpner 12"],
+  ["2026-10-24T16:00:00Z", "Stengt. Åpner mandag 12"],
+])(
+  "labels the next opening relative to the Oslo calendar: %s",
+  (now, label) => {
+    expect(getScreenRoomHours(stjernesalen, new Date(now))[0]).toMatchObject({
+      isOpen: false,
+      label,
+    })
+  },
+)

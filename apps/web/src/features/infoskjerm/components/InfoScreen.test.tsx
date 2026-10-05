@@ -249,8 +249,8 @@ it.each([
     ),
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
-  expect(hours?.textContent).toContain("GrøndahlsStengt. Åpner 12")
-  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
+  expect(hours?.textContent).toContain("GrøndahlsStengt. Åpner torsdag 12")
+  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner torsdag 14")
 })
 
 it("refreshes at hour boundaries and immediately after Oslo midnight", async () => {
