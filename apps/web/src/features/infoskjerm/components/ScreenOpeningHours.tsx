@@ -1,5 +1,4 @@
 import { DoorClosed, DoorOpen } from "lucide-react"
-import { cn } from "@/lib/utils"
 import {
   getScreenRoomHours,
   type ScreenRoomHours,
@@ -28,10 +27,7 @@ export function ScreenOpeningHours({
               role="img"
               aria-label={room.isOpen ? "Åpent" : "Stengt"}
               title={room.isOpen ? "Åpent" : "Stengt"}
-              className={cn(
-                "grid size-[2.8cqw] shrink-0 place-items-center",
-                room.isOpen ? "text-[var(--green-700)]" : "text-foreground",
-              )}
+              className="grid size-[2.8cqw] shrink-0 place-items-center text-foreground"
             >
               {room.isOpen ? (
                 <DoorOpen aria-hidden className="size-full" strokeWidth={2.5} />
