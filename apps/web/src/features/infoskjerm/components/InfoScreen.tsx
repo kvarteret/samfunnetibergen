@@ -161,7 +161,9 @@ export function InfoScreen({
               </p>
             )}
             <div className="flex items-center justify-between gap-[2cqw]">
-              <p className="text-[2.4cqw] font-semibold">samfunnetibergen.no</p>
+              <p className="text-[2.4cqw] font-semibold text-primary-foreground/70">
+                samfunnetibergen.no
+              </p>
               <Button
                 variant="plain"
                 render={

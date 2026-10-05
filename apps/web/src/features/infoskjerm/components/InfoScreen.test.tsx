@@ -100,6 +100,7 @@ it("reserves promoted previews and rotates daily pages of three without losing e
         date="2026-10-01"
         initialNow={new Date().toISOString()}
         events={[event("1"), event("2"), event("3"), event("4")]}
+        message="Spørsmål? Spør driftsleder!"
         promotions={[
           {
             id: "promotion",
@@ -107,6 +108,22 @@ it("reserves promoted previews and rotates daily pages of three without losing e
             date: "2026-10-08",
             dateLabel: "Torsdag, 20:00",
             room: "Teglverket",
+            imageUrl: null,
+          },
+          {
+            id: "promotion-2",
+            title: "BIFF",
+            date: "2026-10-14",
+            dateLabel: "14. oktober 2026",
+            room: "Tivoli",
+            imageUrl: null,
+          },
+          {
+            id: "promotion-3",
+            title: "Taake",
+            date: "2026-10-30",
+            dateLabel: "30. oktober 2026",
+            room: "Tivoli",
             imageUrl: null,
           },
         ]}
@@ -117,6 +134,15 @@ it("reserves promoted previews and rotates daily pages of three without losing e
   expect(
     container.querySelector('section[aria-label="Snart"]')?.textContent,
   ).toContain("Neste ukes konsert")
+  expect(
+    container.querySelectorAll('section[aria-label="Snart"] article'),
+  ).toHaveLength(3)
+  expect(
+    container.querySelector('section[aria-label="Snart"]')?.textContent,
+  ).toContain("Taake")
+  expect(container.querySelector("footer")?.textContent).toContain(
+    "Spørsmål? Spør driftsleder!",
+  )
   await act(async () => vi.advanceTimersByTime(PAGE_DURATION_MS))
   expect(container.querySelectorAll("li")).toHaveLength(1)
   expect(container.textContent).toContain("Arrangement 4")
@@ -191,16 +217,18 @@ it("shows distinct room hours without a duplicate house status", async () => {
     ),
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
-  expect(hours?.textContent).toContain("GrøndahlsStenger 01")
-  expect(hours?.textContent).toContain("StjernesalenÅpner 14 · Stenger 02")
+  expect(hours?.textContent).toContain("GrøndahlsÅpent. Stenger 01")
+  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
   expect(hours?.querySelectorAll('[data-open="true"]')).toHaveLength(1)
   expect(hours?.querySelectorAll('[aria-label="Åpent"]')).toHaveLength(1)
+  expect(hours?.querySelectorAll('[aria-label="Stengt"]')).toHaveLength(1)
   expect(container.textContent).not.toContain("Huset i dag")
   await act(async () => vi.advanceTimersByTime(1_000))
-  expect(hours?.textContent).toContain("StjernesalenStenger 02")
+  expect(hours?.textContent).toContain("StjernesalenÅpent. Stenger 02")
   expect(hours?.textContent).not.toContain("Åpner")
   expect(hours?.querySelectorAll('[data-open="true"]')).toHaveLength(2)
   expect(hours?.querySelectorAll('[aria-label="Åpent"]')).toHaveLength(2)
+  expect(hours?.querySelectorAll('[aria-label="Stengt"]')).toHaveLength(0)
 })
 
 it.each([
@@ -221,8 +249,8 @@ it.each([
     ),
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
-  expect(hours?.textContent).toContain("GrøndahlsStengt")
-  expect(hours?.textContent).toContain("StjernesalenStengt")
+  expect(hours?.textContent).toContain("GrøndahlsStengt. Åpner 12")
+  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
 })
 
 it("refreshes every minute and immediately after Oslo midnight", async () => {

@@ -21,7 +21,7 @@ function promotion(id: string, extra: Partial<RawPublicEvent> = {}) {
   })
 }
 
-it("replaces same-day top promotions with eligible pool events before taking two", () => {
+it("replaces same-day top promotions with eligible pool events before taking three", () => {
   const result = selectScreenPromotions(
     [
       promotion("today", {
@@ -34,11 +34,12 @@ it("replaces same-day top promotions with eligible pool events before taking two
       promotion("top", { promotedPlacement: "top", promotedOrder: 2 }),
       promotion("pool-2", { promotedPlacement: "pool", promotedOrder: 4 }),
       promotion("pool-1", { promotedPlacement: "pool", promotedOrder: 3 }),
+      promotion("pool-3", { promotedPlacement: "pool", promotedOrder: 5 }),
     ],
     "2026-10-01",
     new Set(["today"]),
   )
-  expect(result.map(event => event.id)).toEqual(["top", "pool-1"])
+  expect(result.map(event => event.id)).toEqual(["top", "pool-1", "pool-2"])
 })
 
 it("excludes a parent with a session today, duplicates, cancellations and past events", () => {

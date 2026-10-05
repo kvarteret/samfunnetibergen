@@ -1,15 +1,11 @@
-import { TZDate } from "@date-fns/tz"
 import {
   type ClosedDate,
   formatOpeningHoursTime,
-  isoDate,
   type OpeningHours,
   openingHoursStatusAt,
-  openingRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
 import messages from "@/messages/nb.json"
-import { SCREEN_TIME_ZONE } from "./schedule"
 
 export type ScreenRoomHours = {
   rooms: { title: string; slug: string; hours: OpeningHours | null }[]
@@ -18,33 +14,19 @@ export type ScreenRoomHours = {
 }
 
 export function getScreenRoomHours(roomHours: ScreenRoomHours, now: Date) {
-  const today = isoDate(now)
-  const osloNow = TZDate.tz(SCREEN_TIME_ZONE, now)
-  const currentMinute = osloNow.getHours() * 60 + osloNow.getMinutes()
   return roomHours.rooms.map(room => {
-    const { isOpen, currentRange } = openingHoursStatusAt(
+    const { isOpen, currentRange, nextRange } = openingHoursStatusAt(
       now,
       room.hours,
       roomHours.closedDates,
       roomHours.vacationMode,
     )
-    const ranges = openingRangesForDate(
-      today,
-      room.hours,
-      roomHours.closedDates,
-      roomHours.vacationMode,
-    )
-    const overnightRange =
-      isOpen && currentRange && currentRange.startMin < 0 ? currentRange : null
-    const displayRanges = overnightRange ? [overnightRange, ...ranges] : ranges
-    const label = displayRanges.length
-      ? displayRanges
-          .map(
-            range =>
-              `${range.startMin > currentMinute ? `Åpner ${formatOpeningHoursTime(range.startMin)} · ` : ""}Stenger ${formatOpeningHoursTime(range.endMin)}`,
-          )
-          .join(", ")
-      : messages.OpeningHours.closedShort
+    const label =
+      isOpen && currentRange
+        ? `Åpent. Stenger ${formatOpeningHoursTime(currentRange.endMin)}`
+        : nextRange
+          ? `Stengt. Åpner ${formatOpeningHoursTime(nextRange.startMin)}`
+          : messages.OpeningHours.closedShort
     return { title: room.title, slug: room.slug, isOpen, label }
   })
 }

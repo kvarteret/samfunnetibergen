@@ -19,29 +19,29 @@ const hours: ScreenRoomHours = {
   ],
 }
 
-it("keeps the active overnight closing time alongside today's future opening", () => {
+it("shows the active overnight closing time, then the next opening time", () => {
   expect(getScreenRoomHours(hours, new Date("2026-10-01T22:30:00Z"))).toEqual([
     {
       title: "Grøndahls",
       slug: "grondahls",
       isOpen: true,
-      label: "Stenger 01, Åpner 12 · Stenger 01",
+      label: "Åpent. Stenger 01",
     },
   ])
   expect(
     getScreenRoomHours(hours, new Date("2026-10-01T23:00:00Z"))[0],
   ).toMatchObject({
     isOpen: false,
-    label: "Åpner 12 · Stenger 01",
+    label: "Stengt. Åpner 12",
   })
 })
 
-it("omits an opening time once reached and retains closing time after closure", () => {
+it("switches from the closing time to the next opening after closure", () => {
   expect(
     getScreenRoomHours(hours, new Date("2026-10-01T10:00:00Z"))[0],
   ).toMatchObject({
     isOpen: true,
-    label: "Stenger 01",
+    label: "Åpent. Stenger 01",
   })
   const daytime: ScreenRoomHours = {
     rooms: [
@@ -63,7 +63,7 @@ it("omits an opening time once reached and retains closing time after closure", 
     getScreenRoomHours(daytime, new Date("2026-10-01T16:00:00Z"))[0],
   ).toMatchObject({
     isOpen: false,
-    label: "Stenger 18",
+    label: "Stengt. Åpner 12",
   })
 })
 
@@ -74,6 +74,15 @@ it.each([
   expect(
     getScreenRoomHours(
       { ...hours, ...exceptions },
+      new Date("2026-10-01T12:00:00Z"),
+    )[0],
+  ).toMatchObject({ isOpen: false, label: "Stengt. Åpner 12" })
+})
+
+it("shows only Stengt when no future opening is scheduled", () => {
+  expect(
+    getScreenRoomHours(
+      { rooms: [{ ...hours.rooms[0], hours: null }] },
       new Date("2026-10-01T12:00:00Z"),
     )[0],
   ).toMatchObject({ isOpen: false, label: "Stengt" })

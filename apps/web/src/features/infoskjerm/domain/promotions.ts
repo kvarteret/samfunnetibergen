@@ -36,7 +36,7 @@ export function selectScreenPromotions(
         first._id.localeCompare(second._id)
       )
     })
-    .slice(0, 2)
+    .slice(0, 3)
     .map(event => {
       const date = [...event.dates]
         .filter(date => date.startDate > today)
