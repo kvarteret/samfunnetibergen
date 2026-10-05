@@ -87,9 +87,7 @@ export function InfoScreen({
             <h1 className="text-[8.6cqw] font-heading leading-[1.04] tracking-[-0.055em]">
               I dag på
               <br />
-              <span className="text-primary">
-                Kvarteret<span className="text-[var(--green-700)]">.</span>
-              </span>
+              <span className="text-primary">Kvarteret.</span>
             </h1>
             <SectionMark className="mb-[1cqw] h-[5cqw] w-auto text-primary" />
           </div>
