@@ -29,10 +29,8 @@ export function ScreenOpeningHours({
               aria-label={room.isOpen ? "Åpent" : "Stengt"}
               title={room.isOpen ? "Åpent" : "Stengt"}
               className={cn(
-                "grid size-[3.4cqw] shrink-0 place-items-center rounded p-[0.6cqw]",
-                room.isOpen
-                  ? "bg-[var(--green-700)] text-white"
-                  : "bg-foreground/10 text-foreground",
+                "grid size-[2.8cqw] shrink-0 place-items-center",
+                room.isOpen ? "text-[var(--green-700)]" : "text-foreground",
               )}
             >
               {room.isOpen ? (
