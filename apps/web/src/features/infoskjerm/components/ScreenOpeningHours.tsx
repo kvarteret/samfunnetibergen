@@ -49,9 +49,7 @@ export function ScreenOpeningHours({
               {room.title}
             </span>
           </dt>
-          <dd className="font-semibold tabular-nums">
-            {room.isOpen ? room.label : "Stengt"}
-          </dd>
+          <dd className="font-semibold tabular-nums">{room.label}</dd>
         </div>
       ))}
     </dl>

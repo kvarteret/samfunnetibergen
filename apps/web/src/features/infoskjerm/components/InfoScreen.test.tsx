@@ -235,14 +235,14 @@ it("shows distinct room hours without a duplicate house status", async () => {
     ),
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
-  expect(hours?.textContent).toContain("GrøndahlsStenger 01")
-  expect(hours?.textContent).toContain("StjernesalenStengt")
+  expect(hours?.textContent).toContain("GrøndahlsÅpent. Stenger 01")
+  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
   expect(hours?.querySelectorAll('[data-open="true"]')).toHaveLength(1)
   expect(hours?.querySelectorAll('[aria-label="Åpent"]')).toHaveLength(1)
   expect(hours?.querySelectorAll('[aria-label="Stengt"]')).toHaveLength(1)
   expect(container.textContent).not.toContain("Huset i dag")
   await act(async () => vi.advanceTimersByTime(1_000))
-  expect(hours?.textContent).toContain("StjernesalenStenger 02")
+  expect(hours?.textContent).toContain("StjernesalenÅpent. Stenger 02")
   expect(hours?.textContent).not.toContain("Åpner")
   expect(hours?.querySelectorAll('[data-open="true"]')).toHaveLength(2)
   expect(hours?.querySelectorAll('[aria-label="Åpent"]')).toHaveLength(2)
@@ -267,8 +267,8 @@ it.each([
     ),
   )
   const hours = container.querySelector('dl[aria-label="Åpningstider i dag"]')
-  expect(hours?.textContent).toContain("GrøndahlsStengt")
-  expect(hours?.textContent).toContain("StjernesalenStengt")
+  expect(hours?.textContent).toContain("GrøndahlsStengt. Åpner 12")
+  expect(hours?.textContent).toContain("StjernesalenStengt. Åpner 14")
 })
 
 it("refreshes every minute and immediately after Oslo midnight", async () => {
