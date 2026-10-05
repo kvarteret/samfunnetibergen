@@ -1,4 +1,3 @@
-import { DoorClosed, DoorOpen } from "lucide-react"
 import {
   getScreenRoomHours,
   type ScreenRoomHours,
@@ -27,17 +26,24 @@ export function ScreenOpeningHours({
               role="img"
               aria-label={room.isOpen ? "Åpent" : "Stengt"}
               title={room.isOpen ? "Åpent" : "Stengt"}
-              className="grid size-[2.8cqw] shrink-0 place-items-center text-foreground"
+              className="grid size-[2.8cqw] shrink-0 place-items-center"
             >
-              {room.isOpen ? (
-                <DoorOpen aria-hidden className="size-full" strokeWidth={2.5} />
-              ) : (
-                <DoorClosed
-                  aria-hidden
-                  className="size-full"
-                  strokeWidth={2.5}
+              <svg
+                aria-hidden
+                className="size-full"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d={
+                    room.isOpen
+                      ? "M4 4 11 2v20l-7-2V4Zm4 7v2h1.5v-2H8ZM11 3h8v17h2v2h-8v-2h4V5h-6V3Z"
+                      : "M6 2h12v18h3v2H3v-2h3V2Zm8 9v2h2v-2h-2Z"
+                  }
                 />
-              )}
+              </svg>
             </span>
             <span className="text-[2.4cqw] font-semibold leading-[1.2] [font-family:var(--font-fraunces)]">
               {room.title}
