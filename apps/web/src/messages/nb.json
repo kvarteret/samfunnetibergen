@@ -307,8 +307,8 @@
       "genericErrorTitle": "Det oppstod en feil",
       "submit": "Send bookingforespørsel",
       "submitting": "Sender inn...",
-      "clear": "Rense skjemaet?",
-      "cleared": "Renset skjema!",
+      "clear": "Tøm skjemaet?",
+      "cleared": "Tømmet!",
       "validationSummaryTitle": "Det er et problem",
       "unexpectedError": "Noe gikk galt. Prøv igjen senere."
     },

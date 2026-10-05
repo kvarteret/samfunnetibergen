@@ -555,17 +555,14 @@ export function BookingForm({
                     window.setTimeout(() => {
                       localStorage.removeItem("bookingData")
                       form.reset()
-                      window.setTimeout(() => setIsClearing(false), 1200)
-                    }, 50)
+                      setIsClearing(false)
+                    }, 500)
                   }}
                   size="sm"
                   type="button"
                 >
                   {isClearing ? (
-                    <>
-                      <Loader2 aria-hidden className="animate-spin" />
-                      {t("form.cleared")}
-                    </>
+                    t("form.cleared")
                   ) : (
                     t("form.clear")
                   )}
