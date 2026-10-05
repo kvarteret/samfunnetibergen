@@ -93,24 +93,6 @@ it("adapts sparse daily pages and omits empty pagination", async () => {
   )
 })
 
-it("links the volunteer QR code to blifrivillig.no with second-floor campaign tracking", async () => {
-  await render([])
-  const link = container.querySelector(
-    'a[aria-label="Bli frivillig – se gruppene"]',
-  )
-  const url = new URL(link?.getAttribute("href") ?? "")
-  expect(url.origin + url.pathname).toBe("https://blifrivillig.no/")
-  expect(url.searchParams.get("utm_source")).toBe("infoskjerm")
-  expect(url.searchParams.get("utm_medium")).toBe("qr")
-  expect(url.searchParams.get("utm_campaign")).toBe("second-floor-infoskjerm")
-  expect(link?.querySelector("img")?.getAttribute("src")).toBe(
-    "/infoskjerm/volunteer-qr.png",
-  )
-  expect(container.querySelector("footer")?.textContent).toContain(
-    "Bli frivillig!",
-  )
-})
-
 it("reserves promoted previews and rotates daily pages of three without losing events", async () => {
   await act(async () =>
     root.render(

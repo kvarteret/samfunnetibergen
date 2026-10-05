@@ -1,7 +1,6 @@
 "use client"
 
 import { CalendarDays } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { BrandLogo } from "@/components/navbar/BrandLogo"
 import { SectionMark } from "@/components/section-mark"
@@ -22,8 +21,6 @@ import { ScreenOpeningHours } from "./ScreenOpeningHours"
 import { WeatherDisplay } from "./WeatherDisplay"
 
 const EMPTY_PROMOTIONS: ScreenPromotion[] = []
-const VOLUNTEER_URL =
-  "https://blifrivillig.no/?utm_source=infoskjerm&utm_medium=qr&utm_campaign=second-floor-infoskjerm"
 
 const dayFormatter = new Intl.DateTimeFormat("nb-NO", {
   timeZone: SCREEN_TIME_ZONE,
@@ -91,7 +88,7 @@ export function InfoScreen({
               I dag på
               <br />
               <span className="text-primary">
-                Kvarteret<span className="text-foreground">.</span>
+                Kvarteret<span className="text-[var(--green-700)]">.</span>
               </span>
             </h1>
             <SectionMark className="mb-[1cqw] h-[5cqw] w-auto text-primary" />
@@ -158,39 +155,27 @@ export function InfoScreen({
 
         {promotions.length > 0 && <PromotedEvents events={promotions} />}
 
-        <footer className="flex shrink-0 items-center justify-between bg-primary pl-[6cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
-          <div className="grid h-[8.2cqw] w-full grid-cols-[minmax(0,1fr)_auto_8.2cqw] grid-rows-2 items-center gap-x-[2cqw]">
-            <p className="col-start-1 row-start-1 line-clamp-1 text-[2.8cqw] font-heading leading-[1.2] tracking-[-0.03em] [font-family:var(--font-display)] [overflow-wrap:anywhere]">
-              {message}
-            </p>
-            <p className="col-start-1 row-start-2 text-[2.4cqw] font-semibold text-primary-foreground/70">
-              samfunnetibergen.no
-            </p>
-            <Button
-              variant="plain"
-              render={<Link href="/nb/grupper/e-tjenesten" prefetch={false} />}
-              className="col-start-2 row-start-1 block h-auto rounded-none p-0 text-[1.6cqw] text-primary-foreground focus-visible:outline-[0.2cqw] focus-visible:outline-offset-[0.4cqw] focus-visible:outline-current"
-            >
-              {messages.Footer.credit}
-            </Button>
-            <p className="col-start-2 row-start-2 text-center text-[2.2cqw] font-semibold leading-[1.2] [font-family:var(--font-fraunces)]">
-              Bli frivillig!
-            </p>
-            <Link
-              href={VOLUNTEER_URL}
-              prefetch={false}
-              aria-label="Bli frivillig – se gruppene"
-              className="col-start-3 row-span-2 row-start-1 block bg-white focus-visible:outline-[0.2cqw] focus-visible:outline-offset-[0.4cqw] focus-visible:outline-current"
-            >
-              <Image
-                src="/infoskjerm/volunteer-qr.png"
-                alt="QR-kode til gruppene på Samfunnet i Bergen"
-                width={490}
-                height={490}
-                unoptimized
-                className="size-[8.2cqw] [image-rendering:pixelated]"
-              />
-            </Link>
+        <footer className="flex shrink-0 items-center justify-between bg-primary px-[6cqw] py-[2cqw] text-[2.1cqw] leading-[1.6] text-primary-foreground">
+          <div className="w-full">
+            {message && (
+              <p className="mb-[1cqw] line-clamp-2 text-[2.8cqw] font-heading leading-[1.2] tracking-[-0.03em] [font-family:var(--font-display)] [overflow-wrap:anywhere]">
+                {message}
+              </p>
+            )}
+            <div className="flex items-center justify-between gap-[2cqw]">
+              <p className="text-[2.4cqw] font-semibold text-primary-foreground/70">
+                samfunnetibergen.no
+              </p>
+              <Button
+                variant="plain"
+                render={
+                  <Link href="/nb/grupper/e-tjenesten" prefetch={false} />
+                }
+                className="block h-auto rounded-none p-0 text-[1.6cqw] text-primary-foreground focus-visible:outline-[0.2cqw] focus-visible:outline-offset-[0.4cqw] focus-visible:outline-current"
+              >
+                {messages.Footer.credit}
+              </Button>
+            </div>
           </div>
         </footer>
       </div>
