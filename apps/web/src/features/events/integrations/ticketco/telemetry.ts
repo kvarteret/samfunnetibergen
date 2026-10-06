@@ -16,6 +16,7 @@ export type LunaGeneration = {
   usage?: LunaUsage
   output?: Record<string, unknown>
   error?: string
+  prompt?: { name?: string; version?: number; source: string }
   httpStatus?: number
 }
 
@@ -41,6 +42,9 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
         $ai_parent_id: generation.traceId,
         $ai_session_id: null,
         $ai_span_name: "TicketCo event extraction",
+        $ai_prompt_name: generation.prompt?.name,
+        $ai_prompt_version: generation.prompt?.version,
+        prompt_source: generation.prompt?.source,
         $ai_model: generation.model,
         $ai_provider: "azure",
         $ai_input: [
