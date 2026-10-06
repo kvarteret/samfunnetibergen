@@ -179,6 +179,8 @@ jobs:
           SITE_URL: ${{ env.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
           NEXT_PUBLIC_GIT_SHA: ${{ steps.release.outputs.source_sha }}
+          # This newer webhook key has not yet been transferred to Infisical.
+          SANITY_PROMOTION_WEBHOOK_SECRET: ${{ secrets.SANITY_PROMOTION_WEBHOOK_SECRET }}
           POSTHOG_RELEASE_BUILD: ${{ steps.release.outputs.source_sha }}
           POSTHOG_RELEASE_VERSION: ${{ steps.release.outputs.tag }}
 
