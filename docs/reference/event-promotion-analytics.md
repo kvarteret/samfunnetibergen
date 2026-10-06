@@ -39,6 +39,9 @@ were seeded with their published slug at rollout. Historical URL changes cannot
 be recovered from this seed. Existing `content_id` stays unchanged for baseline
 joins. All placement events include surface, position, locale, promoted state,
 placement/order, occurrence date, placement ID and tracking version.
+Placement events also carry the public event title, a readable placement name
+and a short `summary` such as `The Snooks · Frontpage — promoted`. Add
+`summary` as an Activity column to distinguish events without expanding rows.
 
 The dashboard is https://eu.posthog.com/project/202551/dashboard/1002241.
 Compare daily detail views before/during/after each campaign and exposures and

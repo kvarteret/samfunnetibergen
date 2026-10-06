@@ -28,6 +28,7 @@ describe("tracking attributes", () => {
           _id: "event-123",
           slug: "renamed-event",
           initialSlug: "original-event",
+          title: "The Snooks",
         },
         "home-promoted",
       ),
@@ -35,6 +36,7 @@ describe("tracking attributes", () => {
       "data-event-id": "original-event",
       "data-event-slug": "renamed-event",
       "data-event-document-id": "event-123",
+      "data-event-title": "The Snooks",
     })
   })
 

@@ -30,7 +30,7 @@ export function contentPageViewProperties(
 }
 
 export function eventTrackingAttributes(
-  event: TrackableContent & PromotionContext,
+  event: TrackableContent & PromotionContext & { title?: string | null },
   surface: string,
   position?: number,
   occurrenceDate?: string,
@@ -39,6 +39,7 @@ export function eventTrackingAttributes(
     "data-event-id": event.initialSlug ?? event.slug,
     "data-event-document-id": event._id,
     "data-event-slug": event.slug,
+    "data-event-title": event.title ?? undefined,
     "data-event-surface": surface,
     "data-event-position": position,
     "data-event-promoted": event.isPromoted === true,
