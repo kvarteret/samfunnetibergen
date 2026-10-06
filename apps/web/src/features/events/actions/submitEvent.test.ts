@@ -59,6 +59,7 @@ describe("submitEvent", () => {
           ...initialState.dates[0],
           startDate: "2026-08-20",
           startTime: "19:00",
+          endTime: "23:00",
         },
         {
           ...initialState.dates[0],
@@ -93,6 +94,7 @@ describe("submitEvent", () => {
           ...initialState.dates[0],
           startDate: "2026-08-20",
           startTime: "19:00",
+          endTime: "23:00",
         },
       ],
       submittedBy: "Kari Nordmann",
@@ -122,6 +124,7 @@ describe("submitEvent", () => {
           ...initialState.dates[0],
           startDate: "2026-08-20",
           startTime: "19:00",
+          endTime: "23:00",
         },
       ],
       submittedBy: "Kari Nordmann",

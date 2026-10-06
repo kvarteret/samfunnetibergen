@@ -247,8 +247,8 @@ export type Navbar = {
 export type ArrangementDate = {
   _type: "arrangementDate"
   startDate: string
-  startTime?: string
-  endTime?: string
+  startTime: string
+  endTime: string
 }
 
 export type FooterSocialLink = {

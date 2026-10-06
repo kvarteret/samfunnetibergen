@@ -247,8 +247,8 @@ export type Navbar = {
 export type ArrangementDate = {
   _type: "arrangementDate"
   startDate: string
-  startTime?: string
-  endTime?: string
+  startTime: string
+  endTime: string
 }
 
 export type FooterSocialLink = {
@@ -1301,15 +1301,15 @@ export type PublicEventsQueryResult = Array<{
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
@@ -1475,15 +1475,15 @@ export type PublicPromotedParentEventsQueryResult = Array<{
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
@@ -1649,15 +1649,15 @@ export type PublicEventBySlugQueryResult = {
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
@@ -1823,15 +1823,15 @@ export type PublicEventChildrenQueryResult = Array<{
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
@@ -1997,15 +1997,15 @@ export type PreviewEventBySlugQueryResult = {
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
@@ -2171,15 +2171,15 @@ export type PreviewEventChildrenQueryResult = Array<{
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       }>
     | Array<never>
     | Array<{
         _key: string
         startDate: string
-        startTime: string | null
-        endTime: string | null
+        startTime: string
+        endTime: string
       } | null>
   room: {
     _id: string
