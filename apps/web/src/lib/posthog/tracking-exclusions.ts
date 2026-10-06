@@ -16,7 +16,7 @@ function retainPromotionExposure(event: CaptureResult): boolean {
     exposures = new Set()
     try {
       const saved = JSON.parse(
-        window.sessionStorage.getItem(EXPOSURE_STORAGE_KEY) ?? "null",
+        window.localStorage.getItem(EXPOSURE_STORAGE_KEY) ?? "null",
       )
       if (saved?.session === session && Array.isArray(saved.keys))
         exposures = new Set(saved.keys)
@@ -28,7 +28,7 @@ function retainPromotionExposure(event: CaptureResult): boolean {
   if (exposures.has(key)) return false
   exposures.add(key)
   try {
-    window.sessionStorage.setItem(
+    window.localStorage.setItem(
       EXPOSURE_STORAGE_KEY,
       JSON.stringify({ session, keys: [...exposures] }),
     )

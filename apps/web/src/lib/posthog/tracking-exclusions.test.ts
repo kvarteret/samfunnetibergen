@@ -67,7 +67,7 @@ it("retains only one promoted event exposure per session and surface", () => {
   const storage = new Map<string, string>()
   vi.stubGlobal("window", {
     location: new URL("https://www.samfunnetibergen.no/nb"),
-    sessionStorage: {
+    localStorage: {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
     },

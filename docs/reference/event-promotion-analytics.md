@@ -18,7 +18,7 @@ Website `event_placement_viewed` records a link at least 50% visible continuousl
 for one second while the tab is visible. Impressions are collected only for
 promoted events, once per event document and surface per PostHog session.
 The SDK's existing before-send hook deduplicates across navigation and reloads
-using session storage, with an in-memory fallback if storage is unavailable.
+using local storage, with an in-memory fallback if storage is unavailable.
 `event_placement_clicked` records primary, keyboard or middle clicks.
 `content_page_viewed` preserves existing event-detail traffic. Their event-time
 promotion state, timestamp and readable event ID connect them to campaign periods
