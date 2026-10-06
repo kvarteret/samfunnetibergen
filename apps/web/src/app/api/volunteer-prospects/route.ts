@@ -73,6 +73,12 @@ export async function POST(request: Request) {
 
   const parsed = volunteerFormSchema.safeParse(body)
   if (!parsed.success) {
+    emitOperationalEvent("volunteer.application.rejected", {
+      status: 400,
+      outcome: "validation_rejected",
+      failure_stage: "schema_validation",
+      ...getValidationDiagnostics(parsed.error.issues),
+    })
     captureSubmitFailure(
       "volunteer_application",
       new Error("Volunteer form schema validation failed"),

@@ -5,8 +5,8 @@ import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { resourceFromAttributes } from "@opentelemetry/resources"
 import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import {
+  BatchLogRecordProcessor,
   LoggerProvider,
-  SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
 import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
@@ -17,6 +17,7 @@ import {
   ATTR_SERVICE_VERSION,
   SEMRESATTRS_CLOUD_REGION,
 } from "@opentelemetry/semantic-conventions"
+import { registerTelemetryFlush } from "@/lib/telemetry-flush"
 
 const INFO_SEVERITY = 9
 const POSTHOG_OTLP_BASE_URL = "https://eu.i.posthog.com/i/v1"
@@ -74,16 +75,24 @@ if (projectToken) {
     resource,
     processors: [
       new InfoAndAboveProcessor(
-        new SimpleLogRecordProcessor({
+        new BatchLogRecordProcessor({
           exporter: new OTLPLogExporter({
             url: `${POSTHOG_OTLP_BASE_URL}/logs`,
             headers,
           }),
+          scheduledDelayMillis: 1000,
+          exportTimeoutMillis: 5000,
         }),
       ),
     ],
   })
   logs.setGlobalLoggerProvider(loggerProvider)
+  registerTelemetryFlush(async () => {
+    await Promise.all([
+      loggerProvider.forceFlush(),
+      tracerProvider.forceFlush(),
+    ])
+  })
 
   new HttpInstrumentation().enable()
 }
