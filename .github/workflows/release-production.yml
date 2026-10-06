@@ -227,6 +227,25 @@ jobs:
           SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book' }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
+      - name: Smoke test PostHog capture credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$(jq -nc --arg token "$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN" '{token: $token, distinct_id: "production-release-smoke", send_feature_flag_events: false}')"
+          curl_args=(--silent --show-error --header 'Content-Type: application/json')
+          if [[ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]]; then
+            curl_args+=(--header "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
+          fi
+          status="$(curl "${curl_args[@]}" --data "$payload" --output /dev/null --write-out '%{http_code}' '${{ steps.deploy.outputs.url }}/ingest/flags/?v=2')"
+          echo "PostHog flags proxy: HTTP ${status}"
+          if [[ "$status" != "200" ]]; then
+            echo "PostHog capture credentials or proxy failed smoke test" >&2
+            exit 1
+          fi
+        env:
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
       - name: Smoke test public machine-readable endpoints
         shell: bash
         run: |
