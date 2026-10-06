@@ -19,6 +19,7 @@ import {
 } from "../domain/imageUpload"
 
 import { buildEventDocument } from "../server/event-document"
+import { notifyPendingRequest } from "../server/pending-slack"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
@@ -128,7 +129,13 @@ export async function submitEvent(
 
   try {
     const doc = buildEventDocument(validatedInput)
-    const created = await getWriteClient().create(doc)
+    const client = getWriteClient()
+    const created = await client.create(doc)
+    try {
+      await notifyPendingRequest(client, created)
+    } catch {
+      /* Scheduled sync retries. */
+    }
     return ok(created._id)
   } catch {
     captureSubmitFailure(

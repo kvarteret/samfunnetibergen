@@ -13,6 +13,7 @@ import {
   isAcceptedEventImageType,
 } from "../../domain/imageUpload"
 import { buildEventDocument } from "../../server/event-document"
+import { notifyPendingRequest } from "../../server/pending-slack"
 import { type Extraction, extractWithLuna, type ImportTaxonomy } from "./luna"
 import { matchBookingRoom, overlappingRooms, type RoomCandidate } from "./rooms"
 import {
@@ -295,10 +296,15 @@ export async function importEvents(
         } catch {
           /* Missing image does not block an otherwise complete submission. */
         }
-        await client.createIfNotExists({
+        const created = await client.createIfNotExists({
           ...buildEventDocument({ ...form, imageAssetId }),
           _id: ticketDocumentId(url),
         })
+        try {
+          await notifyPendingRequest(client, created)
+        } catch {
+          /* Scheduled sync retries. */
+        }
       }
       seen.add(url)
       report.imported++

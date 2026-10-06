@@ -1,4 +1,4 @@
-# Import TicketCo events with Luna
+# Import TicketCo events and notify editors
 
 The TicketCo job searches `https://ticketco.events/no/nb?pattern=kvarter`, extracts complete Norwegian and English submissions with the existing Azure `gpt-6-luna` deployment, and creates `arrangement` documents with `approvalStatus: pending`. It uses the same document builder and validation as `/arrangementer/ny`.
 
@@ -10,7 +10,7 @@ The submitter is always `E-tjenesten's Skonk`, with `it.leder@kvarteret.no`. No 
 
 Infisical `/nettside` owns `SANITY_WRITE_TOKEN`, `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_API_KEY`. The Azure endpoint is the resource root; `/openai/v1` is also accepted. `AZURE_OPENAI_BASE_URL` is accepted for existing local environments. `AZURE_OPENAI_LUNA_DEPLOYMENT` defaults to `gpt-6-luna`; use an alias only when it serves that Luna deployment.
 
-The GitHub `production` environment needs copies of those five named runtime values as secrets.
+The GitHub `production` environment needs copies of those five named runtime values as secrets. The dedicated incoming webhook `SLACK_NETTSIDE_WEBHOOK` must target `#nettside`; Slack incoming webhooks determine the channel, so the application cannot redirect a webhook bound to another channel. Store this webhook in Infisical, declare it in `infra/secrets/nettside-prod/fnox.toml`, and synchronize it to the website runtime and GitHub production environment. The Skonk webhook supplied for this integration is configured in Infisical and the GitHub production environment. Its URL is never stored in Git.
 
 Scheduled workflows run from the repository's default branch, currently `develop`. `.github/workflows/import-ticketco.yml` checks daily at 05:17 UTC. A Sanity state document enforces at least 72 hours since the last fully successful run. Partial failures do not advance that timestamp; the next daily check retries failed events while skipping already imported links. A 30-minute revision-checked lease protects concurrent jobs, and GitHub limits the job to 25 minutes. GitHub may delay schedules.
 
@@ -30,9 +30,19 @@ Run an actual import with:
 
 Luna reads displayed Norwegian local dates and times because TicketCo JSON-LD can incorrectly append `Z` to displayed civil timestamps. Door opening and closing times take precedence over performance times. Standard and private Crescat calendars supply overlapping bookings linked to Sanity through `crescatRoomId`. A matching event title can identify a room. When Teglverket is booked together with its bundled support spaces Støy/Stillhet for the same Crescat event, Teglverket is selected; unrelated simultaneous bookings and hidden titles cannot. Luna must select an existing room reference; location free text is always cleared. If no room is established, the importer reports the event for retry. Admission prices are read from TicketCo purchase-form rows, excluding separate fees and merchandise. Paid events with no identifiable price are reported for retry. Facebook event links found in the ticket source are imported; organizer profiles are excluded. Missing required times fail validation rather than producing made-up schedules. A closing time before opening denotes the next day. Source images are uploaded best effort only from TicketCo's observed S3 upload hosts, with the form's supported types and 10 MB limit. Missing images do not block import.
 
+## Pending requests in Slack
+
+Public form submissions and new TicketCo imports attempt an immediate notification. `.github/workflows/sync-pending-slack.yml` also checks all pending arrangements hourly at minute 37, covering Studio-created requests and retrying delivery failures. Messages contain title, date, submitter, and a direct Studio review link. TicketCo imports also include: “Dette arrangementet var automatisk generert fra {ticket_link}. Se nøye gjennom!”, with their source ticket URL. The first sync includes existing pending requests that have no receipt.
+
+Run the sweep with:
+
+    mise run secrets:exec -- npm --workspace @samfunnet/web run events:sync:pending-slack
+
+Separate `pendingSlackDelivery` receipt documents prevent ordinary duplicates without editing arrangement revisions. Published and draft versions share one receipt. A short revision-checked lease prevents concurrent sends. Delivery is at least once: a process failure after Slack accepts a message but before the receipt is committed can result in one retry duplicate. Re-entering pending after a prior successful notification does not resend the request.
+
 ## Verification
 
-Run `npm run test`, `npm run sanity:typegen`, `npm run route-typegen`, `npm run typecheck`, `npm run format:check`, `npm run lint`, and `npm run build` through `mise exec --`. Importer tests cover URL variants, existing editorial documents, dry-run writes, overnight room overlaps, hidden/ambiguous calendar titles, required times, and the 72-hour boundary. 
+Run `npm run test`, `npm run sanity:typegen`, `npm run route-typegen`, `npm run typecheck`, `npm run format:check`, `npm run lint`, and `npm run build` through `mise exec --`. Importer tests cover URL variants, existing editorial documents, dry-run writes, overnight room overlaps, hidden/ambiguous calendar titles, required times, and the 72-hour boundary. Slack tests cover safe text rendering, Studio links, delivered receipts, and retry after failure.
 
 Door opening and closing are mandatory for each dated submission row and in the Studio date schema. Blank optional rows remain ignored. Existing records are not migrated; editors must fill missing times before publishing edited records.
 
