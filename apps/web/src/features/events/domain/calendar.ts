@@ -1,3 +1,5 @@
+import { semesterForDate } from "@samfunnet/content-domain/instances"
+
 import { comparePublicOccurrences, type PublicOccurrence } from "./events"
 
 export type CalendarOccurrence = PublicOccurrence
@@ -62,18 +64,25 @@ function mondayBasedOffset(year: number, month: number) {
 /**
  * Group the shared, globally ordered occurrence stream into calendar days.
  * Month keys between the current week and last event month are retained so
- * users can see empty months before later events.
+ * users can see empty months before later events, within the current semester.
  */
 export function buildCalendarMonths(
   sourceOccurrences: readonly PublicOccurrence[],
   today: string,
 ): CalendarMonth[] {
+  const semester = semesterForDate(today)
+  if (!semester || today > semester.endDate) return []
+  const visibleTo = semester.endDate
   const visibleFrom = startOfCurrentWeek(today)
   const occurrencesByDate = new Map<string, CalendarOccurrence[]>()
   let lastFutureDate: string | null = null
 
   const occurrences = sourceOccurrences
-    .filter(occurrence => occurrence.schedule.startDate >= visibleFrom)
+    .filter(
+      occurrence =>
+        occurrence.schedule.startDate >= visibleFrom &&
+        occurrence.schedule.startDate <= visibleTo,
+    )
     .toSorted(comparePublicOccurrences)
 
   for (const occurrence of occurrences) {
@@ -94,7 +103,10 @@ export function buildCalendarMonths(
 
   return monthKeysBetween(startMonth, endMonth).map(key => {
     const [year, month] = key.split("-").map(Number)
-    const dayCount = daysInMonth(year, month)
+    const dayCount =
+      key === monthKey(visibleTo)
+        ? Number(visibleTo.slice(8, 10))
+        : daysInMonth(year, month)
     const firstDay = key === startMonth ? Number(visibleFrom.slice(8, 10)) : 1
     const days = Array.from({ length: dayCount - firstDay + 1 }, (_, index) => {
       const date = `${key}-${String(firstDay + index).padStart(2, "0")}`

@@ -26,6 +26,7 @@ import {
   type TicketCoEvent,
   ticketDocumentId,
 } from "./source"
+import { facebookEventUrl, ticketDetails } from "./ticket-details"
 import { editorialArtistTitle } from "./titles"
 
 export const INTERVAL_MS = 72 * 60 * 60 * 1000
@@ -60,8 +61,19 @@ export function formFromExtraction(
   url: string,
   taxonomy: ImportTaxonomy,
   candidates: RoomCandidate[],
+  requireRoom = true,
 ): FormState {
   const room = matchBookingRoom(extracted.title, candidates) || extracted.room
+  if (requireRoom && !room) throw new Error("Room could not be determined")
+  if (
+    !extracted.isFree &&
+    ![
+      extracted.priceOrdinar,
+      extracted.priceStudent,
+      extracted.priceMedlem,
+    ].some(Boolean)
+  )
+    throw new Error("Ticket price could not be determined")
   for (const [id, options] of [
     [room, taxonomy.rooms],
     [extracted.organizerGroup, taxonomy.groups],
@@ -70,16 +82,8 @@ export function formFromExtraction(
     if (id && !options.some(option => option._id === id))
       throw new Error("Luna selected an unknown reference")
   }
-  if (extracted.facebookUrl) {
-    const facebook = new URL(extracted.facebookUrl)
-    if (
-      facebook.protocol !== "https:" ||
-      !["facebook.com", "www.facebook.com", "m.facebook.com"].includes(
-        facebook.hostname,
-      )
-    )
-      throw new Error("Invalid Facebook link")
-  }
+  if (extracted.facebookUrl && !facebookEventUrl(extracted.facebookUrl))
+    throw new Error("Invalid Facebook event link")
   for (const price of [
     extracted.priceOrdinar,
     extracted.priceStudent,
@@ -97,6 +101,8 @@ export function formFromExtraction(
     title: editorialArtistTitle(extracted.title),
     titleEnglish: editorialArtistTitle(extracted.titleEnglish),
     room,
+    roomText: "",
+    roomTextEnglish: "",
     dates: [
       {
         id: "ticketco-date",
@@ -228,15 +234,39 @@ export async function importEvents(
             taxonomy.rooms,
           )
         : []
+      const details = ticketDetails(html)
       const extracted = await dependencies.extract(
         event,
-        pageText(html),
+        `${pageText(html)}\nVerified ticket-page details: ${JSON.stringify(details)}`,
         taxonomy,
         window,
       )
+      for (const field of [
+        "priceOrdinar",
+        "priceStudent",
+        "priceMedlem",
+      ] as const) {
+        if (details[field]) extracted[field] = details[field]
+      }
+      if (
+        [details.priceOrdinar, details.priceStudent, details.priceMedlem].some(
+          price => price && Number(price) > 0,
+        )
+      )
+        extracted.isFree = false
+      if (details.facebookUrls.length === 1)
+        extracted.facebookUrl = details.facebookUrls[0]
+      else if (
+        extracted.facebookUrl &&
+        !html.includes(extracted.facebookUrl) &&
+        !details.facebookUrls.includes(
+          facebookEventUrl(extracted.facebookUrl) ?? "",
+        )
+      )
+        extracted.facebookUrl = ""
       // Recompute against the actual extracted local schedule. A provisional
       // full-day booking cannot establish a room by title alone.
-      const parsed = formFromExtraction(extracted, url, taxonomy, [])
+      const parsed = formFromExtraction(extracted, url, taxonomy, [], false)
       const candidates = overlappingRooms(
         parsed.dates[0].startDate,
         parsed.dates[0].startTime,

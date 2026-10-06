@@ -34,7 +34,7 @@ const extraction: Extraction = {
   startDate: "2099-10-16",
   startTime: "21:00",
   endTime: "01:00",
-  room: "",
+  room: "tegl",
   roomText: "",
   roomTextEnglish: "",
   organizerGroup: "",
@@ -307,4 +307,26 @@ test("selects Teglverket over its support rooms for the same Crescat event", () 
       ),
     ),
   ).toBeNull()
+})
+
+test("requires room references, clears location free text and rejects missing paid prices", () => {
+  expect(() =>
+    formFromExtraction({ ...extraction, room: "" }, url, taxonomy, []),
+  ).toThrow("Room could not be determined")
+  expect(
+    formFromExtraction(
+      { ...extraction, roomText: "Kvarteret", roomTextEnglish: "Kvarteret" },
+      url,
+      taxonomy,
+      [],
+    ),
+  ).toMatchObject({ room: "tegl", roomText: "", roomTextEnglish: "" })
+  expect(() =>
+    formFromExtraction(
+      { ...extraction, priceOrdinar: "", priceStudent: "", priceMedlem: "" },
+      url,
+      taxonomy,
+      [],
+    ),
+  ).toThrow("Ticket price could not be determined")
 })

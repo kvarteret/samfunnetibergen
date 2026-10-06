@@ -86,7 +86,8 @@ export function parseListing(html: string): {
 
 export function pageText(html: string): string {
   const $ = load(html)
-  $("script, style, nav, footer, header, form").remove()
+  $("script, style, nav, footer, header").remove()
+  $("input, select, textarea, button").remove()
   return $("body")
     .text()
     .replace(/[ \t]+/g, " ")
