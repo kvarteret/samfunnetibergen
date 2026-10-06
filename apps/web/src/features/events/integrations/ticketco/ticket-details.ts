@@ -76,10 +76,15 @@ export function ticketDetails(html: string): TicketDetails {
     const url = facebookEventUrl(match[0])
     if (url) facebookUrls.add(url)
   }
+  // Hidden templates and script translations include sold-out strings even
+  // while tickets are purchasable. Only rendered page text is evidence.
+  $("script, style, template, [hidden], .hidden, .d-none").remove()
   return {
     isSoldOut:
-      /det er ingen flere billetter tilgjengelig|uts[oø]lgt|sold out|no (?:more )?tickets available/i.test(
-        $("body").text(),
+      /^(?:det er ingen flere billetter tilgjengelig|uts[oø]lgt|sold out|no (?:more )?tickets available)[.!]?$/i.test(
+        $(".order-pane").length
+          ? $(".order-pane").text().trim()
+          : $("body").text().trim(),
       ),
     priceOrdinar: prices.priceOrdinar.length
       ? String(Math.min(...prices.priceOrdinar))

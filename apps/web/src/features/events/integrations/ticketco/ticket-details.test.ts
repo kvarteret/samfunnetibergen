@@ -29,3 +29,19 @@ test("detects explicit sold-out availability without treating missing prices as 
   expect(ticketDetails("<body>Utsolgt</body>").isSoldOut).toBe(true)
   expect(ticketDetails("<body>No information</body>").isSoldOut).toBe(false)
 })
+
+test("ignores sold-out translations in scripts and hidden templates", () => {
+  expect(
+    ticketDetails(
+      `<body><script>const status="sold out"</script><div hidden>Utsolgt</div><p>Billetter tilgjengelig</p></body>`,
+    ).isSoldOut,
+  ).toBe(false)
+})
+
+test("does not interpret past sold-out shows in artist biography as ticket status", () => {
+  expect(
+    ticketDetails(
+      `<body><p>Bandet spilte på et utsolgt Sentrum Scene.</p><div class="order-pane">Billetter tilgjengelig</div></body>`,
+    ).isSoldOut,
+  ).toBe(false)
+})
