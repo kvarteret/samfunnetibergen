@@ -170,12 +170,12 @@
       "getOutExplanation": "Get-out means that the renter must be completely out of the room by the agreed end time, including cleanup and teardown.",
       "multiDayExplanation": "For bookings spanning several days, get-in on the first day and get-out on the last day set the booking times.",
       "doorsOpen": "Doors open",
-      "day1Required": "day 1 required",
+      "day1Required": "required every day",
       "doorsOpenSingle": "Doors open *",
       "doorsHint": "The time the audience is let in – not the organizer's get-in.",
-      "estimatedEnd": "Estimated end",
+      "estimatedEnd": "Doors close",
       "optional": "optional",
-      "estimatedEndSingle": "Estimated end (optional)",
+      "estimatedEndSingle": "Doors close *",
       "selectTime": "Choose a time",
       "day": "Day {number}",
       "addDay": "Add day {number}",
@@ -300,7 +300,7 @@
       "removeRoom": "Remove {room}"
     },
     "form": {
-      "successTitle": "Request received!",
+      "successTitle": "Your booking request has been submitted!",
       "successDescription": "Thank you for your booking request. We will process it as soon as possible and contact you by email.",
       "backToRooms": "Back to rooms",
       "outsideHours": "Outside opening hours",
@@ -311,7 +311,9 @@
       "clear": "Clear the form?",
       "cleared": "Cleared the form!",
       "validationSummaryTitle": "There is a problem",
-      "unexpectedError": "Something went wrong. Please try again later."
+      "unexpectedError": "Something went wrong. Please try again later.",
+      "promotionReminder": "Remember to promote your event! Add it to our event calendar so more people can discover it.",
+      "promoteEvent": "Promote your event"
     },
     "validation": {
       "invalidEndDate": "Choose a valid end date.",
@@ -324,7 +326,8 @@
       "date": "Choose a valid date.",
       "startTime": "Choose a valid start time.",
       "endTime": "Choose a valid end time.",
-      "doors": "Choose when the doors open to the public.",
+      "doors": "Choose when doors open to the public each day.",
+      "doorsClose": "Choose when doors close to the public each day.",
       "furniture": "Enter the requested furniture.",
       "microphone": "Choose at least one microphone.",
       "terms": "Confirm that you have read and accept the booking terms.",

@@ -5,6 +5,7 @@ import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
 import { ErrorSummary } from "@/components/ui/error-summary"
+import { useRouter } from "@/i18n/navigation"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
@@ -41,10 +42,7 @@ import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
 import { KaraokeOrderPreview } from "./KaraokeFormOrderSummary"
 import { KaraokeFormPackageSection } from "./KaraokeFormPackageSection"
 import { KaraokeFormRoomCard } from "./KaraokeFormRoomCard"
-import {
-  KaraokeBookingSuccess,
-  KaraokeFormSubmitSection,
-} from "./KaraokeFormSubmitSection"
+import { KaraokeFormSubmitSection } from "./KaraokeFormSubmitSection"
 import { KaraokeFormTermsSection } from "./KaraokeFormTermsSection"
 import { KaraokeFormContext } from "./karaokeFormContext"
 
@@ -63,6 +61,7 @@ export function KaraokeForm({
   vacationMode,
   initialNow,
 }: KaraokeFormProps) {
+  const router = useRouter()
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
   const [honeypot, setHoneypot] = useState("")
@@ -127,6 +126,7 @@ export function KaraokeForm({
         // A successful Crescat booking must not become a visible failure if
         // client analytics is unavailable.
       }
+      router.replace("/rom/book/innsendt")
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -191,9 +191,7 @@ export function KaraokeForm({
     posthog.capture("karaoke_booking_started")
   }
 
-  if (isSubmitSuccessful) {
-    return <KaraokeBookingSuccess />
-  }
+  if (isSubmitSuccessful) return null
 
   return (
     <KaraokeFormContext.Provider value={form}>

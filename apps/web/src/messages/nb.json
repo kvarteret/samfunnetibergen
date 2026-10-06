@@ -169,12 +169,12 @@
       "getOutExplanation": "Get-out betyr at leietaker skal være helt ute av rommet igjen innen avtalt slutt, inkludert rydding og nedrigg.",
       "multiDayExplanation": "Er det flere dager er det get-in første dag og get-out siste dag som setter tidene for bookingen.",
       "doorsOpen": "Dørene åpner",
-      "day1Required": "dag 1 obligatorisk",
+      "day1Required": "påkrevd hver dag",
       "doorsOpenSingle": "Dørene åpner *",
       "doorsHint": "Tidspunktet publikum slippes inn – ikke arrangørens get-in.",
-      "estimatedEnd": "Antatt slutt",
+      "estimatedEnd": "Dørene stenger",
       "optional": "valgfritt",
-      "estimatedEndSingle": "Antatt slutt (valgfritt)",
+      "estimatedEndSingle": "Dørene stenger *",
       "selectTime": "Velg tidspunkt",
       "day": "Dag {number}",
       "addDay": "Legg til dag {number}",
@@ -299,7 +299,7 @@
       "removeRoom": "Fjern {room}"
     },
     "form": {
-      "successTitle": "Forespørsel mottatt!",
+      "successTitle": "Din booking er nå innsendt!",
       "successDescription": "Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar kontakt på e-post.",
       "backToRooms": "Tilbake til rom",
       "outsideHours": "Utenfor åpningstid",
@@ -310,7 +310,9 @@
       "clear": "Tøm skjemaet?",
       "cleared": "Tømmet!",
       "validationSummaryTitle": "Det er et problem",
-      "unexpectedError": "Noe gikk galt. Prøv igjen senere."
+      "unexpectedError": "Noe gikk galt. Prøv igjen senere.",
+      "promotionReminder": "Husk å promotere arrangementet ditt! Legg det til i arrangementskalenderen vår, så kan flere oppdage det.",
+      "promoteEvent": "Promoter arrangementet ditt"
     },
     "validation": {
       "invalidEndDate": "Velg en gyldig sluttdato.",
@@ -323,7 +325,8 @@
       "date": "Velg en gyldig dato.",
       "startTime": "Velg et gyldig starttidspunkt.",
       "endTime": "Velg et gyldig sluttidspunkt.",
-      "doors": "Velg når dørene åpner for publikum.",
+      "doors": "Velg når dørene åpner for publikum hver dag.",
+      "doorsClose": "Velg når dørene stenger for publikum hver dag.",
       "furniture": "Skriv inn ønsket møblement.",
       "microphone": "Velg minst én mikrofon.",
       "terms": "Bekreft at du har lest og godtar bookingvilkårene.",

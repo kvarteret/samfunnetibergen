@@ -1,7 +1,6 @@
 "use server"
 
 import { z } from "zod"
-
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
@@ -14,6 +13,7 @@ import {
   buildKaraokeRequest,
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
+import { storeBookingRequest } from "@/lib/integrations/kvarteret-personal/booking-requests"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 import { err, ok, type Result } from "@/lib/result"
@@ -230,6 +230,24 @@ export async function submitKaraokeBooking(
       priceType: parsed.data.priceType,
     })
 
+    await storeBookingRequest({
+      schema_version: 1,
+      submission_id: bookingSubmissionId,
+      kind: "karaoke",
+      event_name: parsed.data.eventName,
+      contact_name: parsed.data.contactName,
+      contact_email: parsed.data.contactEmail,
+      room_ids: [98],
+      schedule: [
+        {
+          date: parsed.data.startDate,
+          doors_open: parsed.data.startTime,
+          doors_close: parsed.data.endTime,
+        },
+      ],
+      form: { ...formParsed.data, totalPrice },
+      crescat_payload: body,
+    })
     const result = await postEventRequest(KARAOKE_SLUG, body)
 
     if (result.ok) {

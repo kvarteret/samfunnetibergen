@@ -8,6 +8,7 @@ const validBooking = {
   eventName: "Testarrangement",
   startDate: "2026-08-20",
   doorsTimes: ["18:00"],
+  estimatedEndTimes: ["22:00"],
   furniture: "Bord og stoler",
   invoiceAddress: "Testadresse 1",
   contactName: "Kari Nordmann",
@@ -88,4 +89,23 @@ describe("bookingFormSchema", () => {
     expect(studentOrg.success).toBe(false)
     expect(paid.success).toBe(false)
   })
+})
+
+test("requires both public door times on every booked day", () => {
+  expect(
+    bookingFormSchema.safeParse({ ...validBooking, estimatedEndTimes: [] })
+      .success,
+  ).toBe(false)
+  expect(
+    bookingFormSchema.safeParse({ ...validBooking, endDate: "2026-08-21" })
+      .success,
+  ).toBe(false)
+  expect(
+    bookingFormSchema.safeParse({
+      ...validBooking,
+      endDate: "2026-08-21",
+      doorsTimes: ["18:00", "19:00"],
+      estimatedEndTimes: ["23:00", "02:00"],
+    }).success,
+  ).toBe(true)
 })

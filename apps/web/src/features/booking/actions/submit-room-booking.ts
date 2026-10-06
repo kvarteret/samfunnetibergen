@@ -1,7 +1,6 @@
 "use server"
 
 import { z } from "zod"
-
 import {
   bookingRangeMs,
   durationHoursBetween,
@@ -23,11 +22,15 @@ import {
   fetchVenueCalendar,
 } from "@/lib/integrations/crescat/calendar"
 import { postEventRequest } from "@/lib/integrations/crescat/client"
-import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import {
+  addDaysDateOnly,
+  resolveAssignmentDateTime,
+} from "@/lib/integrations/crescat/datetime"
 import {
   buildRoomBooking,
   slugForBookerType,
 } from "@/lib/integrations/crescat/room-booking"
+import { storeBookingRequest } from "@/lib/integrations/kvarteret-personal/booking-requests"
 import {
   currentTraceFields,
   emitOperationalEvent,
@@ -304,6 +307,30 @@ async function submitRoomBookingWithinSpan(
     }
 
     const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
+
+    await storeBookingRequest({
+      schema_version: 1,
+      submission_id: bookingSubmissionId,
+      kind: "room",
+      event_name: formParsed.data.eventName,
+      contact_name: formParsed.data.contactName,
+      contact_email: formParsed.data.contactEmail,
+      room_ids: formParsed.data.selectedRoomIds,
+      schedule: formParsed.data.doorsTimes.map((doors_open, index) => ({
+        date: resolveAssignmentDateTime({
+          startDate: formParsed.data.startDate,
+          endDate: formParsed.data.endDate || undefined,
+          startTime: formParsed.data.startTime,
+          endTime: formParsed.data.endTime,
+          assignmentTime: doors_open,
+          dayIndex: index,
+        }).slice(0, 10),
+        doors_open,
+        doors_close: formParsed.data.estimatedEndTimes[index],
+      })),
+      form: formParsed.data,
+      crescat_payload: body,
+    })
 
     const result = await postEventRequest(
       slugForBookerType(parsed.data.bookerType),
