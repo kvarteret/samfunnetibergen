@@ -684,6 +684,12 @@ export type Page = {
   localizedTitle: InternationalizedArrayString
   slug: Slug
   localizedContent?: InternationalizedArrayText
+  faq?: Array<{
+    localizedQuestion: InternationalizedArrayString
+    localizedAnswer: InternationalizedArrayText
+    _type: "faqItem"
+    _key: string
+  }>
 }
 
 export type KontaktPage = {

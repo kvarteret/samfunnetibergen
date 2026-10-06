@@ -1,3 +1,6 @@
+vi.mock("@/lib/booking/continuation", () => ({
+  setBookingContinuation: vi.fn(),
+}))
 vi.mock("@/lib/integrations/kvarteret-personal/booking-requests", () => ({
   storeBookingRequest: vi.fn().mockResolvedValue("stored"),
 }))

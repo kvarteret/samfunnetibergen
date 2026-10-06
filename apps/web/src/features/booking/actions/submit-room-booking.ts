@@ -11,6 +11,7 @@ import {
   bookingFormSchema,
 } from "@/features/booking/domain/bookingFormSchema"
 import { buildBookingPayload } from "@/features/booking/domain/formState"
+import { setBookingContinuation } from "@/lib/booking/continuation"
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
@@ -308,7 +309,7 @@ async function submitRoomBookingWithinSpan(
 
     const body = buildRoomBooking(parsed.data.bookerType, parsed.data)
 
-    await storeBookingRequest({
+    const receiptId = await storeBookingRequest({
       schema_version: 1,
       submission_id: bookingSubmissionId,
       kind: "room",
@@ -338,6 +339,7 @@ async function submitRoomBookingWithinSpan(
     )
 
     if (result.ok) {
+      await setBookingContinuation(receiptId, bookingSubmissionId)
       try {
         emitOperationalEvent("booking.submitted", {
           booking_submission_id: bookingSubmissionId,

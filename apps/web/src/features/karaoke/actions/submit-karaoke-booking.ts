@@ -1,6 +1,7 @@
 "use server"
 
 import { z } from "zod"
+import { clearBookingContinuation } from "@/lib/booking/continuation"
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
@@ -251,6 +252,7 @@ export async function submitKaraokeBooking(
     const result = await postEventRequest(KARAOKE_SLUG, body)
 
     if (result.ok) {
+      await clearBookingContinuation()
       return result
     }
 

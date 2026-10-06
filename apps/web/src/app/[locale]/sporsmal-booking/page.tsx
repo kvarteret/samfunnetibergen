@@ -1,10 +1,10 @@
-import { ArrowRight, Check } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
-import ReactMarkdown from "react-markdown"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { BookingNotice } from "@/features/booking/components/BookingNotice"
+import { BookingQuestions } from "@/features/booking/components/BookingQuestions"
 import { Link } from "@/i18n/navigation"
 import {
   activateRequestLocale,
@@ -54,27 +54,30 @@ export default async function BookingSubmittedPage({
         path="/sporsmal-booking"
         current={page.title ?? "Spørsmål om booking"}
       />
-      {submitted === "1" && (
+      {(submitted === "1" || submitted === "karaoke") && (
         <>
-          <Alert className="max-w-2xl p-8" variant="success">
-            <Check aria-hidden />
-            <AlertTitle>
-              <h1 className="text-2xl">{t("form.successTitle")}</h1>
-            </AlertTitle>
-            <AlertDescription>{t("form.successDescription")}</AlertDescription>
-          </Alert>
+          <BookingNotice karaoke={submitted === "karaoke"} locale={locale} />
           <section className="max-w-2xl space-y-5">
             <p className="text-lg">{t("form.promotionReminder")}</p>
-            <Button render={<Link href="/arrangementer/ny" />} size="lg">
+            <Button
+              render={
+                <Link
+                  href={
+                    submitted === "1"
+                      ? "/arrangementer/ny?fromBooking=1"
+                      : "/arrangementer/ny"
+                  }
+                />
+              }
+              size="lg"
+            >
               {t("form.promoteEvent")}
               <ArrowRight aria-hidden />
             </Button>
           </section>
         </>
       )}
-      <div className="paper-prose prose prose-neutral max-w-4xl dark:prose-invert">
-        <ReactMarkdown>{page.content ?? ""}</ReactMarkdown>
-      </div>
+      <BookingQuestions content={page.content ?? ""} faq={page.faq ?? []} />
       <Link
         className="inline-flex font-heading underline underline-offset-4 focus-brutal"
         href="/rom"

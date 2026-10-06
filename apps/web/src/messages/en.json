@@ -300,6 +300,7 @@
       "removeRoom": "Remove {room}"
     },
     "form": {
+      "karaokeSuccessTitle": "Your karaoke request has been submitted!",
       "successTitle": "Your booking request has been submitted!",
       "successDescription": "Thank you for your booking request. We will process it as soon as possible and contact you by email.",
       "backToRooms": "Back to rooms",

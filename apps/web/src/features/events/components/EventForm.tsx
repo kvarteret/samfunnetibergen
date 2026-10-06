@@ -46,9 +46,16 @@ interface EventFormProps {
   rooms: EventRoom[]
   eventTypes: EventType[]
   groups: EventGroup[]
+  initialValues?: FormState
 }
 
-export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
+export function EventForm({
+  rooms,
+  eventTypes,
+  groups,
+  initialValues,
+}: EventFormProps) {
+  const defaults = initialValues ?? initialState
   const uid = useId()
   const image = useEventImage()
   const [honeypot] = useState("")
@@ -57,7 +64,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
     titleEnglish: `${uid}-title-en`,
     description: `${uid}-description`,
     descriptionEnglish: `${uid}-description-en`,
-    firstDate: `${uid}-date-${initialState.dates[0]?.id ?? "first"}`,
+    firstDate: `${uid}-date-${defaults.dates[0]?.id ?? "first"}`,
     roomText: `${uid}-roomText`,
     roomTextEnglish: `${uid}-roomText-en`,
     organizerText: `${uid}-organizerText`,
@@ -67,7 +74,7 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   }
 
   const form = useForm({
-    defaultValues: initialState as FormState,
+    defaultValues: defaults as FormState,
     validators: {
       onChange: eventFormSchema,
       onSubmit: eventFormSchema,
@@ -128,13 +135,15 @@ export function EventForm({ rooms, eventTypes, groups }: EventFormProps) {
   // Initialize first date with today
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0]
-    const firstId = form.state.values.dates[0]?.id
+    const firstId = defaults.dates[0]?.id
     if (firstId) {
       form.setFieldValue("dates", (dates: typeof initialState.dates) =>
-        dates.map(d => (d.id === firstId ? { ...d, startDate: today } : d)),
+        dates.map(d =>
+          d.id === firstId && !d.startDate ? { ...d, startDate: today } : d,
+        ),
       )
     }
-  }, [])
+  }, [defaults.dates, form.setFieldValue])
 
   const eventTypeSelectOptions = eventTypeOptions(eventTypes)
   const roomSelectOptions = roomOptions(rooms)

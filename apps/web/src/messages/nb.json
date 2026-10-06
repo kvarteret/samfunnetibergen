@@ -299,6 +299,7 @@
       "removeRoom": "Fjern {room}"
     },
     "form": {
+      "karaokeSuccessTitle": "Din karaokeforespørsel er nå innsendt!",
       "successTitle": "Din booking er nå innsendt!",
       "successDescription": "Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar kontakt på e-post.",
       "backToRooms": "Tilbake til rom",
