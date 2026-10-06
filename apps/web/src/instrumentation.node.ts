@@ -17,6 +17,7 @@ import {
   ATTR_SERVICE_VERSION,
   SEMRESATTRS_CLOUD_REGION,
 } from "@opentelemetry/semantic-conventions"
+import { registerTelemetryFlush } from "@/lib/telemetry-flush"
 
 const INFO_SEVERITY = 9
 const POSTHOG_OTLP_BASE_URL = "https://eu.i.posthog.com/i/v1"
@@ -84,6 +85,12 @@ if (projectToken) {
     ],
   })
   logs.setGlobalLoggerProvider(loggerProvider)
+  registerTelemetryFlush(async () => {
+    await Promise.all([
+      loggerProvider.forceFlush(),
+      tracerProvider.forceFlush(),
+    ])
+  })
 
   new HttpInstrumentation().enable()
 }

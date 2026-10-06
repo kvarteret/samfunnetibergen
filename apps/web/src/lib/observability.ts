@@ -7,6 +7,7 @@ import {
   trace,
 } from "@opentelemetry/api"
 import { logs, SeverityNumber } from "@opentelemetry/api-logs"
+import { scheduleTelemetryFlush } from "./telemetry-flush"
 
 const tracer = trace.getTracer("samfunnetibergen")
 const logger = logs.getLogger("samfunnetibergen")
@@ -73,6 +74,7 @@ export function emitOperationalEvent(
     body: SENSITIVE_VALUE.test(event) ? "[redacted]" : event,
     attributes: buildOperationalAttributes(event, fields),
   })
+  scheduleTelemetryFlush()
 }
 
 export function buildOperationalAttributes(
@@ -106,6 +108,7 @@ export async function withOperationalSpan<T>(
       throw error
     } finally {
       span.end()
+      scheduleTelemetryFlush()
     }
   })
 }
