@@ -11,6 +11,7 @@ import {
   type EventStatus,
   getEventStatusTransitions,
 } from "../actions/approvalStatus"
+import { ArrangementReviewPreview } from "./ArrangementReviewPreview"
 import {
   ARRANGEMENT_LIST_STATUS_LABELS,
   type ArrangementBrowserItem,
@@ -230,6 +231,7 @@ export function ArrangementDocumentInput(props: ObjectInputProps) {
     <>
       <ArrangementActionStyles />
       <Stack gap={4}>
+        {document ? <ArrangementReviewPreview document={document} /> : null}
         {document?.approvalStatus === "approved" ? (
           <ArrangementStatusInput document={document} />
         ) : null}
