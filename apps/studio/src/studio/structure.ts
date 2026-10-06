@@ -125,9 +125,6 @@ export const structure: StructureResolver = (S, context) =>
                     .title("Arrangementer")
                     .component(ArrangementsPane),
                 ),
-              S.documentTypeListItem("eventPromotionChange").title(
-                "Promotion campaign history",
-              ),
               S.listItem()
                 .id("arrangement-promoted")
                 .title("Fremhevede")

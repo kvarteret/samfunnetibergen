@@ -96,7 +96,6 @@ const publicEventProjection = `{
     eventStatus,
     "initialSlug": coalesce(initialSlug, slug.current),
     "isPromoted": coalesce(isPromoted, false),
-    "promotionCampaignId": *[_type == "eventPromotionChange" && eventId == ^._id && afterPromoted == true && beforePromoted == false] | order(changedAt desc)[0].campaignId,
     promotedPlacement,
     promotedOrder,
     orderRank,

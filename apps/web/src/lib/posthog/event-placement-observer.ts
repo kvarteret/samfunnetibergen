@@ -16,14 +16,8 @@ export function observeEventPlacements(
     timers.delete(element)
   }
   const start = (element: HTMLElement) => {
-    const key = `${element.dataset.eventPlacementId}:${element.dataset.eventCampaignId ?? ""}`
-    if (
-      !element.dataset.eventPlacementId ||
-      viewed.has(key) ||
-      timers.has(element) ||
-      root.hidden
-    )
-      return
+    const key = element.dataset.eventPlacementId
+    if (!key || viewed.has(key) || timers.has(element) || root.hidden) return
     const properties = placementProperties(element, locale)
     timers.set(
       element,

@@ -4,7 +4,6 @@ import {
   promotionChangeId,
   promotionChangeKind,
   promotionChangeSchema,
-  promotionHistoryDocument,
 } from "@/features/event-promotion/server/change"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { sanityClient } from "@/lib/sanity/client"
@@ -13,7 +12,7 @@ export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   const secret = process.env.SANITY_PROMOTION_WEBHOOK_SECRET
-  const token = process.env.SANITY_PROMOTION_HISTORY_TOKEN
+  const token = process.env.SANITY_WRITE_TOKEN
   if (!secret || !token)
     return Response.json({ error: "Not configured" }, { status: 503 })
   // Reject unsigned traffic before parsing; expected rejections are not logs.
@@ -65,48 +64,36 @@ export async function POST(request: NextRequest) {
       return Response.json({ skipped: true })
     if (!change.before.promoted && !change.after.promoted)
       return Response.json({ skipped: true })
+    const changeId = promotionChangeId(change)
     const campaignId =
-      promotionChangeKind(change) === "started"
-        ? promotionChangeId(change)
-        : await client.fetch<string | null>(
-            `*[_type == "eventPromotionChange" && eventId == $eventId && afterPromoted == true && beforePromoted == false && changedAt <= $changedAt] | order(changedAt desc)[0].campaignId`,
-            change,
-          )
-    // Out-of-order delivery retries after its start record arrives.
-    if (!campaignId)
-      return Response.json({ error: "Campaign start pending" }, { status: 503 })
-    const document = await client.createIfNotExists(
-      promotionHistoryDocument(change, campaignId, new Date().toISOString()),
-    )
+      promotionChangeKind(change) === "started" ? changeId : null
     await getPostHogClient().captureImmediate({
       distinctId: `event:${change.eventId}`,
       event: "event_promotion_changed",
       timestamp: new Date(change.changedAt),
       properties: {
-        $insert_id: document._id,
+        $insert_id: changeId,
         $process_person_profile: false,
         event_id: identity ?? change.slug,
         event_document_id: change.eventId,
         event_slug: change.slug,
         event_title: change.title,
         promotion_campaign_id: campaignId,
-        change: document.kind,
+        change: promotionChangeKind(change),
         before_promoted: change.before.promoted,
         is_promoted: change.after.promoted,
         before_placement: change.before.placement,
         promotion_placement: change.after.placement,
         before_order: change.before.order,
         promotion_order: change.after.order,
-        observed_at: document.observedAt,
-        campaign_start_known: document.startKnown,
+        observed_at: new Date().toISOString(),
+        campaign_start_known: true,
         service: "samfunnetibergen-editorial",
       },
     })
     return Response.json({ recorded: true })
   } catch {
-    console.error(
-      "[event-promotion] POST failed to persist or export promotion change",
-    )
+    console.error("[event-promotion] POST failed to export promotion change")
     return Response.json({ error: "Retry change" }, { status: 502 })
   }
 }

@@ -122,7 +122,6 @@ function toEventSummary(
     promotedPlacement: event.promotedPlacement,
     promotedOrder: event.promotedOrder,
     initialSlug: event.initialSlug,
-    promotionCampaignId: event.promotionCampaignId,
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,

@@ -3,7 +3,6 @@ export type PromotionContext = {
   isPromoted?: boolean | null
   promotedPlacement?: "top" | "pool" | null
   promotedOrder?: number | null
-  promotionCampaignId?: string | null
 }
 
 export function promotionProperties(event: PromotionContext) {
@@ -13,9 +12,6 @@ export function promotionProperties(event: PromotionContext) {
       ? (event.promotedPlacement ?? "legacy")
       : "none",
     promotion_order: event.isPromoted ? (event.promotedOrder ?? null) : null,
-    promotion_campaign_id: event.isPromoted
-      ? (event.promotionCampaignId ?? null)
-      : null,
   }
 }
 
@@ -32,7 +28,6 @@ export function placementProperties(element: HTMLElement, locale: string) {
     promotion_order: element.dataset.eventPromotionOrder
       ? Number(element.dataset.eventPromotionOrder)
       : null,
-    promotion_campaign_id: element.dataset.eventCampaignId || null,
     occurrence_date: element.dataset.eventOccurrenceDate || null,
     placement_id: element.dataset.eventPlacementId,
     tracking_version: 1,

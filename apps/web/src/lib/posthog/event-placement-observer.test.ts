@@ -13,7 +13,6 @@ function setup() {
       eventSurface: "home-promoted",
       eventPlacementId: "home:doc1",
       eventPromoted: "true",
-      eventCampaignId: "campaign1",
     }
     isConnected = true
     closest() {
@@ -105,7 +104,6 @@ describe("event placement observation", () => {
         event_id: "the-snooks",
         event_document_id: "doc1",
         surface: "home-promoted",
-        promotion_campaign_id: "campaign1",
       }),
     )
     s.visible(0)

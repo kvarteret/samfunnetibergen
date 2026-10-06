@@ -1,54 +1,48 @@
 # Event promotion campaigns
 
-A campaign is one uninterrupted `isPromoted` period. Reordering or moving between
-`top` and `pool` keeps its ID; removal ends it, and re-promotion starts another.
-Selection does not guarantee homepage exposure: eligibility, event dates and
-pool rotation determine actual display. Impressions measure that display.
+Campaign analytics live only in PostHog. Sanity holds editorial promotion
+settings and the frozen first published slug; there are no campaign-history
+records, custom campaign controls or analytics views in Studio.
 
-The first published slug is frozen as `initialSlug`, used for `data-event-id`
-and analytics `event_id`. `event_document_id` retains the Sanity ID, and
-`event_slug` records the current URL slug. Existing events were seeded with their
-current published slug at rollout; older URL changes cannot be reconstructed
-from that seed. Existing `content_id` remains the Sanity ID for historical views.
+A campaign is one uninterrupted promoted period. A signed Sanity webhook emits
+`event_promotion_changed` on published starts, ends and placement/order changes.
+Each start's deterministic change ID identifies a campaign. Reordering keeps the
+same period; removal ends it; re-promotion starts another. PostHog reconstructs
+periods from the event ID and change timestamp, so delivery order doesn't matter.
+The receiver awaits export before returning 200; failures return 502 for retry.
+`$insert_id` is deterministic across retries. Only public editorial fields are
+projected; no submitter information is sent. The service credential is used only
+to freeze `initialSlug` when it is missing, not to write analytics history.
 
-## Events
+Website `event_placement_viewed` records a link at least 50% visible continuously
+for one second while the tab is visible, once per placement per navigation.
+`event_placement_clicked` records primary, keyboard or middle clicks.
+`content_page_viewed` preserves existing event-detail traffic. Their event-time
+promotion state, timestamp and readable event ID connect them to campaign periods
+in PostHog. Surfaces distinguish `home-promoted`, `home-upcoming`, `events-list`,
+`calendar`, `detail-parent` and `detail-child`. These are product events through
+the existing SDK; they do not belong in operational Logs.
 
-- `event_placement_viewed`: an event link is at least 50% visible continuously
-  for one second while the tab is visible. Once per placement per navigation.
-- `event_placement_clicked`: primary, keyboard or middle click on an event link.
-- `content_page_viewed`: existing event detail traffic, enriched with campaign
-  state and readable event identity.
-- `event_promotion_changed`: published starts, ends and placement/order changes.
+`data-event-id` and analytics `event_id` use `initialSlug`; `event_document_id`
+retains the Sanity ID and `event_slug` is the current URL slug. Existing events
+were seeded with their published slug at rollout. Historical URL changes cannot
+be recovered from this seed. Existing `content_id` stays unchanged for baseline
+joins. All placement events include surface, position, locale, promoted state,
+placement/order, occurrence date, placement ID and tracking version.
 
-Placement events include `event_id`, `event_document_id`, `event_slug`, `surface`,
-`position`, `locale`, `is_promoted`, `promotion_campaign_id`, `promotion_placement`,
-`promotion_order`, `occurrence_date`, `placement_id` and `tracking_version`.
-Surfaces include `home-promoted`, `home-upcoming`, `events-list`, `calendar`,
-`detail-parent` and `detail-child`. PostHog's existing session context connects
-interactions. These are product events, not operational Logs.
+The dashboard is https://eu.posthog.com/project/202551/dashboard/1002241.
+Compare daily detail views before/during/after each campaign and exposures and
+clicks by surface. Fast clicks can precede the one-second impression threshold;
+raw clicks/exposures is descriptive and can exceed 100%. Ticket clicks are
+intent, not verified sales. Selection doesn't guarantee homepage exposure:
+event eligibility, dates and pool rotation govern actual display.
 
-Sanity `eventPromotionChange` documents preserve the campaign history. A signed
-published-document webhook persists changes before awaiting PostHog export.
-Deterministic IDs deduplicate CMS records and `$insert_id` deduplicates retries
-in PostHog. Only public editorial fields are projected; no submitter details.
-The receiver needs `SANITY_PROMOTION_WEBHOOK_SECRET` and
-`SANITY_PROMOTION_HISTORY_TOKEN`, a dedicated service credential.
-
-## Interpretation
-
-Compare daily event detail views before/during/after a campaign and break down
-placement impressions and clicks by surface and campaign. Report unique sessions
-as well as totals. For CTR use sessions with a placement click divided by sessions
-with its impression, restricted to matching campaign/surface; fast clicks can
-occur before the one-second impression threshold, so raw clicks/impressions
-need not behave as a probability. Ticket clicks are intent, not verified sales.
-
-The Snooks (`konsert-med-the-snooks-1788875522439`) began its current campaign at
-2026-10-06T16:56:52.196667Z, confirmed from published Sanity revisions. There were
-49 event detail views across the 14 complete days 22 September–5 October.
-6 October had an earlier analytics outage. Existing campaigns without verified
-history use `startKnown=false` and the first observation time; do not interpret
-that as their actual start. Impressions begin at rollout and cannot be backfilled.
-Before/after comparisons are observational: demand naturally changes as an event
-approaches and other advertising can change simultaneously. Causal lift requires
-a randomized exposure experiment.
+The Snooks started at 2026-10-06T16:56:52.196667Z, confirmed from published
+revisions. There were 49 detail views over the 14 complete days 22 September–
+5 October. Earlier analytics downtime affects 6 October. Other existing campaigns
+are marked `campaign_start_known=false`; their timestamps are first observations,
+not actual starts. Impressions begin at rollout and cannot be backfilled.
+Before/after traffic is observational, not causal lift. Demand changes as the
+event approaches and other advertising can change concurrently. Randomized
+exposure would be needed to establish causal lift. Retention/export settings in
+PostHog govern how long campaign history remains available.
