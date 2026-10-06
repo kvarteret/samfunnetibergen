@@ -9,6 +9,7 @@ on:
       - packages/content-domain/**
       - package.json
       - package-lock.json
+      - .github/workflows/release-production.yml
   workflow_dispatch:
     inputs:
       ref:
@@ -27,6 +28,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: production-release
@@ -105,6 +107,30 @@ jobs:
       - name: Tests
         run: npm run test
 
+      - name: Load production application config
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 242f2c14-008b-4e8a-a78c-820300ee0c5f
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: faedb783-c2d7-45aa-ae13-f6607c5cca93
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
+
+      - name: Load deployment credentials
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 242f2c14-008b-4e8a-a78c-820300ee0c5f
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
+
       - name: Install Vercel CLI
         run: npm install --global vercel@59.16.0
 
@@ -114,10 +140,6 @@ jobs:
           token_flag="--""token"
           scope_flag="--""scope"
           vercel pull --yes --environment=production "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Verify PostHog source-map credentials
         shell: bash
@@ -135,10 +157,6 @@ jobs:
             echo "Missing required production source-map secrets: ${missing[*]}" >&2
             exit 1
           fi
-        env:
-          POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
-          POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}
-          POSTHOG_CLI_HOST: ${{ secrets.POSTHOG_CLI_HOST }}
 
       - name: Build production artifact
         run: |
@@ -149,21 +167,11 @@ jobs:
           vercel build --prod \
             "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          # `vercel pull` cannot decrypt sensitive project values, so the SITE_URL
-          # it writes is a placeholder. Pin the canonical production origin for
-          # the prerendered metadata instead of relying on the pulled value.
-          SITE_URL: https://www.samfunnetibergen.no
-          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
-          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+          # Infisical supplies the canonical origin for prerendered metadata,
+          # including values Vercel environment pulls cannot decrypt.
+          SITE_URL: ${{ env.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
           NEXT_PUBLIC_GIT_SHA: ${{ steps.release.outputs.source_sha }}
-          SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
-          POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
-          POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}
-          POSTHOG_CLI_HOST: ${{ secrets.POSTHOG_CLI_HOST }}
           POSTHOG_RELEASE_BUILD: ${{ steps.release.outputs.source_sha }}
           POSTHOG_RELEASE_VERSION: ${{ steps.release.outputs.tag }}
 
@@ -182,10 +190,6 @@ jobs:
 
           echo "url=${deployment_url}" >> "$GITHUB_OUTPUT"
           echo "Staged production deployment: ${deployment_url}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Smoke test staged deployment
         shell: bash
@@ -210,7 +214,6 @@ jobs:
           done
         env:
           SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/nb /nb/rom /nb/rom/book' }}
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Smoke test public machine-readable endpoints
         shell: bash
@@ -268,10 +271,6 @@ jobs:
           token_flag="--""token"
           scope_flag="--""scope"
           vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Create release tag
         if: ${{ github.event_name == 'push' || inputs.promote }}
