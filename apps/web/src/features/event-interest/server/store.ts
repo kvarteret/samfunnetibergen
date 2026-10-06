@@ -21,7 +21,8 @@ async function backendInterest(
   if (!secret || secret.length < 32)
     throw new Error("EVENT_INTEREST_SECRET is required")
   const base =
-    process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
+    process.env.PERSONAL_APP_BASE_URL?.trim() ||
+    "https://personal.samfunnetibergen.no"
   const apiPath = `/api/v1/event-interest/${path}`
   const payload = JSON.stringify(body)
   const timestamp = String(Math.floor(Date.now() / 1000))

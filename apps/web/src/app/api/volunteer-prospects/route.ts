@@ -25,7 +25,8 @@ import {
 } from "@/lib/submission"
 
 const PERSONAL_APP_BASE_URL =
-  process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
+  process.env.PERSONAL_APP_BASE_URL?.trim() ||
+  "https://personal.samfunnetibergen.no"
 
 const GENERIC_ERROR = "Kunne ikke registrere frivillig."
 const REQUEST_BODY_LIMIT_BYTES = 16 * 1_024
