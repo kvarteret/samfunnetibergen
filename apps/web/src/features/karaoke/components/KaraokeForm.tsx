@@ -126,7 +126,7 @@ export function KaraokeForm({
         // A successful Crescat booking must not become a visible failure if
         // client analytics is unavailable.
       }
-      router.replace("/rom/book/innsendt")
+      router.replace("/sporsmal-booking?submitted=1")
     },
   })
   const values = useStore(form.store, state => state.values)
