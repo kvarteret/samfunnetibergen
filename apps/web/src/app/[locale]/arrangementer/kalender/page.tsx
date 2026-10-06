@@ -1,3 +1,4 @@
+import { semesterForDate } from "@samfunnet/content-domain/instances"
 import { getTranslations } from "next-intl/server"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
@@ -46,7 +47,7 @@ export default async function CalendarPage({
     fetchPublicEventSet({
       locale,
       from: startOfCurrentWeek(today),
-      to: null,
+      to: semesterForDate(today)?.endDate ?? today,
     }),
     searchParams,
   ])
