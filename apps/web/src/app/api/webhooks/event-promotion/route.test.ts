@@ -78,7 +78,7 @@ describe("promotion webhook", () => {
   it("retries placement changes delivered before the campaign start", async () => {
     mocks.parse.mockResolvedValue({
       isValidSignature: true,
-      body: { ...change, before: change.after },
+      body: { ...change, before: { ...change.after, order: 2 } },
     })
     mocks.fetch.mockResolvedValue(null)
     expect((await POST(request())).status).toBe(503)

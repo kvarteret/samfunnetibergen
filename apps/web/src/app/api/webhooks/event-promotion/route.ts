@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
         .patch(change.eventId)
         .setIfMissing({ initialSlug: change.slug })
         .commit()
+    if (JSON.stringify(change.before) === JSON.stringify(change.after))
+      return Response.json({ skipped: true })
     if (!change.before.promoted && !change.after.promoted)
       return Response.json({ skipped: true })
     const campaignId =
