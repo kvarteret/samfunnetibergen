@@ -182,6 +182,7 @@ function buildEventDocument(input: SubmitEventInput) {
       "internationalizedArrayStringValue",
     ),
     slug: { _type: "slug", current: slug },
+    initialSlug: slug,
     eventKind: isRecurringSeries ? "seriesParent" : "single",
     eventStatus: "scheduled",
     approvalStatus: "pending",

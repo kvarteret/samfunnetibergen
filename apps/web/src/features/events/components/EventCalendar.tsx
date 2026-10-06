@@ -8,6 +8,7 @@ import { useState } from "react"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
+import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import {
@@ -66,6 +67,12 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   return (
     <Link
       className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
+      {...eventTrackingAttributes(
+        event,
+        "calendar",
+        undefined,
+        occurrence.schedule.startDate,
+      )}
       href={`/arrangementer/${event.slug}`}
     >
       {imageUrl ? (
