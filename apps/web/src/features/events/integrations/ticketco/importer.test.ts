@@ -135,7 +135,7 @@ describe("room matching and validation", () => {
     expect(
       matchBookingRoom("KNEKT", [
         ...candidates,
-        { ...candidates[0], roomId: "tivoli" },
+        { ...candidates[0], roomId: "tivoli", resourceId: 95 },
       ]),
     ).toBeNull()
     expect(
@@ -288,4 +288,23 @@ describe("scheduler recovery", () => {
       lastSuccessAt: expect.any(String),
     })
   })
+})
+
+test("selects Teglverket over its support rooms for the same Crescat event", () => {
+  const candidates = overlappingRooms(
+    "2099-10-16",
+    "21:00",
+    "01:00",
+    [booking, { ...booking, resourceId: 117 }],
+    [...taxonomy.rooms, { _id: "stoy", name: "Støy", crescatRoomId: 117 }],
+  )
+  expect(matchBookingRoom("KNEKT", candidates)).toBe("tegl")
+  expect(
+    matchBookingRoom(
+      "KNEKT",
+      candidates.map(candidate =>
+        candidate.roomId === "stoy" ? { ...candidate, eventId: 2 } : candidate,
+      ),
+    ),
+  ).toBeNull()
 })

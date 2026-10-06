@@ -14,6 +14,7 @@ export type RoomCandidate = {
   roomId: string
   roomName: string
   title: string
+  resourceId?: number
   start: string
   end: string
   eventId: number
@@ -46,6 +47,7 @@ export function overlappingRooms(
       {
         roomId: room._id,
         roomName: room.name,
+        resourceId: booking.resourceId,
         title: booking.title,
         start: booking.start,
         end: booking.end,
@@ -95,6 +97,22 @@ export function matchBookingRoom(
     .sort((a, b) => b.score - a.score)
   if (!ranked.length) return null
   const best = ranked[0]
+  const tied = ranked
+    .filter(item => item.score === best.score)
+    .map(item => item.candidate)
+  // Crescat's booking form bundles Støy/Stillhet with Teglverket (see
+  // booking/domain/pricing.ts). They are support spaces for this same event,
+  // not competing performance venues. Do not collapse different event IDs.
+  const teglverket = tied.find(candidate => candidate.resourceId === 97)
+  if (
+    teglverket &&
+    tied.every(
+      candidate =>
+        candidate.eventId === teglverket.eventId &&
+        [97, 117, 118].includes(candidate.resourceId ?? -1),
+    )
+  )
+    return teglverket.roomId
   const tiedRooms = new Set(
     ranked
       .filter(item => item.score === best.score)
