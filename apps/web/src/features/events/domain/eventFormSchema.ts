@@ -47,6 +47,7 @@ export const eventFormSchema = z
     eventTypeId: z.string(),
     isInternalEvent: z.boolean(),
     isFree: z.boolean(),
+    isSoldOut: z.boolean().default(false),
     priceOrdinar: z.string(),
     priceStudent: z.string(),
     priceMedlem: z.string(),

@@ -44,6 +44,7 @@ export type EventSummary = {
   primaryDateLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -191,7 +192,9 @@ export function EventCard({
             event={event}
             isEditorial={isEditorial}
             onPrimary={cardVariant === "slider"}
-            statusLabel={event.statusLabel}
+            statusLabel={
+              event.statusLabel ?? (event.isSoldOut ? "Utsolgt" : null)
+            }
             eventTypeLabel={eventTypeLabel}
             timeLabel={timeLabel}
           />

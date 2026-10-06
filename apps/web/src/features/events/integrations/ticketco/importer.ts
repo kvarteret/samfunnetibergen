@@ -26,6 +26,7 @@ import {
   type TicketCoEvent,
   ticketDocumentId,
 } from "./source"
+import { captureRoomResolution } from "./telemetry"
 import { facebookEventUrl, ticketDetails } from "./ticket-details"
 
 export const INTERVAL_MS = 72 * 60 * 60 * 1000
@@ -66,6 +67,7 @@ export function formFromExtraction(
   if (requireRoom && !room) throw new Error("Room could not be determined")
   if (
     !extracted.isFree &&
+    !extracted.isSoldOut &&
     ![
       extracted.priceOrdinar,
       extracted.priceStudent,
@@ -219,6 +221,8 @@ export async function importEvents(
       report.skipped++
       continue
     }
+    const traceId = randomUUID()
+    let resolvedRoom: string | undefined
     try {
       const html = await dependencies.fetchPage(url)
       const date = calendarDate(event)
@@ -232,12 +236,16 @@ export async function importEvents(
           )
         : []
       const details = ticketDetails(html)
+      const sourceText = `${pageText(html)}\nVerified ticket-page details: ${JSON.stringify(details)}`
       const extracted = await dependencies.extract(
         event,
-        `${pageText(html)}\nVerified ticket-page details: ${JSON.stringify(details)}`,
+        sourceText,
         taxonomy,
         window,
+        { traceId },
       )
+      extracted.isSoldOut = details.isSoldOut
+      if (details.isSoldOut) extracted.isFree = false
       for (const field of [
         "priceOrdinar",
         "priceStudent",
@@ -271,7 +279,26 @@ export async function importEvents(
         await bookingsFor(parsed.dates[0].startDate),
         taxonomy.rooms,
       )
+      if (
+        !extracted.room &&
+        !matchBookingRoom(extracted.title, candidates) &&
+        candidates.length
+      ) {
+        const retry = await dependencies.extract(
+          event,
+          sourceText,
+          taxonomy,
+          candidates,
+          { traceId },
+        )
+        extracted.room = candidates.some(
+          candidate => candidate.roomId === retry.room,
+        )
+          ? retry.room
+          : ""
+      }
       const form = formFromExtraction(extracted, url, taxonomy, candidates)
+      resolvedRoom = form.room
       // Do not import historical or cancelled search results as scheduled events.
       const today = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Oslo",
@@ -323,6 +350,8 @@ export async function importEvents(
               ? error.message
               : "Extraction or validation failed; event will be retried"
       report.failed.push({ url, reason })
+    } finally {
+      await captureRoomResolution(traceId, url, resolvedRoom)
     }
   }
   return report

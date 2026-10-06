@@ -25,6 +25,7 @@ const fields = {
   submittedByOrganization: "",
   eventTypeId: "",
   isFree: false,
+  isSoldOut: false,
   priceOrdinar: "200",
   priceStudent: "100",
   priceMedlem: "",

@@ -52,6 +52,7 @@ function toEventSummary(
     primaryDateLabel: precomputed?.primaryDateLabel ?? null,
     statusLabel: precomputed?.statusLabel ?? null,
     isFree: event.isFree ?? undefined,
+    isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
     priceMedlem: event.priceMedlem ?? null,

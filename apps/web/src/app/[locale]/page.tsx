@@ -132,6 +132,7 @@ function toEventSummary(
     recurringLabel,
     primaryDateLabel,
     isFree: event.isFree ?? undefined,
+    isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
     priceMedlem: event.priceMedlem ?? null,

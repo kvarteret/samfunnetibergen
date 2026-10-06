@@ -89,6 +89,7 @@ export type PublicEvent = {
   organizerGroup: PublicOrganizerGroup | null
   organizerText: string | null
   eventType: PublicEventType | null
+  isSoldOut?: boolean
   isFree: boolean
   priceOrdinar: number | null
   priceStudent: number | null
@@ -138,6 +139,7 @@ export type RawPublicParent = {
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -171,6 +173,7 @@ export type RawPublicEvent = {
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -385,6 +388,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     organizerText: normalizeString(content.organizerText),
     eventType: content.eventType ?? null,
     isFree: content.isFree ?? false,
+    isSoldOut: content.isSoldOut ?? false,
     priceOrdinar: content.priceOrdinar ?? null,
     priceStudent: content.priceStudent ?? null,
     priceMedlem: content.priceMedlem ?? null,

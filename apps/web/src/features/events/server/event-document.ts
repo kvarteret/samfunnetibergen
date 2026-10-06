@@ -83,6 +83,8 @@ export function buildEventDocument(input: EventDocumentInput) {
 
   if (input.isInternalEvent) doc.isInternalEvent = true
 
+  if (input.isSoldOut) doc.isSoldOut = true
+
   if (input.isFree) {
     doc.isFree = true
   } else {

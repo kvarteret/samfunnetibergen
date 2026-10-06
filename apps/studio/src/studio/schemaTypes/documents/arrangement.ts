@@ -345,6 +345,14 @@ export const arrangement = defineType({
       { group: "organizer" },
     ),
 
+    defineField({
+      name: "isSoldOut",
+      title: "Utsolgt",
+      type: "boolean",
+      group: "pricing",
+      initialValue: false,
+    }),
+
     // ─── Pricing ───────────────────────────────────────────────
     defineField({
       name: "isFree",

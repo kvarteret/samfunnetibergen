@@ -1,6 +1,7 @@
 import { load } from "cheerio"
 
 export type TicketDetails = {
+  isSoldOut: boolean
   priceOrdinar: string
   priceStudent: string
   priceMedlem: string
@@ -76,6 +77,10 @@ export function ticketDetails(html: string): TicketDetails {
     if (url) facebookUrls.add(url)
   }
   return {
+    isSoldOut:
+      /det er ingen flere billetter tilgjengelig|uts[oø]lgt|sold out|no (?:more )?tickets available/i.test(
+        $("body").text(),
+      ),
     priceOrdinar: prices.priceOrdinar.length
       ? String(Math.min(...prices.priceOrdinar))
       : "",
