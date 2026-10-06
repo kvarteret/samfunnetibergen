@@ -29,29 +29,3 @@ export function promotionChangeKind(change: PromotionChange) {
   if (change.before.promoted && !change.after.promoted) return "ended"
   return "placement_changed"
 }
-
-export function promotionHistoryDocument(
-  change: PromotionChange,
-  campaignId: string,
-  observedAt: string,
-) {
-  return {
-    _id: promotionChangeId(change),
-    _type: "eventPromotionChange",
-    eventId: change.eventId,
-    revision: change.revision,
-    changedAt: change.changedAt,
-    observedAt,
-    campaignId,
-    kind: promotionChangeKind(change),
-    startKnown: true,
-    slug: change.slug,
-    title: change.title,
-    beforePromoted: change.before.promoted,
-    afterPromoted: change.after.promoted,
-    beforePlacement: change.before.placement,
-    afterPlacement: change.after.placement,
-    beforeOrder: change.before.order,
-    afterOrder: change.after.order,
-  }
-}

@@ -176,7 +176,6 @@ jobs:
           NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
           NEXT_PUBLIC_GIT_SHA: ${{ steps.release.outputs.source_sha }}
           SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
-          SANITY_PROMOTION_HISTORY_TOKEN: ${{ secrets.SANITY_PROMOTION_HISTORY_TOKEN }}
           SANITY_PROMOTION_WEBHOOK_SECRET: ${{ secrets.SANITY_PROMOTION_WEBHOOK_SECRET }}
           POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
           POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}

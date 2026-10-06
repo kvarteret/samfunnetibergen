@@ -24,7 +24,6 @@ export type EventSummary = {
   promotedPlacement?: "top" | "pool" | null
   promotedOrder?: number | null
   initialSlug?: string | null
-  promotionCampaignId?: string | null
   _id: string
   title: string
   slug: string

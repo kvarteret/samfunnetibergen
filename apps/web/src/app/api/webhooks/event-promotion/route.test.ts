@@ -42,7 +42,7 @@ function request(body = "{}", signed = true) {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv("SANITY_PROMOTION_WEBHOOK_SECRET", "secret")
-  vi.stubEnv("SANITY_PROMOTION_HISTORY_TOKEN", "token")
+  vi.stubEnv("SANITY_WRITE_TOKEN", "token")
   mocks.parse.mockResolvedValue({ isValidSignature: true, body: change })
   mocks.create.mockImplementation(async document => document)
   mocks.capture.mockResolvedValue(undefined)
@@ -58,35 +58,42 @@ describe("promotion webhook", () => {
     expect((await POST(request())).status).toBe(400)
     expect(mocks.create).not.toHaveBeenCalled()
   })
-  it("persists starts before awaiting export and preserves timestamps and dedup IDs", async () => {
+  it("awaits export and preserves timestamps and stable retry IDs without CMS history writes", async () => {
     expect((await POST(request())).status).toBe(200)
-    const document = mocks.create.mock.calls[0][0]
-    expect(document.kind).toBe("started")
-    expect(mocks.capture).toHaveBeenCalledWith(
-      expect.objectContaining({
-        timestamp: new Date(change.changedAt),
-        properties: expect.objectContaining({
-          $insert_id: document._id,
-          promotion_campaign_id: document._id,
-        }),
-      }),
+    expect((await POST(request())).status).toBe(200)
+    const first = mocks.capture.mock.calls[0][0]
+    expect(first.timestamp).toEqual(new Date(change.changedAt))
+    expect(first.properties.change).toBe("started")
+    expect(first.properties.$insert_id).toBe(
+      first.properties.promotion_campaign_id,
     )
-    expect(mocks.create.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.capture.mock.invocationCallOrder[0],
+    expect(mocks.capture.mock.calls[1][0].properties.$insert_id).toBe(
+      first.properties.$insert_id,
     )
+    expect(mocks.create).not.toHaveBeenCalled()
   })
-  it("retries placement changes delivered before the campaign start", async () => {
+  it("exports out-of-order placement changes independently; PostHog joins by event and time", async () => {
     mocks.parse.mockResolvedValue({
       isValidSignature: true,
       body: { ...change, before: { ...change.after, order: 2 } },
     })
-    mocks.fetch.mockResolvedValue(null)
-    expect((await POST(request())).status).toBe(503)
-    expect(mocks.create).not.toHaveBeenCalled()
-    mocks.fetch.mockResolvedValue("original-campaign")
+    mocks.fetch.mockResolvedValue("initial-slug")
     expect((await POST(request())).status).toBe(200)
-    expect(mocks.create).toHaveBeenCalledWith(
-      expect.objectContaining({ campaignId: "original-campaign" }),
+    expect(mocks.capture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          event_id: "initial-slug",
+          change: "placement_changed",
+          promotion_campaign_id: null,
+        }),
+      }),
     )
+    expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it("returns a retryable failure when PostHog export fails", async () => {
+    mocks.capture.mockRejectedValueOnce(new Error("upstream unavailable"))
+    const log = vi.spyOn(console, "error").mockImplementation(() => {})
+    expect((await POST(request())).status).toBe(502)
+    log.mockRestore()
   })
 })

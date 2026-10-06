@@ -75,7 +75,6 @@ export type PublicEvent = {
   eventKind: PublicEventKind
   eventStatus: EventStatus
   initialSlug?: string | null
-  promotionCampaignId?: string | null
   isPromoted: boolean
   promotedPlacement: "top" | "pool" | null
   promotedOrder: number | null
@@ -157,7 +156,6 @@ export type RawPublicEvent = {
   eventKind?: string | null
   eventStatus?: EventStatus | null
   initialSlug?: string | null
-  promotionCampaignId?: string | null
   isPromoted?: boolean | null
   promotedPlacement?: "top" | "pool" | null
   promotedOrder?: number | null
@@ -370,7 +368,6 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       cleanParent?.eventStatus ?? null,
     ),
     initialSlug: child.initialSlug ?? child.slug,
-    promotionCampaignId: child.promotionCampaignId ?? null,
     isPromoted: content.isPromoted ?? false,
     promotedPlacement: content.promotedPlacement ?? null,
     promotedOrder: content.promotedOrder ?? null,

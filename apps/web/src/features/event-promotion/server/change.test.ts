@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 import {
   type PromotionChange,
   promotionChangeId,
+  promotionChangeKind,
   promotionChangeSchema,
-  promotionHistoryDocument,
 } from "./change"
 
 const change: PromotionChange = {
@@ -23,33 +23,22 @@ describe("promotion campaign history", () => {
       promotionChangeId(change),
     )
   })
-  it("keeps reorder and end changes in the original campaign", () => {
-    const id = promotionChangeId(change)
-    const reordered = promotionHistoryDocument(
-      {
+  it("distinguishes starts, placement changes and ends for PostHog's timeline", () => {
+    expect(promotionChangeKind(change)).toBe("started")
+    expect(
+      promotionChangeKind({
         ...change,
         before: change.after,
-        after: { ...change.after, placement: "top", order: 0 },
-      },
-      id,
-      change.changedAt,
-    )
-    expect(reordered).toMatchObject({
-      campaignId: id,
-      kind: "placement_changed",
-      beforeOrder: 3,
-      afterOrder: 0,
-    })
-    const ended = promotionHistoryDocument(
-      { ...change, before: change.after, after: change.before },
-      id,
-      change.changedAt,
-    )
-    expect(ended).toMatchObject({
-      campaignId: id,
-      kind: "ended",
-      afterPromoted: false,
-    })
+        after: { ...change.after, order: 0 },
+      }),
+    ).toBe("placement_changed")
+    expect(
+      promotionChangeKind({
+        ...change,
+        before: change.after,
+        after: change.before,
+      }),
+    ).toBe("ended")
   })
   it("rejects drafts, invalid timestamps and malformed promotion state", () => {
     expect(promotionChangeSchema.safeParse(change).success).toBe(true)

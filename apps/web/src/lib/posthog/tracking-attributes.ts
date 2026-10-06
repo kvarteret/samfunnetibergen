@@ -48,9 +48,6 @@ export function eventTrackingAttributes(
     "data-event-promotion-order": event.isPromoted
       ? (event.promotedOrder ?? undefined)
       : undefined,
-    "data-event-campaign-id": event.isPromoted
-      ? (event.promotionCampaignId ?? undefined)
-      : undefined,
     "data-event-occurrence-date": occurrenceDate,
     "data-event-placement-id": `${surface}:${event._id}:${occurrenceDate ?? ""}:${position ?? ""}`,
   } as const
