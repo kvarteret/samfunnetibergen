@@ -27,7 +27,6 @@ import {
   ticketDocumentId,
 } from "./source"
 import { facebookEventUrl, ticketDetails } from "./ticket-details"
-import { editorialArtistTitle } from "./titles"
 
 export const INTERVAL_MS = 72 * 60 * 60 * 1000
 const STATE_ID = "ticketco-import-state"
@@ -98,8 +97,6 @@ export function formFromExtraction(
   return eventFormSchema.parse({
     ...initialState,
     ...extracted,
-    title: editorialArtistTitle(extracted.title),
-    titleEnglish: editorialArtistTitle(extracted.titleEnglish),
     room,
     roomText: "",
     roomTextEnglish: "",
@@ -320,7 +317,7 @@ export async function importEvents(
           : error instanceof TypeError && error.cause
             ? `Network failure: ${(error.cause as { code?: string })?.code || "request"}`
             : error instanceof Error &&
-                /^(Luna HTTP \d+|Source HTTP \d+|Luna response incomplete|Luna returned no structured output|Luna selected an unknown reference|Invalid price|Invalid Facebook link|Source exceeds size limit)$/.test(
+                /^(Luna HTTP \d+|Source HTTP \d+|Luna response incomplete|Luna returned no structured output|Luna selected an unknown reference|Invalid price|Invalid Facebook event link|Room could not be determined|Ticket price could not be determined|Source exceeds size limit)$/.test(
                   error.message,
                 )
               ? error.message
