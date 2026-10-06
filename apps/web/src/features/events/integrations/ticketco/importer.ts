@@ -26,6 +26,7 @@ import {
   type TicketCoEvent,
   ticketDocumentId,
 } from "./source"
+import { editorialArtistTitle } from "./titles"
 
 export const INTERVAL_MS = 72 * 60 * 60 * 1000
 const STATE_ID = "ticketco-import-state"
@@ -93,6 +94,8 @@ export function formFromExtraction(
   return eventFormSchema.parse({
     ...initialState,
     ...extracted,
+    title: editorialArtistTitle(extracted.title),
+    titleEnglish: editorialArtistTitle(extracted.titleEnglish),
     room,
     dates: [
       {
