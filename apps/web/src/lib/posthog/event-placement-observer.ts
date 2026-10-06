@@ -16,6 +16,7 @@ export function observeEventPlacements(
     timers.delete(element)
   }
   const start = (element: HTMLElement) => {
+    if (element.dataset.eventPromoted !== "true") return
     const key = element.dataset.eventPlacementId
     if (!key || viewed.has(key) || timers.has(element) || root.hidden) return
     const properties = placementProperties(element, locale)
@@ -54,7 +55,7 @@ export function observeEventPlacements(
       }
     }
     root.querySelectorAll<HTMLElement>(SELECTOR).forEach(element => {
-      if (!watched.has(element)) {
+      if (element.dataset.eventPromoted === "true" && !watched.has(element)) {
         watched.add(element)
         observer.observe(element)
       }

@@ -27,6 +27,7 @@ if (
     defaults: "2026-01-30",
     capture_pageview: true,
     capture_pageleave: true,
+    autocapture: false,
     capture_exceptions: true,
     logs: {
       serviceName: "samfunnetibergen-browser",
