@@ -21,7 +21,7 @@ export const promotionChangeSchema = z.object({
 export type PromotionChange = z.infer<typeof promotionChangeSchema>
 
 export function promotionChangeId(change: PromotionChange) {
-  return `promotion.${createHash("sha256").update(`${change.eventId}:${change.revision}`).digest("hex")}`
+  return `promotion-${createHash("sha256").update(`${change.eventId}:${change.revision}`).digest("hex")}`
 }
 
 export function promotionChangeKind(change: PromotionChange) {
