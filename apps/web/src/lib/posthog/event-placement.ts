@@ -30,6 +30,6 @@ export function placementProperties(element: HTMLElement, locale: string) {
       : null,
     occurrence_date: element.dataset.eventOccurrenceDate || null,
     placement_id: element.dataset.eventPlacementId,
-    tracking_version: 1,
+    tracking_version: 2,
   }
 }

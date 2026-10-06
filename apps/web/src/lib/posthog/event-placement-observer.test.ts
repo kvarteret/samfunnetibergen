@@ -128,6 +128,19 @@ describe("event placement observation", () => {
     expect(s.capture).not.toHaveBeenCalled()
     expect(s.disconnect).toHaveBeenCalled()
   })
+  it("does not capture impressions for ordinary event cards, but retains clicks", () => {
+    const s = setup()
+    s.element.dataset.eventPromoted = "false"
+    s.visible(1)
+    vi.advanceTimersByTime(2000)
+    expect(s.capture).not.toHaveBeenCalled()
+    s.emit("click", { target: s.element, button: 0, detail: 1, type: "click" })
+    expect(s.capture).toHaveBeenCalledWith(
+      "event_placement_clicked",
+      expect.objectContaining({ is_promoted: false }),
+    )
+    s.cleanup()
+  })
   it("tracks keyboard and middle clicks, ignores right clicks and observes dynamic links", () => {
     const s = setup()
     s.emit("click", { target: s.element, button: 0, detail: 0, type: "click" })

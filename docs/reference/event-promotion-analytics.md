@@ -15,13 +15,23 @@ projected; no submitter information is sent. The service credential is used only
 to freeze `initialSlug` when it is missing, not to write analytics history.
 
 Website `event_placement_viewed` records a link at least 50% visible continuously
-for one second while the tab is visible, once per placement per navigation.
+for one second while the tab is visible. Impressions are collected only for
+promoted events, once per event document and surface per PostHog session.
+The SDK's existing before-send hook deduplicates across navigation and reloads
+using session storage, with an in-memory fallback if storage is unavailable.
 `event_placement_clicked` records primary, keyboard or middle clicks.
 `content_page_viewed` preserves existing event-detail traffic. Their event-time
 promotion state, timestamp and readable event ID connect them to campaign periods
 in PostHog. Surfaces distinguish `home-promoted`, `home-upcoming`, `events-list`,
 `calendar`, `detail-parent` and `detail-child`. These are product events through
 the existing SDK; they do not belong in operational Logs.
+
+Browser analytics exclude all Vercel deployment domains and infoskjerm pages.
+Generic click autocapture is disabled; explicit domain events, page views,
+exceptions and session replay remain enabled. Before this policy was tightened,
+ordinary event cards and repeat navigation produced additional impressions.
+Use distinct session reach instead of comparing raw impression counts across
+the change. Clicks still distinguish ordinary and promoted placements.
 
 `data-event-id` and analytics `event_id` use `initialSlug`; `event_document_id`
 retains the Sanity ID and `event_slug` is the current URL slug. Existing events
