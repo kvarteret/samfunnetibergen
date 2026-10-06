@@ -32,7 +32,7 @@ Luna reads displayed Norwegian local dates and times because TicketCo JSON-LD ca
 
 ## Pending requests in Slack
 
-Public form submissions and new TicketCo imports attempt an immediate notification. `.github/workflows/sync-pending-slack.yml` also checks all pending arrangements hourly at minute 37, covering Studio-created requests and retrying delivery failures. Messages contain title, date, submitter, and a direct Studio review link. The first sync includes existing pending requests that have no receipt.
+Public form submissions and new TicketCo imports attempt an immediate notification. `.github/workflows/sync-pending-slack.yml` also checks all pending arrangements hourly at minute 37, covering Studio-created requests and retrying delivery failures. Messages contain title, date, submitter, and a direct Studio review link. TicketCo imports also include: “Dette arrangementet var automatisk generert fra {ticket_link}. Se nøye gjennom!”, with their source ticket URL. The first sync includes existing pending requests that have no receipt.
 
 Run the sweep with:
 

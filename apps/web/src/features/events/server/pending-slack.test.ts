@@ -21,6 +21,20 @@ describe("pending Slack notifications", () => {
       "https://studio.samfunnetibergen.no/intent/edit/id=event-1;type=arrangement/",
     )
   })
+  test("warns reviewers about automatically imported events with their ticket source", () => {
+    const ticketUrl = "https://kvarteret.ticketco.events/no/nb/e/concert"
+    const message = pendingMessage({
+      ...event,
+      _id: "drafts.ticketco-test",
+      ticketUrl,
+    })
+    const warning = `Dette arrangementet var automatisk generert fra ${ticketUrl}. Se nøye gjennom!`
+    expect(message.text).toContain(warning)
+    expect(JSON.stringify(message.blocks)).toContain(warning)
+    expect(pendingMessage({ ...event, ticketUrl }).text).not.toContain(
+      "automatisk generert",
+    )
+  })
   test("skips previously delivered requests", async () => {
     vi.stubEnv(
       "SLACK_NETTSIDE_WEBHOOK",

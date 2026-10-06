@@ -6,6 +6,7 @@ export type PendingRequest = {
   _id: string
   localizedTitle?: { language: string; value: string }[]
   submittedBy?: string
+  ticketUrl?: string
   dates?: { startDate: string; startTime?: string; endTime?: string }[]
 }
 
@@ -20,7 +21,12 @@ export function pendingMessage(event: PendingRequest): {
     "Arrangement"
   const date = event.dates?.[0]
   const url = `${STUDIO_ORIGIN}/intent/edit/id=${encodeURIComponent(event._id.replace(/^drafts\./, ""))};type=arrangement/`
-  const summary = `Nytt arrangement til godkjenning: ${title}\n${date ? `${date.startDate} ${date.startTime ?? ""}–${date.endTime ?? ""}` : "Dato mangler"}\nInnsender: ${event.submittedBy || "Ukjent"}`
+  const automatedWarning =
+    event._id.replace(/^drafts\./, "").startsWith("ticketco-") &&
+    event.ticketUrl
+      ? `\nDette arrangementet var automatisk generert fra ${event.ticketUrl}. Se nøye gjennom!`
+      : ""
+  const summary = `Nytt arrangement til godkjenning: ${title}\n${date ? `${date.startDate} ${date.startTime ?? ""}–${date.endTime ?? ""}` : "Dato mangler"}\nInnsender: ${event.submittedBy || "Ukjent"}${automatedWarning}`
   return {
     text: summary,
     blocks: [
@@ -110,7 +116,7 @@ export async function syncPendingRequests(
   if (!process.env.SLACK_NETTSIDE_WEBHOOK)
     throw new Error("SLACK_NETTSIDE_WEBHOOK is not configured")
   const events = await client.fetch<PendingRequest[]>(
-    `*[_type == "arrangement" && approvalStatus == "pending"]{_id, localizedTitle, submittedBy, dates}`,
+    `*[_type == "arrangement" && approvalStatus == "pending"]{_id, localizedTitle, submittedBy, ticketUrl, dates}`,
   )
   let sentOrExisting = 0
   let failed = 0
