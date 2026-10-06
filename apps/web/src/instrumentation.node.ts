@@ -39,7 +39,7 @@ class InfoAndAboveProcessor implements LogRecordProcessor {
   }
 }
 
-const projectToken = process.env.POSTHOG_API_KEY?.trim()
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim()
 
 if (projectToken) {
   const headers = {
