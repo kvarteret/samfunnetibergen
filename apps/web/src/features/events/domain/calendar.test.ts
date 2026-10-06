@@ -108,3 +108,55 @@ describe("calendar event grouping", () => {
     ).toEqual(["early", "late"])
   })
 })
+
+describe("calendar semester boundary", () => {
+  it.each([
+    ["2026-10-06", "2026-12-15", "2026-12-16", "2027-01-03"],
+    ["2026-04-01", "2026-05-29", "2026-05-30", "2026-08-17"],
+  ])(
+    "ends the calendar at the current semester boundary for %s",
+    (today, end, afterEnd, nextSemester) => {
+      const months = buildCalendarMonths(
+        [
+          event("boundary", [{ _key: "one", startDate: end }]),
+          event("later", [{ _key: "two", startDate: afterEnd }]),
+          event("next-semester", [{ _key: "three", startDate: nextSemester }]),
+        ],
+        today,
+      )
+
+      expect(months.at(-1)?.days.at(-1)?.date).toBe(end)
+      expect(months.reduce((count, month) => count + month.eventCount, 0)).toBe(
+        1,
+      )
+      expect(
+        months.flatMap(month => month.days).every(day => day.date <= end),
+      ).toBe(true)
+    },
+  )
+
+  it("shows no calendar when only next-semester events exist", () => {
+    expect(
+      buildCalendarMonths(
+        [event("next-semester", [{ _key: "one", startDate: "2027-01-03" }])],
+        "2026-10-06",
+      ),
+    ).toEqual([])
+  })
+
+  it.each(["2026-05-30", "2026-06-15", "2026-12-16"])(
+    "shows no elapsed semester during the gap on %s",
+    today => {
+      expect(
+        buildCalendarMonths(
+          [
+            event("past", [{ _key: "one", startDate: "2026-05-29" }]),
+            event("winter", [{ _key: "two", startDate: "2026-12-15" }]),
+            event("next", [{ _key: "three", startDate: "2027-01-03" }]),
+          ],
+          today,
+        ),
+      ).toEqual([])
+    },
+  )
+})
