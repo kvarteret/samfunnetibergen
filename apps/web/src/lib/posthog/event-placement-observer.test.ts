@@ -10,6 +10,7 @@ function setup() {
       eventId: "the-snooks",
       eventDocumentId: "doc1",
       eventSlug: "the-snooks",
+      eventTitle: "The Snooks",
       eventSurface: "home-promoted",
       eventPlacementId: "home:doc1",
       eventPromoted: "true",
@@ -104,6 +105,9 @@ describe("event placement observation", () => {
         event_id: "the-snooks",
         event_document_id: "doc1",
         surface: "home-promoted",
+        event_title: "The Snooks",
+        placement_name: "Frontpage — promoted",
+        summary: "The Snooks · Frontpage — promoted",
       }),
     )
     s.visible(0)

@@ -18,7 +18,7 @@ Website `event_placement_viewed` records a link at least 50% visible continuousl
 for one second while the tab is visible. Impressions are collected only for
 promoted events, once per event document and surface per PostHog session.
 The SDK's existing before-send hook deduplicates across navigation and reloads
-using session storage, with an in-memory fallback if storage is unavailable.
+using local storage, with an in-memory fallback if storage is unavailable.
 `event_placement_clicked` records primary, keyboard or middle clicks.
 `content_page_viewed` preserves existing event-detail traffic. Their event-time
 promotion state, timestamp and readable event ID connect them to campaign periods
@@ -39,6 +39,9 @@ were seeded with their published slug at rollout. Historical URL changes cannot
 be recovered from this seed. Existing `content_id` stays unchanged for baseline
 joins. All placement events include surface, position, locale, promoted state,
 placement/order, occurrence date, placement ID and tracking version.
+Placement events also carry the public event title, a readable placement name
+and a short `summary` such as `The Snooks · Frontpage — promoted`. Add
+`summary` as an Activity column to distinguish events without expanding rows.
 
 The dashboard is https://eu.posthog.com/project/202551/dashboard/1002241.
 Compare daily detail views before/during/after each campaign and exposures and
