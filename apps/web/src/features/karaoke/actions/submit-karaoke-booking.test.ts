@@ -1,3 +1,7 @@
+vi.mock("@/lib/booking/continuation", () => ({
+  clearBookingContinuation: vi.fn(),
+}))
+
 import { beforeEach, expect, test, vi } from "vitest"
 
 vi.mock("@/lib/integrations/kvarteret-personal/booking-requests", () => ({

@@ -26,6 +26,7 @@ export function bookingAuthHeaders(
   submissionId: string,
   timestamp = String(Math.floor(Date.now() / 1000)),
   nonce = randomUUID(),
+  path = PATH,
 ) {
   const canonical = [
     "booking-v1",
@@ -33,7 +34,7 @@ export function bookingAuthHeaders(
     nonce,
     submissionId,
     "POST",
-    PATH,
+    path,
     createHash("sha256").update(body).digest("hex"),
   ].join("\n")
   return {
@@ -98,4 +99,68 @@ export async function storeBookingRequest(
     }
   }
   throw new Error("Booking storage failed")
+}
+
+export const bookingEventPrefillSchema = z.object({
+  event_name: z.string(),
+  contact_name: z.string(),
+  contact_email: z.string(),
+  room_ids: z.array(z.number()),
+  schedule: z.array(
+    z.object({
+      date: z.string(),
+      doors_open: z.string(),
+      doors_close: z.string(),
+    }),
+  ),
+  description: z.string(),
+  student_org_name: z.string(),
+  free_or_paid: z.enum(["Gratis", "Betalt"]),
+  ticket_types: z.array(z.object({ name: z.string(), price: z.string() })),
+})
+export type BookingEventPrefill = z.infer<typeof bookingEventPrefillSchema>
+
+export async function fetchBookingEventPrefill(
+  receiptId: string,
+  submissionId: string,
+): Promise<BookingEventPrefill | null> {
+  try {
+    const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
+    if (!secret || secret.length < 32) return null
+    const baseUrl = new URL(
+      process.env.PERSONAL_APP_BASE_URL?.trim() ||
+        "https://personal.kvarteret.no",
+    )
+    if (
+      baseUrl.username ||
+      baseUrl.password ||
+      (baseUrl.protocol !== "https:" &&
+        !(
+          process.env.NODE_ENV !== "production" &&
+          ["localhost", "127.0.0.1"].includes(baseUrl.hostname) &&
+          baseUrl.protocol === "http:"
+        ))
+    )
+      return null
+    const path = `${PATH}/prefill`
+    const body = JSON.stringify({ booking_request_id: receiptId })
+    const response = await fetch(new URL(path, baseUrl), {
+      method: "POST",
+      body,
+      headers: bookingAuthHeaders(
+        body,
+        secret,
+        submissionId,
+        undefined,
+        undefined,
+        path,
+      ),
+      signal: AbortSignal.timeout(10000),
+      cache: "no-store",
+    })
+    if (!response.ok) return null
+    return bookingEventPrefillSchema.parse(await response.json())
+  } catch {
+    return null
+  }
 }

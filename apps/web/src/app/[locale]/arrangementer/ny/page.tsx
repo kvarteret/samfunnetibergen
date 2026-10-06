@@ -1,7 +1,10 @@
 import { CalendarPlus } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { buildBookingEventDefaults } from "@/features/booking/domain/event-prefill"
 import { EventForm } from "@/features/events"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
+import { getBookingContinuation } from "@/lib/booking/continuation"
+import { fetchBookingEventPrefill } from "@/lib/integrations/kvarteret-personal/booking-requests"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import {
   fetchEventGroups,
@@ -29,8 +32,10 @@ export async function generateMetadata({
 
 export default async function NyttArrangementPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ fromBooking?: string }>
 }) {
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
@@ -41,11 +46,25 @@ export default async function NyttArrangementPage({
     fetchEventGroups(locale),
   ])
 
+  const { fromBooking } = await searchParams
+  const receipt = fromBooking === "1" ? await getBookingContinuation() : null
+  const booking = receipt
+    ? await fetchBookingEventPrefill(receipt.receiptId, receipt.submissionId)
+    : null
+  const initialValues = booking
+    ? buildBookingEventDefaults(booking, rooms, groups)
+    : undefined
+
   return (
     <article className="flex w-full flex-col gap-12">
       <Breadcrumbs path="/arrangementer/ny" />
       <SubmitEventPageIntro />
-      <EventForm rooms={rooms} eventTypes={eventTypes} groups={groups} />
+      <EventForm
+        rooms={rooms}
+        eventTypes={eventTypes}
+        groups={groups}
+        initialValues={initialValues}
+      />
     </article>
   )
 }

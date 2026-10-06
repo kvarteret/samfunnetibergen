@@ -9,6 +9,7 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
+        warm: "panel panel-warm",
         info: "border-border bg-card text-foreground",
         success: "border-border bg-success text-success-foreground",
         destructive: "border-destructive bg-destructive/10 text-foreground",

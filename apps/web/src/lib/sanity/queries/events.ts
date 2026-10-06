@@ -13,6 +13,7 @@ const localizedNullableRoomText = `coalesce(localizedRoomText[language == $local
 export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
+    crescatRoomId,
     "title": ${localizedTitle},
     "slug": coalesce(slug.current, "")
 }`)

@@ -75,3 +75,18 @@ test("signature binds snapshot and submission identity", () => {
     ],
   )
 })
+
+test("prefill read is signed for its own path and falls back on unavailable storage", async () => {
+  vi.stubEnv(
+    "VOLUNTEER_PROSPECT_HMAC_SECRET",
+    "0123456789abcdef0123456789abcdef",
+  )
+  const fetch = vi.fn().mockResolvedValue(new Response("", { status: 503 }))
+  vi.stubGlobal("fetch", fetch)
+  const { fetchBookingEventPrefill } = await import("./booking-requests")
+  expect(await fetchBookingEventPrefill(id, id)).toBeNull()
+  const [url, options] = fetch.mock.calls[0]
+  expect(url.pathname).toBe("/api/v1/booking-requests/prefill")
+  expect(options.cache).toBe("no-store")
+  expect(JSON.parse(options.body)).toEqual({ booking_request_id: id })
+})
