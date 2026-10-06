@@ -28,6 +28,8 @@ interface BookingFormEventDetailsSectionProps {
   audienceCountError?: string
   audienceCountId: string
   doorsTimeError?: string
+  doorsCloseError?: string
+  doorsCloseId?: string
   doorsTimeId: string
   eventNameError?: string
   eventNameId: string
@@ -41,6 +43,8 @@ export function BookingFormEventDetailsSection({
   audienceCountError,
   audienceCountId,
   doorsTimeError,
+  doorsCloseError,
+  doorsCloseId,
   doorsTimeId,
   eventNameError,
   eventNameId,
@@ -160,6 +164,8 @@ export function BookingFormEventDetailsSection({
           <BookingEventTimes
             closedDates={closedDates}
             doorsTimeError={doorsTimeError}
+            doorsCloseError={doorsCloseError}
+            doorsCloseId={doorsCloseId}
             doorsTimeId={doorsTimeId}
             doorsTimes={doorsTimes}
             endDate={endDate}

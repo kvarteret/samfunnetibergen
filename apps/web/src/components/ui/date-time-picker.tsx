@@ -586,6 +586,8 @@ interface BookingEventTimesProps {
   startTime: string
   endTime: string
   doorsTimeError?: string
+  doorsCloseError?: string
+  doorsCloseId?: string
   doorsTimeId: string
   doorsTimes: string[]
   estimatedEndTimes: string[]
@@ -607,6 +609,8 @@ export function BookingEventTimes({
   startTime,
   endTime,
   doorsTimeError,
+  doorsCloseError,
+  doorsCloseId,
   doorsTimeId,
   doorsTimes,
   estimatedEndTimes,
@@ -674,8 +678,11 @@ export function BookingEventTimes({
       <PerDayTimeSelects
         uid={uid}
         idPrefix="estimatedEnd"
+        firstDayError={doorsCloseError}
+        firstDayId={doorsCloseId}
         heading={t("dateTime.estimatedEnd")}
-        headingNote={t("dateTime.optional")}
+        headingNote={t("dateTime.day1Required")}
+        requiredFirstDay
         singleDayLabel={t("dateTime.estimatedEndSingle")}
         marks={marks}
         dayCount={dayCount}
@@ -739,7 +746,9 @@ function PerDayTimeSelects({
     Math.max(1, filledDayCount),
   )
 
-  const shownDayCount = Math.min(visibleDayCount, dayCount)
+  const shownDayCount = requiredFirstDay
+    ? dayCount
+    : Math.min(visibleDayCount, dayCount)
   const addNextDay = () =>
     setVisibleDayCount(count => Math.min(count + 1, dayCount))
 
@@ -807,7 +816,7 @@ function PerDayTimeSelects({
                   : `${uid}-${idPrefix}-${dayIndex}`
               }
               key={dayIndex}
-              label={`${t("dateTime.day", { number: dayIndex + 1 })}${requiredFirstDay && isFirstDay ? " *" : ""}`}
+              label={`${t("dateTime.day", { number: dayIndex + 1 })}${requiredFirstDay ? " *" : ""}`}
               onChange={value => onChange(dayIndex, value)}
               options={options}
               placeholder={t("dateTime.selectTime")}

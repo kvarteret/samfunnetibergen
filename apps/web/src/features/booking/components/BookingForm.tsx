@@ -19,7 +19,7 @@ import {
   ErrorSummary,
   type ErrorSummaryItem,
 } from "@/components/ui/error-summary"
-import { Link } from "@/i18n/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
@@ -102,6 +102,7 @@ export function BookingForm({
   initialNow,
 }: BookingFormProps) {
   const t = useTranslations("RoomBooking")
+  const router = useRouter()
   const uid = useId()
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
@@ -131,6 +132,7 @@ export function BookingForm({
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
     startDate: `${uid}-startDate`,
+    doorsClose: `${uid}-doors-close`,
     doorsTime: `${uid}-doorsTime-0`,
     eventName: `${uid}-eventName`,
     audienceCount: `${uid}-audience`,
@@ -199,6 +201,7 @@ export function BookingForm({
         // A successful Crescat booking must not become a visible failure if
         // client analytics is unavailable.
       }
+      router.replace("/sporsmal-booking?submitted=1")
     },
   })
   const values = useStore(form.store, state => state.values)
@@ -361,20 +364,7 @@ export function BookingForm({
     })
   }
 
-  if (isSubmitSuccessful) {
-    return (
-      <Alert className="max-w-2xl p-8" variant="success">
-        <AlertTitle>{t("form.successTitle")}</AlertTitle>
-        <AlertDescription>{t("form.successDescription")}</AlertDescription>
-        <Link
-          className="col-start-2 inline-flex font-heading uppercase tracking-widest text-success-foreground underline underline-offset-4 focus-brutal"
-          href="/rom"
-        >
-          {t("form.backToRooms")}
-        </Link>
-      </Alert>
-    )
-  }
+  if (isSubmitSuccessful) return null
 
   const hasTivoli = selectedRoomIds.includes(TIVOLI_CRESCAT_ROOM_ID)
 
@@ -464,6 +454,8 @@ export function BookingForm({
                 audienceCountError={errorFor(fieldIds.audienceCount)}
                 audienceCountId={fieldIds.audienceCount}
                 closedDates={closedDates}
+                doorsCloseError={errorFor(fieldIds.doorsClose)}
+                doorsCloseId={fieldIds.doorsClose}
                 doorsTimeError={errorFor(fieldIds.doorsTime)}
                 doorsTimeId={fieldIds.doorsTime}
                 eventNameError={errorFor(fieldIds.eventName)}
@@ -613,13 +605,13 @@ function bookingFieldId(
     path === "startDate" ||
     path === "endDate" ||
     path === "startTime" ||
-    path === "endTime" ||
-    path.startsWith("estimatedEndTimes")
+    path === "endTime"
   ) {
     return path === "startTime" || path === "endTime"
       ? `${fieldIds.startDate}-time`
       : fieldIds.startDate
   }
+  if (path.startsWith("estimatedEndTimes")) return fieldIds.doorsClose
   if (path.startsWith("doorsTimes")) return fieldIds.doorsTime
   if (path === "studentOrgName") return fieldIds.studentOrgName
   if (path === "eventName") return fieldIds.eventName

@@ -38,6 +38,7 @@ the venue's event-request forms. It lives in `apps/web/src/lib/integrations/cres
 User submits form
   → server action (e.g. submitRoomBooking / submitKaraokeBooking)
       → build*Request (constructs EventRequestBody for a specific form)
+      → storeBookingRequest(snapshot) (Personal commit and receipt; see ADR 008)
       → postEventRequest(slug, body)   (apps/web/src/lib/integrations/crescat/client.ts)
           1. GET  /event-requests/{slug}   ← fetches XSRF-TOKEN + crescat_session cookies
           2. POST /event-requests/{slug}   ← submits booking with cookies + token header

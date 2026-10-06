@@ -78,7 +78,7 @@ describe("BookingFormEventDetailsSection timing fields", () => {
     container.remove()
   })
 
-  test("renders doors and estimated end after the arrangement fields", async () => {
+  test("renders mandatory door opening and closing after the arrangement fields", async () => {
     await act(async () => root.render(<EventDetailsHarness />))
 
     const description = container.querySelector("textarea")
@@ -93,7 +93,7 @@ describe("BookingFormEventDetailsSection timing fields", () => {
       description.compareDocumentPosition(doorsLabel) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
-    expect(container.textContent).toContain("Antatt slutt (valgfritt)")
+    expect(container.textContent).toContain("Dørene stenger *")
   })
 
   test("renders doors dropdown for a booking crossing midnight", async () => {

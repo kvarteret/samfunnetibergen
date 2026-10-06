@@ -90,12 +90,31 @@ export const bookingFormSchema = z
       })
     }
 
-    if (!value.doorsTimes[0] || !TIME_PATTERN.test(value.doorsTimes[0])) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["doorsTimes"],
-        message: "validation.doors",
-      })
+    const days =
+      value.endDate &&
+      isValidDateOnly(value.endDate) &&
+      isValidDateOnly(value.startDate)
+        ? Math.round(
+            (Date.parse(value.endDate) - Date.parse(value.startDate)) /
+              86400000,
+          ) + 1
+        : 1
+    for (const [field, message] of [
+      ["doorsTimes", "validation.doors"],
+      ["estimatedEndTimes", "validation.doorsClose"],
+    ] as const) {
+      if (
+        days < 1 ||
+        days > 366 ||
+        value[field].length !== days ||
+        value[field].some(time => !TIME_PATTERN.test(time))
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [field],
+          message,
+        })
+      }
     }
 
     if (value.bookerType === "studentorg" && !value.studentOrgName.trim()) {

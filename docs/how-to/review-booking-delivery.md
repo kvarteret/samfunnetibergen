@@ -1,12 +1,13 @@
 # Review booking delivery before adding durable intake
 
-The website currently owns validation and calls Crescat synchronously. Crescat
+The website owns validation, stores a committed snapshot in Kvarteret Personal,
+and then calls Crescat synchronously. Crescat
 remains the booking system of record. The browser shows success only after the
 Crescat endpoint returns HTTP 200 or 201; otherwise the populated form remains
 available and asks the user to retry.
 
-This review determines whether durable booking intake should become an
-implementation task. It does not require a booking queue today.
+Durable capture is now implemented under [ADR 008](../adr/008-durable-booking-submissions.md).
+This review determines whether additional delivery recovery is needed.
 
 ## Review the evidence
 
@@ -38,9 +39,9 @@ request after returning success. Room coordinators must record confirmed
 missing-request complaints separately and include the approximate submission
 time, without copying contact details into PostHog or ordinary logs.
 
-## Trigger the downstream durable-delivery task
+## Review the need for delivery recovery
 
-Keep synchronous delivery unless at least one of these is true:
+Consider adding operator reconciliation or replay when at least one of these is true:
 
 1. The organization adopts a product requirement that a validated form must be
    accepted while Crescat is unavailable.
@@ -52,9 +53,9 @@ Keep synchronous delivery unless at least one of these is true:
 4. A Crescat or integration outage blocks submissions for at least 30 minutes
    during an active booking period.
 
-When a trigger is met, create and prioritize the implementation task described
-by [ADR 008](../adr/008-durable-booking-submissions.md). Attach the relevant
-insight window and any incident record. Reconfirm that duplicate Crescat
+When a trigger is met, prioritize a separate recovery task. Attach the relevant
+insight window and any incident record. Stored snapshots preserve the form,
+but do not currently record Crescat delivery outcomes. Reconfirm that duplicate Crescat
 requests remain acceptable; if so, ambiguous network outcomes may be retried
 automatically and do not require pre-retry reconciliation.
 
@@ -62,6 +63,7 @@ automatically and do not require pre-retry reconciliation.
 
 - Owner and consumer: the `samfunnetibergen` web application.
 - External system of record: Crescat Event Requests.
+- Private snapshot storage: Kvarteret Personal, before Crescat dispatch.
 - Room caller: `apps/web/src/features/booking/actions/submit-room-booking.ts`.
 - Karaoke caller: `apps/web/src/features/karaoke/actions/submit-karaoke-booking.ts`.
 - Crescat adapter: `apps/web/src/lib/integrations/crescat/client.ts`.
