@@ -17,7 +17,8 @@ export interface NowPlayingState {
 }
 
 const PERSONAL_APP_BASE_URL =
-  process.env.PERSONAL_APP_BASE_URL?.trim() || "https://personal.kvarteret.no"
+  process.env.PERSONAL_APP_BASE_URL?.trim() ||
+  "https://personal.samfunnetibergen.no"
 
 function parseBoolean(value: unknown): boolean {
   return typeof value === "boolean" ? value : false
