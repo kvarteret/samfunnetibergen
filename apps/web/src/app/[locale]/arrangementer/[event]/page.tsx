@@ -254,7 +254,16 @@ function EventDetailMetaSidebar({
       </EventDetailMetaItem>
       {organizer && (
         <EventDetailMetaItem label={t("organizer")}>
-          {organizer}
+          {event.organizerGroup?.slug ? (
+            <Link
+              href={`/grupper/${event.organizerGroup.slug}`}
+              className="underline underline-offset-4 hover:text-primary focus-brutal"
+            >
+              {organizer}
+            </Link>
+          ) : (
+            organizer
+          )}
         </EventDetailMetaItem>
       )}
     </aside>

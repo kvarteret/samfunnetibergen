@@ -385,3 +385,26 @@ test("imports explicitly sold-out sources with no price and a required room", as
     "priceOrdinar",
   )
 })
+
+test("uses the linked Sanity organizer instead of translated free text", () => {
+  expect(
+    formFromExtraction(
+      {
+        ...extraction,
+        organizerGroup: "asf",
+        organizerText: "Aktive Studenters Forening",
+        organizerTextEnglish: "Active Students’ Association",
+      },
+      url,
+      {
+        ...taxonomy,
+        groups: [{ _id: "asf", name: "Aktive Studenters Forening" }],
+      },
+      [],
+    ),
+  ).toMatchObject({
+    organizerGroup: "asf",
+    organizerText: "",
+    organizerTextEnglish: "",
+  })
+})
