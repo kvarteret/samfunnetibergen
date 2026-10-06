@@ -14,15 +14,17 @@ function retainPromotionExposure(event: CaptureResult): boolean {
   if (exposureSession !== session) {
     exposureSession = session
     exposures = new Set()
-    try {
-      const saved = JSON.parse(
-        window.localStorage.getItem(EXPOSURE_STORAGE_KEY) ?? "null",
-      )
-      if (saved?.session === session && Array.isArray(saved.keys))
-        exposures = new Set(saved.keys)
-    } catch {
-      // Storage can be unavailable; in-memory deduplication still applies.
-    }
+  }
+  try {
+    const saved = JSON.parse(
+      window.localStorage.getItem(EXPOSURE_STORAGE_KEY) ?? "null",
+    )
+    if (saved?.session === session && Array.isArray(saved.keys))
+      saved.keys.forEach((key: string) => {
+        exposures.add(key)
+      })
+  } catch {
+    // Storage can be unavailable; in-memory deduplication still applies.
   }
   const key = JSON.stringify([documentId, surface])
   if (exposures.has(key)) return false
