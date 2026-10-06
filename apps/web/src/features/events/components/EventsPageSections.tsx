@@ -37,6 +37,11 @@ function toEventSummary(
 
   return {
     _id: event._id,
+    isPromoted: event.isPromoted,
+    promotedPlacement: event.promotedPlacement,
+    promotedOrder: event.promotedOrder,
+    initialSlug: event.initialSlug,
+    promotionCampaignId: event.promotionCampaignId,
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,
@@ -100,10 +105,12 @@ export function EventsPageSections({
 
   return (
     <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
-      {filteredEvents.map(event => (
+      {filteredEvents.map((event, index) => (
         <EventCard
           event={toEventSummary(event, precomputedDates)}
           key={event._id}
+          trackingSurface="events-list"
+          trackingPosition={index + 1}
           variant="catalogue"
         />
       ))}

@@ -4,12 +4,16 @@ import posthog from "posthog-js"
 import { useEffect, useRef } from "react"
 
 import {
+  type PromotionContext,
+  promotionProperties,
+} from "@/lib/posthog/event-placement"
+import {
   contentPageViewProperties,
   type TrackedContentType,
 } from "@/lib/posthog/tracking-attributes"
 
 type ContentPageViewTrackingProps = {
-  content: {
+  content: PromotionContext & {
     _id: string
     slug: string
     title: string
@@ -30,11 +34,17 @@ export function ContentPageViewTracking({
     if (trackedContentRef.current === trackingKey) return
     trackedContentRef.current = trackingKey
 
-    posthog.capture(
-      "content_page_viewed",
-      contentPageViewProperties(content, contentType, locale),
-    )
-  }, [content._id, content.slug, content.title, contentType, locale])
+    posthog.capture("content_page_viewed", {
+      ...contentPageViewProperties(content, contentType, locale),
+      ...(contentType === "arrangement"
+        ? {
+            ...promotionProperties(content),
+            event_id: content.initialSlug ?? content.slug,
+            event_document_id: content._id,
+          }
+        : {}),
+    })
+  }, [content, contentType, locale])
 
   return null
 }

@@ -16,6 +16,7 @@ export const studioDocumentTypeNames = [
   ...singletonTypeNames,
   "page",
   "arrangement",
+  "eventPromotionChange",
   "eventTaxonomyGroup",
   "eventType",
   "internbevisBenefit",

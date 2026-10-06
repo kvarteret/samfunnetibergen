@@ -20,6 +20,11 @@ export type EventDateEntry = {
 }
 
 export type EventSummary = {
+  isPromoted?: boolean
+  promotedPlacement?: "top" | "pool" | null
+  promotedOrder?: number | null
+  initialSlug?: string | null
+  promotionCampaignId?: string | null
   _id: string
   title: string
   slug: string
@@ -126,6 +131,7 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   priority?: boolean
   showRoom?: boolean
   trackingSurface?: string
+  trackingPosition?: number
 }
 
 type EventCardVariant = "default" | "catalogue" | "promoted" | "slider"
@@ -136,7 +142,8 @@ export function EventCard({
   priority = false,
   showRoom = true,
   size,
-  trackingSurface = "card-title",
+  trackingSurface = "events-list",
+  trackingPosition,
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default"
@@ -160,7 +167,7 @@ export function EventCard({
   return (
     <Link
       className={eventCardVariants({ variant: cardVariant, size: cardSize })}
-      {...eventTrackingAttributes(event, trackingSurface)}
+      {...eventTrackingAttributes(event, trackingSurface, trackingPosition)}
       href={href}
     >
       <Card className={eventCardSurfaceVariants({ variant: cardVariant })}>

@@ -1,4 +1,5 @@
 import { arrangement } from "./documents/arrangement"
+import { eventPromotionChange } from "./documents/eventPromotionChange"
 import { eventTaxonomyGroup } from "./documents/eventTaxonomyGroup"
 import { eventType } from "./documents/eventType"
 import { footer, footerSocialLinkSchema } from "./documents/footer"
@@ -65,6 +66,7 @@ export const schemaTypes = [
   eventTaxonomyGroup,
   eventType,
   arrangement,
+  eventPromotionChange,
   internbevisBenefit,
 
   // Singletons

@@ -231,6 +231,29 @@ export type InternbevisBenefit = {
   minimumTier: "trinn1" | "trinn2" | "trinn3"
 }
 
+export type EventPromotionChange = {
+  _id: string
+  _type: "eventPromotionChange"
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  eventId?: string
+  revision?: string
+  campaignId?: string
+  kind?: string
+  slug?: string
+  title?: string
+  changedAt?: string
+  observedAt?: string
+  beforePromoted?: boolean
+  afterPromoted?: boolean
+  startKnown?: boolean
+  beforePlacement?: string
+  afterPlacement?: string
+  beforeOrder?: number
+  afterOrder?: number
+}
+
 export type Navbar = {
   _id: string
   _type: "navbar"
@@ -492,6 +515,7 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
+  initialSlug?: string
   eventKind?:
     | "single"
     | "seriesParent"
@@ -1104,6 +1128,7 @@ export type AllSanitySchemaTypes =
   | OpeningHours
   | Footer
   | InternbevisBenefit
+  | EventPromotionChange
   | Navbar
   | ArrangementDate
   | FooterSocialLink

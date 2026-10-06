@@ -5,6 +5,7 @@ import { useLocale } from "next-intl"
 import posthog from "posthog-js"
 import { PostHogProvider } from "posthog-js/react"
 import { useEffect, useState } from "react"
+import { EventPlacementTracking } from "@/components/event-placement-tracking"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const locale = useLocale()
@@ -25,7 +26,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PostHogProvider client={posthog}>{children}</PostHogProvider>
+      <PostHogProvider client={posthog}>
+        <EventPlacementTracking />
+        {children}
+      </PostHogProvider>
     </QueryClientProvider>
   )
 }
