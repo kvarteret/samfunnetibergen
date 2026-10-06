@@ -236,3 +236,56 @@ test("ignores calendar bookings whose titles are hidden", () => {
   )
   expect(matchBookingRoom("KNEKT", candidates)).toBeNull()
 })
+
+describe("scheduler recovery", () => {
+  test("does not run before due or while another runner holds the lease", async () => {
+    const fixture = fixtureClient()
+    const deps = dependencies()
+    const client = {
+      ...fixture.client,
+      getDocument: vi.fn(async () => ({
+        _id: "ticketco-import-state",
+        _rev: "rev",
+        lastSuccessAt: new Date().toISOString(),
+      })),
+    } as unknown as SanityClient
+    expect((await runTicketCoImport(client, {}, deps)).status).toBe("not-due")
+    expect(deps.discover).not.toHaveBeenCalled()
+    vi.mocked(client.getDocument).mockResolvedValue({
+      _id: "ticketco-import-state",
+      _type: "ticketcoImportState",
+      _rev: "rev",
+      _createdAt: "",
+      _updatedAt: "",
+      leaseUntil: new Date(Date.now() + 60000).toISOString(),
+    })
+    expect(
+      (await runTicketCoImport(client, { force: true }, deps)).status,
+    ).toBe("busy")
+    expect(deps.discover).not.toHaveBeenCalled()
+  })
+  test("partial failures release the lease without advancing the success timestamp", async () => {
+    const fixture = fixtureClient()
+    const deps = dependencies()
+    deps.extract.mockResolvedValue({ ...extraction, endTime: "" })
+    const patch = {
+      ifRevisionId: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      unset: vi.fn().mockReturnThis(),
+      commit: vi.fn(async () => ({ _rev: "lease" })),
+    }
+    const client = {
+      ...fixture.client,
+      patch: vi.fn(() => patch),
+      getDocument: vi.fn(async (id: string) =>
+        id === "ticketco-import-state" ? { _id: id, _rev: "state" } : undefined,
+      ),
+    } as unknown as SanityClient
+    const report = await runTicketCoImport(client, {}, deps)
+    expect(report.failed).toHaveLength(1)
+    expect(patch.unset).toHaveBeenCalledWith(["owner", "leaseUntil"])
+    expect(patch.set).not.toHaveBeenCalledWith({
+      lastSuccessAt: expect.any(String),
+    })
+  })
+})
