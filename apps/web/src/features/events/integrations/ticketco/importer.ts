@@ -100,6 +100,10 @@ export function formFromExtraction(
     ...initialState,
     ...extracted,
     room,
+    organizerText: extracted.organizerGroup ? "" : extracted.organizerText,
+    organizerTextEnglish: extracted.organizerGroup
+      ? ""
+      : extracted.organizerTextEnglish,
     roomText: "",
     roomTextEnglish: "",
     dates: [
