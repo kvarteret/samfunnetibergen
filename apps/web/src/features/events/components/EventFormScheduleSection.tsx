@@ -172,34 +172,26 @@ function EventDateCard({
         </FieldGroup>
 
         <FieldGroup>
-          <Label htmlFor={`${uid}-starttime-${date.id}`}>
-            Starttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground-muted">
-              (anbefalt)
-            </span>
-          </Label>
+          <Label htmlFor={`${uid}-starttime-${date.id}`}>Dørene åpner *</Label>
           <Input
             id={`${uid}-starttime-${date.id}`}
             onChange={event =>
               updateDate(date.id, "startTime", event.target.value)
             }
+            required={Boolean(date.startDate)}
             type="time"
             value={date.startTime}
           />
         </FieldGroup>
 
         <FieldGroup>
-          <Label htmlFor={`${uid}-endtime-${date.id}`}>
-            Sluttid{" "}
-            <span className="ml-1 font-sans font-normal text-foreground-muted">
-              (valgfritt)
-            </span>
-          </Label>
+          <Label htmlFor={`${uid}-endtime-${date.id}`}>Dørene stenger *</Label>
           <Input
             id={`${uid}-endtime-${date.id}`}
             onChange={event =>
               updateDate(date.id, "endTime", event.target.value)
             }
+            required={Boolean(date.startDate)}
             type="time"
             value={date.endTime}
           />
