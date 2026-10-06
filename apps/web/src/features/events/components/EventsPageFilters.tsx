@@ -3,16 +3,48 @@
 import { Collapsible } from "@base-ui/react/collapsible"
 import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
 import { useTranslations } from "next-intl"
+import type { ReactNode } from "react"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { selectionControlVariants } from "@/components/ui/selection-control"
 import { ToggleGroup } from "@/components/ui/toggle-group"
 import { useEvents } from "@/features/events/context/EventsContext"
-import { countEventFilters } from "@/features/events/domain/eventUtils"
+import {
+  countEventFilters,
+  type EventFilters,
+  type EventTaxonomy,
+} from "@/features/events/domain/eventUtils"
 import { cn } from "@/lib/utils"
 
 export function EventsPageFilters() {
-  const t = useTranslations("EventsPage")
   const { filters, filteredEvents, setFilters, taxonomy } = useEvents()
+  return (
+    <EventFiltersControl
+      filters={filters}
+      resultCount={filteredEvents.length}
+      setFilters={setFilters}
+      taxonomy={taxonomy}
+    />
+  )
+}
+
+/**
+ * The /arrangementer taxonomy and organizer filters, independent of where the
+ * events come from. `extraControls` sit in the same row as the category pills.
+ */
+export function EventFiltersControl({
+  filters,
+  setFilters,
+  taxonomy,
+  resultCount,
+  extraControls,
+}: {
+  filters: EventFilters
+  setFilters: (filters: EventFilters) => void
+  taxonomy: EventTaxonomy
+  resultCount: number
+  extraControls?: ReactNode
+}) {
+  const t = useTranslations("EventsPage")
   const activeFilterCount = countEventFilters(filters)
 
   const clearAll = () =>
@@ -71,6 +103,7 @@ export function EventsPageFilters() {
             />
           </Collapsible.Trigger>
         )}
+        {extraControls}
       </div>
 
       <Collapsible.Panel>
@@ -152,7 +185,7 @@ export function EventsPageFilters() {
           aria-atomic="true"
           className="text-sm text-foreground-muted"
         >
-          {t("filterResultCount", { count: filteredEvents.length })}
+          {t("filterResultCount", { count: resultCount })}
         </p>
         {activeFilterCount > 0 && (
           <button

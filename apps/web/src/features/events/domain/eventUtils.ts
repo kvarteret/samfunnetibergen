@@ -22,13 +22,25 @@ export type EventTaxonomy = {
   organizerGroups: OrganizerGroup[]
 }
 
+/** The fields the taxonomy filters read; satisfied by public events and statistics rows. */
+export type FilterableEvent = {
+  eventType?: {
+    _id: string
+    name: string
+    taxonomyGroup?: { _id: string; name: string } | null
+  } | null
+  organizerGroup?: { _id: string; name: string } | null
+}
+
 export type EventFilters = {
   taxonomyGroupName: string | null
   eventTypeIds: string[]
   organizerGroupIds: string[]
 }
 
-export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
+export function buildTaxonomyFromEvents(
+  events: readonly FilterableEvent[],
+): EventTaxonomy {
   const taxonomyGroupsMap = new Map<string, TaxonomyGroup>()
   const eventTypesMap = new Map<string, TaxonomyEventType>()
   const organizerGroupsMap = new Map<string, OrganizerGroup>()
@@ -62,10 +74,10 @@ export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
   }
 }
 
-export function filterEvents(
-  events: PublicEvent[],
+export function filterEvents<T extends FilterableEvent>(
+  events: readonly T[],
   filters: EventFilters,
-): PublicEvent[] {
+): T[] {
   const eventTypeIds = new Set(filters.eventTypeIds)
   const organizerGroupIds = new Set(filters.organizerGroupIds)
 

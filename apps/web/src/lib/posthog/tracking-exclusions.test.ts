@@ -9,16 +9,21 @@ it.each([
   "/infoskjerm/?message=test",
   "https://www.samfunnetibergen.no/infoskjerm?message=test",
   "https://samfunnetibergen-samfunnetibergen.vercel.app/en",
+  "/nb/arrangementer/statistikk",
+  "https://www.samfunnetibergen.no/en/arrangementer/statistikk?periode=7",
 ])("excludes %s", url => {
   expect(isTrackingExcluded(url)).toBe(true)
 })
 
-it.each([undefined, "/nb", "/infoskjerm-guide", "/nb/rom/book"])(
-  "keeps tracking for %s",
-  url => {
-    expect(isTrackingExcluded(url)).toBe(false)
-  },
-)
+it.each([
+  undefined,
+  "/nb",
+  "/infoskjerm-guide",
+  "/nb/rom/book",
+  "/nb/arrangementer/statistikk-kveld",
+])("keeps tracking for %s", url => {
+  expect(isTrackingExcluded(url)).toBe(false)
+})
 
 it.each([
   "$pageview",
