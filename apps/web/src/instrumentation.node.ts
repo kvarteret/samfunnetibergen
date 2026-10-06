@@ -5,8 +5,8 @@ import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { resourceFromAttributes } from "@opentelemetry/resources"
 import type { LogRecordProcessor, SdkLogRecord } from "@opentelemetry/sdk-logs"
 import {
+  BatchLogRecordProcessor,
   LoggerProvider,
-  SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs"
 import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
@@ -75,11 +75,13 @@ if (projectToken) {
     resource,
     processors: [
       new InfoAndAboveProcessor(
-        new SimpleLogRecordProcessor({
+        new BatchLogRecordProcessor({
           exporter: new OTLPLogExporter({
             url: `${POSTHOG_OTLP_BASE_URL}/logs`,
             headers,
           }),
+          scheduledDelayMillis: 1000,
+          exportTimeoutMillis: 5000,
         }),
       ),
     ],
