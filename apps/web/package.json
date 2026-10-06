@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit",
     "route-typegen": "next typegen",
     "test": "vitest run",
-    "events:import:ticketco": "tsx scripts/import-ticketco.ts"
+    "events:import:ticketco": "tsx scripts/import-ticketco.ts",
+    "events:sync:pending-slack": "tsx scripts/sync-pending-slack.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
