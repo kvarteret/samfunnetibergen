@@ -33,6 +33,7 @@ export function KaraokeFormPackageSection({
           return (
             <>
               <SegmentedControl
+                className="capitalize"
                 onValueChange={field.handleChange}
                 options={(["ordinær", "student", "frivillig"] as const).map(
                   type => ({

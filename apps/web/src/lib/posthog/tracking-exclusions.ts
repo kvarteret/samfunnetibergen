@@ -47,7 +47,9 @@ export function isTrackingExcluded(url: string | undefined): boolean {
     return (
       hostname.endsWith(".vercel.app") ||
       pathname === "/infoskjerm" ||
-      pathname.startsWith("/infoskjerm/")
+      pathname.startsWith("/infoskjerm/") ||
+      // Admins reading statistics must not inflate the numbers they read.
+      /^\/(?:nb|en)\/arrangementer\/statistikk(?:\/|$)/.test(pathname)
     )
   } catch {
     return false

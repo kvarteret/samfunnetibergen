@@ -3,6 +3,7 @@
 import { ExternalLink, Ticket } from "lucide-react"
 import posthog from "posthog-js"
 import { Button } from "@/components/ui/button"
+import { entrySurface } from "@/lib/posthog/placement-entry"
 
 interface EventTicketButtonProps {
   ticketUrl: string
@@ -30,6 +31,7 @@ export function EventTicketButton({
           event_title: eventTitle,
           event_slug: eventSlug,
           ticket_url: ticketUrl,
+          entry_surface: entrySurface([eventId, eventSlug]) ?? null,
         })
       }}
     >
@@ -64,6 +66,7 @@ export function EventFacebookButton({
           event_title: eventTitle,
           event_slug: eventSlug,
           facebook_url: facebookUrl,
+          entry_surface: entrySurface([eventId, eventSlug]) ?? null,
         })
       }}
     >

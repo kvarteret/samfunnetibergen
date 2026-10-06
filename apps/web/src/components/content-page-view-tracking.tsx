@@ -7,6 +7,7 @@ import {
   type PromotionContext,
   promotionProperties,
 } from "@/lib/posthog/event-placement"
+import { entrySurface } from "@/lib/posthog/placement-entry"
 import {
   contentPageViewProperties,
   type TrackedContentType,
@@ -41,6 +42,9 @@ export function ContentPageViewTracking({
             ...promotionProperties(content),
             event_id: content.initialSlug ?? content.slug,
             event_document_id: content._id,
+            entry_surface:
+              entrySurface([content._id, content.slug, content.initialSlug]) ??
+              null,
           }
         : {}),
     })

@@ -132,17 +132,67 @@ describe("event placement observation", () => {
     expect(s.capture).not.toHaveBeenCalled()
     expect(s.disconnect).toHaveBeenCalled()
   })
-  it("does not capture impressions for ordinary event cards, but retains clicks", () => {
+  it("does not capture impressions for ordinary cards outside the batched surfaces, but retains clicks", () => {
     const s = setup()
     s.element.dataset.eventPromoted = "false"
+    s.element.dataset.eventSurface = "detail-child"
     s.visible(1)
-    vi.advanceTimersByTime(2000)
+    vi.advanceTimersByTime(5000)
     expect(s.capture).not.toHaveBeenCalled()
     s.emit("click", { target: s.element, button: 0, detail: 1, type: "click" })
     expect(s.capture).toHaveBeenCalledWith(
       "event_placement_clicked",
       expect.objectContaining({ is_promoted: false }),
     )
+    s.cleanup()
+  })
+  it("batches every card seen on a listing surface into one event", () => {
+    const s = setup()
+    s.element.dataset.eventPromoted = "false"
+    s.element.dataset.eventSurface = "home-upcoming"
+    s.visible(1)
+    vi.advanceTimersByTime(1000)
+    expect(s.capture).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(3000)
+    expect(s.capture).toHaveBeenCalledTimes(1)
+    expect(s.capture).toHaveBeenCalledWith("event_placements_seen", {
+      surface: "home-upcoming",
+      placement_name: "Frontpage — upcoming",
+      locale: "nb",
+      event_document_ids: ["doc1"],
+      event_ids: ["the-snooks"],
+      count: 1,
+      tracking_version: 1,
+    })
+    s.visible(0)
+    s.visible(1)
+    vi.advanceTimersByTime(5000)
+    expect(s.capture).toHaveBeenCalledTimes(1)
+    s.cleanup()
+  })
+  it("sends pending batches when the page is hidden or left", () => {
+    const s = setup()
+    s.element.dataset.eventPromoted = "false"
+    s.element.dataset.eventSurface = "events-list"
+    s.visible(1)
+    vi.advanceTimersByTime(1000)
+    s.root.hidden = true
+    s.emit("visibilitychange")
+    expect(s.capture).toHaveBeenCalledWith(
+      "event_placements_seen",
+      expect.objectContaining({ surface: "events-list", count: 1 }),
+    )
+    s.cleanup()
+    expect(s.capture).toHaveBeenCalledTimes(1)
+  })
+  it("counts promoted front-page cards both individually and in the batch", () => {
+    const s = setup()
+    s.visible(1)
+    vi.advanceTimersByTime(4000)
+    expect(s.capture.mock.calls.map(call => call[0])).toEqual([
+      "event_placement_viewed",
+      "event_placements_seen",
+    ])
     s.cleanup()
   })
   it("tracks keyboard and middle clicks, ignores right clicks and observes dynamic links", () => {

@@ -11,6 +11,7 @@ interface SegmentedControlProps<T extends string> {
   onValueChange: (value: T) => void
   className?: string
   variant?: "pills" | "squares" | "fill"
+  "aria-labelledby"?: string
 }
 
 const sizeByVariant = {
@@ -24,7 +25,8 @@ const containerVariants = cva("flex flex-wrap", {
     variant: {
       pills: "gap-2",
       squares: "gap-2",
-      fill: "border-2 border-border",
+      // A soft track holds the segments; the selected one is filled.
+      fill: "w-fit max-w-full flex-nowrap gap-1 rounded-full bg-muted p-1",
     },
   },
 })
@@ -35,9 +37,11 @@ export function SegmentedControl<T extends string>({
   onValueChange,
   className,
   variant = "pills",
+  "aria-labelledby": labelledBy,
 }: SegmentedControlProps<T>) {
   return (
     <RadioGroup
+      aria-labelledby={labelledBy}
       className={cn(containerVariants({ variant }), className)}
       onValueChange={onValueChange}
       value={value}
