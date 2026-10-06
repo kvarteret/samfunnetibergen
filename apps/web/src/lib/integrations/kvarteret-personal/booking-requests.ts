@@ -53,7 +53,7 @@ export async function storeBookingRequest(
     throw new Error("Booking storage is not configured")
   const baseUrl = new URL(
     process.env.PERSONAL_APP_BASE_URL?.trim() ||
-      "https://personal.kvarteret.no",
+      "https://personal.samfunnetibergen.no",
   )
   if (
     baseUrl.username ||

@@ -8,7 +8,7 @@ The website validates published events through `apps/web/src/features/events/ser
 
 Requires the updated backend PR #69. Apply its migrations `20261001_1400` and `20261001_1500` before enabling this website change. The second migration creates `public.event_interest_clicks`, copies previously recorded taps with their original expiry, enables row-level security without public policies, and revokes public access. Use the backend's existing owner/service database connection.
 
-Set the same random server-only `EVENT_INTEREST_SECRET` (at least 32 characters) in both services. Generate it with `openssl rand -hex 32`; never expose it in `NEXT_PUBLIC_*` or Git. Set `PERSONAL_APP_BASE_URL` on the website; it defaults to `https://personal.kvarteret.no`. Deploy the backend before this website revision. The new `{clicks, batch_id}` write contract and `{taps, count}` response replace the unmerged weighted-response implementation; coordinate both revisions rather than mixing old and new clients.
+Set the same random server-only `EVENT_INTEREST_SECRET` (at least 32 characters) in both services. Generate it with `openssl rand -hex 32`; never expose it in `NEXT_PUBLIC_*` or Git. Set `PERSONAL_APP_BASE_URL` on the website; it defaults to `https://personal.samfunnetibergen.no`. Deploy the backend before this website revision. The new `{clicks, batch_id}` write contract and `{taps, count}` response replace the unmerged weighted-response implementation; coordinate both revisions rather than mixing old and new clients.
 
 Schedule the backend's `uv run python -m scripts.cleanup_event_interest` daily. It removes expired batches and legacy response rows. Reads exclude expired batches even before cleanup; active writes also prune expired batches for their event.
 
