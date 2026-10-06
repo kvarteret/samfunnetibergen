@@ -87,7 +87,7 @@ export default async function EventPage({ params }: EventPageProps) {
         <EventDetailHero
           event={eventData}
           eventSlug={resolvedParams.event}
-          ticketsLabel={t("tickets")}
+          ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
           partOfLabel={t("partOf")}
         />
         <EventDetailDescription
@@ -245,7 +245,7 @@ function EventDetailMetaSidebar({
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
   const organizer = event.organizerGroup?.name ?? event.organizerText
-  const price = formatPrices(event)
+  const price = event.isSoldOut ? t("soldOut") : formatPrices(event)
 
   return (
     <aside className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">

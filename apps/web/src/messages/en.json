@@ -380,7 +380,8 @@
     "partOf": "Del av",
     "childEvents": "Program",
     "statusCancelled": "Avlyst",
-    "statusPostponed": "Utsatt"
+    "statusPostponed": "Utsatt",
+    "soldOut": "Sold out"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",

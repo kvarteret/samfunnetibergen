@@ -55,6 +55,7 @@ const inheritableFieldsProjection = `
         "taxonomyGroup": taxonomyGroup-> { _id, "name": ${localizedName} }
     },
     isFree,
+    isSoldOut,
     priceOrdinar,
     priceStudent,
     priceMedlem,

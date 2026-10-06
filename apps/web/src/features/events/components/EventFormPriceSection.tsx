@@ -19,6 +19,15 @@ export function EventFormPriceSection({
 
   return (
     <FormSection number={number} title="Pris">
+      <form.Field name="isSoldOut">
+        {(field: AnyFieldApi) => (
+          <CheckboxField
+            checked={field.state.value as boolean}
+            label="Utsolgt"
+            onChange={field.handleChange}
+          />
+        )}
+      </form.Field>
       <form.Field name="isFree">
         {(field: AnyFieldApi) => (
           <>

@@ -530,6 +530,7 @@ export type Arrangement = {
   localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
   localizedOrganizerText?: InternationalizedArrayString
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number
   priceStudent?: number

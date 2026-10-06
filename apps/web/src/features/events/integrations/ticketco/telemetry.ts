@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { getPostHogReleaseProperties } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import type { TicketCoEvent } from "./source"
@@ -36,7 +37,7 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
         git_sha: process.env.GITHUB_SHA ?? release.git_sha,
         ticket_url: generation.source.url,
         $ai_trace_id: generation.traceId,
-        $ai_generation_id: generation.traceId,
+        $ai_generation_id: randomUUID(),
         $ai_parent_id: generation.traceId,
         $ai_session_id: null,
         $ai_span_name: "TicketCo event extraction",
@@ -61,5 +62,34 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
   } catch {
     // Analytics failures must not lose an otherwise valid event import.
     process.stderr.write("TicketCo AI analytics delivery failed.\n")
+  }
+}
+
+/** Show the importer outcome separately from provisional model output. */
+export async function captureRoomResolution(
+  traceId: string,
+  ticketUrl: string,
+  room?: string,
+) {
+  if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
+  try {
+    await getPostHogClient().captureImmediate({
+      distinctId: "ticketco-importer",
+      event: "$ai_span",
+      properties: {
+        $ai_trace_id: traceId,
+        $ai_parent_id: traceId,
+        $ai_span_id: `${traceId}-validation`,
+        $ai_span_name: "Import validation and room resolution",
+        $ai_output_state: { room: room ?? null, accepted: Boolean(room) },
+        $ai_is_error: !room,
+        $ai_error: room
+          ? undefined
+          : "Event not imported: room or required fields unresolved",
+        ticket_url: ticketUrl,
+      },
+    })
+  } catch {
+    process.stderr.write("TicketCo room analytics delivery failed.\n")
   }
 }

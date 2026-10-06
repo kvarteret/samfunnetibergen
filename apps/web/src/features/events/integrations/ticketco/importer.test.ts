@@ -43,6 +43,7 @@ const extraction: Extraction = {
   submittedByOrganization: "",
   eventTypeId: "",
   isFree: false,
+  isSoldOut: false,
   priceOrdinar: "200",
   priceStudent: "150",
   priceMedlem: "100",
@@ -84,7 +85,7 @@ const dependencies = () => ({
       startDate: "2099-10-16T21:00:00Z",
     },
   ]),
-  extract: vi.fn(async () => extraction),
+  extract: vi.fn(async () => ({ ...extraction })),
   fetchPage: vi.fn(async () => "<body>Doors open 21:00. Close 01:00.</body>"),
   calendar: vi.fn(async () => [booking]),
 })
@@ -329,4 +330,58 @@ test("requires room references, clears location free text and rejects missing pa
       [],
     ),
   ).toThrow("Ticket price could not be determined")
+})
+
+test("resolves a missing model room against overlapping Crescat bookings before writing", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  const report = await importEvents(fixture.client, false, deps)
+  expect(report.failed).toEqual([])
+  expect(fixture.docs.get(ticketDocumentId(url))).toMatchObject({
+    room: { _ref: "tegl" },
+    submittedBy: "E-tjenesten's Skonk",
+    submittedByEmail: "it.leder@kvarteret.no",
+  })
+  expect(deps.calendar).toHaveBeenCalled()
+})
+
+test("never writes an event when room remains unresolved after calendar lookup and model retry", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([{ ...booking, title: "Unrelated booking" }])
+  const report = await importEvents(fixture.client, false, deps)
+  expect(report.imported).toBe(0)
+  expect(report.failed).toEqual([
+    { url, reason: "Room could not be determined" },
+  ])
+  expect(deps.extract).toHaveBeenCalledTimes(2)
+  expect(fixture.create).not.toHaveBeenCalled()
+})
+
+test("imports explicitly sold-out sources with no price and a required room", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.fetchPage.mockResolvedValue(
+    "<body>Det er ingen flere billetter tilgjengelig</body>",
+  )
+  deps.extract.mockResolvedValue({
+    ...extraction,
+    priceOrdinar: "",
+    priceStudent: "",
+    priceMedlem: "",
+  })
+  expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+    imported: 1,
+    failed: [],
+  })
+  expect(fixture.docs.get(ticketDocumentId(url))).toMatchObject({
+    isSoldOut: true,
+    room: { _ref: "tegl" },
+    submittedBy: "E-tjenesten's Skonk",
+  })
+  expect(fixture.docs.get(ticketDocumentId(url))).not.toHaveProperty(
+    "priceOrdinar",
+  )
 })

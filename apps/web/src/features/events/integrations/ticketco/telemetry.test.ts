@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest"
-import { captureLunaGeneration } from "./telemetry"
+import { captureLunaGeneration, captureRoomResolution } from "./telemetry"
 
 const capture = vi.hoisted(() => vi.fn())
 vi.mock("@/lib/posthog-server", () => ({
@@ -55,4 +55,32 @@ test("analytics failures do not fail event extraction", async () => {
   const stderr = vi.spyOn(process.stderr, "write").mockReturnValue(true)
   await expect(captureLunaGeneration(generation)).resolves.toBeUndefined()
   stderr.mockRestore()
+})
+
+test("records final room resolution and fatal missing room in the same trace", async () => {
+  vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test")
+  await captureRoomResolution(
+    "trace-test",
+    generation.source.url,
+    "room-teglverket",
+  )
+  expect(capture).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      event: "$ai_span",
+      properties: expect.objectContaining({
+        $ai_trace_id: "trace-test",
+        $ai_output_state: { room: "room-teglverket", accepted: true },
+        $ai_is_error: false,
+      }),
+    }),
+  )
+  await captureRoomResolution("trace-test", generation.source.url)
+  expect(capture).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      properties: expect.objectContaining({
+        $ai_is_error: true,
+        $ai_output_state: { room: null, accepted: false },
+      }),
+    }),
+  )
 })

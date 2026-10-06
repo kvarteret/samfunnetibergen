@@ -54,6 +54,7 @@ export function getEventValidationIssues(
     eventTypeId: "",
     isInternalEvent: false,
     isFree: false,
+    isSoldOut: false,
     priceOrdinar: "",
     priceStudent: "",
     priceMedlem: "",
