@@ -127,7 +127,7 @@ Broadcast polls the complete default event snapshot and uses the occurrence
 source room and event type IDs for its mapping. Run the non-mutating source
 audit before handoff:
 
-    npm --workspace @samfunnet/web run events:audit:broadcast -- --report-only
+    pnpm --filter @samfunnet/web run events:audit:broadcast -- --report-only
 
 The audit requires title, concrete UTC start and end timestamps, image, and a
 taxonomy keyword for readiness. Missing ticket links are informational. A

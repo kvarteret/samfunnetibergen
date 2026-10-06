@@ -24,7 +24,7 @@ the new form. For a new enum value, readers must handle an unknown value before
 the value appears in Studio. Remove the old field only after the consumer
 support window and an audit prove that no supported reader needs it.
 
-Required-field TypeGen (`npm run sanity:typegen`) validates the current schema
+Required-field TypeGen (`pnpm run sanity:typegen`) validates the current schema
 and query source. It cannot protect an old website deployment or an installed
 mobile client from a newly written document, so it never replaces the three
 phases.

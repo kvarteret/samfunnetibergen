@@ -11,9 +11,10 @@ cd "${CODEX_WORKTREE_PATH:-.}"
 if command -v mise >/dev/null 2>&1; then
   mise trust --yes mise.toml
   mise install
-  mise exec -- npm ci
+  mise exec -- pnpm install --frozen-lockfile
 else
-  npm ci
+  corepack enable pnpm
+  pnpm install --frozen-lockfile
 fi
 """
 
@@ -28,24 +29,24 @@ rm -rf .cache/tmp
 [[actions]]
 name = "Website"
 icon = "run"
-command = "npm run dev:web"
+command = "pnpm run dev:web"
 
 [[actions]]
 name = "Studio"
 icon = "run"
-command = "npm run dev:studio"
+command = "pnpm run dev:studio"
 
 [[actions]]
 name = "Test"
 icon = "run"
-command = "npm run test"
+command = "pnpm run test"
 
 [[actions]]
 name = "Lint"
 icon = "run"
-command = "npm run lint"
+command = "pnpm run lint"
 
 [[actions]]
 name = "Build"
 icon = "run"
-command = "npm run build"
+command = "pnpm run build"

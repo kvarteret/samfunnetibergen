@@ -9,12 +9,18 @@ The canonical editor URL is
 `https://studio.samfunnetibergen.no`. The website's old `/studio` paths are
 permanent redirects for bookmarks; they are not a second Studio runtime.
 
+`apps/studio/vercel.json` disables Git deployments on `develop` and `main` so
+the release workflow owns production. Feature branch previews remain enabled;
+`scripts/vercel-ignore-build.sh` skips changes that do not affect Studio, shared
+packages, or installation/build scripts. Missing previous-deployment history
+always runs the build.
+
 ## One-time Vercel setup
 
 The Vercel project is named `studio` and lives in the same Vercel scope as the
 website. Its Root Directory is `apps/studio`, its Framework Preset is Sanity,
-and source files outside the root are enabled for the npm workspace. Keep
-`apps/studio/vercel.json` checked in: it pins `npm run build`, the `dist` output,
+and source files outside the root are enabled for the pnpm workspace. Keep
+`apps/studio/vercel.json` checked in: it pins `corepack pnpm run build`, the `dist` output,
 the SPA deep-link fallback, and the frame policy required by Sanity Dashboard.
 
 The project id is stored in the GitHub Actions `studio-production` environment
@@ -32,11 +38,11 @@ move the apex or `www` domains.
 The project already allows `https://studio.samfunnetibergen.no` as a CORS
 origin with credentials. Verify it before changing anything:
 
-    npx sanity cors list --project-id "$NEXT_PUBLIC_SANITY_PROJECT_ID"
+    pnpm --filter @samfunnet/studio exec sanity cors list --project-id "$NEXT_PUBLIC_SANITY_PROJECT_ID"
 
 If it is missing, add exactly the origin (not a path and not a wildcard):
 
-    npx sanity cors add https://studio.samfunnetibergen.no \
+    pnpm --filter @samfunnet/studio exec sanity cors add https://studio.samfunnetibergen.no \
       --project-id "$NEXT_PUBLIC_SANITY_PROJECT_ID" --credentials
 
 Use a Sanity token with permission to register an external Studio. The
@@ -44,7 +50,7 @@ workflow accepts it as the GitHub Actions `SANITY_AUTH_TOKEN` secret only for a
 manual run with `register_external=true`; it is never committed or printed.
 That step runs the installed CLI's supported command:
 
-    npm --workspace @samfunnet/studio exec -- sanity deploy \
+    pnpm --filter @samfunnet/studio exec sanity deploy \
       --external --url https://studio.samfunnetibergen.no \
       --title "Samfunnet i Bergen Studio" --schema-required --yes
 

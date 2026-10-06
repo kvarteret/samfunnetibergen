@@ -1,6 +1,6 @@
 # Samfunnet i Bergen
 
-This repository contains a Next.js website and a Sanity Studio managed as npm
+This repository contains a Next.js website and a Sanity Studio managed as pnpm
 workspaces. The runnable applications live in `apps/web` and `apps/studio`;
 the root package only orchestrates checks and builds.
 
@@ -9,9 +9,14 @@ the root package only orchestrates checks and builds.
 Install the single root lockfile and run the website development server:
 
 ```bash
-npm ci
-npm run dev:web
+mise install
+pnpm install --frozen-lockfile
+pnpm run dev:web
 ```
+
+The repository pins pnpm 10.34.6 in `packageManager` and `mise.toml`. Without
+mise, use Node 24 and `corepack enable pnpm` before installing. Commit
+`pnpm-lock.yaml` when dependencies change; do not generate an npm lockfile.
 
  
 
@@ -38,7 +43,7 @@ Open [http://localhost:3187](http://localhost:3187) with your browser.
 
 Optional: Run
 
-`npm run dev:studio` in another terminal to start the local Studio.
+`pnpm run dev:studio` in another terminal to start the local Studio.
 
 ## Deployment
 

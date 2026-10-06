@@ -1,9 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
+  "ignoreCommand": "bash ../../scripts/vercel-ignore-build.sh studio",
+  "git": {
+    "deploymentEnabled": {
+      "develop": false,
+      "main": false
+    }
+  },
+  "buildCommand": "corepack pnpm run build",
   "outputDirectory": "dist",
   "framework": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -14,5 +26,6 @@
         }
       ]
     }
-  ]
+  ],
+  "installCommand": "corepack pnpm install --frozen-lockfile --prefer-offline"
 }
