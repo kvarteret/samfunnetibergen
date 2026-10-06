@@ -2,7 +2,7 @@
 
 The TicketCo job searches `https://ticketco.events/no/nb?pattern=kvarter`, extracts complete Norwegian and English submissions with the existing Azure `gpt-6-luna` deployment, and creates `arrangement` documents with `approvalStatus: pending`. It uses the same document builder and validation as `/arrangementer/ny`.
 
-Imported concert titles contain artist names only, preserving co-headliners while removing venue, organizer, promotional labels and support-act wording. Support acts remain in the description.
+Luna editorializes concert titles to artist names only, preserving co-headliners while removing venue, organizer, promotional labels and support-act wording. Support acts remain in the description.
 
 The submitter is always `E-tjenesten's Skonk`, with `it.leder@kvarteret.no`. No email is sent by this importer. Ticket URLs are normalized to Norwegian locale without tracking parameters or fragments; a SHA-256 hash of that canonical link provides a stable Sanity document ID. Existing pending, rejected, approved, or draft arrangements with the same canonical ticket link are skipped. Repeated imports never overwrite editor changes.
 
@@ -45,3 +45,7 @@ Separate `pendingSlackDelivery` receipt documents prevent ordinary duplicates wi
 Run `npm run test`, `npm run sanity:typegen`, `npm run route-typegen`, `npm run typecheck`, `npm run format:check`, `npm run lint`, and `npm run build` through `mise exec --`. Importer tests cover URL variants, existing editorial documents, dry-run writes, overnight room overlaps, hidden/ambiguous calendar titles, required times, and the 72-hour boundary. Slack tests cover safe text rendering, Studio links, delivered receipts, and retry after failure.
 
 Door opening and closing are mandatory for each dated submission row and in the Studio date schema. Blank optional rows remain ignored. Existing records are not migrated; editors must fill missing times before publishing edited records.
+
+## Luna analytics
+
+Each Luna request sends an awaited `$ai_generation` event to the existing Samfunnet i Bergen PostHog project. Events include the public TicketCo source, validated extracted fields, model, token counts, latency, source URL and safe failure labels. Internal calendar inputs and the model's booking evidence are omitted. PostHog failures do not fail event imports. `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` configure capture and are supplied by the GitHub production environment. Dry-runs still use Luna and record analytics; they do not create arrangements or Slack messages. PostHog estimates costs when it recognizes the model/provider; token counts remain useful even if custom Luna pricing is unavailable. See https://posthog.com/docs/ai-observability/installation/manual-capture.
