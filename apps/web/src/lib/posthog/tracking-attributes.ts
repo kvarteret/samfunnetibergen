@@ -1,3 +1,5 @@
+import type { PromotionContext } from "./event-placement"
+
 type TrackableContent = {
   _id: string
   slug: string
@@ -28,13 +30,27 @@ export function contentPageViewProperties(
 }
 
 export function eventTrackingAttributes(
-  event: TrackableContent,
+  event: TrackableContent & PromotionContext & { title?: string | null },
   surface: string,
+  position?: number,
+  occurrenceDate?: string,
 ) {
   return {
-    "data-event-id": event._id,
+    "data-event-id": event.initialSlug ?? event.slug,
+    "data-event-document-id": event._id,
     "data-event-slug": event.slug,
+    "data-event-title": event.title ?? undefined,
     "data-event-surface": surface,
+    "data-event-position": position,
+    "data-event-promoted": event.isPromoted === true,
+    "data-event-promotion-placement": event.isPromoted
+      ? (event.promotedPlacement ?? "legacy")
+      : "none",
+    "data-event-promotion-order": event.isPromoted
+      ? (event.promotedOrder ?? undefined)
+      : undefined,
+    "data-event-occurrence-date": occurrenceDate,
+    "data-event-placement-id": `${surface}:${event._id}:${occurrenceDate ?? ""}:${position ?? ""}`,
   } as const
 }
 

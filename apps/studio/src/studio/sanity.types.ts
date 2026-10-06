@@ -247,8 +247,8 @@ export type Navbar = {
 export type ArrangementDate = {
   _type: "arrangementDate"
   startDate: string
-  startTime?: string
-  endTime?: string
+  startTime: string
+  endTime: string
 }
 
 export type FooterSocialLink = {
@@ -492,6 +492,7 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
+  initialSlug?: string
   eventKind?:
     | "single"
     | "seriesParent"
@@ -529,6 +530,7 @@ export type Arrangement = {
   localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
   localizedOrganizerText?: InternationalizedArrayString
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number
   priceStudent?: number

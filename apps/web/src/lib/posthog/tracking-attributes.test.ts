@@ -13,10 +13,30 @@ describe("tracking attributes", () => {
         { _id: "event-123", slug: "example-event" },
         "card-title",
       ),
-    ).toEqual({
-      "data-event-id": "event-123",
+    ).toMatchObject({
+      "data-event-id": "example-event",
+      "data-event-document-id": "event-123",
       "data-event-slug": "example-event",
       "data-event-surface": "card-title",
+    })
+  })
+
+  it("retains the initial slug after title or URL changes", () => {
+    expect(
+      eventTrackingAttributes(
+        {
+          _id: "event-123",
+          slug: "renamed-event",
+          initialSlug: "original-event",
+          title: "The Snooks",
+        },
+        "home-promoted",
+      ),
+    ).toMatchObject({
+      "data-event-id": "original-event",
+      "data-event-slug": "renamed-event",
+      "data-event-document-id": "event-123",
+      "data-event-title": "The Snooks",
     })
   })
 

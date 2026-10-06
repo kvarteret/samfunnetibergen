@@ -14,7 +14,7 @@ export function EventsPageHeader({
   title,
 }: EventsPageHeaderProps) {
   return (
-    <header className="space-y-8">
+    <header className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <h1 className="wrap-break-word text-4xl leading-none sm:text-6xl">
           {title}
@@ -27,6 +27,16 @@ export function EventsPageHeader({
           <ArrowUpRight aria-hidden className="size-5" />
         </Link>
       </div>
+      <p className="text-sm text-foreground-muted">
+        Arrangerer du noe på Kvarteret?{" "}
+        <Link
+          className="inline-flex items-center gap-1 underline underline-offset-4 transition-colors hover:text-foreground focus-brutal"
+          href="/arrangementer/ny"
+        >
+          Få ditt arrangement her
+          <ArrowUpRight aria-hidden className="size-3.5" />
+        </Link>
+      </p>
     </header>
   )
 }

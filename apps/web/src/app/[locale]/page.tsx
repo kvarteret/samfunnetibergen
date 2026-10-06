@@ -118,6 +118,10 @@ function toEventSummary(
 
   return {
     _id: event._id,
+    isPromoted: event.isPromoted,
+    promotedPlacement: event.promotedPlacement,
+    promotedOrder: event.promotedOrder,
+    initialSlug: event.initialSlug,
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,
@@ -128,6 +132,7 @@ function toEventSummary(
     recurringLabel,
     primaryDateLabel,
     isFree: event.isFree ?? undefined,
+    isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
     priceMedlem: event.priceMedlem ?? null,
@@ -312,6 +317,7 @@ function HomePromotedEvents({
               event={toEventSummary(event, today, labels)}
               priority={index === 0}
               trackingSurface="home-promoted"
+              trackingPosition={index + 1}
               variant="promoted"
             />
           </div>
@@ -341,7 +347,7 @@ function HomeUpcomingEvents({
           onPrimary
         />
         <HorizontalScrollRow className="gap-3 sm:gap-4">
-          {events.map(event => (
+          {events.map((event, index) => (
             <div
               className="w-[min(21rem,calc(100vw-3rem))] shrink-0 md:w-[21rem] xl:w-[calc((100%-4rem)/5)]"
               key={event._id}
@@ -350,6 +356,7 @@ function HomeUpcomingEvents({
                 event={toEventSummary(event, today, labels)}
                 size="small"
                 trackingSurface="home-upcoming"
+                trackingPosition={index + 1}
                 variant="slider"
               />
             </div>

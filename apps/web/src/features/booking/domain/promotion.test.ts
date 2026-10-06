@@ -64,7 +64,14 @@ describe("getPromotionValidationMessages", () => {
   const completeEvent = {
     ...eventInitialState,
     title: "Vårkonsert",
-    dates: [{ id: "d1", startDate: "2026-07-01", startTime: "", endTime: "" }],
+    dates: [
+      {
+        id: "d1",
+        startDate: "2026-07-01",
+        startTime: "19:00",
+        endTime: "23:00",
+      },
+    ],
     submittedBy: "Kari",
     submittedByEmail: "kari@example.com",
   }

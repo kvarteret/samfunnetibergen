@@ -19,6 +19,7 @@ export const INHERITED_FIELDS = [
   "organizerText",
   "eventType",
   "isFree",
+  "isSoldOut",
   "priceOrdinar",
   "priceStudent",
   "priceMedlem",

@@ -70,6 +70,13 @@ export const arrangement = defineType({
     { name: "admin", title: "Administrasjon" },
   ],
   fields: [
+    defineField({
+      name: "initialSlug",
+      title: "Opprinnelig arrangementsidentitet",
+      type: "string",
+      hidden: true,
+      readOnly: true,
+    }),
     // ─── Structure (ADR 005: materialized instances & festivals) ──
     defineField({
       name: "eventKind",
@@ -337,6 +344,14 @@ export const arrangement = defineType({
       "internationalizedArrayString",
       { group: "organizer" },
     ),
+
+    defineField({
+      name: "isSoldOut",
+      title: "Utsolgt",
+      type: "boolean",
+      group: "pricing",
+      initialValue: false,
+    }),
 
     // ─── Pricing ───────────────────────────────────────────────
     defineField({

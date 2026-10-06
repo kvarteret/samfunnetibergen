@@ -20,6 +20,10 @@ export type EventDateEntry = {
 }
 
 export type EventSummary = {
+  isPromoted?: boolean
+  promotedPlacement?: "top" | "pool" | null
+  promotedOrder?: number | null
+  initialSlug?: string | null
   _id: string
   title: string
   slug: string
@@ -40,6 +44,7 @@ export type EventSummary = {
   primaryDateLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -126,6 +131,7 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   priority?: boolean
   showRoom?: boolean
   trackingSurface?: string
+  trackingPosition?: number
 }
 
 type EventCardVariant = "default" | "catalogue" | "promoted" | "slider"
@@ -136,7 +142,8 @@ export function EventCard({
   priority = false,
   showRoom = true,
   size,
-  trackingSurface = "card-title",
+  trackingSurface = "events-list",
+  trackingPosition,
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default"
@@ -160,7 +167,7 @@ export function EventCard({
   return (
     <Link
       className={eventCardVariants({ variant: cardVariant, size: cardSize })}
-      {...eventTrackingAttributes(event, trackingSurface)}
+      {...eventTrackingAttributes(event, trackingSurface, trackingPosition)}
       href={href}
     >
       <Card className={eventCardSurfaceVariants({ variant: cardVariant })}>
@@ -185,7 +192,9 @@ export function EventCard({
             event={event}
             isEditorial={isEditorial}
             onPrimary={cardVariant === "slider"}
-            statusLabel={event.statusLabel}
+            statusLabel={
+              event.statusLabel ?? (event.isSoldOut ? "Utsolgt" : null)
+            }
             eventTypeLabel={eventTypeLabel}
             timeLabel={timeLabel}
           />

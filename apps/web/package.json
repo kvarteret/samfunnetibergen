@@ -15,7 +15,9 @@
     "events:audit:broadcast": "tsx scripts/audit-broadcast-readiness.ts",
     "typecheck": "tsc --noEmit",
     "route-typegen": "next typegen",
-    "test": "vitest run"
+    "test": "vitest run",
+    "events:import:ticketco": "tsx scripts/import-ticketco.ts",
+    "events:sync:pending-slack": "tsx scripts/sync-pending-slack.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -33,11 +35,13 @@
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@portabletext/to-html": "^6.0.0",
     "@portabletext/toolkit": "^6.0.0",
+    "@posthog/ai": "^8.13.5",
     "@posthog/nextjs-config": "^1.9.68",
     "@samfunnet/content-domain": "0.1.0",
     "@sanity/client": "^8.6.2",
     "@tanstack/react-form": "^1.28.6",
     "@tanstack/react-query": "^5.97.0",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

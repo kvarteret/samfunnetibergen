@@ -371,6 +371,7 @@
     "organizer": "Arrangeres av",
     "description": "Om arrangementet",
     "tickets": "Kjøp billetter",
+    "soldOut": "Utsolgt",
     "facebook": "Gå til Facebook-event",
     "addToGoogleCalendar": "Legg til i Google Kalender",
     "addToCalendar": "Last ned .ics-fil",

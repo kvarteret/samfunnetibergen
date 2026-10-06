@@ -74,6 +74,7 @@ export type PublicEvent = {
   effectiveUpdatedAt: string | null
   eventKind: PublicEventKind
   eventStatus: EventStatus
+  initialSlug?: string | null
   isPromoted: boolean
   promotedPlacement: "top" | "pool" | null
   promotedOrder: number | null
@@ -88,6 +89,7 @@ export type PublicEvent = {
   organizerGroup: PublicOrganizerGroup | null
   organizerText: string | null
   eventType: PublicEventType | null
+  isSoldOut?: boolean
   isFree: boolean
   priceOrdinar: number | null
   priceStudent: number | null
@@ -137,6 +139,7 @@ export type RawPublicParent = {
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -154,6 +157,7 @@ export type RawPublicEvent = {
   _updatedAt?: string | null
   eventKind?: string | null
   eventStatus?: EventStatus | null
+  initialSlug?: string | null
   isPromoted?: boolean | null
   promotedPlacement?: "top" | "pool" | null
   promotedOrder?: number | null
@@ -169,6 +173,7 @@ export type RawPublicEvent = {
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -365,6 +370,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       content.eventStatus ?? null,
       cleanParent?.eventStatus ?? null,
     ),
+    initialSlug: child.initialSlug ?? child.slug,
     isPromoted: content.isPromoted ?? false,
     promotedPlacement: content.promotedPlacement ?? null,
     promotedOrder: content.promotedOrder ?? null,
@@ -382,6 +388,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     organizerText: normalizeString(content.organizerText),
     eventType: content.eventType ?? null,
     isFree: content.isFree ?? false,
+    isSoldOut: content.isSoldOut ?? false,
     priceOrdinar: content.priceOrdinar ?? null,
     priceStudent: content.priceStudent ?? null,
     priceMedlem: content.priceMedlem ?? null,

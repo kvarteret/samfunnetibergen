@@ -55,6 +55,7 @@ const inheritableFieldsProjection = `
         "taxonomyGroup": taxonomyGroup-> { _id, "name": ${localizedName} }
     },
     isFree,
+    isSoldOut,
     priceOrdinar,
     priceStudent,
     priceMedlem,
@@ -94,6 +95,7 @@ const publicEventProjection = `{
     _updatedAt,
     "eventKind": coalesce(eventKind, "single"),
     eventStatus,
+    "initialSlug": coalesce(initialSlug, slug.current),
     "isPromoted": coalesce(isPromoted, false),
     promotedPlacement,
     promotedOrder,

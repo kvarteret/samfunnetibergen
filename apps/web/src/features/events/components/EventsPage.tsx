@@ -1,8 +1,5 @@
-import { CalendarPlus } from "lucide-react"
-
 import { EventsProvider } from "@/features/events/context/EventsContext"
 import type { PublicEvent } from "@/features/events/domain/events"
-import { Link } from "@/i18n/navigation"
 import type { EventDateEntry } from "./EventCard"
 import { EventsPageFilters } from "./EventsPageFilters"
 import { EventsPageHeader } from "./EventsPageHeader"
@@ -46,30 +43,6 @@ export function EventsPage({
         <EventsPageFilters />
 
         <EventsPageSections precomputedDates={precomputedDates} />
-
-        <div className="flex flex-col gap-4 panel sm:flex-row sm:items-center sm:gap-6">
-          <div className="flex size-10 shrink-0 items-center justify-center bg-primary">
-            <CalendarPlus
-              className="size-5 text-primary-foreground"
-              aria-hidden
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-heading leading-snug text-foreground">
-              Arrangerer du eller din organisasjon noe på Samfunnet?
-            </p>
-            <p className="mt-0.5 text-foreground-muted">
-              Legg til arrangementet i listen — det gjennomgås av PR-gruppen og
-              publiseres innen 1–3 virkedager.
-            </p>
-          </div>
-          <Link
-            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-2 border-border bg-primary px-4 py-2.5 font-heading text-primary-foreground shadow-shadow"
-            href="/arrangementer/ny"
-          >
-            Legg til i listen
-          </Link>
-        </div>
       </div>
     </EventsProvider>
   )

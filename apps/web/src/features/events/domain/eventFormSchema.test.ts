@@ -11,6 +11,7 @@ const validEvent = {
       ...initialState.dates[0],
       startDate: "2026-08-20",
       startTime: "19:00",
+      endTime: "23:00",
     },
   ],
   submittedBy: "Kari Nordmann",
@@ -72,4 +73,33 @@ describe("eventFormSchema", () => {
       }
     },
   )
+})
+
+test.each(["startTime", "endTime"] as const)(
+  "requires %s on every dated row",
+  field => {
+    const result = eventFormSchema.safeParse({
+      ...validEvent,
+      dates: [
+        validEvent.dates[0],
+        { ...validEvent.dates[0], id: "second", [field]: "" },
+      ],
+    })
+    expect(result.success).toBe(false)
+    if (!result.success)
+      expect(
+        result.error.issues.some(
+          issue => issue.path.join(".") === `dates.1.${field}`,
+        ),
+      ).toBe(true)
+  },
+)
+
+test("accepts doors closing after midnight", () => {
+  expect(
+    eventFormSchema.safeParse({
+      ...validEvent,
+      dates: [{ ...validEvent.dates[0], startTime: "23:00", endTime: "02:00" }],
+    }).success,
+  ).toBe(true)
 })

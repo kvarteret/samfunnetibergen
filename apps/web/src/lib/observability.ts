@@ -7,6 +7,7 @@ import {
   trace,
 } from "@opentelemetry/api"
 import { logs, SeverityNumber } from "@opentelemetry/api-logs"
+import { scheduleTelemetryFlush } from "./telemetry-flush"
 
 const tracer = trace.getTracer("samfunnetibergen")
 const logger = logs.getLogger("samfunnetibergen")
@@ -62,12 +63,18 @@ export function emitOperationalEvent(
   event: string,
   fields: Record<string, OperationalField> = {},
 ): void {
+  const severity = event.endsWith(".failed")
+    ? { number: SeverityNumber.ERROR, text: "ERROR" }
+    : event.endsWith(".rejected")
+      ? { number: SeverityNumber.WARN, text: "WARN" }
+      : { number: SeverityNumber.INFO, text: "INFO" }
   logger.emit({
-    severityNumber: SeverityNumber.INFO,
-    severityText: "INFO",
+    severityNumber: severity.number,
+    severityText: severity.text,
     body: SENSITIVE_VALUE.test(event) ? "[redacted]" : event,
     attributes: buildOperationalAttributes(event, fields),
   })
+  scheduleTelemetryFlush()
 }
 
 export function buildOperationalAttributes(
@@ -101,6 +108,7 @@ export async function withOperationalSpan<T>(
       throw error
     } finally {
       span.end()
+      scheduleTelemetryFlush()
     }
   })
 }
