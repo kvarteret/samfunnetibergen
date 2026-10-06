@@ -46,3 +46,6 @@ Run `npm run test`, `npm run sanity:typegen`, `npm run route-typegen`, `npm run 
 
 Door opening and closing are mandatory for each dated submission row and in the Studio date schema. Blank optional rows remain ignored. Existing records are not migrated; editors must fill missing times before publishing edited records.
 
+## Luna analytics
+
+Each Luna request sends an awaited `$ai_generation` event to the existing Samfunnet i Bergen PostHog project. Events include the public TicketCo source, validated extracted fields, model, token counts, latency, source URL and safe failure labels. Internal calendar inputs and the model's booking evidence are omitted. PostHog failures do not fail event imports. `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` configure capture and are supplied by the GitHub production environment. Dry-runs still use Luna and record analytics; they do not create arrangements or Slack messages. PostHog estimates costs when it recognizes the model/provider; token counts remain useful even if custom Luna pricing is unavailable. See https://posthog.com/docs/ai-observability/installation/manual-capture.
