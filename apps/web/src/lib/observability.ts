@@ -62,9 +62,14 @@ export function emitOperationalEvent(
   event: string,
   fields: Record<string, OperationalField> = {},
 ): void {
+  const severity = event.endsWith(".failed")
+    ? { number: SeverityNumber.ERROR, text: "ERROR" }
+    : event.endsWith(".rejected")
+      ? { number: SeverityNumber.WARN, text: "WARN" }
+      : { number: SeverityNumber.INFO, text: "INFO" }
   logger.emit({
-    severityNumber: SeverityNumber.INFO,
-    severityText: "INFO",
+    severityNumber: severity.number,
+    severityText: severity.text,
     body: SENSITIVE_VALUE.test(event) ? "[redacted]" : event,
     attributes: buildOperationalAttributes(event, fields),
   })

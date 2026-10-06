@@ -119,23 +119,33 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Verify PostHog source-map credentials
+      - name: Verify PostHog production credentials
         shell: bash
         run: |
           set -euo pipefail
 
           missing=()
-          for name in POSTHOG_CLI_API_KEY POSTHOG_CLI_PROJECT_ID POSTHOG_CLI_HOST; do
+          for name in POSTHOG_CLI_API_KEY POSTHOG_CLI_PROJECT_ID POSTHOG_CLI_HOST NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN NEXT_PUBLIC_POSTHOG_HOST POSTHOG_API_KEY; do
             if [[ -z "${!name:-}" ]]; then
               missing+=("${name}")
             fi
           done
 
           if (( ${#missing[@]} > 0 )); then
-            echo "Missing required production source-map secrets: ${missing[*]}" >&2
+            echo "Missing required production PostHog secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+
+          if [[ ! "$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN" =~ ^phc_[a-zA-Z0-9_-]+$ ]] ||
+             [[ "$NEXT_PUBLIC_POSTHOG_HOST" != "https://eu.i.posthog.com" ]] ||
+             [[ "$POSTHOG_API_KEY" != "$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN" ]]; then
+            echo "Invalid or inconsistent PostHog capture credentials" >&2
             exit 1
           fi
         env:
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           POSTHOG_CLI_API_KEY: ${{ secrets.POSTHOG_CLI_API_KEY }}
           POSTHOG_CLI_PROJECT_ID: ${{ secrets.POSTHOG_CLI_PROJECT_ID }}
           POSTHOG_CLI_HOST: ${{ secrets.POSTHOG_CLI_HOST }}
@@ -156,6 +166,11 @@ jobs:
           # it writes is a placeholder. Pin the canonical production origin for
           # the prerendered metadata instead of relying on the pulled value.
           SITE_URL: https://www.samfunnetibergen.no
+          # Sensitive Vercel values are placeholders after pull. Supply the real
+          # capture credentials explicitly, just like the source-map credentials.
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
           NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
           NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
