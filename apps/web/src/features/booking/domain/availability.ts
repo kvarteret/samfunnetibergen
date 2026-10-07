@@ -4,6 +4,56 @@ import { rangesOverlap, timeToMinutes } from "@/lib/time"
 
 const MINUTES_IN_DAY = 1440
 
+/** Can any continuous booking fit between the two dates on the time picker's
+ * grid? Endpoint hours can shrink; collisions between them cannot. */
+export function canFitBookingSpan(
+  bookings: Pick<CresatBooking, "start" | "end">[],
+  startDate: string,
+  endDate: string,
+  startRanges: { startMin: number; endMin: number }[],
+  endRanges: { startMin: number; endMin: number }[],
+): boolean {
+  const multiDay = startDate !== endDate
+  const step = multiDay ? 60 : 15
+  const startBase = crescatLocalDateTimeMs(`${startDate}T00:00:00`)
+  const endBase = crescatLocalDateTimeMs(`${endDate}T00:00:00`)
+  const intervals = bookings.map(booking => ({
+    start: crescatLocalDateTimeMs(booking.start),
+    end: crescatLocalDateTimeMs(booking.end),
+  }))
+  for (const startRange of startRanges) {
+    for (
+      let start = Math.ceil(startRange.startMin / step) * step;
+      start <= Math.min(startRange.endMin, 1440 - step);
+      start += step
+    ) {
+      for (const endRange of endRanges) {
+        for (
+          let end = Math.ceil(endRange.startMin / step) * step;
+          end <= endRange.endMin;
+          end += step
+        ) {
+          const startMs = startBase + start * 60_000
+          const endMs = endBase + end * 60_000
+          if (endMs - startMs < 60 * 60_000) continue
+          if (
+            !multiDay &&
+            (end > startRange.endMin || end < startRange.startMin)
+          )
+            continue
+          if (
+            !intervals.some(interval =>
+              rangesOverlap(startMs, endMs, interval.start, interval.end),
+            )
+          )
+            return true
+        }
+      }
+    }
+  }
+  return false
+}
+
 // Absolute millisecond range for a slot, advancing the end past midnight when
 // the end time is at or before the start time.
 export function slotRangeMs(

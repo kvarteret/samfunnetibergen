@@ -68,6 +68,8 @@ export interface RoomBookingInput {
   startTime: string
   endTime: string
   description: string
+  // Crescat has no promotion field; preserve both answers in the description.
+  promote?: boolean
   audienceCount: number
   openOrClosed: "Åpent" | "Lukket"
   furniture: string
@@ -127,7 +129,7 @@ function baseBody(
     name: input.eventName,
     start,
     end,
-    description: input.description,
+    description: descriptionWithPromotion(input),
     request_by_email: input.contactEmail,
     request_by_name: input.contactName,
     request_by_phone: phone.phone,
@@ -208,11 +210,21 @@ const FLEXIBLE_DATES_NOTE =
   "Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre."
 
 function descriptionWithFlexible(input: RoomBookingInput): string {
-  if (!input.flexibleDates) return input.description
-  if (input.alternativeDates?.length) return input.description
-  return input.description.trim()
-    ? `${FLEXIBLE_DATES_NOTE}\n\n${input.description.trim()}`
+  const description = descriptionWithPromotion(input)
+  if (!input.flexibleDates) return description
+  if (input.alternativeDates?.length) return description
+  return description.trim()
+    ? `${FLEXIBLE_DATES_NOTE}\n\n${description.trim()}`
     : FLEXIBLE_DATES_NOTE
+}
+
+function descriptionWithPromotion(input: RoomBookingInput): string {
+  if (input.promote === undefined) return input.description
+  const answer = input.promote ? "Ja" : "Nei"
+  const choice = `Promotering: ${answer}`
+  return input.description.trim()
+    ? `${input.description.trim()}\n\n${choice}`
+    : choice
 }
 
 function roomBookingsFor(input: RoomBookingInput, start: string, end: string) {

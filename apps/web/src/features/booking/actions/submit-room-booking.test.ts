@@ -223,6 +223,30 @@ describe("submitRoomBooking", () => {
     )
   })
 
+  test.each(["ja", "nei"] as const)(
+    "sends promotion choice %s to Crescat",
+    async promote => {
+      fetchMock
+        .mockResolvedValueOnce(
+          new Response("", {
+            status: 200,
+            headers: [
+              ["set-cookie", "XSRF-TOKEN=abc123; Path=/"],
+              ["set-cookie", "crescat_session=xyz; Path=/"],
+            ],
+          }),
+        )
+        .mockResolvedValueOnce(new Response("", { status: 201 }))
+      const result = await submitRoomBooking(standardPayload({ promote }))
+      expect(result.ok).toBe(true)
+      const calls = fetchMock.mock.calls as Array<[string, RequestInit]>
+      const body = JSON.parse(calls[1][1].body as string)
+      expect(body.description).toContain(
+        `Promotering: ${promote === "ja" ? "Ja" : "Nei"}`,
+      )
+    },
+  )
+
   test("sends x-xsrf-token header on POST", async () => {
     fetchMock
       .mockResolvedValueOnce(

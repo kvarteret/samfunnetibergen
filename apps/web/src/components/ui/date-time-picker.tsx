@@ -1,9 +1,17 @@
 "use client"
 
-import { Popover } from "@base-ui/react/popover"
+import { Tooltip } from "@base-ui/react/tooltip"
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
+import { Check, LogIn, LogOut, Redo2 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
-import { type ReactNode, useState } from "react"
+import {
+  type ComponentProps,
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react"
 import type { DateRange } from "react-day-picker"
 import { enUS, nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
@@ -13,7 +21,8 @@ import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
 import {
   calendarBookingStatus,
-  formatConflictRange,
+  canFitBookingSpan,
+  formatBookingTime,
 } from "@/features/booking/domain/availability"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
@@ -232,7 +241,9 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
-  const [availabilityDate, setAvailabilityDate] = useState<string | null>(null)
+  const [availabilityHandle] = useState(() =>
+    Tooltip.createHandle<BookingAvailability>(),
+  )
   const locale = useLocale()
   const t = useTranslations("RoomBooking")
   const calendarLocale = locale === "en" ? enUS : nb
@@ -249,6 +260,41 @@ export function DateTimePicker({
 
   // Derived phase: if we have a start but no end, we're waiting for the end click
   const isSelectingEnd = Boolean(startDate && !endDate)
+
+  const resetDates = () => {
+    onStartDateChange("")
+    onEndDateChange("")
+    setHoveredDate(null)
+  }
+
+  useEffect(() => {
+    if (!startDate) return
+    const handleBackspace = (event: KeyboardEvent) => {
+      if (
+        (event.code !== "Backspace" && event.code !== "Space") ||
+        event.repeat ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        (event.target instanceof Element &&
+          event.target.closest(
+            "input, textarea, select, [role='slider'], [role='combobox'], [contenteditable]:not([contenteditable='false'])",
+          )) ||
+        (event.code === "Space" &&
+          event.target instanceof Element &&
+          event.target.closest("button, a, [role='button']") &&
+          !event.target.closest("[data-slot='calendar'], [data-booking-reset]"))
+      )
+        return
+      event.preventDefault()
+      onStartDateChange("")
+      onEndDateChange("")
+      setHoveredDate(null)
+    }
+    document.addEventListener("keydown", handleBackspace)
+    return () => document.removeEventListener("keydown", handleBackspace)
+  }, [startDate, onStartDateChange, onEndDateChange])
 
   const bookingStatus = (d: Date) => {
     const date = toDateString(d)
@@ -281,17 +327,20 @@ export function DateTimePicker({
   const isOccupied = (d: Date): boolean =>
     d >= todayDate && (isClosed(d) || bookingStatus(d).occupied)
 
-  // Occupancy is explained, rather than blocking date selection: a range may
-  // cross booked days, and the form reports the actual room/time conflicts.
+  // Partial occupancy remains selectable when the endpoint hours can fit.
   const isDisabled = (d: Date): boolean => d < todayDate
 
-  // Dates beyond the 7-day window are dimmed but stay clickable (they reset
-  // the range to a fresh start). Only applies while selecting an end date.
+  // Dates beyond the 7-day window are dimmed and cannot extend the range.
+  // Only applies while selecting an end date.
   // While extending, preview the range up to the hovered day.
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
   const isPreview = (d: Date): boolean => {
     if (!isSelectingEnd || !selectedRange.from || !hoveredDate) return false
-    if (hoveredDate <= selectedRange.from || isBeyondRange(hoveredDate))
+    if (
+      hoveredDate <= selectedRange.from ||
+      isBeyondRange(hoveredDate) ||
+      isSpanBlocked(hoveredDate)
+    )
       return false
     return d > selectedRange.from && d <= hoveredDate
   }
@@ -304,10 +353,16 @@ export function DateTimePicker({
   }
 
   const handleDayClick = (date: Date, disabled: boolean) => {
-    if (disabled || isClosed(date)) return
+    if (
+      disabled ||
+      isClosed(date) ||
+      isBeyondRange(date) ||
+      isSpanBlocked(date)
+    )
+      return
     if (isSelectingEnd && selectedRange.from) {
-      if (date < selectedRange.from || isBeyondRange(date)) {
-        // Clicked before start or outside max range → treat as new start
+      if (date < selectedRange.from) {
+        // Clicked before start → treat as new start
         onStartDateChange(toDateString(date))
         onEndDateChange("")
         return
@@ -319,180 +374,236 @@ export function DateTimePicker({
     }
   }
 
+  const fitCache = new Map<string, boolean>()
+  const isSpanBlocked = (date: Date): boolean => {
+    const end = toDateString(date)
+    const start = isSelectingEnd && end >= startDate ? startDate : end
+    const key = `${start}/${end}`
+    if (!fitCache.has(key)) {
+      const ranges = (day: string) =>
+        hasHours
+          ? combineOpeningRangesForDate(
+              day,
+              openingHours,
+              roomOpeningHours,
+              closedDates,
+              vacationMode,
+            )
+          : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
+      fitCache.set(
+        key,
+        !canFitBookingSpan(
+          calendarBookings,
+          start,
+          end,
+          ranges(start),
+          ranges(end),
+        ),
+      )
+    }
+    return fitCache.get(key) ?? false
+  }
+
   return (
     <div className="space-y-6">
-      <Calendar
-        className="w-full p-0"
-        classNames={{
-          months: "relative w-full flex flex-col sm:flex-row gap-6",
-          month: "flex-1 min-w-0 flex flex-col gap-4",
-          nav: "absolute inset-x-0 top-0 flex w-full items-center justify-between",
-          button_previous:
-            "size-9 flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
-          button_next:
-            "size-9 flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
-          month_caption:
-            "flex h-12 w-full items-center justify-center px-10 mb-2",
-          caption_label:
-            "font-heading text-lg text-foreground select-none first-letter:uppercase",
-          weekdays: "flex border-b border-border pb-2 mb-1",
-          weekday:
-            "flex-1 text-center text-xs text-foreground-muted select-none py-1 first-letter:uppercase",
-          week: "flex w-full",
-          day: "group/day relative flex-1 p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l [&:last-child[data-selected=true]_button]:rounded-r",
-          // Today is a small dot under the number, so it never competes with
-          // the selected range.
-          today:
-            "font-semibold [&_button]:after:absolute [&_button]:after:bottom-1.5 [&_button]:after:left-1/2 [&_button]:after:size-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-booking-today [&_button]:ring-2 [&_button]:ring-inset [&_button]:ring-booking-today/60",
-          disabled: "cursor-not-allowed opacity-35",
-          hidden: "invisible",
-          // One continuous tinted band from the first to the last day; the end
-          // days sit on it as solid red tiles.
-          range_start: "rounded-l-lg bg-booking-range",
-          range_middle: "rounded-none bg-booking-range",
-          range_end: "rounded-r-lg bg-booking-range",
+      <BookingCalendarContext.Provider
+        value={{
+          availabilityHandle,
+          selectionComplete: Boolean(startDate && endDate),
+          pendingStart: isSelectingEnd ? startDate : null,
+          calendarBookings,
+          bookingStatus,
+          isClosed,
+          todayDate,
+          hasHours,
+          openingHours,
+          roomOpeningHours,
+          closedDates,
+          vacationMode,
+          calendarLocale,
+          handleDayClick,
+          locale,
         }}
-        components={{
-          DayButton: ({
-            modifiers,
-            day,
-            onClick: _onClick,
-            className: dayButtonClassName,
-            ...props
-          }) => {
-            const mods = modifiers as Record<string, boolean>
-            const status = bookingStatus(day.date)
-            const closed = isClosed(day.date)
-            const showAvailability = mods.occupied && day.date >= todayDate
-            const dateString = toDateString(day.date)
-            const dayRanges = hasHours
-              ? combineOpeningRangesForDate(
-                  dateString,
-                  openingHours,
-                  roomOpeningHours,
-                  closedDates,
-                  vacationMode,
-                )
-              : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
-            const dayBookings = Array.from(
-              new Set(
-                calendarBookings
-                  .filter(
-                    booking =>
-                      calendarBookingStatus([booking], dateString, dayRanges)
-                        .occupied,
-                  )
-                  .map(formatConflictRange),
-              ),
-            )
-            const button = (
-              <CalendarDayButton
-                {...props}
-                className={cn(
-                  dayButtonClassName,
-                  "aspect-auto h-11 w-full rounded-lg text-sm font-normal tabular-nums transition-colors data-[range-middle=true]:bg-transparent focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
-                  isSelectingEnd
-                    ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
-                    : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
-                  (closed || status.fullyOccupied) &&
-                    "booking-stripes text-[var(--unavailable-foreground)] !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
-                  "data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
-                  !closed &&
-                    status.occupied &&
-                    !status.fullyOccupied &&
-                    "booking-partial",
-                  closed && "line-through",
-                  mods.beyond_range && "!opacity-25",
-                )}
-                day={day}
-                locale={calendarLocale}
-                modifiers={modifiers}
-                onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
-                variant="plain"
+      >
+        <Tooltip.Provider delay={0} closeDelay={120}>
+          <div>
+            <Calendar
+              className="w-full p-0"
+              classNames={{
+                months: "relative w-full flex flex-col sm:flex-row gap-6",
+                month: "flex-1 min-w-0 flex flex-col gap-4",
+                nav: "pointer-events-none absolute inset-x-0 top-0 flex w-full items-center justify-between",
+                button_previous:
+                  "pointer-events-auto size-9 cursor-pointer flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
+                button_next:
+                  "pointer-events-auto size-9 cursor-pointer flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
+                month_caption:
+                  "flex h-12 w-full items-center justify-center px-10 mb-2",
+                caption_label:
+                  "font-heading text-lg text-foreground select-none first-letter:uppercase",
+                weekdays: "flex border-b border-border pb-2 mb-1",
+                weekday:
+                  "flex-1 text-center text-xs text-foreground-muted select-none py-1 first-letter:uppercase",
+                month_grid: "w-full border-collapse border-spacing-0",
+                week: "m-0 flex w-full gap-0",
+                day: "group/day relative m-0 flex-1 border-0 p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l [&:last-child[data-selected=true]_button]:rounded-r",
+                // Today is a small dot under the number, so it never competes with
+                // the selected range.
+                today:
+                  "font-semibold [&_button]:after:absolute [&_button]:after:bottom-1.5 [&_button]:after:left-1/2 [&_button]:after:size-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-booking-today",
+                disabled: "cursor-not-allowed opacity-35",
+                hidden: "invisible",
+                // One continuous tinted band from the first to the last day; the end
+                // days sit on it as solid red tiles.
+                range_start: "rounded-l-lg bg-booking-range",
+                range_middle: "rounded-none bg-booking-range",
+                range_end: "rounded-r-lg bg-booking-range",
+              }}
+              components={{ DayButton: BookingCalendarDayButton }}
+              defaultMonth={todayDate}
+              disabled={isDisabled}
+              locale={calendarLocale}
+              mode="range"
+              modifiers={{
+                occupied: isOccupied,
+                beyond_range: isBeyondRange,
+                span_blocked: isSpanBlocked,
+                preview: isPreview,
+              }}
+              onDayMouseEnter={date => setHoveredDate(date)}
+              onDayMouseLeave={() => setHoveredDate(null)}
+              modifiersClassNames={{
+                beyond_range: "text-foreground-muted [&_button]:!opacity-25",
+                span_blocked: "[&_button]:!opacity-35",
+                preview: "bg-booking-range",
+              }}
+              numberOfMonths={2}
+              onMonthChange={month =>
+                onVisibleMonthChange?.(toDateString(month))
+              }
+              onSelect={() => {}}
+              selected={selectedRange}
+              showOutsideDays={false}
+              startMonth={todayDate}
+            />
+          </div>
+          <Tooltip.Root handle={availabilityHandle}>
+            {({ payload }) => (
+              <Tooltip.Portal>
+                <Tooltip.Positioner
+                  align="start"
+                  side="top"
+                  className="pointer-events-none z-[100] transition-transform duration-100 ease-out motion-reduce:transition-none"
+                  sideOffset={8}
+                >
+                  <Tooltip.Popup
+                    className={cn(
+                      "relative isolate max-w-64 cursor-default rounded-lg bg-popover px-3 py-2 text-popover-foreground shadow-shadow",
+                      !payload?.singleDay &&
+                        !payload?.completedEnd &&
+                        !payload?.restart &&
+                        !payload?.earlierStart &&
+                        !payload?.beyondRange &&
+                        !payload?.spanBlocked &&
+                        !payload?.closed &&
+                        !payload?.bookings.length &&
+                        "invisible",
+                    )}
+                  >
+                    {payload && (
+                      <ul className="space-y-1 text-xs tabular-nums">
+                        {(payload.completedEnd
+                          ? [t("dateTime.selectionDone")]
+                          : payload.singleDay
+                            ? [t("dateTime.onlyThisDay")]
+                            : payload.restart
+                              ? [t("dateTime.restartHere")]
+                              : payload.earlierStart
+                                ? [t("dateTime.firstDayHere")]
+                                : payload.beyondRange
+                                  ? [t("dateTime.rangeTooLong")]
+                                  : payload.spanBlocked
+                                    ? [t("dateTime.spanBlocked")]
+                                    : payload.closed
+                                      ? ["00:00 – 24:00"]
+                                      : payload.bookings
+                        ).map(range => (
+                          <li key={range} className="flex items-start gap-2">
+                            {payload.singleDay || payload.completedEnd ? (
+                              <Check
+                                aria-hidden="true"
+                                className="size-4 shrink-0 text-booking-today"
+                              />
+                            ) : payload.restart || payload.earlierStart ? (
+                              <Redo2
+                                aria-hidden="true"
+                                className="size-4 shrink-0"
+                              />
+                            ) : (
+                              <span
+                                aria-hidden="true"
+                                className="text-xl leading-4 font-semibold text-destructive"
+                              >
+                                ×
+                              </span>
+                            )}
+                            <span>{range}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            )}
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </BookingCalendarContext.Provider>
+
+      {startDate && (
+        <div className="flex flex-col items-start gap-2 text-xs text-foreground-muted">
+          <div className="flex items-center gap-2">
+            {endDate && (
+              <Check
+                aria-hidden="true"
+                className="size-4 shrink-0 text-booking-today"
               />
-            )
-            if (!showAvailability) return button
-            return (
-              <Popover.Root
-                open={availabilityDate === dateString}
-                onOpenChange={open =>
-                  setAvailabilityDate(open ? dateString : null)
-                }
-              >
-                <Popover.Trigger
-                  render={button}
-                  openOnHover
-                  delay={0}
-                  closeDelay={100}
-                />
-                <Popover.Portal>
-                  <Popover.Positioner className="z-[100]" sideOffset={8}>
-                    <Popover.Popup className="relative isolate w-56 space-y-1.5 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-shadow">
-                      <p className="font-heading">
-                        {day.date.toLocaleDateString(
-                          locale === "en" ? "en-GB" : "nb-NO",
-                          { day: "numeric", month: "long" },
-                        )}
-                      </p>
-                      <p className="text-sm">
-                        {t(
-                          closed
-                            ? "dateTime.dayClosed"
-                            : "dateTime.roomOccupied",
-                        )}
-                      </p>
-                      {!closed && (
-                        <>
-                          <ul className="space-y-1 text-sm">
-                            {dayBookings.slice(0, 3).map(booking => (
-                              <li key={booking}>{booking}</li>
-                            ))}
-                          </ul>
-                          {dayBookings.length > 3 && (
-                            <details className="text-sm">
-                              <summary className="cursor-pointer">
-                                {t("schedule.showMoreConflicts", {
-                                  count: dayBookings.length - 3,
-                                })}
-                              </summary>
-                              <ul>
-                                {dayBookings.slice(3).map(booking => (
-                                  <li key={booking}>{booking}</li>
-                                ))}
-                              </ul>
-                            </details>
-                          )}
-                        </>
-                      )}
-                    </Popover.Popup>
-                  </Popover.Positioner>
-                </Popover.Portal>
-              </Popover.Root>
-            )
-          },
-        }}
-        defaultMonth={todayDate}
-        disabled={isDisabled}
-        locale={calendarLocale}
-        mode="range"
-        modifiers={{
-          occupied: isOccupied,
-          beyond_range: isBeyondRange,
-          preview: isPreview,
-        }}
-        onDayMouseEnter={date => setHoveredDate(date)}
-        onDayMouseLeave={() => setHoveredDate(null)}
-        modifiersClassNames={{
-          beyond_range: "text-foreground-muted [&_button]:!opacity-25",
-          preview: "bg-booking-range",
-        }}
-        numberOfMonths={2}
-        onMonthChange={month => onVisibleMonthChange?.(toDateString(month))}
-        onSelect={() => {}}
-        selected={selectedRange}
-        showOutsideDays={false}
-        startMonth={todayDate}
-      />
+            )}
+            <span>
+              {endDate
+                ? t("dateTime.rangeSelected", {
+                    start: new Date(`${startDate}T00:00:00`).toLocaleDateString(
+                      locale === "en" ? "en-GB" : "nb-NO",
+                      { day: "numeric", month: "long" },
+                    ),
+                    end: new Date(`${endDate}T00:00:00`).toLocaleDateString(
+                      locale === "en" ? "en-GB" : "nb-NO",
+                      { day: "numeric", month: "long" },
+                    ),
+                  })
+                : t("dateTime.startSelected", {
+                    date: new Date(`${startDate}T00:00:00`).toLocaleDateString(
+                      locale === "en" ? "en-GB" : "nb-NO",
+                      { day: "numeric", month: "long" },
+                    ),
+                  })}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="neutral"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            aria-label={t("dateTime.resetDates")}
+            aria-keyshortcuts="Backspace Space"
+            data-booking-reset
+            onClick={resetDates}
+          >
+            <kbd className="font-sans text-sm leading-none">␣</kbd>
+            {t("dateTime.resetDates")}
+          </Button>
+        </div>
+      )}
 
       <CalendarLegend
         items={[
@@ -511,7 +622,8 @@ export function DateTimePicker({
             label: t("dateTime.legendPartlyBooked"),
           },
           {
-            swatch: "ring-2 ring-inset ring-booking-today",
+            swatch:
+              "relative after:absolute after:inset-1.5 after:rounded-full after:bg-booking-today",
             label: t("dateTime.legendToday"),
           },
         ]}
@@ -546,6 +658,167 @@ export function DateTimePicker({
         )}
       </div>
     </div>
+  )
+}
+
+interface BookingAvailability {
+  completedEnd: boolean
+  singleDay: boolean
+  earlierStart: boolean
+  date: Date
+  restart: boolean
+  beyondRange: boolean
+  spanBlocked: boolean
+  closed: boolean
+  bookings: string[]
+}
+
+interface BookingCalendarContextValue {
+  pendingStart: string | null
+  selectionComplete: boolean
+  availabilityHandle: ReturnType<
+    typeof Tooltip.createHandle<BookingAvailability>
+  >
+  calendarBookings: Pick<CresatBooking, "start" | "end">[]
+  bookingStatus: (date: Date) => ReturnType<typeof calendarBookingStatus>
+  isClosed: (date: Date) => boolean
+  todayDate: Date
+  hasHours: boolean
+  openingHours: OpeningHours | null
+  roomOpeningHours: OpeningHours | null
+  closedDates: ClosedDate[]
+  vacationMode?: VacationMode | null
+  calendarLocale: typeof nb
+  handleDayClick: (date: Date, disabled: boolean) => void
+  locale: string
+}
+
+const BookingCalendarContext =
+  createContext<BookingCalendarContextValue | null>(null)
+
+// Stable component identity lets Base UI finish transitions during hover updates.
+function BookingCalendarDayButton({
+  modifiers,
+  day,
+  onClick: _onClick,
+  className: dayButtonClassName,
+  ...props
+}: ComponentProps<typeof CalendarDayButton>) {
+  const context = useContext(BookingCalendarContext)
+  if (!context) throw new Error("Booking calendar context is required")
+  const {
+    availabilityHandle,
+    selectionComplete,
+    pendingStart,
+    calendarBookings,
+    bookingStatus,
+    isClosed,
+    todayDate,
+    hasHours,
+    openingHours,
+    roomOpeningHours,
+    closedDates,
+    vacationMode,
+    calendarLocale,
+    handleDayClick,
+  } = context
+  const mods = modifiers as Record<string, boolean>
+  const status = bookingStatus(day.date)
+  const closed = isClosed(day.date)
+  const restart =
+    selectionComplete && !closed && !mods.disabled && !mods.span_blocked
+  const earlierStart = Boolean(
+    pendingStart &&
+      toDateString(day.date) < pendingStart &&
+      !closed &&
+      !mods.disabled &&
+      !mods.span_blocked,
+  )
+  const singleDay = Boolean(
+    pendingStart && toDateString(day.date) === pendingStart,
+  )
+  const completedEnd = selectionComplete && Boolean(mods.range_end)
+  const dateString = toDateString(day.date)
+  const dayRanges = hasHours
+    ? combineOpeningRangesForDate(
+        dateString,
+        openingHours,
+        roomOpeningHours,
+        closedDates,
+        vacationMode,
+      )
+    : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
+  const dayBookings = Array.from(
+    new Set(
+      calendarBookings
+        .filter(
+          booking =>
+            calendarBookingStatus([booking], dateString, dayRanges).occupied,
+        )
+        .map(
+          booking =>
+            `${formatBookingTime(booking.start)} – ${formatBookingTime(booking.end)}`,
+        ),
+    ),
+  )
+  const button = (
+    <CalendarDayButton
+      {...props}
+      className={cn(
+        dayButtonClassName,
+        "aspect-auto h-11 w-full rounded-lg text-sm font-normal tabular-nums transition-colors hover:bg-secondary-100 data-[range-middle=true]:bg-transparent [&:not(:focus-visible)]:ring-0 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
+        (closed || status.fullyOccupied) &&
+          "booking-stripes text-[var(--unavailable-foreground)] !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
+        "data-[selected-single=true]:bg-booking-selected data-[selected-single=true]:text-booking-selected-foreground data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
+        !closed &&
+          status.occupied &&
+          !status.fullyOccupied &&
+          "booking-partial",
+        closed && "line-through",
+        mods.beyond_range && "!opacity-25",
+      )}
+      day={day}
+      aria-disabled={Boolean(
+        mods.disabled || mods.beyond_range || mods.span_blocked,
+      )}
+      locale={calendarLocale}
+      modifiers={modifiers}
+      onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
+      variant="plain"
+    >
+      {props.children}
+      {mods.range_start && (
+        <LogIn
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1 left-1 !size-3"
+        />
+      )}
+      {mods.range_end && (
+        <LogOut
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1 right-1 !size-3"
+        />
+      )}
+    </CalendarDayButton>
+  )
+  if (day.date < todayDate) return button
+  return (
+    <Tooltip.Trigger
+      handle={availabilityHandle}
+      closeOnClick={false}
+      payload={{
+        date: day.date,
+        singleDay,
+        completedEnd,
+        restart,
+        earlierStart,
+        beyondRange: Boolean(mods.beyond_range),
+        spanBlocked: Boolean(mods.span_blocked),
+        closed,
+        bookings: dayBookings,
+      }}
+      render={button}
+    />
   )
 }
 

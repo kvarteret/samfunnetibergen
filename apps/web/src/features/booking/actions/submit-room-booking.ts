@@ -74,6 +74,7 @@ const payloadSchema = z.object({
     .array(z.union([z.literal(""), z.string().regex(timeRegex)]))
     .optional(),
   description: z.string().trim().default(""),
+  promote: z.boolean(),
   audienceCount: z.number().int().min(0),
   openOrClosed: z.enum(["Åpent", "Lukket"]),
   furniture: z.string().trim().min(1),

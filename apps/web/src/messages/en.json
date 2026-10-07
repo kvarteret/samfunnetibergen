@@ -199,7 +199,15 @@
       "hintStart": "Click the first day in the calendar.",
       "hintExtend": "Done for a single day. Need more days? Click the last day (up to 7 days).",
       "hintRange": "Click a day to start over.",
-      "resetDates": "Choose dates again",
+      "startSelected": "Booking starts from {date}.",
+      "rangeSelected": "Booking starts from {start}, ends {end}.",
+      "rangeTooLong": "Cannot select more than one week",
+      "spanBlocked": "No available time in this date range",
+      "restartHere": "Start over from here",
+      "firstDayHere": "This is before the start date. Start over here?",
+      "onlyThisDay": "Click again for this day only.",
+      "selectionDone": "Yey!",
+      "resetDates": "Start over",
       "legendPartlyBooked": "Partly booked",
       "dayClosed": "Closed",
       "dayFullyBooked": "Fully booked",
@@ -290,10 +298,9 @@
     },
     "promotion": {
       "sectionTitle": "Promotion",
-      "question": "Would you like Studentersamfunnet to promote your event through its channels?",
-      "yes": "Yes, please",
-      "no": "No, thanks",
-      "followUp": "We will email you a link after the booking has been submitted."
+      "question": "I consent to Studentersamfunnet promoting this event on its channels.",
+      "yes": "Yes please!",
+      "no": "No."
     },
     "terms": {
       "sectionTitle": "Terms",

@@ -15,6 +15,25 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+// Keep the root mounted when hover previews update the calendar. An inline
+// component here remounts every date button and interrupts tooltip events.
+function CalendarRoot({
+  className,
+  rootRef,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  rootRef?: React.Ref<HTMLDivElement>
+}) {
+  return (
+    <div
+      data-slot="calendar"
+      ref={rootRef}
+      className={cn(className)}
+      {...props}
+    />
+  )
+}
+
 function Calendar({
   className,
   classNames,
@@ -137,16 +156,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
-          return (
-            <div
-              data-slot="calendar"
-              ref={rootRef}
-              className={cn(className)}
-              {...props}
-            />
-          )
-        },
+        Root: CalendarRoot,
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (

@@ -174,6 +174,21 @@ const TermsDialog = forwardRef<HTMLDialogElement, TermsDialogProps>(
       <dialog
         className="m-auto max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-sm border-2 border-border bg-background p-0 shadow-lg backdrop:bg-black/50"
         ref={ref}
+        onPointerDown={event => {
+          if (event.target !== event.currentTarget) return
+          const bounds = event.currentTarget.getBoundingClientRect()
+          if (
+            event.clientX < bounds.left ||
+            event.clientX > bounds.right ||
+            event.clientY < bounds.top ||
+            event.clientY > bounds.bottom
+          )
+            onClose()
+        }}
+        onCancel={event => {
+          event.preventDefault()
+          onClose()
+        }}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-border bg-background p-4">
           <h2 className="font-heading text-xl">{title}</h2>

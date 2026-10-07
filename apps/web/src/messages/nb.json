@@ -115,7 +115,7 @@
     },
     "booker": {
       "sectionTitle": "Hvem booker",
-      "private": "Privat",
+      "private": "Ekstern",
       "privateHint": "Privatpersoner og bedrifter.",
       "studentOrganization": "Studentorganisasjon",
       "studentOrganizationHint": "Registrert under Studentbergen.no.",
@@ -198,7 +198,15 @@
       "hintStart": "Klikk første dag i kalenderen.",
       "hintExtend": "Ferdig for én dag. Vil du ha flere dager? Klikk siste dag (maks 7 dager).",
       "hintRange": "Klikk en dag for å begynne på nytt.",
-      "resetDates": "Velg datoer på nytt",
+      "startSelected": "Booking starter fra {date}.",
+      "rangeSelected": "Booking starter fra {start}, varer til {end}.",
+      "rangeTooLong": "Kan ikke velge mer enn en uke",
+      "spanBlocked": "Ingen ledig tid i dette tidsrommet",
+      "restartHere": "Start på nytt herifra",
+      "firstDayHere": "Dette er før startdato. Start på nytt her?",
+      "onlyThisDay": "Klikk igjen for kun denne dagen.",
+      "selectionDone": "Du er god!",
+      "resetDates": "Start på nytt",
       "legendPartlyBooked": "Delvis opptatt",
       "dayClosed": "Stengt",
       "dayFullyBooked": "Helt opptatt",
@@ -289,10 +297,9 @@
     },
     "promotion": {
       "sectionTitle": "Promotering",
-      "question": "Ønsker du at Studentersamfunnet promoterer ditt arrangement på sine kanaler?",
-      "yes": "Ja, takk",
-      "no": "Nei, takk",
-      "followUp": "Vi sender en lenke på e-post etter bookingen er sendt."
+      "question": "Jeg godkjenner at Studentersamfunnet kan promotere dette arrangementet på sine kanaler.",
+      "yes": "Ja takk!",
+      "no": "Nei."
     },
     "terms": {
       "sectionTitle": "Vilkår",
@@ -373,7 +380,7 @@
       "outsideOpeningHours": "Velg et tidsrom innenfor åpningstiden."
     },
     "bookerLabels": {
-      "private": "Privat",
+      "private": "Ekstern",
       "studentOrganization": "Studentorganisasjon",
       "internal": "Intern"
     }

@@ -3,9 +3,32 @@ import { describe, expect, test } from "vitest"
 import {
   computeTickMarks,
   formatDurationLabel,
+  isBookingTimeAvailable,
   occupiedStripeSegments,
   timeIndexWithin,
 } from "./time-range-slider"
+
+describe("isBookingTimeAvailable", () => {
+  const occupied = [{ startMin: 17 * 60, endMin: 21 * 60 }]
+  test("rejects end times after a collision even when the endpoint is free", () => {
+    expect(isBookingTimeAvailable(12 * 60, 22 * 60, occupied)).toBe(false)
+    expect(isBookingTimeAvailable(12 * 60, 16 * 60, occupied)).toBe(true)
+  })
+  test("allows a new booking after the occupied interval", () => {
+    expect(isBookingTimeAvailable(21 * 60, 23 * 60, occupied)).toBe(true)
+  })
+  test("allows touching endpoints but requires at least one hour", () => {
+    expect(isBookingTimeAvailable(16 * 60, 17 * 60, occupied)).toBe(true)
+    expect(isBookingTimeAvailable(16 * 60 + 15, 17 * 60, occupied)).toBe(false)
+  })
+  test("checks intermediate days and midnight crossings", () => {
+    expect(
+      isBookingTimeAvailable(23 * 60, 1440 + 3 * 60, [
+        { startMin: 1440, endMin: 1440 + 2 * 60 },
+      ]),
+    ).toBe(false)
+  })
+})
 
 describe("timeIndexWithin", () => {
   const marks = [600, 660, 720, 1440 + 600] // 10:00, 11:00, 12:00, day 2 10:00

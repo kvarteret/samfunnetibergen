@@ -317,6 +317,17 @@ describe("buildInternalBooking", () => {
 })
 
 describe("buildRoomBooking", () => {
+  test.each(["ekstern", "studentorg", "intern"] as const)(
+    "%s preserves both promotion answers in the request description",
+    bookerType => {
+      for (const promote of [true, false] as const) {
+        const body = buildRoomBooking(bookerType, { ...BASE_INPUT, promote })
+        expect(body.description).toBe(
+          `${BASE_INPUT.description}\n\nPromotering: ${promote ? "Ja" : "Nei"}`,
+        )
+      }
+    },
+  )
   test("ekstern uses external builder", () => {
     const body = buildRoomBooking("ekstern", BASE_INPUT)
     // External builder has "Mat og drikke" section
