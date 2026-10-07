@@ -36,6 +36,7 @@ export type PublicParentSummary = {
   _updatedAt: string | null
   eventKind: PublicEventKind
   eventStatus: EventStatus
+  rrule: string | null
   slug: string
   title: string
 }
@@ -136,6 +137,7 @@ export type RawPublicParent = {
   _updatedAt?: string | null
   eventKind?: string | null
   eventStatus?: EventStatus | null
+  rrule?: string | null
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
@@ -423,6 +425,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
           _updatedAt: cleanParent._updatedAt ?? null,
           eventKind: normalizeEventKind(cleanParent.eventKind),
           eventStatus: cleanParent.eventStatus ?? "scheduled",
+          rrule: normalizeString(cleanParent.rrule),
           slug: cleanParent.slug ?? "",
           title: normalizeString(cleanParent.title) ?? MISSING_TITLE,
         }

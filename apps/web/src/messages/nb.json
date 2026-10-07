@@ -47,12 +47,15 @@
   "EventCard": {
     "today": "I dag",
     "tomorrow": "I morgen",
-    "recurringDaily": "Hver dag",
-    "recurringWeekly": "Hver uke",
-    "recurringMonthly": "Hver måned",
-    "recurringGeneric": "Gjentagende",
+    "recurringDaily": "Daglig",
+    "recurringWeekly": "Ukentlig",
+    "recurringMonthly": "Månedlig",
+    "recurringGeneric": "Gjentakende",
     "timePrefix": "",
-    "statusCancelled": "Kansellert"
+    "statusCancelled": "Kansellert",
+    "recurringWeeklyOn": "Hver {weekday}",
+    "runDays": "{count, plural, one {# dag} other {# dager}}",
+    "programmeEvents": "{count, plural, one {# arrangement} other {# arrangementer}}"
   },
   "EventsPage": {
     "title": "Arrangementer",
@@ -384,12 +387,10 @@
     "childEvents": "Program",
     "statusCancelled": "Kansellert",
     "festivalBrowseDays": "Velg en dag",
-    "festivalEvents": "arrangementer",
-    "festivalDays": "dager",
-    "festivalAbout": "Om festivalen og praktisk informasjon",
-    "festivalDetails": "Les mer",
     "festivalTimeUnknown": "Tid kommer",
-    "festivalEmpty": "Programmet publiseres snart."
+    "festivalEmpty": "Programmet publiseres snart.",
+    "recurrence": "Gjentakelse",
+    "upcomingDates": "Kommende datoer"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",

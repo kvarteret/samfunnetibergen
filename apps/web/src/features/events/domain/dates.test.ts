@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { formatHumanDate, formatWeekday } from "./dates"
+import {
+  buildCardDateLabels,
+  formatFestivalRun,
+  formatHumanDate,
+  formatWeekday,
+  getRecurringLabel,
+} from "./dates"
 
 const labels = {
   today: "I dag",
@@ -65,4 +71,76 @@ test("accepts an explicit reference instant across Oslo midnight", () => {
       new Date("2026-09-13T21:30:00Z"),
     ),
   ).toBe("I morgen")
+})
+
+const recurring = {
+  daily: "Daglig",
+  weekly: "Ukentlig",
+  monthly: "Månedlig",
+  generic: "Gjentakende",
+  weeklyOn: (weekday: string) => `Hver ${weekday}`,
+}
+
+describe("getRecurringLabel", () => {
+  test("names the weekday of a weekly series", () => {
+    expect(getRecurringLabel("FREQ=WEEKLY;BYDAY=WE", recurring, "onsdag")).toBe(
+      "Hver onsdag",
+    )
+    expect(getRecurringLabel("FREQ=WEEKLY", recurring)).toBe("Ukentlig")
+    expect(
+      getRecurringLabel("FREQ=WEEKLY;INTERVAL=2", recurring, "onsdag"),
+    ).toBe("Gjentakende")
+  })
+})
+
+describe("festival cards", () => {
+  const cardLabels = {
+    ...labels,
+    days: (count: number) => `${count} dager`,
+    events: (count: number) => `${count} arrangementer`,
+    weekdayName: (date: Date) => formatWeekday(date, "nb").toLowerCase(),
+    recurring,
+  }
+  const now = new Date("2026-10-01T12:00:00Z")
+  const dates = [
+    {
+      _key: "a",
+      startDate: "2026-10-15",
+      startTime: "12:30",
+      endTime: "14:10",
+    },
+    { _key: "b", startDate: "2026-10-15", startTime: "15:00", endTime: null },
+    { _key: "c", startDate: "2026-10-22", startTime: "21:00", endTime: null },
+  ]
+
+  test("spans the whole run from the first start time", () => {
+    expect(formatFestivalRun(dates, cardLabels, now)).toBe(
+      "15. oktober 2026, 12:30 · 8 dager",
+    )
+  })
+
+  test("counts programme events instead of listing dates", () => {
+    const result = buildCardDateLabels(
+      { eventKind: "festivalParent", dates },
+      "2026-10-01",
+      cardLabels,
+      now,
+    )
+    expect(result.programmeLabel).toBe("3 arrangementer")
+    expect(result.recurringLabel).toBeNull()
+  })
+
+  test("reads a series instance's rhythm from its parent", () => {
+    const result = buildCardDateLabels(
+      {
+        eventKind: "seriesInstance",
+        dates: [{ _key: "x", startDate: "2026-10-07", startTime: "16:30" }],
+        parentEvent: { rrule: "FREQ=WEEKLY;BYDAY=WE" },
+      },
+      "2026-10-01",
+      cardLabels,
+      now,
+    )
+    expect(result.recurringLabel).toBe("Hver onsdag")
+  })
 })

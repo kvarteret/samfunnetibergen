@@ -35,3 +35,9 @@ export function festivalDate(
     timeZone: "Europe/Oslo",
   }).format(new Date(`${date}T12:00:00Z`))
 }
+
+/** Calendar days from the first to the last programme day, inclusive. */
+export function festivalRunDays(firstDate: string, lastDate: string): number {
+  const toDay = (date: string) => Date.parse(`${date}T00:00:00Z`) / 86_400_000
+  return toDay(lastDate) - toDay(firstDate) + 1
+}
