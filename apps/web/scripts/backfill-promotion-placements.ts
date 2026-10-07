@@ -124,13 +124,11 @@ async function promotionPeriods(documentId: string): Promise<Period[]> {
   return periods.filter((period): period is Period => period.until !== null)
 }
 
-/** RFC 4122 version 5 uuid, so a source event always maps to the same copy. */
-function uuidV5(name: string) {
-  const namespace = Buffer.from(UUID_NAMESPACE.replace(/-/g, ""), "hex")
-  const hash = createHash("sha1")
-    .update(Buffer.concat([namespace, Buffer.from(name)]))
-    .digest()
-  hash[6] = (hash[6] & 0x0f) | 0x50
+/** RFC 9562 version 8 uuid from SHA-256, so a source event always maps to
+ * the same copy. */
+function deterministicUuid(name: string) {
+  const hash = createHash("sha256").update(`${UUID_NAMESPACE}:${name}`).digest()
+  hash[6] = (hash[6] & 0x0f) | 0x80
   hash[8] = (hash[8] & 0x3f) | 0x80
   const hex = hash.subarray(0, 16).toString("hex")
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
@@ -277,7 +275,7 @@ async function main() {
   const batch = [
     ...sessions.map(source => ({
       event: "event_placement_viewed",
-      uuid: uuidV5(`viewed:${source.source_uuid}`),
+      uuid: deterministicUuid(`viewed:${source.source_uuid}`),
       distinct_id: source.source_distinct_id,
       timestamp: toIso(source.ts),
       properties: placement("every front-page session saw it", source),
@@ -285,7 +283,7 @@ async function main() {
     // A click comes just before the page view it led to.
     ...views.map(source => ({
       event: "event_placement_clicked",
-      uuid: uuidV5(`clicked:${source.source_uuid}`),
+      uuid: deterministicUuid(`clicked:${source.source_uuid}`),
       distinct_id: source.source_distinct_id,
       timestamp: toIso(source.ts, -1000),
       properties: placement("every event page view came from it", source),
