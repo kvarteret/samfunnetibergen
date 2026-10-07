@@ -36,8 +36,7 @@ export const FORMATS: Array<{
   {
     kind: "festivalParent",
     title: "Festival",
-    description:
-      "Egen festivalside som samler festivaldager. Hver dag vises i kalenderen.",
+    description: "Festivaler innebærer at hver dag er unik.",
   },
 ]
 
