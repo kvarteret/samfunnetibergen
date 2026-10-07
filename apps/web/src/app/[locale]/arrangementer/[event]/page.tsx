@@ -92,7 +92,11 @@ export default async function EventPage({ params }: EventPageProps) {
     <>
       {eventJsonLd && <JsonLd data={eventJsonLd} />}
       <article
-        className="flex w-full flex-col gap-8"
+        className={
+          isFestival
+            ? "flex w-full flex-col gap-4"
+            : "flex w-full flex-col gap-8"
+        }
         {...eventTrackingAttributes(eventData, "event-detail")}
       >
         <ContentPageViewTracking
@@ -120,30 +124,43 @@ export default async function EventPage({ params }: EventPageProps) {
             partOfLabel={t("partOf")}
           />
         )}
-        {isFestival && (
-          <FestivalProgramme
-            days={festivalDays}
-            locale={locale}
-            labels={festivalLabels}
-          />
-        )}
-        {isFestival && (
-          <h2
-            id="festival-about"
-            className="scroll-mt-24 border-t-2 border-border pt-8 font-heading text-3xl"
-          >
-            {t("festivalAbout")}
-          </h2>
-        )}
-        <EventDetailDescription
-          event={eventData}
-          eventSlug={resolvedParams.event}
-          t={t}
-        />
         {isFestival ? (
-          <EventDetailMetaSidebar event={eventData} t={t} />
+          <>
+            <section
+              id="festival-about"
+              className="scroll-mt-24 space-y-2 text-base text-foreground-muted"
+            >
+              <PortableTextContent
+                value={eventData.description}
+                nofollowLinks
+              />
+              <p>
+                <span className="font-heading text-foreground">
+                  {t("price")}:{" "}
+                </span>
+                {formatPrices(eventData) ?? "-"}
+              </p>
+            </section>
+            <FestivalProgramme
+              days={festivalDays}
+              locale={locale}
+              labels={festivalLabels}
+            />
+            <EventDetailActions
+              event={eventData}
+              eventSlug={resolvedParams.event}
+              t={t}
+            />
+          </>
         ) : (
-          <EventDetailScheduleAndMeta event={eventData} t={t} />
+          <>
+            <EventDetailDescription
+              event={eventData}
+              eventSlug={resolvedParams.event}
+              t={t}
+            />
+            <EventDetailScheduleAndMeta event={eventData} t={t} />
+          </>
         )}
         {!isFestival && childEvents.length > 0 && (
           <EventChildList childEvents={childEvents} t={t} />

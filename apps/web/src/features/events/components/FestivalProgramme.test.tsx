@@ -95,7 +95,7 @@ describe("festival programme", () => {
     expect(html).toContain("Time to be announced")
   })
 
-  it("preserves festival artwork and shows the actual programme range", () => {
+  it("uses a compact text header and shows the actual programme range", () => {
     const children = [
       event("first", [{ startDate: "2026-10-15", startTime: "12:30" }]),
       event("last", [{ startDate: "2026-10-22", startTime: "21:00" }]),
@@ -113,11 +113,11 @@ describe("festival programme", () => {
         labels={labels}
       />,
     )
-    expect(html).toContain("object-contain")
+    expect(html).not.toContain("<img")
     expect(html).toContain("15 Oct – 22 Oct")
-    expect(html).toContain("2 events · 2 days")
+    expect(html).toContain("2 events")
     expect(html).toContain("Tivoli")
-    expect(html).toContain('href="#festival-programme"')
+    expect(html).not.toContain("aspect-square")
   })
 
   it("shows sold-out state without a purchase button and handles an empty programme", () => {

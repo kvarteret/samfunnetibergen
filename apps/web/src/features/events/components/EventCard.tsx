@@ -134,6 +134,7 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   event: EventSummary
   priority?: boolean
   showRoom?: boolean
+  showFestivalBadge?: boolean
   trackingSurface?: string
   trackingPosition?: number
 }
@@ -145,6 +146,7 @@ export function EventCard({
   event,
   priority = false,
   showRoom = true,
+  showFestivalBadge = true,
   size,
   trackingSurface = "events-list",
   trackingPosition,
@@ -183,6 +185,7 @@ export function EventCard({
           imageUrl={imageUrl}
           isEditorial={isEditorial}
           priority={priority}
+          showFestivalBadge={showFestivalBadge}
         />
 
         <CardContent
@@ -228,6 +231,7 @@ function EventCardMedia({
   imageUrl,
   isEditorial,
   priority,
+  showFestivalBadge,
 }: {
   cardSize: EventCardSize
   cardVariant: EventCardVariant
@@ -235,6 +239,7 @@ function EventCardMedia({
   imageUrl: string | null
   isEditorial: boolean
   priority: boolean
+  showFestivalBadge: boolean
 }) {
   if (!imageUrl && !isEditorial) return null
 
@@ -269,16 +274,17 @@ function EventCardMedia({
           {event.title}
         </div>
       )}
-      {(event.eventKind === "festivalParent" ||
-        event.eventKind === "festivalSession") && (
-        <Tag
-          variant="accent"
-          className="absolute bottom-3 right-3 gap-1.5 text-sm"
-        >
-          <Tent className="size-4" aria-hidden />
-          Festival
-        </Tag>
-      )}
+      {showFestivalBadge &&
+        (event.eventKind === "festivalParent" ||
+          event.eventKind === "festivalSession") && (
+          <Tag
+            variant="accent"
+            className="absolute bottom-3 right-3 gap-1.5 text-sm"
+          >
+            <Tent className="size-4" aria-hidden />
+            Festival
+          </Tag>
+        )}
     </div>
   )
 }
