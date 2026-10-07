@@ -188,7 +188,7 @@
       "notEnoughTimes": "Ikke nok tidspunkt for å vise en tidsvelger.",
       "legendSelected": "Start og slutt",
       "legendInRange": "Del av bookingen",
-      "legendUnavailable": "Stengt eller opptatt",
+      "legendUnavailable": "Stengt eller helt opptatt",
       "legendToday": "I dag",
       "legendBooking": "Din booking",
       "legendNight": "Dager mellom start og slutt – endres i kalenderen over",
@@ -198,7 +198,13 @@
       "hintStart": "Klikk første dag i kalenderen.",
       "hintExtend": "Ferdig for én dag. Vil du ha flere dager? Klikk siste dag (maks 7 dager).",
       "hintRange": "Klikk en dag for å begynne på nytt.",
-      "resetDates": "Velg datoer på nytt"
+      "resetDates": "Velg datoer på nytt",
+      "legendPartlyBooked": "Delvis opptatt",
+      "dayClosed": "Ingen leietider denne dagen. Velg en annen dato.",
+      "dayFullyBooked": "Crescat viser at hele leietiden er opptatt.",
+      "dayPartlyBooked": "Deler av leietiden er opptatt. Det finnes også ledige timer.",
+      "crescatBookings": "Reserverte tider i Crescat:",
+      "bookedDateHint": "Du kan velge datoen eller et tidsrom over flere dager. Konflikter med valgt rom og tidspunkt vises under tidsvelgeren og må løses før innsending."
     },
     "event": {
       "sectionTitle": "Arrangement",

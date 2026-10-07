@@ -1,5 +1,6 @@
 "use client"
 
+import { Popover } from "@base-ui/react/popover"
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
 import { useLocale, useTranslations } from "next-intl"
 import { type ReactNode, useState } from "react"
@@ -10,7 +11,10 @@ import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { CalendarLegend } from "@/components/ui/legend"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
-import { calendarBookingStatus } from "@/features/booking/domain/availability"
+import {
+  calendarBookingStatus,
+  formatConflictRange,
+} from "@/features/booking/domain/availability"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
@@ -305,6 +309,7 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
+  const [availabilityDate, setAvailabilityDate] = useState<string | null>(null)
   const locale = useLocale()
   const t = useTranslations("RoomBooking")
   const calendarLocale = locale === "en" ? enUS : nb
@@ -353,8 +358,9 @@ export function DateTimePicker({
   const isOccupied = (d: Date): boolean =>
     d >= todayDate && (isClosed(d) || bookingStatus(d).occupied)
 
-  const isDisabled = (d: Date): boolean =>
-    d < todayDate || isClosed(d) || bookingStatus(d).fullyOccupied
+  // Occupancy is explained, rather than blocking date selection: a range may
+  // cross booked days, and the form reports the actual room/time conflicts.
+  const isDisabled = (d: Date): boolean => d < todayDate
 
   // Dates beyond the 7-day window are dimmed but stay clickable (they reset
   // the range to a fresh start). Only applies while selecting an end date.
@@ -375,7 +381,7 @@ export function DateTimePicker({
   }
 
   const handleDayClick = (date: Date, disabled: boolean) => {
-    if (disabled) return
+    if (disabled || isClosed(date)) return
     if (isSelectingEnd && selectedRange.from) {
       if (date < selectedRange.from || isBeyondRange(date)) {
         // Clicked before start or outside max range → treat as new start
@@ -441,7 +447,31 @@ export function DateTimePicker({
             ...props
           }) => {
             const mods = modifiers as Record<string, boolean>
-            return (
+            const status = bookingStatus(day.date)
+            const closed = isClosed(day.date)
+            const showAvailability = mods.occupied && day.date >= todayDate
+            const dateString = toDateString(day.date)
+            const dayRanges = hasHours
+              ? combineOpeningRangesForDate(
+                  dateString,
+                  openingHours,
+                  roomOpeningHours,
+                  closedDates,
+                  vacationMode,
+                )
+              : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
+            const dayBookings = Array.from(
+              new Set(
+                calendarBookings
+                  .filter(
+                    booking =>
+                      calendarBookingStatus([booking], dateString, dayRanges)
+                        .occupied,
+                  )
+                  .map(formatConflictRange),
+              ),
+            )
+            const button = (
               <CalendarDayButton
                 {...props}
                 className={cn(
@@ -450,10 +480,14 @@ export function DateTimePicker({
                   isSelectingEnd
                     ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
                     : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
-                  mods.occupied &&
+                  (closed || status.fullyOccupied) &&
                     "booking-stripes text-[var(--unavailable-foreground)] !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
                   "data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
-                  mods.occupied && mods.disabled && "line-through",
+                  !closed &&
+                    status.occupied &&
+                    !status.fullyOccupied &&
+                    "bg-amber-100 text-amber-950",
+                  closed && "line-through",
                   mods.beyond_range && "opacity-40",
                 )}
                 day={day}
@@ -462,6 +496,58 @@ export function DateTimePicker({
                 onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
                 variant="plain"
               />
+            )
+            if (!showAvailability) return button
+            return (
+              <Popover.Root
+                open={availabilityDate === dateString}
+                onOpenChange={open =>
+                  setAvailabilityDate(open ? dateString : null)
+                }
+              >
+                <Popover.Trigger
+                  render={button}
+                  openOnHover
+                  delay={150}
+                  closeDelay={100}
+                />
+                <Popover.Portal>
+                  <Popover.Positioner sideOffset={8}>
+                    <Popover.Popup className="z-[100] w-72 space-y-2 rounded-xl border border-border bg-background p-4 shadow-shadow">
+                      <p className="font-heading">
+                        {day.date.toLocaleDateString(
+                          locale === "en" ? "en-GB" : "nb-NO",
+                          { day: "numeric", month: "long" },
+                        )}
+                      </p>
+                      <p className="text-sm">
+                        {t(
+                          closed
+                            ? "dateTime.dayClosed"
+                            : status.fullyOccupied
+                              ? "dateTime.dayFullyBooked"
+                              : "dateTime.dayPartlyBooked",
+                        )}
+                      </p>
+                      {!closed && (
+                        <>
+                          <p className="text-sm text-foreground-muted">
+                            {t("dateTime.crescatBookings")}
+                          </p>
+                          <ul className="space-y-1 text-sm">
+                            {dayBookings.map(booking => (
+                              <li key={booking}>{booking}</li>
+                            ))}
+                          </ul>
+                          <p className="text-sm text-foreground-muted">
+                            {t("dateTime.bookedDateHint")}
+                          </p>
+                        </>
+                      )}
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
             )
           },
         }}
@@ -500,6 +586,7 @@ export function DateTimePicker({
               "booking-stripes border border-booking-closed [--stripe:var(--booking-closed)]",
             label: t("dateTime.legendUnavailable"),
           },
+          { swatch: "bg-amber-100", label: t("dateTime.legendPartlyBooked") },
           {
             swatch: "ring-2 ring-inset ring-booking-today",
             label: t("dateTime.legendToday"),

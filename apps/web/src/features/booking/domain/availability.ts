@@ -72,7 +72,9 @@ export function bookingRangeMs(
 // Human-readable range for a single conflicting booking, e.g.
 // "17. jun 19:00–22:00" or "17. jun 22:00 – 18. jun 02:00" when it crosses
 // midnight.
-function formatConflictRange(booking: CresatBooking): string {
+export function formatConflictRange(
+  booking: Pick<CresatBooking, "start" | "end">,
+): string {
   const sameDay = booking.start.slice(0, 10) === booking.end.slice(0, 10)
   return sameDay
     ? `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)}–${formatBookingTime(booking.end)}`

@@ -186,7 +186,7 @@ describe("BookingFormScheduleSection occupied selected room", () => {
 })
 
 describe("selected-room Crescat calendar availability", () => {
-  test("marks partial bookings, disables full days, and updates on month navigation", async () => {
+  test("explains partial and full bookings without blocking date selection, and updates on month navigation", async () => {
     const container = document.createElement("div")
     document.body.append(container)
     const root = createRoot(container)
@@ -214,10 +214,28 @@ describe("selected-room Crescat calendar availability", () => {
         new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
       )
       expect(partial).not.toBeNull()
-      expect(partial?.className).toContain("booking-stripes")
+      expect(partial?.className).toContain("bg-amber-100")
       expect(partial?.disabled).toBe(false)
       expect(full?.className).toContain("booking-stripes")
-      expect(full?.disabled).toBe(true)
+      expect(full?.disabled).toBe(false)
+      await act(async () => full?.click())
+      expect(document.body.textContent).toContain(
+        "Crescat viser at hele leietiden er opptatt.",
+      )
+      expect(document.body.textContent).toContain(
+        "21. aug. 00:00 – 22. aug. 00:00",
+      )
+      await act(async () =>
+        dayButton(
+          new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
+        )?.click(),
+      )
+      await act(async () =>
+        dayButton(
+          new Date("2026-08-22T00:00:00").toLocaleDateString("nb"),
+        )?.click(),
+      )
+      expect(container.textContent).toContain("3 dager")
       const nextMonth = container.querySelector<HTMLButtonElement>(
         "nav button:last-child",
       )
