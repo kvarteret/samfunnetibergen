@@ -461,7 +461,7 @@ test("merge polling retries resume the saved merge instead of inserting pages tw
   expect(canva.merge).toHaveBeenCalledTimes(3)
 })
 
-test("Slack receives the review link and week range through the configured webhook", async () => {
+test("Slack receives the review link and week number through the configured webhook", async () => {
   fixture()
   const request = vi.fn(async () => new Response("ok"))
   vi.stubGlobal("fetch", request)
@@ -473,7 +473,9 @@ test("Slack receives the review link and week range through the configured webho
   expect(url).toBe("https://hooks.slack.com/services/test/test/test")
   expect(options.method).toBe("POST")
   const payload = JSON.parse(options.body as string)
-  expect(payload.text).toContain("2026-10-12–2026-10-18")
+  expect(payload.blocks[0].text.text).toBe(
+    "Eg he laga utkast te ukas innlegg 42. Sjå øve, takk.",
+  )
   expect(payload.text).toContain(design.urls.edit_url)
   expect(payload.blocks[1].text.text).toContain(design.urls.edit_url)
 })
