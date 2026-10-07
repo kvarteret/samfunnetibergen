@@ -205,7 +205,7 @@ function EventDetailHero({
         {imageUrl ? (
           <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
             <Image
-              alt={event.imageCaption ?? event.title}
+              alt={event.imageAlt ?? event.imageCaption ?? event.title}
               className="object-cover"
               fill
               priority

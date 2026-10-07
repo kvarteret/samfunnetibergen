@@ -87,6 +87,7 @@ export type PublicEvent = {
   description: PublicPortableTextBlock[]
   imageUrl: string | null
   imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
   organizerText: string | null
@@ -138,6 +139,7 @@ export type RawPublicParent = {
   description?: readonly unknown[] | null
   imageUrl?: string | null
   imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -173,6 +175,7 @@ export type RawPublicEvent = {
   description?: readonly unknown[] | null
   imageUrl?: string | null
   imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
   organizerText?: string | null
@@ -351,7 +354,13 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     cleanChild.useFestivalImage !== false
   const effectiveParent =
     cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageFrame: null, imageCaption: null }
+      ? {
+          ...cleanParent,
+          imageUrl: null,
+          imageFrame: null,
+          imageAlt: null,
+          imageCaption: null,
+        }
       : cleanParent
   const content = resolveEventContent(cleanChild, effectiveParent)
   const dates = (Array.isArray(content.dates) ? content.dates : []).flatMap(
@@ -388,6 +397,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       : [],
     imageUrl: normalizeString(content.imageUrl),
     imageFrame: (content.imageFrame as ImageFrame | null | undefined) ?? null,
+    imageAlt: normalizeString(content.imageAlt),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
     organizerText: normalizeString(content.organizerText),

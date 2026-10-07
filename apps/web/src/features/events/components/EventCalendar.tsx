@@ -82,7 +82,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       {imageUrl ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
           <Image
-            alt={event.imageCaption ?? event.title}
+            alt={event.imageAlt ?? event.imageCaption ?? event.title}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             fill
             sizes="(max-width: 768px) 30vw, 16rem"

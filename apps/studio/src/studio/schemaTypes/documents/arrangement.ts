@@ -233,7 +233,19 @@ export const arrangement = defineType({
       title: "Bilde",
       type: "image",
       group: "media",
-      options: { hotspot: true },
+      options: {
+        hotspot: true,
+        // AI Assist writes this when the image changes (English only).
+        aiAssist: { imageDescriptionField: "alt" },
+      },
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alternativ tekst",
+          description: "Beskriver bildet for skjermlesere. Lages automatisk.",
+          type: "string",
+        }),
+      ],
       hidden: ({ document }) =>
         eventKindOf(document) === "festivalSession" &&
         document?.useFestivalImage !== false,

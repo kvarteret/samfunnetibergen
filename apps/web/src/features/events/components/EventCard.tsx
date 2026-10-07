@@ -54,6 +54,7 @@ export type EventSummary = {
   facebookUrl?: string | null
   imageUrl?: string | null
   imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   room?: {
     _id: string
@@ -246,7 +247,7 @@ function EventCardMedia({
     >
       {imageUrl ? (
         <Image
-          alt={event.imageCaption ?? event.title}
+          alt={event.imageAlt ?? event.imageCaption ?? event.title}
           className={cn(
             "object-cover",
             isEditorial &&

@@ -16,6 +16,7 @@ export type PreviewDocument = {
   image?: {
     asset?: { _ref?: string | null }
     caption?: string
+    alt?: string | null
     crop?: ImageCrop | null
     hotspot?: ImageHotspot | null
   } | null
@@ -282,8 +283,14 @@ export function buildArrangementPreview(
       path: "image",
       values: resolved.imageUrl
         ? [
-            text(doc.localizedImageCaption, locale) ||
-              (locale === "nb" ? "Ingen bildetekst" : "No caption"),
+            doc.image?.alt
+              ? `Alt-tekst: ${doc.image.alt}`
+              : locale === "nb"
+                ? "Alt-tekst mangler"
+                : "Alt text missing",
+            ...(text(doc.localizedImageCaption, locale)
+              ? [`Bildetekst: ${text(doc.localizedImageCaption, locale)}`]
+              : []),
           ]
         : [],
     },

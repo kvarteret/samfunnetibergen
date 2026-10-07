@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { sanityImageUrl } from "./image-url"
 
-const src =
-  "https://cdn.sanity.io/images/mkjoahvv/production/abc-1600x1200.jpg"
+const src = "https://cdn.sanity.io/images/mkjoahvv/production/abc-1600x1200.jpg"
 
 describe("sanityImageUrl", () => {
   it("crops around the editor's hotspot", () => {

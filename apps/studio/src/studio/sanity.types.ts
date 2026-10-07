@@ -518,6 +518,7 @@ export type Arrangement = {
     media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
+    alt?: string
     _type: "image"
   }
   useFestivalImage?: boolean
