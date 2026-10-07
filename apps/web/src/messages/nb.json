@@ -43,11 +43,14 @@
     "grupperBannerBody": "Vi er drevet av studenter. Er ikke du en dreven student?",
     "grupperBannerCta": "Bli frivillig",
     "grupperBannerLink": "Meld interesse",
-    "karaokeBannerEyebrow": "Maos Lille Røde",
-    "karaokeBannerHeading1": "SYNG DEG",
-    "karaokeBannerHeading2": "HES",
-    "karaokeBannerBody": "Book karaoke for vennegjengen i vår røde stue. Mikrofonene er klare – er du?",
-    "karaokeBannerCta": "Book karaoke"
+    "karaokeBannerEyebrow": "Karaoke i Maos Lille Røde",
+    "karaokeBannerHeading1": "HELE GJENGEN,",
+    "karaokeBannerHeading2": "ETT ROM",
+    "karaokeBannerBody": "Ingen grunn til å fordele vennegjengen på flere bokser. Book hele stua, syng til dere er hese.",
+    "karaokeBannerCta": "Book karaoke",
+    "karaokeFactCapacity": "personer i samme rom",
+    "karaokeFactPrice": "per person i timen med studentbevis",
+    "karaokeFactAge": "med studentbevis"
   },
   "EventCard": {
     "today": "I dag",

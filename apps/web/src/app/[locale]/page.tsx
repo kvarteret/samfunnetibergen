@@ -25,6 +25,7 @@ import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
+import { KARAOKE_PRICING } from "@/features/karaoke/domain/formState"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -195,7 +196,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       getTranslations({ locale, namespace: "HomePage" }),
       fetchRoomBySlug("maos", locale, { stega: false }),
     ])
-  const maosImage = maos?.images?.[0]
+  const karaokeCapacity = maos?.capacityStanding ?? maos?.capacitySeated
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -253,8 +254,21 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         eyebrow={homeT("karaokeBannerEyebrow")}
         heading1={homeT("karaokeBannerHeading1")}
         heading2={homeT("karaokeBannerHeading2")}
-        imageAlt={maosImage?.alt ?? maos?.title}
-        imageUrl={maosImage?.assetUrl}
+        facts={[
+          ...(karaokeCapacity
+            ? [
+                {
+                  value: String(karaokeCapacity),
+                  label: homeT("karaokeFactCapacity"),
+                },
+              ]
+            : []),
+          {
+            value: `${KARAOKE_PRICING.student.perPerson} kr`,
+            label: homeT("karaokeFactPrice"),
+          },
+          { value: "18+", label: homeT("karaokeFactAge") },
+        ]}
       />
       <div className="hs:hidden">
         <HomeBookingBanner

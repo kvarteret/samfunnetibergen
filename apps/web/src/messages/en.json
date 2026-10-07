@@ -43,11 +43,14 @@
     "grupperBannerBody": "We are run by students. Aren't you a driven student too?",
     "grupperBannerCta": "Become a volunteer",
     "grupperBannerLink": "Register your interest",
-    "karaokeBannerEyebrow": "Maos Lille Røde",
-    "karaokeBannerHeading1": "SING YOUR",
-    "karaokeBannerHeading2": "HEART OUT",
-    "karaokeBannerBody": "Book karaoke for your crew in our little red room. The mics are ready – are you?",
-    "karaokeBannerCta": "Book karaoke"
+    "karaokeBannerEyebrow": "Karaoke in Maos Lille Røde",
+    "karaokeBannerHeading1": "THE WHOLE CREW,",
+    "karaokeBannerHeading2": "ONE ROOM",
+    "karaokeBannerBody": "No need to split your friends across several booths. Book the whole room and sing until you're hoarse.",
+    "karaokeBannerCta": "Book karaoke",
+    "karaokeFactCapacity": "people in the same room",
+    "karaokeFactPrice": "per person per hour with a student ID",
+    "karaokeFactAge": "with a student ID"
   },
   "EventCard": {
     "today": "Today",

@@ -1,8 +1,6 @@
-import { ArrowRight, Mic } from "lucide-react"
-import Image from "next/image"
+import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 
 interface HomeKaraokeBannerProps {
   eyebrow: string
@@ -10,31 +8,26 @@ interface HomeKaraokeBannerProps {
   heading2: string
   body: string
   cta: string
-  imageUrl?: string | null
-  imageAlt?: string | null
+  facts: { value: string; label: string }[]
 }
 
-/** Karaoke in Maos Lille Røde, in the same banner type as "Bli frivillig". */
+/**
+ * Karaoke in Maos Lille Røde, in the same banner type as "Bli frivillig".
+ * The facts are what sets it apart: one room for the whole group, student
+ * prices and an 18-year limit with student ID.
+ */
 export function HomeKaraokeBanner({
   eyebrow,
   heading1,
   heading2,
   body,
   cta,
-  imageUrl,
-  imageAlt,
+  facts,
 }: HomeKaraokeBannerProps) {
-  const src = imageUrl
-    ? sanityImageUrl(imageUrl, { width: 1200, height: 900 })
-    : null
-
   return (
-    <section className="grid overflow-hidden bg-foreground text-background shadow-hard-lg md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-      <div className="p-8 sm:p-12">
-        <p className="flex items-center gap-2 font-heading text-lg text-background/75">
-          <Mic aria-hidden className="size-5 text-primary" />
-          {eyebrow}
-        </p>
+    <section className="grid gap-10 bg-foreground p-8 text-background shadow-hard-lg sm:p-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+      <div>
+        <p className="font-heading text-lg text-background/75">{eyebrow}</p>
         <h2 className="mt-2 font-heading text-5xl leading-none sm:text-7xl">
           {heading1}
           <br />
@@ -50,18 +43,17 @@ export function HomeKaraokeBanner({
           <ArrowRight className="transition-transform duration-base ease-out group-hover:translate-x-1" />
         </Button>
       </div>
-      {src && (
-        <div className="relative min-h-64 md:min-h-full">
-          <Image
-            alt={imageAlt ?? ""}
-            className="object-cover"
-            fill
-            sizes="(max-width: 768px) 100vw, 45vw"
-            src={src}
-            unoptimized={shouldLoadImageDirectly(src)}
-          />
-        </div>
-      )}
+      <dl className="grid grid-cols-3 gap-6 md:grid-cols-1 md:gap-5 md:text-right">
+        {facts.map(fact => (
+          <div key={fact.label}>
+            <dt className="sr-only">{fact.label}</dt>
+            <dd className="font-heading text-3xl leading-none sm:text-5xl">
+              {fact.value}
+            </dd>
+            <dd className="mt-1 text-sm text-background/75">{fact.label}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   )
 }
