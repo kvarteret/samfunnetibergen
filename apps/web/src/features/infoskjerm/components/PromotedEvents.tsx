@@ -28,7 +28,11 @@ export function PromotedEvents({ events }: { events: ScreenPromotion[] }) {
             )}
             key={event.id}
           >
-            <ScreenEventImage imageUrl={event.imageUrl} variant="promoted" />
+            <ScreenEventImage
+              imageFrame={event.imageFrame}
+              imageUrl={event.imageUrl}
+              variant="promoted"
+            />
             <div className="min-w-0">
               <p className="mb-[0.7cqw] text-[1.8cqw] font-semibold">
                 <time dateTime={event.date}>{event.dateLabel}</time>

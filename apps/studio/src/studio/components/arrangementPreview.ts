@@ -1,4 +1,5 @@
 import { resolveEventContent } from "@samfunnet/content-domain/resolve-event"
+import type { ImageCrop, ImageHotspot } from "./imageFrames"
 
 export type PreviewLocale = "nb" | "en"
 type LocalizedValue = { language?: string; value?: unknown }
@@ -10,10 +11,19 @@ export type PreviewDocument = {
   localizedTitle?: LocalizedValue[] | null
   localizedDescription?: LocalizedValue[] | null
   localizedOrganizerText?: LocalizedValue[] | null
-  image?: { asset?: { _ref?: string | null }; caption?: string } | null
+  localizedRoomText?: LocalizedValue[] | null
+  localizedImageCaption?: LocalizedValue[] | null
+  image?: {
+    asset?: { _ref?: string | null }
+    caption?: string
+    alt?: string | null
+    crop?: ImageCrop | null
+    hotspot?: ImageHotspot | null
+  } | null
   room?: { _ref?: string | null } | null
   eventType?: { _ref?: string | null } | null
   organizerGroup?: { _ref?: string | null } | null
+  coOrganizerGroups?: Array<{ _ref?: string | null }> | null
   parentEvent?: { _ref?: string | null } | null
   dates?:
     | {
@@ -42,6 +52,7 @@ export type PreviewReferences = {
   } | null
   eventType: { _id: string; localizedName?: LocalizedValue[] } | null
   organizer: { _id: string; localizedName?: LocalizedValue[] } | null
+  coOrganizers?: Array<{ _id: string; localizedName?: LocalizedValue[] }>
   parent: PreviewDocument | null
   childDates: NonNullable<PreviewDocument["dates"]>
 }
@@ -135,6 +146,10 @@ export type PreviewCheck = {
   label: string
   done: boolean
   required: boolean
+  /** Document field the editor should jump to when fixing this check. */
+  path: string
+  /** What the approver needs to verify, one line per value. */
+  values: string[]
 }
 export function buildArrangementPreview(
   doc: PreviewDocument,
@@ -162,6 +177,14 @@ export function buildArrangementPreview(
     ? text(refs.room.localizedTitle, locale) ||
       text(refs.room.localizedTitle, "nb")
     : ""
+  const roomText = text(doc.localizedRoomText, locale)
+  const dateLabels = dates.map(d => previewDateLabel(d, locale))
+  const excerpt = (value: string | undefined) =>
+    value && value.length > 140 ? `${value.slice(0, 140).trimEnd()} …` : value
+  const languageValues = (nbValue?: string, enValue?: string) => [
+    `Norsk: ${nbValue || "mangler"}`,
+    `English: ${enValue || "missing"}`,
+  ]
   const type = refs.eventType
     ? text(refs.eventType.localizedName, locale) ||
       text(refs.eventType.localizedName, "nb")
@@ -199,21 +222,23 @@ export function buildArrangementPreview(
   const checks: PreviewCheck[] = [
     {
       id: "title",
-      label: "Tittel på norsk og engelsk",
+      label: "Tittel",
       done: Boolean(nb.title && en.title),
       required: true,
+      path: "localizedTitle",
+      values: languageValues(nb.title, en.title),
     },
     {
       id: "description",
-      label: "Beskrivelse på norsk og engelsk",
+      label: "Beskrivelse",
       done: Boolean(nb.description && en.description),
       required: false,
+      path: "localizedDescription",
+      values: languageValues(excerpt(nb.description), excerpt(en.description)),
     },
     {
       id: "dates",
-      label: festival
-        ? "Programdager med dato og begge dørtider"
-        : "Dato og begge dørtider",
+      label: festival ? "Programdager og dørtider" : "Dato og dørtider",
       done:
         dates.length > 0 &&
         dates.every(
@@ -223,46 +248,83 @@ export function buildArrangementPreview(
             timePattern.test(d.endTime ?? ""),
         ),
       required: true,
+      path: "dates",
+      values: dateLabels,
     },
     ...(festival
       ? []
       : [
           {
             id: "room",
-            label: "Rom valgt",
+            label: "Rom",
             done: Boolean(room),
             required: true,
+            path: "room",
+            values: room
+              ? [
+                  `${room}${refs.room?.floor != null ? ` · ${refs.room.floor}. etasje` : ""}`,
+                ]
+              : roomText
+                ? [`Fritekst: ${roomText}`]
+                : [],
           },
         ]),
     {
       id: "price",
-      label: "Pris, gratis eller utsolgt",
+      label: "Pris",
       done: priced,
       required: true,
+      path: "isFree",
+      values: pricing ? [pricing] : [],
     },
     {
       id: "image",
-      label: "Arrangementsbilde",
+      label: "Bilde",
       done: Boolean(resolved.imageUrl),
       required: false,
+      path: "image",
+      values: resolved.imageUrl
+        ? [
+            doc.image?.alt
+              ? `Alt-tekst: ${doc.image.alt}`
+              : locale === "nb"
+                ? "Alt-tekst mangler"
+                : "Alt text missing",
+            ...(text(doc.localizedImageCaption, locale)
+              ? [`Bildetekst: ${text(doc.localizedImageCaption, locale)}`]
+              : []),
+          ]
+        : [],
     },
     {
       id: "type",
       label: "Arrangementtype",
       done: Boolean(type),
       required: false,
+      path: "eventType",
+      values: type ? [type] : [],
     },
     {
       id: "organizer",
       label: "Arrangør",
       done: Boolean(organizer),
       required: false,
+      path: "organizerGroup",
+      values: [
+        ...(organizer ? [organizer] : []),
+        ...(refs.coOrganizers ?? []).map(
+          group =>
+            `Med: ${text(group.localizedName, locale) || text(group.localizedName, "nb")}`,
+        ),
+      ],
     },
     {
       id: "slug",
       label: "Nettadresse",
       done: Boolean(doc.slug?.current),
       required: true,
+      path: "slug",
+      values: doc.slug?.current ? [`/arrangementer/${doc.slug.current}`] : [],
     },
   ]
   return {
@@ -278,7 +340,7 @@ export function buildArrangementPreview(
     ticketUrl: resolved.ticketUrl,
     facebookUrl: resolved.facebookUrl,
     dates,
-    dateLabels: dates.map(d => previewDateLabel(d, locale)),
+    dateLabels,
     checks,
     completed: checks.filter(c => c.done).length,
     total: checks.length,

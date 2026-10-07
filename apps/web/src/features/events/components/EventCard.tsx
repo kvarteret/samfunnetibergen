@@ -1,3 +1,4 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin, Tent } from "lucide-react"
 import Image from "next/image"
@@ -52,6 +53,8 @@ export type EventSummary = {
   ticketUrl?: string | null
   facebookUrl?: string | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   room?: {
     _id: string
@@ -62,6 +65,7 @@ export type EventSummary = {
   } | null
   roomText?: string | null
   organizerGroup?: { _id: string; name: string; slug: string } | null
+  coOrganizerGroups?: Array<{ _id: string; name: string; slug: string }>
   organizerText?: string | null
   eventType?: {
     _id: string
@@ -159,8 +163,9 @@ export function EventCard({
     ? sanityImageUrl(
         event.imageUrl,
         cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
+          ? { height: 360, width: 640 }
+          : { height: 675, width: 1200 },
+        event.imageFrame,
       )
     : null
 
@@ -243,7 +248,7 @@ function EventCardMedia({
     >
       {imageUrl ? (
         <Image
-          alt={event.imageCaption ?? event.title}
+          alt={event.imageAlt ?? event.imageCaption ?? event.title}
           className={cn(
             "object-cover",
             isEditorial &&

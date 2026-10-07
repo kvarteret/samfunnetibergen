@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import type { PublicEvent } from "./events"
-import { filterToFirstInstances } from "./eventUtils"
+import {
+  buildTaxonomyFromEvents,
+  filterEvents,
+  filterToFirstInstances,
+} from "./eventUtils"
 
 function event(id: string, kind: PublicEvent["eventKind"], parentId?: string) {
   return {
@@ -68,5 +72,30 @@ describe("first materialized event instances", () => {
       "series-a-first",
       "series-b-first",
     ])
+  })
+})
+
+describe("co-organizers", () => {
+  const samklang = { _id: "samklang", name: "Samklang" }
+  const etjenesten = { _id: "e-tjenesten", name: "E-tjenesten" }
+  const events = [
+    { organizerGroup: samklang, coOrganizerGroups: [etjenesten] },
+    { organizerGroup: samklang },
+  ]
+
+  it("lists co-organizers as filter options", () => {
+    expect(
+      buildTaxonomyFromEvents(events).organizerGroups.map(group => group._id),
+    ).toEqual(["samklang", "e-tjenesten"])
+  })
+
+  it("matches events where the group co-organizes", () => {
+    expect(
+      filterEvents(events, {
+        taxonomyGroupName: null,
+        eventTypeIds: [],
+        organizerGroupIds: ["e-tjenesten"],
+      }),
+    ).toEqual([events[0]])
   })
 })

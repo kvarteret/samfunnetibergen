@@ -1,4 +1,5 @@
 import { TZDate } from "@date-fns/tz"
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import {
   type EventStatus,
   resolveEffectiveStatus,
@@ -85,8 +86,11 @@ export type PublicEvent = {
   title: string
   description: PublicPortableTextBlock[]
   imageUrl: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[]
   organizerText: string | null
   eventType: PublicEventType | null
   isSoldOut?: boolean
@@ -135,8 +139,11 @@ export type RawPublicParent = {
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
   isSoldOut?: boolean | null
@@ -169,8 +176,11 @@ export type RawPublicEvent = {
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
   isSoldOut?: boolean | null
@@ -347,7 +357,13 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     cleanChild.useFestivalImage !== false
   const effectiveParent =
     cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageCaption: null }
+      ? {
+          ...cleanParent,
+          imageUrl: null,
+          imageFrame: null,
+          imageAlt: null,
+          imageCaption: null,
+        }
       : cleanParent
   const content = resolveEventContent(cleanChild, effectiveParent)
   const dates = (Array.isArray(content.dates) ? content.dates : []).flatMap(
@@ -383,8 +399,13 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       ? (content.description as PublicPortableTextBlock[])
       : [],
     imageUrl: normalizeString(content.imageUrl),
+    imageFrame: (content.imageFrame as ImageFrame | null | undefined) ?? null,
+    imageAlt: normalizeString(content.imageAlt),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
+    coOrganizerGroups: (
+      (content.coOrganizerGroups as PublicOrganizerGroup[] | null) ?? []
+    ).filter(group => group?._id),
     organizerText: normalizeString(content.organizerText),
     eventType: content.eventType ?? null,
     isFree: content.isFree ?? false,

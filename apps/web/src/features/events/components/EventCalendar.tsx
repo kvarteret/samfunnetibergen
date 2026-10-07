@@ -60,7 +60,11 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 180, width: 280 })
+    ? sanityImageUrl(
+        event.imageUrl,
+        { height: 180, width: 320 },
+        event.imageFrame,
+      )
     : null
   const time = formatTime(occurrence, t("timePrefix"))
 
@@ -78,7 +82,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       {imageUrl ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
           <Image
-            alt={event.imageCaption ?? event.title}
+            alt={event.imageAlt ?? event.imageCaption ?? event.title}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             fill
             sizes="(max-width: 768px) 30vw, 16rem"

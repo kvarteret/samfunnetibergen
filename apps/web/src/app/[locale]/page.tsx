@@ -139,6 +139,8 @@ function toEventSummary(
     ticketUrl: event.ticketUrl ?? null,
     facebookUrl: event.facebookUrl ?? null,
     imageUrl: event.imageUrl ?? null,
+    imageFrame: event.imageFrame ?? null,
+    imageAlt: event.imageAlt ?? null,
     imageCaption: event.imageCaption ?? null,
     room: event.room
       ? {
@@ -150,6 +152,7 @@ function toEventSummary(
         }
       : null,
     roomText: event.roomText ?? null,
+    coOrganizerGroups: event.coOrganizerGroups ?? [],
     organizerGroup: event.organizerGroup
       ? {
           _id: event.organizerGroup._id,
