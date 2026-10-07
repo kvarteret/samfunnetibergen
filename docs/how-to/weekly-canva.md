@@ -27,7 +27,7 @@ The template requires these exact data fields:
 | `event_1_image`, `event_2_image` | image |
 | `cover_image_1`, `cover_image_2`, `cover_image_3` | image |
 
-Titles are limited to 38 characters and summaries to 145 characters. These bounds reduce overflow but do not replace visual review: font metrics, long words and image framing can still require edits. Source images must be hosted on Sanity CDN. Missing images and unused event slots use the template's background image (`MAHTehiy2v4`), replacing historical event images. All event slots are filled or cleared. If no approved public events exist, Slack receives an empty-week notice and no design is created.
+Titles are limited to 22 characters and summaries to 95 characters. These bounds reduce overflow but do not replace visual review: font metrics, long words and image framing can still require edits. Source images must be hosted on Sanity CDN. Missing images and unused event slots use the template's background image (`MAHTehiy2v4`), replacing historical event images. All event slots are filled or cleared. If no approved public events exist, Slack receives an empty-week notice and no design is created.
 
 ## Connect an individual Canva account
 

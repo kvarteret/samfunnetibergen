@@ -276,7 +276,7 @@ test("Luna cannot drop events, invent ids, duplicate events, or exceed template 
   expect(() =>
     applyCopy(events, {
       events: [
-        { ...copy.events[0], description: "x".repeat(146) },
+        { ...copy.events[0], description: "x".repeat(96) },
         copy.events[1],
       ],
     }),
