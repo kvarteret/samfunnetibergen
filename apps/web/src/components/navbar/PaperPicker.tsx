@@ -88,7 +88,7 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
   const t = useTranslations("Navigation")
 
   return (
-    <Collapsible.Root className="mt-1.5 border-t border-border pt-1.5">
+    <Collapsible.Root className="mt-1.5 border-t border-border pt-1.5" defaultOpen>
       <Collapsible.Trigger className="group flex w-full cursor-pointer items-center justify-between gap-6 rounded-lg px-3 py-2 text-left text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
         {t("moreSettings")}
         <ChevronDown
