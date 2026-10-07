@@ -35,6 +35,7 @@ const fields = {
 function configure() {
   vi.stubEnv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
   vi.stubEnv("AZURE_OPENAI_API_KEY", "test-secret")
+  vi.stubEnv("AZURE_OPENAI_LUNA_DEPLOYMENT", "")
 }
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -68,6 +69,7 @@ test("uses Luna's editorial title unchanged and captures real token usage", asyn
     ),
   ).toEqual(fields)
   const request = JSON.parse(String(fetch.mock.calls[0][1]?.body))
+  expect(request.model).toBe("skonk")
   expect(request.instructions).toContain(
     "Editorialize title and titleEnglish to artist names only",
   )
@@ -75,6 +77,7 @@ test("uses Luna's editorial title unchanged and captures real token usage", asyn
     expect.objectContaining({
       source,
       model: "gpt-6-luna",
+      deployment: "skonk",
       usage: { input_tokens: 1250, output_tokens: 200 },
       output: fields,
       error: undefined,

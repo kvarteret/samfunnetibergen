@@ -52,7 +52,7 @@ export async function extractWithLuna(
   const base = new URL(endpoint)
   if (base.protocol !== "https:" || base.username || base.password)
     throw new Error("Azure endpoint must be HTTPS")
-  const model = process.env.AZURE_OPENAI_LUNA_DEPLOYMENT || "gpt-6-luna"
+  const deployment = process.env.AZURE_OPENAI_LUNA_DEPLOYMENT || "skonk"
   const traceId = options.traceId ?? randomUUID()
   const prompt = await getTicketCoPrompt()
   const started = performance.now()
@@ -69,7 +69,7 @@ export async function extractWithLuna(
         signal: AbortSignal.timeout(120000),
         headers: { "api-key": key, "content-type": "application/json" },
         body: JSON.stringify({
-          model,
+          model: deployment,
           store: false,
           max_output_tokens: 12000,
           instructions: prompt.prompt,
@@ -122,7 +122,8 @@ export async function extractWithLuna(
     await captureLunaGeneration({
       traceId,
       source,
-      model,
+      model: "gpt-6-luna",
+      deployment,
       latency: (performance.now() - started) / 1000,
       usage,
       output: extraction,
