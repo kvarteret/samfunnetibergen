@@ -38,6 +38,7 @@ const labels: FestivalLabels = {
   browseDays: "Choose a day",
   events: "events",
   days: "days",
+  day: "Day",
   about: "About",
   details: "Read more",
   tickets: "Buy tickets",
@@ -89,6 +90,8 @@ describe("festival programme", () => {
     expect(html).toContain('href="#festival-day-2026-10-15"')
     expect(html.match(/href="\/arrangementer\/repeat"/g)).toHaveLength(2)
     expect(html).not.toContain('href="https://tickets.test/earlier"')
+    expect(html).toContain("Day 1")
+    expect(html).toContain("Day 2")
     expect(html).toContain("Cancelled")
     expect(html).toContain("Time to be announced")
   })

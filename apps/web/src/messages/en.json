@@ -392,7 +392,8 @@
     "festivalAbout": "About the festival and practical information",
     "festivalDetails": "Read more",
     "festivalTimeUnknown": "Time to be announced",
-    "festivalEmpty": "The programme will be published soon."
+    "festivalEmpty": "The programme will be published soon.",
+    "festivalDay": "Day"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",

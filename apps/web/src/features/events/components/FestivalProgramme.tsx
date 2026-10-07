@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUpRight } from "lucide-react"
+import { ArrowDown } from "lucide-react"
 import Image from "next/image"
 import { EventTicketButton } from "@/app/[locale]/arrangementer/[event]/EventTrackedLinks"
 import { buttonVariants } from "@/components/ui/button"
@@ -7,16 +7,15 @@ import {
   type FestivalDay,
   festivalDate,
 } from "@/features/events/domain/festival-programme"
-import { Link } from "@/i18n/navigation"
-import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
-import { toPlainTextContent } from "@/lib/structured-data"
+import { shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { EventCard } from "./EventCard"
 
 export type FestivalLabels = {
   programme: string
   browseDays: string
   events: string
   days: string
+  day: string
   about: string
   details: string
   tickets: string
@@ -128,18 +127,18 @@ export function FestivalProgramme({
       ) : (
         <>
           <nav aria-label={labels.browseDays} className="flex flex-wrap gap-2">
-            {days.map(day => (
+            {days.map((day, index) => (
               <a
                 key={day.date}
                 href={`#festival-day-${day.date}`}
                 className="border-2 border-border bg-background px-4 py-3 font-heading transition-colors hover:bg-primary hover:text-primary-foreground focus-brutal"
               >
-                {festivalDate(day.date, locale)}
+                {labels.day} {index + 1} · {festivalDate(day.date, locale)}
                 <span className="ml-2 text-sm">({day.occurrences.length})</span>
               </a>
             ))}
           </nav>
-          {days.map(day => (
+          {days.map((day, index) => (
             <section
               key={day.date}
               id={`festival-day-${day.date}`}
@@ -150,15 +149,19 @@ export function FestivalProgramme({
                 id={`festival-heading-${day.date}`}
                 className="border-l-4 border-primary pl-4 font-heading text-2xl capitalize sm:text-3xl"
               >
-                <time dateTime={day.date}>
-                  {festivalDate(day.date, locale, true)}
-                </time>
+                {labels.day} {index + 1}
+                <span className="ml-3 text-lg font-normal text-foreground-muted sm:text-xl">
+                  <time dateTime={day.date}>
+                    {festivalDate(day.date, locale, true)}
+                  </time>
+                </span>
               </h3>
               <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {day.occurrences.map(occurrence => (
                   <li key={occurrence.id} className="flex">
                     <FestivalCard
                       event={occurrence.event}
+                      dateKey={occurrence.dateKey}
                       time={occurrence.schedule.startTime}
                       labels={labels}
                     />
@@ -176,64 +179,34 @@ export function FestivalProgramme({
 function FestivalCard({
   event,
   time,
+  dateKey,
   labels,
 }: {
   event: PublicEvent
   time: string | null
+  dateKey: string
   labels: FestivalLabels
 }) {
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        { width: 720, height: 405 },
-        event.imageFrame,
-      )
-    : null
-  const summary = toPlainTextContent(event.description)
-    ?.split(/\n/)
-    .find(line => line.trim())
   const cancelled = event.eventStatus !== "scheduled"
+  const dates = event.dates.filter(date => date._key === dateKey)
   return (
-    <article className="flex w-full flex-col overflow-hidden border-2 border-border bg-background">
-      <Link
-        href={`/arrangementer/${event.slug}`}
-        className="group flex flex-1 flex-col focus-brutal"
-        {...eventTrackingAttributes(event, "detail-child")}
-      >
-        <div className="relative aspect-video overflow-hidden bg-muted">
-          {imageUrl && (
-            <Image
-              src={imageUrl}
-              alt=""
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover transition-transform duration-200 group-hover:scale-105"
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
-            />
-          )}
-          <span className="absolute bottom-0 left-0 bg-primary px-4 py-2 font-heading text-xl text-primary-foreground">
-            {time || labels.timeUnknown}
-          </span>
-        </div>
-        <div className="flex flex-1 flex-col gap-3 p-5">
-          <p className="text-sm text-foreground-muted">
-            {event.room?.title || event.roomText}
-          </p>
-          <h4 className="wrap-break-word font-heading text-2xl leading-tight group-hover:underline group-hover:underline-offset-4">
-            {event.title}
-          </h4>
-          {summary && (
-            <p className="line-clamp-3 text-base leading-relaxed text-foreground-muted">
-              {summary}
-            </p>
-          )}
-          <span className="mt-auto flex items-center gap-2 pt-2 font-heading text-sm uppercase tracking-wide">
-            {labels.details}
-            <ArrowUpRight aria-hidden="true" className="size-4" />
-          </span>
-        </div>
-      </Link>
-      <div className="border-t-2 border-border p-5">
+    <article className="flex w-full flex-col">
+      <EventCard
+        variant="catalogue"
+        trackingSurface="detail-child"
+        event={{
+          ...event,
+          dates,
+          resolvedDates: dates,
+          primaryDateLabel: time || labels.timeUnknown,
+          statusLabel: cancelled
+            ? labels.cancelled
+            : event.isSoldOut
+              ? labels.soldOut
+              : null,
+        }}
+      />
+      <div className="pt-3">
         {cancelled || event.isSoldOut ? (
           <p className="font-heading uppercase tracking-wide text-destructive">
             {cancelled ? labels.cancelled : labels.soldOut}
