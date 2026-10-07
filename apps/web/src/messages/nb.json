@@ -178,7 +178,20 @@
       "selectTime": "Velg tidspunkt",
       "day": "Dag {number}",
       "addDay": "Legg til dag {number}",
-      "notEnoughTimes": "Ikke nok tidspunkt for å vise en tidsvelger."
+      "notEnoughTimes": "Ikke nok tidspunkt for å vise en tidsvelger.",
+      "legendSelected": "Start og slutt",
+      "legendInRange": "Del av bookingen",
+      "legendUnavailable": "Stengt eller opptatt",
+      "legendToday": "I dag",
+      "legendBooking": "Din booking",
+      "legendNight": "Dager mellom start og slutt – endres i kalenderen over",
+      "legendOccupied": "Opptatt",
+      "statusOneDay": "{date} · én dag",
+      "statusRange": "{start} – {end} · {days} dager",
+      "hintStart": "Klikk første dag i kalenderen.",
+      "hintExtend": "Ferdig for én dag. Vil du ha flere dager? Klikk siste dag (maks 7 dager).",
+      "hintRange": "Klikk en dag for å begynne på nytt.",
+      "resetDates": "Velg datoer på nytt"
     },
     "event": {
       "sectionTitle": "Arrangement",

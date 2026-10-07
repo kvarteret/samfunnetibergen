@@ -179,7 +179,20 @@
       "selectTime": "Choose a time",
       "day": "Day {number}",
       "addDay": "Add day {number}",
-      "notEnoughTimes": "There are not enough times to show a time picker."
+      "notEnoughTimes": "There are not enough times to show a time picker.",
+      "legendSelected": "Start and end",
+      "legendInRange": "Part of the booking",
+      "legendUnavailable": "Closed or booked",
+      "legendToday": "Today",
+      "legendBooking": "Your booking",
+      "legendNight": "Days between start and end – change them in the calendar above",
+      "legendOccupied": "Booked",
+      "statusOneDay": "{date} · one day",
+      "statusRange": "{start} – {end} · {days} days",
+      "hintStart": "Click the first day in the calendar.",
+      "hintExtend": "Done for a single day. Need more days? Click the last day (up to 7 days).",
+      "hintRange": "Click a day to start over.",
+      "resetDates": "Choose dates again"
     },
     "event": {
       "sectionTitle": "Event",

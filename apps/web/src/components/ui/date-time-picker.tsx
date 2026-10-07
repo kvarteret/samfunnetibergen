@@ -7,6 +7,7 @@ import type { DateRange } from "react-day-picker"
 import { enUS, nb } from "react-day-picker/locale"
 import { Button } from "@/components/ui/button"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
+import { CalendarLegend } from "@/components/ui/legend"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
 import {
@@ -180,6 +181,83 @@ export function computeMultiDayConstraints(
   }
 }
 
+/**
+ * Names the current step so it is clear whether the next click picks a new
+ * first day or extends the booking to more days.
+ */
+function DateSelectionStatus({
+  startDate,
+  endDate,
+  locale,
+  onReset,
+}: {
+  startDate: string
+  endDate: string
+  locale: string
+  onReset: () => void
+}) {
+  const t = useTranslations("RoomBooking")
+  const format = (date: string, withYear = false) =>
+    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      ...(withYear ? { year: "numeric" as const } : {}),
+    }).format(new Date(`${date}T12:00:00`))
+  const step = !startDate ? "start" : !endDate ? "extend" : "range"
+  const days = endDate
+    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
+    : 1
+
+  return (
+    <div
+      aria-live="polite"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          aria-hidden
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full font-heading text-sm",
+            step === "start"
+              ? "bg-foreground text-background"
+              : "bg-booking-selected text-booking-selected-foreground",
+          )}
+        >
+          {step === "start" ? "1" : step === "extend" ? "2" : "✓"}
+        </span>
+        <div className="min-w-0">
+          <p className="font-heading text-foreground">
+            {step === "start" && t("dateTime.selectStartDate")}
+            {step === "extend" &&
+              t("dateTime.statusOneDay", { date: format(startDate) })}
+            {step === "range" &&
+              t("dateTime.statusRange", {
+                start: format(startDate),
+                end: format(endDate),
+                days,
+              })}
+          </p>
+          <p className="text-sm text-foreground-muted">
+            {step === "start" && t("dateTime.hintStart")}
+            {step === "extend" && t("dateTime.hintExtend")}
+            {step === "range" && t("dateTime.hintRange")}
+          </p>
+        </div>
+      </div>
+      {step !== "start" && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-sm text-foreground-muted underline underline-offset-4 hover:text-foreground focus-brutal"
+        >
+          {t("dateTime.resetDates")}
+        </button>
+      )}
+    </div>
+  )
+}
+
 // Deliberately local-time, not the Oslo helpers: it formats dates the user
 // picked in the calendar widget, which live in the browser's timezone.
 function toDateString(d: Date): string {
@@ -258,6 +336,15 @@ export function DateTimePicker({
 
   // Dates beyond the 7-day window are dimmed but stay clickable (they reset
   // the range to a fresh start). Only applies while selecting an end date.
+  // While extending, preview the range up to the hovered day.
+  const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
+  const isPreview = (d: Date): boolean => {
+    if (!isSelectingEnd || !selectedRange.from || !hoveredDate) return false
+    if (hoveredDate <= selectedRange.from || isBeyondRange(hoveredDate))
+      return false
+    return d > selectedRange.from && d <= hoveredDate
+  }
+
   const isBeyondRange = (d: Date): boolean => {
     if (!isSelectingEnd || !selectedRange.from) return false
     const maxEnd = new Date(selectedRange.from)
@@ -283,16 +370,15 @@ export function DateTimePicker({
 
   return (
     <div className="space-y-6">
-      <p
-        aria-live="polite"
-        className="font-heading text-sm uppercase tracking-widest text-foreground-muted"
-      >
-        {t(
-          isSelectingEnd
-            ? "dateTime.selectEndDate"
-            : "dateTime.selectStartDate",
-        )}
-      </p>
+      <DateSelectionStatus
+        startDate={startDate}
+        endDate={endDate}
+        locale={locale}
+        onReset={() => {
+          onStartDateChange("")
+          onEndDateChange("")
+        }}
+      />
       <Calendar
         className="w-full p-0"
         classNames={{
@@ -300,40 +386,51 @@ export function DateTimePicker({
           month: "flex-1 min-w-0 flex flex-col gap-4",
           nav: "absolute inset-x-0 top-0 flex w-full items-center justify-between",
           button_previous:
-            "size-8 flex items-center justify-center border border-border transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+            "size-9 flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
           button_next:
-            "size-8 flex items-center justify-center border border-border transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
+            "size-9 flex items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted active:translate-y-px focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background select-none aria-disabled:cursor-not-allowed aria-disabled:opacity-40",
           month_caption:
             "flex h-12 w-full items-center justify-center px-10 mb-2",
           caption_label:
-            "font-heading text-sm font-semibold uppercase tracking-widest text-foreground select-none",
+            "font-heading text-lg text-foreground select-none first-letter:uppercase",
           weekdays: "flex border-b border-border pb-2 mb-1",
           weekday:
-            "flex-1 text-center text-xs font-semibold uppercase tracking-wider text-foreground-muted select-none py-1",
+            "flex-1 text-center text-xs text-foreground-muted select-none py-1 first-letter:uppercase",
           week: "flex w-full",
           day: "group/day relative flex-1 p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l [&:last-child[data-selected=true]_button]:rounded-r",
+          // Today is a small dot under the number, so it never competes with
+          // the selected range.
           today:
-            "bg-secondary-50 font-semibold data-[selected=true]:bg-transparent",
+            "font-semibold [&_button]:after:absolute [&_button]:after:bottom-1.5 [&_button]:after:left-1/2 [&_button]:after:size-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-booking-today [&_button]:ring-2 [&_button]:ring-inset [&_button]:ring-booking-today/60",
           disabled: "cursor-not-allowed opacity-35",
           hidden: "invisible",
-          range_start:
-            "relative isolate z-0 rounded-l bg-muted after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-muted",
-          range_middle: "rounded-none",
-          range_end:
-            "relative isolate z-0 rounded-r bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
+          // One continuous tinted band from the first to the last day; the end
+          // days sit on it as solid red tiles.
+          range_start: "rounded-l-lg bg-booking-range",
+          range_middle: "rounded-none bg-booking-range",
+          range_end: "rounded-r-lg bg-booking-range",
         }}
         components={{
-          DayButton: ({ modifiers, day, onClick: _onClick, ...props }) => {
+          DayButton: ({
+            modifiers,
+            day,
+            onClick: _onClick,
+            className: dayButtonClassName,
+            ...props
+          }) => {
             const mods = modifiers as Record<string, boolean>
             return (
               <CalendarDayButton
+                {...props}
                 className={cn(
-                  "aspect-auto h-11 w-full rounded-none text-sm font-normal transition-colors hover:rounded focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
+                  dayButtonClassName,
+                  "aspect-auto h-11 w-full rounded-lg text-sm font-normal tabular-nums transition-colors data-[range-middle=true]:bg-transparent focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
                   isSelectingEnd
                     ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
                     : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
                   mods.occupied &&
-                    "bg-[var(--unavailable-background)] text-[var(--unavailable-foreground)] line-through !opacity-70",
+                    "booking-stripes text-[var(--unavailable-foreground)] line-through !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
+                  "data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
                   mods.beyond_range && "opacity-40",
                 )}
                 day={day}
@@ -341,16 +438,6 @@ export function DateTimePicker({
                 modifiers={modifiers}
                 onClick={() => handleDayClick(day.date, Boolean(mods.disabled))}
                 variant="plain"
-                {...props}
-                style={
-                  mods.range_middle
-                    ? ({
-                        backgroundColor: "var(--muted)",
-                        backgroundImage:
-                          "repeating-linear-gradient(90deg, color-mix(in srgb, var(--state) 35%, transparent) 0, color-mix(in srgb, var(--state) 35%, transparent) 24px, transparent 24px, transparent 48px)",
-                      } as React.CSSProperties)
-                    : undefined
-                }
               />
             )
           },
@@ -358,13 +445,41 @@ export function DateTimePicker({
         disabled={isDisabled}
         locale={calendarLocale}
         mode="range"
-        modifiers={{ occupied: isOccupied, beyond_range: isBeyondRange }}
-        modifiersClassNames={{ beyond_range: "opacity-40" }}
+        modifiers={{
+          occupied: isOccupied,
+          beyond_range: isBeyondRange,
+          preview: isPreview,
+        }}
+        onDayMouseEnter={date => setHoveredDate(date)}
+        onDayMouseLeave={() => setHoveredDate(null)}
+        modifiersClassNames={{
+          beyond_range: "opacity-40",
+          preview: "bg-booking-range",
+        }}
         numberOfMonths={2}
         onSelect={() => {}}
         selected={selectedRange}
         showOutsideDays={false}
         startMonth={todayDate}
+      />
+
+      <CalendarLegend
+        items={[
+          {
+            swatch: "bg-booking-selected",
+            label: t("dateTime.legendSelected"),
+          },
+          { swatch: "bg-booking-range", label: t("dateTime.legendInRange") },
+          {
+            swatch:
+              "booking-stripes border border-booking-closed [--stripe:var(--booking-closed)]",
+            label: t("dateTime.legendUnavailable"),
+          },
+          {
+            swatch: "ring-2 ring-inset ring-booking-today",
+            label: t("dateTime.legendToday"),
+          },
+        ]}
       />
 
       <div className="border-t border-border pt-6">

@@ -6,6 +6,7 @@ import { Info } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { minutesToTime } from "@/lib/opening-hours"
+import { CalendarLegend } from "./legend"
 import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
 
 const MINUTES_IN_DAY = 24 * 60
@@ -372,9 +373,9 @@ export function TimeRangeSlider({
 
   const sliderValue: [number, number] = [startIndex, endIndex]
 
-  // The selected request stays neutral. Only actual occupied intervals use
-  // the destructive striped overlay below.
-  const trackColor = "var(--state)"
+  // The request uses the booking-selected colour; occupied intervals use
+  // amber stripes and the nights between days a cool tint, as in the legend.
+  const trackColor = "var(--booking-selected)"
 
   // ── Occupied stripe overlays ─────────────────────────────────────────
   // Convert occupied minute ranges to percentage positions on the track.
@@ -425,9 +426,7 @@ export function TimeRangeSlider({
       {/* relative z-20: lifts this row (and its portal-less info popover) above
           the slider, which is a later sibling and would otherwise paint over it. */}
       <div className="relative z-20 flex items-center gap-1.5">
-        <p className="font-heading text-sm uppercase tracking-widest text-foreground">
-          {t("dateTime.getInOut")}
-        </p>
+        <p className="font-heading text-foreground">{t("dateTime.getInOut")}</p>
         <GetInGetOutInfo t={t} />
         {durationLabel && (
           <span className="font-heading text-sm tabular-nums text-foreground-muted">
@@ -493,8 +492,7 @@ export function TimeRangeSlider({
                 style={{
                   left: `${seg.left}%`,
                   width: `${seg.width}%`,
-                  background: `repeating-linear-gradient(-45deg, var(--destructive), var(--destructive) 2px, transparent 2px, transparent 6px)`,
-                  opacity: 0.6,
+                  background: `repeating-linear-gradient(-45deg, var(--booking-booked), var(--booking-booked) 2px, transparent 2px, transparent 5px)`,
                 }}
               />
             ))}
@@ -512,8 +510,7 @@ export function TimeRangeSlider({
                   style={{
                     left: `${left}%`,
                     width: `${width}%`,
-                    backgroundColor: "var(--muted)",
-                    backgroundImage: `repeating-linear-gradient(90deg, oklch(from var(--primary) calc(l * 0.9) c h) 0, oklch(from var(--primary) calc(l * 0.9) c h) 24px, transparent 24px, transparent 48px)`,
+                    backgroundColor: "var(--booking-night)",
                   }}
                 />
               )
@@ -526,7 +523,7 @@ export function TimeRangeSlider({
               index={0}
               style={{ borderColor: trackColor }}
             >
-              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
+              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
                 {t("dateTime.getIn")}
               </span>
             </Slider.Thumb>
@@ -538,7 +535,7 @@ export function TimeRangeSlider({
               index={1}
               style={{ borderColor: trackColor }}
             >
-              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-[10px] uppercase tracking-widest text-foreground-muted">
+              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
                 {t("dateTime.getOut")}
               </span>
             </Slider.Thumb>
@@ -558,6 +555,29 @@ export function TimeRangeSlider({
           </span>
         ))}
       </div>
+
+      <CalendarLegend
+        items={[
+          { swatch: "bg-booking-selected", label: t("dateTime.legendBooking") },
+          ...((stapledSegments ?? []).length > 0
+            ? [
+                {
+                  swatch: "bg-booking-night",
+                  label: t("dateTime.legendNight"),
+                },
+              ]
+            : []),
+          ...(stripeSegments.length > 0
+            ? [
+                {
+                  swatch:
+                    "booking-stripes border border-booking-booked [--stripe:var(--booking-booked)]",
+                  label: t("dateTime.legendOccupied"),
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {timingWarning && (
         <div className="border-t border-border pt-4">{timingWarning}</div>
