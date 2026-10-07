@@ -25,7 +25,6 @@ import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
-import { KARAOKE_PRICING } from "@/features/karaoke/domain/formState"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -33,11 +32,7 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import {
-  fetchBarPreviews,
-  fetchHomePageContent,
-  fetchRoomBySlug,
-} from "@/lib/sanity/fetch"
+import { fetchBarPreviews, fetchHomePageContent } from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
@@ -187,16 +182,14 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [{ events }, promotedParentEvents, barPreviews, t, homeT, maos] =
+  const [{ events }, promotedParentEvents, barPreviews, t, homeT] =
     await Promise.all([
       fetchPublicEventSet({ locale, from: today, to: null }),
       fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
       fetchBarPreviews(locale),
       getTranslations({ locale, namespace: "EventCard" }),
       getTranslations({ locale, namespace: "HomePage" }),
-      fetchRoomBySlug("maos", locale, { stega: false }),
     ])
-  const karaokeCapacity = maos?.capacityStanding ?? maos?.capacitySeated
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -248,28 +241,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         heading1={homeT("grupperBannerHeading1")}
         heading2={homeT("grupperBannerHeading2")}
       />
-      <HomeKaraokeBanner
-        body={homeT("karaokeBannerBody")}
-        cta={homeT("karaokeBannerCta")}
-        eyebrow={homeT("karaokeBannerEyebrow")}
-        heading1={homeT("karaokeBannerHeading1")}
-        heading2={homeT("karaokeBannerHeading2")}
-        facts={[
-          ...(karaokeCapacity
-            ? [
-                {
-                  value: String(karaokeCapacity),
-                  label: homeT("karaokeFactCapacity"),
-                },
-              ]
-            : []),
-          {
-            value: `${KARAOKE_PRICING.student.perPerson} kr`,
-            label: homeT("karaokeFactPrice"),
-          },
-          { value: "18+", label: homeT("karaokeFactAge") },
-        ]}
-      />
       <div className="hs:hidden">
         <HomeBookingBanner
           body={homeT("bookingBannerBody")}
@@ -286,6 +257,12 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         openingHours={barPreviews?.openingHours}
         rooms={barPreviews?.rooms ?? []}
         vacationMode={barPreviews?.vacationMode}
+      />
+      <HomeKaraokeBanner
+        body={homeT("karaokeBannerBody")}
+        cta={homeT("karaokeBannerCta")}
+        heading1={homeT("karaokeBannerHeading1")}
+        heading2={homeT("karaokeBannerHeading2")}
       />
 
       <section className="hs:hidden">

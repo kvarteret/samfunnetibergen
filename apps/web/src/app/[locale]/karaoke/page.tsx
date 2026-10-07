@@ -1,4 +1,4 @@
-import { Mic } from "lucide-react"
+import { ExternalLink, Mic } from "lucide-react"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
@@ -99,6 +99,20 @@ function KaraokePageIntro() {
       <p className="text-lg leading-7 text-foreground-muted max-w-xl">
         Så gøy at du ønsker å booke karaoke hos oss! Fyll ut skjemaet under, så
         behandler vi forespørselen din så fort vi ser den.
+      </p>
+
+      <p className="text-lg leading-7 text-foreground-muted max-w-xl">
+        Vi bruker KaraFun –{" "}
+        <a
+          className="inline-flex items-center gap-1 text-foreground underline underline-offset-4 hover:no-underline focus-brutal"
+          href="https://www.karafun.com/karaoke/"
+          rel="noreferrer"
+          target="_blank"
+        >
+          her er katalogen
+          <ExternalLink aria-hidden className="size-4" />
+        </a>
+        .
       </p>
 
       <p className="font-heading uppercase tracking-widest text-destructive">
