@@ -3,6 +3,10 @@
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu"
 import { ChevronDown } from "lucide-react"
 
+import {
+  menuItemClassName,
+  menuPopupClassName,
+} from "@/components/ui/menu-surface"
 import { cn } from "@/lib/utils"
 
 function NavigationMenu({
@@ -26,7 +30,9 @@ function NavigationMenu({
           collisionPadding={12}
           sideOffset={6}
         >
-          <NavigationMenuPrimitive.Popup className="relative rounded-xl border border-border bg-card shadow-[0_16px_36px_-14px_rgb(0_0_0/0.28)] outline-none transition-[opacity,transform] duration-150 data-ending-style:-translate-y-1 data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:opacity-0">
+          <NavigationMenuPrimitive.Popup
+            className={cn("relative", menuPopupClassName)}
+          >
             <NavigationMenuPrimitive.Viewport className="relative h-[var(--popup-height)] w-[var(--popup-width)] overflow-hidden" />
           </NavigationMenuPrimitive.Popup>
         </NavigationMenuPrimitive.Positioner>
@@ -125,8 +131,7 @@ function NavigationMenuLink({
       className={cn(
         "cursor-pointer text-foreground focus-brutal",
         // Dropdown rows: rounded, with a soft tint on hover.
-        variant === "menu" &&
-          "block rounded-lg px-3 py-2 transition-colors hover:bg-muted data-highlighted:bg-muted",
+        variant === "menu" && cn(menuItemClassName, "flex"),
         variant === "top" &&
           "relative flex items-center border-2 border-transparent px-3 py-2.5 font-heading hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
         // HS: top-level links show a thin bar on hover instead of a filled box.

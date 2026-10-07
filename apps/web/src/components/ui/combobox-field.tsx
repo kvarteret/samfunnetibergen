@@ -5,6 +5,11 @@ import { Check, ChevronDown, X } from "lucide-react"
 
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { Label } from "@/components/ui/label"
+import {
+  menuItemClassName,
+  menuPopupClassName,
+  menuTriggerClassName,
+} from "@/components/ui/menu-surface"
 import type { SelectOption } from "@/components/ui/select-field"
 import { cn } from "@/lib/utils"
 
@@ -52,7 +57,8 @@ export function ComboboxField({
       >
         <Combobox.InputGroup
           className={cn(
-            "relative flex min-h-11 w-full items-center rounded-base border-2 border-border bg-card focus-within-brutal",
+            menuTriggerClassName,
+            "relative flex min-h-11 w-full items-center focus-within-brutal",
             className,
           )}
         >
@@ -71,7 +77,7 @@ export function ComboboxField({
           </Combobox.Clear>
           <Combobox.Trigger
             aria-label="Åpne valg"
-            className="flex size-10 cursor-pointer items-center justify-center text-foreground hover:bg-muted"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-r-lg text-foreground hover:bg-muted"
           >
             <ChevronDown aria-hidden className="size-4" />
           </Combobox.Trigger>
@@ -79,14 +85,14 @@ export function ComboboxField({
 
         <Combobox.Portal>
           <Combobox.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Combobox.Popup className="rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
+            <Combobox.Popup className={menuPopupClassName}>
               <Combobox.Empty className="text-sm text-foreground-muted">
                 <div className="px-3 py-4">Ingen treff</div>
               </Combobox.Empty>
               <Combobox.List className="max-h-[min(22.5rem,var(--available-height))] overflow-y-auto p-1 outline-none">
                 {(option: SelectOption) => (
                   <Combobox.Item
-                    className="flex cursor-pointer items-center gap-2 px-3 py-2 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-primary data-highlighted:text-primary-foreground"
+                    className={menuItemClassName}
                     disabled={option.disabled}
                     key={option.value}
                     value={option}

@@ -5,6 +5,7 @@ import { Slider } from "@base-ui/react/slider"
 import { Info } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
+import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { minutesToTime } from "@/lib/opening-hours"
 import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
 
@@ -587,7 +588,9 @@ function GetInGetOutInfo({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner sideOffset={8}>
-          <Popover.Popup className="z-[100] w-72 space-y-2 panel shadow-shadow text-sm">
+          <Popover.Popup
+            className={`z-[100] w-72 space-y-2 p-4 text-sm ${menuPopupClassName}`}
+          >
             <p>
               <strong className="font-heading">{t("dateTime.getIn")}:</strong>{" "}
               {t("dateTime.getInExplanation")}
