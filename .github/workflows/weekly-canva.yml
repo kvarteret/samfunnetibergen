@@ -2,9 +2,9 @@ name: Generate Ukas post with Skonk
 
 on:
   schedule:
-    # Sunday 18:00 Oslo is 16:00 UTC in summer and 17:00 UTC in winter.
+    # Sunday 08:00 Oslo is 06:00 UTC in summer and 07:00 UTC in winter.
     # The Oslo-time guard rejects early runs; the weekly receipt deduplicates.
-    - cron: "0 16,17 * * 0"
+    - cron: "0 6,7 * * 0"
   workflow_dispatch:
     inputs:
       dry_run:

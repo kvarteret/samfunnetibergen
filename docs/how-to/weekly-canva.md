@@ -6,9 +6,9 @@ Skonk reads next week's approved public events from `/api/v1/events` and prepare
 
 TicketCo imports run Wednesday at 06:00 and Saturday at 18:00 Europe/Oslo. These are 3½ calendar days apart; daylight-saving transitions change the elapsed hours between them. Imported events remain pending until approved by editors. Sunday's Canva run therefore includes only approved events, including approved TicketCo imports.
 
-The Canva workflow targets Sunday at 18:00 Europe/Oslo and prepares the following Monday–Sunday. GitHub Actions schedules can start late or be missed, so this is a target time, not an exact delivery guarantee. Both UTC equivalents are scheduled; the application rejects an early run and records one delivery per Monday date. Scheduled workflows run from the default branch, currently `develop`.
+The Canva workflow targets Sunday at 08:00 Europe/Oslo and prepares the following Monday–Sunday. GitHub Actions schedules can start late or be missed, so this is a target time, not an exact delivery guarantee. Both UTC equivalents are scheduled; the application rejects an early run and records one delivery per Monday date. Scheduled workflows run from the default branch, currently `develop`.
 
-**Canva activation is deferred.** An individual Canva account with MFA and Autofill access must be connected first. Leave the repository Actions variable `WEEKLY_CANVA_ENABLED` unset or `false` until a manual generation has been verified. Manual dry runs can prepare copy without a Canva connection.
+The Canva app is connected through OAuth. Production credentials are maintained in Infisical and synchronized to the GitHub production environment. A live week 42 carousel was generated, exported at 1080 × 1350, visually reviewed, and delivered through the nettside webhook. Scheduled activation uses the repository Actions variable `WEEKLY_CANVA_ENABLED=true`. Manual dry runs can prepare copy without writing designs or sending Slack.
 
 ## Template
 
@@ -70,4 +70,4 @@ Local checks:
     mise exec -- npm run test:web -- src/features/weekly-canva src/features/events/integrations/ticketco
     mise exec -- npm run typecheck
 
-Production activation and end-to-end Canva layout verification remain deferred until the individual account is available.
+The approved week 42 draft covers 12–18 October 2026. Editors review future generated posts before publishing them to Instagram.

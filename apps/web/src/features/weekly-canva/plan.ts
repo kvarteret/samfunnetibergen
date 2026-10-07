@@ -36,10 +36,10 @@ export function weekFor(now = new Date(), monday?: string): Week {
   }
 }
 
-// A delayed runner may start later on Sunday; never generate before 18:00.
+// A delayed runner may start later on Sunday; never generate before 08:00.
 export function scheduleDue(now = new Date()): boolean {
   const local = new TZDate(now, OSLO)
-  return local.getDay() === 0 && local.getHours() >= 18
+  return local.getDay() === 0 && local.getHours() >= 8
 }
 
 export async function readWeek(

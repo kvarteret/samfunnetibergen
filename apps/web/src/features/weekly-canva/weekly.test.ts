@@ -10,7 +10,7 @@ import {
   type WeeklyEvent,
   weekFor,
 } from "./plan"
-import { type Dependencies, runWeekly } from "./runner"
+import { type Dependencies, notifyWeek, runWeekly } from "./runner"
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -102,15 +102,15 @@ function fixture() {
 
 describe("Oslo weekly scheduling", () => {
   test.each([
-    ["2026-07-05T15:59:00Z", false],
-    ["2026-07-05T16:00:00Z", true],
-    ["2026-01-04T16:59:00Z", false],
-    ["2026-01-04T17:00:00Z", true],
-    ["2026-03-29T16:00:00Z", true],
-    ["2026-10-25T16:00:00Z", false],
-    ["2026-10-25T17:00:00Z", true],
-    ["2026-10-26T17:00:00Z", false],
-  ])("checks %s against local 18:00", (date, due) =>
+    ["2026-07-05T05:59:00Z", false],
+    ["2026-07-05T06:00:00Z", true],
+    ["2026-01-04T06:59:00Z", false],
+    ["2026-01-04T07:00:00Z", true],
+    ["2026-03-29T06:00:00Z", true],
+    ["2026-10-25T06:00:00Z", false],
+    ["2026-10-25T07:00:00Z", true],
+    ["2026-10-26T07:00:00Z", false],
+  ])("checks %s against local 08:00", (date, due) =>
     expect(scheduleDue(new Date(date))).toBe(due),
   )
   test("selects next Monday and handles ISO year rollover", () => {
@@ -459,4 +459,32 @@ test("merge polling retries resume the saved merge instead of inserting pages tw
   expect(canva.merge).toHaveBeenCalledTimes(1)
   await runWeekly(client, { monday: "2026-10-12" }, deps)
   expect(canva.merge).toHaveBeenCalledTimes(3)
+})
+
+test("Slack receives the review link and week range through the configured webhook", async () => {
+  fixture()
+  const request = vi.fn(async () => new Response("ok"))
+  vi.stubGlobal("fetch", request)
+  await notifyWeek(weekFor(new Date(), "2026-10-12"), design)
+  const [url, options] = request.mock.calls[0] as unknown as [
+    string,
+    RequestInit,
+  ]
+  expect(url).toBe("https://hooks.slack.com/services/test/test/test")
+  expect(options.method).toBe("POST")
+  const payload = JSON.parse(options.body as string)
+  expect(payload.text).toContain("2026-10-12–2026-10-18")
+  expect(payload.text).toContain(design.urls.edit_url)
+  expect(payload.blocks[1].text.text).toContain(design.urls.edit_url)
+})
+
+test("Slack rejection does not count as successful delivery", async () => {
+  fixture()
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response("invalid_payload", { status: 400 })),
+  )
+  await expect(
+    notifyWeek(weekFor(new Date(), "2026-10-12"), design),
+  ).rejects.toThrow("Slack delivery failed")
 })
