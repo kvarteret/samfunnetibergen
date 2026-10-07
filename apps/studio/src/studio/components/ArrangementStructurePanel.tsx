@@ -81,6 +81,20 @@ const DayButton = styled.button`
   &:focus-visible { outline: 2px solid var(--card-focus-ring-color, currentColor); }
 `
 
+function scrollParent(element: HTMLElement): HTMLElement | null {
+  let current = element.parentElement
+  while (current) {
+    const { overflowY } = getComputedStyle(current)
+    if (
+      /(auto|scroll)/.test(overflowY) &&
+      current.scrollHeight > current.clientHeight
+    )
+      return current
+    current = current.parentElement
+  }
+  return null
+}
+
 /** Draft wins over published; returns days sorted by date and time. */
 export function daysFor(days: Day[], parentId: string): Day[] {
   const byId = new Map<string, Day>()
@@ -221,6 +235,19 @@ export function ArrangementStructurePanel({
     )
   }
 
+  const switchFormat = (anchor: HTMLElement, nextKind: Kind) => {
+    const scroller = scrollParent(anchor)
+    const top = scroller?.scrollTop ?? 0
+    operations.patch.execute(formatPatch(nextKind, document))
+    // Fields appear and disappear below; hold the view still while they do.
+    let frames = 0
+    const hold = () => {
+      if (scroller) scroller.scrollTop = top
+      if (++frames < 20) requestAnimationFrame(hold)
+    }
+    requestAnimationFrame(hold)
+  }
+
   const days = daysFor(data.days, documentId)
   const locked = days.length > 0
   const today = todayInOslo()
@@ -255,10 +282,13 @@ export function ArrangementStructurePanel({
                 border
                 disabled={locked && !selected}
                 key={format.kind}
-                onClick={() =>
-                  !selected &&
-                  operations.patch.execute(formatPatch(format.kind, document))
+                onClick={event =>
+                  !selected && switchFormat(event.currentTarget, format.kind)
                 }
+                // Keep focus where it is; a focused button makes Studio
+                // scroll the form when the fields below change.
+                onMouseDown={event => event.preventDefault()}
+                type="button"
                 padding={3}
                 radius={2}
                 style={{
