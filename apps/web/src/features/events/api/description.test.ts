@@ -35,12 +35,35 @@ describe("public event descriptions", () => {
     expect(result.text).toContain("Hello world")
     expect(result.text).toContain("A list item")
     expect(result.html).toContain("<h2><strong>Hello</strong>")
-    expect(result.html).toContain('<a href="/arrangementer/test"> world</a>')
+    expect(result.html).toContain(
+      '<a href="/arrangementer/test" rel="nofollow"> world</a>',
+    )
     expect(result.html).toContain(
       '<figure><img src="https://cdn.example.test/image.jpg"',
     )
     expect(result.html).toContain("<figcaption>A caption</figcaption>")
     expect(result.html).not.toContain("style=")
+  })
+
+  it("retains new-tab protections alongside nofollow", () => {
+    const result = serializePublicDescription([
+      {
+        _type: "block",
+        style: "normal",
+        children: [{ _type: "span", text: "BIFF", marks: ["biff"] }],
+        markDefs: [
+          {
+            _key: "biff",
+            _type: "link",
+            href: "https://www.biff.no",
+            target: "blank",
+          },
+        ],
+      },
+    ])
+    expect(result.html).toContain(
+      'target="_blank" rel="nofollow noopener noreferrer"',
+    )
   })
 
   it("escapes markup and removes unsafe links and image URLs", () => {

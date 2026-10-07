@@ -7,9 +7,15 @@ import { ContentPageViewTracking } from "@/components/content-page-view-tracking
 import { JsonLd } from "@/components/JsonLd"
 import { EventInterest } from "@/features/event-interest/components/EventInterest"
 import {
+  FestivalHero,
+  type FestivalLabels,
+  FestivalProgramme,
+} from "@/features/events/components/FestivalProgramme"
+import {
   flattenPublicOccurrences,
   type PublicEvent,
 } from "@/features/events/domain/events"
+import { groupFestivalProgramme } from "@/features/events/domain/festival-programme"
 import { fetchEventPageData } from "@/features/events/server/public-events-page"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
@@ -56,6 +62,21 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const { event: eventData, children: childEvents } = detail
   const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
+  const isFestival = eventData.eventKind === "festivalParent"
+  const festivalDays = isFestival ? groupFestivalProgramme(childEvents) : []
+  const festivalLabels: FestivalLabels = {
+    programme: t("childEvents"),
+    browseDays: t("festivalBrowseDays"),
+    events: t("festivalEvents"),
+    days: t("festivalDays"),
+    about: t("festivalAbout"),
+    details: t("festivalDetails"),
+    tickets: t("tickets"),
+    soldOut: t("soldOut"),
+    cancelled: t("statusCancelled"),
+    timeUnknown: t("festivalTimeUnknown"),
+    empty: t("festivalEmpty"),
+  }
   const today = getOsloDateString()
   const eventJsonLd = buildEventStructuredData(
     isParentEvent
@@ -84,19 +105,47 @@ export default async function EventPage({ params }: EventPageProps) {
           path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
-        <EventDetailHero
-          event={eventData}
-          eventSlug={resolvedParams.event}
-          ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
-          partOfLabel={t("partOf")}
-        />
+        {isFestival ? (
+          <FestivalHero
+            event={eventData}
+            days={festivalDays}
+            locale={locale}
+            labels={festivalLabels}
+          />
+        ) : (
+          <EventDetailHero
+            event={eventData}
+            eventSlug={resolvedParams.event}
+            ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
+            partOfLabel={t("partOf")}
+          />
+        )}
+        {isFestival && (
+          <FestivalProgramme
+            days={festivalDays}
+            locale={locale}
+            labels={festivalLabels}
+          />
+        )}
+        {isFestival && (
+          <h2
+            id="festival-about"
+            className="scroll-mt-24 border-t-2 border-border pt-8 font-heading text-3xl"
+          >
+            {t("festivalAbout")}
+          </h2>
+        )}
         <EventDetailDescription
           event={eventData}
           eventSlug={resolvedParams.event}
           t={t}
         />
-        <EventDetailScheduleAndMeta event={eventData} t={t} />
-        {childEvents.length > 0 && (
+        {isFestival ? (
+          <EventDetailMetaSidebar event={eventData} t={t} />
+        ) : (
+          <EventDetailScheduleAndMeta event={eventData} t={t} />
+        )}
+        {!isFestival && childEvents.length > 0 && (
           <EventChildList childEvents={childEvents} t={t} />
         )}
       </article>
@@ -458,7 +507,7 @@ function EventDetailDescription({
       <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
       <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (
-          <PortableTextContent value={event.description} />
+          <PortableTextContent value={event.description} nofollowLinks />
         ) : (
           <p>-</p>
         )}
