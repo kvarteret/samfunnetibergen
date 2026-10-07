@@ -502,10 +502,7 @@ export type Arrangement = {
   parentEvent?: ArrangementReference
   festivalDayShortcut?: string
   localizedTitle?: InternationalizedArrayString
-  slug: Slug
   eventType?: EventTypeReference
-  isInternalEvent?: boolean
-  isPromoted?: boolean
   promotedPlacement?: "top" | "pool"
   promotedOrder?: number
   orderRank?: string
@@ -537,11 +534,20 @@ export type Arrangement = {
   priceMedlem?: number
   ticketUrl?: string
   facebookUrl?: string
+  isInternalEvent?: boolean
   eventStatus: "scheduled" | "cancelled"
   approvalStatus: string
+  slug: Slug
+  isPromoted?: boolean
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
+}
+
+export type Slug = {
+  _type: "slug"
+  current: string
+  source?: string
 }
 
 export type StudentGroup = {
@@ -603,12 +609,6 @@ export type InternationalizedArrayPortableTextContent = Array<
     _key: string
   } & InternationalizedArrayPortableTextContentValue
 >
-
-export type Slug = {
-  _type: "slug"
-  current: string
-  source?: string
-}
 
 export type Room = {
   _id: string
@@ -1132,10 +1132,10 @@ export type AllSanitySchemaTypes =
   | SourcedImage
   | EventTypeReference
   | Arrangement
+  | Slug
   | StudentGroup
   | InternationalizedArrayStudentGroupLabelValue
   | InternationalizedArrayPortableTextContent
-  | Slug
   | Room
   | EventTaxonomyGroupReference
   | EventType

@@ -61,6 +61,12 @@ type ArrangementListOptions = {
   order?: { field: string; direction: "asc" | "desc" }
 }
 
+// Component panes open documents to their right so the list stays visible.
+function arrangementDocument(S: StructureBuilder) {
+  return (documentId: string) =>
+    S.document().documentId(documentId).schemaType("arrangement")
+}
+
 function arrangementList(S: StructureBuilder, opts: ArrangementListOptions) {
   let list = S.documentList()
     .apiVersion(STRUCTURE_API_VERSION)
@@ -123,7 +129,8 @@ export const structure: StructureResolver = (S, context) =>
                   S.component()
                     .id("arrangement-browser-pane")
                     .title("Arrangementer")
-                    .component(ArrangementsPane),
+                    .component(ArrangementsPane)
+                    .child(arrangementDocument(S)),
                 ),
               S.listItem()
                 .id("arrangement-promoted")
@@ -133,7 +140,8 @@ export const structure: StructureResolver = (S, context) =>
                   S.component()
                     .id("arrangement-promoted-pane")
                     .title("Fremhevede arrangementer")
-                    .component(PromotedArrangementsPane),
+                    .component(PromotedArrangementsPane)
+                    .child(arrangementDocument(S)),
                 ),
             ]),
         ),

@@ -1,4 +1,5 @@
 import { icons } from "@sanity/icons"
+import { createImageUrlBuilder } from "@sanity/image-url"
 import {
   Badge,
   Button,
@@ -13,19 +14,40 @@ import {
   TextInput,
 } from "@sanity/ui"
 import { useId, useMemo, useState } from "react"
+import { useClient } from "sanity"
 import { IntentLink } from "sanity/router"
+import { usePaneRouter } from "sanity/structure"
+import styled from "styled-components"
 
 import {
-  ARRANGEMENT_LIST_STATUS_LABELS,
   type ArrangementBrowserItem,
   type ArrangementFilterState,
-  arrangementListStatus,
   defaultArrangementFilters,
   filterArrangements,
-  latestArrangementDate,
+  formatStudioDate,
+  nextArrangementDate,
   todayInOslo,
 } from "./arrangementFilters"
 import { useListeningQuery } from "./useListeningQuery"
+
+const RowLink = styled.div`
+  flex: 1;
+  min-width: 0;
+  a { color: inherit; text-decoration: none; display: block; border-radius: 3px; }
+  a:focus-visible { outline: 2px solid var(--card-focus-ring-color, currentColor); outline-offset: 2px; }
+`
+
+const Thumbnail = styled.span`
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--card-muted-bg-color, rgb(127 127 127 / 0.15));
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+`
 
 const ARRANGEMENTS_QUERY = `*[
   _type == "arrangement" &&
@@ -38,7 +60,11 @@ const ARRANGEMENTS_QUERY = `*[
   "approvalStatus": coalesce(approvalStatus, "pending"),
   "eventStatus": coalesce(eventStatus, "scheduled"),
   "isRecurring": coalesce(isRecurring, false),
-  dates[]{startDate, startTime},
+  _createdAt,
+  image,
+  "imageRef": coalesce(image.asset._ref, ""),
+  "roomTitle": room->localizedTitle[language == "nb"][0].value,
+  dates[]{startDate, startTime, endTime},
   "eventType": eventType->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Type uten navn"), "taxonomyGroup": taxonomyGroup->{_id, "name": coalesce(localizedName[language == "nb" && defined(value) && value != ""][0].value, "Gruppe uten navn")}},
   "childDates": *[
     _type == "arrangement" &&
@@ -58,13 +84,25 @@ const BROWSER_DATA_QUERY = `{
 const BROWSER_LISTEN_QUERY =
   '*[_type in ["arrangement", "eventType", "eventTaxonomyGroup"]]'
 
+type BrowserRow = ArrangementBrowserItem & {
+  _createdAt?: string
+  image?: { asset?: { _ref?: string } } | null
+  imageRef?: string
+  roomTitle?: string | null
+}
+
+const KIND_LABELS: Record<string, string> = {
+  seriesParent: "Serie",
+  festivalParent: "Festival",
+}
+
 type Taxonomy = {
   groups: Array<{ _id: string; name?: string }>
   types: Array<{ _id: string; name?: string; groupId?: string }>
 }
 
 type BrowserData = {
-  documents: ArrangementBrowserItem[]
+  documents: BrowserRow[]
   taxonomyDocuments: Taxonomy
 }
 
@@ -78,6 +116,10 @@ const EMPTY_BROWSER_DATA: BrowserData = {
 
 function ArrangementBrowser() {
   const filterId = useId()
+  const client = useClient({ apiVersion: "2026-07-29" })
+  const imageBuilder = useMemo(() => createImageUrlBuilder(client), [client])
+  const { ChildLink, routerPanesState, groupIndex } = usePaneRouter()
+  const openId = routerPanesState[groupIndex + 1]?.[0]?.id
   const [filters, setFilters] = useState<ArrangementFilterState>(
     defaultArrangementFilters,
   )
@@ -105,12 +147,30 @@ function ArrangementBrowser() {
       <Stack gap={4}>
         <Flex align="center" gap={3} justify="space-between" wrap="wrap">
           <Heading size={2}>Arrangementer</Heading>
-          <Button
-            icon={icons.reset}
-            mode="ghost"
-            onClick={() => setFilters(defaultArrangementFilters())}
-            text="Nullstill filtre"
-          />
+          <Flex gap={2} wrap="wrap">
+            <Button
+              as={IntentLink}
+              icon={icons.add}
+              intent="create"
+              params={{ template: "arrangement", type: "arrangement" }}
+              text="Nytt arrangement"
+              tone="primary"
+            />
+            <Button
+              as={IntentLink}
+              icon={icons.add}
+              intent="create"
+              mode="ghost"
+              params={{ template: "festival", type: "arrangement" }}
+              text="Ny festival"
+            />
+            <Button
+              icon={icons.reset}
+              mode="bleed"
+              onClick={() => setFilters(defaultArrangementFilters())}
+              text="Nullstill filtre"
+            />
+          </Flex>
         </Flex>
         <Grid gridTemplateColumns={[1, 1, 3]} gap={3}>
           <Stack gap={2}>
@@ -151,7 +211,7 @@ function ArrangementBrowser() {
             >
               <option value="all">Alle</option>
               <option value="single">Enkeltarrangementer</option>
-              <option value="recurring">Recurring</option>
+              <option value="recurring">Gjentakende serier</option>
               <option value="festivals">Festivaler</option>
             </Select>
           </Stack>
@@ -174,7 +234,7 @@ function ArrangementBrowser() {
               }
               value={filters.status}
             >
-              <option value="approved">Godkjent</option>
+              <option value="approved">Kommende</option>
               <option value="completed">Gjennomført</option>
               <option value="archived">Arkivert</option>
               <option value="cancelled">Kansellert</option>
@@ -255,20 +315,10 @@ function ArrangementBrowser() {
         ) : (
           <Stack gap={2}>
             {results.map(item => {
-              const status = arrangementListStatus(item, today)
-              const statusLabel = ARRANGEMENT_LIST_STATUS_LABELS[status]
-              const nextDate =
-                [
-                  ...(item.dates ?? []),
-                  ...(item.childDates ?? []).map(startDate => ({
-                    startDate,
-                  })),
-                ]
-                  .map(date => date.startDate)
-                  .filter((date): date is string =>
-                    Boolean(date && date >= today),
-                  )
-                  .sort()[0] ?? latestArrangementDate(item)
+              const nextDate = nextArrangementDate(item, today)
+              const nextTime = item.dates?.find(
+                date => date.startDate === nextDate,
+              )?.startTime
               const needsDays =
                 item.eventKind === "seriesParent" &&
                 item.isRecurring === true &&
@@ -278,63 +328,92 @@ function ArrangementBrowser() {
                   return date >= horizon.toISOString().slice(0, 10)
                 })
               const isFestival = item.eventKind === "festivalParent"
+              const kindLabel = KIND_LABELS[item.eventKind ?? ""]
+              const thumbnail = item.imageRef
+                ? imageBuilder
+                    .image(item.image ?? item.imageRef)
+                    .width(128)
+                    .height(96)
+                    .fit("crop")
+                    .auto("format")
+                    .url()
+                : null
+              const selected = openId === item._id
               return (
-                <Card border key={item._id} padding={3} radius={2}>
-                  <Flex align="center" gap={3} justify="space-between">
-                    <Stack gap={2}>
-                      <IntentLink
-                        intent="edit"
-                        params={{
-                          id: item._id,
-                          mode: "structure",
-                          type: "arrangement",
-                        }}
-                        style={{ color: "inherit", textDecoration: "none" }}
-                      >
-                        <Text size={2} weight="semibold">
-                          {item.title ?? "Arrangement uten tittel"}
-                        </Text>
-                      </IntentLink>
-                      <Text muted size={1}>
-                        {[nextDate, item.eventType?.name]
-                          .filter(Boolean)
-                          .join(" · ") || "Ingen dato"}
-                      </Text>
-                    </Stack>
-                    <Flex align="center" gap={2}>
-                      <Badge
-                        tone={
-                          status === "cancelled"
-                            ? "critical"
-                            : status === "completed"
-                              ? "positive"
-                              : status === "archived"
-                                ? "default"
-                                : "primary"
-                        }
-                      >
-                        {statusLabel}
-                      </Badge>
-                      {isFestival ? (
-                        <Button
-                          as={IntentLink}
-                          intent="create"
-                          mode="ghost"
-                          params={[
-                            {
-                              mode: "structure",
-                              template: "festival-day",
-                              type: "arrangement",
-                            },
-                            { parentId: item._id },
-                          ]}
-                          text="Legg til festivaldag"
-                        />
-                      ) : null}
-                      {needsDays ? (
-                        <Badge tone="caution">Mangler kommende dager</Badge>
-                      ) : null}
-                    </Flex>
+                <Card
+                  border
+                  key={item._id}
+                  radius={2}
+                  tone={selected ? "primary" : "default"}
+                >
+                  <Flex align="center" gap={3} padding={2}>
+                    <RowLink>
+                      <ChildLink childId={item._id}>
+                        <Flex align="center" gap={3}>
+                          <Thumbnail>
+                            {thumbnail ? (
+                              <img alt="" src={thumbnail} />
+                            ) : (
+                              <icons.image />
+                            )}
+                          </Thumbnail>
+                          <Stack gap={2} style={{ minWidth: 0 }}>
+                            <Text
+                              size={2}
+                              textOverflow="ellipsis"
+                              weight="semibold"
+                            >
+                              {item.title ?? "Arrangement uten tittel"}
+                            </Text>
+                            <Text muted size={1} textOverflow="ellipsis">
+                              {[
+                                [formatStudioDate(nextDate), nextTime]
+                                  .filter(Boolean)
+                                  .join(" kl. "),
+                                item.roomTitle,
+                                item.eventType?.name,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ") || "Ingen dato"}
+                            </Text>
+                            <Flex align="center" gap={2} wrap="wrap">
+                              {kindLabel ? (
+                                <Badge fontSize={0}>{kindLabel}</Badge>
+                              ) : null}
+                              {needsDays ? (
+                                <Badge fontSize={0} tone="caution">
+                                  Mangler kommende dager
+                                </Badge>
+                              ) : null}
+                              {item._createdAt ? (
+                                <Text muted size={0}>
+                                  Lagt ut{" "}
+                                  {formatStudioDate(item._createdAt, false)}
+                                </Text>
+                              ) : null}
+                            </Flex>
+                          </Stack>
+                        </Flex>
+                      </ChildLink>
+                    </RowLink>
+                    {isFestival ? (
+                      <Button
+                        as={IntentLink}
+                        fontSize={1}
+                        icon={icons.add}
+                        intent="create"
+                        mode="ghost"
+                        params={[
+                          {
+                            mode: "structure",
+                            template: "festival-day",
+                            type: "arrangement",
+                          },
+                          { parentId: item._id },
+                        ]}
+                        text="Festivaldag"
+                      />
+                    ) : null}
                   </Flex>
                 </Card>
               )

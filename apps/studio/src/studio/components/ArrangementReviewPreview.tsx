@@ -1,16 +1,20 @@
+import { CropIcon } from "@sanity/icons/Crop"
+import { EditIcon } from "@sanity/icons/Edit"
 import { createImageUrlBuilder } from "@sanity/image-url"
 import { Badge, Button, Card, Flex, Stack, Text } from "@sanity/ui"
 import { useState } from "react"
-import { useClient } from "sanity"
+import { type Path, useClient } from "sanity"
 import styled from "styled-components"
 import { normalizeDocumentId } from "./arrangementFilters"
 import {
   buildArrangementPreview,
   EMPTY_PREVIEW_REFERENCES,
+  type PreviewCheck,
   type PreviewDocument,
   type PreviewLocale,
   type PreviewReferences,
 } from "./arrangementPreview"
+import { cropFrame, type FrameSource, relativeFrame } from "./imageFrames"
 import { useListeningQuery } from "./useListeningQuery"
 
 const REFERENCE_QUERY = `{
@@ -21,23 +25,37 @@ const REFERENCE_QUERY = `{
  "childDates": *[_type == "arrangement" && parentEvent._ref == $documentId && approvalStatus == "approved"].dates[]
 }`
 const LISTEN_QUERY = `*[_id in [$roomId,"drafts."+$roomId,$typeId,"drafts."+$typeId,$organizerId,"drafts."+$organizerId,$parentId,"drafts."+$parentId] || parentEvent._ref == $documentId]`
+// Infoskjermen viser 4:3; arrangementskortene på nettsiden viser 16:9.
+const PRIMARY_RATIO = 4 / 3
+const CARD_RATIO = 16 / 9
 const Layout = styled.div`
- display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:1.5rem;
+ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap:1.5rem; align-items:start;
 `
 const CatalogueCard = styled.article`
  color:#181818; background:#fffdf6; padding:16px; border:1px solid #dedbd0;
  font-family:Arial,sans-serif;
- img {width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
  h3 {font-size:24px;line-height:1.12;margin:12px 0;font-weight:800;overflow-wrap:anywhere;}
  p {font-size:14px;line-height:1.5;margin:8px 0;}
- .image-placeholder {aspect-ratio:16/9;background:#ece9de;display:grid;place-items:center;color:#68645b;}
  .metadata {display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;font-size:13px;}
  .tag {background:#efe548;padding:4px 8px;font-weight:600;}
  .status {background:#ffd9d9;padding:4px 8px;}
  .location {color:#57534b;}
 `
-const Meter = styled.progress`
- width:100%; height:12px; accent-color:#45944c;
+const ImageFrame = styled.div`
+ position:relative; aspect-ratio:4/3; overflow:hidden; background:#ece9de;
+ img {width:100%;height:100%;object-fit:cover;display:block;}
+ .placeholder {position:absolute;inset:0;display:grid;place-items:center;color:#68645b;}
+ .card-frame {
+   position:absolute; border:2px dashed #fff; outline:1px solid rgb(0 0 0 / 0.45);
+   box-shadow:0 0 0 999px rgb(0 0 0 / 0.35); pointer-events:none;
+ }
+ .card-frame span {
+   position:absolute; left:6px; bottom:6px; background:rgb(0 0 0 / 0.7); color:#fff;
+   font:600 11px/1.2 Arial,sans-serif; padding:3px 6px;
+ }
+`
+const FieldList = styled.ul`
+ list-style:none; padding:0; margin:0; display:grid; gap:2px;
 `
 const SourceLink = styled.a`
  color:inherit; text-underline-offset:3px; overflow-wrap:anywhere;
@@ -51,10 +69,70 @@ function safeLink(url: string | null | undefined) {
     return null
   }
 }
+
+function checkTone(check: PreviewCheck) {
+  if (check.done) return "default" as const
+  return check.required ? ("critical" as const) : ("caution" as const)
+}
+
+function FieldRow({
+  check,
+  onEdit,
+}: {
+  check: PreviewCheck
+  onEdit?: (path: Path) => void
+}) {
+  return (
+    <li>
+      <Card padding={2} radius={2} tone={checkTone(check)}>
+        <Flex align="flex-start" gap={3}>
+          <Text size={1} aria-hidden>
+            {check.done ? "✓" : check.required ? "!" : "○"}
+          </Text>
+          <Stack flex={1} gap={2}>
+            <Text size={1} weight="semibold">
+              {check.label}
+              {check.done
+                ? ""
+                : check.required
+                  ? " — må fylles ut"
+                  : " — anbefalt"}
+            </Text>
+            {check.values.map(value => (
+              <Text
+                key={value}
+                muted
+                size={1}
+                style={{ overflowWrap: "anywhere" }}
+              >
+                {value}
+              </Text>
+            ))}
+          </Stack>
+          {onEdit ? (
+            <Button
+              aria-label={`Endre ${check.label.toLowerCase()}`}
+              fontSize={1}
+              icon={EditIcon}
+              mode="bleed"
+              onClick={() => onEdit([check.path])}
+              padding={2}
+              text="Endre"
+            />
+          ) : null}
+        </Flex>
+      </Card>
+    </li>
+  )
+}
+
 export function ArrangementReviewPreview({
   document,
+  onEditField,
 }: {
   document: PreviewDocument
+  /** Moves form focus to a field; omitted where the form is not editable. */
+  onEditField?: (path: Path) => void
 }) {
   const client = useClient({ apiVersion: "2026-07-29" })
   const [locale, setLocale] = useState<PreviewLocale>("nb")
@@ -107,31 +185,39 @@ export function ArrangementReviewPreview({
     },
     locale,
   )
-  const image = preview.imageRef
+  const ownImage = Boolean(document.image?.asset?._ref)
+  const imageSource: FrameSource | null = preview.imageRef
+    ? {
+        ...((ownImage ? document.image : child ? parent?.image : null) ?? {}),
+        asset: { _ref: preview.imageRef },
+      }
+    : null
+  const image = imageSource
     ? createImageUrlBuilder(client)
-        .image({
-          asset: { _ref: preview.imageRef },
-          ...(document.image ?? (child ? parent?.image : null)),
-        })
-        .width(900)
-        .height(506)
+        .image(imageSource)
+        .width(960)
+        .height(720)
         .fit("crop")
         .auto("format")
         .url()
     : null
+  const primaryFrame = imageSource
+    ? cropFrame(imageSource, PRIMARY_RATIO)
+    : null
+  const cardFrame = imageSource ? cropFrame(imageSource, CARD_RATIO) : null
+  const cardOverlay =
+    primaryFrame && cardFrame ? relativeFrame(cardFrame, primaryFrame) : null
   const ticket = safeLink(preview.ticketUrl)
   const facebook = safeLink(preview.facebookUrl)
   const isSkonk = document.submittedBy === "E-tjenesten's Skonk"
+  const missingRequired = preview.missingRequired.length
   return (
     <Card border padding={4} radius={2}>
       <Stack gap={4}>
         <Flex align="center" justify="space-between" gap={3} wrap="wrap">
           <Stack gap={2}>
             <Text weight="semibold" size={2}>
-              Slik møter publikum arrangementet
-            </Text>
-            <Text muted size={1}>
-              Forhåndsvisning av arrangementskortet
+              Kontroller arrangementet
             </Text>
           </Stack>
           <Flex gap={2}>
@@ -149,90 +235,90 @@ export function ArrangementReviewPreview({
             />
           </Flex>
         </Flex>
+        {isSkonk ? (
+          <Card padding={3} radius={2} tone="caution">
+            <Text size={1} weight="semibold">
+              Automatisk import — se nøye gjennom rom, dørtider, pris og
+              artistnavn.
+            </Text>
+          </Card>
+        ) : null}
         <Layout>
-          <CatalogueCard aria-label="Forhåndsvisning av arrangement">
-            {image ? (
-              <img src={image} alt="" />
-            ) : (
-              <div className="image-placeholder">Bilde mangler</div>
-            )}
-            <div className="metadata">
-              {preview.type ? (
-                <span className="tag">{preview.type}</span>
-              ) : null}
-              {preview.dateLabels[0] ? (
-                <span>{preview.dateLabels[0]}</span>
-              ) : null}
-              {preview.status ? (
-                <span className="status">{preview.status}</span>
-              ) : null}
-            </div>
-            <h3>{preview.title}</h3>
-            <p className="location">
-              {preview.room
-                ? `⌖ ${preview.room}${preview.floor != null ? ` · ${preview.floor}. etasje` : ""}`
-                : document.eventKind === "festivalParent"
-                  ? "Festivalprogram"
-                  : "⌖ Rom mangler"}
-            </p>
-            {preview.dateLabels.length > 1 ? (
-              <p>{preview.dateLabels.slice(1).join(" · ")}</p>
+          <Stack gap={3}>
+            <CatalogueCard aria-label="Forhåndsvisning av arrangement">
+              <ImageFrame>
+                {image ? (
+                  <img src={image} alt="" />
+                ) : (
+                  <div className="placeholder">Bilde mangler</div>
+                )}
+                {cardOverlay ? (
+                  <div
+                    className="card-frame"
+                    style={{
+                      left: `${cardOverlay.left * 100}%`,
+                      top: `${cardOverlay.top * 100}%`,
+                      width: `${cardOverlay.width * 100}%`,
+                      height: `${cardOverlay.height * 100}%`,
+                    }}
+                  >
+                    <span>16:9</span>
+                  </div>
+                ) : null}
+              </ImageFrame>
+              <div className="metadata">
+                {preview.type ? (
+                  <span className="tag">{preview.type}</span>
+                ) : null}
+                {preview.dateLabels[0] ? (
+                  <span>{preview.dateLabels[0]}</span>
+                ) : null}
+                {preview.status ? (
+                  <span className="status">{preview.status}</span>
+                ) : null}
+              </div>
+              <h3>{preview.title}</h3>
+              <p className="location">
+                {preview.room
+                  ? `⌖ ${preview.room}${preview.floor != null ? ` · ${preview.floor}. etasje` : ""}`
+                  : document.eventKind === "festivalParent"
+                    ? "Festivalprogram"
+                    : "⌖ Rom mangler"}
+              </p>
+            </CatalogueCard>
+            {onEditField && ownImage ? (
+              <Button
+                icon={CropIcon}
+                mode="ghost"
+                onClick={() => onEditField(["image", "hotspot"])}
+                text="Juster utsnitt og fokus"
+              />
             ) : null}
-          </CatalogueCard>
-          <Stack gap={3}>
-            <Text weight="semibold">
-              {preview.completed} av {preview.total} felt på plass{" "}
-              {preview.completed === preview.total ? "✦" : ""}
-            </Text>
-            <Meter
-              aria-label="Utfylte arrangementsfelt"
-              value={preview.completed}
-              max={preview.total}
-            />
-            <Text muted size={1}>
-              Utfylte felt gir et godt utgangspunkt. Kontroller at innholdet
-              faktisk stemmer før du godkjenner.
-            </Text>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              {preview.checks.map(check => (
-                <li key={check.id}>
-                  <Text size={1}>
-                    <span aria-hidden>{check.done ? "✓" : "○"} </span>
-                    {check.label}
-                    {!check.done && check.required
-                      ? " — må fylles ut"
-                      : !check.done
-                        ? " — anbefalt"
-                        : " — på plass"}
-                  </Text>
-                </li>
-              ))}
-            </ul>
-            <Badge
-              tone={preview.missingRequired.length ? "caution" : "positive"}
-            >
-              {preview.missingRequired.length
-                ? `${preview.missingRequired.length} nødvendige felt mangler`
-                : "Nødvendige felt er utfylt"}
-            </Badge>
-          </Stack>
-        </Layout>
-        <Card padding={3} radius={2} tone={isSkonk ? "caution" : "default"}>
-          <Stack gap={3}>
-            {isSkonk ? (
-              <Text size={1} weight="semibold">
-                Automatisk import — se nøye gjennom rom, dørtider, pris og
-                artistnavn.
+            {!ownImage && image ? (
+              <Text muted size={1}>
+                Bildet arves fra{" "}
+                {document.eventKind === "festivalSession"
+                  ? "festivalen"
+                  : "serien"}
+                .
               </Text>
             ) : null}
+          </Stack>
+          <Stack gap={3}>
+            <Flex align="center" gap={2} wrap="wrap">
+              <Badge tone={missingRequired ? "critical" : "positive"}>
+                {missingRequired ? `${missingRequired} må fylles ut` : "Klar"}
+              </Badge>
+            </Flex>
+            <FieldList>
+              {preview.checks.map(check => (
+                <FieldRow check={check} key={check.id} onEdit={onEditField} />
+              ))}
+            </FieldList>
+          </Stack>
+        </Layout>
+        <Card padding={3} radius={2} tone="transparent" border>
+          <Stack gap={3}>
             {document.submittedBy ? (
               <Text size={1}>
                 Innsendt av {document.submittedBy}
@@ -240,10 +326,6 @@ export function ArrangementReviewPreview({
                   ? ` · ${document.submittedByEmail}`
                   : ""}
               </Text>
-            ) : null}
-            <Text size={1}>Pris: {preview.pricing || "Mangler"}</Text>
-            {preview.organizer ? (
-              <Text size={1}>Arrangør: {preview.organizer}</Text>
             ) : null}
             <Flex gap={4} wrap="wrap">
               {ticket ? (
@@ -272,7 +354,8 @@ export function ArrangementReviewPreview({
             {preview.description ? (
               <details>
                 <summary>
-                  Les beskrivelsen ({locale === "nb" ? "norsk" : "English"})
+                  Les hele beskrivelsen ({locale === "nb" ? "norsk" : "English"}
+                  )
                 </summary>
                 <p style={{ lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
                   {preview.description}

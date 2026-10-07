@@ -4,8 +4,12 @@ import {
   Droppable,
   type DropResult,
 } from "@hello-pangea/dnd"
+import { ArrowDownIcon } from "@sanity/icons/ArrowDown"
+import { ArrowUpIcon } from "@sanity/icons/ArrowUp"
 import { DragHandleIcon } from "@sanity/icons/DragHandle"
+import { ImageIcon } from "@sanity/icons/Image"
 import { TrashIcon } from "@sanity/icons/Trash"
+import { createImageUrlBuilder } from "@sanity/image-url"
 import {
   Badge,
   Box,
@@ -18,10 +22,12 @@ import {
   Text,
 } from "@sanity/ui"
 import { useToast } from "@sanity/ui/toast"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useClient } from "sanity"
-import { IntentLink } from "sanity/router"
+import { usePaneRouter } from "sanity/structure"
+import styled from "styled-components"
 
+import { formatStudioDate } from "./arrangementFilters"
 import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
   applyFeaturedSelection,
@@ -32,6 +38,7 @@ import {
   selectFeaturedDocuments,
   selectionNeedsNormalization,
 } from "./featuredArrangementSelection"
+import { featuredSchedule } from "./featuredSchedule"
 import { PromotedArrangementPicker } from "./PromotedArrangementPicker"
 import { PROMOTABLE_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
 
@@ -52,7 +59,9 @@ const FEATURED_DOCUMENTS_QUERY = `*[
   promotedPlacement,
   promotedOrder,
   orderRank,
-  dates[]{startDate},
+  _createdAt,
+  image,
+  dates[]{startDate, startTime},
   "childDates": *[
     _type == "arrangement" &&
     parentEvent._ref == string::split(^._id, "drafts.")[-1] &&
@@ -70,16 +79,40 @@ type FeaturedDocument = FeaturedSelectionDocument & {
   documentIds: string[]
   eventKind: "single" | "seriesParent" | "festivalParent"
   nextDate?: string
+  nextTime?: string
+  lastDate?: string
+  createdAt?: string
+  image?: { asset?: { _ref?: string } } | null
   title?: string
 }
 
 type RawFeaturedDocument = Omit<
   FeaturedDocument,
-  "documentIds" | "nextDate"
+  "documentIds" | "nextDate" | "nextTime" | "lastDate" | "createdAt"
 > & {
+  _createdAt?: string
   childDates?: string[]
-  dates?: Array<{ startDate?: string }>
+  dates?: Array<{ startDate?: string; startTime?: string }>
 }
+
+const RowLink = styled.div`
+  flex: 1;
+  min-width: 0;
+  a { color: inherit; text-decoration: none; display: block; border-radius: 3px; }
+  a:focus-visible { outline: 2px solid var(--card-focus-ring-color, currentColor); outline-offset: 2px; }
+`
+
+const Thumbnail = styled.span`
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--card-muted-bg-color, rgb(127 127 127 / 0.15));
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+`
 
 const KIND_LABELS: Record<FeaturedDocument["eventKind"], string> = {
   single: "Arrangement",
@@ -89,6 +122,8 @@ const KIND_LABELS: Record<FeaturedDocument["eventKind"], string> = {
 
 export function PromotedArrangementList({ today }: { today: string }) {
   const client = useClient({ apiVersion: API_VERSION })
+  const imageBuilder = useMemo(() => createImageUrlBuilder(client), [client])
+  const { ChildLink } = usePaneRouter()
   const toast = useToast()
   const [documents, setDocuments] = useState<FeaturedDocument[]>([])
   const [selectedDocuments, setSelectedDocuments] = useState<
@@ -119,12 +154,17 @@ export function PromotedArrangementList({ today }: { today: string }) {
       const current = byId.get(id)
       const draftId = `drafts.${id}`
       const documentIds = [id, ...(draftIdSet.has(draftId) ? [draftId] : [])]
-      const nextDate = [
+      const allDates = [
         ...(document.dates ?? []).map(date => date.startDate),
         ...(document.childDates ?? []),
       ]
-        .filter((date): date is string => Boolean(date && date >= today))
-        .sort()[0]
+        .filter((date): date is string => Boolean(date))
+        .sort()
+      const nextDate = allDates.find(date => date >= today)
+      const nextTime = document.dates?.find(
+        date => date.startDate === nextDate,
+      )?.startTime
+      const lastDate = allDates.at(-1)
       const documentFields = {
         _id: document._id,
         approvalStatus: document.approvalStatus,
@@ -136,7 +176,15 @@ export function PromotedArrangementList({ today }: { today: string }) {
         title: document.title,
       }
       if (!current || document._id.startsWith("drafts.")) {
-        byId.set(id, { ...documentFields, documentIds, nextDate })
+        byId.set(id, {
+          ...documentFields,
+          createdAt: document._createdAt,
+          documentIds,
+          image: document.image,
+          lastDate,
+          nextDate,
+          nextTime,
+        })
       }
     }
     return [...byId.values()]
@@ -300,6 +348,41 @@ export function PromotedArrangementList({ today }: { today: string }) {
     void saveSelection(moved.documents, moved.visibleCount)
   }
 
+  const move = (
+    section: "visible" | "queue",
+    index: number,
+    destinationSection: "visible" | "queue",
+    destinationIndex: number,
+  ) => {
+    if (saving) return
+    if (
+      section === "queue" &&
+      destinationSection === "visible" &&
+      visibleCount >= 3
+    ) {
+      toast.push({
+        status: "warning",
+        title:
+          "Forsiden har allerede tre arrangementer. Flytt først et av dem til køen.",
+      })
+      return
+    }
+    const moved = moveFeaturedDocumentBetweenSections(
+      selectedDocuments,
+      visibleCount,
+      section,
+      index,
+      destinationSection,
+      destinationIndex,
+    )
+    if (
+      moved.documents === selectedDocuments &&
+      moved.visibleCount === visibleCount
+    )
+      return
+    void saveSelection(moved.documents, moved.visibleCount)
+  }
+
   const remove = (document: FeaturedDocument) => {
     if (selectedDocuments.length <= 1 || saving) return
     const id = normalizedArrangementId(document._id)
@@ -330,6 +413,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
   )
   const visibleDocuments = selectedDocuments.slice(0, visibleCount)
   const queuedDocuments = selectedDocuments.slice(visibleCount)
+  const schedule = featuredSchedule(selectedDocuments, visibleCount, today)
 
   const renderDocument = (
     document: FeaturedDocument,
@@ -338,6 +422,26 @@ export function PromotedArrangementList({ today }: { today: string }) {
   ) => {
     const id = normalizedArrangementId(document._id)
     const position = section === "visible" ? index : index + 3
+    const sectionLength =
+      section === "visible" ? visibleDocuments.length : queuedDocuments.length
+    const slot = schedule[section === "visible" ? index : visibleCount + index]
+    const windowLabel =
+      section === "visible"
+        ? slot?.until
+          ? `På forsiden nå, til og med ${formatStudioDate(slot.until)}`
+          : "På forsiden nå"
+        : slot?.from
+          ? `Kommer på forsiden ${formatStudioDate(slot.from)}`
+          : "Får ikke plass før arrangementet er over"
+    const thumbnail = document.image?.asset?._ref
+      ? imageBuilder
+          .image(document.image)
+          .width(128)
+          .height(96)
+          .fit("crop")
+          .auto("format")
+          .url()
+      : null
     return (
       <Draggable draggableId={id} index={index} key={id}>
         {(draggable, snapshot) => (
@@ -353,8 +457,8 @@ export function PromotedArrangementList({ today }: { today: string }) {
           >
             <Flex align="center" gap={3}>
               <Box
-                aria-label={`Flytt ${document.title ?? "arrangement"}`}
-                padding={2}
+                aria-label={`Dra ${document.title ?? "arrangement"}`}
+                padding={1}
                 style={{ cursor: saving ? "wait" : "grab" }}
                 {...draggable.dragHandleProps}
               >
@@ -365,38 +469,86 @@ export function PromotedArrangementList({ today }: { today: string }) {
                   ? `Plass ${position + 1}`
                   : `Kø ${position - 2}`}
               </Badge>
-              <Stack flex={1} gap={2}>
-                <IntentLink
-                  intent="edit"
-                  params={{
-                    id,
-                    mode: "structure",
-                    type: "arrangement",
-                  }}
-                  style={{
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
-                >
-                  <Text size={2} weight="semibold">
-                    {document.title ?? "Arrangement uten tittel"}
-                  </Text>
-                </IntentLink>
-                <Text muted size={1}>
-                  {[document.nextDate, KIND_LABELS[document.eventKind]]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </Text>
-              </Stack>
-              <Button
-                aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
-                disabled={selectedDocuments.length <= 1 || saving}
-                icon={TrashIcon}
-                mode="ghost"
-                onClick={() => remove(document)}
-                text="Fjern"
-                tone="critical"
-              />
+              <RowLink>
+                <ChildLink childId={id}>
+                  <Flex align="center" gap={3}>
+                    <Thumbnail>
+                      {thumbnail ? (
+                        <img alt="" src={thumbnail} />
+                      ) : (
+                        <ImageIcon />
+                      )}
+                    </Thumbnail>
+                    <Stack gap={2} style={{ minWidth: 0 }}>
+                      <Text size={2} textOverflow="ellipsis" weight="semibold">
+                        {document.title ?? "Arrangement uten tittel"}
+                      </Text>
+                      <Text muted size={1} textOverflow="ellipsis">
+                        {[
+                          [
+                            formatStudioDate(document.nextDate),
+                            document.nextTime,
+                          ]
+                            .filter(Boolean)
+                            .join(" kl. "),
+                          KIND_LABELS[document.eventKind],
+                          document.createdAt
+                            ? `lagt ut ${formatStudioDate(document.createdAt, false)}`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </Text>
+                      <Text size={1} weight="medium">
+                        {windowLabel}
+                      </Text>
+                    </Stack>
+                  </Flex>
+                </ChildLink>
+              </RowLink>
+              <Flex align="center" gap={1}>
+                <Button
+                  aria-label="Flytt opp"
+                  disabled={saving || index === 0}
+                  icon={ArrowUpIcon}
+                  mode="bleed"
+                  onClick={() => move(section, index, section, index - 1)}
+                  title="Flytt opp"
+                />
+                <Button
+                  aria-label="Flytt ned"
+                  disabled={saving || index === sectionLength - 1}
+                  icon={ArrowDownIcon}
+                  mode="bleed"
+                  onClick={() => move(section, index, section, index + 1)}
+                  title="Flytt ned"
+                />
+                <Button
+                  disabled={
+                    saving ||
+                    (section === "visible"
+                      ? visibleCount <= 1
+                      : visibleCount >= 3)
+                  }
+                  fontSize={1}
+                  mode="ghost"
+                  onClick={() =>
+                    section === "visible"
+                      ? move("visible", index, "queue", 0)
+                      : move("queue", index, "visible", visibleCount)
+                  }
+                  text={section === "visible" ? "Til kø" : "Vis nå"}
+                />
+                <Button
+                  aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
+                  disabled={selectedDocuments.length <= 1 || saving}
+                  icon={TrashIcon}
+                  mode="bleed"
+                  onClick={() => remove(document)}
+                  title="Fjern fra fremhevede"
+                  tone="critical"
+                />
+              </Flex>
             </Flex>
           </Card>
         )}
@@ -406,24 +558,13 @@ export function PromotedArrangementList({ today }: { today: string }) {
 
   return (
     <Stack gap={4}>
-      <Card border padding={4} radius={2} tone="primary">
-        <Stack gap={3}>
-          <Flex align="center" gap={2} wrap="wrap">
-            <Badge tone="positive">{visibleCount} vises</Badge>
-            {queuedDocuments.length > 0 ? (
-              <Badge tone="caution">{queuedDocuments.length} i kø</Badge>
-            ) : null}
-            <Text weight="semibold">Vises øverst på forsiden</Text>
-          </Flex>
-          <Text muted size={1}>
-            De tre første kommende arrangementene vises. Legg gjerne flere i kø;
-            neste arrangement vises automatisk når et tidligere arrangement er
-            avsluttet. Dra for å endre rekkefølgen.
-          </Text>
-        </Stack>
-      </Card>
-
       <DragDropContext onDragEnd={handleDragEnd}>
+        <Flex align="center" gap={2}>
+          <Text size={1} weight="semibold">
+            På forsiden nå
+          </Text>
+          <Badge tone="positive">{visibleCount} av 3</Badge>
+        </Flex>
         <Droppable droppableId={VISIBLE_DROPPABLE_ID}>
           {provided => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
@@ -438,31 +579,25 @@ export function PromotedArrangementList({ today }: { today: string }) {
         </Droppable>
 
         <Droppable droppableId={QUEUE_ENTRY_DROPPABLE_ID}>
-          {provided => (
-            <div
-              ref={provided.innerRef}
-              style={{
-                minHeight: 88,
-                position: "relative",
-              }}
-              {...provided.droppableProps}
-            >
-              <Flex
-                align="center"
-                gap={3}
-                justify="center"
-                style={{
-                  inset: 0,
-                  pointerEvents: "none",
-                  position: "absolute",
-                }}
+          {(provided, snapshot) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              <Card
+                borderTop
+                paddingTop={4}
+                tone={snapshot.isDraggingOver ? "primary" : "default"}
               >
-                <Card borderTop flex={1} />
-                <Text muted size={1} weight="semibold">
-                  Kø – slipp her for å vise automatisk senere
-                </Text>
-                <Card borderTop flex={1} />
-              </Flex>
+                <Flex align="center" gap={2}>
+                  <Text size={1} weight="semibold">
+                    Kø
+                  </Text>
+                  <Badge>{queuedDocuments.length}</Badge>
+                  <Text muted size={1}>
+                    {queuedDocuments.length
+                      ? "Rykker opp automatisk"
+                      : "Dra hit for å vise senere"}
+                  </Text>
+                </Flex>
+              </Card>
               {provided.placeholder}
             </div>
           )}

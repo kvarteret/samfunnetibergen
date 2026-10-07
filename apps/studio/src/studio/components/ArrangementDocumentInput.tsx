@@ -231,7 +231,12 @@ export function ArrangementDocumentInput(props: ObjectInputProps) {
     <>
       <ArrangementActionStyles />
       <Stack gap={4}>
-        {document ? <ArrangementReviewPreview document={document} /> : null}
+        {document ? (
+          <ArrangementReviewPreview
+            document={document}
+            onEditField={props.readOnly ? undefined : props.onPathFocus}
+          />
+        ) : null}
         {document?.approvalStatus === "approved" ? (
           <ArrangementStatusInput document={document} />
         ) : null}
