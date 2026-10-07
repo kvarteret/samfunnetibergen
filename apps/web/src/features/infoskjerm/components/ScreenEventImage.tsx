@@ -1,14 +1,17 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import Image from "next/image"
 import { SectionMark } from "@/components/section-mark"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 
 export function ScreenEventImage({
+  imageFrame,
   imageUrl,
   variant,
   pageSize = 3,
   expired = false,
 }: {
+  imageFrame?: ImageFrame | null
   imageUrl: string | null
   variant: "daily" | "promoted"
   pageSize?: number
@@ -19,6 +22,7 @@ export function ScreenEventImage({
     ? sanityImageUrl(
         imageUrl,
         promoted ? { width: 640, height: 480 } : { width: 480, height: 360 },
+        imageFrame,
       )
     : null
   return (

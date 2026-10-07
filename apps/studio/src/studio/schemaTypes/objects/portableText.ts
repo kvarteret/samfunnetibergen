@@ -1,18 +1,25 @@
 import { defineArrayMember, defineType } from "sanity"
 
+import { MarkdownPortableTextInput } from "../../components/MarkdownPortableTextInput"
+
 export const portableTextContent = defineType({
   name: "portableTextContent",
   title: "Tekstinnhold",
   type: "array",
+  components: { input: MarkdownPortableTextInput },
   of: [
     defineArrayMember({
       type: "block",
       styles: [
-        { title: "Normal", value: "normal" },
-        { title: "Overskrift 1 (h2)", value: "h2" },
-        { title: "Overskrift 2 (h3)", value: "h3" },
-        { title: "Overskrift 3 (h4)", value: "h4" },
+        { title: "Brødtekst", value: "normal" },
+        { title: "Overskrift", value: "h2" },
+        { title: "Undertittel", value: "h3" },
+        { title: "Mellomtittel", value: "h4" },
         { title: "Sitat", value: "blockquote" },
+      ],
+      lists: [
+        { title: "Punktliste", value: "bullet" },
+        { title: "Nummerert liste", value: "number" },
       ],
       marks: {
         decorators: [

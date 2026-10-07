@@ -47,15 +47,3 @@ export function KaraokeFormSubmitSection({
     </section>
   )
 }
-
-export function KaraokeBookingSuccess() {
-  return (
-    <Alert className="max-w-2xl p-8" variant="success">
-      <AlertTitle className="text-xl">Forespørsel mottatt!</AlertTitle>
-      <AlertDescription>
-        Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar
-        kontakt på e-post.
-      </AlertDescription>
-    </Alert>
-  )
-}

@@ -1,5 +1,6 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { cva, type VariantProps } from "class-variance-authority"
-import { CalendarDays, MapPin, Tent } from "lucide-react"
+import { CalendarDays, MapPin, Repeat, Tent } from "lucide-react"
 import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,6 +21,10 @@ export type EventDateEntry = {
 }
 
 export type EventSummary = {
+  isPromoted?: boolean
+  promotedPlacement?: "top" | "pool" | null
+  promotedOrder?: number | null
+  initialSlug?: string | null
   _id: string
   title: string
   slug: string
@@ -38,8 +43,11 @@ export type EventSummary = {
   recurringLabel?: string | null
   /** Precomputed server-side label for the primary date (e.g. "I dag, 21:00–02:00"). */
   primaryDateLabel?: string | null
+  /** Precomputed server-side count for parents, e.g. "34 arrangementer". */
+  programmeLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -47,6 +55,8 @@ export type EventSummary = {
   ticketUrl?: string | null
   facebookUrl?: string | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   room?: {
     _id: string
@@ -57,6 +67,7 @@ export type EventSummary = {
   } | null
   roomText?: string | null
   organizerGroup?: { _id: string; name: string; slug: string } | null
+  coOrganizerGroups?: Array<{ _id: string; name: string; slug: string }>
   organizerText?: string | null
   eventType?: {
     _id: string
@@ -125,7 +136,9 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
   event: EventSummary
   priority?: boolean
   showRoom?: boolean
+  showFestivalBadge?: boolean
   trackingSurface?: string
+  trackingPosition?: number
 }
 
 type EventCardVariant = "default" | "catalogue" | "promoted" | "slider"
@@ -135,8 +148,10 @@ export function EventCard({
   event,
   priority = false,
   showRoom = true,
+  showFestivalBadge = true,
   size,
-  trackingSurface = "card-title",
+  trackingSurface = "events-list",
+  trackingPosition,
   variant,
 }: EventCardProps) {
   const cardSize = size ?? "default"
@@ -152,15 +167,16 @@ export function EventCard({
     ? sanityImageUrl(
         event.imageUrl,
         cardVariant === "slider"
-          ? { height: 480, width: 640 }
-          : { height: 900, width: 1200 },
+          ? { height: 360, width: 640 }
+          : { height: 675, width: 1200 },
+        event.imageFrame,
       )
     : null
 
   return (
     <Link
       className={eventCardVariants({ variant: cardVariant, size: cardSize })}
-      {...eventTrackingAttributes(event, trackingSurface)}
+      {...eventTrackingAttributes(event, trackingSurface, trackingPosition)}
       href={href}
     >
       <Card className={eventCardSurfaceVariants({ variant: cardVariant })}>
@@ -171,6 +187,7 @@ export function EventCard({
           imageUrl={imageUrl}
           isEditorial={isEditorial}
           priority={priority}
+          showFestivalBadge={showFestivalBadge}
         />
 
         <CardContent
@@ -185,7 +202,9 @@ export function EventCard({
             event={event}
             isEditorial={isEditorial}
             onPrimary={cardVariant === "slider"}
-            statusLabel={event.statusLabel}
+            statusLabel={
+              event.statusLabel ?? (event.isSoldOut ? "Utsolgt" : null)
+            }
             eventTypeLabel={eventTypeLabel}
             timeLabel={timeLabel}
           />
@@ -198,13 +217,59 @@ export function EventCard({
             timeLabel={timeLabel}
           />
 
-          {allDates.length > 1 && (
-            <DateBadges dates={allDates} primaryIndex={0} size={cardSize} />
-          )}
+          <EventCardBadges
+            allDates={allDates}
+            cardSize={cardSize}
+            event={event}
+          />
         </CardContent>
       </Card>
     </Link>
   )
+}
+
+/**
+ * Parents summarise their programme instead of listing child dates, and series
+ * state their rhythm: every date of a weekly series is the same by definition.
+ */
+function EventCardBadges({
+  allDates,
+  cardSize,
+  event,
+}: {
+  allDates: EventDateEntry[]
+  cardSize: EventCardSize
+  event: EventSummary
+}) {
+  const isSeries =
+    event.eventKind === "seriesParent" || event.eventKind === "seriesInstance"
+  const summary =
+    event.eventKind === "festivalParent"
+      ? event.programmeLabel
+      : isSeries
+        ? event.recurringLabel
+        : null
+
+  if (summary) {
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-base bg-accent font-heading text-accent-foreground",
+            cardSize === "small"
+              ? "px-2.5 py-1 text-sm"
+              : "px-2 py-0.5 text-sm",
+          )}
+        >
+          {isSeries && <Repeat className="size-3.5" aria-hidden />}
+          {summary}
+        </span>
+      </div>
+    )
+  }
+  if (event.eventKind === "festivalParent" || allDates.length <= 1) return null
+
+  return <DateBadges dates={allDates} primaryIndex={0} size={cardSize} />
 }
 
 function EventCardMedia({
@@ -214,6 +279,7 @@ function EventCardMedia({
   imageUrl,
   isEditorial,
   priority,
+  showFestivalBadge,
 }: {
   cardSize: EventCardSize
   cardVariant: EventCardVariant
@@ -221,6 +287,7 @@ function EventCardMedia({
   imageUrl: string | null
   isEditorial: boolean
   priority: boolean
+  showFestivalBadge: boolean
 }) {
   if (!imageUrl && !isEditorial) return null
 
@@ -234,7 +301,7 @@ function EventCardMedia({
     >
       {imageUrl ? (
         <Image
-          alt={event.imageCaption ?? event.title}
+          alt={event.imageAlt ?? event.imageCaption ?? event.title}
           className={cn(
             "object-cover",
             isEditorial &&
@@ -255,16 +322,17 @@ function EventCardMedia({
           {event.title}
         </div>
       )}
-      {(event.eventKind === "festivalParent" ||
-        event.eventKind === "festivalSession") && (
-        <Tag
-          variant="accent"
-          className="absolute bottom-3 right-3 gap-1.5 text-sm"
-        >
-          <Tent className="size-4" aria-hidden />
-          Festival
-        </Tag>
-      )}
+      {showFestivalBadge &&
+        (event.eventKind === "festivalParent" ||
+          event.eventKind === "festivalSession") && (
+          <Tag
+            variant="accent"
+            className="absolute bottom-3 right-3 gap-1.5 text-sm"
+          >
+            <Tent className="size-4" aria-hidden />
+            Festival
+          </Tag>
+        )}
     </div>
   )
 }
@@ -304,7 +372,7 @@ function EventCardHeader({
             <span>{eventTypeLabel}</span>
           ))}
         {isEditorial && timeLabel && (
-          <span className="font-heading">{timeLabel}</span>
+          <span className="font-heading tabular-nums">{timeLabel}</span>
         )}
         {statusLabel && <Tag variant="destructive">{statusLabel}</Tag>}
       </div>
@@ -334,8 +402,9 @@ function editorialHeadingClass({
   cardVariant: EventCardVariant
   isEditorial: boolean
 }) {
-  if (isEditorial) return cardVariant === "slider" ? "text-xl" : "text-2xl"
-  return cardSize === "small" ? "text-lg" : "text-2xl"
+  if (isEditorial)
+    return cardVariant === "slider" ? "text-xl" : "text-card-title"
+  return cardSize === "small" ? "text-lg" : "text-card-title"
 }
 
 function EventCardDetails({
@@ -369,7 +438,7 @@ function EventCardDetails({
       {timeLabel && (
         <p className="flex gap-2">
           <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>{timeLabel}</span>
+          <span className="tabular-nums">{timeLabel}</span>
         </p>
       )}
       {roomTitle && (

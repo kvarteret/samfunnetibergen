@@ -10,11 +10,20 @@ export const STUDENT_GROUP_LABEL_OPTIONS = {
 
 type StudentGroupLabelLanguage = keyof typeof STUDENT_GROUP_LABEL_OPTIONS
 
-export function parseStudentGroupLabels(value: string | undefined): string[] {
-  if (!value) return []
+export function parseStudentGroupLabels(value: unknown): string[] {
+  // Migrated items can carry a whole {language, value} item or a list.
+  const raw =
+    typeof value === "string"
+      ? value
+      : Array.isArray(value)
+        ? value.filter(item => typeof item === "string").join("\n")
+        : value && typeof value === "object" && "value" in value
+          ? (value as { value?: unknown }).value
+          : ""
+  if (typeof raw !== "string" || !raw) return []
   return [
     ...new Set(
-      value
+      raw
         .split(/\r?\n/)
         .map(label => label.trim())
         .filter(Boolean),
@@ -47,6 +56,19 @@ export function StudentGroupLabelsInput(props: StringInputProps) {
       value: label,
     }))
   }, [language, selectedLabels])
+
+  // Untyped items from the i18n migration hand this input the whole item;
+  // writing here would replace the item with a bare string.
+  if (props.value != null && typeof props.value !== "string") {
+    return (
+      <Card border padding={3} radius={2} tone="caution">
+        <Text size={1}>
+          {selectedLabels.join(", ") || "Ukjent verdi"}. Denne etiketten er
+          lagret i feil format og må repareres før den kan endres.
+        </Text>
+      </Card>
+    )
+  }
 
   const updateLabels = (nextLabels: string[]) => {
     props.onChange(set(nextLabels.join("\n")))

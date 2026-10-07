@@ -214,9 +214,9 @@ describe("selected-room Crescat calendar availability", () => {
         new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
       )
       expect(partial).not.toBeNull()
-      expect(partial?.className).toContain("unavailable-slot")
+      expect(partial?.className).toContain("booking-stripes")
       expect(partial?.disabled).toBe(false)
-      expect(full?.className).toContain("unavailable-slot")
+      expect(full?.className).toContain("booking-stripes")
       expect(full?.disabled).toBe(true)
       const nextMonth = container.querySelector<HTMLButtonElement>(
         "nav button:last-child",

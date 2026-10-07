@@ -48,6 +48,20 @@ export const defaultArrangementFilters = (): ArrangementFilterState => ({
   query: "",
 })
 
+/** Formats a date (YYYY-MM-DD) or timestamp the way editors read it. */
+export function formatStudioDate(date: string | undefined, withWeekday = true) {
+  if (!date || !/^\d{4}-\d{2}-\d{2}/.test(date)) return undefined
+  return new Intl.DateTimeFormat("nb-NO", {
+    ...(withWeekday ? { weekday: "short" } : {}),
+    day: "numeric",
+    month: "short",
+    ...(date.slice(0, 4) === todayInOslo().slice(0, 4)
+      ? {}
+      : { year: "numeric" }),
+    timeZone: "Europe/Oslo",
+  }).format(new Date(date.length === 10 ? `${date}T12:00:00Z` : date))
+}
+
 export function todayInOslo(date = new Date()): string {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Oslo",
@@ -58,10 +72,10 @@ export function normalizeDocumentId(id: string): string {
   return id.replace(/^drafts\./, "")
 }
 
-export function deduplicatePreviewDocuments(
-  documents: ArrangementBrowserItem[],
-): ArrangementBrowserItem[] {
-  const byId = new Map<string, ArrangementBrowserItem>()
+export function deduplicatePreviewDocuments<T extends ArrangementBrowserItem>(
+  documents: T[],
+): T[] {
+  const byId = new Map<string, T>()
   for (const document of documents) {
     const id = normalizeDocumentId(document._id)
     const current = byId.get(id)
@@ -106,11 +120,11 @@ export function arrangementListStatus(
   return "completed"
 }
 
-export function filterArrangements(
-  items: ArrangementBrowserItem[],
+export function filterArrangements<T extends ArrangementBrowserItem>(
+  items: T[],
   filters: ArrangementFilterState,
   today: string,
-): ArrangementBrowserItem[] {
+): T[] {
   const query = filters.query.trim().toLocaleLowerCase("nb")
   return deduplicatePreviewDocuments(items)
     .filter(item => {
@@ -137,11 +151,43 @@ export function filterArrangements(
         return false
       return true
     })
-    .sort((a, b) =>
-      (a.title ?? "").localeCompare(b.title ?? "", "nb", {
-        sensitivity: "base",
-      }),
-    )
+    .sort((a, b) => {
+      // Upcoming lists read like a programme; past lists start with the newest.
+      const upcoming =
+        filters.status === "approved" || filters.status === "cancelled"
+      const first =
+        (upcoming ? nextArrangementDate(a, today) : latestArrangementDate(a)) ??
+        ""
+      const second =
+        (upcoming ? nextArrangementDate(b, today) : latestArrangementDate(b)) ??
+        ""
+      const byDate = upcoming
+        ? first.localeCompare(second)
+        : second.localeCompare(first)
+      return (
+        byDate ||
+        (a.title ?? "").localeCompare(b.title ?? "", "nb", {
+          sensitivity: "base",
+        })
+      )
+    })
+}
+
+/** The next programme day from today, falling back to the latest past day. */
+export function nextArrangementDate(
+  item: ArrangementBrowserItem,
+  today: string,
+): string | undefined {
+  return (
+    [
+      ...(item.dates ?? []).flatMap(date =>
+        date.startDate ? [date.startDate] : [],
+      ),
+      ...(item.childDates ?? []),
+    ]
+      .filter(date => date >= today)
+      .sort()[0] ?? latestArrangementDate(item)
+  )
 }
 
 export function countPendingRequests(

@@ -1,3 +1,10 @@
+vi.mock("@/lib/booking/continuation", () => ({
+  setBookingContinuation: vi.fn(),
+}))
+vi.mock("@/lib/integrations/kvarteret-personal/booking-requests", () => ({
+  storeBookingRequest: vi.fn().mockResolvedValue("stored"),
+}))
+
 import { beforeEach, describe, expect, test, vi } from "vitest"
 
 const {
@@ -65,6 +72,7 @@ vi.mock("@/lib/sanity/fetch", () => ({
   fetchHouseHours: vi.fn().mockResolvedValue(null),
 }))
 
+import { storeBookingRequest } from "@/lib/integrations/kvarteret-personal/booking-requests"
 import type { BookingFormState } from "../domain/bookingFormSchema"
 import { initialBookingState } from "../domain/formState"
 import { submitRoomBooking } from "./submit-room-booking"
@@ -83,6 +91,7 @@ function standardPayload(
     startTime: "20:00",
     endTime: "23:00",
     doorsTimes: ["19:00"],
+    estimatedEndTimes: ["22:00"],
     description: "En test.",
     audienceCount: "50",
     openOrClosed: "Åpent",
@@ -99,16 +108,17 @@ function standardPayload(
 
 // ── Tests ───────────────────────────────────────────────────────────────────
 
-describe("submitRoomBooking", () => {
-  beforeEach(() => {
-    captureExceptionMock.mockReset()
-    emitOperationalEventMock.mockReset()
-    fetchMock.mockReset()
-    fetchVenueCalendarMock.mockReset().mockResolvedValue([])
-    posthogCaptureMock.mockReset()
-    spanSetAttributeMock.mockReset()
-  })
+beforeEach(() => {
+  captureExceptionMock.mockReset()
+  emitOperationalEventMock.mockReset()
+  fetchMock.mockReset()
+  fetchVenueCalendarMock.mockReset().mockResolvedValue([])
+  posthogCaptureMock.mockReset()
+  spanSetAttributeMock.mockReset()
+  vi.mocked(storeBookingRequest).mockReset().mockResolvedValue("stored")
+})
 
+describe("submitRoomBooking", () => {
   test("rejects payload with missing required field", async () => {
     const result = await submitRoomBooking({
       ...standardPayload(),
@@ -333,4 +343,51 @@ describe("submitRoomBooking", () => {
       }),
     )
   })
+})
+
+test("storage failure prevents any Crescat submission", async () => {
+  const { storeBookingRequest } = await import(
+    "@/lib/integrations/kvarteret-personal/booking-requests"
+  )
+  vi.mocked(storeBookingRequest).mockRejectedValueOnce(
+    new Error("Storage unavailable"),
+  )
+  const result = await submitRoomBooking(standardPayload())
+  expect(result.ok).toBe(false)
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+test("waits for the storage receipt before Crescat and keeps capture on Crescat failure", async () => {
+  let acknowledge!: (receipt: string) => void
+  vi.mocked(storeBookingRequest).mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        acknowledge = resolve
+      }),
+  )
+  fetchMock
+    .mockResolvedValueOnce(
+      new Response("", {
+        status: 200,
+        headers: [
+          ["set-cookie", "XSRF-TOKEN=abc; Path=/"],
+          ["set-cookie", "crescat_session=xyz; Path=/"],
+        ],
+      }),
+    )
+    .mockResolvedValueOnce(new Response("", { status: 422 }))
+  const pending = submitRoomBooking(standardPayload())
+  await vi.waitFor(() => expect(storeBookingRequest).toHaveBeenCalledOnce())
+  expect(fetchMock).not.toHaveBeenCalled()
+  acknowledge("committed")
+  const result = await pending
+  expect(result.ok).toBe(false)
+  expect(storeBookingRequest).toHaveBeenCalledOnce()
+  const snapshot = vi.mocked(storeBookingRequest).mock.calls[0][0]
+  expect(snapshot.schedule).toEqual([
+    { date: "2026-12-24", doors_open: "19:00", doors_close: "22:00" },
+  ])
+  expect(snapshot.crescat_payload).toEqual(
+    JSON.parse(fetchMock.mock.calls[1][1].body),
+  )
 })

@@ -3,16 +3,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { SectionMark } from "@/components/section-mark"
+import { EventCard, type EventSummary } from "@/features/events"
 import {
-  EventCard,
-  type EventDateEntry,
-  type EventSummary,
-} from "@/features/events"
-import {
-  computeAllDates,
-  formatPrimaryDate,
-  formatWeekday,
-  getRecurringLabel,
+  buildCardDateLabels,
+  type CardDateLabels,
 } from "@/features/events/domain/dates"
 import type { PublicEvent } from "@/features/events/domain/events"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
@@ -21,6 +15,7 @@ import {
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
+import { getCardDateLabels } from "@/features/events/server/card-date-labels"
 import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
@@ -38,6 +33,7 @@ import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
 import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
+import { HomeKaraokeBanner } from "./_components/HomeKaraokeBanner"
 import { HorizontalScrollRow } from "./_components/HorizontalScrollRow"
 import { SlackFeedback } from "./_components/SlackFeedback"
 
@@ -63,61 +59,26 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 }
 
 type SanityEvent = PublicEvent
-type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
-
-type EventCardLabels = {
-  today: string
-  tomorrow: string
-  weekday: (date: Date) => string
-  recurringDaily: string
-  recurringWeekly: string
-  recurringMonthly: string
-  recurringGeneric: string
-}
 
 function toEventSummary(
   event: SanityEvent,
   today: string,
-  labels?: EventCardLabels,
+  labels: CardDateLabels,
 ): EventSummary {
-  const dates: EventDateEntry[] = (event.dates ?? []).map(
-    (d: SanityEventDate) => ({
-      _key: d._key,
-      startDate: d.startDate,
-      startTime: d.startTime ?? null,
-      endTime: d.endTime ?? null,
-    }),
-  )
-
-  const resolvedDates = computeAllDates(dates, today)
-
-  const primaryDateLabels = labels
-    ? {
-        today: labels.today,
-        tomorrow: labels.tomorrow,
-        weekday: labels.weekday,
-      }
-    : undefined
-  const primaryDate = resolvedDates[0]
-  const primaryDateLabel =
-    primaryDate && primaryDateLabels
-      ? formatPrimaryDate(primaryDate, primaryDateLabels)
-      : null
-  const recurringLabel = labels
-    ? event.eventKind === "seriesInstance"
-      ? labels.recurringGeneric
-      : event.isRecurring
-        ? getRecurringLabel(event.rrule, {
-            daily: labels.recurringDaily,
-            weekly: labels.recurringWeekly,
-            monthly: labels.recurringMonthly,
-            generic: labels.recurringGeneric,
-          })
-        : null
-    : null
+  const {
+    dates,
+    resolvedDates,
+    primaryDateLabel,
+    recurringLabel,
+    programmeLabel,
+  } = buildCardDateLabels(event, today, labels)
 
   return {
     _id: event._id,
+    isPromoted: event.isPromoted,
+    promotedPlacement: event.promotedPlacement,
+    promotedOrder: event.promotedOrder,
+    initialSlug: event.initialSlug,
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,
@@ -127,13 +88,17 @@ function toEventSummary(
     resolvedDates,
     recurringLabel,
     primaryDateLabel,
+    programmeLabel,
     isFree: event.isFree ?? undefined,
+    isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
     priceMedlem: event.priceMedlem ?? null,
     ticketUrl: event.ticketUrl ?? null,
     facebookUrl: event.facebookUrl ?? null,
     imageUrl: event.imageUrl ?? null,
+    imageFrame: event.imageFrame ?? null,
+    imageAlt: event.imageAlt ?? null,
     imageCaption: event.imageCaption ?? null,
     room: event.room
       ? {
@@ -145,6 +110,7 @@ function toEventSummary(
         }
       : null,
     roomText: event.roomText ?? null,
+    coOrganizerGroups: event.coOrganizerGroups ?? [],
     organizerGroup: event.organizerGroup
       ? {
           _id: event.organizerGroup._id,
@@ -173,14 +139,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [{ events }, promotedParentEvents, barPreviews, t, homeT] =
-    await Promise.all([
-      fetchPublicEventSet({ locale, from: today, to: null }),
-      fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
-      fetchBarPreviews(locale),
-      getTranslations({ locale, namespace: "EventCard" }),
-      getTranslations({ locale, namespace: "HomePage" }),
-    ])
+  const [
+    { events },
+    promotedParentEvents,
+    barPreviews,
+    eventCardLabels,
+    homeT,
+  ] = await Promise.all([
+    fetchPublicEventSet({ locale, from: today, to: null }),
+    fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
+    fetchBarPreviews(locale),
+    getCardDateLabels(locale),
+    getTranslations({ locale, namespace: "HomePage" }),
+  ])
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -196,16 +167,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     (events ?? []).filter(event => !promotedEventIds.has(event._id)),
     featuredFestivalIds,
   ).slice(0, 30)
-
-  const eventCardLabels: EventCardLabels = {
-    today: t("today"),
-    tomorrow: t("tomorrow"),
-    weekday: (date: Date) => formatWeekday(date, locale),
-    recurringDaily: t("recurringDaily"),
-    recurringWeekly: t("recurringWeekly"),
-    recurringMonthly: t("recurringMonthly"),
-    recurringGeneric: t("recurringGeneric"),
-  }
 
   return (
     <div className="flex flex-col gap-12 pb-12">
@@ -249,6 +210,12 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         rooms={barPreviews?.rooms ?? []}
         vacationMode={barPreviews?.vacationMode}
       />
+      <HomeKaraokeBanner
+        body={homeT("karaokeBannerBody")}
+        cta={homeT("karaokeBannerCta")}
+        heading1={homeT("karaokeBannerHeading1")}
+        heading2={homeT("karaokeBannerHeading2")}
+      />
 
       <section className="hs:hidden">
         <Image
@@ -277,7 +244,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
 interface HomeEventsSectionProps {
   events: SanityEvent[]
-  labels: EventCardLabels
+  labels: CardDateLabels
   locale: AppLocale
   sectionLabel?: string
   linkLabel: string
@@ -312,6 +279,7 @@ function HomePromotedEvents({
               event={toEventSummary(event, today, labels)}
               priority={index === 0}
               trackingSurface="home-promoted"
+              trackingPosition={index + 1}
               variant="promoted"
             />
           </div>
@@ -341,7 +309,7 @@ function HomeUpcomingEvents({
           onPrimary
         />
         <HorizontalScrollRow className="gap-3 sm:gap-4">
-          {events.map(event => (
+          {events.map((event, index) => (
             <div
               className="w-[min(21rem,calc(100vw-3rem))] shrink-0 md:w-[21rem] xl:w-[calc((100%-4rem)/5)]"
               key={event._id}
@@ -350,6 +318,7 @@ function HomeUpcomingEvents({
                 event={toEventSummary(event, today, labels)}
                 size="small"
                 trackingSurface="home-upcoming"
+                trackingPosition={index + 1}
                 variant="slider"
               />
             </div>

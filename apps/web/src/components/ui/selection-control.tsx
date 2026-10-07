@@ -17,10 +17,22 @@ export const selectionControlVariants = cva(
         default:
           "inline-flex min-h-11 items-center justify-center px-3 py-1.5 font-heading",
         square: "inline-flex size-11 items-center justify-center font-heading",
-        fill: "inline-flex min-h-11 flex-1 items-center justify-center px-3 py-2.5 font-heading uppercase tracking-widest",
+        /* A segment inside a SegmentedControl track: no border of its own. */
+        fill: "inline-flex min-h-10 flex-1 items-center justify-center rounded-full border-0 px-4 py-2 font-heading whitespace-nowrap",
       },
     },
     compoundVariants: [
+      {
+        size: "fill",
+        selected: false,
+        className:
+          "bg-transparent text-foreground-muted hover:bg-card/70 hover:text-foreground",
+      },
+      {
+        size: "fill",
+        selected: true,
+        className: "shadow-hard-sm",
+      },
       {
         appearance: "solid",
         selected: true,

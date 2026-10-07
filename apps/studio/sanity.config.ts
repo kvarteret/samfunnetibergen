@@ -16,7 +16,10 @@ import {
 import { schemaTypes } from "./src/studio/schemaTypes"
 import { studentGroupLabelValue } from "./src/studio/schemaTypes/documents/studentGroup"
 import { structure } from "./src/studio/structure"
-import { festivalDayInitialValue } from "./src/studio/templates/arrangementTemplates"
+import {
+  festivalDayInitialValue,
+  localizedDefaults,
+} from "./src/studio/templates/arrangementTemplates"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -64,6 +67,10 @@ const config = defineConfig({
       // Norwegian value is the canonical source, while English is the required
       // public translation; legacy scalar fields are deprecated separately.
       defaultLanguages: ["nb", "en"],
+      // "Norsk" / "English" reads clearer than bare "NB" / "EN" codes.
+      languageDisplay: "titleOnly",
+      // Reordering on open writes a draft to published documents.
+      restoreOrder: false,
       fieldTypes: [
         "string",
         "text",
@@ -74,7 +81,19 @@ const config = defineConfig({
         documentTypes: ["groupsPage", "studentGroup"],
       },
     }),
-    assist(),
+    assist({
+      translate: {
+        field: {
+          documentTypes: ["arrangement"],
+          languages: [
+            { id: "nb", title: "Norsk" },
+            { id: "en", title: "English" },
+          ],
+        },
+        styleguide:
+          "Content is published by Det Akademiske Kvarter, a student culture house in Bergen. Norwegian (nb) is the source; English (en) is for international students. Keep artist, band, venue, room and group names, and event titles that are proper names, unchanged. Use a friendly, concise tone. Keep dates, times and prices exactly as written.",
+      },
+    }),
   ],
   document: {
     newDocumentOptions: (prev, { creationContext }) => {
@@ -111,6 +130,7 @@ const config = defineConfig({
         title: "Nytt arrangement",
         schemaType: "arrangement",
         value: {
+          ...localizedDefaults(),
           eventKind: "single",
           approvalStatus: "approved",
           eventStatus: "scheduled",
@@ -123,6 +143,7 @@ const config = defineConfig({
         title: "Ny festival",
         schemaType: "arrangement",
         value: {
+          ...localizedDefaults(),
           eventKind: "festivalParent",
           approvalStatus: "approved",
           eventStatus: "scheduled",

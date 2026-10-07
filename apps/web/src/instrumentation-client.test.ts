@@ -35,6 +35,11 @@ describe("PostHog initialization", () => {
       "test-token",
       expect.objectContaining({
         capture_pageview: true,
+        capture_exceptions: true,
+        logs: expect.objectContaining({
+          serviceName: "samfunnetibergen-browser",
+          beforeSend: expect.any(Function),
+        }),
         before_send: expect.any(Function),
       }),
     )

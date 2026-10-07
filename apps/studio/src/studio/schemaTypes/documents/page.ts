@@ -1,5 +1,5 @@
 import { icons } from "@sanity/icons"
-import { defineField, defineType } from "sanity"
+import { defineArrayMember, defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
 import { localizedArrayField } from "../shared/localizedFields"
 
@@ -56,6 +56,45 @@ export const page = defineType({
         group: "content",
       },
     ),
+    defineField({
+      name: "faq",
+      title: "Spørsmål og svar",
+      description:
+        "Vises som trekkspill på spørsmål om booking. Erstatter spørsmålene i Markdown når utfylt.",
+      type: "array",
+      group: "content",
+      of: [
+        defineArrayMember({
+          name: "faqItem",
+          type: "object",
+          fields: [
+            localizedArrayField(
+              "localizedQuestion",
+              "Spørsmål",
+              "internationalizedArrayString",
+              { required: true },
+            ),
+            localizedArrayField(
+              "localizedAnswer",
+              "Svar",
+              "internationalizedArrayText",
+              { required: true, description: "Markdown er støttet." },
+            ),
+          ],
+          preview: {
+            select: { title: "localizedQuestion" },
+            prepare({ title }) {
+              return {
+                title:
+                  title?.find(
+                    (item: { language?: string }) => item.language === "nb",
+                  )?.value ?? "Spørsmål",
+              }
+            },
+          },
+        }),
+      ],
+    }),
   ],
   preview: {
     select: {

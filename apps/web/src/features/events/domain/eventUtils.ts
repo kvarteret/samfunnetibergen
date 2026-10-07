@@ -22,13 +22,34 @@ export type EventTaxonomy = {
   organizerGroups: OrganizerGroup[]
 }
 
+/** The fields the taxonomy filters read; satisfied by public events and statistics rows. */
+export type FilterableEvent = {
+  eventType?: {
+    _id: string
+    name: string
+    taxonomyGroup?: { _id: string; name: string } | null
+  } | null
+  organizerGroup?: { _id: string; name: string } | null
+  coOrganizerGroups?: Array<{ _id: string; name: string }> | null
+}
+
+/** The main organizer followed by co-organizers. */
+export function organizerGroupsOf(event: FilterableEvent) {
+  return [
+    ...(event.organizerGroup ? [event.organizerGroup] : []),
+    ...(event.coOrganizerGroups ?? []),
+  ]
+}
+
 export type EventFilters = {
   taxonomyGroupName: string | null
   eventTypeIds: string[]
   organizerGroupIds: string[]
 }
 
-export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
+export function buildTaxonomyFromEvents(
+  events: readonly FilterableEvent[],
+): EventTaxonomy {
   const taxonomyGroupsMap = new Map<string, TaxonomyGroup>()
   const eventTypesMap = new Map<string, TaxonomyEventType>()
   const organizerGroupsMap = new Map<string, OrganizerGroup>()
@@ -47,11 +68,8 @@ export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
         taxonomyGroupName: e.eventType.taxonomyGroup?.name ?? "Annet",
       })
     }
-    if (e.organizerGroup) {
-      organizerGroupsMap.set(e.organizerGroup._id, {
-        _id: e.organizerGroup._id,
-        name: e.organizerGroup.name,
-      })
+    for (const group of organizerGroupsOf(e)) {
+      organizerGroupsMap.set(group._id, { _id: group._id, name: group.name })
     }
   }
 
@@ -62,10 +80,10 @@ export function buildTaxonomyFromEvents(events: PublicEvent[]): EventTaxonomy {
   }
 }
 
-export function filterEvents(
-  events: PublicEvent[],
+export function filterEvents<T extends FilterableEvent>(
+  events: readonly T[],
   filters: EventFilters,
-): PublicEvent[] {
+): T[] {
   const eventTypeIds = new Set(filters.eventTypeIds)
   const organizerGroupIds = new Set(filters.organizerGroupIds)
 
@@ -81,7 +99,7 @@ export function filterEvents(
     }
     if (
       organizerGroupIds.size > 0 &&
-      !organizerGroupIds.has(e.organizerGroup?._id ?? "")
+      !organizerGroupsOf(e).some(group => organizerGroupIds.has(group._id))
     ) {
       return false
     }

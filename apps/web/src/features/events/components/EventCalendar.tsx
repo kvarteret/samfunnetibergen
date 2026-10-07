@@ -8,6 +8,7 @@ import { useState } from "react"
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
+import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import {
@@ -59,19 +60,29 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 180, width: 280 })
+    ? sanityImageUrl(
+        event.imageUrl,
+        { height: 180, width: 320 },
+        event.imageFrame,
+      )
     : null
   const time = formatTime(occurrence, t("timePrefix"))
 
   return (
     <Link
       className="group grid w-full cursor-pointer grid-cols-[minmax(8rem,30%)_minmax(0,1fr)] items-center gap-4 overflow-hidden border-0 bg-transparent focus-brutal md:block md:border md:border-border/40 md:bg-card"
+      {...eventTrackingAttributes(
+        event,
+        "calendar",
+        undefined,
+        occurrence.schedule.startDate,
+      )}
       href={`/arrangementer/${event.slug}`}
     >
       {imageUrl ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
           <Image
-            alt={event.imageCaption ?? event.title}
+            alt={event.imageAlt ?? event.imageCaption ?? event.title}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             fill
             sizes="(max-width: 768px) 30vw, 16rem"

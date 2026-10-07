@@ -69,3 +69,6 @@ sonar-project.properties
 .agents/execplans/
 .env.vercel.production
 .env.vercel.preview
+
+# Machine-private fnox overrides
+fnox.local.toml

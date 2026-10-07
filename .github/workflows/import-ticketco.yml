@@ -1,0 +1,58 @@
+name: Import TicketCo events
+
+on:
+  schedule:
+    # Both UTC equivalents; the Oslo guard rejects early runs and receipts dedupe.
+    - cron: "0 4,5 * * 3"
+    - cron: "0 16,17 * * 6"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Extract and validate without writing events or scheduler state"
+        type: boolean
+        default: true
+      force:
+        description: "Run before the next 72-hour interval (deduplication still applies)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ticketco-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: npm
+      - run: npm ci
+      - name: Import with Luna
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_LUNA_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_LUNA_DEPLOYMENT || 'skonk' }}
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          SLACK_NETTSIDE_WEBHOOK: ${{ secrets.SLACK_NETTSIDE_WEBHOOK }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+          SCHEDULED: ${{ github.event_name == 'schedule' }}
+        run: |
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          if [[ "$FORCE" == "true" ]]; then args+=(--force); fi
+          if [[ "$SCHEDULED" == "true" ]]; then args+=(--scheduled); fi
+          npm --workspace @samfunnet/web run events:import:ticketco -- "${args[@]}"

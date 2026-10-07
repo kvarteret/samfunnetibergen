@@ -84,7 +84,7 @@ function linkComponent({
   if (!href) return content
 
   const target = value?.target === "blank" ? ' target="_blank"' : ""
-  const rel = target ? ' rel="noreferrer noopener"' : ""
+  const rel = target ? ' rel="nofollow noopener noreferrer"' : ' rel="nofollow"'
   return `<a href="${escapeHTML(href)}"${target}${rel}>${content}</a>`
 }
 

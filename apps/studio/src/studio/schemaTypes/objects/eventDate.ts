@@ -15,30 +15,31 @@ export const arrangementDate = defineType({
     }),
     defineField({
       name: "startTime",
-      title: "Starttid",
-      description: "Format: HH:MM (f.eks. 19:00). Anbefalt, men ikke påkrevd.",
+      title: "Dørene åpner",
+      description: "Påkrevd. Format: HH:MM (f.eks. 19:00).",
       type: "string",
       validation: rule =>
         rule
+          .required()
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
             name: "tid",
             invert: false,
           })
-          .warning("Starttid bør angis i format HH:MM (f.eks. 19:00)"),
+          .error("Døråpning må angis i format HH:MM (f.eks. 19:00)"),
     }),
     defineField({
       name: "endTime",
-      title: "Sluttid",
-      description:
-        "Format: HH:MM. Valgfritt — antas å slutte ved midnatt om ikke angitt.",
+      title: "Dørene stenger",
+      description: "Påkrevd. Format: HH:MM. Tid før åpning betyr neste dag.",
       type: "string",
       validation: rule =>
         rule
+          .required()
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
             name: "tid",
             invert: false,
           })
-          .warning("Sluttid bør angis i format HH:MM (f.eks. 23:00)"),
+          .error("Dørstenging må angis i format HH:MM (f.eks. 23:00)"),
     }),
   ],
   preview: {

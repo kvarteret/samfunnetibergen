@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "cdn.prod.website-files.com" },
       { protocol: "https", hostname: "cms.kvarteret.no" },
+      { protocol: "https", hostname: "personal.samfunnetibergen.no" },
+      // Keep stored legacy image URLs working during the domain transition.
       { protocol: "https", hostname: "personal.kvarteret.no" },
       {
         protocol: "https",

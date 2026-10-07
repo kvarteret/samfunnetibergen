@@ -18,9 +18,9 @@ export function HomeGrupperBanner({
   cta,
 }: HomeGrupperBannerProps) {
   return (
-    <section className="bg-primary p-8 text-primary-foreground shadow-hard-lg sm:p-12">
+    <section className="bg-secondary p-8 text-secondary-foreground shadow-hard-lg sm:p-12">
       {eyebrow && (
-        <p className="font-heading text-lg text-primary-foreground/75">
+        <p className="font-heading text-lg text-secondary-foreground/75">
           {eyebrow}
         </p>
       )}
@@ -29,12 +29,13 @@ export function HomeGrupperBanner({
         <br />
         {heading2}
       </h2>
-      <p className="mt-4 max-w-lg text-lg text-primary-foreground/75">{body}</p>
+      <p className="mt-4 max-w-lg text-lg text-secondary-foreground/75">
+        {body}
+      </p>
       <Button
         className="group mt-6"
         render={<Link href="/grupper" />}
         size="lg"
-        variant="neutral"
       >
         {cta}
         <ArrowRight className="transition-transform duration-base ease-out group-hover:translate-x-1" />

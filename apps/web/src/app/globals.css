@@ -137,6 +137,15 @@
     --unavailable-border: #9ca3af;
     --unavailable-foreground: #4b5563;
     --unavailable-stripe: #9ca3af;
+    /* Booking calendar and get-in/get-out states. Each state has its own
+       hue so the calendar, the time track and their legends read the same. */
+    --booking-selected: var(--primary);
+    --booking-selected-foreground: var(--primary-foreground);
+    --booking-range: color-mix(in srgb, var(--primary) 16%, transparent);
+    --booking-night: #c9d4e2;
+    --booking-booked: #e8930c;
+    --booking-closed: #a3a3a3;
+    --booking-today: #1f9d55;
     /* Neutral selection/state color. Skyss keeps the existing amber treatment;
        themes where primary and destructive are both red can override it. */
     --state: var(--primary);
@@ -259,7 +268,8 @@
     --card-foreground: #241d1b;
     --popover: #faf7f2;
     --popover-foreground: #241d1b;
-    --panel: #e9e9e7;
+    /* Paper surfaces are warm orange, never grey. */
+    --panel: var(--secondary-50);
     --panel-foreground: #241d1b;
     --panel-warm: var(--secondary-50);
     --panel-warm-foreground: var(--secondary-950);
@@ -333,6 +343,13 @@
   --color-success:              var(--success);
   --color-success-foreground:   var(--success-foreground);
   --color-state:                var(--state);
+  --color-booking-selected:     var(--booking-selected);
+  --color-booking-selected-foreground: var(--booking-selected-foreground);
+  --color-booking-range:        var(--booking-range);
+  --color-booking-night:        var(--booking-night);
+  --color-booking-booked:       var(--booking-booked);
+  --color-booking-closed:       var(--booking-closed);
+  --color-booking-today:        var(--booking-today);
   --color-state-foreground:     var(--state-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
@@ -497,6 +514,41 @@
   }
 }
 
+/* Shared type scale for page, section and card titles. */
+@utility text-page-title {
+  font-size: var(--text-4xl);
+  line-height: 1;
+  hyphens: auto;
+  @variant sm {
+    font-size: var(--text-6xl);
+  }
+}
+
+@utility text-section-title {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  @variant sm {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+
+@utility text-card-title {
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+}
+
+/* Diagonal stripes for blocked booking states; colour via --stripe. */
+@utility booking-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--stripe, var(--booking-closed)) 0,
+    var(--stripe, var(--booking-closed)) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
 /* House focus state: cream interior -> 2px black border -> 3px amber ring,
    with zero offset so no page background shows between border and ring. */
 @utility focus-brutal {
@@ -635,5 +687,248 @@
     --gold-400: color(display-p3 0.96 0.64 0.12);
     --red-500: color(display-p3 0.92 0.30 0.28);
     --navy-700: color(display-p3 0.22 0.29 0.45);
+  }
+}
+
+/* ── Partymodus: a penguin and a hedgehog roam the page ── */
+/* Sits below the sticky navbar (z-30) and its menus so they never get in
+   the way of navigation. */
+.party-critters {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.party-leashes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.party-leash {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.party-post {
+  fill: #6b4226;
+  stroke: #3d2614;
+  stroke-width: 1;
+}
+
+.party-critter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  will-change: transform;
+}
+
+/* --party-base sizes the critters to their stage; --party-scale adds the
+   fluesopp growth on top. Both are set from the engine. */
+.party-critter-body {
+  width: 100%;
+  height: 100%;
+  scale: var(--party-scale, 1);
+  transform-origin: 50% 100%;
+}
+
+/* Growing and shrinking flicker between sizes, like a power-up. */
+.party-critter[data-grow="up"] .party-critter-body {
+  animation: party-grow 0.9s steps(1, end);
+}
+
+.party-critter[data-grow="down"] .party-critter-body {
+  animation: party-shrink 0.9s steps(1, end);
+}
+
+.party-mushroom {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.party-mushroom svg {
+  display: block;
+  transform-origin: 50% 100%;
+  animation: party-sprout 0.5s var(--ease-out, ease-out);
+}
+
+.party-mushroom[data-leaving] svg {
+  scale: 0;
+  transition: scale 0.3s ease-in;
+}
+
+/* A small marker over the mascot steered with the keyboard. */
+.party-critter[data-controlled="true"]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% * var(--party-scale, 1) + 6px);
+  left: 50%;
+  translate: -50% 0;
+  border: 5px solid transparent;
+  border-top: 6px solid var(--color-primary);
+}
+
+.party-critter[data-facing="left"] svg {
+  scale: -1 1;
+}
+
+.party-critter .party-step-a,
+.party-critter .party-step-b {
+  transform-box: fill-box;
+}
+
+/* Walking: feet take alternating steps while the body bobs gently. */
+.party-critter[data-pose="walk"] .party-step-a {
+  animation: party-step var(--party-step) linear infinite;
+}
+
+.party-critter[data-pose="walk"] .party-step-b {
+  animation: party-step var(--party-step) linear infinite;
+  animation-delay: calc(var(--party-step) / -2);
+}
+
+.party-critter[data-pose="walk"] .party-torso {
+  animation: party-bob calc(var(--party-step) / 2) ease-in-out infinite;
+}
+
+.party-critter[data-critter="pingvin"] {
+  --party-step: 0.7s;
+}
+
+.party-critter[data-critter="pinnsvin"] {
+  --party-step: 0.5s;
+}
+
+.party-critter[data-pose="idle"] .party-torso {
+  animation: party-breathe 3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.party-critter[data-critter="pingvin"][data-pose="air"] .party-wing-front {
+  animation: party-flap 0.18s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: 0% 0%;
+}
+
+.party-critter[data-critter="pingvin"][data-pose="air"] .party-wing-back {
+  animation: party-flap 0.18s ease-in-out infinite alternate-reverse;
+  transform-box: fill-box;
+  transform-origin: 100% 0%;
+}
+
+/* The hedgehog curls into a spiky ball mid-air. */
+.party-critter[data-critter="pinnsvin"][data-pose="air"] .party-critter-body {
+  animation: party-roll 0.6s linear infinite;
+  transform-origin: 50% 55%;
+}
+
+.party-critter[data-critter="pinnsvin"][data-pose="air"] .party-legs {
+  opacity: 0;
+}
+
+/* Double jump: a quick somersault. */
+.party-critter[data-flip] svg {
+  animation: party-flip 0.4s ease-out;
+}
+
+/* One stride: plant the foot, push it back along the ground, then lift it
+   and swing it forward. */
+@keyframes party-step {
+  0% {
+    translate: 2.5px 0;
+  }
+  50% {
+    translate: -2.5px 0;
+  }
+  75% {
+    translate: 0 -2.5px;
+  }
+  100% {
+    translate: 2.5px 0;
+  }
+}
+
+@keyframes party-bob {
+  50% {
+    translate: 0 -1px;
+  }
+}
+
+@keyframes party-breathe {
+  50% {
+    scale: 1.02 0.98;
+  }
+}
+
+@keyframes party-flap {
+  from {
+    rotate: -10deg;
+  }
+  to {
+    rotate: 35deg;
+  }
+}
+
+@keyframes party-flip {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes party-grow {
+  0%,
+  30% {
+    scale: var(--party-base, 1);
+  }
+  15%,
+  45%,
+  75% {
+    scale: calc(var(--party-base, 1) * 1.3);
+  }
+  60%,
+  90% {
+    scale: calc(var(--party-base, 1) * 1.6);
+  }
+}
+
+@keyframes party-shrink {
+  0%,
+  30% {
+    scale: calc(var(--party-base, 1) * 1.6);
+  }
+  15%,
+  45%,
+  75% {
+    scale: calc(var(--party-base, 1) * 1.3);
+  }
+  60%,
+  90% {
+    scale: var(--party-base, 1);
+  }
+}
+
+@keyframes party-sprout {
+  from {
+    scale: 0;
+  }
+  70% {
+    scale: 1.15;
+  }
+}
+
+@keyframes party-roll {
+  to {
+    rotate: 360deg;
   }
 }

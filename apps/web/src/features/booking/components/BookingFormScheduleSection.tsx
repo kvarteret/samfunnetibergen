@@ -27,6 +27,7 @@ import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Label } from "@/components/ui/label"
+import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -508,7 +509,9 @@ function RoomInfoTrigger({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner sideOffset={12}>
-          <Popover.Popup className="z-[100] w-72 space-y-3 panel shadow-shadow">
+          <Popover.Popup
+            className={`z-[100] w-72 space-y-3 p-4 ${menuPopupClassName}`}
+          >
             <div className="space-y-1">
               <p className="font-heading text-lg text-foreground">
                 {room.title}

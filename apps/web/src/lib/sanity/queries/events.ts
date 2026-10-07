@@ -13,6 +13,7 @@ const localizedNullableRoomText = `coalesce(localizedRoomText[language == $local
 export const eventRoomsQuery = defineQuery(`
     *[_type == "room"] | order(orderRank asc) {
     _id,
+    crescatRoomId,
     "title": ${localizedTitle},
     "slug": coalesce(slug.current, "")
 }`)
@@ -46,8 +47,11 @@ const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
     "description": ${localizedNullableDescription}[] ${portableTextProjection},
     "imageUrl": image.asset->url,
+    "imageFrame": select(defined(image.asset) => image{crop, hotspot}),
+    "imageAlt": select(defined(image.asset) => coalesce(image.alt, "")),
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
+    "coOrganizerGroups": coOrganizerGroups[]-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
     "organizerText": ${localizedNullableOrganizerText},
     "eventType": eventType-> {
         _id,
@@ -55,6 +59,7 @@ const inheritableFieldsProjection = `
         "taxonomyGroup": taxonomyGroup-> { _id, "name": ${localizedName} }
     },
     isFree,
+    isSoldOut,
     priceOrdinar,
     priceStudent,
     priceMedlem,
@@ -86,6 +91,7 @@ const publicParentProjection = `parentEvent-> {
     "slug": coalesce(slug.current, ""),
     "eventKind": coalesce(eventKind, "single"),
     eventStatus,
+    rrule,
     ${inheritableFieldsProjection}
 }`
 
@@ -94,6 +100,7 @@ const publicEventProjection = `{
     _updatedAt,
     "eventKind": coalesce(eventKind, "single"),
     eventStatus,
+    "initialSlug": coalesce(initialSlug, slug.current),
     "isPromoted": coalesce(isPromoted, false),
     promotedPlacement,
     promotedOrder,

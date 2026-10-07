@@ -37,6 +37,10 @@ function toEventSummary(
 
   return {
     _id: event._id,
+    isPromoted: event.isPromoted,
+    promotedPlacement: event.promotedPlacement,
+    promotedOrder: event.promotedOrder,
+    initialSlug: event.initialSlug,
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,
@@ -48,12 +52,15 @@ function toEventSummary(
     primaryDateLabel: precomputed?.primaryDateLabel ?? null,
     statusLabel: precomputed?.statusLabel ?? null,
     isFree: event.isFree ?? undefined,
+    isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
     priceStudent: event.priceStudent ?? null,
     priceMedlem: event.priceMedlem ?? null,
     ticketUrl: event.ticketUrl ?? null,
     facebookUrl: event.facebookUrl ?? null,
     imageUrl: event.imageUrl ?? null,
+    imageFrame: event.imageFrame ?? null,
+    imageAlt: event.imageAlt ?? null,
     imageCaption: event.imageCaption ?? null,
     room: event.room
       ? {
@@ -65,6 +72,7 @@ function toEventSummary(
         }
       : null,
     roomText: event.roomText ?? null,
+    coOrganizerGroups: event.coOrganizerGroups ?? [],
     organizerGroup: event.organizerGroup
       ? {
           _id: event.organizerGroup._id,
@@ -100,10 +108,12 @@ export function EventsPageSections({
 
   return (
     <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
-      {filteredEvents.map(event => (
+      {filteredEvents.map((event, index) => (
         <EventCard
           event={toEventSummary(event, precomputedDates)}
           key={event._id}
+          trackingSurface="events-list"
+          trackingPosition={index + 1}
           variant="catalogue"
         />
       ))}

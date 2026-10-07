@@ -99,6 +99,7 @@ export function ScreenEventCard({
         )}
       </div>
       <ScreenEventImage
+        imageFrame={event.imageFrame}
         imageUrl={event.imageUrl}
         variant="daily"
         pageSize={pageSize}

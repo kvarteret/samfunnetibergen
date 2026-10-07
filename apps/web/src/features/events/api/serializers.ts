@@ -64,6 +64,7 @@ function serializePricing(event: PublicEvent): PublicApiEvent["pricing"] {
   return {
     currency: "NOK",
     isFree: event.isFree,
+    ...(event.isSoldOut ? { isSoldOut: true } : {}),
     ordinary: event.priceOrdinar,
     student: event.priceStudent,
     member: event.priceMedlem,

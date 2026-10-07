@@ -8,25 +8,28 @@ type DateArraySchema = ArraySchemaType & {
   options?: ArraySchemaType["options"]
 }
 
-/**
- * A recurring series has one seed date. Keep the normal array input while it
- * is empty, then hide actions that could add a second date. Other arrangement
- * kinds retain Sanity's standard multi-date input.
- */
+// Series, series days and festival days have exactly one date.
+const SINGLE_DATE_KINDS = new Set([
+  "seriesParent",
+  "seriesInstance",
+  "festivalSession",
+])
+
 export function ArrangementDatesInput(
   props: ArrayOfObjectsInputProps<{ _key: string }, DateArraySchema>,
 ) {
   const eventKind = useFormValue(["eventKind"])
   const hasSeriesSeed =
-    eventKind === "seriesParent" &&
+    SINGLE_DATE_KINDS.has(String(eventKind)) &&
     Array.isArray(props.value) &&
     props.value.length > 0
 
   if (!hasSeriesSeed) return props.renderDefault(props)
 
   const disableActions = new Set(props.schemaType.options?.disableActions ?? [])
-  disableActions.add("add")
-  disableActions.add("duplicate")
+  for (const action of ["add", "addBefore", "addAfter", "duplicate"] as const) {
+    disableActions.add(action)
+  }
 
   return props.renderDefault({
     ...props,

@@ -103,6 +103,11 @@ export const pageBySlugQuery = defineQuery(`*[
     _id,
     "title": coalesce(${localizedTitle}, "[Mangler tittel]"),
     "slug": coalesce(slug.current, ""),
+    "faq": coalesce(faq[] {
+      _key,
+      "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),
+      "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")
+    }, []),
     "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")
 }`)
 

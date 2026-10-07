@@ -14,11 +14,17 @@ export const INHERITED_FIELDS = [
   "title",
   "description",
   "imageUrl",
+  // Inherit with imageUrl: projections return a value whenever the child has
+  // its own image, so parent crop and alt never apply to a child image.
+  "imageFrame",
+  "imageAlt",
   "imageCaption",
   "organizerGroup",
+  "coOrganizerGroups",
   "organizerText",
   "eventType",
   "isFree",
+  "isSoldOut",
   "priceOrdinar",
   "priceStudent",
   "priceMedlem",

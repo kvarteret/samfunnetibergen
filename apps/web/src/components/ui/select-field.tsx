@@ -5,6 +5,11 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { Label } from "@/components/ui/label"
+import {
+  menuItemClassName,
+  menuPopupClassName,
+  menuTriggerClassName,
+} from "@/components/ui/menu-surface"
 import { cn } from "@/lib/utils"
 
 export type SelectOption = {
@@ -64,7 +69,8 @@ export function SelectField({
           aria-describedby={error && errorId ? errorId : undefined}
           aria-invalid={!!error}
           className={cn(
-            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-base border-2 border-border bg-card px-3 py-2 font-base text-foreground outline-none aria-invalid:border-destructive aria-invalid:bg-destructive/5 hover:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50 data-popup-open:bg-muted focus-brutal",
+            menuTriggerClassName,
+            "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 px-3 py-2 font-base text-foreground outline-none aria-invalid:border-destructive aria-invalid:bg-destructive/5 data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-brutal",
             className,
           )}
           id={id}
@@ -80,14 +86,14 @@ export function SelectField({
 
         <Select.Portal>
           <Select.Positioner className="z-50 outline-none" sideOffset={6}>
-            <Select.Popup className="rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none">
-              <Select.ScrollUpArrow className="flex h-7 cursor-default items-center justify-center bg-card">
+            <Select.Popup className={menuPopupClassName}>
+              <Select.ScrollUpArrow className="flex h-7 cursor-default items-center justify-center rounded-t-xl bg-card">
                 <ChevronUp aria-hidden className="size-4" />
               </Select.ScrollUpArrow>
               <Select.List className="max-h-[var(--available-height)] overflow-y-auto p-1">
                 {items.map(option => (
                   <Select.Item
-                    className="flex cursor-pointer items-center gap-2 px-3 py-2 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-primary data-highlighted:text-primary-foreground"
+                    className={menuItemClassName}
                     disabled={option.disabled}
                     key={option.value}
                     value={option.value}
@@ -99,7 +105,7 @@ export function SelectField({
                   </Select.Item>
                 ))}
               </Select.List>
-              <Select.ScrollDownArrow className="flex h-7 cursor-default items-center justify-center bg-card">
+              <Select.ScrollDownArrow className="flex h-7 cursor-default items-center justify-center rounded-b-xl bg-card">
                 <ChevronDown aria-hidden className="size-4" />
               </Select.ScrollDownArrow>
             </Select.Popup>

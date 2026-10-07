@@ -1,3 +1,4 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 export const EVENTS_PER_PAGE = 4
 export const PAGE_DURATION_MS = 15_000
 export const REFRESH_INTERVAL_MS = 60 * 60 * 1_000
@@ -28,6 +29,7 @@ export type ScreenEvent = {
   organizer: string | null
   category: string | null
   imageUrl: string | null
+  imageFrame?: ImageFrame | null
   cancelled: boolean
   isFree: boolean
 }
@@ -39,6 +41,7 @@ export type ScreenPromotion = {
   dateLabel: string
   room: string | null
   imageUrl: string | null
+  imageFrame?: ImageFrame | null
 }
 
 export function isScreenEventExpired(event: ScreenEvent, now: Date): boolean {

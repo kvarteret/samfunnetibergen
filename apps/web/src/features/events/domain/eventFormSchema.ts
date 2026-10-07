@@ -47,6 +47,7 @@ export const eventFormSchema = z
     eventTypeId: z.string(),
     isInternalEvent: z.boolean(),
     isFree: z.boolean(),
+    isSoldOut: z.boolean().default(false),
     priceOrdinar: z.string(),
     priceStudent: z.string(),
     priceMedlem: z.string(),
@@ -66,6 +67,27 @@ export const eventFormSchema = z
         message: "Fyll ut minst én gyldig dato.",
       })
     }
+
+    value.dates.forEach((date, index) => {
+      if (!date.startDate) return
+      for (const field of ["startTime", "endTime"] as const) {
+        if (!date[field])
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["dates", index, field],
+            message:
+              field === "startTime"
+                ? "Fyll ut når dørene åpner."
+                : "Fyll ut når dørene stenger.",
+          })
+      }
+      if (date.startTime && date.startTime === date.endTime)
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["dates", index, "endTime"],
+          message: "Dørene må åpne og stenge på ulike klokkeslett.",
+        })
+    })
 
     if (value.isRecurring && !value.rrule.trim()) {
       context.addIssue({

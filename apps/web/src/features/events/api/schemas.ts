@@ -139,6 +139,7 @@ export const publicScheduleSchema = z.discriminatedUnion("kind", [
 const publicPricingSchema = z.strictObject({
   currency: z.literal("NOK"),
   isFree: z.boolean(),
+  isSoldOut: z.boolean().optional(),
   ordinary: z.number().nullable(),
   student: z.number().nullable(),
   member: z.number().nullable(),

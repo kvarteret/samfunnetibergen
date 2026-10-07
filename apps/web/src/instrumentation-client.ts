@@ -1,4 +1,5 @@
 import posthog from "posthog-js"
+import { prepareBrowserLog } from "@/lib/posthog/log-policy"
 import {
   isTrackingExcluded,
   prepareBrowserEvent,
@@ -26,7 +27,14 @@ if (
     defaults: "2026-01-30",
     capture_pageview: true,
     capture_pageleave: true,
+    autocapture: false,
     capture_exceptions: true,
+    logs: {
+      serviceName: "samfunnetibergen-browser",
+      environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? "production",
+      serviceVersion: process.env.NEXT_PUBLIC_GIT_SHA,
+      beforeSend: prepareBrowserLog,
+    },
     before_send: prepareBrowserEvent,
     disable_session_recording: false,
     session_recording: {

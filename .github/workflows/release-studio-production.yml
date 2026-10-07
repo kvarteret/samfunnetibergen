@@ -9,6 +9,7 @@ on:
       - packages/content-domain/**
       - package.json
       - package-lock.json
+      - .github/workflows/release-studio-production.yml
   workflow_dispatch:
     inputs:
       ref:
@@ -32,6 +33,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: studio-production-release
@@ -105,6 +107,30 @@ jobs:
       - name: Tests
         run: npm run test
 
+      - name: Load production application config
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 9bf23057-bcfc-49ca-a965-264c91913888
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: faedb783-c2d7-45aa-ae13-f6607c5cca93
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
+
+      - name: Load deployment credentials
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 9bf23057-bcfc-49ca-a965-264c91913888
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
+
       - name: Install Vercel CLI
         run: npm install --global vercel@58.4.4
 
@@ -115,10 +141,6 @@ jobs:
             --project "$STUDIO_VERCEL_PROJECT_ID" \
             --scope "$VERCEL_ORG_ID" \
             --token "$VERCEL_TOKEN"
-        env:
-          STUDIO_VERCEL_PROJECT_ID: ${{ secrets.STUDIO_VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
       # This is the authoritative production Studio build. Do not add a
       # separate npm run build:studio step before it; Vercel would build the
@@ -130,12 +152,6 @@ jobs:
             --project "$STUDIO_VERCEL_PROJECT_ID" \
             --scope "$VERCEL_ORG_ID" \
             --token "$VERCEL_TOKEN"
-        env:
-          STUDIO_VERCEL_PROJECT_ID: ${{ secrets.STUDIO_VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
-          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
 
       - name: Deploy staged Studio artifact
         id: deploy
@@ -153,10 +169,6 @@ jobs:
 
           echo "url=${deployment_url}" >> "$GITHUB_OUTPUT"
           echo "Staged Studio deployment: ${deployment_url}"
-        env:
-          STUDIO_VERCEL_PROJECT_ID: ${{ secrets.STUDIO_VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Smoke test staged Studio deployment
         shell: bash
@@ -181,7 +193,6 @@ jobs:
           done
         env:
           SMOKE_PATHS: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_paths || '/ /structure/arrangement /static/manifest.webmanifest' }}
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Register external Studio and schema with Sanity
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.register_external }}
@@ -210,9 +221,6 @@ jobs:
           vercel promote "${{ steps.deploy.outputs.url }}" --yes --timeout=5m \
             --scope "$VERCEL_ORG_ID" \
             --token "$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Create Studio release tag
         if: ${{ github.event_name == 'push' || inputs.promote }}

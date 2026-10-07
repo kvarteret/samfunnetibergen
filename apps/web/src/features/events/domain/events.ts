@@ -1,4 +1,5 @@
 import { TZDate } from "@date-fns/tz"
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import {
   type EventStatus,
   resolveEffectiveStatus,
@@ -35,6 +36,7 @@ export type PublicParentSummary = {
   _updatedAt: string | null
   eventKind: PublicEventKind
   eventStatus: EventStatus
+  rrule: string | null
   slug: string
   title: string
 }
@@ -74,6 +76,7 @@ export type PublicEvent = {
   effectiveUpdatedAt: string | null
   eventKind: PublicEventKind
   eventStatus: EventStatus
+  initialSlug?: string | null
   isPromoted: boolean
   promotedPlacement: "top" | "pool" | null
   promotedOrder: number | null
@@ -84,10 +87,14 @@ export type PublicEvent = {
   title: string
   description: PublicPortableTextBlock[]
   imageUrl: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[]
   organizerText: string | null
   eventType: PublicEventType | null
+  isSoldOut?: boolean
   isFree: boolean
   priceOrdinar: number | null
   priceStudent: number | null
@@ -130,13 +137,18 @@ export type RawPublicParent = {
   _updatedAt?: string | null
   eventKind?: string | null
   eventStatus?: EventStatus | null
+  rrule?: string | null
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -154,6 +166,7 @@ export type RawPublicEvent = {
   _updatedAt?: string | null
   eventKind?: string | null
   eventStatus?: EventStatus | null
+  initialSlug?: string | null
   isPromoted?: boolean | null
   promotedPlacement?: "top" | "pool" | null
   promotedOrder?: number | null
@@ -165,10 +178,14 @@ export type RawPublicEvent = {
   title?: string | null
   description?: readonly unknown[] | null
   imageUrl?: string | null
+  imageFrame?: ImageFrame | null
+  imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
+  isSoldOut?: boolean | null
   isFree?: boolean | null
   priceOrdinar?: number | null
   priceStudent?: number | null
@@ -342,7 +359,13 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     cleanChild.useFestivalImage !== false
   const effectiveParent =
     cleanParent && !inheritFestivalImage
-      ? { ...cleanParent, imageUrl: null, imageCaption: null }
+      ? {
+          ...cleanParent,
+          imageUrl: null,
+          imageFrame: null,
+          imageAlt: null,
+          imageCaption: null,
+        }
       : cleanParent
   const content = resolveEventContent(cleanChild, effectiveParent)
   const dates = (Array.isArray(content.dates) ? content.dates : []).flatMap(
@@ -365,6 +388,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       content.eventStatus ?? null,
       cleanParent?.eventStatus ?? null,
     ),
+    initialSlug: child.initialSlug ?? child.slug,
     isPromoted: content.isPromoted ?? false,
     promotedPlacement: content.promotedPlacement ?? null,
     promotedOrder: content.promotedOrder ?? null,
@@ -377,11 +401,17 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       ? (content.description as PublicPortableTextBlock[])
       : [],
     imageUrl: normalizeString(content.imageUrl),
+    imageFrame: (content.imageFrame as ImageFrame | null | undefined) ?? null,
+    imageAlt: normalizeString(content.imageAlt),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
+    coOrganizerGroups: (
+      (content.coOrganizerGroups as PublicOrganizerGroup[] | null) ?? []
+    ).filter(group => group?._id),
     organizerText: normalizeString(content.organizerText),
     eventType: content.eventType ?? null,
     isFree: content.isFree ?? false,
+    isSoldOut: content.isSoldOut ?? false,
     priceOrdinar: content.priceOrdinar ?? null,
     priceStudent: content.priceStudent ?? null,
     priceMedlem: content.priceMedlem ?? null,
@@ -395,6 +425,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
           _updatedAt: cleanParent._updatedAt ?? null,
           eventKind: normalizeEventKind(cleanParent.eventKind),
           eventStatus: cleanParent.eventStatus ?? "scheduled",
+          rrule: normalizeString(cleanParent.rrule),
           slug: cleanParent.slug ?? "",
           title: normalizeString(cleanParent.title) ?? MISSING_TITLE,
         }

@@ -2,15 +2,9 @@ import { getTranslations } from "next-intl/server"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import type { EventDateEntry } from "@/features/events"
 import { EventsPage as EventsPageContent } from "@/features/events"
-import {
-  computeAllDates,
-  formatPrimaryDate,
-  formatWeekday,
-  getRecurringLabel,
-  type PrimaryDateLabels,
-  type RecurringLabels,
-} from "@/features/events/domain/dates"
+import { buildCardDateLabels } from "@/features/events/domain/dates"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
+import { getCardDateLabels } from "@/features/events/server/card-date-labels"
 import { fetchPublicEventSet } from "@/features/events/server/public-events"
 import type { AppLocale } from "@/i18n/routing"
 import {
@@ -51,26 +45,20 @@ export default async function EventsPage({
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [t, { events: fetchedArrangements }, resolvedSearchParams, cardT] =
-    await Promise.all([
-      getTranslations({ locale, namespace: "EventsPage" }),
-      fetchPublicEventSet({ locale, from: today, to: null }),
-      searchParams,
-      getTranslations({ locale, namespace: "EventCard" }),
-    ])
+  const [
+    t,
+    { events: fetchedArrangements },
+    resolvedSearchParams,
+    cardT,
+    cardLabels,
+  ] = await Promise.all([
+    getTranslations({ locale, namespace: "EventsPage" }),
+    fetchPublicEventSet({ locale, from: today, to: null }),
+    searchParams,
+    getTranslations({ locale, namespace: "EventCard" }),
+    getCardDateLabels(locale),
+  ])
   const arrangements = filterToFirstInstances(fetchedArrangements)
-
-  const primaryDateLabels: PrimaryDateLabels = {
-    today: cardT("today"),
-    tomorrow: cardT("tomorrow"),
-    weekday: (date: Date) => formatWeekday(date, locale),
-  }
-  const recurringLabels: RecurringLabels = {
-    daily: cardT("recurringDaily"),
-    weekly: cardT("recurringWeekly"),
-    monthly: cardT("recurringMonthly"),
-    generic: cardT("recurringGeneric"),
-  }
 
   const precomputedDates = new Map<
     string,
@@ -82,23 +70,8 @@ export default async function EventsPage({
     }
   >()
   for (const event of arrangements) {
-    const dates: EventDateEntry[] = (event.dates ?? []).map(d => ({
-      _key: d._key,
-      startDate: d.startDate,
-      startTime: d.startTime ?? null,
-      endTime: d.endTime ?? null,
-    }))
-    const resolvedDates = computeAllDates(dates, today)
-    const primaryDate = resolvedDates[0]
-    const primaryDateLabel = primaryDate
-      ? formatPrimaryDate(primaryDate, primaryDateLabels)
-      : null
-    const recurringLabel =
-      event.eventKind === "seriesInstance"
-        ? recurringLabels.generic
-        : event.isRecurring
-          ? getRecurringLabel(event.rrule, recurringLabels)
-          : null
+    const { resolvedDates, primaryDateLabel, recurringLabel } =
+      buildCardDateLabels(event, today, cardLabels)
     const statusLabel =
       event.eventStatus === "cancelled" ? cardT("statusCancelled") : null
     precomputedDates.set(event._id, {

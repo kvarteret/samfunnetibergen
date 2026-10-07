@@ -247,8 +247,8 @@ export type Navbar = {
 export type ArrangementDate = {
   _type: "arrangementDate"
   startDate: string
-  startTime?: string
-  endTime?: string
+  startTime: string
+  endTime: string
 }
 
 export type FooterSocialLink = {
@@ -492,6 +492,7 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
+  initialSlug?: string
   eventKind?:
     | "single"
     | "seriesParent"
@@ -499,12 +500,8 @@ export type Arrangement = {
     | "festivalParent"
     | "festivalSession"
   parentEvent?: ArrangementReference
-  festivalDayShortcut?: string
   localizedTitle?: InternationalizedArrayString
-  slug: Slug
   eventType?: EventTypeReference
-  isInternalEvent?: boolean
-  isPromoted?: boolean
   promotedPlacement?: "top" | "pool"
   promotedOrder?: number
   orderRank?: string
@@ -521,6 +518,7 @@ export type Arrangement = {
     media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
+    alt?: string
     _type: "image"
   }
   useFestivalImage?: boolean
@@ -528,18 +526,33 @@ export type Arrangement = {
   room?: RoomReference
   localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
+  coOrganizerGroups?: Array<
+    {
+      _key: string
+    } & StudentGroupReference
+  >
   localizedOrganizerText?: InternationalizedArrayString
+  isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number
   priceStudent?: number
   priceMedlem?: number
   ticketUrl?: string
   facebookUrl?: string
+  isInternalEvent?: boolean
   eventStatus: "scheduled" | "cancelled"
   approvalStatus: string
+  slug: Slug
+  isPromoted?: boolean
   submittedBy?: string
   submittedByEmail?: string
   submittedByOrganization?: string
+}
+
+export type Slug = {
+  _type: "slug"
+  current: string
+  source?: string
 }
 
 export type StudentGroup = {
@@ -601,12 +614,6 @@ export type InternationalizedArrayPortableTextContent = Array<
     _key: string
   } & InternationalizedArrayPortableTextContentValue
 >
-
-export type Slug = {
-  _type: "slug"
-  current: string
-  source?: string
-}
 
 export type Room = {
   _id: string
@@ -682,6 +689,12 @@ export type Page = {
   localizedTitle: InternationalizedArrayString
   slug: Slug
   localizedContent?: InternationalizedArrayText
+  faq?: Array<{
+    localizedQuestion: InternationalizedArrayString
+    localizedAnswer: InternationalizedArrayText
+    _type: "faqItem"
+    _key: string
+  }>
 }
 
 export type KontaktPage = {
@@ -1124,10 +1137,10 @@ export type AllSanitySchemaTypes =
   | SourcedImage
   | EventTypeReference
   | Arrangement
+  | Slug
   | StudentGroup
   | InternationalizedArrayStudentGroupLabelValue
   | InternationalizedArrayPortableTextContent
-  | Slug
   | Room
   | EventTaxonomyGroupReference
   | EventType
