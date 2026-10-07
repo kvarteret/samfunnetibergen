@@ -6,7 +6,9 @@ import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Avatar } from "@/components/ui/avatar"
+import { GroupEvents } from "@/features/events/components/GroupEvents"
 import { GroupVolunteerForm } from "@/features/grupper"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -123,6 +125,8 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.body && group.body.length > 0 && (
           <PortableTextContent value={group.body} />
         )}
+
+        <GroupEvents groupId={group._id} locale={locale as AppLocale} />
       </div>
 
       <aside className="min-w-0 space-y-6">

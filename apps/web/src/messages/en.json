@@ -461,7 +461,9 @@
     "platformInstagram": "Instagram",
     "platformTiktok": "TikTok",
     "platformStudentbergen": "Studentbergen",
-    "platformOther": "Other"
+    "platformOther": "Other",
+    "upcomingEvents": "Upcoming events",
+    "allEvents": "See all {count}"
   },
   "GroupVolunteerForm": {
     "title": "Volunteer",
