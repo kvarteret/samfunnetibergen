@@ -160,7 +160,11 @@ function EventDetailHero({
   partOfLabel: string
 }) {
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
+    ? sanityImageUrl(
+        event.imageUrl,
+        { height: 900, width: 1600 },
+        event.imageFrame,
+      )
     : null
 
   return (

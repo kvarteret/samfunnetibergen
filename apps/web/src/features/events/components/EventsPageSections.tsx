@@ -59,6 +59,7 @@ function toEventSummary(
     ticketUrl: event.ticketUrl ?? null,
     facebookUrl: event.facebookUrl ?? null,
     imageUrl: event.imageUrl ?? null,
+    imageFrame: event.imageFrame ?? null,
     imageCaption: event.imageCaption ?? null,
     room: event.room
       ? {

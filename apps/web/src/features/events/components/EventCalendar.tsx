@@ -60,7 +60,11 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 180, width: 280 })
+    ? sanityImageUrl(
+        event.imageUrl,
+        { height: 180, width: 320 },
+        event.imageFrame,
+      )
     : null
   const time = formatTime(occurrence, t("timePrefix"))
 
