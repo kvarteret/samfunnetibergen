@@ -40,7 +40,23 @@ export class Canva {
       },
     )
     if (!response.ok) throw new Error(`Canva HTTP ${response.status}`)
-    return (await response.json()) as T
+    const text = await response.text()
+    return (text ? JSON.parse(text) : undefined) as T
+  }
+
+  async folder(id: string): Promise<void> {
+    const result = await this.request<{ folder: { id: string } }>(
+      `folders/${encodeURIComponent(id)}`,
+    )
+    if (result.folder?.id !== id)
+      throw new Error("Canva output folder unavailable")
+  }
+
+  async moveToFolder(design: string, folder: string): Promise<void> {
+    await this.request("folders/move", {
+      item_id: design,
+      to_folder_id: folder,
+    })
   }
 
   async dataset(template: string): Promise<void> {

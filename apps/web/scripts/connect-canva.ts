@@ -26,7 +26,7 @@ async function main() {
     client_id: clientId,
     redirect_uri: redirect,
     scope:
-      "design:content:read design:content:write design:meta:read asset:read asset:write",
+      "design:content:read design:content:write design:meta:read asset:read asset:write folder:read folder:write",
     state,
     code_challenge: createHash("sha256").update(verifier).digest("base64url"),
     code_challenge_method: "s256",

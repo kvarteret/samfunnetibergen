@@ -52,6 +52,7 @@ jobs:
           CANVA_CLIENT_SECRET: ${{ secrets.CANVA_CLIENT_SECRET }}
           CANVA_TOKEN_ENCRYPTION_KEY: ${{ secrets.CANVA_TOKEN_ENCRYPTION_KEY }}
           CANVA_WEEKLY_TEMPLATE_DESIGN_ID: ${{ vars.CANVA_WEEKLY_TEMPLATE_DESIGN_ID || 'DAHXWWAf59c' }}
+          CANVA_WEEKLY_OUTPUT_FOLDER_ID: ${{ vars.CANVA_WEEKLY_OUTPUT_FOLDER_ID }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
           SCHEDULED: ${{ github.event_name == 'schedule' }}
           WEEK: ${{ inputs.week }}
