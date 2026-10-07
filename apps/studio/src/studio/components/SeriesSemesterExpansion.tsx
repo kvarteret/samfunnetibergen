@@ -8,10 +8,12 @@ import {
   type SemesterWindow,
   semesterWindowsAround,
 } from "@samfunnet/content-domain/instances"
-import { Button, Card, Dialog, Flex, Stack, Text } from "@sanity/ui"
+import { Badge, Button, Card, Flex, Stack, Text } from "@sanity/ui"
 import { useToast } from "@sanity/ui/toast"
 import { useState } from "react"
 import { useClient } from "sanity"
+
+import { formatStudioDate, todayInOslo } from "./arrangementFilters"
 
 const API_VERSION = "2026-07-29"
 const EXISTING_DAYS_QUERY = `*[
@@ -59,26 +61,19 @@ export function SeriesSemesterExpansion({
 }: SeriesSemesterExpansionProps) {
   const client = useClient({ apiVersion: API_VERSION })
   const toast = useToast()
-  const [selectingSemester, setSelectingSemester] = useState(false)
   const [plan, setPlan] = useState<Plan | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const openSemesterPicker = () => {
-    if (!documentId || !rrule || !slug || !seed?.startDate) {
-      toast.push({
-        status: "warning",
-        title: "Fullfør gjentakelsen først",
-        description:
-          "Serien trenger nettadresse, første dato og et gjentakelsesmønster.",
-      })
-      return
-    }
-    setSelectingSemester(true)
-  }
+  const today = todayInOslo()
+  const ready = Boolean(documentId && rrule && slug && seed?.startDate)
+  const semesters = seed?.startDate
+    ? semesterWindowsAround(seed.startDate > today ? seed.startDate : today)
+        .filter(semester => semester.endDate >= today)
+        .slice(0, 2)
+    : []
 
   const prepare = async (semester: SemesterWindow) => {
     if (!seed) return
-    setSelectingSemester(false)
     setBusy(true)
     try {
       const parent: GenerationParent = {
@@ -126,7 +121,7 @@ export function SeriesSemesterExpansion({
       await transaction.commit()
       toast.push({
         status: "success",
-        title: `${plan.diff.toCreate.length} dager opprettet for ${plan.semester.code}`,
+        title: `${plan.diff.toCreate.length} dager opprettet`,
       })
       setPlan(null)
     } catch {
@@ -139,123 +134,83 @@ export function SeriesSemesterExpansion({
     }
   }
 
-  return (
-    <>
-      <Card border padding={3} radius={2}>
-        <Stack gap={3}>
-          <Stack gap={2}>
-            <Text size={1} weight="semibold">
-              Semesterutvidelse
-            </Text>
-            <Text muted size={1}>
-              Velg programperioden som skal få egne, redigerbare seriedager.
-            </Text>
-          </Stack>
-          <Button
-            disabled={busy}
-            loading={busy}
-            mode="ghost"
-            onClick={openSemesterPicker}
-            text="Velg semester og kontroller dager"
-          />
-        </Stack>
-      </Card>
+  if (!ready) {
+    return (
+      <Text muted size={1}>
+        Fyll inn første dato og nettadresse for å opprette dager.
+      </Text>
+    )
+  }
 
-      {selectingSemester && seed ? (
-        <Dialog
-          header="Velg semester"
-          id="series-semester-picker"
-          onClose={() => setSelectingSemester(false)}
-          width={1}
-        >
-          <SemesterPicker
-            onSelect={semester => void prepare(semester)}
-            seedDate={seed.startDate}
-          />
-        </Dialog>
-      ) : null}
-
-      {plan ? (
-        <Dialog
-          footer={
-            <Flex gap={2} justify="flex-end" padding={3}>
-              <Button
-                disabled={busy}
-                mode="bleed"
-                onClick={() => setPlan(null)}
-                text="Avbryt"
-              />
-              <Button
-                disabled={busy}
-                loading={busy}
-                onClick={() => void write()}
-                text="Opprett manglende dager"
-                tone="positive"
-              />
-            </Flex>
-          }
-          header={`${plan.semester.code}: Kontroller dager`}
-          id="series-semester-preview"
-          onClose={() => setPlan(null)}
-          width={1}
-        >
-          <Card padding={4}>
-            <Text size={1}>{planMessage(plan)}</Text>
-          </Card>
-        </Dialog>
-      ) : null}
-    </>
-  )
-}
-
-function SemesterPicker({
-  onSelect,
-  seedDate,
-}: {
-  onSelect: (semester: SemesterWindow) => void
-  seedDate: string
-}) {
-  const today = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "Europe/Oslo",
-  }).format(new Date())
-  const referenceDate = seedDate > today ? seedDate : today
-  const semesters = semesterWindowsAround(referenceDate)
+  const created = plan?.diff.toCreate.length ?? 0
+  const orphaned =
+    (plan?.diff.orphanedUntouched.length ?? 0) +
+    (plan?.diff.orphanedEdited.length ?? 0)
 
   return (
-    <Card padding={4}>
-      <Stack gap={4}>
-        <Text muted size={1}>
-          Velg programperioden som skal opprettes eller oppdateres.
-        </Text>
-        <Flex gap={2} wrap="wrap">
+    <Card border padding={3} radius={2}>
+      <Stack gap={3}>
+        <Flex align="center" gap={2} wrap="wrap">
+          <Text size={1} weight="semibold">
+            Opprett dager for
+          </Text>
           {semesters.map(semester => (
             <Button
+              disabled={busy}
+              fontSize={1}
               key={semester.code}
-              mode="ghost"
-              onClick={() => onSelect(semester)}
-              text={`${semester.code} · ${compactDate(semester.startDate)}–${compactDate(semester.endDate)}`}
-              title={`${semester.label}: ${semester.startDate}–${semester.endDate}`}
+              mode={plan?.semester.code === semester.code ? "default" : "ghost"}
+              onClick={() => void prepare(semester)}
+              text={semesterName(semester)}
+              title={`${formatStudioDate(semester.startDate, false)}–${formatStudioDate(semester.endDate, false)}`}
             />
           ))}
         </Flex>
+        {plan ? (
+          <Stack gap={3}>
+            {created ? (
+              <Flex gap={1} wrap="wrap">
+                {plan.diff.toCreate.map(occurrence => (
+                  <Badge key={occurrence.startDate} tone="positive">
+                    {formatStudioDate(occurrence.startDate)}
+                  </Badge>
+                ))}
+              </Flex>
+            ) : (
+              <Text muted size={1}>
+                Alle dagene finnes allerede.
+              </Text>
+            )}
+            {orphaned ? (
+              <Text muted size={1}>
+                {orphaned} eksisterende dager følger ikke lenger mønsteret. De
+                beholdes.
+              </Text>
+            ) : null}
+            {created ? (
+              <Flex gap={2}>
+                <Button
+                  loading={busy}
+                  onClick={() => void write()}
+                  text={`Opprett ${created} dager`}
+                  tone="positive"
+                />
+                <Button
+                  disabled={busy}
+                  mode="bleed"
+                  onClick={() => setPlan(null)}
+                  text="Avbryt"
+                />
+              </Flex>
+            ) : null}
+          </Stack>
+        ) : null}
       </Stack>
     </Card>
   )
 }
 
-function planMessage(plan: Plan): string {
-  return (
-    `${plan.semester.label} (${plan.semester.startDate}–${plan.semester.endDate}): ` +
-    `${plan.occurrences.length} dager følger mønsteret. ` +
-    `${plan.diff.toCreate.length} opprettes, ` +
-    `${plan.occurrences.length - plan.diff.toCreate.length} finnes allerede. ` +
-    `${plan.diff.orphanedUntouched.length} tidligere dager følger ikke lenger mønsteret, ` +
-    `og ${plan.diff.orphanedEdited.length} av disse er redigert og må vurderes manuelt. ` +
-    "Ingen eksisterende eller redigerte dager overskrives eller slettes."
-  )
-}
-
-function compactDate(date: string): string {
-  const [, month, day] = date.split("-")
-  return `${day}.${month}`
+function semesterName(semester: SemesterWindow): string {
+  const year = semester.startDate.slice(0, 4)
+  return `${semester.code.startsWith("H") ? "Høst" : "Vår"} ${year}`
 }

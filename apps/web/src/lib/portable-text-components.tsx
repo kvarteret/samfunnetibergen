@@ -12,6 +12,7 @@ type PortableTextBlock = {
 
 type PortableTextContentProps = {
   className?: string
+  nofollowLinks?: boolean
   value: PortableTextBlock[] | null | undefined
 }
 
@@ -34,11 +35,25 @@ type PortableTextLinkValue = {
 
 export function PortableTextContent({
   className,
+  nofollowLinks = false,
   value,
 }: PortableTextContentProps) {
   if (!value?.length) {
     return null
   }
+
+  const components = nofollowLinks
+    ? {
+        ...portableTextComponents,
+        marks: {
+          link: (
+            props: PortableTextChildrenProps & {
+              value?: PortableTextLinkValue
+            },
+          ) => <PortableTextLink {...props} nofollow />,
+        },
+      }
+    : portableTextComponents
 
   let textBlocks: PortableTextBlock[] = []
 
@@ -63,20 +78,13 @@ export function PortableTextContent({
             .join(" ")}
           key={block._key}
         >
-          <PortableText
-            components={portableTextComponents}
-            value={groupedTextBlocks}
-          />
+          <PortableText components={components} value={groupedTextBlocks} />
         </div>
       )
     }
 
     return (
-      <PortableText
-        components={portableTextComponents}
-        key={block._key}
-        value={block}
-      />
+      <PortableText components={components} key={block._key} value={block} />
     )
   })
 }
@@ -124,8 +132,10 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
 function PortableTextLink({
   children,
   value,
+  nofollow = false,
 }: PortableTextChildrenProps & {
   value?: PortableTextLinkValue
+  nofollow?: boolean
 }) {
   if (!value?.href) {
     return children
@@ -141,7 +151,11 @@ function PortableTextLink({
           "not-prose group inline-flex items-center gap-2 font-heading underline underline-offset-4",
       )}
       href={value.href}
-      rel={opensInNewTab ? "noreferrer" : undefined}
+      rel={
+        [nofollow && "nofollow", opensInNewTab && "noopener noreferrer"]
+          .filter(Boolean)
+          .join(" ") || undefined
+      }
       target={opensInNewTab ? "_blank" : undefined}
     >
       {children}

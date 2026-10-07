@@ -1,15 +1,21 @@
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
 import { EventInterest } from "@/features/event-interest/components/EventInterest"
 import {
+  FestivalHero,
+  type FestivalLabels,
+  FestivalProgramme,
+} from "@/features/events/components/FestivalProgramme"
+import {
   flattenPublicOccurrences,
   type PublicEvent,
 } from "@/features/events/domain/events"
+import { groupFestivalProgramme } from "@/features/events/domain/festival-programme"
 import { fetchEventPageData } from "@/features/events/server/public-events-page"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
@@ -56,6 +62,21 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const { event: eventData, children: childEvents } = detail
   const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
+  const isFestival = eventData.eventKind === "festivalParent"
+  const festivalDays = isFestival ? groupFestivalProgramme(childEvents) : []
+  const festivalLabels: FestivalLabels = {
+    programme: t("childEvents"),
+    browseDays: t("festivalBrowseDays"),
+    events: t("festivalEvents"),
+    days: t("festivalDays"),
+    about: t("festivalAbout"),
+    details: t("festivalDetails"),
+    tickets: t("tickets"),
+    soldOut: t("soldOut"),
+    cancelled: t("statusCancelled"),
+    timeUnknown: t("festivalTimeUnknown"),
+    empty: t("festivalEmpty"),
+  }
   const today = getOsloDateString()
   const eventJsonLd = buildEventStructuredData(
     isParentEvent
@@ -84,19 +105,47 @@ export default async function EventPage({ params }: EventPageProps) {
           path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
-        <EventDetailHero
-          event={eventData}
-          eventSlug={resolvedParams.event}
-          ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
-          partOfLabel={t("partOf")}
-        />
+        {isFestival ? (
+          <FestivalHero
+            event={eventData}
+            days={festivalDays}
+            locale={locale}
+            labels={festivalLabels}
+          />
+        ) : (
+          <EventDetailHero
+            event={eventData}
+            eventSlug={resolvedParams.event}
+            ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
+            partOfLabel={t("partOf")}
+          />
+        )}
+        {isFestival && (
+          <FestivalProgramme
+            days={festivalDays}
+            locale={locale}
+            labels={festivalLabels}
+          />
+        )}
+        {isFestival && (
+          <h2
+            id="festival-about"
+            className="scroll-mt-24 border-t-2 border-border pt-8 font-heading text-3xl"
+          >
+            {t("festivalAbout")}
+          </h2>
+        )}
         <EventDetailDescription
           event={eventData}
           eventSlug={resolvedParams.event}
           t={t}
         />
-        <EventDetailScheduleAndMeta event={eventData} t={t} />
-        {childEvents.length > 0 && (
+        {isFestival ? (
+          <EventDetailMetaSidebar event={eventData} t={t} />
+        ) : (
+          <EventDetailScheduleAndMeta event={eventData} t={t} />
+        )}
+        {!isFestival && childEvents.length > 0 && (
           <EventChildList childEvents={childEvents} t={t} />
         )}
       </article>
@@ -160,7 +209,11 @@ function EventDetailHero({
   partOfLabel: string
 }) {
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(event.imageUrl, { height: 900, width: 1600 })
+    ? sanityImageUrl(
+        event.imageUrl,
+        { height: 900, width: 1600 },
+        event.imageFrame,
+      )
     : null
 
   return (
@@ -201,7 +254,7 @@ function EventDetailHero({
         {imageUrl ? (
           <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
             <Image
-              alt={event.imageCaption ?? event.title}
+              alt={event.imageAlt ?? event.imageCaption ?? event.title}
               className="object-cover"
               fill
               priority
@@ -244,7 +297,11 @@ function EventDetailMetaSidebar({
   event: EventDetail
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
-  const organizer = event.organizerGroup?.name ?? event.organizerText
+  const groups = [
+    ...(event.organizerGroup ? [event.organizerGroup] : []),
+    ...(event.coOrganizerGroups ?? []),
+  ]
+  const organizer = groups.length > 0 || event.organizerText
   const price = event.isSoldOut ? t("soldOut") : formatPrices(event)
 
   return (
@@ -254,16 +311,23 @@ function EventDetailMetaSidebar({
       </EventDetailMetaItem>
       {organizer && (
         <EventDetailMetaItem label={t("organizer")}>
-          {event.organizerGroup?.slug ? (
-            <Link
-              href={`/grupper/${event.organizerGroup.slug}`}
-              className="underline underline-offset-4 hover:text-primary focus-brutal"
-            >
-              {organizer}
-            </Link>
-          ) : (
-            organizer
-          )}
+          {groups.length > 0
+            ? groups.map((group, index) => (
+                <Fragment key={group._id}>
+                  {index > 0 ? ", " : null}
+                  {group.slug ? (
+                    <Link
+                      href={`/grupper/${group.slug}`}
+                      className="underline underline-offset-4 hover:text-primary focus-brutal"
+                    >
+                      {group.name}
+                    </Link>
+                  ) : (
+                    group.name
+                  )}
+                </Fragment>
+              ))
+            : event.organizerText}
         </EventDetailMetaItem>
       )}
     </aside>
@@ -443,7 +507,7 @@ function EventDetailDescription({
       <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
       <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (
-          <PortableTextContent value={event.description} />
+          <PortableTextContent value={event.description} nofollowLinks />
         ) : (
           <p>-</p>
         )}

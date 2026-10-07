@@ -1,0 +1,64 @@
+name: Generate Ukas post with Skonk
+
+on:
+  schedule:
+    # Sunday 08:00 Oslo is 06:00 UTC in summer and 07:00 UTC in winter.
+    # The Oslo-time guard rejects early runs; the weekly receipt deduplicates.
+    - cron: "0 6,7 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Prepare copy without creating Canva designs or sending Slack"
+        type: boolean
+        default: true
+      week:
+        description: "Optional Monday date YYYY-MM-DD; otherwise next week"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-canva
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    # Enable only after connecting Canva and validating a manual generation.
+    if: github.event_name == 'workflow_dispatch' || vars.WEEKLY_CANVA_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: npm
+      - run: npm ci
+      - name: Generate the weekly review draft
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_LUNA_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_LUNA_DEPLOYMENT || 'skonk' }}
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          SLACK_NETTSIDE_WEBHOOK: ${{ secrets.SLACK_NETTSIDE_WEBHOOK }}
+          CANVA_CLIENT_ID: ${{ secrets.CANVA_CLIENT_ID }}
+          CANVA_CLIENT_SECRET: ${{ secrets.CANVA_CLIENT_SECRET }}
+          CANVA_TOKEN_ENCRYPTION_KEY: ${{ secrets.CANVA_TOKEN_ENCRYPTION_KEY }}
+          CANVA_WEEKLY_TEMPLATE_DESIGN_ID: ${{ vars.CANVA_WEEKLY_TEMPLATE_DESIGN_ID || 'DAHXWWAf59c' }}
+          CANVA_WEEKLY_OUTPUT_FOLDER_ID: ${{ vars.CANVA_WEEKLY_OUTPUT_FOLDER_ID }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          SCHEDULED: ${{ github.event_name == 'schedule' }}
+          WEEK: ${{ inputs.week }}
+        run: |
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          if [[ "$SCHEDULED" == "true" ]]; then args+=(--scheduled); fi
+          if [[ -n "$WEEK" ]]; then args+=(--week "$WEEK"); fi
+          npm --workspace @samfunnet/web run events:weekly:canva -- "${args[@]}"

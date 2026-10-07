@@ -62,6 +62,7 @@ export function selectScreenPromotions(
         ),
         room: event.room?.title || event.roomText || null,
         imageUrl: event.imageUrl,
+        imageFrame: event.imageFrame,
       }
     })
 }

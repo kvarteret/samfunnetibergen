@@ -1,5 +1,13 @@
 import "server-only"
 
+import {
+  isPromotableEventKind,
+  selectHomepagePromotedEvents,
+} from "@/features/events/domain/promotedOrdering"
+import {
+  fetchPublicEventSet,
+  fetchPublicPromotedParentEvents,
+} from "@/features/events/server/public-events"
 import { sanityClient } from "@/lib/sanity/client"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import {
@@ -7,6 +15,8 @@ import {
   campaignDays,
   canSeeGroup,
   channelForDomain,
+  type DailyPoint,
+  daysBetween,
   deviceName,
   type EventDetail,
   type EventStatistic,
@@ -16,6 +26,9 @@ import {
   leadTimeBuckets,
   type NamedCount,
   PLACEMENT_TRACKING_START,
+  parseCampaignParam,
+  periodStart,
+  reachByDay,
   type StatisticsPeriod,
   type StatisticsScope,
   type SurfaceFunnel,
@@ -28,7 +41,7 @@ import {
   type EventDocument,
   toEventMeta,
 } from "./event-documents"
-import { hogqlStringList, runHogQL } from "./posthog-query"
+import { hogqlString, hogqlStringList, runHogQL } from "./posthog-query"
 import { fetchCampaignPeriods } from "./promotion-history"
 import {
   ARRANGEMENT_PATH,
@@ -51,6 +64,7 @@ export async function buildEventDetail(
   scope: StatisticsScope,
   slug: string,
   period: StatisticsPeriod,
+  campaignParam?: string | string[],
 ): Promise<EventDetail | null> {
   if (!isSafeIdentifier(slug)) return null
   const doc = await sanityClient.fetch<EventDocument | null>(
@@ -81,14 +95,29 @@ export async function buildEventDetail(
   ]
 
   const range = since(period)
-  const viewed = `event = 'content_page_viewed'
-    AND properties.content_type = 'arrangement' AND ${range}
+  const viewedIn = (within: string) => `event = 'content_page_viewed'
+    AND properties.content_type = 'arrangement' AND ${within}
     AND properties.content_id IN ${hogqlStringList(ids)}`
-  const clicked = `event IN ('ticket_link_clicked', 'facebook_event_link_clicked')
-    AND ${range}
+  const clickedIn = (
+    within: string,
+  ) => `event IN ('ticket_link_clicked', 'facebook_event_link_clicked')
+    AND ${within}
     AND (properties.event_id IN ${hogqlStringList(ids)}
       OR (properties.event_id IS NULL
         AND properties.event_slug IN ${hogqlStringList(slugs)}))`
+  const viewed = viewedIn(range)
+  const clicked = clickedIn(range)
+
+  // The flag usually sits on the event itself; a date in a series falls back
+  // to its series' campaign.
+  const campaignsPromise = fetchCampaignPeriods(doc._id).then(periods =>
+    periods?.length || !doc.parent
+      ? { periods, ownerId: doc._id }
+      : fetchCampaignPeriods(doc.parent._id).then(parentPeriods => ({
+          periods: parentPeriods,
+          ownerId: doc.parent?._id ?? doc._id,
+        })),
+  )
 
   const [
     totals,
@@ -174,14 +203,19 @@ export async function buildEventDetail(
       : [],
   ])
 
+  const today = getOsloDateString()
   const placed = `properties.event_document_id IN ${hogqlStringList(ids)}`
-  // The flag usually sits on the event itself; a date in a series falls back
-  // to its series' campaign.
-  const campaignsPromise = fetchCampaignPeriods(doc._id).then(periods =>
-    periods?.length || !doc.parent
-      ? periods
-      : fetchCampaignPeriods(doc.parent._id),
-  )
+  const { periods: campaigns, ownerId } = await campaignsPromise
+  const selectedCampaign = campaigns
+    ? parseCampaignParam(campaignParam, campaigns.length)
+    : null
+  // The visibility section covers the selected campaign, or else the period.
+  const window =
+    selectedCampaign === null || !campaigns
+      ? null
+      : campaignWindow(campaigns[selectedCampaign], today)
+  const exposureRange = window?.range ?? range
+  const ongoing = campaigns?.at(-1)?.until === null
   const [
     leadRows,
     placementRows,
@@ -190,6 +224,9 @@ export async function buildEventDetail(
     seenRows,
     entryViewRows,
     entryTicketRows,
+    reachRows,
+    campaignDailyRows,
+    shownNow,
   ] = await Promise.all([
     runHogQL<{ id: string; day: string; views: number }>(
       `SELECT properties.content_id AS id,
@@ -209,7 +246,7 @@ export async function buildEventDetail(
            countIf(event = 'event_placement_clicked') AS clicks
          FROM events
          WHERE event IN ('event_placement_viewed', 'event_placement_clicked')
-           AND ${range} AND ${placed}
+           AND ${exposureRange} AND ${placed}
          GROUP BY surface`,
       "detail-placements",
     ),
@@ -233,7 +270,7 @@ export async function buildEventDetail(
     runHogQL<{ surface: string | null; seen: number }>(
       `SELECT properties.surface AS surface, count() AS seen
          FROM events
-         WHERE event = 'event_placements_seen' AND ${range}
+         WHERE event = 'event_placements_seen' AND ${exposureRange}
            AND arrayExists(
              id -> id IN ${hogqlStringList(ids)},
              JSONExtract(ifNull(toString(properties.event_document_ids), '[]'), 'Array(String)')
@@ -243,21 +280,58 @@ export async function buildEventDetail(
     ),
     runHogQL<{ surface: string | null; views: number }>(
       `SELECT properties.entry_surface AS surface, count() AS views
-         FROM events WHERE ${viewed}
+         FROM events WHERE ${viewedIn(exposureRange)}
          GROUP BY surface`,
       "detail-entry-views",
     ),
     runHogQL<{ surface: string | null; tickets: number }>(
       `SELECT properties.entry_surface AS surface,
            countIf(event = 'ticket_link_clicked') AS tickets
-         FROM events WHERE ${clicked}
+         FROM events WHERE ${clickedIn(exposureRange)}
          GROUP BY surface`,
       "detail-entry-tickets",
     ),
+    // A person's first day is searched over the past year, not the period,
+    // so "first time" means never seen fremhevet before. Impressions before
+    // tracking began exist only where a campaign was backfilled.
+    runHogQL<{ day: string; people: number; first_time: number }>(
+      `SELECT toString(seen_day) AS day, count() AS people,
+           countIf(seen_day = first_day) AS first_time
+         FROM (
+           SELECT person_id, seen_day,
+               min(seen_day) OVER (PARTITION BY person_id) AS first_day
+             FROM (
+               SELECT DISTINCT person_id,
+                   toDate(toTimeZone(timestamp, 'Europe/Oslo')) AS seen_day
+                 FROM events
+                 WHERE event = 'event_placement_viewed'
+                   AND properties.surface = 'home-promoted'
+                   AND timestamp >= now() - INTERVAL 365 DAY
+                   AND ${placed}
+             )
+         )
+         WHERE seen_day >= toDate('${window?.days[0] ?? periodStart(today, period)}')
+           AND seen_day <= toDate('${window?.days.at(-1) ?? today}')
+         GROUP BY seen_day ORDER BY seen_day`,
+      "detail-reach",
+    ),
+    // Views on the campaign's days and on as many days just before it.
+    window
+      ? runHogQL<{ day: string; views: number; visitors: number }>(
+          `SELECT toDate(toTimeZone(timestamp, 'Europe/Oslo')) AS day,
+               count() AS views, uniq(person_id) AS visitors
+             FROM events
+             WHERE ${viewedIn(
+               `timestamp >= toDateTime('${window.before[0]} 00:00:00', 'Europe/Oslo')
+                 AND timestamp < toDateTime('${window.days.at(-1)} 00:00:00', 'Europe/Oslo') + INTERVAL 1 DAY`,
+             )}
+             GROUP BY day ORDER BY day`,
+          "detail-campaign-daily",
+        )
+      : [],
+    ongoing ? isShownOnFrontPage(ownerId, today) : null,
   ])
 
-  const campaigns = await campaignsPromise
-  const today = getOsloDateString()
   const eventDates = new Map(
     members.flatMap(member => {
       const date = (member.dates ?? []).filter(Boolean).sort()[0]
@@ -386,10 +460,21 @@ export async function buildEventDetail(
       today,
     ),
     exposure: buildExposure({
+      selectedCampaign,
+      shownNow,
+      window: window && {
+        ...window,
+        daily: fillDailySeries(
+          campaignDailyRows,
+          window.before.length + window.days.length,
+          window.days.at(-1) ?? today,
+        ),
+      },
       placements: placementRows,
       seen: seenRows,
       entryViews: entryViewRows,
       entryTickets: entryTicketRows,
+      reach: reachRows,
       campaigns,
       impressionDays: new Set(
         promotedDayRows.map(row => String(row.day).slice(0, 10)),
@@ -463,10 +548,14 @@ function surfaceFunnels(
 
 /** Front-page exposure and how page views moved on promoted days. */
 function buildExposure({
+  selectedCampaign,
+  shownNow,
+  window,
   placements,
   seen,
   entryViews,
   entryTickets,
+  reach,
   campaigns,
   impressionDays,
   daily,
@@ -474,6 +563,9 @@ function buildExposure({
   lastDate,
   today,
 }: {
+  selectedCampaign: number | null
+  shownNow: boolean | null
+  window: (CampaignWindow & { daily: DailyPoint[] }) | null
   placements: Array<{
     surface: string | null
     impressions: number
@@ -482,9 +574,10 @@ function buildExposure({
   seen: Array<{ surface: string | null; seen: number }>
   entryViews: Array<{ surface: string | null; views: number }>
   entryTickets: Array<{ surface: string | null; tickets: number }>
+  reach: Array<{ day: string; people: number; first_time: number }>
   campaigns: CampaignPeriod[] | null
   impressionDays: Set<string>
-  daily: Array<{ day: string; views: number }>
+  daily: DailyPoint[]
   firstSeen: string | null
   lastDate: string | null
   today: string
@@ -494,14 +587,18 @@ function buildExposure({
       .filter(row => row.surface === surface)
       .reduce((sum, row) => sum + toCount(row[pick]), 0)
   const lastLive = lastDate && lastDate < today ? lastDate : today
-  // Sanity history gives exact campaign days. Without it, campaign days are
+  // A selected campaign is compared with as many days just before it. Else
+  // Sanity history gives exact campaign days; without it, campaign days are
   // inferred from impressions, which are only tracked since a fixed date.
-  const promotedDays = campaigns
-    ? campaignDays(campaigns, today)
-    : impressionDays
-  const live = daily.filter(
+  const promotedDays = window
+    ? new Set(window.days)
+    : campaigns
+      ? campaignDays(campaigns, today)
+      : impressionDays
+  const series = window?.daily ?? daily
+  const live = series.filter(
     point =>
-      (campaigns || point.day >= PLACEMENT_TRACKING_START) &&
+      (window || campaigns || point.day >= PLACEMENT_TRACKING_START) &&
       (!firstSeen || point.day >= firstSeen) &&
       point.day <= lastLive,
   )
@@ -516,16 +613,25 @@ function buildExposure({
         ) / 10
       : null
   return {
+    selectedCampaign,
+    shownNow,
     highlightedImpressions: onSurface("home-promoted", "impressions"),
     highlightedClicks: onSurface("home-promoted", "clicks"),
     upcomingClicks: onSurface("home-upcoming", "clicks"),
     surfaces: surfaceFunnels(placements, seen, entryViews, entryTickets),
+    reach: reachByDay(
+      reach,
+      window?.days ?? daily.map(point => point.day),
+      promotedDays,
+    ),
     campaigns:
       campaigns?.map(period => ({
         from: toOsloDay(period.from),
         until: period.until ? toOsloDay(period.until) : null,
       })) ?? null,
-    promotedDays: daily.filter(point => promotedDays.has(point.day)).length,
+    promotedDays: window
+      ? window.days.length
+      : daily.filter(point => promotedDays.has(point.day)).length,
     viewsPerPromotedDay: average(promoted),
     viewsPerOtherDay: average(other),
     placements: placements
@@ -537,4 +643,47 @@ function buildExposure({
       .filter(row => row.impressions + row.clicks > 0)
       .sort((a, b) => b.impressions - a.impressions),
   }
+}
+
+type CampaignWindow = {
+  /** HogQL condition on the campaign's exact start and end. */
+  range: string
+  /** Oslo dates the campaign covered, up to today. */
+  days: string[]
+  /** As many Oslo dates just before the campaign, for comparison. */
+  before: string[]
+}
+
+const hogqlTimestamp = (iso: string) =>
+  `toDateTime(${hogqlString(new Date(iso).toISOString().slice(0, 19).replace("T", " "))}, 'UTC')`
+
+function campaignWindow(period: CampaignPeriod, today: string): CampaignWindow {
+  const first = toOsloDay(period.from)
+  const last = period.until ? toOsloDay(period.until) : today
+  const days = daysBetween(first, last < today ? last : today)
+  return {
+    range: `timestamp >= ${hogqlTimestamp(period.from)}
+      AND timestamp < ${period.until ? hogqlTimestamp(period.until) : "now()"}`,
+    days,
+    before: daysBetween(
+      periodStart(first, days.length + 1),
+      periodStart(first, 2),
+    ),
+  }
+}
+
+/** Whether the front page shows this event among its three fremhevet now. */
+async function isShownOnFrontPage(eventId: string, today: string) {
+  const options = { locale: "nb", from: today, to: null } as const
+  const [{ events }, parents] = await Promise.all([
+    fetchPublicEventSet(options),
+    fetchPublicPromotedParentEvents(options),
+  ])
+  // Mirrors the selection on the front page.
+  const candidates = [...parents, ...events]
+    .filter(event => isPromotableEventKind(event.eventKind))
+    .filter(event => event.isPromoted)
+  return selectHomepagePromotedEvents(candidates, today).some(
+    event => event._id === eventId,
+  )
 }

@@ -2,8 +2,9 @@ name: Import TicketCo events
 
 on:
   schedule:
-    # Sanity's last-success timestamp enforces 72 hours, including month changes.
-    - cron: "17 5 * * *"
+    # Both UTC equivalents; the Oslo guard rejects early runs and receipts dedupe.
+    - cron: "0 4,5 * * 3"
+    - cron: "0 16,17 * * 6"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -48,8 +49,10 @@ jobs:
           SLACK_NETTSIDE_WEBHOOK: ${{ secrets.SLACK_NETTSIDE_WEBHOOK }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+          SCHEDULED: ${{ github.event_name == 'schedule' }}
         run: |
           args=()
           if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
           if [[ "$FORCE" == "true" ]]; then args+=(--force); fi
+          if [[ "$SCHEDULED" == "true" ]]; then args+=(--scheduled); fi
           npm --workspace @samfunnet/web run events:import:ticketco -- "${args[@]}"

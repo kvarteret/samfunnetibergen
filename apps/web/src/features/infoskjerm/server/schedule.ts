@@ -56,6 +56,7 @@ export async function fetchScreenEvents(now: Date): Promise<{
       organizer: event.organizerGroup?.name || event.organizerText || null,
       category: event.eventType?.name || null,
       imageUrl: event.imageUrl,
+      imageFrame: event.imageFrame,
       cancelled: event.eventStatus === "cancelled",
       isFree: event.isFree,
     })),

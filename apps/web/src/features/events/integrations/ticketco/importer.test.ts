@@ -239,6 +239,45 @@ test("ignores calendar bookings whose titles are hidden", () => {
 })
 
 describe("scheduler recovery", () => {
+  test("scheduled slots dedupe by local date and bypass the manual 72-hour guard", async () => {
+    const fixture = fixtureClient()
+    const deps = dependencies()
+    deps.discover.mockResolvedValue([])
+    const patch = {
+      ifRevisionId: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      unset: vi.fn().mockReturnThis(),
+      commit: vi.fn(async () => ({ _rev: "lease" })),
+    }
+    const state = {
+      _id: "ticketco-import-state",
+      _rev: "state",
+      lastSuccessAt: new Date().toISOString(),
+    }
+    const client = {
+      ...fixture.client,
+      patch: vi.fn(() => patch),
+      getDocument: vi.fn(async () => state),
+    } as unknown as SanityClient
+    const now = new Date("2026-10-10T16:00:00Z")
+    expect(
+      (await runTicketCoImport(client, { scheduled: true, now }, deps)).status,
+    ).toBe("complete")
+    expect(patch.set).toHaveBeenCalledWith({ lastScheduledSlot: "2026-10-10" })
+    vi.mocked(client.getDocument).mockResolvedValue({
+      ...state,
+      _type: "ticketcoImportState",
+      _createdAt: "",
+      _updatedAt: "",
+      lastScheduledSlot: "2026-10-10",
+    })
+    deps.discover.mockClear()
+    expect(
+      (await runTicketCoImport(client, { scheduled: true, now }, deps)).status,
+    ).toBe("not-due")
+    expect(deps.discover).not.toHaveBeenCalled()
+  })
+
   test("does not run before due or while another runner holds the lease", async () => {
     const fixture = fixtureClient()
     const deps = dependencies()

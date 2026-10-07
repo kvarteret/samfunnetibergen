@@ -2,17 +2,24 @@
 
 import { Collapsible } from "@base-ui/react/collapsible"
 import { NavigationMenu } from "@base-ui/react/navigation-menu"
-import { Check, ChevronDown, ChevronLeft } from "lucide-react"
+import { Check, ChevronDown, ChevronLeft, PartyPopper } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useRef, useSyncExternalStore } from "react"
-
+import { useId, useRef, useSyncExternalStore } from "react"
+import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { SegmentedControl } from "@/components/ui/segmented-control"
+import { ToggleOption } from "@/components/ui/toggle-option"
 import {
   isPaperStyle,
   PAPER_STORAGE_KEY,
   type PaperStyle,
   paperOptions,
 } from "@/lib/paper-preference"
+import {
+  type PartyMascot,
+  updatePartySettings,
+  usePartySettings,
+} from "@/lib/party-mode"
 import { cn } from "@/lib/utils"
 import { ThemeChoices } from "./ThemePicker"
 
@@ -67,6 +74,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
           className="border-t-2 border-border/30 px-10 py-4"
           paper={paper}
         />
+        <PartyModeChoice className="border-t-2 border-border/30 px-10 py-4" />
       </Collapsible.Panel>
     </Collapsible.Root>
   )
@@ -91,12 +99,15 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
               strokeWidth={1.75}
             />
           </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="w-72 space-y-4 p-3">
-            <ThemeChoices />
-            <PaperChoices
-              className="border-t-2 border-border/30 pt-4"
-              paper={paper}
-            />
+          <NavigationMenu.Content className="grid w-[34rem] grid-cols-2 divide-x-2 divide-border/30">
+            <div className="space-y-4 p-4">
+              <ThemeChoices />
+              <PaperChoices
+                className="border-t-2 border-border/30 pt-4"
+                paper={paper}
+              />
+            </div>
+            <PartyModeChoice className="p-4" />
           </NavigationMenu.Content>
         </NavigationMenu.Item>
       </NavigationMenu.List>
@@ -148,7 +159,7 @@ function PaperChoices({
         {t("choosePaper")}
       </p>
       <RadioGroup<PaperStyle>
-        className="grid grid-cols-3 gap-2"
+        className="grid grid-cols-2 gap-2"
         name="paper"
         onValueChange={setPaperStyle}
         value={paper}
@@ -168,6 +179,64 @@ function PaperChoices({
           </RadioGroupItem>
         ))}
       </RadioGroup>
+    </fieldset>
+  )
+}
+
+function PartyModeChoice({ className }: { className?: string }) {
+  const t = useTranslations("Navigation")
+  const party = usePartySettings()
+  const controlLabelId = useId()
+
+  const controlOptions: { value: PartyMascot | "none"; label: string }[] = [
+    { value: "none", label: t("partyControlOff") },
+    { value: "pingvin", label: t("partyPenguin") },
+    { value: "pinnsvin", label: t("partyHedgehog") },
+  ]
+
+  return (
+    <fieldset className={cn("space-y-3", className)}>
+      <legend className="sr-only">{t("partyMode")}</legend>
+      <p className="font-heading uppercase tracking-widest">{t("partyMode")}</p>
+      <ToggleOption
+        checked={party.enabled}
+        icon={PartyPopper}
+        label={t("partyEnable")}
+        onChange={enabled => updatePartySettings({ enabled })}
+      />
+      {party.enabled ? (
+        <>
+          <label className="flex cursor-pointer items-center gap-3 px-1 py-1 font-heading">
+            <CheckboxSquare
+              checked={party.leash}
+              onChange={leash => updatePartySettings({ leash })}
+            />
+            {t("partyLeash")}
+          </label>
+          <div className="space-y-2 border-t-2 border-border/30 pt-3">
+            <p className="font-heading text-sm" id={controlLabelId}>
+              {t("partyControl")}
+            </p>
+            <SegmentedControl<PartyMascot | "none">
+              aria-labelledby={controlLabelId}
+              onValueChange={value =>
+                updatePartySettings({
+                  control: value === "none" ? null : value,
+                })
+              }
+              options={controlOptions}
+              value={party.control ?? "none"}
+            />
+            {party.control && (
+              <p className="text-foreground-muted text-sm">
+                {t("partyControlHint")}
+              </p>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="text-foreground-muted text-sm">{t("partyDescription")}</p>
+      )}
     </fieldset>
   )
 }

@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import type { ReactNode } from "react"
-
+import { selectionControlVariants } from "@/components/ui/selection-control"
 import {
   Table,
   TableBody,
@@ -32,12 +32,14 @@ import {
   UnavailableNotice,
 } from "@/features/event-statistics/components/StatisticsLayout"
 import {
+  campaignDuration,
   clickRate,
   clickThroughRate,
   type EventDetail,
   formatDateRange,
   formatDuration,
   isExpired,
+  PLACEMENT_TRACKING_START,
   parsePeriod,
 } from "@/features/event-statistics/domain/statistics"
 import { resolveStatisticsAccess } from "@/features/event-statistics/server/access"
@@ -67,7 +69,10 @@ const formatAverage = (value: number | null) =>
 
 type PageProps = {
   params: Promise<{ locale: string; event: string }>
-  searchParams: Promise<{ periode?: string | string[] }>
+  searchParams: Promise<{
+    periode?: string | string[]
+    kampanje?: string | string[]
+  }>
 }
 
 export default async function EventStatisticsPage({
@@ -77,7 +82,8 @@ export default async function EventStatisticsPage({
   const locale = await resolvePageLocale(params)
   activateRequestLocale(locale)
   const { event: slug } = await params
-  const period = parsePeriod((await searchParams).periode)
+  const query = await searchParams
+  const period = parsePeriod(query.periode)
   const access = await resolveStatisticsAccess()
 
   if (access.status !== "granted" || !isPostHogQueryConfigured()) {
@@ -90,7 +96,7 @@ export default async function EventStatisticsPage({
 
   let detail: EventDetail | null
   try {
-    detail = await buildEventDetail(access.viewer, slug, period)
+    detail = await buildEventDetail(access.viewer, slug, period, query.kampanje)
   } catch (error) {
     emitOperationalEvent("event_statistics.detail.failed", {
       failure_stage: "detail",
@@ -117,6 +123,18 @@ export default async function EventStatisticsPage({
   const noTicketLink = !event.hasTicketLink && totals.ticketClicks === 0
   const noFacebookLink = !event.hasFacebookLink && totals.facebookClicks === 0
   const today = getOsloDateString()
+  const campaignNote = exposure.campaigns?.length
+    ? " Skraverte felt er fremhevingskampanjer, merket med hvor lenge de varte."
+    : ""
+  const campaignHighlights = (exposure.campaigns ?? []).map(campaign => ({
+    from: campaign.from,
+    until: campaign.until ?? today,
+    label: campaignDuration(campaign, today),
+  }))
+  const selected =
+    exposure.selectedCampaign === null
+      ? null
+      : exposure.campaigns?.[exposure.selectedCampaign]
 
   return (
     <div className="flex w-full flex-col gap-16 pb-12 sm:gap-20">
@@ -241,13 +259,14 @@ export default async function EventStatisticsPage({
           <Section id="over-tid" title="Over tid">
             <div className="grid gap-6 xl:grid-cols-2">
               <Panel
-                caption="Visninger og unike besøkende på siden hver dag."
+                caption={`Visninger og unike besøkende på siden hver dag.${campaignNote}`}
                 title="Besøk per dag"
               >
                 <DailyTrendChart
                   key={`views-${period}`}
                   label={`Visninger og unike besøkende per dag de siste ${period} dagene`}
                   days={detail.daily.map(point => point.day)}
+                  highlights={campaignHighlights}
                   series={[
                     {
                       name: "Visninger",
@@ -261,13 +280,14 @@ export default async function EventStatisticsPage({
                 />
               </Panel>
               <Panel
-                caption="Klikk på billettknappen og Facebook-lenken hver dag."
+                caption={`Klikk på billettknappen og Facebook-lenken hver dag.${campaignNote}`}
                 title="Klikk per dag"
               >
                 <DailyTrendChart
                   key={`clicks-${period}`}
                   label={`Billett- og Facebook-klikk per dag de siste ${period} dagene`}
                   days={detail.dailyClicks.map(point => point.day)}
+                  highlights={campaignHighlights}
                   series={[
                     {
                       name: "Billettklikk",
@@ -306,22 +326,12 @@ export default async function EventStatisticsPage({
           <Section id="synlighet" title="Synlighet på nettsiden">
             <FremhevetDefinition />
             {exposure.campaigns && (
-              <p className="-mt-2 flex flex-wrap gap-x-4 gap-y-1 text-foreground-muted">
-                {exposure.campaigns.length === 0
-                  ? "Har ikke vært fremhevet på forsiden."
-                  : exposure.campaigns.map(campaign => (
-                      <span key={campaign.from}>
-                        Fremhevet{" "}
-                        <span className="font-mono text-[0.9rem] text-foreground">
-                          {formatDateRange(
-                            campaign.from,
-                            campaign.until ?? today,
-                          )}
-                        </span>
-                        {campaign.until === null && " · pågår"}
-                      </span>
-                    ))}
-              </p>
+              <CampaignNav
+                basePath={`/arrangementer/statistikk/${event.slug}`}
+                exposure={exposure}
+                period={period}
+                today={today}
+              />
             )}
             <KpiGrid>
               <Kpi
@@ -350,18 +360,24 @@ export default async function EventStatisticsPage({
               />
               <Kpi
                 caption={
-                  exposure.campaigns
-                    ? "Dager i perioden arrangementet var fremhevet."
-                    : "Dager arrangementet ble vist fremhevet."
+                  selected
+                    ? selected.until
+                      ? "Dager kampanjen varte."
+                      : "Dager kampanjen har vart så langt."
+                    : exposure.campaigns
+                      ? "Dager i perioden arrangementet var fremhevet."
+                      : "Dager arrangementet ble vist fremhevet."
                 }
                 label="Dager i fremhevingskampanje"
                 value={exposure.promotedDays}
               />
               <Kpi
                 caption={
-                  exposure.campaigns
-                    ? "Snitt per dag som fremhevet, mot andre dager den var ute."
-                    : "Snitt per dag som fremhevet, mot andre dager, fra 6. oktober."
+                  selected
+                    ? "Snitt per dag i kampanjen, mot like mange dager rett før."
+                    : exposure.campaigns
+                      ? "Snitt per dag som fremhevet, mot andre dager den var ute."
+                      : "Snitt per dag som fremhevet, mot andre dager, fra 6. oktober."
                 }
                 label="Visninger per dag"
                 text={`${formatAverage(exposure.viewsPerPromotedDay)} mot ${formatAverage(exposure.viewsPerOtherDay)}`}
@@ -387,9 +403,34 @@ export default async function EventStatisticsPage({
               </Panel>
             ) : (
               <EmptyState>
-                Arrangementet har ikke vært i noen fremhevingskampanje i
-                perioden. Dette måles fra 6. oktober 2026.
+                {selected?.until && selected.until < PLACEMENT_TRACKING_START
+                  ? "Kampanjen var før vi begynte å måle visninger på forsiden 6. oktober 2026."
+                  : selected
+                    ? "Arrangementet ble ikke vist fremhevet i denne kampanjen. Dette måles fra 6. oktober 2026."
+                    : "Arrangementet har ikke vært i noen fremhevingskampanje i perioden. Dette måles fra 6. oktober 2026."}
               </EmptyState>
+            )}
+            {exposure.reach.length > 0 && (
+              <Panel
+                caption="Personer som så arrangementet fremhevet hver dag, og hvor mange av dem som så det for første gang. Når nye personer faller mot null, når kampanjen stort sett de samme folkene igjen."
+                title="Nye personer nådd"
+              >
+                <DailyTrendChart
+                  key={`reach-${period}-${exposure.selectedCampaign}`}
+                  label="Personer som så arrangementet fremhevet per dag, og hvor mange som så det for første gang"
+                  days={exposure.reach.map(point => point.day)}
+                  series={[
+                    {
+                      name: "Første gang",
+                      values: exposure.reach.map(point => point.firstTime),
+                    },
+                    {
+                      name: "Alle som så det",
+                      values: exposure.reach.map(point => point.people),
+                    },
+                  ]}
+                />
+              </Panel>
             )}
           </Section>
 
@@ -509,6 +550,87 @@ export default async function EventStatisticsPage({
         </Section>
       )}
     </div>
+  )
+}
+
+/** Campaign chips; choosing one limits the visibility sections to it. */
+function CampaignNav({
+  basePath,
+  exposure,
+  period,
+  today,
+}: {
+  basePath: string
+  exposure: EventDetail["exposure"]
+  period: number
+  today: string
+}) {
+  const campaigns = exposure.campaigns ?? []
+  if (campaigns.length === 0) {
+    return (
+      <p className="-mt-2 text-foreground-muted">
+        Har ikke vært promotert på forsiden.
+      </p>
+    )
+  }
+  const chip = (selected: boolean) =>
+    cn(
+      selectionControlVariants({ selected, size: "default" }),
+      "gap-2 rounded-full px-5",
+    )
+  return (
+    <nav
+      aria-label="Vis synlighet for"
+      className="-mt-2 flex flex-wrap items-center gap-x-6 gap-y-3"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-foreground-muted">Vis</span>
+        <Link
+          aria-current={exposure.selectedCampaign === null ? "page" : undefined}
+          className={chip(exposure.selectedCampaign === null)}
+          href={`${basePath}?periode=${period}#synlighet`}
+          scroll={false}
+        >
+          Siste {period} dager
+        </Link>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-foreground-muted">
+          eller en fremhevingskampanje
+        </span>
+        {campaigns.map((campaign, index) => {
+          const isSelected = exposure.selectedCampaign === index
+          const status =
+            campaign.until !== null
+              ? null
+              : exposure.shownNow === false
+                ? "i kø"
+                : "vises nå"
+          return (
+            <Link
+              aria-current={isSelected ? "page" : undefined}
+              className={chip(isSelected)}
+              href={`${basePath}?periode=${period}&kampanje=${index + 1}#synlighet`}
+              key={campaign.from}
+              scroll={false}
+            >
+              <span>
+                {formatDateRange(campaign.from, campaign.until ?? today)}
+              </span>
+              <span className="font-sans text-sm font-normal text-foreground-muted">
+                {campaignDuration(campaign, today)}
+                {status && (
+                  <span className={cn(status === "vises nå" && accentText)}>
+                    {" "}
+                    · {status}
+                  </span>
+                )}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
   )
 }
 

@@ -12,12 +12,14 @@ import {
 
 import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
 import { ArrangementDocumentInput } from "../../components/ArrangementDocumentInput"
-import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 import {
   localizedArrayField,
   validateLocalizedArray,
 } from "../shared/localizedFields"
+
+// Adds AI Assist's "Translate fields" action next to each Norwegian/English pair.
+const TRANSLATE_ACTION = { aiAssist: { translateAction: true } }
 
 const EVENT_KIND_OPTIONS = [
   { title: "Enkeltarrangement", value: "single" },
@@ -60,12 +62,9 @@ export const arrangement = defineType({
       default: true,
     },
     { name: "core", title: "Grunninfo" },
-    { name: "structure", title: "Struktur" },
-    { name: "dates", title: "Datoer" },
-    { name: "location", title: "Sted" },
-    { name: "pricing", title: "Pris" },
-    { name: "organizer", title: "Arrangør" },
-    { name: "links", title: "Lenker" },
+    { name: "structure", title: "Struktur", hidden: true },
+    { name: "schedule", title: "Tid og sted" },
+    { name: "tickets", title: "Pris og billetter" },
     { name: "media", title: "Bilde" },
     { name: "admin", title: "Administrasjon" },
   ],
@@ -119,20 +118,13 @@ export const arrangement = defineType({
           return true
         }),
     }),
-    defineField({
-      name: "festivalDayShortcut",
-      title: "Festivaldager",
-      type: "string",
-      group: "core",
-      hidden: ({ document }) => eventKindOf(document) !== "festivalParent",
-      components: { field: FestivalDayShortcutInput },
-    }),
     {
       ...localizedArrayField(
         "localizedTitle",
         "Tittel",
         "internationalizedArrayString",
         {
+          options: TRANSLATE_ACTION,
           description:
             "Kan stå tom på serie- og festivaldager. Da brukes tittelen fra serien eller festivalen.",
           group: "core",
@@ -150,47 +142,12 @@ export const arrangement = defineType({
         }),
     },
     defineField({
-      name: "slug",
-      title: "Nettadresse",
-      type: "slug",
-      group: "core",
-      options: {
-        source: (document: Record<string, unknown>) => {
-          const values = document.localizedTitle as
-            | Array<{ language?: string; value?: string }>
-            | undefined
-          return (
-            values?.find(item => item.language === "nb")?.value ??
-            (document.title as string | undefined) ??
-            ""
-          )
-        },
-      },
-      validation: rule => rule.required(),
-    }),
-    defineField({
       name: "eventType",
       title: "Arrangementtype",
       type: "reference",
       to: [{ type: "eventType" }],
       group: "core",
-    }),
-    defineField({
-      name: "isInternalEvent",
-      title: "Internarrangement",
-      description: "Arrangementet er kun tilgjengelig for frivillige.",
-      type: "boolean",
-      group: "core",
-      initialValue: false,
-    }),
-    defineField({
-      name: "isPromoted",
-      title: "Promotert på forsiden",
-      description:
-        "Vises blant de tre fremhevede arrangementene øverst på forsiden.",
-      type: "boolean",
-      group: "core",
-      initialValue: false,
+      options: { disableNew: true },
     }),
     defineField({
       name: "promotedPlacement",
@@ -216,7 +173,7 @@ export const arrangement = defineType({
         "localizedDescription",
         "Beskrivelse",
         "internationalizedArrayPortableTextContent",
-        { group: "core" },
+        { options: TRANSLATE_ACTION, group: "core" },
       ),
       validation: rule =>
         rule.custom((value, context) => {
@@ -233,9 +190,9 @@ export const arrangement = defineType({
       name: "dates",
       title: "Datoer",
       description:
-        "For en gjentakende serie er dette seriens første dag. Datoen forankrer mønsteret, og klokkeslettene kopieres til nye seriedager. Programperioden velges når dagene opprettes.",
+        "For serier: den første dagen. Tidene brukes på alle dagene.",
       type: "array",
-      group: "dates",
+      group: "schedule",
       hidden: ({ document }) => eventKindOf(document) === "festivalParent",
       of: [defineArrayMember({ type: "arrangementDate" })],
       components: { input: ArrangementDatesInput },
@@ -257,17 +214,16 @@ export const arrangement = defineType({
       name: "isRecurring",
       title: "Gjentakelse",
       type: "boolean",
-      group: "dates",
+      group: "schedule",
       initialValue: false,
-      hidden: ({ document }) =>
-        !["single", "seriesParent"].includes(eventKindOf(document)),
+      hidden: ({ document }) => eventKindOf(document) !== "seriesParent",
       components: { input: RecurringInput },
     }),
     defineField({
       name: "rrule",
       title: "Lagret gjentakelse",
       type: "string",
-      group: "dates",
+      group: "schedule",
       hidden: true,
     }),
 
@@ -277,7 +233,19 @@ export const arrangement = defineType({
       title: "Bilde",
       type: "image",
       group: "media",
-      options: { hotspot: true },
+      options: {
+        hotspot: true,
+        // AI Assist writes this when the image changes (English only).
+        aiAssist: { imageDescriptionField: "alt" },
+      },
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alternativ tekst",
+          description: "Beskriver bildet for skjermlesere. Lages automatisk.",
+          type: "string",
+        }),
+      ],
       hidden: ({ document }) =>
         eventKindOf(document) === "festivalSession" &&
         document?.useFestivalImage !== false,
@@ -308,7 +276,7 @@ export const arrangement = defineType({
       "localizedImageCaption",
       "Bildetekst",
       "internationalizedArrayString",
-      { group: "media" },
+      { options: TRANSLATE_ACTION, group: "media" },
     ),
 
     // ─── Location ──────────────────────────────────────────────
@@ -318,15 +286,14 @@ export const arrangement = defineType({
       description: "Velg et rom fra listen, eller bruk fritekst nedenfor",
       type: "reference",
       to: [{ type: "room" }],
-      group: "location",
+      group: "schedule",
+      options: { disableNew: true },
     }),
     localizedArrayField(
       "localizedRoomText",
       "Sted (fritekst)",
       "internationalizedArrayString",
-      {
-        group: "location",
-      },
+      { options: TRANSLATE_ACTION, group: "schedule" },
     ),
 
     // ─── Organizer ─────────────────────────────────────────────
@@ -336,20 +303,46 @@ export const arrangement = defineType({
       description: "Velg en gruppe fra lista, om arrangøren er registrert der",
       type: "reference",
       to: [{ type: "studentGroup" }],
-      group: "organizer",
+      group: "core",
+      options: { disableNew: true },
+    }),
+    defineField({
+      name: "coOrganizerGroups",
+      title: "Medarrangører",
+      type: "array",
+      group: "core",
+      of: [
+        defineArrayMember({
+          type: "reference",
+          to: [{ type: "studentGroup" }],
+          options: { disableNew: true },
+        }),
+      ],
+      validation: rule =>
+        rule.unique().custom((value, context) => {
+          const main = (
+            context.document?.organizerGroup as { _ref?: string } | undefined
+          )?._ref
+          const refs = (value ?? []) as Array<{ _ref?: string }>
+          return main && refs.some(ref => ref._ref === main)
+            ? "Hovedarrangøren skal ikke stå som medarrangør"
+            : true
+        }),
     }),
     localizedArrayField(
       "localizedOrganizerText",
       "Arrangør (fritekst)",
       "internationalizedArrayString",
-      { group: "organizer" },
+      { options: TRANSLATE_ACTION, group: "core" },
     ),
 
     defineField({
       name: "isSoldOut",
       title: "Utsolgt",
       type: "boolean",
-      group: "pricing",
+      group: "tickets",
+      // Set from the document actions menu.
+      hidden: true,
       initialValue: false,
     }),
 
@@ -358,14 +351,14 @@ export const arrangement = defineType({
       name: "isFree",
       title: "Gratis inngang",
       type: "boolean",
-      group: "pricing",
+      group: "tickets",
       initialValue: false,
     }),
     defineField({
       name: "priceOrdinar",
       title: "Pris — Ordinær (kr)",
       type: "number",
-      group: "pricing",
+      group: "tickets",
       hidden: ({ document }) => Boolean(document?.isFree),
       validation: rule => rule.min(0),
     }),
@@ -373,7 +366,7 @@ export const arrangement = defineType({
       name: "priceStudent",
       title: "Pris — Student (kr)",
       type: "number",
-      group: "pricing",
+      group: "tickets",
       hidden: ({ document }) => Boolean(document?.isFree),
       validation: rule => rule.min(0),
     }),
@@ -381,7 +374,7 @@ export const arrangement = defineType({
       name: "priceMedlem",
       title: "Pris — Medlem (kr)",
       type: "number",
-      group: "pricing",
+      group: "tickets",
       hidden: ({ document }) => Boolean(document?.isFree),
       validation: rule => rule.min(0),
     }),
@@ -391,17 +384,25 @@ export const arrangement = defineType({
       name: "ticketUrl",
       title: "Billettlenke",
       type: "url",
-      group: "links",
+      group: "tickets",
       validation: rule => rule.uri({ scheme: ["http", "https"] }),
     }),
     defineField({
       name: "facebookUrl",
       title: "Facebook-arrangement",
       type: "url",
-      group: "links",
+      group: "tickets",
       validation: rule => rule.uri({ scheme: ["http", "https"] }),
     }),
 
+    defineField({
+      name: "isInternalEvent",
+      title: "Internarrangement",
+      description: "Arrangementet er kun tilgjengelig for frivillige.",
+      type: "boolean",
+      group: "core",
+      initialValue: false,
+    }),
     // ─── Admin / approval ──────────────────────────────────────
     defineField({
       name: "eventStatus",
@@ -421,6 +422,34 @@ export const arrangement = defineType({
       initialValue: "pending",
       hidden: true,
       validation: rule => rule.required(),
+    }),
+    defineField({
+      name: "slug",
+      title: "Nettadresse",
+      type: "slug",
+      group: "admin",
+      options: {
+        source: (document: Record<string, unknown>) => {
+          const values = document.localizedTitle as
+            | Array<{ language?: string; value?: string }>
+            | undefined
+          return (
+            values?.find(item => item.language === "nb")?.value ??
+            (document.title as string | undefined) ??
+            ""
+          )
+        },
+      },
+      validation: rule => rule.required(),
+    }),
+    defineField({
+      name: "isPromoted",
+      title: "Promotert på forsiden",
+      // Managed only from Arrangementer → Fremhevede, which also sets order and queue.
+      type: "boolean",
+      group: "admin",
+      hidden: true,
+      initialValue: false,
     }),
     defineField({
       name: "submittedBy",

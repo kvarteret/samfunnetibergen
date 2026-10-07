@@ -59,19 +59,16 @@ describe("editorial arrangement schema", () => {
     expect(field?.initialValue).toBe(true)
   })
 
-  it("shows the festival-day shortcut only on festival parents", () => {
+  it("shows recurrence settings only on series", () => {
     const field = inspectableFields(arrangement).find(
-      field => field.name === "festivalDayShortcut",
+      field => field.name === "isRecurring",
     )
-    expect(field?.title).toBe("Festivaldager")
-    expect(
+    const hidden = (eventKind: string) =>
       typeof field?.hidden === "function" &&
-        field.hidden({ document: { eventKind: "festivalParent" } } as never),
-    ).toBe(false)
-    expect(
-      typeof field?.hidden === "function" &&
-        field.hidden({ document: { eventKind: "single" } } as never),
-    ).toBe(true)
+      field.hidden({ document: { eventKind } } as never)
+    expect(hidden("seriesParent")).toBe(false)
+    expect(hidden("single")).toBe(true)
+    expect(hidden("festivalParent")).toBe(true)
   })
 
   it("stores the editorial homepage order in the standard rank field", () => {
@@ -79,15 +76,11 @@ describe("editorial arrangement schema", () => {
     expect(arrangement.orderings?.[0]?.name).toBe("ordered")
   })
 
-  it("explains the seed date and program-period generation", () => {
+  it("explains that a series has one first date", () => {
     const dates = inspectableFields(arrangement).find(
       field => field.name === "dates",
     )
-    expect(dates?.description).toContain("seriens første dag")
-    expect(dates?.description).toContain("Datoen forankrer mønsteret")
-    expect(dates?.description).toContain(
-      "Programperioden velges når dagene opprettes",
-    )
+    expect(dates?.description).toContain("første dagen")
   })
 
   it("keeps only canonical localized taxonomy names", () => {

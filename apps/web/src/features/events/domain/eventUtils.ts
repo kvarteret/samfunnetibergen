@@ -30,6 +30,15 @@ export type FilterableEvent = {
     taxonomyGroup?: { _id: string; name: string } | null
   } | null
   organizerGroup?: { _id: string; name: string } | null
+  coOrganizerGroups?: Array<{ _id: string; name: string }> | null
+}
+
+/** The main organizer followed by co-organizers. */
+export function organizerGroupsOf(event: FilterableEvent) {
+  return [
+    ...(event.organizerGroup ? [event.organizerGroup] : []),
+    ...(event.coOrganizerGroups ?? []),
+  ]
 }
 
 export type EventFilters = {
@@ -59,11 +68,8 @@ export function buildTaxonomyFromEvents(
         taxonomyGroupName: e.eventType.taxonomyGroup?.name ?? "Annet",
       })
     }
-    if (e.organizerGroup) {
-      organizerGroupsMap.set(e.organizerGroup._id, {
-        _id: e.organizerGroup._id,
-        name: e.organizerGroup.name,
-      })
+    for (const group of organizerGroupsOf(e)) {
+      organizerGroupsMap.set(group._id, { _id: group._id, name: group.name })
     }
   }
 
@@ -93,7 +99,7 @@ export function filterEvents<T extends FilterableEvent>(
     }
     if (
       organizerGroupIds.size > 0 &&
-      !organizerGroupIds.has(e.organizerGroup?._id ?? "")
+      !organizerGroupsOf(e).some(group => organizerGroupIds.has(group._id))
     ) {
       return false
     }
