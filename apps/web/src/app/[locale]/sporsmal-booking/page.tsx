@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { BookingNotice } from "@/features/booking/components/BookingNotice"
+import { BookingPromotionLink } from "@/features/booking/components/BookingPromotionLink"
 import { BookingQuestions } from "@/features/booking/components/BookingQuestions"
 import { Link } from "@/i18n/navigation"
 import {
@@ -11,6 +12,8 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { getBookingContinuation } from "@/lib/booking/continuation"
+import { createBookingPromotionLink } from "@/lib/booking/promotion-link"
 import { buildPageMetadata } from "@/lib/page-metadata"
 import { fetchPageBySlug } from "@/lib/sanity/fetch"
 
@@ -48,6 +51,14 @@ export default async function BookingSubmittedPage({
   const page = await fetchPageBySlug("sporsmal-booking", locale)
   if (!page) notFound()
   const { submitted } = await searchParams
+  const receipt = submitted === "1" ? await getBookingContinuation() : null
+  const promotionLink = receipt
+    ? createBookingPromotionLink(
+        receipt.receiptId,
+        receipt.submissionId,
+        locale,
+      )
+    : null
   return (
     <article className="w-full space-y-8">
       <Breadcrumbs
@@ -62,10 +73,12 @@ export default async function BookingSubmittedPage({
             <Button
               render={
                 <Link
+                  prefetch={false}
                   href={
-                    submitted === "1"
+                    promotionLink ??
+                    (submitted === "1"
                       ? "/arrangementer/ny?fromBooking=1"
-                      : "/arrangementer/ny"
+                      : "/arrangementer/ny")
                   }
                 />
               }
@@ -74,6 +87,7 @@ export default async function BookingSubmittedPage({
               {t("form.promoteEvent")}
               <ArrowRight aria-hidden />
             </Button>
+            {promotionLink && <BookingPromotionLink url={promotionLink} />}
           </section>
         </>
       )}

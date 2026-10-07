@@ -350,6 +350,9 @@
       "validationSummaryTitle": "There is a problem",
       "unexpectedError": "Something went wrong. Please try again later.",
       "promotionReminder": "Remember to promote your event! Add it to our event calendar so more people can discover it.",
+      "copyPromotionLink": "Copy promotion link",
+      "promotionLinkCopied": "Promotion link copied",
+      "promotionLinkHint": "This promotion link prefills the form with your booking details and works on another device. The link is valid for 90 days.",
       "promoteEvent": "Promote your event"
     },
     "validation": {

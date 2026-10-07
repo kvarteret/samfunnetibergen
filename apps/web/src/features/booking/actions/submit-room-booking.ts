@@ -12,6 +12,7 @@ import {
 } from "@/features/booking/domain/bookingFormSchema"
 import { buildBookingPayload } from "@/features/booking/domain/formState"
 import { setBookingContinuation } from "@/lib/booking/continuation"
+import { createBookingPromotionLink } from "@/lib/booking/promotion-link"
 import {
   captureBookingFailureEvent,
   classifyBookingFailureStage,
@@ -334,9 +335,20 @@ async function submitRoomBookingWithinSpan(
       crescat_payload: body,
     })
 
+    const promotionLink = createBookingPromotionLink(
+      receiptId,
+      bookingSubmissionId,
+    )
+    const crescatBody = promotionLink
+      ? {
+          ...body,
+          description:
+            `${body.description || ""}\n\nPromoteringslenke: ${promotionLink}`.trim(),
+        }
+      : body
     const result = await postEventRequest(
       slugForBookerType(parsed.data.bookerType),
-      body,
+      crescatBody,
     )
 
     if (result.ok) {

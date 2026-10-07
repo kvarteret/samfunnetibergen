@@ -415,3 +415,49 @@ test("waits for the storage receipt before Crescat and keeps capture on Crescat 
     JSON.parse(fetchMock.mock.calls[1][1].body),
   )
 })
+
+test("includes the personalized prefill link in the Crescat POST after durable storage", async () => {
+  vi.stubEnv(
+    "VOLUNTEER_PROSPECT_HMAC_SECRET",
+    "0123456789abcdef0123456789abcdef",
+  )
+  vi.stubEnv("SITE_URL", "https://www.samfunnetibergen.no")
+  const receiptId = "123e4567-e89b-42d3-a456-426614174001"
+  vi.mocked(storeBookingRequest).mockResolvedValueOnce(receiptId)
+  fetchMock
+    .mockResolvedValueOnce(
+      new Response("", {
+        status: 200,
+        headers: [
+          ["set-cookie", "XSRF-TOKEN=abc; Path=/"],
+          ["set-cookie", "crescat_session=xyz; Path=/"],
+        ],
+      }),
+    )
+    .mockResolvedValueOnce(new Response("", { status: 201 }))
+  try {
+    const result = await submitRoomBooking(standardPayload())
+    expect(result.ok).toBe(true)
+    const posted = JSON.parse(fetchMock.mock.calls[1][1].body)
+    const snapshot = vi.mocked(storeBookingRequest).mock.calls[0][0]
+    expect(posted.description).toContain(
+      "Promoteringslenke: https://www.samfunnetibergen.no/api/booking/promotion?",
+    )
+    expect(snapshot.crescat_payload.description).not.toContain(
+      "Promoteringslenke:",
+    )
+    const link = new URL(posted.description.split("Promoteringslenke: ")[1])
+    const { verifyPromotionLink } = await import("@/lib/booking/promotion-link")
+    expect(
+      verifyPromotionLink(
+        link.searchParams.get("token") ?? "",
+        process.env.VOLUNTEER_PROSPECT_HMAC_SECRET ?? "",
+      ),
+    ).toMatchObject({
+      receiptId,
+      submissionId: snapshot.submission_id,
+    })
+  } finally {
+    vi.unstubAllEnvs()
+  }
+})
