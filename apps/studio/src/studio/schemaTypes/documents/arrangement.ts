@@ -12,7 +12,6 @@ import {
 
 import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
 import { ArrangementDocumentInput } from "../../components/ArrangementDocumentInput"
-import { FestivalDayShortcutInput } from "../../components/FestivalDayShortcutInput"
 import { RecurringInput } from "../../components/RecurringInput"
 import {
   localizedArrayField,
@@ -119,14 +118,6 @@ export const arrangement = defineType({
           return true
         }),
     }),
-    defineField({
-      name: "festivalDayShortcut",
-      title: "Festivaldager",
-      type: "string",
-      group: "core",
-      hidden: ({ document }) => eventKindOf(document) !== "festivalParent",
-      components: { field: FestivalDayShortcutInput },
-    }),
     {
       ...localizedArrayField(
         "localizedTitle",
@@ -199,7 +190,7 @@ export const arrangement = defineType({
       name: "dates",
       title: "Datoer",
       description:
-        "For en gjentakende serie er dette seriens første dag. Datoen forankrer mønsteret, og klokkeslettene kopieres til nye seriedager. Programperioden velges når dagene opprettes.",
+        "For serier: den første dagen. Tidene brukes på alle dagene.",
       type: "array",
       group: "schedule",
       hidden: ({ document }) => eventKindOf(document) === "festivalParent",
@@ -225,8 +216,7 @@ export const arrangement = defineType({
       type: "boolean",
       group: "schedule",
       initialValue: false,
-      hidden: ({ document }) =>
-        !["single", "seriesParent"].includes(eventKindOf(document)),
+      hidden: ({ document }) => eventKindOf(document) !== "seriesParent",
       components: { input: RecurringInput },
     }),
     defineField({
@@ -316,6 +306,8 @@ export const arrangement = defineType({
       title: "Utsolgt",
       type: "boolean",
       group: "tickets",
+      // Set from the document actions menu.
+      hidden: true,
       initialValue: false,
     }),
 

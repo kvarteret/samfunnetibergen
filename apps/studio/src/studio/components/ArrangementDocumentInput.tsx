@@ -12,6 +12,7 @@ import {
   getEventStatusTransitions,
 } from "../actions/approvalStatus"
 import { ArrangementReviewPreview } from "./ArrangementReviewPreview"
+import { ArrangementStructurePanel } from "./ArrangementStructurePanel"
 import {
   ARRANGEMENT_LIST_STATUS_LABELS,
   type ArrangementBrowserItem,
@@ -48,6 +49,7 @@ type ArrangementDocument = SanityDocument & {
   eventStatus?: string | null
   dates?: ArrangementBrowserItem["dates"]
   parentEvent?: { _ref?: string | null } | null
+  rrule?: string | null
 }
 
 type RelatedStatusData = {
@@ -231,6 +233,9 @@ export function ArrangementDocumentInput(props: ObjectInputProps) {
     <>
       <ArrangementActionStyles />
       <Stack gap={4}>
+        {document?._id ? (
+          <ArrangementStructurePanel document={document} />
+        ) : null}
         {document ? (
           <ArrangementReviewPreview
             document={document}

@@ -9,6 +9,7 @@ import {
   arrangementRequestActions,
 } from "./approvalActions"
 import { CreateFestivalDayAction } from "./createFestivalDayAction"
+import { SoldOutAction } from "./soldOutAction"
 
 function approvedAction(
   action: DocumentActionComponent,
@@ -42,6 +43,7 @@ export function arrangementDocumentActions(
         ]
       : []),
     ...arrangementEventStatusActions,
+    SoldOutAction,
     CreateFestivalDayAction,
     ...(schedule
       ? [

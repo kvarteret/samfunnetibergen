@@ -500,7 +500,6 @@ export type Arrangement = {
     | "festivalParent"
     | "festivalSession"
   parentEvent?: ArrangementReference
-  festivalDayShortcut?: string
   localizedTitle?: InternationalizedArrayString
   eventType?: EventTypeReference
   promotedPlacement?: "top" | "pool"
