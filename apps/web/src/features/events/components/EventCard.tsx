@@ -1,6 +1,6 @@
 import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { cva, type VariantProps } from "class-variance-authority"
-import { CalendarDays, MapPin, Tent } from "lucide-react"
+import { CalendarDays, MapPin, Repeat, Tent } from "lucide-react"
 import Image from "next/image"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -43,6 +43,8 @@ export type EventSummary = {
   recurringLabel?: string | null
   /** Precomputed server-side label for the primary date (e.g. "I dag, 21:00–02:00"). */
   primaryDateLabel?: string | null
+  /** Precomputed server-side count for parents, e.g. "34 arrangementer". */
+  programmeLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
   isSoldOut?: boolean
@@ -215,13 +217,59 @@ export function EventCard({
             timeLabel={timeLabel}
           />
 
-          {allDates.length > 1 && (
-            <DateBadges dates={allDates} primaryIndex={0} size={cardSize} />
-          )}
+          <EventCardBadges
+            allDates={allDates}
+            cardSize={cardSize}
+            event={event}
+          />
         </CardContent>
       </Card>
     </Link>
   )
+}
+
+/**
+ * Parents summarise their programme instead of listing child dates, and series
+ * state their rhythm: every date of a weekly series is the same by definition.
+ */
+function EventCardBadges({
+  allDates,
+  cardSize,
+  event,
+}: {
+  allDates: EventDateEntry[]
+  cardSize: EventCardSize
+  event: EventSummary
+}) {
+  const isSeries =
+    event.eventKind === "seriesParent" || event.eventKind === "seriesInstance"
+  const summary =
+    event.eventKind === "festivalParent"
+      ? event.programmeLabel
+      : isSeries
+        ? event.recurringLabel
+        : null
+
+  if (summary) {
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-base bg-accent font-heading text-accent-foreground",
+            cardSize === "small"
+              ? "px-2.5 py-1 text-sm"
+              : "px-2 py-0.5 text-sm",
+          )}
+        >
+          {isSeries && <Repeat className="size-3.5" aria-hidden />}
+          {summary}
+        </span>
+      </div>
+    )
+  }
+  if (event.eventKind === "festivalParent" || allDates.length <= 1) return null
+
+  return <DateBadges dates={allDates} primaryIndex={0} size={cardSize} />
 }
 
 function EventCardMedia({
