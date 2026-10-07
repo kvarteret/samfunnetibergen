@@ -1,6 +1,7 @@
 "use client"
 
 import { ExternalLink } from "lucide-react"
+import { ctaClassName } from "@/components/ui/button"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -52,7 +53,10 @@ function DesktopNavItem({
           className={cn(
             active && activeClass,
             item.highlight &&
-              "rounded-base border-primary bg-primary px-4 text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+              cn(
+                ctaClassName,
+                "border-transparent hover:border-transparent hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+              ),
           )}
           render={<NavItemLink active={active} item={item} />}
           variant="top"

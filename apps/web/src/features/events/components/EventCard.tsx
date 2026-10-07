@@ -372,7 +372,7 @@ function EventCardHeader({
             <span>{eventTypeLabel}</span>
           ))}
         {isEditorial && timeLabel && (
-          <span className="font-heading">{timeLabel}</span>
+          <span className="font-heading tabular-nums">{timeLabel}</span>
         )}
         {statusLabel && <Tag variant="destructive">{statusLabel}</Tag>}
       </div>
@@ -402,8 +402,9 @@ function editorialHeadingClass({
   cardVariant: EventCardVariant
   isEditorial: boolean
 }) {
-  if (isEditorial) return cardVariant === "slider" ? "text-xl" : "text-2xl"
-  return cardSize === "small" ? "text-lg" : "text-2xl"
+  if (isEditorial)
+    return cardVariant === "slider" ? "text-xl" : "text-card-title"
+  return cardSize === "small" ? "text-lg" : "text-card-title"
 }
 
 function EventCardDetails({
@@ -437,7 +438,7 @@ function EventCardDetails({
       {timeLabel && (
         <p className="flex gap-2">
           <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>{timeLabel}</span>
+          <span className="tabular-nums">{timeLabel}</span>
         </p>
       )}
       {roomTitle && (

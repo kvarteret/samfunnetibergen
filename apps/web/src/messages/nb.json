@@ -380,8 +380,6 @@
     "tickets": "Kjøp billetter",
     "soldOut": "Utsolgt",
     "facebook": "Gå til Facebook-event",
-    "addToGoogleCalendar": "Legg til i Google Kalender",
-    "addToCalendar": "Last ned .ics-fil",
     "cancelledNotice": "Dette arrangementet er kansellert.",
     "partOf": "Del av",
     "childEvents": "Program",
@@ -390,7 +388,14 @@
     "festivalTimeUnknown": "Tid kommer",
     "festivalEmpty": "Programmet publiseres snart.",
     "recurrence": "Gjentakelse",
-    "upcomingDates": "Kommende datoer"
+    "upcomingDates": "Kommende datoer",
+    "priceFree": "Gratis",
+    "priceOrdinary": "Ord. {price} kr",
+    "priceStudent": "Stud. {price} kr",
+    "priceMember": "Medl. {price} kr",
+    "ticketsFrom": "Kjøp billett · fra {price} kr",
+    "opensInNewTab": "åpner i ny fane",
+    "floor": "{floor}. etasje"
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",

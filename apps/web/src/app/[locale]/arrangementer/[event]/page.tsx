@@ -6,6 +6,7 @@ import { Fragment, type ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { Button } from "@/components/ui/button"
 import { Tag } from "@/components/ui/tag"
 import { EventInterest } from "@/features/event-interest/components/EventInterest"
 import {
@@ -35,6 +36,7 @@ import {
   toPlainTextContent,
 } from "@/lib/structured-data"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
+import { StickyTicketBar } from "./StickyTicketBar"
 
 type EventDetail = PublicEvent
 type EventDetailDate = EventDetail["dates"][number]
@@ -97,6 +99,14 @@ export default async function EventPage({ params }: EventPageProps) {
         />
         <Breadcrumbs
           current={eventData.title}
+          parent={
+            eventData.eventKind === "festivalSession" && eventData.parentEvent
+              ? {
+                  label: eventData.parentEvent.title,
+                  href: `/arrangementer/${eventData.parentEvent.slug}`,
+                }
+              : undefined
+          }
           path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
@@ -184,7 +194,7 @@ function FestivalPage({
         days={days}
         locale={locale}
         labels={labels}
-        price={formatPrices(event)}
+        price={formatPrices(event, t)}
       >
         {event.description.length > 0 && (
           <PortableTextContent value={event.description} nofollowLinks />
@@ -310,9 +320,7 @@ function EventDetailHero({
           {event.eventType?.name && (
             <Tag variant="accent">{event.eventType.name}</Tag>
           )}
-          <h1 className="wrap-break-word text-4xl leading-none sm:text-5xl">
-            {event.title}
-          </h1>
+          <h1 className="text-page-title">{event.title}</h1>
           {festival && (
             <p className="text-foreground-muted">
               {t("partOf")}{" "}
@@ -347,19 +355,29 @@ function EventDetailHero({
           )}
           <EventPlaceFact event={event} t={t} />
           <EventFact icon={Ticket} label={t("price")}>
-            {event.isSoldOut ? t("soldOut") : (formatPrices(event) ?? "-")}
+            {event.isSoldOut ? t("soldOut") : (formatPrices(event, t) ?? "-")}
           </EventFact>
         </dl>
 
-        {event.ticketUrl && !event.isSoldOut && (
-          <EventTicketButton
-            ticketUrl={event.ticketUrl}
-            label={t("tickets")}
-            eventId={event._id}
-            eventTitle={event.title}
-            eventSlug={eventSlug}
-          />
-        )}
+        <div id="event-ticket" className="w-fit empty:hidden">
+          <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+        </div>
+        {event.ticketUrl &&
+          event.eventStatus === "scheduled" &&
+          !event.isSoldOut &&
+          nextDate && (
+            <StickyTicketBar
+              targetId="event-ticket"
+              summary={[
+                formatShortDate(nextDate.startDate, locale),
+                nextDate.startTime,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            >
+              <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+            </StickyTicketBar>
+          )}
       </div>
 
       <div className="order-first overflow-hidden rounded-base bg-muted lg:order-none">
@@ -418,6 +436,7 @@ function EventPlaceFact({ event, t }: { event: EventDetail; t: Translator }) {
       {roomSlug ? (
         <EventDetailRoomLink
           event={event}
+          floorLabel={floor != null ? t("floor", { floor }) : null}
           roomSlug={roomSlug}
           roomTitle={roomTitle}
         />
@@ -425,7 +444,10 @@ function EventPlaceFact({ event, t }: { event: EventDetail; t: Translator }) {
         roomTitle
       )}
       {floor != null && (
-        <span className="text-foreground-muted"> · {floor}. etasje</span>
+        <span className="text-foreground-muted">
+          {" "}
+          · {t("floor", { floor })}
+        </span>
       )}
     </EventFact>
   )
@@ -449,7 +471,7 @@ function EventDetailBody({
   return (
     <section className="grid gap-8 lg:grid-cols-[minmax(19rem,2fr)_minmax(0,3fr)]">
       <div className="space-y-6 lg:order-last">
-        <div className="max-w-prose space-y-5 text-lg leading-8 text-foreground-muted">
+        <div className="max-w-prose space-y-5 text-lg leading-8 text-foreground">
           {event.description?.length ? (
             <PortableTextContent value={event.description} nofollowLinks />
           ) : (
@@ -460,7 +482,7 @@ function EventDetailBody({
       <aside className="space-y-6">
         {hasOrganizer && (
           <div className="space-y-2">
-            <p className="font-heading text-sm uppercase tracking-widest text-foreground-muted">
+            <p className="font-heading text-sm text-foreground-muted">
               {t("organizer")}
             </p>
             <p className="text-lg leading-6">
@@ -501,7 +523,7 @@ function EventDateList({
 }) {
   return (
     <section aria-labelledby="event-dates-heading" className="space-y-4">
-      <h2 id="event-dates-heading" className="text-2xl sm:text-3xl">
+      <h2 id="event-dates-heading" className="text-section-title">
         {t("upcomingDates")}
       </h2>
       <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -558,10 +580,12 @@ function EventDetailRoomLink({
   event,
   roomSlug,
   roomTitle,
+  floorLabel,
 }: {
   event: EventDetail
   roomSlug: string
   roomTitle?: string | null
+  floorLabel: string | null
 }) {
   const roomFloor = event.room?.floor
   const roomImageUrl = event.room?.imageUrl
@@ -592,7 +616,7 @@ function EventDetailRoomLink({
           )}
           {roomFloor != null && (
             <span className="px-2 py-1 text-sm text-muted-foreground">
-              {roomFloor}. etasje
+              {floorLabel}
             </span>
           )}
         </span>
@@ -648,11 +672,67 @@ function formatScheduleTime(date: EventDetailDate): string {
   return `${date.startTime}–${date.endTime}`
 }
 
-function formatPrices(event: EventDetail): string | null {
-  if (event.isFree) return "Gratis"
+function formatPrices(event: EventDetail, t: Translator): string | null {
+  if (event.isFree) return t("priceFree")
   const parts: string[] = []
-  if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`)
-  if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`)
-  if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`)
+  if (event.priceOrdinar != null)
+    parts.push(t("priceOrdinary", { price: event.priceOrdinar }))
+  if (event.priceStudent != null)
+    parts.push(t("priceStudent", { price: event.priceStudent }))
+  if (event.priceMedlem != null)
+    parts.push(t("priceMember", { price: event.priceMedlem }))
   return parts.length > 0 ? parts.join(" / ") : null
+}
+
+function lowestPrice(event: EventDetail): number | null {
+  const prices = [
+    event.priceOrdinar,
+    event.priceStudent,
+    event.priceMedlem,
+  ].filter((price): price is number => price != null)
+  return prices.length > 0 ? Math.min(...prices) : null
+}
+
+function formatShortDate(dateStr: string, locale: AppLocale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Oslo",
+  }).format(new Date(`${dateStr}T12:00:00Z`))
+}
+
+/**
+ * The one filled button on the page. Sold-out and cancelled events keep the
+ * button in place, disabled, so the state reads at a glance.
+ */
+function EventTicketAction({
+  event,
+  eventSlug,
+  t,
+}: {
+  event: EventDetail
+  eventSlug: string
+  t: Translator
+}) {
+  if (!event.ticketUrl) return null
+  if (event.eventStatus !== "scheduled" || event.isSoldOut) {
+    return (
+      <Button disabled>
+        {event.isSoldOut ? t("soldOut") : t("statusCancelled")}
+      </Button>
+    )
+  }
+  const from = event.isFree ? null : lowestPrice(event)
+
+  return (
+    <EventTicketButton
+      ticketUrl={event.ticketUrl}
+      label={from == null ? t("tickets") : t("ticketsFrom", { price: from })}
+      newTabLabel={t("opensInNewTab")}
+      eventId={event._id}
+      eventTitle={event.title}
+      eventSlug={eventSlug}
+    />
+  )
 }

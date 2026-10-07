@@ -54,9 +54,7 @@ export function FestivalHero({
 
   return (
     <header className="space-y-5">
-      <h1 className="wrap-break-word text-4xl leading-none sm:text-6xl">
-        {event.title}
-      </h1>
+      <h1 className="text-page-title">{event.title}</h1>
       <ul className="flex flex-wrap gap-x-6 gap-y-2 text-lg text-foreground-muted">
         {first && (
           <FestivalFact icon={CalendarDays}>
@@ -73,7 +71,7 @@ export function FestivalHero({
         {price && <FestivalFact icon={Ticket}>{price}</FestivalFact>}
       </ul>
       {children && (
-        <div className="max-w-prose space-y-3 text-lg leading-8 text-foreground-muted">
+        <div className="max-w-prose space-y-3 text-lg leading-8 text-foreground">
           {children}
         </div>
       )}
@@ -115,10 +113,7 @@ export function FestivalProgramme({
     >
       <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <h2
-            id="festival-programme-heading"
-            className="text-3xl leading-none sm:text-4xl"
-          >
+          <h2 id="festival-programme-heading" className="text-section-title">
             {labels.programme}
           </h2>
           {total > 0 && (
