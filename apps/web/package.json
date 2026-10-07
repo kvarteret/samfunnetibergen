@@ -17,7 +17,9 @@
     "route-typegen": "next typegen",
     "test": "vitest run",
     "events:import:ticketco": "tsx scripts/import-ticketco.ts",
-    "events:sync:pending-slack": "tsx scripts/sync-pending-slack.ts"
+    "events:sync:pending-slack": "tsx scripts/sync-pending-slack.ts",
+    "events:weekly:canva": "tsx scripts/weekly-canva.ts",
+    "canva:connect": "tsx scripts/connect-canva.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -5,8 +5,10 @@ import {
 
 async function main() {
   const args = process.argv.slice(2)
-  if (args.some(arg => !["--dry-run", "--force"].includes(arg)))
-    throw new Error("Usage: events:import:ticketco [--dry-run] [--force]")
+  if (args.some(arg => !["--dry-run", "--force", "--scheduled"].includes(arg)))
+    throw new Error(
+      "Usage: events:import:ticketco [--dry-run] [--force] [--scheduled]",
+    )
   if (
     !(process.env.AZURE_OPENAI_ENDPOINT || process.env.AZURE_OPENAI_BASE_URL) ||
     !process.env.AZURE_OPENAI_API_KEY
@@ -15,6 +17,7 @@ async function main() {
   const report = await runTicketCoImport(importClient(), {
     dryRun: args.includes("--dry-run"),
     force: args.includes("--force"),
+    scheduled: args.includes("--scheduled"),
   })
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
   if (report.failed.length) process.exitCode = 1
