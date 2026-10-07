@@ -1,6 +1,6 @@
 # Import TicketCo events and notify editors
 
-The TicketCo job searches `https://ticketco.events/no/nb?pattern=kvarter`, extracts complete Norwegian and English submissions with the existing Azure `gpt-6-luna` deployment, and creates `arrangement` documents with `approvalStatus: pending`. It uses the same document builder and validation as `/arrangementer/ny`.
+The TicketCo job searches `https://ticketco.events/no/nb?pattern=kvarter`, extracts complete Norwegian and English submissions with the Azure `skonk` deployment of `gpt-6-luna`, and creates `arrangement` documents with `approvalStatus: pending`. It uses the same document builder and validation as `/arrangementer/ny`.
 
 Luna editorializes concert titles to artist names only, preserving co-headliners while removing venue, organizer, promotional labels and support-act wording. Support acts remain in the description.
 
@@ -8,11 +8,11 @@ The submitter is always `E-tjenesten's Skonk`, with `it.leder@kvarteret.no`. No 
 
 ## Runtime configuration
 
-Infisical `/nettside` owns `SANITY_WRITE_TOKEN`, `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_API_KEY`. The Azure endpoint is the resource root; `/openai/v1` is also accepted. `AZURE_OPENAI_BASE_URL` is accepted for existing local environments. `AZURE_OPENAI_LUNA_DEPLOYMENT` defaults to `gpt-6-luna`; use an alias only when it serves that Luna deployment.
+Infisical `/nettside` owns `SANITY_WRITE_TOKEN`, `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_API_KEY`. The Azure endpoint is the resource root; `/openai/v1` is also accepted. `AZURE_OPENAI_BASE_URL` is accepted for existing local environments. `AZURE_OPENAI_LUNA_DEPLOYMENT` defaults to `skonk`; use an alias only when it serves Luna.
 
 The GitHub `production` environment needs copies of those five named runtime values as secrets. The dedicated incoming webhook `SLACK_NETTSIDE_WEBHOOK` must target `#nettside`; Slack incoming webhooks determine the channel, so the application cannot redirect a webhook bound to another channel. Store this webhook in Infisical, declare it in `infra/secrets/nettside-prod/fnox.toml`, and synchronize it to the website runtime and GitHub production environment. The Skonk webhook supplied for this integration is configured in Infisical and the GitHub production environment. Its URL is never stored in Git.
 
-Scheduled workflows run from the repository's default branch, currently `develop`. `.github/workflows/import-ticketco.yml` checks daily at 05:17 UTC. A Sanity state document enforces at least 72 hours since the last fully successful run. Partial failures do not advance that timestamp; the next daily check retries failed events while skipping already imported links. A 30-minute revision-checked lease protects concurrent jobs, and GitHub limits the job to 25 minutes. GitHub may delay schedules.
+Scheduled workflows run from the repository's default branch, currently `develop`. `.github/workflows/import-ticketco.yml` targets Wednesday 06:00 and Saturday 18:00 Europe/Oslo, evenly spaced by 3½ calendar days. It schedules both UTC equivalents and invokes `--scheduled`; the Oslo guard rejects early runs and a Sanity state document records the last successful local-date slot. Scheduled slots bypass the manual 72-hour guard, so Saturday and Wednesday both run even after a recent manual import. Partial failures do not advance the successful slot; a later check that day or a manual rerun of `--scheduled` retries failed events while skipping already imported links. Manual runs without `--scheduled` retain the 72-hour guard unless `--force` is used. A 30-minute revision-checked lease protects concurrent jobs, and GitHub limits the job to 25 minutes. GitHub may delay schedules.
 
 ## Preview and run
 

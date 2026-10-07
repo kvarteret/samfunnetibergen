@@ -16,6 +16,7 @@ import { buildEventDocument } from "../../server/event-document"
 import { notifyPendingRequest } from "../../server/pending-slack"
 import { type Extraction, extractWithLuna, type ImportTaxonomy } from "./luna"
 import { matchBookingRoom, overlappingRooms, type RoomCandidate } from "./rooms"
+import { ticketCoSlot } from "./schedule"
 import {
   approvedImageUrl,
   canonicalTicketUrl,
@@ -39,6 +40,7 @@ type RunState = {
   lastSuccessAt?: string
   leaseUntil?: string
   owner?: string
+  lastScheduledSlot?: string
 }
 export type ImportReport = {
   discovered: number
@@ -363,9 +365,23 @@ export async function importEvents(
 
 export async function runTicketCoImport(
   client: SanityClient,
-  options: { dryRun?: boolean; force?: boolean } = {},
+  options: {
+    dryRun?: boolean
+    force?: boolean
+    scheduled?: boolean
+    now?: Date
+  } = {},
   dependencies = defaultDependencies,
 ): Promise<ImportReport> {
+  const slot = options.scheduled ? ticketCoSlot(options.now) : null
+  if (options.scheduled && !slot)
+    return {
+      discovered: 0,
+      imported: 0,
+      skipped: 0,
+      failed: [],
+      status: "not-due",
+    }
   if (options.dryRun) return importEvents(client, true, dependencies)
   await client.createIfNotExists(stateSchema)
   const state = await client.getDocument<RunState>(STATE_ID)
@@ -380,7 +396,11 @@ export async function runTicketCoImport(
   const now = Date.now()
   if (Date.parse(state.leaseUntil ?? "") > now)
     return { ...empty, status: "busy" }
-  if (!options.force && !isDue(state.lastSuccessAt, now))
+  if (
+    options.scheduled
+      ? state.lastScheduledSlot === slot
+      : !options.force && !isDue(state.lastSuccessAt, now)
+  )
     return { ...empty, status: "not-due" }
   const owner = randomUUID()
   let lease: RunState
@@ -401,8 +421,10 @@ export async function runTicketCoImport(
       .patch(STATE_ID)
       .ifRevisionId(lease._rev)
       .unset(["owner", "leaseUntil"])
-    if (!report.failed.length)
+    if (!report.failed.length) {
       patch.set({ lastSuccessAt: new Date().toISOString() })
+      if (slot) patch.set({ lastScheduledSlot: slot })
+    }
     await patch.commit()
     return report
   } catch (error) {
