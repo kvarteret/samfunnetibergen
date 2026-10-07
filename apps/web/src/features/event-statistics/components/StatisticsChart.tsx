@@ -4,6 +4,8 @@ import { BarChart, LineChart } from "echarts/charts"
 import {
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
+  MarkLineComponent,
   TooltipComponent,
 } from "echarts/components"
 import * as echarts from "echarts/core"
@@ -19,6 +21,8 @@ echarts.use([
   BarChart,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
+  MarkLineComponent,
   TooltipComponent,
   SVGRenderer,
 ])
@@ -92,14 +96,64 @@ type DailySeries = {
   values: number[]
 }
 
+/** A shaded stretch of days, such as a campaign, labelled on the chart. */
+export type DayHighlight = { from: string; until: string; label: string }
+
+const HIGHLIGHT_FILL = "rgba(206, 113, 12, 0.1)"
+
+/** Shade each highlight's visible days; a single day becomes a line. */
+function highlightMarks(days: string[], highlights: readonly DayHighlight[]) {
+  const label = {
+    color: ORANGE_DEEP,
+    fontSize: 12,
+    fontFamily: monoFamily,
+  }
+  const visible = highlights.flatMap(highlight => {
+    const first = days.findIndex(day => day >= highlight.from)
+    const last = days.findLastIndex(day => day <= highlight.until)
+    return first >= 0 && last >= first ? [{ ...highlight, first, last }] : []
+  })
+  return {
+    markArea: {
+      silent: true,
+      itemStyle: { color: HIGHLIGHT_FILL },
+      label: { ...label, position: "insideTopLeft" },
+      data: visible
+        .filter(entry => entry.last > entry.first)
+        .map(entry => [
+          {
+            name: entry.label,
+            xAxis: entry.first,
+            // Keep the label inside the chart when the area meets its edge.
+            ...(entry.last === days.length - 1
+              ? { label: { position: "insideTopRight" } }
+              : {}),
+          },
+          { xAxis: entry.last },
+        ]),
+    },
+    markLine: {
+      silent: true,
+      symbol: "none",
+      lineStyle: { color: ORANGE_DEEP, width: 2, type: "solid", opacity: 0.4 },
+      label: { ...label, position: "end", formatter: "{b}", opacity: 1 },
+      data: visible
+        .filter(entry => entry.last === entry.first)
+        .map(entry => ({ name: entry.label, xAxis: entry.first })),
+    },
+  }
+}
+
 export function DailyTrendChart({
   days,
   series,
   label,
+  highlights = [],
 }: {
   days: string[]
   series: DailySeries[]
   label: string
+  highlights?: readonly DayHighlight[]
 }) {
   const ref = useChart(
     () => ({
@@ -169,6 +223,7 @@ export function DailyTrendChart({
                 ]),
               }
             : undefined,
+        ...(index === 0 ? highlightMarks(days, highlights) : {}),
       })),
     }),
     label,

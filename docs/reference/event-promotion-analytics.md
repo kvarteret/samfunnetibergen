@@ -33,6 +33,29 @@ ordinary event cards and repeat navigation produced additional impressions.
 Use distinct session reach instead of comparing raw impression counts across
 the change. Clicks still distinguish ordinary and promoted placements.
 
+The statistics page shows reach decay for `home-promoted`: per campaign day,
+the people who saw the event fremhevet and how many of them saw it for the
+first time. A person's first day is searched from the start of impression
+tracking, not the selected period, so returning people never count as new.
+New reach falling towards zero means the campaign mostly repeats an audience.
+
+`npm run events:backfill:placements -- --slug <slug>` estimates placements for
+an event's promotion periods that ended before impressions were tracked. It
+assumes every front-page session in the period saw the event fremhevet and every
+view of its page came from that placement, and captures matching
+`event_placement_viewed`/`event_placement_clicked` events under the original
+visitor and session with `backfilled=true`. It dry-runs unless given `--send`
+and refuses to run twice for one event. Taake was backfilled on 2026-10-07
+(1 464 sessions, 96 clicks). Exclude `backfilled = true` when only measured
+placements are wanted. Page-view entry surfaces and `event_placements_seen`
+are not backfilled, so «Hvor på nettsiden» keeps zero for those periods.
+
+Campaign chips on the statistics page limit the visibility sections to one
+campaign's exact start and end; views per day then compare the campaign with
+as many days just before it. A running campaign reads «i kø» when the front
+page's own selection doesn't currently show the event, since being promoted in
+Sanity only makes it a candidate.
+
 `data-event-id` and analytics `event_id` use `initialSlug`; `event_document_id`
 retains the Sanity ID and `event_slug` is the current URL slug. Existing events
 were seeded with their published slug at rollout. Historical URL changes cannot

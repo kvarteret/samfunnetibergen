@@ -7,6 +7,7 @@ import {
   channelForDomain,
   clickRate,
   clickThroughRate,
+  daysBetween,
   type EventStatistic,
   fillDailySeries,
   formatDateRange,
@@ -16,10 +17,12 @@ import {
   liveDays,
   matchesSearch,
   matchesStatus,
+  parseCampaignParam,
   parsePeriod,
   parseSortParam,
   parseStatusFilter,
   periodStart,
+  reachByDay,
   serializeSortParam,
   toOsloDay,
   viewsPerLiveDay,
@@ -314,6 +317,51 @@ describe("fremhevingskampanjer", () => {
       "2026-09-30",
       "2026-10-06",
       "2026-10-07",
+    ])
+  })
+})
+
+describe("reach decay", () => {
+  const days = ["2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08"]
+
+  it("keeps campaign days since tracking, filling missing days with zero", () => {
+    expect(
+      reachByDay(
+        [{ day: "2026-10-06", people: "40", first_time: 40 }],
+        days,
+        new Set(["2026-10-05", "2026-10-06", "2026-10-07"]),
+      ),
+    ).toEqual([
+      { day: "2026-10-06", people: 40, firstTime: 40 },
+      { day: "2026-10-07", people: 0, firstTime: 0 },
+    ])
+  })
+
+  it("includes days with impressions outside known campaigns", () => {
+    expect(
+      reachByDay(
+        [{ day: "2026-10-08", people: 5, first_time: 2 }],
+        days,
+        new Set(),
+      ),
+    ).toEqual([{ day: "2026-10-08", people: 5, firstTime: 2 }])
+  })
+})
+
+describe("campaign selection", () => {
+  it("reads a 1-based campaign number within range", () => {
+    expect(parseCampaignParam("2", 3)).toBe(1)
+    expect(parseCampaignParam(["1"], 3)).toBe(0)
+    for (const value of ["0", "4", "1.5", "x", undefined]) {
+      expect(parseCampaignParam(value, 3)).toBeNull()
+    }
+  })
+
+  it("lists the days of a campaign inclusively", () => {
+    expect(daysBetween("2026-09-30", "2026-10-02")).toEqual([
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
     ])
   })
 })
