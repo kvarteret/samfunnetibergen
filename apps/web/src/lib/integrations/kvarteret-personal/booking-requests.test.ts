@@ -41,7 +41,11 @@ test("retries storage with identical snapshot and fresh signed nonce", async () 
       ),
     )
   vi.stubGlobal("fetch", fetch)
+  vi.stubEnv("PERSONAL_APP_BASE_URL", "")
   expect(await storeBookingRequest(snapshot)).toBe(id)
+  expect(String(fetch.mock.calls[0][0])).toBe(
+    "https://personal.samfunnetibergen.no/api/v1/booking-requests",
+  )
   expect(fetch.mock.calls[0][1].body).toBe(fetch.mock.calls[1][1].body)
   expect(fetch.mock.calls[0][1].headers["X-Kvarteret-Nonce"]).not.toBe(
     fetch.mock.calls[1][1].headers["X-Kvarteret-Nonce"],
