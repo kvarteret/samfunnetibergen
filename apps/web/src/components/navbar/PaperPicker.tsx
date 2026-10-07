@@ -2,17 +2,19 @@
 
 import { Collapsible } from "@base-ui/react/collapsible"
 import { NavigationMenu } from "@base-ui/react/navigation-menu"
-import { Check, ChevronDown, ChevronLeft } from "lucide-react"
+import { Check, ChevronDown, ChevronLeft, PartyPopper } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRef, useSyncExternalStore } from "react"
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ToggleOption } from "@/components/ui/toggle-option"
 import {
   isPaperStyle,
   PAPER_STORAGE_KEY,
   type PaperStyle,
   paperOptions,
 } from "@/lib/paper-preference"
+import { setPartyMode, usePartyMode } from "@/lib/party-mode"
 import { cn } from "@/lib/utils"
 import { ThemeChoices } from "./ThemePicker"
 
@@ -67,6 +69,7 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
           className="border-t-2 border-border/30 px-10 py-4"
           paper={paper}
         />
+        <PartyModeChoice className="border-t-2 border-border/30 px-10 py-4" />
       </Collapsible.Panel>
     </Collapsible.Root>
   )
@@ -97,6 +100,7 @@ function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
               className="border-t-2 border-border/30 pt-4"
               paper={paper}
             />
+            <PartyModeChoice className="border-t-2 border-border/30 pt-4" />
           </NavigationMenu.Content>
         </NavigationMenu.Item>
       </NavigationMenu.List>
@@ -169,6 +173,22 @@ function PaperChoices({
         ))}
       </RadioGroup>
     </fieldset>
+  )
+}
+
+function PartyModeChoice({ className }: { className?: string }) {
+  const t = useTranslations("Navigation")
+  const partyMode = usePartyMode()
+
+  return (
+    <div className={className}>
+      <ToggleOption
+        checked={partyMode}
+        icon={PartyPopper}
+        label={t("partyMode")}
+        onChange={setPartyMode}
+      />
+    </div>
   )
 }
 
