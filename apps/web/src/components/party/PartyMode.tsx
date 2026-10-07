@@ -25,6 +25,18 @@ const DOUBLE_JUMP = 700
 // Holding jump on the way up softens gravity, so a long press climbs higher.
 const HELD_JUMP_GRAVITY = 0.6
 
+// Fluesopp: eating one makes a critter grow for a while, Mario style. They
+// are a rare treat: one at a time, every few minutes.
+const MUSHROOM_WIDTH = 16
+const MUSHROOM_HEIGHT = 18
+const MUSHROOM_LIFETIME = 30_000
+const MAX_MUSHROOMS = 1
+const MUSHROOM_INTERVAL: [number, number] = [60_000, 180_000]
+const GROWN_SCALE = 1.6
+const GROWN_DURATION = 20_000
+// The critter freezes while it grows or shrinks, like in the games.
+const GROW_FREEZE = 900
+
 const LEFT_KEYS = new Set(["ArrowLeft", "a", "A"])
 const RIGHT_KEYS = new Set(["ArrowRight", "d", "D"])
 const JUMP_KEYS = new Set(["ArrowUp", "w", "W", " "])
@@ -50,15 +62,20 @@ interface CritterSpec {
   sprite: ReactNode
 }
 
+// A spot on the page, stored relative to the element it sits on (or the
+// floor when there is none) so it follows the page as it scrolls.
+interface Anchor {
+  el: Element | null
+  offset: number
+}
+
 interface Critter {
   spec: CritterSpec
   el: HTMLDivElement
   leash: SVGPathElement | null
   post: SVGRectElement | null
-  // Where the critter is tied up while leashed: a post on the element it was
-  // standing on (or the floor), stored relative to that element so it
-  // follows the page as it scrolls.
-  tether: { el: Element | null; offset: number } | null
+  // Where the critter is tied up while leashed.
+  tether: Anchor | null
   x: number // horizontal centre, viewport px
   y: number // feet, viewport px
   vx: number
@@ -72,6 +89,18 @@ interface Critter {
   airJumps: number
   pose: Pose
   nextActionAt: number
+  growth: number
+  grownUntil: number
+  frozenUntil: number
+}
+
+interface Mushroom {
+  node: HTMLDivElement
+  anchor: Anchor
+  bornAt: number
+  x: number
+  y: number
+  visible: boolean
 }
 
 interface Platform {
@@ -83,16 +112,38 @@ interface Platform {
 
 const random = (min: number, max: number) => min + Math.random() * (max - min)
 
+// Restart a one-shot CSS animation keyed off a data attribute.
+function replay(el: HTMLElement, attribute: string, value = "") {
+  delete el.dataset[attribute]
+  void el.offsetWidth
+  el.dataset[attribute] = value
+}
+
 export function PartyMode() {
   const settings = usePartySettings()
   if (!settings.enabled) return null
   return <PartyCritters settings={settings} />
 }
 
-function PartyCritters({ settings }: { settings: PartySettings }) {
+interface PartyCrittersProps {
+  settings: PartySettings
+  // Keep the critters inside this element instead of the whole window, and
+  // size them to it. Used by the infoskjerm.
+  stage?: string
+  // "rare": one every few minutes. "once": a single one shortly after the
+  // critters appear. "off": none.
+  mushrooms?: "rare" | "once" | "off"
+}
+
+export function PartyCritters({
+  settings,
+  stage,
+  mushrooms: mushroomMode = "rare",
+}: PartyCrittersProps) {
   const refs = useRef<(HTMLDivElement | null)[]>([])
   const leashRefs = useRef<(SVGPathElement | null)[]>([])
   const postRefs = useRef<(SVGRectElement | null)[]>([])
+  const mushroomLayerRef = useRef<HTMLDivElement>(null)
   const settingsRef = useRef(settings)
 
   useEffect(() => {
@@ -100,9 +151,27 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
   }, [settings])
 
   useEffect(() => {
+    const stageEl = stage ? document.querySelector(stage) : null
+    // On a big screen everything is drawn and moves proportionally larger.
+    const k = stageEl ? Math.min(3, Math.max(1, stageEl.clientWidth / 420)) : 1
+    const gravity = GRAVITY * k
+
+    const bounds = () =>
+      stageEl?.getBoundingClientRect() ?? {
+        left: 0,
+        top: 0,
+        right: window.innerWidth,
+        bottom: window.innerHeight,
+        width: window.innerWidth,
+      }
+    const floor = () => bounds().bottom
+
     const critters: Critter[] = CRITTERS.flatMap((spec, index) => {
       const el = refs.current[index]
       if (!el) return []
+      const { left, width, top } = bounds()
+      el.style.setProperty("--party-base", String(k))
+      el.style.setProperty("--party-scale", String(k))
       return [
         {
           spec,
@@ -110,8 +179,8 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           leash: leashRefs.current[index] ?? null,
           post: postRefs.current[index] ?? null,
           tether: null,
-          x: window.innerWidth * (index === 0 ? 0.25 : 0.75),
-          y: -spec.height,
+          x: left + width * (index === 0 ? 0.25 : 0.75),
+          y: top - spec.height * k,
           vx: 0,
           vy: 0,
           grounded: false,
@@ -121,45 +190,81 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           airJumps: 0,
           pose: "air",
           nextActionAt: 0,
+          growth: 1,
+          grownUntil: 0,
+          frozenUntil: 0,
         },
       ]
     })
 
+    const size = (critter: Critter) => k * critter.growth
+    const halfWidthOf = (critter: Critter) =>
+      (critter.spec.width * size(critter)) / 2
+    const heightOf = (critter: Critter) => critter.spec.height * size(critter)
+
     let candidates: Element[] = []
     let candidatesAt = 0
     let platforms: Platform[] = []
-    // Bottom of the sticky navbar; ledges above it are hidden behind it.
+    // Ledges above this are hidden: behind the sticky navbar on the site, or
+    // outside the stage.
     let ceiling = 24
     const keys = new Set<string>()
     let jumpQueued = false
     let dropQueued = false
+    const mushrooms: Mushroom[] = []
+    let nextMushroomAt =
+      mushroomMode === "off"
+        ? Number.POSITIVE_INFINITY
+        : performance.now() +
+          (mushroomMode === "once"
+            ? random(10_000, 30_000)
+            : random(30_000, 90_000))
 
     const collectPlatforms = (now: number) => {
       if (now - candidatesAt > 1500) {
-        candidates = Array.from(document.querySelectorAll(PLATFORM_SELECTOR))
+        candidates = Array.from(
+          (stageEl ?? document).querySelectorAll(PLATFORM_SELECTOR),
+        )
         candidatesAt = now
       }
-      const height = window.innerHeight
-      ceiling = Math.max(
-        24,
-        document.querySelector("header")?.getBoundingClientRect().bottom ?? 0,
-      )
+      const area = bounds()
+      // On a stage, leave headroom so a critter on the top ledge stays inside.
+      ceiling = stageEl
+        ? area.top + 60 * k
+        : Math.max(
+            24,
+            document.querySelector("header")?.getBoundingClientRect().bottom ??
+              0,
+          )
+      // The site's navbar is excluded; it sits on top of the critters.
+      const excluded = stageEl
+        ? "[data-party-critter]"
+        : "header, [data-party-critter]"
       platforms = []
       for (const el of candidates) {
-        if (el.closest("header, [data-party-critter]")) continue
+        if (el.closest(excluded)) continue
         const rect = el.getBoundingClientRect()
-        if (rect.width < MIN_PLATFORM_WIDTH || rect.height < 8) continue
-        if (rect.top < ceiling || rect.top > height - 8) continue
+        if (rect.width < MIN_PLATFORM_WIDTH * k || rect.height < 8) continue
+        if (rect.top < ceiling || rect.top > area.bottom - 8) continue
         platforms.push({
           el,
           top: rect.top,
-          left: rect.left,
-          right: rect.right,
+          left: Math.max(rect.left, area.left),
+          right: Math.min(rect.right, area.right),
         })
       }
     }
 
-    const floor = () => window.innerHeight
+    const anchorPosition = ({ el, offset }: Anchor) => {
+      if (!el) return { x: bounds().left + offset, y: floor() }
+      const rect = el.getBoundingClientRect()
+      return { x: rect.left + offset, y: rect.top }
+    }
+
+    const anchorAt = (el: Element | null, x: number): Anchor => ({
+      el,
+      offset: x - (el?.getBoundingClientRect().left ?? bounds().left),
+    })
 
     const leave = (critter: Critter) => {
       critter.grounded = false
@@ -173,9 +278,9 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
         const gap = Math.max(p.left - critter.x, critter.x - p.right, 0)
         return (
           p.el !== critter.platform &&
-          p.top < critter.y - 20 &&
-          p.top > critter.y - MAX_CLIMB &&
-          gap < 240
+          p.top < critter.y - 20 * k &&
+          p.top > critter.y - MAX_CLIMB * k &&
+          gap < 240 * k
         )
       })
 
@@ -189,31 +294,35 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
       const target =
         reachable.length > 0 && Math.random() < 0.85
           ? reachable
-              .map(p => ({ p, score: critter.y - p.top + random(0, 120) }))
+              .map(p => ({ p, score: critter.y - p.top + random(0, 120 * k) }))
               .reduce((best, next) => (next.score < best.score ? next : best)).p
           : null
 
       if (!target) {
-        critter.vy = -random(...spec.jumpSpeed)
-        critter.vx = critter.facing * random(40, 90)
+        critter.vy = -random(...spec.jumpSpeed) * k
+        critter.vx = critter.facing * random(40, 90) * k
         return
       }
 
       // Aim for a spot on the target's top edge: overshoot the ledge a bit so
       // the critter lands on it on the way down.
-      const rise = critter.y - target.top + random(20, 40)
-      const vy = -Math.sqrt(2 * GRAVITY * rise)
+      const rise = critter.y - target.top + random(20, 40) * k
+      const vy = -Math.sqrt(2 * gravity * rise)
       const drop = target.top - critter.y
-      const flight = (-vy + Math.sqrt(vy * vy + 2 * GRAVITY * drop)) / GRAVITY
-      const inset = Math.min(20, (target.right - target.left) / 3)
+      const flight = (-vy + Math.sqrt(vy * vy + 2 * gravity * drop)) / gravity
+      const inset = Math.min(20 * k, (target.right - target.left) / 3)
       const nearest = Math.min(
         Math.max(critter.x, target.left + inset),
         target.right - inset,
       )
-      const targetX = nearest + random(-30, 30)
+      const targetX = nearest + random(-30, 30) * k
+      const maxVx = 260 * k
 
       critter.vy = vy
-      critter.vx = Math.max(-260, Math.min(260, (targetX - critter.x) / flight))
+      critter.vx = Math.max(
+        -maxVx,
+        Math.min(maxVx, (targetX - critter.x) / flight),
+      )
     }
 
     const wander = (critter: Critter, now: number) => {
@@ -229,49 +338,37 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
         critter.vx = 0
       } else {
         if (Math.random() < 0.4) critter.facing = critter.facing === 1 ? -1 : 1
-        critter.vx = critter.facing * random(...critter.spec.walkSpeed)
+        critter.vx = critter.facing * random(...critter.spec.walkSpeed) * k
       }
       critter.nextActionAt =
         now + (onFloor ? random(800, 2500) : random(1500, 4500))
     }
 
-    const postPosition = (critter: Critter) => {
-      if (!critter.tether) return null
-      const { el, offset } = critter.tether
-      if (!el) return { x: offset, y: floor() }
-      const rect = el.getBoundingClientRect()
-      return { x: rect.left + offset, y: rect.top }
-    }
-
     // Tie the critter to a post just behind where it is standing.
     const tieUp = (critter: Critter) => {
-      const postX = critter.x - critter.facing * (critter.spec.width / 2 + 6)
-      const left = critter.platform?.getBoundingClientRect().left ?? 0
-      critter.tether = { el: critter.platform, offset: postX - left }
+      const postX = critter.x - critter.facing * (halfWidthOf(critter) + 6 * k)
+      critter.tether = anchorAt(critter.platform, postX)
       critter.vx = 0
     }
 
     const steer = (critter: Critter) => {
       const direction = (keys.has("right") ? 1 : 0) - (keys.has("left") ? 1 : 0)
       if (critter.grounded) {
-        critter.vx = direction * CONTROL_SPEED
+        critter.vx = direction * CONTROL_SPEED * k
         if (jumpQueued) {
           leave(critter)
-          critter.vy = -CONTROL_JUMP
+          critter.vy = -CONTROL_JUMP * k
         } else if (dropQueued && critter.platform) {
           critter.dropping = critter.platform
           leave(critter)
-          critter.vy = 60
+          critter.vy = 60 * k
         }
       } else {
-        if (direction !== 0) critter.vx = direction * CONTROL_SPEED
+        if (direction !== 0) critter.vx = direction * CONTROL_SPEED * k
         if (jumpQueued && critter.airJumps > 0) {
           critter.airJumps -= 1
-          critter.vy = -DOUBLE_JUMP
-          // Restart the flip animation for each double jump.
-          delete critter.el.dataset.flip
-          void critter.el.offsetWidth
-          critter.el.dataset.flip = ""
+          critter.vy = -DOUBLE_JUMP * k
+          replay(critter.el, "flip")
         }
       }
       jumpQueued = false
@@ -280,17 +377,18 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
 
     // A taut leash keeps the critter within reach of its post.
     const restrain = (critter: Critter, post: { x: number; y: number }) => {
-      const anchorY = post.y - POST_HEIGHT
-      const collarOffset = critter.spec.height * critter.spec.collar
+      const leashLength = LEASH_LENGTH * k
+      const anchorY = post.y - POST_HEIGHT * k
+      const collarOffset = heightOf(critter) * critter.spec.collar
       const dx = critter.x - post.x
       const dy = critter.y - collarOffset - anchorY
       const dist = Math.hypot(dx, dy)
-      if (dist <= LEASH_LENGTH) return
+      if (dist <= leashLength) return
 
       const ux = dx / dist
       const uy = dy / dist
-      const nextY = anchorY + uy * LEASH_LENGTH + collarOffset
-      critter.x = post.x + ux * LEASH_LENGTH
+      const nextY = anchorY + uy * leashLength + collarOffset
+      critter.x = post.x + ux * leashLength
       if (critter.grounded && nextY < critter.y - 0.5) leave(critter)
       if (!critter.grounded) critter.y = Math.min(nextY, floor())
 
@@ -301,17 +399,31 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
       }
     }
 
+    const resize = (critter: Critter, growth: number, now: number) => {
+      critter.growth = growth
+      critter.frozenUntil = now + GROW_FREEZE
+      critter.vx = 0
+      critter.el.style.setProperty("--party-scale", String(size(critter)))
+      replay(critter.el, "grow", growth > 1 ? "up" : "down")
+    }
+
     const step = (critter: Critter, dt: number, now: number) => {
-      const halfWidth = critter.spec.width / 2
-      const width = window.innerWidth
+      const halfWidth = halfWidthOf(critter)
+      const area = bounds()
       const { control, leash } = settingsRef.current
       const controlled = control === critter.spec.name
+      const frozen = now < critter.frozenUntil
 
       if (!leash) critter.tether = null
       else if (!critter.tether && critter.grounded) tieUp(critter)
       const tied = critter.tether !== null
 
-      if (controlled) steer(critter)
+      if (critter.growth > 1 && now > critter.grownUntil && critter.grounded) {
+        resize(critter, 1, now)
+      }
+
+      if (frozen) critter.vx = 0
+      else if (controlled) steer(critter)
       else if (tied && critter.grounded) critter.vx = 0
       else if (critter.grounded) wander(critter, now)
 
@@ -322,7 +434,7 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           const rect = critter.platform.getBoundingClientRect()
           // A tied-up critter stays put, even as its ledge scrolls away.
           const scrolledAway =
-            !tied && (rect.top < ceiling || rect.top > floor())
+            !tied && (rect.top < ceiling || rect.top > area.bottom)
           const walkedOff = critter.x < rect.left || critter.x > rect.right
           // Wandering critters usually turn back at the edge rather than
           // stepping off, so they keep the height they have climbed.
@@ -341,20 +453,18 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
             critter.y = rect.top
           }
         } else {
-          critter.y = floor()
+          critter.y = area.bottom
         }
       } else {
         const previousY = critter.y
-        const floaty =
-          control === critter.spec.name && critter.vy < 0 && keys.has("jump")
-        critter.vy += GRAVITY * (floaty ? HELD_JUMP_GRAVITY : 1) * dt
+        const floaty = controlled && critter.vy < 0 && keys.has("jump")
+        critter.vy += gravity * (floaty ? HELD_JUMP_GRAVITY : 1) * dt
         critter.x += critter.vx * dt
         critter.y += critter.vy * dt
 
         if (critter.dropping) {
           const rect = critter.dropping.getBoundingClientRect()
-          if (critter.y - critter.spec.height > rect.top)
-            critter.dropping = null
+          if (critter.y - heightOf(critter) > rect.top) critter.dropping = null
         }
 
         if (critter.vy > 0) {
@@ -369,35 +479,36 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           if (landing) {
             critter.y = landing.top
             critter.platform = landing.el
-          } else if (critter.y >= floor()) {
-            critter.y = floor()
+          } else if (critter.y >= area.bottom) {
+            critter.y = area.bottom
             critter.platform = null
           }
-          if (landing || critter.y >= floor()) {
+          if (landing || critter.y >= area.bottom) {
             critter.grounded = true
             critter.airJumps = 1
             critter.vy = 0
-            critter.vx =
-              control === critter.spec.name
-                ? critter.vx
-                : critter.facing * random(...critter.spec.walkSpeed)
+            critter.vx = controlled
+              ? critter.vx
+              : critter.facing * random(...critter.spec.walkSpeed) * k
             critter.nextActionAt = now + random(300, 1500)
           }
         }
       }
 
-      const post = postPosition(critter)
+      const post = critter.tether ? anchorPosition(critter.tether) : null
       if (post) restrain(critter, post)
 
-      // Keep them on screen: bounce off the side walls.
-      if (critter.x < halfWidth) {
-        critter.x = halfWidth
+      // Keep them on stage: bounce off the side walls.
+      if (critter.x < area.left + halfWidth) {
+        critter.x = area.left + halfWidth
         critter.vx = Math.abs(critter.vx)
-      } else if (critter.x > width - halfWidth) {
-        critter.x = width - halfWidth
+      } else if (critter.x > area.right - halfWidth) {
+        critter.x = area.right - halfWidth
         critter.vx = -Math.abs(critter.vx)
       }
       if (critter.vx !== 0) critter.facing = critter.vx > 0 ? 1 : -1
+
+      if (critter.grounded && !frozen) eatMushrooms(critter, now)
 
       const pose: Pose = !critter.grounded
         ? "air"
@@ -409,11 +520,13 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
         critter.el.dataset.pose = pose
       }
 
-      critter.el.style.transform = `translate3d(${critter.x - halfWidth}px, ${
-        critter.y - critter.spec.height
-      }px, 0)`
+      // The element keeps its unscaled size; CSS scales the sprite up from
+      // its feet, so position by the unscaled box.
+      critter.el.style.transform = `translate3d(${
+        critter.x - critter.spec.width / 2
+      }px, ${critter.y - critter.spec.height}px, 0)`
       critter.el.dataset.facing = critter.facing === 1 ? "right" : "left"
-      critter.el.dataset.controlled = String(control === critter.spec.name)
+      critter.el.dataset.controlled = String(controlled)
       drawLeash(critter, post)
     }
 
@@ -427,15 +540,18 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
         critter.post.style.display = "none"
         return
       }
+      const postHeight = POST_HEIGHT * k
       critter.post.style.display = ""
-      critter.post.setAttribute("x", String(post.x - 2))
-      critter.post.setAttribute("y", String(post.y - POST_HEIGHT))
+      critter.post.setAttribute("x", String(post.x - 2 * k))
+      critter.post.setAttribute("y", String(post.y - postHeight))
+      critter.post.setAttribute("width", String(4 * k))
+      critter.post.setAttribute("height", String(postHeight))
 
-      const anchorY = post.y - POST_HEIGHT + 3
-      const collarX = critter.x + critter.facing * critter.spec.width * 0.15
-      const collarY = critter.y - critter.spec.height * critter.spec.collar
+      const anchorY = post.y - postHeight + 3 * k
+      const collarX = critter.x + critter.facing * halfWidthOf(critter) * 0.3
+      const collarY = critter.y - heightOf(critter) * critter.spec.collar
       const dist = Math.hypot(collarX - post.x, collarY - anchorY)
-      const sag = Math.max(0, LEASH_LENGTH - dist) * 0.5
+      const sag = Math.max(0, LEASH_LENGTH * k - dist) * 0.5
       const midX = (collarX + post.x) / 2
       const midY = (collarY + anchorY) / 2 + sag
       critter.leash.setAttribute(
@@ -444,12 +560,105 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
       )
     }
 
+    // A mushroom sprouts now and then, often just ahead of a critter so it
+    // has a fair chance of walking into it.
+    const spawnMushroom = () => {
+      const layer = mushroomLayerRef.current
+      if (!layer) return
+      const area = bounds()
+      const margin = MUSHROOM_WIDTH * k
+      const walker = critters.find(c => c.grounded && !c.tether)
+      let anchor: Anchor
+      if (walker && (mushroomMode === "once" || Math.random() < 0.7)) {
+        const rect = walker.platform?.getBoundingClientRect()
+        const left = (rect?.left ?? area.left) + margin
+        const right = (rect?.right ?? area.right) - margin
+        const ahead = walker.x + walker.facing * random(60, 160) * k
+        if (right <= left) return
+        anchor = anchorAt(
+          walker.platform,
+          Math.min(Math.max(ahead, left), right),
+        )
+      } else {
+        const wide = platforms.filter(p => p.right - p.left > margin * 3)
+        const spot = wide[Math.floor(Math.random() * wide.length)]
+        anchor = spot
+          ? anchorAt(spot.el, random(spot.left + margin, spot.right - margin))
+          : anchorAt(null, random(area.left + margin, area.right - margin))
+      }
+
+      const node = document.createElement("div")
+      node.className = "party-mushroom"
+      node.style.width = `${MUSHROOM_WIDTH * k}px`
+      node.style.height = `${MUSHROOM_HEIGHT * k}px`
+      node.innerHTML = MUSHROOM_SVG
+      layer.append(node)
+      mushrooms.push({
+        node,
+        anchor,
+        bornAt: performance.now(),
+        x: 0,
+        y: 0,
+        visible: false,
+      })
+    }
+
+    const removeMushroom = (mushroom: Mushroom) => {
+      mushrooms.splice(mushrooms.indexOf(mushroom), 1)
+      mushroom.node.dataset.leaving = ""
+      window.setTimeout(() => mushroom.node.remove(), 300)
+    }
+
+    const updateMushrooms = (now: number) => {
+      if (now >= nextMushroomAt) {
+        if (mushrooms.length < MAX_MUSHROOMS) spawnMushroom()
+        nextMushroomAt =
+          mushroomMode === "once"
+            ? Number.POSITIVE_INFINITY
+            : now + random(...MUSHROOM_INTERVAL)
+      }
+      const area = bounds()
+      for (const mushroom of [...mushrooms]) {
+        const { el } = mushroom.anchor
+        if (
+          now - mushroom.bornAt > MUSHROOM_LIFETIME ||
+          el?.isConnected === false
+        ) {
+          removeMushroom(mushroom)
+          continue
+        }
+        const { x, y } = anchorPosition(mushroom.anchor)
+        mushroom.x = x
+        mushroom.y = y
+        mushroom.visible = y >= ceiling && y <= area.bottom
+        mushroom.node.style.display = mushroom.visible ? "" : "none"
+        mushroom.node.style.transform = `translate3d(${
+          x - (MUSHROOM_WIDTH * k) / 2
+        }px, ${y - MUSHROOM_HEIGHT * k}px, 0)`
+      }
+    }
+
+    const eatMushrooms = (critter: Critter, now: number) => {
+      const reach = halfWidthOf(critter) * 0.6 + (MUSHROOM_WIDTH * k) / 2
+      const mushroom = mushrooms.find(
+        m =>
+          m.visible &&
+          Math.abs(m.x - critter.x) < reach &&
+          Math.abs(m.y - critter.y) < 6 * k,
+      )
+      if (!mushroom) return
+      removeMushroom(mushroom)
+      critter.grownUntil = now + GROWN_DURATION
+      if (critter.growth === 1) resize(critter, GROWN_SCALE, now)
+    }
+
     let frame = 0
     let last = performance.now()
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       collectPlatforms(now)
+      updateMushrooms(now)
       for (const critter of critters) step(critter, dt, now)
       frame = requestAnimationFrame(tick)
     }
@@ -499,10 +708,11 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
     // Poke a critter to make it hop; a tied-up one just hops on the spot.
     const cleanups = critters.map(critter => {
       const onPoke = () => {
+        if (performance.now() < critter.frozenUntil) return
         if (critter.tether) {
           if (!critter.grounded) return
           leave(critter)
-          critter.vy = -random(...critter.spec.jumpSpeed) * 0.7
+          critter.vy = -random(...critter.spec.jumpSpeed) * 0.7 * k
           critter.vx = 0
           return
         }
@@ -519,8 +729,9 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
       window.removeEventListener("keyup", onKeyUp)
       window.removeEventListener("blur", onBlur)
       for (const cleanup of cleanups) cleanup()
+      for (const mushroom of mushrooms) mushroom.node.remove()
     }
-  }, [])
+  }, [stage, mushroomMode])
 
   return (
     <div aria-hidden className="party-critters">
@@ -529,13 +740,11 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           <g key={critter.name}>
             <rect
               className="party-post"
-              height={POST_HEIGHT}
               ref={el => {
                 postRefs.current[index] = el
               }}
               rx="1.5"
               style={{ display: "none" }}
-              width="4"
             />
             <path
               className="party-leash"
@@ -546,6 +755,7 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
           </g>
         ))}
       </svg>
+      <div ref={mushroomLayerRef} />
       {CRITTERS.map((critter, index) => (
         <div
           className="party-critter"
@@ -564,6 +774,19 @@ function PartyCritters({ settings }: { settings: PartySettings }) {
     </div>
   )
 }
+
+// Fluesopp: red cap with white spots on a white stem. Static markup, so it is
+// set as a string on the imperatively created mushroom nodes.
+const MUSHROOM_SVG = `<svg aria-hidden="true" viewBox="0 0 20 22" width="100%" height="100%">
+<path d="M7.5 10 L7 20 Q7 21.5 10 21.5 Q13 21.5 13 20 L12.5 10 Z" fill="#fdfaf3" stroke="#3d2614" stroke-width="0.8"/>
+<path d="M7.6 14.5 Q10 16 12.4 14.5" fill="none" stroke="#3d2614" stroke-width="0.6"/>
+<path d="M1 11.5 Q1 2 10 1.5 Q19 2 19 11.5 Q10 13.5 1 11.5 Z" fill="#e2231a" stroke="#3d2614" stroke-width="0.8"/>
+<circle cx="6" cy="6.5" r="1.6" fill="#fff"/>
+<circle cx="11.5" cy="4.5" r="1.3" fill="#fff"/>
+<circle cx="14.8" cy="8.5" r="1.5" fill="#fff"/>
+<circle cx="9.5" cy="9.3" r="1.1" fill="#fff"/>
+<circle cx="3.6" cy="10" r="0.8" fill="#fff"/>
+</svg>`
 
 function Penguin() {
   return (
