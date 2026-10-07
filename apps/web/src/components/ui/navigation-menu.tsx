@@ -21,12 +21,12 @@ function NavigationMenu({
       {children}
       <NavigationMenuPrimitive.Portal>
         <NavigationMenuPrimitive.Positioner
-          align="end"
+          align="start"
           className="z-50 outline-none"
           collisionPadding={12}
-          sideOffset={12}
+          sideOffset={6}
         >
-          <NavigationMenuPrimitive.Popup className="relative border-2 border-border bg-card shadow-shadow outline-none">
+          <NavigationMenuPrimitive.Popup className="relative rounded-xl border border-border bg-card shadow-[0_16px_36px_-14px_rgb(0_0_0/0.28)] outline-none transition-[opacity,transform] duration-150 data-ending-style:-translate-y-1 data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:opacity-0">
             <NavigationMenuPrimitive.Viewport className="relative h-[var(--popup-height)] w-[var(--popup-width)] overflow-hidden" />
           </NavigationMenuPrimitive.Popup>
         </NavigationMenuPrimitive.Positioner>
@@ -123,11 +123,12 @@ function NavigationMenuLink({
   return (
     <NavigationMenuPrimitive.Link
       className={cn(
-        "cursor-pointer border-2 border-transparent text-foreground focus-brutal",
-        variant === "menu" && "block px-2 py-1.5",
+        "cursor-pointer text-foreground focus-brutal",
+        // Dropdown rows: rounded, with a soft tint on hover.
+        variant === "menu" &&
+          "block rounded-lg px-3 py-2 transition-colors hover:bg-muted data-highlighted:bg-muted",
         variant === "top" &&
-          "relative flex items-center px-3 py-2.5 font-heading",
-        "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
+          "relative flex items-center border-2 border-transparent px-3 py-2.5 font-heading hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
         // HS: top-level links show a thin bar on hover instead of a filled box.
         variant === "top" &&
           "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:shadow-none hs:hover:after:absolute hs:hover:after:inset-x-3 hs:hover:after:bottom-0 hs:hover:after:h-0.5 hs:hover:after:bg-foreground/25",

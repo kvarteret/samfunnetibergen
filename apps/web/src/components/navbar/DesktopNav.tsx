@@ -89,11 +89,11 @@ function DesktopNavItem({
 
 function DropdownGroups({ groups }: { groups: NavigationGroup[] }) {
   return (
-    <div className="min-w-56 p-3">
+    <div className="min-w-48 space-y-2 p-1.5">
       {groups.map(group => (
         <div className="space-y-0.5" key={group.id}>
           {group.label && (
-            <p className="px-2 py-1.5 font-heading uppercase tracking-widest text-foreground-muted">
+            <p className="px-3 pt-1.5 pb-0.5 font-heading text-sm text-foreground-muted">
               {group.label}
             </p>
           )}
