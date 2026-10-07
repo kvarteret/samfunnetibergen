@@ -408,7 +408,11 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
   const roomHours = data.roomHours ?? []
 
   return (
-    <footer className="footer-surface border-t border-border">
+    <>
+      <div aria-hidden className="mx-auto mt-6 w-full max-w-4xl px-6 sm:px-10">
+        <div className="footer-illustration w-full" />
+      </div>
+      <footer className="footer-surface border-t border-border">
       <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 lg:px-14">
         <div className="grid grid-cols-1 gap-8 lg:grid-auto-side">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
@@ -434,6 +438,7 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
           </Link>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   )
 }

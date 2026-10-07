@@ -498,6 +498,21 @@
   }
 }
 
+/* Line drawing of Kvarteret standing on the footer. The PNG/WebP is an
+   alpha mask, so the lines take the theme's footer colour. */
+@utility footer-illustration {
+  aspect-ratio: 1920 / 1055;
+  background-color: var(--footer);
+  -webkit-mask: url("/images/kvarteret-illustration-960.webp") center bottom /
+    contain no-repeat;
+  mask: url("/images/kvarteret-illustration-960.webp") center bottom / contain
+    no-repeat;
+  @variant md {
+    -webkit-mask-image: url("/images/kvarteret-illustration-1920.webp");
+    mask-image: url("/images/kvarteret-illustration-1920.webp");
+  }
+}
+
 /* House focus state: cream interior -> 2px black border -> 3px amber ring,
    with zero offset so no page background shows between border and ring. */
 @utility focus-brutal {
