@@ -65,6 +65,7 @@ export type EventSummary = {
   } | null
   roomText?: string | null
   organizerGroup?: { _id: string; name: string; slug: string } | null
+  coOrganizerGroups?: Array<{ _id: string; name: string; slug: string }>
   organizerText?: string | null
   eventType?: {
     _id: string

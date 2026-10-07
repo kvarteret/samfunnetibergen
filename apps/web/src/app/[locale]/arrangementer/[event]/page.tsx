@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
@@ -248,7 +248,11 @@ function EventDetailMetaSidebar({
   event: EventDetail
   t: Awaited<ReturnType<typeof getTranslations>>
 }) {
-  const organizer = event.organizerGroup?.name ?? event.organizerText
+  const groups = [
+    ...(event.organizerGroup ? [event.organizerGroup] : []),
+    ...(event.coOrganizerGroups ?? []),
+  ]
+  const organizer = groups.length > 0 || event.organizerText
   const price = event.isSoldOut ? t("soldOut") : formatPrices(event)
 
   return (
@@ -258,16 +262,23 @@ function EventDetailMetaSidebar({
       </EventDetailMetaItem>
       {organizer && (
         <EventDetailMetaItem label={t("organizer")}>
-          {event.organizerGroup?.slug ? (
-            <Link
-              href={`/grupper/${event.organizerGroup.slug}`}
-              className="underline underline-offset-4 hover:text-primary focus-brutal"
-            >
-              {organizer}
-            </Link>
-          ) : (
-            organizer
-          )}
+          {groups.length > 0
+            ? groups.map((group, index) => (
+                <Fragment key={group._id}>
+                  {index > 0 ? ", " : null}
+                  {group.slug ? (
+                    <Link
+                      href={`/grupper/${group.slug}`}
+                      className="underline underline-offset-4 hover:text-primary focus-brutal"
+                    >
+                      {group.name}
+                    </Link>
+                  ) : (
+                    group.name
+                  )}
+                </Fragment>
+              ))
+            : event.organizerText}
         </EventDetailMetaItem>
       )}
     </aside>

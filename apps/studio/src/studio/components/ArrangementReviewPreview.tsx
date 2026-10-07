@@ -26,6 +26,7 @@ const REFERENCE_QUERY = `{
  "room": *[_id == $roomId][0]{_id,localizedTitle,floor},
  "eventType": *[_id == $typeId][0]{_id,localizedName},
  "organizer": *[_id == $organizerId][0]{_id,localizedName},
+ "coOrganizers": *[_id in $coOrganizerIds]{_id,localizedName},
  "parent": *[_id == $parentId][0],
  "childDates": *[_type == "arrangement" && parentEvent._ref == $documentId && approvalStatus == "approved"].dates[]
 }`
@@ -155,6 +156,9 @@ export function ArrangementReviewPreview({
       roomId: document.room?._ref ?? "",
       typeId: document.eventType?._ref ?? "",
       organizerId: document.organizerGroup?._ref ?? "",
+      coOrganizerIds: (document.coOrganizerGroups ?? []).flatMap(ref =>
+        ref._ref ? [ref._ref] : [],
+      ),
       parentId: document.parentEvent?._ref ?? "",
       documentId: normalizeDocumentId(document._id ?? ""),
     },
@@ -179,6 +183,7 @@ export function ArrangementReviewPreview({
         roomId: "",
         typeId: inheritedType ?? "",
         organizerId: inheritedOrganizer ?? "",
+        coOrganizerIds: [],
         parentId: "",
         documentId: "",
       },

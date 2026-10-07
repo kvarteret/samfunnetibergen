@@ -526,6 +526,11 @@ export type Arrangement = {
   room?: RoomReference
   localizedRoomText?: InternationalizedArrayString
   organizerGroup?: StudentGroupReference
+  coOrganizerGroups?: Array<
+    {
+      _key: string
+    } & StudentGroupReference
+  >
   localizedOrganizerText?: InternationalizedArrayString
   isSoldOut?: boolean
   isFree?: boolean

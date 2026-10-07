@@ -20,6 +20,7 @@ export const INHERITED_FIELDS = [
   "imageAlt",
   "imageCaption",
   "organizerGroup",
+  "coOrganizerGroups",
   "organizerText",
   "eventType",
   "isFree",

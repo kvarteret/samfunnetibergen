@@ -23,6 +23,7 @@ export type PreviewDocument = {
   room?: { _ref?: string | null } | null
   eventType?: { _ref?: string | null } | null
   organizerGroup?: { _ref?: string | null } | null
+  coOrganizerGroups?: Array<{ _ref?: string | null }> | null
   parentEvent?: { _ref?: string | null } | null
   dates?:
     | {
@@ -51,6 +52,7 @@ export type PreviewReferences = {
   } | null
   eventType: { _id: string; localizedName?: LocalizedValue[] } | null
   organizer: { _id: string; localizedName?: LocalizedValue[] } | null
+  coOrganizers?: Array<{ _id: string; localizedName?: LocalizedValue[] }>
   parent: PreviewDocument | null
   childDates: NonNullable<PreviewDocument["dates"]>
 }
@@ -308,7 +310,13 @@ export function buildArrangementPreview(
       done: Boolean(organizer),
       required: false,
       path: "organizerGroup",
-      values: organizer ? [organizer] : [],
+      values: [
+        ...(organizer ? [organizer] : []),
+        ...(refs.coOrganizers ?? []).map(
+          group =>
+            `Med: ${text(group.localizedName, locale) || text(group.localizedName, "nb")}`,
+        ),
+      ],
     },
     {
       id: "slug",

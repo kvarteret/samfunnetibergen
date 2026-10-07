@@ -90,6 +90,7 @@ export type PublicEvent = {
   imageAlt?: string | null
   imageCaption: string | null
   organizerGroup: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[]
   organizerText: string | null
   eventType: PublicEventType | null
   isSoldOut?: boolean
@@ -142,6 +143,7 @@ export type RawPublicParent = {
   imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
   isSoldOut?: boolean | null
@@ -178,6 +180,7 @@ export type RawPublicEvent = {
   imageAlt?: string | null
   imageCaption?: string | null
   organizerGroup?: PublicOrganizerGroup | null
+  coOrganizerGroups?: PublicOrganizerGroup[] | null
   organizerText?: string | null
   eventType?: PublicEventType | null
   isSoldOut?: boolean | null
@@ -400,6 +403,9 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
     imageAlt: normalizeString(content.imageAlt),
     imageCaption: normalizeString(content.imageCaption),
     organizerGroup: content.organizerGroup ?? null,
+    coOrganizerGroups: (
+      (content.coOrganizerGroups as PublicOrganizerGroup[] | null) ?? []
+    ).filter(group => group?._id),
     organizerText: normalizeString(content.organizerText),
     eventType: content.eventType ?? null,
     isFree: content.isFree ?? false,

@@ -306,6 +306,29 @@ export const arrangement = defineType({
       group: "core",
       options: { disableNew: true },
     }),
+    defineField({
+      name: "coOrganizerGroups",
+      title: "Medarrangører",
+      type: "array",
+      group: "core",
+      of: [
+        defineArrayMember({
+          type: "reference",
+          to: [{ type: "studentGroup" }],
+          options: { disableNew: true },
+        }),
+      ],
+      validation: rule =>
+        rule.unique().custom((value, context) => {
+          const main = (
+            context.document?.organizerGroup as { _ref?: string } | undefined
+          )?._ref
+          const refs = (value ?? []) as Array<{ _ref?: string }>
+          return main && refs.some(ref => ref._ref === main)
+            ? "Hovedarrangøren skal ikke stå som medarrangør"
+            : true
+        }),
+    }),
     localizedArrayField(
       "localizedOrganizerText",
       "Arrangør (fritekst)",

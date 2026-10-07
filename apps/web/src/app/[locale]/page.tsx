@@ -152,6 +152,7 @@ function toEventSummary(
         }
       : null,
     roomText: event.roomText ?? null,
+    coOrganizerGroups: event.coOrganizerGroups ?? [],
     organizerGroup: event.organizerGroup
       ? {
           _id: event.organizerGroup._id,

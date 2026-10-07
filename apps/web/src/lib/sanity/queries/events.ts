@@ -51,6 +51,7 @@ const inheritableFieldsProjection = `
     "imageAlt": select(defined(image.asset) => coalesce(image.alt, "")),
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
+    "coOrganizerGroups": coOrganizerGroups[]-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
     "organizerText": ${localizedNullableOrganizerText},
     "eventType": eventType-> {
         _id,
