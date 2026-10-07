@@ -121,6 +121,11 @@ export async function runWeekly(
     }
   }
   webhookUrl()
+  const folder = process.env.CANVA_WEEKLY_OUTPUT_FOLDER_ID
+  if (!folder || !/^F[A-Za-z0-9_-]+$/.test(folder))
+    throw new Error(
+      "Configure CANVA_WEEKLY_OUTPUT_FOLDER_ID as a shared Canva folder",
+    )
   await client.createIfNotExists({ _id: LOCK_ID, _type: "weeklyCanvaLock" })
   const lock = await client.getDocument<{
     _id: string
@@ -184,6 +189,7 @@ export async function runWeekly(
       (receipt.mergedParts ?? 0) < (receipt.pages?.length ?? 0) + 2
     ) {
       const canva = await deps.canva(client)
+      await canva.folder(folder)
       await canva.dataset(receipt.template)
       const images = Object.fromEntries(
         (receipt.images ?? []).map(item => [item.url, item.assetId]),
@@ -225,6 +231,7 @@ export async function runWeekly(
           parts[i] = part
           await save({ parts })
         }
+        if (part.design) await canva.moveToFolder(part.design.id, folder)
       }
       for (let i = receipt.mergedParts ?? 0; i < parts.length; i++) {
         const source = parts[i].design
@@ -244,7 +251,13 @@ export async function runWeekly(
           await canva.poll("merges", receipt.mergeJob as string),
         )
         await save({ design, mergedParts: i + 1, mergeJob: "" })
+        await canva.moveToFolder(design.id, folder)
       }
+    }
+    // Ensure saved final designs are filed before retrying Slack delivery.
+    if (receipt.design) {
+      const canva = await deps.canva(client)
+      await canva.moveToFolder(receipt.design.id, folder)
     }
     await deps.notify(week, receipt.design)
     await save({ deliveredAt: new Date().toISOString() })

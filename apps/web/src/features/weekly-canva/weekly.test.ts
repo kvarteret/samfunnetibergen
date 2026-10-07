@@ -77,6 +77,8 @@ function fixture() {
     }),
   } as unknown as SanityClient
   const canva = {
+    folder: vi.fn(async () => {}),
+    moveToFolder: vi.fn(async () => {}),
     dataset: vi.fn(async () => {}),
     uploadImage: vi.fn(async () => "Mimage"),
     autofill: vi.fn(async () => "autofill-job"),
@@ -97,6 +99,7 @@ function fixture() {
     "SLACK_NETTSIDE_WEBHOOK",
     "https://hooks.slack.com/services/test/test/test",
   )
+  vi.stubEnv("CANVA_WEEKLY_OUTPUT_FOLDER_ID", "Fshared")
   return { client, docs, deps, canva }
 }
 
@@ -354,6 +357,34 @@ test("generation resumes after Slack failure without creating more designs", asy
     "already-delivered",
   )
   expect(deps.notify).toHaveBeenCalledTimes(2)
+})
+
+test("folder failures prevent Slack and retries file saved designs before delivery", async () => {
+  const { client, deps, canva } = fixture()
+  canva.moveToFolder.mockRejectedValueOnce(new Error("Folder unavailable"))
+  await expect(
+    runWeekly(client, { monday: "2026-10-12" }, deps),
+  ).rejects.toThrow("Folder unavailable")
+  expect(deps.notify).not.toHaveBeenCalled()
+  expect(canva.autofill).toHaveBeenCalledTimes(1)
+  await runWeekly(client, { monday: "2026-10-12" }, deps)
+  expect(canva.autofill).toHaveBeenCalledTimes(3)
+  expect(canva.moveToFolder).toHaveBeenCalledWith(design.id, "Fshared")
+  expect(deps.notify).toHaveBeenCalledTimes(1)
+})
+
+test("folder move accepts Canva's empty success response", async () => {
+  const request = vi.fn(async () => new Response(null, { status: 204 }))
+  await new Canva("token", request).moveToFolder("Ddesign", "Fshared")
+  const [url, options] = request.mock.calls[0] as unknown as [
+    string,
+    RequestInit,
+  ]
+  expect(url).toBe("https://api.canva.com/rest/v1/folders/move")
+  expect(JSON.parse(options.body as string)).toEqual({
+    item_id: "Ddesign",
+    to_folder_id: "Fshared",
+  })
 })
 
 test("resumes a saved autofill job after a polling failure", async () => {

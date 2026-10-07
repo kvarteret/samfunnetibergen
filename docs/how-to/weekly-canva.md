@@ -31,7 +31,7 @@ Titles are limited to 22 characters and summaries to 95 characters. These bounds
 
 ## Connect an individual Canva account
 
-Give the account access to the Ukas post design and a plan with Autofill access. Enable MFA on that account. In [Canva Developer Portal](https://www.canva.com/developers/apps), create a `Skonk` app. Private apps require Enterprise; a Public app can remain unpublished during development. Under **Outside Canva**, select **Start integrating**, then enable **Canva REST APIs**. Request only `design:content:read`, `design:content:write`, `design:meta:read`, `asset:read`, and `asset:write`. Set the exact redirect URL `http://127.0.0.1:8789/callback`.
+Give the account access to the Ukas post design and a plan with Autofill access. Enable MFA on that account. In [Canva Developer Portal](https://www.canva.com/developers/apps), create a `Skonk` app. Private apps require Enterprise; a Public app can remain unpublished during development. Under **Outside Canva**, select **Start integrating**, then enable **Canva REST APIs**. Request only `design:content:read`, `design:content:write`, `design:meta:read`, `asset:read`, `asset:write`, `folder:read`, and `folder:write`. Set the exact redirect URL `http://127.0.0.1:8789/callback`.
 
 The Merge and URL asset upload endpoints are preview APIs. Confirm that the app can call them before enabling the schedule; preview APIs can change without a version bump and are not eligible for public app review. This implementation uses autofill from an existing labeled design, so publishing a Brand Template is not required.
 
@@ -71,3 +71,7 @@ Local checks:
     mise exec -- npm run typecheck
 
 The approved week 42 draft covers 12–18 October 2026. Editors review future generated posts before publishing them to Instagram.
+
+## Shared output folder
+
+All autofilled part copies and final merged carousels are moved into the configured shared folder before Slack notification. Set repository Actions variable `CANVA_WEEKLY_OUTPUT_FOLDER_ID` to that folder's ID and supply the same name to local live runs. A live run refuses to generate without this value and checks folder access before creating copies. The API cannot grant folder membership by email: share the folder in Canva with edit access to the OAuth account and `kommunikasjon@samfunnetibergen.no`. Verify the communication account can open an item in that folder. Enable `folder:read` and `folder:write` in the Developer app, then reconnect OAuth to consent to the new scopes. Existing generated copies must be moved into this folder once. The original source and labeled template remain in their current locations.
