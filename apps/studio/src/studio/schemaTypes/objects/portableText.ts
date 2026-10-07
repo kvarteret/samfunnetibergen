@@ -1,9 +1,12 @@
 import { defineArrayMember, defineType } from "sanity"
 
+import { MarkdownPortableTextInput } from "../../components/MarkdownPortableTextInput"
+
 export const portableTextContent = defineType({
   name: "portableTextContent",
   title: "Tekstinnhold",
   type: "array",
+  components: { input: MarkdownPortableTextInput },
   of: [
     defineArrayMember({
       type: "block",

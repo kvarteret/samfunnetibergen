@@ -14,6 +14,7 @@ export default defineCliConfig({
   },
   deployment: {
     appId: "r7kax3ojhq4892odvrwpjt93",
+    autoUpdates: true,
   },
   server: {
     port: 3333,
