@@ -3,7 +3,7 @@
 import { Collapsible } from "@base-ui/react/collapsible"
 import { Check, ChevronDown, PartyPopper } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useId, useSyncExternalStore } from "react"
+import { useId, useState, useSyncExternalStore } from "react"
 import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { SegmentedControl } from "@/components/ui/segmented-control"
@@ -86,9 +86,17 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
  */
 function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
   const t = useTranslations("Navigation")
+  // Expands on hover; the Mer dropdown has a fixed width, so only its
+  // height grows.
+  const [open, setOpen] = useState(false)
 
   return (
-    <Collapsible.Root className="mt-1.5 border-t border-border pt-1.5" defaultOpen>
+    <Collapsible.Root
+      className="mt-1.5 border-t border-border pt-1.5"
+      onOpenChange={setOpen}
+      onPointerEnter={() => setOpen(true)}
+      open={open}
+    >
       <Collapsible.Trigger className="group flex w-full cursor-pointer items-center justify-between gap-6 rounded-lg px-3 py-2 text-left text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
         {t("moreSettings")}
         <ChevronDown
@@ -206,9 +214,7 @@ function PartyModeChoice({ className }: { className?: string }) {
             )}
           </div>
         </>
-      ) : (
-        <p className="text-foreground-muted text-sm">{t("partyDescription")}</p>
-      )}
+      ) : null}
     </fieldset>
   )
 }

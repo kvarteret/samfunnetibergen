@@ -80,18 +80,34 @@ function DesktopNavItem({
         {item.label}
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <DropdownGroups groups={item.children ?? []} />
-        {item.includePaperMenu && <PaperMenuSection />}
+        <div className={cn(item.includePaperMenu && "w-[34rem]")}>
+          <DropdownGroups
+            columns={item.includePaperMenu ? 2 : 1}
+            groups={item.children ?? []}
+          />
+          {item.includePaperMenu && <PaperMenuSection />}
+        </div>
       </NavigationMenuContent>
     </NavigationMenuItem>
   )
 }
 
-function DropdownGroups({ groups }: { groups: NavigationGroup[] }) {
+function DropdownGroups({
+  groups,
+  columns = 1,
+}: {
+  groups: NavigationGroup[]
+  columns?: 1 | 2
+}) {
   return (
     <div className="min-w-48 space-y-2 p-1.5">
       {groups.map(group => (
-        <div className="space-y-0.5" key={group.id}>
+        <div
+          className={cn(
+            columns === 2 ? "grid grid-cols-2 gap-0.5" : "space-y-0.5",
+          )}
+          key={group.id}
+        >
           {group.label && (
             <p className="px-3 pt-1.5 pb-0.5 font-heading text-sm text-foreground-muted">
               {group.label}
