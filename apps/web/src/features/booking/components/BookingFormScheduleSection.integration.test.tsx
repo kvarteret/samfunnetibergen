@@ -184,3 +184,49 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     expect(container.textContent).not.toContain("Legg til flere rom")
   })
 })
+
+describe("selected-room Crescat calendar availability", () => {
+  test("marks partial bookings, disables full days, and updates on month navigation", async () => {
+    const container = document.createElement("div")
+    document.body.append(container)
+    const root = createRoot(container)
+    const onVisibleMonthChange = vi.fn()
+    try {
+      await act(async () =>
+        root.render(
+          <ScheduleHarness
+            calendarBookings={[
+              { start: "2026-08-20T16:00:00", end: "2026-08-20T22:00:00" },
+              { start: "2026-08-21T00:00:00", end: "2026-08-22T00:00:00" },
+            ]}
+            roomOccupancy={new Map()}
+            occupiedRanges={[]}
+            onVisibleMonthChange={onVisibleMonthChange}
+          />,
+        ),
+      )
+      const dayButton = (day: string) =>
+        container.querySelector<HTMLButtonElement>(`button[data-day="${day}"]`)
+      const partial = dayButton(
+        new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
+      )
+      const full = dayButton(
+        new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
+      )
+      expect(partial).not.toBeNull()
+      expect(partial?.className).toContain("unavailable-slot")
+      expect(partial?.disabled).toBe(false)
+      expect(full?.className).toContain("unavailable-slot")
+      expect(full?.disabled).toBe(true)
+      const nextMonth = container.querySelector<HTMLButtonElement>(
+        "nav button:last-child",
+      )
+      expect(nextMonth).not.toBeNull()
+      await act(async () => nextMonth?.click())
+      expect(onVisibleMonthChange).toHaveBeenCalledWith("2026-09-01")
+    } finally {
+      await act(async () => root.unmount())
+      container.remove()
+    }
+  })
+})

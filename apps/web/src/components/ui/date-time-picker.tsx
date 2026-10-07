@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
+import { calendarBookingStatus } from "@/features/booking/domain/availability"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,
@@ -193,6 +195,8 @@ interface DateTimePickerProps {
   startTime: string
   endTime: string
   occupiedRanges: { startMin: number; endMin: number }[]
+  calendarBookings?: Pick<CresatBooking, "start" | "end">[]
+  onVisibleMonthChange?: (month: string) => void
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
@@ -211,6 +215,8 @@ export function DateTimePicker({
   startTime,
   endTime,
   occupiedRanges,
+  calendarBookings = [],
+  onVisibleMonthChange,
   onStartDateChange,
   onEndDateChange,
   onStartChange,
@@ -238,23 +244,39 @@ export function DateTimePicker({
   // Derived phase: if we have a start but no end, we're waiting for the end click
   const isSelectingEnd = Boolean(startDate && !endDate)
 
-  const isOccupied = (d: Date): boolean => {
-    if (d < todayDate) return false
+  const bookingStatus = (d: Date) => {
+    const date = toDateString(d)
+    return calendarBookingStatus(
+      calendarBookings,
+      date,
+      hasHours
+        ? combineOpeningRangesForDate(
+            date,
+            openingHours,
+            roomOpeningHours,
+            closedDates,
+            vacationMode,
+          )
+        : [{ startMin: 0, endMin: MINUTES_IN_DAY }],
+    )
+  }
+
+  const isClosed = (d: Date): boolean => {
     const ds = toDateString(d)
     if (closedDateSet.has(ds) || isHouseClosed(ds, [], vacationMode))
       return true
-    if (!hasHours) return false
     return (
+      hasHours &&
       slotMarks(ds, openingHours, roomOpeningHours, closedDates, vacationMode)
         .length === 0
     )
   }
 
-  const isDisabled = (d: Date): boolean => {
-    if (d < todayDate) return true
-    if (isOccupied(d)) return true
-    return false
-  }
+  const isOccupied = (d: Date): boolean =>
+    d >= todayDate && (isClosed(d) || bookingStatus(d).occupied)
+
+  const isDisabled = (d: Date): boolean =>
+    d < todayDate || isClosed(d) || bookingStatus(d).fullyOccupied
 
   // Dates beyond the 7-day window are dimmed but stay clickable (they reset
   // the range to a fresh start). Only applies while selecting an end date.
@@ -323,17 +345,24 @@ export function DateTimePicker({
             "relative isolate z-0 rounded-r bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
         }}
         components={{
-          DayButton: ({ modifiers, day, onClick: _onClick, ...props }) => {
+          DayButton: ({
+            modifiers,
+            day,
+            onClick: _onClick,
+            className,
+            ...props
+          }) => {
             const mods = modifiers as Record<string, boolean>
             return (
               <CalendarDayButton
                 className={cn(
+                  className,
                   "aspect-auto h-11 w-full rounded-none text-sm font-normal transition-colors hover:rounded focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
                   isSelectingEnd
                     ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
                     : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
-                  mods.occupied &&
-                    "bg-[var(--unavailable-background)] text-[var(--unavailable-foreground)] line-through !opacity-70",
+                  mods.occupied && "unavailable-slot !opacity-70",
+                  mods.occupied && mods.disabled && "line-through",
                   mods.beyond_range && "opacity-40",
                 )}
                 day={day}
@@ -343,7 +372,7 @@ export function DateTimePicker({
                 variant="plain"
                 {...props}
                 style={
-                  mods.range_middle
+                  mods.range_middle && !mods.occupied
                     ? ({
                         backgroundColor: "var(--muted)",
                         backgroundImage:
@@ -355,12 +384,14 @@ export function DateTimePicker({
             )
           },
         }}
+        defaultMonth={todayDate}
         disabled={isDisabled}
         locale={calendarLocale}
         mode="range"
         modifiers={{ occupied: isOccupied, beyond_range: isBeyondRange }}
         modifiersClassNames={{ beyond_range: "opacity-40" }}
         numberOfMonths={2}
+        onMonthChange={month => onVisibleMonthChange?.(toDateString(month))}
         onSelect={() => {}}
         selected={selectedRange}
         showOutsideDays={false}

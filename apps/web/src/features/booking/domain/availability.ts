@@ -197,3 +197,68 @@ export function findRoomConflicts(
     )
     .map(formatConflictRange)
 }
+
+/** Calendar status for the selected rooms during the day's bookable hours.
+ * Merge overlapping reservations so adjacent bookings can fill the whole day.
+ * A partly occupied day remains selectable for its available times. */
+export function calendarBookingStatus(
+  bookings: Pick<CresatBooking, "start" | "end">[],
+  date: string,
+  openingRanges: { startMin: number; endMin: number }[],
+): { occupied: boolean; fullyOccupied: boolean } {
+  const midnight = crescatLocalDateTimeMs(`${date}T00:00:00`)
+  const intervals = bookings
+    .map(booking => ({
+      startMin: (crescatLocalDateTimeMs(booking.start) - midnight) / 60_000,
+      endMin: (crescatLocalDateTimeMs(booking.end) - midnight) / 60_000,
+    }))
+    .toSorted((a, b) => a.startMin - b.startMin)
+  const occupied = openingRanges.some(range =>
+    intervals.some(interval =>
+      rangesOverlap(
+        range.startMin,
+        range.endMin,
+        interval.startMin,
+        interval.endMin,
+      ),
+    ),
+  )
+  const fullyOccupied =
+    openingRanges.length > 0 &&
+    openingRanges.every(range => {
+      let coveredUntil = range.startMin
+      for (const interval of intervals) {
+        if (interval.endMin <= coveredUntil) continue
+        if (interval.startMin > coveredUntil) return false
+        coveredUntil = Math.max(coveredUntil, interval.endMin)
+        if (coveredUntil >= range.endMin) return true
+      }
+      return false
+    })
+  return { occupied, fullyOccupied }
+}
+
+/** Cover both visible months and the selected booking, including overnight
+ * get-out on the following day. Crescat's end date is exclusive. */
+export function availabilityWindow(
+  visibleMonth: string,
+  startDate: string,
+  endDate: string,
+): { start: string; end: string } {
+  const [year, month] = visibleMonth.split("-").map(Number)
+  const visibleEnd = new Date(Date.UTC(year, month + 1, 2))
+    .toISOString()
+    .slice(0, 10)
+  const selectedEnd = endDate || startDate
+  const bookingEnd = selectedEnd
+    ? new Date(
+        crescatLocalDateTimeMs(`${selectedEnd}T00:00:00`) + 2 * 86_400_000,
+      )
+        .toISOString()
+        .slice(0, 10)
+    : visibleEnd
+  return {
+    start: startDate && startDate < visibleMonth ? startDate : visibleMonth,
+    end: bookingEnd > visibleEnd ? bookingEnd : visibleEnd,
+  }
+}
