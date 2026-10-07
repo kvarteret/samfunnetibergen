@@ -184,3 +184,82 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     expect(container.textContent).not.toContain("Legg til flere rom")
   })
 })
+
+describe("selected-room Crescat calendar availability", () => {
+  test("explains partial and full bookings without blocking date selection, and updates on month navigation", async () => {
+    const container = document.createElement("div")
+    document.body.append(container)
+    const root = createRoot(container)
+    const onVisibleMonthChange = vi.fn()
+    try {
+      await act(async () =>
+        root.render(
+          <ScheduleHarness
+            calendarBookings={[
+              { start: "2026-08-20T16:00:00", end: "2026-08-20T22:00:00" },
+              { start: "2026-08-21T00:00:00", end: "2026-08-22T00:00:00" },
+            ]}
+            roomOccupancy={new Map()}
+            occupiedRanges={[]}
+            onVisibleMonthChange={onVisibleMonthChange}
+          />,
+        ),
+      )
+      const dayButton = (day: string) =>
+        container.querySelector<HTMLButtonElement>(`button[data-day="${day}"]`)
+      const partial = dayButton(
+        new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
+      )
+      const full = dayButton(
+        new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
+      )
+      expect(partial).not.toBeNull()
+      expect(partial?.className).toContain("booking-partial")
+      expect(partial?.disabled).toBe(false)
+      expect(full?.className).toContain("booking-stripes")
+      expect(full?.disabled).toBe(false)
+      await act(async () => full?.click())
+      expect(document.body.textContent).toContain("Rommet er opptatt:")
+      expect(document.body.textContent).toContain(
+        "21. aug. 00:00 – 22. aug. 00:00",
+      )
+      await act(async () =>
+        dayButton(
+          new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
+        )?.click(),
+      )
+      expect(
+        dayButton(new Date("2026-08-27T00:00:00").toLocaleDateString("nb"))
+          ?.className,
+      ).toContain("!opacity-25")
+      expect(
+        dayButton(new Date("2026-08-26T00:00:00").toLocaleDateString("nb"))
+          ?.className,
+      ).not.toContain("!opacity-25")
+      await act(async () =>
+        dayButton(
+          new Date("2026-08-22T00:00:00").toLocaleDateString("nb"),
+        )?.click(),
+      )
+      expect(
+        container.querySelectorAll('button[data-range-start="true"]'),
+      ).toHaveLength(1)
+      expect(
+        container.querySelectorAll('button[data-range-end="true"]'),
+      ).toHaveLength(1)
+      expect(
+        container.querySelectorAll('button[data-range-middle="true"]'),
+      ).toHaveLength(1)
+      expect(container.textContent).not.toContain("Ferdig for én dag")
+      const nextMonth = container.querySelector<HTMLButtonElement>(
+        "nav button:last-child",
+      )
+      expect(nextMonth).not.toBeNull()
+      await act(async () => nextMonth?.click())
+      expect(onVisibleMonthChange).toHaveBeenCalledWith("2026-09-01")
+    } finally {
+      await act(async () => root.unmount())
+      container.remove()
+    }
+  })
+})

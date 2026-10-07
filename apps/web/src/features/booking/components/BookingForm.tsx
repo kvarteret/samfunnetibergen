@@ -22,7 +22,6 @@ import {
 import { useRouter } from "@/i18n/navigation"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
-import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
 import {
   type ClosedDate,
   hasOpeningHoursRows,
@@ -44,6 +43,7 @@ import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
+  availabilityWindow,
   durationHoursBetween,
   findRoomConflicts,
   occupiedMinuteRanges,
@@ -68,7 +68,6 @@ import { BookingFormContext } from "./bookingFormContext"
 
 export type BookingFormValues = BookingFormState
 
-const DATE_COUNT = 7
 const TIVOLI_CRESCAT_ROOM_ID = 95
 
 function saveBookingDraft(values: BookingFormValues) {
@@ -265,23 +264,24 @@ export function BookingForm({
     }
   }, [bookerType])
 
-  const selectedStartDate = values.startDate
+  const [visibleMonth, setVisibleMonth] = useState(`${today.slice(0, 7)}-01`)
+  const { start: availabilityStart, end: availabilityEnd } = availabilityWindow(
+    visibleMonth,
+    values.startDate,
+    values.endDate,
+  )
 
   useEffect(() => {
     let active = true
-    // Fetch around the selected date when available, otherwise fetch from today.
-    const windowStart = selectedStartDate || today
-    fetchRoomAvailability(
-      bookerType,
-      windowStart,
-      addDaysDateOnly(windowStart, DATE_COUNT),
-    ).then(result => {
-      if (active) setBookings(result)
-    })
+    fetchRoomAvailability(bookerType, availabilityStart, availabilityEnd).then(
+      result => {
+        if (active) setBookings(result)
+      },
+    )
     return () => {
       active = false
     }
-  }, [bookerType, selectedStartDate])
+  }, [bookerType, availabilityStart, availabilityEnd])
 
   const selectedRoomIds = values.selectedRoomIds
   const primaryRoom = selectedRooms[0]
@@ -438,6 +438,10 @@ export function BookingForm({
             rooms={rooms}
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}
+            calendarBookings={bookings.filter(booking =>
+              selectedRoomIds.includes(booking.resourceId),
+            )}
+            onVisibleMonthChange={setVisibleMonth}
             openingHours={bookableHours}
             today={today}
             closedDates={closedDates}

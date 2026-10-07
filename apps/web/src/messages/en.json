@@ -189,7 +189,7 @@
       "notEnoughTimes": "There are not enough times to show a time picker.",
       "legendSelected": "Start and end",
       "legendInRange": "Part of the booking",
-      "legendUnavailable": "Closed or booked",
+      "legendUnavailable": "Closed or fully booked",
       "legendToday": "Today",
       "legendBooking": "Your booking",
       "legendNight": "Days between start and end – change them in the calendar above",
@@ -199,7 +199,14 @@
       "hintStart": "Click the first day in the calendar.",
       "hintExtend": "Done for a single day. Need more days? Click the last day (up to 7 days).",
       "hintRange": "Click a day to start over.",
-      "resetDates": "Choose dates again"
+      "resetDates": "Choose dates again",
+      "legendPartlyBooked": "Partly booked",
+      "dayClosed": "Closed",
+      "dayFullyBooked": "Fully booked",
+      "dayPartlyBooked": "Partly booked",
+      "crescatBookings": "Reserved times in Crescat:",
+      "bookedDateHint": "You can select this date or a range spanning several days. Conflicts with the selected room and times appear below the time picker and must be resolved before submitting.",
+      "roomOccupied": "The room is occupied:"
     },
     "event": {
       "sectionTitle": "Event",

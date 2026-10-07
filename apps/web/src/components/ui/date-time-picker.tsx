@@ -1,5 +1,6 @@
 "use client"
 
+import { Popover } from "@base-ui/react/popover"
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns"
 import { useLocale, useTranslations } from "next-intl"
 import { type ReactNode, useState } from "react"
@@ -10,6 +11,11 @@ import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { CalendarLegend } from "@/components/ui/legend"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
+import {
+  calendarBookingStatus,
+  formatConflictRange,
+} from "@/features/booking/domain/availability"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,
@@ -181,83 +187,6 @@ export function computeMultiDayConstraints(
   }
 }
 
-/**
- * Names the current step so it is clear whether the next click picks a new
- * first day or extends the booking to more days.
- */
-function DateSelectionStatus({
-  startDate,
-  endDate,
-  locale,
-  onReset,
-}: {
-  startDate: string
-  endDate: string
-  locale: string
-  onReset: () => void
-}) {
-  const t = useTranslations("RoomBooking")
-  const format = (date: string, withYear = false) =>
-    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      ...(withYear ? { year: "numeric" as const } : {}),
-    }).format(new Date(`${date}T12:00:00`))
-  const step = !startDate ? "start" : !endDate ? "extend" : "range"
-  const days = endDate
-    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
-    : 1
-
-  return (
-    <div
-      aria-live="polite"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          aria-hidden
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full font-heading text-sm",
-            step === "start"
-              ? "bg-foreground text-background"
-              : "bg-booking-selected text-booking-selected-foreground",
-          )}
-        >
-          {step === "start" ? "1" : step === "extend" ? "2" : "✓"}
-        </span>
-        <div className="min-w-0">
-          <p className="font-heading text-foreground">
-            {step === "start" && t("dateTime.selectStartDate")}
-            {step === "extend" &&
-              t("dateTime.statusOneDay", { date: format(startDate) })}
-            {step === "range" &&
-              t("dateTime.statusRange", {
-                start: format(startDate),
-                end: format(endDate),
-                days,
-              })}
-          </p>
-          <p className="text-sm text-foreground-muted">
-            {step === "start" && t("dateTime.hintStart")}
-            {step === "extend" && t("dateTime.hintExtend")}
-            {step === "range" && t("dateTime.hintRange")}
-          </p>
-        </div>
-      </div>
-      {step !== "start" && (
-        <button
-          type="button"
-          onClick={onReset}
-          className="text-sm text-foreground-muted underline underline-offset-4 hover:text-foreground focus-brutal"
-        >
-          {t("dateTime.resetDates")}
-        </button>
-      )}
-    </div>
-  )
-}
-
 // Deliberately local-time, not the Oslo helpers: it formats dates the user
 // picked in the calendar widget, which live in the browser's timezone.
 function toDateString(d: Date): string {
@@ -271,6 +200,8 @@ interface DateTimePickerProps {
   startTime: string
   endTime: string
   occupiedRanges: { startMin: number; endMin: number }[]
+  calendarBookings?: Pick<CresatBooking, "start" | "end">[]
+  onVisibleMonthChange?: (month: string) => void
   onStartDateChange: (date: string) => void
   onEndDateChange: (date: string) => void
   onStartChange: (value: string) => void
@@ -289,6 +220,8 @@ export function DateTimePicker({
   startTime,
   endTime,
   occupiedRanges,
+  calendarBookings = [],
+  onVisibleMonthChange,
   onStartDateChange,
   onEndDateChange,
   onStartChange,
@@ -299,6 +232,7 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
+  const [availabilityDate, setAvailabilityDate] = useState<string | null>(null)
   const locale = useLocale()
   const t = useTranslations("RoomBooking")
   const calendarLocale = locale === "en" ? enUS : nb
@@ -316,23 +250,40 @@ export function DateTimePicker({
   // Derived phase: if we have a start but no end, we're waiting for the end click
   const isSelectingEnd = Boolean(startDate && !endDate)
 
-  const isOccupied = (d: Date): boolean => {
-    if (d < todayDate) return false
+  const bookingStatus = (d: Date) => {
+    const date = toDateString(d)
+    return calendarBookingStatus(
+      calendarBookings,
+      date,
+      hasHours
+        ? combineOpeningRangesForDate(
+            date,
+            openingHours,
+            roomOpeningHours,
+            closedDates,
+            vacationMode,
+          )
+        : [{ startMin: 0, endMin: MINUTES_IN_DAY }],
+    )
+  }
+
+  const isClosed = (d: Date): boolean => {
     const ds = toDateString(d)
     if (closedDateSet.has(ds) || isHouseClosed(ds, [], vacationMode))
       return true
-    if (!hasHours) return false
     return (
+      hasHours &&
       slotMarks(ds, openingHours, roomOpeningHours, closedDates, vacationMode)
         .length === 0
     )
   }
 
-  const isDisabled = (d: Date): boolean => {
-    if (d < todayDate) return true
-    if (isOccupied(d)) return true
-    return false
-  }
+  const isOccupied = (d: Date): boolean =>
+    d >= todayDate && (isClosed(d) || bookingStatus(d).occupied)
+
+  // Occupancy is explained, rather than blocking date selection: a range may
+  // cross booked days, and the form reports the actual room/time conflicts.
+  const isDisabled = (d: Date): boolean => d < todayDate
 
   // Dates beyond the 7-day window are dimmed but stay clickable (they reset
   // the range to a fresh start). Only applies while selecting an end date.
@@ -353,7 +304,7 @@ export function DateTimePicker({
   }
 
   const handleDayClick = (date: Date, disabled: boolean) => {
-    if (disabled) return
+    if (disabled || isClosed(date)) return
     if (isSelectingEnd && selectedRange.from) {
       if (date < selectedRange.from || isBeyondRange(date)) {
         // Clicked before start or outside max range → treat as new start
@@ -370,15 +321,6 @@ export function DateTimePicker({
 
   return (
     <div className="space-y-6">
-      <DateSelectionStatus
-        startDate={startDate}
-        endDate={endDate}
-        locale={locale}
-        onReset={() => {
-          onStartDateChange("")
-          onEndDateChange("")
-        }}
-      />
       <Calendar
         className="w-full p-0"
         classNames={{
@@ -419,7 +361,31 @@ export function DateTimePicker({
             ...props
           }) => {
             const mods = modifiers as Record<string, boolean>
-            return (
+            const status = bookingStatus(day.date)
+            const closed = isClosed(day.date)
+            const showAvailability = mods.occupied && day.date >= todayDate
+            const dateString = toDateString(day.date)
+            const dayRanges = hasHours
+              ? combineOpeningRangesForDate(
+                  dateString,
+                  openingHours,
+                  roomOpeningHours,
+                  closedDates,
+                  vacationMode,
+                )
+              : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
+            const dayBookings = Array.from(
+              new Set(
+                calendarBookings
+                  .filter(
+                    booking =>
+                      calendarBookingStatus([booking], dateString, dayRanges)
+                        .occupied,
+                  )
+                  .map(formatConflictRange),
+              ),
+            )
+            const button = (
               <CalendarDayButton
                 {...props}
                 className={cn(
@@ -428,10 +394,15 @@ export function DateTimePicker({
                   isSelectingEnd
                     ? "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-primary"
                     : "hover:bg-secondary-100 hover:ring-2 hover:ring-inset hover:ring-secondary-700",
-                  mods.occupied &&
-                    "booking-stripes text-[var(--unavailable-foreground)] line-through !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
+                  (closed || status.fullyOccupied) &&
+                    "booking-stripes text-[var(--unavailable-foreground)] !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
                   "data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
-                  mods.beyond_range && "opacity-40",
+                  !closed &&
+                    status.occupied &&
+                    !status.fullyOccupied &&
+                    "booking-partial",
+                  closed && "line-through",
+                  mods.beyond_range && "!opacity-25",
                 )}
                 day={day}
                 locale={calendarLocale}
@@ -440,8 +411,67 @@ export function DateTimePicker({
                 variant="plain"
               />
             )
+            if (!showAvailability) return button
+            return (
+              <Popover.Root
+                open={availabilityDate === dateString}
+                onOpenChange={open =>
+                  setAvailabilityDate(open ? dateString : null)
+                }
+              >
+                <Popover.Trigger
+                  render={button}
+                  openOnHover
+                  delay={0}
+                  closeDelay={100}
+                />
+                <Popover.Portal>
+                  <Popover.Positioner className="z-[100]" sideOffset={8}>
+                    <Popover.Popup className="relative isolate w-56 space-y-1.5 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-shadow">
+                      <p className="font-heading">
+                        {day.date.toLocaleDateString(
+                          locale === "en" ? "en-GB" : "nb-NO",
+                          { day: "numeric", month: "long" },
+                        )}
+                      </p>
+                      <p className="text-sm">
+                        {t(
+                          closed
+                            ? "dateTime.dayClosed"
+                            : "dateTime.roomOccupied",
+                        )}
+                      </p>
+                      {!closed && (
+                        <>
+                          <ul className="space-y-1 text-sm">
+                            {dayBookings.slice(0, 3).map(booking => (
+                              <li key={booking}>{booking}</li>
+                            ))}
+                          </ul>
+                          {dayBookings.length > 3 && (
+                            <details className="text-sm">
+                              <summary className="cursor-pointer">
+                                {t("schedule.showMoreConflicts", {
+                                  count: dayBookings.length - 3,
+                                })}
+                              </summary>
+                              <ul>
+                                {dayBookings.slice(3).map(booking => (
+                                  <li key={booking}>{booking}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
+                        </>
+                      )}
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
+            )
           },
         }}
+        defaultMonth={todayDate}
         disabled={isDisabled}
         locale={calendarLocale}
         mode="range"
@@ -453,10 +483,11 @@ export function DateTimePicker({
         onDayMouseEnter={date => setHoveredDate(date)}
         onDayMouseLeave={() => setHoveredDate(null)}
         modifiersClassNames={{
-          beyond_range: "opacity-40",
+          beyond_range: "text-foreground-muted [&_button]:!opacity-25",
           preview: "bg-booking-range",
         }}
         numberOfMonths={2}
+        onMonthChange={month => onVisibleMonthChange?.(toDateString(month))}
         onSelect={() => {}}
         selected={selectedRange}
         showOutsideDays={false}
@@ -474,6 +505,10 @@ export function DateTimePicker({
             swatch:
               "booking-stripes border border-booking-closed [--stripe:var(--booking-closed)]",
             label: t("dateTime.legendUnavailable"),
+          },
+          {
+            swatch: "booking-partial",
+            label: t("dateTime.legendPartlyBooked"),
           },
           {
             swatch: "ring-2 ring-inset ring-booking-today",

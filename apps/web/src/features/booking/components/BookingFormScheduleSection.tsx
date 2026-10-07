@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label"
 import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import type {
   ClosedDate,
   OpeningHours,
@@ -47,6 +48,8 @@ interface BookingFormScheduleSectionProps {
   initialRoomId?: number
   roomOccupancy: Map<number, string[]>
   occupiedRanges: { startMin: number; endMin: number }[]
+  calendarBookings?: Pick<CresatBooking, "start" | "end">[]
+  onVisibleMonthChange?: (month: string) => void
   openingHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
@@ -60,6 +63,8 @@ export function BookingFormScheduleSection({
   initialRoomId,
   roomOccupancy,
   occupiedRanges,
+  calendarBookings,
+  onVisibleMonthChange,
   openingHours,
   closedDates,
   vacationMode,
@@ -139,6 +144,8 @@ export function BookingFormScheduleSection({
                   endDate={endDate}
                   endTime={endTime}
                   occupiedRanges={occupiedRanges}
+                  calendarBookings={calendarBookings}
+                  onVisibleMonthChange={onVisibleMonthChange}
                   onEndChange={v => form.setFieldValue("endTime", v)}
                   onEndDateChange={v => {
                     form.setFieldValue("endDate", v)

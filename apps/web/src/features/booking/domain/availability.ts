@@ -72,7 +72,9 @@ export function bookingRangeMs(
 // Human-readable range for a single conflicting booking, e.g.
 // "17. jun 19:00–22:00" or "17. jun 22:00 – 18. jun 02:00" when it crosses
 // midnight.
-function formatConflictRange(booking: CresatBooking): string {
+export function formatConflictRange(
+  booking: Pick<CresatBooking, "start" | "end">,
+): string {
   const sameDay = booking.start.slice(0, 10) === booking.end.slice(0, 10)
   return sameDay
     ? `${formatBookingDate(booking.start)} ${formatBookingTime(booking.start)}–${formatBookingTime(booking.end)}`
@@ -196,4 +198,69 @@ export function findRoomConflicts(
         crescatLocalDateTimeMs(a.start) - crescatLocalDateTimeMs(b.start),
     )
     .map(formatConflictRange)
+}
+
+/** Calendar status for the selected rooms during the day's bookable hours.
+ * Merge overlapping reservations so adjacent bookings can fill the whole day.
+ * A partly occupied day remains selectable for its available times. */
+export function calendarBookingStatus(
+  bookings: Pick<CresatBooking, "start" | "end">[],
+  date: string,
+  openingRanges: { startMin: number; endMin: number }[],
+): { occupied: boolean; fullyOccupied: boolean } {
+  const midnight = crescatLocalDateTimeMs(`${date}T00:00:00`)
+  const intervals = bookings
+    .map(booking => ({
+      startMin: (crescatLocalDateTimeMs(booking.start) - midnight) / 60_000,
+      endMin: (crescatLocalDateTimeMs(booking.end) - midnight) / 60_000,
+    }))
+    .toSorted((a, b) => a.startMin - b.startMin)
+  const occupied = openingRanges.some(range =>
+    intervals.some(interval =>
+      rangesOverlap(
+        range.startMin,
+        range.endMin,
+        interval.startMin,
+        interval.endMin,
+      ),
+    ),
+  )
+  const fullyOccupied =
+    openingRanges.length > 0 &&
+    openingRanges.every(range => {
+      let coveredUntil = range.startMin
+      for (const interval of intervals) {
+        if (interval.endMin <= coveredUntil) continue
+        if (interval.startMin > coveredUntil) return false
+        coveredUntil = Math.max(coveredUntil, interval.endMin)
+        if (coveredUntil >= range.endMin) return true
+      }
+      return false
+    })
+  return { occupied, fullyOccupied }
+}
+
+/** Cover both visible months and the selected booking, including overnight
+ * get-out on the following day. Crescat's end date is exclusive. */
+export function availabilityWindow(
+  visibleMonth: string,
+  startDate: string,
+  endDate: string,
+): { start: string; end: string } {
+  const [year, month] = visibleMonth.split("-").map(Number)
+  const visibleEnd = new Date(Date.UTC(year, month + 1, 2))
+    .toISOString()
+    .slice(0, 10)
+  const selectedEnd = endDate || startDate
+  const bookingEnd = selectedEnd
+    ? new Date(
+        crescatLocalDateTimeMs(`${selectedEnd}T00:00:00`) + 2 * 86_400_000,
+      )
+        .toISOString()
+        .slice(0, 10)
+    : visibleEnd
+  return {
+    start: startDate && startDate < visibleMonth ? startDate : visibleMonth,
+    end: bookingEnd > visibleEnd ? bookingEnd : visibleEnd,
+  }
 }
