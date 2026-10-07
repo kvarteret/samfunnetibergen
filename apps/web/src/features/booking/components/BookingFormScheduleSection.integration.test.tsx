@@ -186,7 +186,7 @@ describe("BookingFormScheduleSection occupied selected room", () => {
 })
 
 describe("selected-room Crescat calendar availability", () => {
-  test("explains partial and full bookings without blocking date selection, and updates on month navigation", async () => {
+  test("allows partial bookings, blocks unavoidable collisions, and updates on month navigation", async () => {
     const container = document.createElement("div")
     document.body.append(container)
     const root = createRoot(container)
@@ -217,29 +217,45 @@ describe("selected-room Crescat calendar availability", () => {
       expect(partial?.className).toContain("booking-partial")
       expect(partial?.disabled).toBe(false)
       expect(full?.className).toContain("booking-stripes")
+      // Keep the trigger focusable so its explanation remains accessible.
       expect(full?.disabled).toBe(false)
+      expect(full?.getAttribute("aria-disabled")).toBe("true")
       await act(async () => full?.click())
-      expect(document.body.textContent).toContain("Rommet er opptatt:")
-      expect(document.body.textContent).toContain(
-        "21. aug. 00:00 – 22. aug. 00:00",
+      expect(container.textContent).toContain("Booking starter fra 29. august.")
+
+      await act(async () => partial?.click())
+      expect(container.textContent).toContain("Booking starter fra 20. august.")
+      const outsideWeek = dayButton(
+        new Date("2026-08-27T00:00:00").toLocaleDateString("nb"),
       )
+      expect(outsideWeek?.className).toContain("!opacity-25")
+      expect(outsideWeek?.getAttribute("aria-disabled")).toBe("true")
+      expect(
+        dayButton(new Date("2026-08-26T00:00:00").toLocaleDateString("nb"))
+          ?.className,
+      ).not.toContain("!opacity-25")
+
+      // A free endpoint cannot bypass a collision on the intervening day.
+      const acrossCollision = dayButton(
+        new Date("2026-08-22T00:00:00").toLocaleDateString("nb"),
+      )
+      expect(acrossCollision?.getAttribute("aria-disabled")).toBe("true")
+      await act(async () => acrossCollision?.click())
+      await act(async () => outsideWeek?.click())
+      expect(
+        container.querySelectorAll('button[data-range-end="true"]'),
+      ).toHaveLength(0)
+      expect(container.textContent).toContain("Booking starter fra 20. august.")
+
+      // Clicking the start again completes a single-day booking, whose hours
+      // can fit before or after the partial booking.
       await act(async () =>
         dayButton(
           new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
         )?.click(),
       )
-      expect(
-        dayButton(new Date("2026-08-27T00:00:00").toLocaleDateString("nb"))
-          ?.className,
-      ).toContain("!opacity-25")
-      expect(
-        dayButton(new Date("2026-08-26T00:00:00").toLocaleDateString("nb"))
-          ?.className,
-      ).not.toContain("!opacity-25")
-      await act(async () =>
-        dayButton(
-          new Date("2026-08-22T00:00:00").toLocaleDateString("nb"),
-        )?.click(),
+      expect(container.textContent).toContain(
+        "Booking starter fra 20. august, varer til 20. august.",
       )
       expect(
         container.querySelectorAll('button[data-range-start="true"]'),
@@ -247,10 +263,6 @@ describe("selected-room Crescat calendar availability", () => {
       expect(
         container.querySelectorAll('button[data-range-end="true"]'),
       ).toHaveLength(1)
-      expect(
-        container.querySelectorAll('button[data-range-middle="true"]'),
-      ).toHaveLength(1)
-      expect(container.textContent).not.toContain("Ferdig for én dag")
       const nextMonth = container.querySelector<HTMLButtonElement>(
         "nav button:last-child",
       )
