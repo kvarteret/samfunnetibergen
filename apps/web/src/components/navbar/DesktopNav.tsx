@@ -55,7 +55,7 @@ function DesktopNavItem({
             item.highlight &&
               cn(
                 ctaClassName,
-                "border-transparent hover:border-transparent hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+                "self-center border-transparent py-1.5 hover:border-transparent hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:after:hidden",
               ),
           )}
           render={<NavItemLink active={active} item={item} />}

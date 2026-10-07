@@ -28,7 +28,6 @@ export function EventTicketButton({
       className="w-fit"
       render={<a href={ticketUrl} rel="noreferrer" target="_blank" />}
       size="lg"
-      variant="cta"
       onClick={() => {
         posthog.capture("ticket_link_clicked", {
           event_id: eventId,

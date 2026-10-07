@@ -75,9 +75,9 @@ function NavigationMenuTrigger({
         "group relative flex cursor-pointer items-center gap-1 border-2 border-transparent px-3 py-2.5 font-heading text-foreground",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
         "data-popup-open:border-border data-popup-open:bg-primary data-popup-open:text-primary-foreground data-popup-open:shadow-hard-sm",
-        // HS: underline on hover/open instead of a filled box.
-        "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:underline hs:hover:underline-offset-4 hs:hover:shadow-none",
-        "hs:data-popup-open:border-transparent hs:data-popup-open:bg-transparent hs:data-popup-open:text-foreground hs:data-popup-open:underline hs:data-popup-open:underline-offset-4 hs:data-popup-open:shadow-none",
+        // HS: a thin bar on hover/open, where the active bar sits, instead of a filled box.
+        "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:shadow-none hs:hover:after:absolute hs:hover:after:inset-x-3 hs:hover:after:bottom-0 hs:hover:after:h-0.5 hs:hover:after:bg-foreground/25",
+        "hs:data-popup-open:border-transparent hs:data-popup-open:bg-transparent hs:data-popup-open:text-foreground hs:data-popup-open:shadow-none hs:data-popup-open:after:absolute hs:data-popup-open:after:inset-x-3 hs:data-popup-open:after:bottom-0 hs:data-popup-open:after:h-0.5 hs:data-popup-open:after:bg-foreground/25",
         "focus-brutal",
         className,
       )}
@@ -128,9 +128,9 @@ function NavigationMenuLink({
         variant === "top" &&
           "relative flex items-center px-3 py-2.5 font-heading",
         "hover:border-border hover:bg-primary hover:text-primary-foreground hover:shadow-hard-sm",
-        // HS: top-level links underline on hover instead of a filled box.
+        // HS: top-level links show a thin bar on hover instead of a filled box.
         variant === "top" &&
-          "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:underline hs:hover:underline-offset-4 hs:hover:shadow-none",
+          "hs:hover:border-transparent hs:hover:bg-transparent hs:hover:text-foreground hs:hover:shadow-none hs:hover:after:absolute hs:hover:after:inset-x-3 hs:hover:after:bottom-0 hs:hover:after:h-0.5 hs:hover:after:bg-foreground/25",
         className,
       )}
       closeOnClick
