@@ -184,7 +184,7 @@
       "legendUnavailable": "Stengt eller opptatt",
       "legendToday": "I dag",
       "legendBooking": "Din booking",
-      "legendNight": "Natt mellom dagene",
+      "legendNight": "Dager mellom start og slutt – endres i kalenderen over",
       "legendOccupied": "Opptatt"
     },
     "event": {

@@ -185,7 +185,7 @@
       "legendUnavailable": "Closed or booked",
       "legendToday": "Today",
       "legendBooking": "Your booking",
-      "legendNight": "Night between days",
+      "legendNight": "Days between start and end – change them in the calendar above",
       "legendOccupied": "Booked"
     },
     "event": {
