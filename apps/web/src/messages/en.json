@@ -42,7 +42,12 @@
     "grupperBannerHeading2": "A VOLUNTEER",
     "grupperBannerBody": "We are run by students. Aren't you a driven student too?",
     "grupperBannerCta": "Become a volunteer",
-    "grupperBannerLink": "Register your interest"
+    "grupperBannerLink": "Register your interest",
+    "karaokeBannerEyebrow": "Maos Lille Røde",
+    "karaokeBannerHeading1": "SING YOUR",
+    "karaokeBannerHeading2": "HEART OUT",
+    "karaokeBannerBody": "Book karaoke for your crew in our little red room. The mics are ready – are you?",
+    "karaokeBannerCta": "Book karaoke"
   },
   "EventCard": {
     "today": "Today",

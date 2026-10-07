@@ -32,12 +32,17 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import { fetchBarPreviews, fetchHomePageContent } from "@/lib/sanity/fetch"
+import {
+  fetchBarPreviews,
+  fetchHomePageContent,
+  fetchRoomBySlug,
+} from "@/lib/sanity/fetch"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
 import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
+import { HomeKaraokeBanner } from "./_components/HomeKaraokeBanner"
 import { HorizontalScrollRow } from "./_components/HorizontalScrollRow"
 import { SlackFeedback } from "./_components/SlackFeedback"
 
@@ -181,14 +186,16 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [{ events }, promotedParentEvents, barPreviews, t, homeT] =
+  const [{ events }, promotedParentEvents, barPreviews, t, homeT, maos] =
     await Promise.all([
       fetchPublicEventSet({ locale, from: today, to: null }),
       fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
       fetchBarPreviews(locale),
       getTranslations({ locale, namespace: "EventCard" }),
       getTranslations({ locale, namespace: "HomePage" }),
+      fetchRoomBySlug("maos", locale, { stega: false }),
     ])
+  const maosImage = maos?.images?.[0]
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -239,6 +246,15 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         cta={homeT("grupperBannerCta")}
         heading1={homeT("grupperBannerHeading1")}
         heading2={homeT("grupperBannerHeading2")}
+      />
+      <HomeKaraokeBanner
+        body={homeT("karaokeBannerBody")}
+        cta={homeT("karaokeBannerCta")}
+        eyebrow={homeT("karaokeBannerEyebrow")}
+        heading1={homeT("karaokeBannerHeading1")}
+        heading2={homeT("karaokeBannerHeading2")}
+        imageAlt={maosImage?.alt ?? maos?.title}
+        imageUrl={maosImage?.assetUrl}
       />
       <div className="hs:hidden">
         <HomeBookingBanner
