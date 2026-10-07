@@ -42,7 +42,11 @@
     "grupperBannerHeading2": "A VOLUNTEER",
     "grupperBannerBody": "We are run by students. Aren't you a driven student too?",
     "grupperBannerCta": "Become a volunteer",
-    "grupperBannerLink": "Register your interest"
+    "grupperBannerLink": "Register your interest",
+    "karaokeBannerHeading1": "SING AT",
+    "karaokeBannerHeading2": "KVARTERET",
+    "karaokeBannerBody": "In Bergen dialect, in Maos.",
+    "karaokeBannerCta": "Book karaoke"
   },
   "EventCard": {
     "today": "Today",

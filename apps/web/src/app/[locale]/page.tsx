@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils"
 import { HomeBarPreviews } from "./_components/HomeBarPreviews"
 import { HomeBookingBanner } from "./_components/HomeBookingBanner"
 import { HomeGrupperBanner } from "./_components/HomeGrupperBanner"
+import { HomeKaraokeBanner } from "./_components/HomeKaraokeBanner"
 import { HorizontalScrollRow } from "./_components/HorizontalScrollRow"
 import { SlackFeedback } from "./_components/SlackFeedback"
 
@@ -256,6 +257,12 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         openingHours={barPreviews?.openingHours}
         rooms={barPreviews?.rooms ?? []}
         vacationMode={barPreviews?.vacationMode}
+      />
+      <HomeKaraokeBanner
+        body={homeT("karaokeBannerBody")}
+        cta={homeT("karaokeBannerCta")}
+        heading1={homeT("karaokeBannerHeading1")}
+        heading2={homeT("karaokeBannerHeading2")}
       />
 
       <section className="hs:hidden">
