@@ -1,10 +1,9 @@
 "use client"
 
 import { Collapsible } from "@base-ui/react/collapsible"
-import { NavigationMenu } from "@base-ui/react/navigation-menu"
-import { Check, ChevronDown, ChevronLeft, PartyPopper } from "lucide-react"
+import { Check, ChevronDown, PartyPopper } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useId, useRef, useSyncExternalStore } from "react"
+import { useId, useState, useSyncExternalStore } from "react"
 import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { SegmentedControl } from "@/components/ui/segmented-control"
@@ -80,59 +79,40 @@ export function PaperMenuSection({ mobile = false }: { mobile?: boolean }) {
   )
 }
 
+/**
+ * "Enda mer" opens in place inside the "Mer" dropdown. A nested hover flyout
+ * lived in its own portal, so moving the pointer into it could close the
+ * outer menu.
+ */
 function DesktopPaperMenu({ paper }: { paper: PaperStyle }) {
   const t = useTranslations("Navigation")
-  const triggerRef = useRef<HTMLButtonElement>(null)
+  // Expands on hover; the Mer dropdown has a fixed width, so only its
+  // height grows.
+  const [open, setOpen] = useState(false)
 
   return (
-    <NavigationMenu.Root closeDelay={100} delay={0} orientation="vertical">
-      <NavigationMenu.List className="list-none border-t-2 border-border/30 p-3">
-        <NavigationMenu.Item value="paper">
-          <NavigationMenu.Trigger
-            className="group flex w-full cursor-pointer items-center justify-between px-2 py-2 font-heading text-foreground hover:underline focus-brutal data-popup-open:underline"
-            ref={triggerRef}
-          >
-            {t("moreSettings")}
-            <ChevronLeft
-              aria-hidden
-              className="size-[1em] transition-transform group-data-popup-open:-translate-x-0.5"
-              strokeWidth={1.75}
-            />
-          </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="grid w-[34rem] grid-cols-2 divide-x-2 divide-border/30">
-            <div className="space-y-4 p-4">
-              <ThemeChoices />
-              <PaperChoices
-                className="border-t-2 border-border/30 pt-4"
-                paper={paper}
-              />
-            </div>
-            <PartyModeChoice className="p-4" />
-          </NavigationMenu.Content>
-        </NavigationMenu.Item>
-      </NavigationMenu.List>
-
-      <NavigationMenu.Portal>
-        <NavigationMenu.Positioner
-          align="start"
-          alignOffset={-12}
-          anchor={triggerRef}
-          className="z-50 outline-none before:absolute before:top-0 before:right-full before:h-full before:w-3 before:content-[''] data-side-left:before:right-auto data-side-left:before:left-full"
-          collisionAvoidance={{
-            align: "shift",
-            fallbackAxisSide: "none",
-            side: "shift",
-          }}
-          collisionPadding={12}
-          side="left"
-          sideOffset={12}
-        >
-          <NavigationMenu.Popup className="relative border-2 border-border bg-card shadow-shadow outline-none">
-            <NavigationMenu.Viewport className="relative h-[var(--popup-height)] w-[var(--popup-width)] overflow-hidden" />
-          </NavigationMenu.Popup>
-        </NavigationMenu.Positioner>
-      </NavigationMenu.Portal>
-    </NavigationMenu.Root>
+    <Collapsible.Root
+      className="mt-1.5 border-t border-border pt-1.5"
+      onOpenChange={setOpen}
+      onPointerEnter={() => setOpen(true)}
+      open={open}
+    >
+      <Collapsible.Trigger className="group flex w-full cursor-pointer items-center justify-between gap-6 rounded-lg px-3 py-2 text-left text-foreground transition-colors hover:bg-muted focus-brutal data-panel-open:bg-muted">
+        {t("moreSettings")}
+        <ChevronDown
+          aria-hidden
+          className="size-[1em] transition-transform group-data-panel-open:rotate-180"
+          strokeWidth={1.75}
+        />
+      </Collapsible.Trigger>
+      <Collapsible.Panel className="grid w-[34rem] grid-cols-2 divide-x divide-border">
+        <div className="space-y-4 p-3">
+          <ThemeChoices />
+          <PaperChoices className="border-t border-border pt-4" paper={paper} />
+        </div>
+        <PartyModeChoice className="p-3" />
+      </Collapsible.Panel>
+    </Collapsible.Root>
   )
 }
 
@@ -234,9 +214,7 @@ function PartyModeChoice({ className }: { className?: string }) {
             )}
           </div>
         </>
-      ) : (
-        <p className="text-foreground-muted text-sm">{t("partyDescription")}</p>
-      )}
+      ) : null}
     </fieldset>
   )
 }

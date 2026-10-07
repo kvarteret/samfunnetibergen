@@ -68,18 +68,55 @@ export interface RecurringLabels {
   weekly: string
   monthly: string
   generic: string
+  /** "Hver onsdag" when a weekly series has a known weekday. */
+  weeklyOn?: (weekday: string) => string
 }
 
 export function getRecurringLabel(
   rrule: string | null | undefined,
   labels: RecurringLabels,
+  weekday?: string | null,
 ): string | null {
   if (!rrule) return labels.generic
   const freq = rrule.match(/FREQ=(\w+)/)?.[1]?.toUpperCase()
+  const interval = Number(rrule.match(/INTERVAL=(\d+)/)?.[1] ?? 1)
+  if (interval > 1) return labels.generic
   if (freq === "DAILY") return labels.daily
-  if (freq === "WEEKLY") return labels.weekly
+  if (freq === "WEEKLY") {
+    return weekday && labels.weeklyOn ? labels.weeklyOn(weekday) : labels.weekly
+  }
   if (freq === "MONTHLY") return labels.monthly
   return labels.generic
+}
+
+export interface FestivalRunLabels extends PrimaryDateLabels {
+  days: (count: number) => string
+}
+
+/**
+ * A festival parent spans every child occurrence: "Torsdag, 12:30 · 8 dager".
+ * The end time belongs to the first screening, not the festival, so it is
+ * dropped from the start label.
+ */
+export function formatFestivalRun(
+  dates: readonly EventDateEntry[],
+  labels: FestivalRunLabels,
+  referenceNow: Date = new Date(),
+): string | null {
+  const first = dates[0]
+  if (!first) return null
+  const last = dates[dates.length - 1]
+  const start = formatPrimaryDate(
+    { ...first, endTime: null },
+    labels,
+    referenceNow,
+  )
+  const days =
+    differenceInCalendarDays(
+      TZDate.tz(EVENT_TIME_ZONE, last.startDate),
+      TZDate.tz(EVENT_TIME_ZONE, first.startDate),
+    ) + 1
+  return days > 1 ? `${start} · ${labels.days(days)}` : start
 }
 
 // ─── Date computation ────────────────────────────────────────────────────────
@@ -95,4 +132,69 @@ export function computeAllDates(
   if (futureDates.length > 0) return futureDates
 
   return seedDate ? [seedDate] : []
+}
+
+// ─── Card labels ─────────────────────────────────────────────────────────────
+
+export interface CardDateLabels extends FestivalRunLabels {
+  recurring: RecurringLabels
+  events: (count: number) => string
+  weekdayName: (date: Date) => string
+}
+
+type CardDateEvent = {
+  eventKind?: string | null
+  isRecurring?: boolean | null
+  rrule?: string | null
+  dates: readonly EventDateEntry[]
+  parentEvent?: { rrule?: string | null } | null
+}
+
+/** The date fields every event card surface precomputes on the server. */
+export function buildCardDateLabels(
+  event: CardDateEvent,
+  todayStr: string,
+  labels: CardDateLabels,
+  referenceNow: Date = new Date(),
+) {
+  const dates: EventDateEntry[] = event.dates.map(d => ({
+    _key: d._key,
+    startDate: d.startDate,
+    startTime: d.startTime ?? null,
+    endTime: d.endTime ?? null,
+  }))
+  const resolvedDates = computeAllDates(dates, todayStr)
+  const primaryDate = resolvedDates[0]
+  const isFestival = event.eventKind === "festivalParent"
+  const primaryDateLabel = !primaryDate
+    ? null
+    : isFestival
+      ? formatFestivalRun(resolvedDates, labels, referenceNow)
+      : formatPrimaryDate(primaryDate, labels, referenceNow)
+  const seriesRule =
+    event.eventKind === "seriesInstance"
+      ? (event.parentEvent?.rrule ?? event.rrule)
+      : event.eventKind === "seriesParent" || event.isRecurring
+        ? event.rrule
+        : undefined
+  const recurringLabel =
+    seriesRule === undefined
+      ? null
+      : getRecurringLabel(
+          seriesRule,
+          labels.recurring,
+          primaryDate
+            ? labels.weekdayName(
+                TZDate.tz(EVENT_TIME_ZONE, primaryDate.startDate),
+              )
+            : null,
+        )
+
+  return {
+    dates,
+    resolvedDates,
+    primaryDateLabel,
+    recurringLabel,
+    programmeLabel: isFestival ? labels.events(resolvedDates.length) : null,
+  }
 }

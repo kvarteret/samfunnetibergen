@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server"
+import { Fragment } from "react"
 
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
@@ -34,6 +35,8 @@ interface BreadcrumbsProps {
   path: string
   /** Real title for the current page when the segment is a dynamic slug. */
   current?: string
+  /** An extra ancestor shown before the current page, e.g. a festival. */
+  parent?: { label: string; href: string }
   className?: string
 }
 
@@ -44,6 +47,7 @@ interface BreadcrumbsProps {
 export async function Breadcrumbs({
   path,
   current,
+  parent,
   className,
 }: BreadcrumbsProps) {
   const segments = path.split("/").filter(Boolean)
@@ -74,21 +78,34 @@ export async function Breadcrumbs({
             (labelKey && t.has(labelKey) ? t(labelKey) : humanize(segment))
 
           return (
-            <li className="flex items-center gap-2" key={href}>
-              <span aria-hidden="true">/</span>
-              {isLast ? (
-                <span aria-current="page" className="text-foreground">
-                  {label}
-                </span>
-              ) : (
-                <Link
-                  className="underline underline-offset-4 hover:no-underline focus-brutal"
-                  href={href}
-                >
-                  {label}
-                </Link>
+            <Fragment key={href}>
+              {isLast && parent && (
+                <li className="flex items-center gap-2">
+                  <span aria-hidden="true">/</span>
+                  <Link
+                    className="underline underline-offset-4 hover:no-underline focus-brutal"
+                    href={parent.href}
+                  >
+                    {parent.label}
+                  </Link>
+                </li>
               )}
-            </li>
+              <li className="flex items-center gap-2">
+                <span aria-hidden="true">/</span>
+                {isLast ? (
+                  <span aria-current="page" className="text-foreground">
+                    {label}
+                  </span>
+                ) : (
+                  <Link
+                    className="underline underline-offset-4 hover:no-underline focus-brutal"
+                    href={href}
+                  >
+                    {label}
+                  </Link>
+                )}
+              </li>
+            </Fragment>
           )
         })}
       </ol>

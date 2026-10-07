@@ -36,11 +36,8 @@ vi.mock("@/app/[locale]/arrangementer/[event]/EventTrackedLinks", () => ({
 const labels: FestivalLabels = {
   programme: "Programme",
   browseDays: "Choose a day",
-  events: "events",
-  days: "days",
-  about: "About",
-  details: "Read more",
-  tickets: "Buy tickets",
+  eventCount: count => `${count} events`,
+  runDays: count => `${count} days`,
   soldOut: "Sold out",
   cancelled: "Cancelled",
   timeUnknown: "Time to be announced",
@@ -88,14 +85,15 @@ describe("festival programme", () => {
     )
     expect(html).toContain('href="#festival-day-2026-10-15"')
     expect(html.match(/href="\/arrangementer\/repeat"/g)).toHaveLength(2)
-    expect(html).not.toContain('href="https://tickets.test/earlier"')
+    expect(html).not.toContain("https://tickets.test/")
+    expect(html).toContain("3 events")
     expect(html).toContain("Thursday 15 October")
     expect(html).toContain("Friday 16 October")
     expect(html).toContain("Cancelled")
     expect(html).toContain("Time to be announced")
   })
 
-  it("preserves festival artwork and shows the actual programme range", () => {
+  it("uses a compact text header and shows the actual programme range", () => {
     const children = [
       event("first", [{ startDate: "2026-10-15", startTime: "12:30" }]),
       event("last", [{ startDate: "2026-10-22", startTime: "21:00" }]),
@@ -113,14 +111,13 @@ describe("festival programme", () => {
         labels={labels}
       />,
     )
-    expect(html).toContain("object-contain")
-    expect(html).toContain("15 Oct – 22 Oct")
-    expect(html).toContain("2 events · 2 days")
+    expect(html).not.toContain("<img")
+    expect(html).toContain("Thursday 15 October, 12:30</time> · 8 days")
     expect(html).toContain("Tivoli")
-    expect(html).toContain('href="#festival-programme"')
+    expect(html).not.toContain("aspect-square")
   })
 
-  it("shows sold-out state without a purchase button and handles an empty programme", () => {
+  it("shows sold-out state and handles an empty programme", () => {
     const soldOut = {
       ...event("sold-out", [{ startDate: "2026-10-15", startTime: "20:00" }]),
       isSoldOut: true,
@@ -133,7 +130,6 @@ describe("festival programme", () => {
       />,
     )
     expect(html).toContain("Sold out")
-    expect(html).not.toContain("Buy tickets")
     expect(
       renderToStaticMarkup(
         <FestivalProgramme days={[]} locale="nb" labels={labels} />,

@@ -514,6 +514,30 @@
   }
 }
 
+/* Shared type scale for page, section and card titles. */
+@utility text-page-title {
+  font-size: var(--text-4xl);
+  line-height: 1;
+  hyphens: auto;
+  @variant sm {
+    font-size: var(--text-6xl);
+  }
+}
+
+@utility text-section-title {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  @variant sm {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+
+@utility text-card-title {
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+}
+
 /* Diagonal stripes for blocked booking states; colour via --stripe. */
 @utility booking-stripes {
   background-image: repeating-linear-gradient(

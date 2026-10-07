@@ -91,6 +91,7 @@ const publicParentProjection = `parentEvent-> {
     "slug": coalesce(slug.current, ""),
     "eventKind": coalesce(eventKind, "single"),
     eventStatus,
+    rrule,
     ${inheritableFieldsProjection}
 }`
 

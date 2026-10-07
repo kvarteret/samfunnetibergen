@@ -6,7 +6,9 @@ import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Avatar } from "@/components/ui/avatar"
+import { GroupEvents } from "@/features/events/components/GroupEvents"
 import { GroupVolunteerForm } from "@/features/grupper"
+import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -123,6 +125,8 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.body && group.body.length > 0 && (
           <PortableTextContent value={group.body} />
         )}
+
+        <GroupEvents groupId={group._id} locale={locale as AppLocale} />
       </div>
 
       <aside className="min-w-0 space-y-6">
@@ -240,9 +244,7 @@ function GroupMasthead({ logoUrl, name, summary }: GroupMastheadProps) {
           src={logoUrl}
         />
       </div>
-      <h1 className="wrap-break-word font-heading text-5xl leading-[0.95] text-foreground sm:text-6xl">
-        {name}
-      </h1>
+      <h1 className="text-page-title text-foreground">{name}</h1>
       {summary ? (
         <p className="max-w-2xl text-2xl leading-snug text-foreground sm:text-3xl">
           {summary}

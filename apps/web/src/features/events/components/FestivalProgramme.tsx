@@ -1,39 +1,44 @@
-import { ArrowDown } from "lucide-react"
-import Image from "next/image"
-import { EventTicketButton } from "@/app/[locale]/arrangementer/[event]/EventTrackedLinks"
-import { buttonVariants } from "@/components/ui/button"
+import { CalendarDays, MapPin, Ticket } from "lucide-react"
+import type { ReactNode } from "react"
+import { selectionControlVariants } from "@/components/ui/selection-control"
 import type { PublicEvent } from "@/features/events/domain/events"
 import {
   type FestivalDay,
   festivalDate,
+  festivalRunDays,
 } from "@/features/events/domain/festival-programme"
-import { shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { cn } from "@/lib/utils"
 import { EventCard } from "./EventCard"
 
 export type FestivalLabels = {
   programme: string
   browseDays: string
-  events: string
-  days: string
-  about: string
-  details: string
-  tickets: string
+  eventCount: (count: number) => string
+  runDays: (count: number) => string
   soldOut: string
   cancelled: string
   timeUnknown: string
   empty: string
 }
 
+/**
+ * A text header in the style of /arrangementer: the festival's whole run,
+ * where it happens, what it costs and how much is on.
+ */
 export function FestivalHero({
   event,
   days,
   locale,
   labels,
+  price,
+  children,
 }: {
   event: PublicEvent
   days: FestivalDay[]
   locale: string
   labels: FestivalLabels
+  price?: string | null
+  children?: ReactNode
 }) {
   const occurrences = days.flatMap(day => day.occurrences)
   const venues = [
@@ -43,52 +48,49 @@ export function FestivalHero({
         .filter(Boolean),
     ),
   ]
+  const first = occurrences[0]?.schedule
+  const lastDay = days.at(-1)
+  const runDays = lastDay ? festivalRunDays(days[0].date, lastDay.date) : 0
+
   return (
-    <header className="grid overflow-hidden border-2 border-border bg-muted lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]">
-      <div className="flex flex-col items-start justify-center gap-6 p-6 sm:p-10 lg:p-12">
-        <p className="bg-primary px-3 py-1.5 font-heading uppercase tracking-widest text-primary-foreground">
-          {event.eventType?.name || "Festival"}
-        </p>
-        <h1 className="wrap-break-word font-heading text-4xl leading-tight sm:text-5xl lg:text-6xl">
-          {event.title}
-        </h1>
-        {days.length > 0 && (
-          <div className="space-y-2 text-lg">
-            <p className="font-heading text-2xl">
-              {festivalDate(days[0].date, locale)}
-              {days.length > 1 &&
-                ` – ${festivalDate(days[days.length - 1].date, locale)}`}
-            </p>
-            {venues.length > 0 && (
-              <p className="text-foreground-muted">{venues.join(" · ")}</p>
-            )}
-            <p className="text-foreground-muted">
-              {occurrences.length} {labels.events} · {days.length} {labels.days}
-            </p>
-          </div>
+    <header className="space-y-5">
+      <h1 className="text-page-title">{event.title}</h1>
+      <ul className="flex flex-wrap gap-x-6 gap-y-2 text-lg text-foreground-muted">
+        {first && (
+          <FestivalFact icon={CalendarDays}>
+            <time dateTime={first.startDate}>
+              {capitalize(festivalDate(first.startDate, locale, true), locale)}
+              {first.startTime && `, ${first.startTime}`}
+            </time>
+            {runDays > 1 && ` · ${labels.runDays(runDays)}`}
+          </FestivalFact>
         )}
-        <a
-          href="#festival-programme"
-          className={buttonVariants({ size: "lg" })}
-        >
-          {labels.programme}
-          <ArrowDown aria-hidden="true" />
-        </a>
-      </div>
-      {event.imageUrl && (
-        <div className="relative aspect-square border-t-2 border-border bg-background lg:border-t-0 lg:border-l-2">
-          <Image
-            src={event.imageUrl}
-            alt={event.imageAlt || event.imageCaption || event.title}
-            fill
-            preload
-            sizes="(max-width: 1024px) 100vw, 40vw"
-            className="object-contain p-4 sm:p-6"
-            unoptimized={shouldLoadImageDirectly(event.imageUrl)}
-          />
+        {venues.length > 0 && (
+          <FestivalFact icon={MapPin}>{venues.join(" · ")}</FestivalFact>
+        )}
+        {price && <FestivalFact icon={Ticket}>{price}</FestivalFact>}
+      </ul>
+      {children && (
+        <div className="max-w-prose space-y-3 text-lg leading-8 text-foreground">
+          {children}
         </div>
       )}
     </header>
+  )
+}
+
+function FestivalFact({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof CalendarDays
+  children: ReactNode
+}) {
+  return (
+    <li className="flex items-center gap-2">
+      <Icon className="size-5 shrink-0" aria-hidden />
+      <span>{children}</span>
+    </li>
   )
 }
 
@@ -101,122 +103,134 @@ export function FestivalProgramme({
   locale: string
   labels: FestivalLabels
 }) {
+  const total = days.reduce((sum, day) => sum + day.occurrences.length, 0)
+
   return (
     <section
       id="festival-programme"
       aria-labelledby="festival-programme-heading"
-      className="scroll-mt-24 space-y-8"
+      className="scroll-mt-24 space-y-10"
     >
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-border pb-4">
-        <h2
-          id="festival-programme-heading"
-          className="font-heading text-3xl uppercase tracking-wide sm:text-4xl"
-        >
-          {labels.programme}
-        </h2>
-        <a
-          href="#festival-about"
-          className="underline underline-offset-4 focus-brutal"
-        >
-          {labels.about}
-        </a>
-      </div>
-      {days.length === 0 ? (
-        <p className="text-foreground-muted">{labels.empty}</p>
-      ) : (
-        <>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+          <h2 id="festival-programme-heading" className="text-section-title">
+            {labels.programme}
+          </h2>
+          {total > 0 && (
+            <p className="text-sm text-foreground-muted">
+              {labels.eventCount(total)}
+            </p>
+          )}
+        </div>
+        {days.length > 1 && (
           <nav aria-label={labels.browseDays} className="flex flex-wrap gap-2">
             {days.map(day => (
               <a
                 key={day.date}
                 href={`#festival-day-${day.date}`}
-                className="border-2 border-border bg-background px-4 py-3 font-heading transition-colors hover:bg-primary hover:text-primary-foreground focus-brutal"
+                className={cn(
+                  selectionControlVariants({ size: "default" }),
+                  "gap-2 rounded-full px-4",
+                )}
               >
-                {festivalDate(day.date, locale, true)}
-                <span className="ml-2 text-sm">({day.occurrences.length})</span>
+                {capitalize(festivalDayChip(day.date, locale), locale)}
+                <span className="text-sm text-foreground-muted">
+                  {day.occurrences.length}
+                </span>
               </a>
             ))}
           </nav>
-          {days.map(day => (
-            <section
-              key={day.date}
-              id={`festival-day-${day.date}`}
-              aria-labelledby={`festival-heading-${day.date}`}
-              className="scroll-mt-24 space-y-5"
+        )}
+      </div>
+      {days.length === 0 ? (
+        <p className="text-foreground-muted">{labels.empty}</p>
+      ) : (
+        days.map(day => (
+          <section
+            key={day.date}
+            id={`festival-day-${day.date}`}
+            aria-labelledby={`festival-heading-${day.date}`}
+            className="scroll-mt-24 space-y-6"
+          >
+            <h3
+              id={`festival-heading-${day.date}`}
+              className="flex flex-wrap items-baseline gap-x-3 border-b-2 border-border pb-3 text-2xl sm:text-3xl"
             >
-              <h3
-                id={`festival-heading-${day.date}`}
-                className="border-l-4 border-primary pl-4 font-heading text-2xl capitalize sm:text-3xl"
-              >
-                <time dateTime={day.date}>
-                  {festivalDate(day.date, locale, true)}
-                </time>
-              </h3>
-              <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {day.occurrences.map(occurrence => (
-                  <li key={occurrence.id} className="flex">
-                    <FestivalCard
-                      event={occurrence.event}
-                      dateKey={occurrence.dateKey}
-                      time={occurrence.schedule.startTime}
-                      labels={labels}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </>
+              <time dateTime={day.date}>
+                {capitalize(festivalDate(day.date, locale, true), locale)}
+              </time>
+              <span className="font-sans font-base text-sm text-foreground-muted">
+                {labels.eventCount(day.occurrences.length)}
+              </span>
+            </h3>
+            <ul className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
+              {day.occurrences.map(occurrence => (
+                <li key={occurrence.id} className="min-w-0">
+                  <FestivalCard
+                    event={occurrence.event}
+                    dateKey={occurrence.dateKey}
+                    labels={labels}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
       )}
     </section>
   )
 }
 
+/** The catalogue card, narrowed to one screening of a festival event. */
 function FestivalCard({
   event,
-  time,
   dateKey,
   labels,
 }: {
   event: PublicEvent
-  time: string | null
   dateKey: string
   labels: FestivalLabels
 }) {
   const cancelled = event.eventStatus !== "scheduled"
   const dates = event.dates.filter(date => date._key === dateKey)
+  const date = dates[0]
+  const time = date?.startTime
+    ? date.endTime
+      ? `${date.startTime}–${date.endTime}`
+      : date.startTime
+    : labels.timeUnknown
+
   return (
-    <article className="flex w-full flex-col">
-      <EventCard
-        variant="catalogue"
-        trackingSurface="detail-child"
-        event={{
-          ...event,
-          dates,
-          resolvedDates: dates,
-          primaryDateLabel: time || labels.timeUnknown,
-          statusLabel: cancelled
-            ? labels.cancelled
-            : event.isSoldOut
-              ? labels.soldOut
-              : null,
-        }}
-      />
-      <div className="pt-3">
-        {cancelled || event.isSoldOut ? (
-          <p className="font-heading uppercase tracking-wide text-destructive">
-            {cancelled ? labels.cancelled : labels.soldOut}
-          </p>
-        ) : event.ticketUrl ? (
-          <EventTicketButton
-            ticketUrl={event.ticketUrl}
-            label={labels.tickets}
-            eventId={event._id}
-            eventTitle={event.title}
-            eventSlug={event.slug}
-          />
-        ) : null}
-      </div>
-    </article>
+    <EventCard
+      variant="catalogue"
+      showFestivalBadge={false}
+      trackingSurface="detail-child"
+      event={{
+        ...event,
+        dates,
+        resolvedDates: dates,
+        primaryDateLabel: time,
+        statusLabel: cancelled
+          ? labels.cancelled
+          : event.isSoldOut
+            ? labels.soldOut
+            : null,
+      }}
+    />
   )
+}
+
+function festivalDayChip(date: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "nb" ? "nb-NO" : "en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Oslo",
+  })
+    .format(new Date(`${date}T12:00:00Z`))
+    .replace(/\.(?=\s|$)/g, "")
+}
+
+function capitalize(value: string, locale: string): string {
+  return value.charAt(0).toLocaleUpperCase(locale) + value.slice(1)
 }

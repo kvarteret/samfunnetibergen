@@ -229,7 +229,10 @@ export function EventInterest({ eventSlug }: { eventSlug: string }) {
           : ""
 
   return (
-    <section className={styles.panel} aria-label={t("title")}>
+    <section className={styles.panel} aria-labelledby={`${id}-title`}>
+      <p id={`${id}-title`} className={styles.title}>
+        {t("title")}
+      </p>
       <div className={styles.row} data-level={level}>
         <Popover.Root>
           <Popover.Trigger

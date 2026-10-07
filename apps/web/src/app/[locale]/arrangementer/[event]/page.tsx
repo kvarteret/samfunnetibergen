@@ -1,3 +1,4 @@
+import { CalendarDays, Clock, MapPin, Repeat, Ticket } from "lucide-react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
@@ -5,17 +6,21 @@ import { Fragment, type ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { Button } from "@/components/ui/button"
+import { Tag } from "@/components/ui/tag"
 import { EventInterest } from "@/features/event-interest/components/EventInterest"
 import {
   FestivalHero,
   type FestivalLabels,
   FestivalProgramme,
 } from "@/features/events/components/FestivalProgramme"
+import { buildCardDateLabels } from "@/features/events/domain/dates"
 import {
   flattenPublicOccurrences,
   type PublicEvent,
 } from "@/features/events/domain/events"
 import { groupFestivalProgramme } from "@/features/events/domain/festival-programme"
+import { getCardDateLabels } from "@/features/events/server/card-date-labels"
 import { fetchEventPageData } from "@/features/events/server/public-events-page"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
@@ -31,14 +36,19 @@ import {
   toPlainTextContent,
 } from "@/lib/structured-data"
 import { EventFacebookButton, EventTicketButton } from "./EventTrackedLinks"
-
-const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
-  dateStyle: "long",
-  timeZone: "Europe/Oslo",
-})
+import { StickyTicketBar } from "./StickyTicketBar"
 
 type EventDetail = PublicEvent
-type EventChild = PublicEvent
+type EventDetailDate = EventDetail["dates"][number]
+type Translator = Awaited<ReturnType<typeof getTranslations<"EventPage">>>
+
+/** One row of the date list; series rows link to their own instance page. */
+type EventDateRow = {
+  key: string
+  date: EventDetailDate
+  event: EventDetail
+  href: string | null
+}
 
 type EventPageProps = {
   params: Promise<{ event: string; locale: string }>
@@ -53,9 +63,10 @@ export default async function EventPage({ params }: EventPageProps) {
   )) as AppLocale
   activateRequestLocale(locale)
 
-  const [detail, t] = await Promise.all([
+  const [detail, t, cardLabels] = await Promise.all([
     fetchEventPageData(resolvedParams.event, locale, { stega: false }),
     getTranslations({ locale, namespace: "EventPage" }),
+    getCardDateLabels(locale),
   ])
 
   if (!detail) notFound()
@@ -63,20 +74,6 @@ export default async function EventPage({ params }: EventPageProps) {
   const { event: eventData, children: childEvents } = detail
   const isParentEvent = PARENT_EVENT_KINDS.includes(eventData.eventKind)
   const isFestival = eventData.eventKind === "festivalParent"
-  const festivalDays = isFestival ? groupFestivalProgramme(childEvents) : []
-  const festivalLabels: FestivalLabels = {
-    programme: t("childEvents"),
-    browseDays: t("festivalBrowseDays"),
-    events: t("festivalEvents"),
-    days: t("festivalDays"),
-    about: t("festivalAbout"),
-    details: t("festivalDetails"),
-    tickets: t("tickets"),
-    soldOut: t("soldOut"),
-    cancelled: t("statusCancelled"),
-    timeUnknown: t("festivalTimeUnknown"),
-    empty: t("festivalEmpty"),
-  }
   const today = getOsloDateString()
   const eventJsonLd = buildEventStructuredData(
     isParentEvent
@@ -92,7 +89,7 @@ export default async function EventPage({ params }: EventPageProps) {
     <>
       {eventJsonLd && <JsonLd data={eventJsonLd} />}
       <article
-        className="flex w-full flex-col gap-8"
+        className="flex w-full flex-col gap-10"
         {...eventTrackingAttributes(eventData, "event-detail")}
       >
         <ContentPageViewTracking
@@ -102,51 +99,46 @@ export default async function EventPage({ params }: EventPageProps) {
         />
         <Breadcrumbs
           current={eventData.title}
+          parent={
+            eventData.eventKind === "festivalSession" && eventData.parentEvent
+              ? {
+                  label: eventData.parentEvent.title,
+                  href: `/arrangementer/${eventData.parentEvent.slug}`,
+                }
+              : undefined
+          }
           path={`/arrangementer/${resolvedParams.event}`}
         />
         <EventStatusNotice event={eventData} t={t} />
         {isFestival ? (
-          <FestivalHero
+          <FestivalPage
             event={eventData}
-            days={festivalDays}
+            childEvents={childEvents}
+            eventSlug={resolvedParams.event}
             locale={locale}
-            labels={festivalLabels}
+            labels={{
+              programme: t("childEvents"),
+              browseDays: t("festivalBrowseDays"),
+              eventCount: cardLabels.events,
+              runDays: cardLabels.days,
+              soldOut: t("soldOut"),
+              cancelled: t("statusCancelled"),
+              timeUnknown: t("festivalTimeUnknown"),
+              empty: t("festivalEmpty"),
+            }}
+            t={t}
           />
         ) : (
-          <EventDetailHero
+          <EventDetailPage
             event={eventData}
             eventSlug={resolvedParams.event}
-            ticketsLabel={eventData.isSoldOut ? t("soldOut") : t("tickets")}
-            partOfLabel={t("partOf")}
-          />
-        )}
-        {isFestival && (
-          <FestivalProgramme
-            days={festivalDays}
+            dateRows={eventDateRows(eventData, childEvents, today)}
+            recurringLabel={
+              buildCardDateLabels(eventData, today, cardLabels).recurringLabel
+            }
             locale={locale}
-            labels={festivalLabels}
+            t={t}
           />
-        )}
-        {isFestival && (
-          <h2
-            id="festival-about"
-            className="scroll-mt-24 border-t-2 border-border pt-8 font-heading text-3xl"
-          >
-            {t("festivalAbout")}
-          </h2>
-        )}
-        <EventDetailDescription
-          event={eventData}
-          eventSlug={resolvedParams.event}
-          t={t}
-        />
-        {isFestival ? (
-          <EventDetailMetaSidebar event={eventData} t={t} />
-        ) : (
-          <EventDetailScheduleAndMeta event={eventData} t={t} />
-        )}
-        {!isFestival && childEvents.length > 0 && (
-          <EventChildList childEvents={childEvents} t={t} />
         )}
       </article>
     </>
@@ -178,12 +170,107 @@ export async function generateMetadata({ params }: EventPageProps) {
   return metadata
 }
 
+function FestivalPage({
+  event,
+  childEvents,
+  eventSlug,
+  locale,
+  labels,
+  t,
+}: {
+  event: EventDetail
+  childEvents: EventDetail[]
+  eventSlug: string
+  locale: AppLocale
+  labels: FestivalLabels
+  t: Translator
+}) {
+  const days = groupFestivalProgramme(childEvents)
+
+  return (
+    <>
+      <FestivalHero
+        event={event}
+        days={days}
+        locale={locale}
+        labels={labels}
+        price={formatPrices(event, t)}
+      >
+        {event.description.length > 0 && (
+          <PortableTextContent value={event.description} nofollowLinks />
+        )}
+      </FestivalHero>
+      <FestivalProgramme days={days} locale={locale} labels={labels} />
+      <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
+    </>
+  )
+}
+
+function EventDetailPage({
+  event,
+  eventSlug,
+  dateRows,
+  recurringLabel,
+  locale,
+  t,
+}: {
+  event: EventDetail
+  eventSlug: string
+  dateRows: EventDateRow[]
+  recurringLabel: string | null
+  locale: AppLocale
+  t: Translator
+}) {
+  const nextDate = dateRows[0]?.date ?? event.dates[0] ?? null
+
+  return (
+    <>
+      <EventDetailHero
+        event={event}
+        eventSlug={eventSlug}
+        nextDate={nextDate}
+        recurringLabel={recurringLabel}
+        locale={locale}
+        t={t}
+      />
+      <EventDetailBody event={event} eventSlug={eventSlug} t={t} />
+      {dateRows.length > 1 && (
+        <EventDateList rows={dateRows} locale={locale} t={t} />
+      )}
+    </>
+  )
+}
+
+/**
+ * Upcoming dates for the page. A series parent lists its instances, so each
+ * row opens the matching instance; other events list their own dates.
+ */
+function eventDateRows(
+  event: EventDetail,
+  childEvents: EventDetail[],
+  today: string,
+): EventDateRow[] {
+  const all: EventDateRow[] =
+    event.eventKind === "seriesParent"
+      ? flattenPublicOccurrences(childEvents).map(occurrence => ({
+          key: occurrence.id,
+          date: occurrence.event.dates.find(
+            date => date._key === occurrence.dateKey,
+          ) as EventDetailDate,
+          event: occurrence.event,
+          href: `/arrangementer/${occurrence.event.slug}`,
+        }))
+      : event.dates.map(date => ({ key: date._key, date, event, href: null }))
+  const upcoming = all.filter(row => row.date.startDate >= today)
+  return upcoming.length > 0 ? upcoming : all.slice(-1)
+}
+
 function EventStatusNotice({
   event,
   t,
 }: {
   event: EventDetail
-  t: Awaited<ReturnType<typeof getTranslations>>
+  t: Translator
 }) {
   if (event.eventStatus === "scheduled") return null
 
@@ -200,13 +287,17 @@ function EventStatusNotice({
 function EventDetailHero({
   event,
   eventSlug,
-  ticketsLabel,
-  partOfLabel,
+  nextDate,
+  recurringLabel,
+  locale,
+  t,
 }: {
   event: EventDetail
   eventSlug: string
-  ticketsLabel: string
-  partOfLabel: string
+  nextDate: EventDetailDate | null
+  recurringLabel: string | null
+  locale: AppLocale
+  t: Translator
 }) {
   const imageUrl = event.imageUrl
     ? sanityImageUrl(
@@ -215,56 +306,95 @@ function EventDetailHero({
         event.imageFrame,
       )
     : null
+  // Instances of a series are identical by definition, so the series rhythm
+  // replaces the parent link. Festival sessions still point to their festival.
+  const isSeries =
+    event.eventKind === "seriesInstance" || event.eventKind === "seriesParent"
+  const festival =
+    event.eventKind === "festivalSession" ? event.parentEvent : null
 
   return (
-    <header className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
-      <div className="flex h-full flex-col justify-evenly">
-        {event.eventType?.name && (
-          <p className="w-fit bg-primary px-3 py-1.5 font-heading text-primary-foreground">
-            {event.eventType.name}
-          </p>
-        )}
-        <h1 className="wrap-break-word font-heading text-4xl leading-none text-foreground">
-          {event.title}
-        </h1>
-        {event.parentEvent && (
-          <p className="text-foreground-muted">
-            {partOfLabel}{" "}
-            <Link
-              href={`/arrangementer/${event.parentEvent.slug}`}
-              className="underline underline-offset-4 hover:no-underline"
-              {...eventTrackingAttributes(event.parentEvent, "detail-parent")}
+    <header className="grid gap-8 lg:grid-cols-[minmax(19rem,2fr)_minmax(0,3fr)] lg:items-center">
+      <div className="flex flex-col gap-5 lg:order-first">
+        <div className="space-y-3">
+          {event.eventType?.name && (
+            <Tag variant="accent">{event.eventType.name}</Tag>
+          )}
+          <h1 className="text-page-title">{event.title}</h1>
+          {festival && (
+            <p className="text-foreground-muted">
+              {t("partOf")}{" "}
+              <Link
+                href={`/arrangementer/${festival.slug}`}
+                className="underline underline-offset-4 hover:no-underline focus-brutal"
+                {...eventTrackingAttributes(festival, "detail-parent")}
+              >
+                {festival.title}
+              </Link>
+            </p>
+          )}
+        </div>
+
+        <dl className="space-y-2.5 text-lg leading-6 text-foreground">
+          {nextDate && (
+            <EventFact icon={CalendarDays} label={t("date")}>
+              <time dateTime={nextDate.startDate}>
+                {formatLongDate(nextDate.startDate, locale)}
+              </time>
+            </EventFact>
+          )}
+          {nextDate?.startTime && (
+            <EventFact icon={Clock} label={t("time")}>
+              {formatScheduleTime(nextDate)}
+            </EventFact>
+          )}
+          {isSeries && recurringLabel && (
+            <EventFact icon={Repeat} label={t("recurrence")}>
+              {recurringLabel}
+            </EventFact>
+          )}
+          <EventPlaceFact event={event} t={t} />
+          <EventFact icon={Ticket} label={t("price")}>
+            {event.isSoldOut ? t("soldOut") : (formatPrices(event, t) ?? "-")}
+          </EventFact>
+        </dl>
+
+        <div id="event-ticket" className="w-fit empty:hidden">
+          <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+        </div>
+        {event.ticketUrl &&
+          event.eventStatus === "scheduled" &&
+          !event.isSoldOut &&
+          nextDate && (
+            <StickyTicketBar
+              targetId="event-ticket"
+              summary={[
+                formatShortDate(nextDate.startDate, locale),
+                nextDate.startTime,
+              ]
+                .filter(Boolean)
+                .join(", ")}
             >
-              {event.parentEvent.title ?? event.title}
-            </Link>
-          </p>
-        )}
-        {event.ticketUrl && (
-          <EventTicketButton
-            ticketUrl={event.ticketUrl}
-            label={ticketsLabel}
-            eventId={event._id}
-            eventTitle={event.title}
-            eventSlug={eventSlug}
-          />
-        )}
+              <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+            </StickyTicketBar>
+          )}
       </div>
 
-      <div className="overflow-hidden border-2 border-border bg-muted">
+      <div className="order-first overflow-hidden rounded-base bg-muted lg:order-none">
         {imageUrl ? (
-          <div className="relative aspect-16/10 max-h-112 lg:aspect-video">
+          <div className="relative aspect-video">
             <Image
               alt={event.imageAlt ?? event.imageCaption ?? event.title}
               className="object-cover"
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 80vw"
+              sizes="(max-width: 1024px) 100vw, 60vw"
               src={imageUrl}
               unoptimized={shouldLoadImageDirectly(imageUrl)}
             />
           </div>
         ) : (
-          <div className="flex aspect-16/10 max-h-112 items-center justify-center p-8 text-center lg:aspect-video">
+          <div className="flex aspect-video items-center justify-center p-8 text-center">
             <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
               {event.title}
             </p>
@@ -275,129 +405,174 @@ function EventDetailHero({
   )
 }
 
-function EventDetailScheduleAndMeta({
-  event,
-  t,
+function EventFact({
+  icon: Icon,
+  label,
+  children,
 }: {
-  event: EventDetail
-  t: Awaited<ReturnType<typeof getTranslations>>
+  icon: typeof CalendarDays
+  label: string
+  children: ReactNode
 }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
-      <EventDetailMetaSidebar event={event} t={t} />
-      <EventDetailSchedule event={event} t={t} />
+    <div className="flex gap-3">
+      <dt className="shrink-0 pt-0.5 text-foreground-muted">
+        <Icon className="size-5" aria-hidden />
+        <span className="sr-only">{label}</span>
+      </dt>
+      <dd>{children}</dd>
     </div>
   )
 }
 
-function EventDetailMetaSidebar({
+function EventPlaceFact({ event, t }: { event: EventDetail; t: Translator }) {
+  const roomTitle = event.room?.title ?? event.roomText
+  if (!roomTitle) return null
+  const roomSlug = event.room?.slug
+  const floor = event.room?.floor
+
+  return (
+    <EventFact icon={MapPin} label={t("place")}>
+      {roomSlug ? (
+        <EventDetailRoomLink
+          event={event}
+          floorLabel={floor != null ? t("floor", { floor }) : null}
+          roomSlug={roomSlug}
+          roomTitle={roomTitle}
+        />
+      ) : (
+        roomTitle
+      )}
+      {floor != null && (
+        <span className="text-foreground-muted">
+          {" "}
+          · {t("floor", { floor })}
+        </span>
+      )}
+    </EventFact>
+  )
+}
+
+function EventDetailBody({
   event,
+  eventSlug,
   t,
 }: {
   event: EventDetail
-  t: Awaited<ReturnType<typeof getTranslations>>
+  eventSlug: string
+  t: Translator
 }) {
   const groups = [
     ...(event.organizerGroup ? [event.organizerGroup] : []),
     ...(event.coOrganizerGroups ?? []),
   ]
-  const organizer = groups.length > 0 || event.organizerText
-  const price = event.isSoldOut ? t("soldOut") : formatPrices(event)
+  const hasOrganizer = groups.length > 0 || event.organizerText
 
   return (
-    <aside className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
-      <EventDetailMetaItem label={t("price")}>
-        {price ?? "-"}
-      </EventDetailMetaItem>
-      {organizer && (
-        <EventDetailMetaItem label={t("organizer")}>
-          {groups.length > 0
-            ? groups.map((group, index) => (
-                <Fragment key={group._id}>
-                  {index > 0 ? ", " : null}
-                  {group.slug ? (
-                    <Link
-                      href={`/grupper/${group.slug}`}
-                      className="underline underline-offset-4 hover:text-primary focus-brutal"
-                    >
-                      {group.name}
-                    </Link>
-                  ) : (
-                    group.name
-                  )}
-                </Fragment>
-              ))
-            : event.organizerText}
-        </EventDetailMetaItem>
-      )}
-    </aside>
-  )
-}
-
-function EventDetailMetaItem({
-  label,
-  children,
-}: {
-  label: string
-  children: ReactNode
-}) {
-  return (
-    <div className="space-y-3">
-      <p className="font-heading uppercase tracking-widest text-foreground">
-        {label}
-      </p>
-      <p className="text-lg leading-6 text-foreground">{children}</p>
-    </div>
-  )
-}
-
-function EventDetailSchedule({
-  event,
-  t,
-}: {
-  event: EventDetail
-  t: Awaited<ReturnType<typeof getTranslations>>
-}) {
-  return (
-    <section>
-      <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 font-heading uppercase tracking-widest text-foreground sm:gap-4">
-        <p>{t("date")}</p>
-        <p>{t("time")}</p>
-        <p>{t("place")}</p>
+    <section className="grid gap-8 lg:grid-cols-[minmax(19rem,2fr)_minmax(0,3fr)]">
+      <div className="space-y-6 lg:order-last">
+        <div className="max-w-prose space-y-5 text-lg leading-8 text-foreground">
+          {event.description?.length ? (
+            <PortableTextContent value={event.description} nofollowLinks />
+          ) : (
+            <p>-</p>
+          )}
+        </div>
       </div>
-      {(event.dates ?? []).map(date => (
-        <EventDetailScheduleItem date={date} event={event} key={date._key} />
-      ))}
+      <aside className="space-y-6">
+        {hasOrganizer && (
+          <div className="space-y-2">
+            <p className="font-heading text-sm text-foreground-muted">
+              {t("organizer")}
+            </p>
+            <p className="text-lg leading-6">
+              {groups.length > 0
+                ? groups.map((group, index) => (
+                    <Fragment key={group._id}>
+                      {index > 0 ? ", " : null}
+                      {group.slug ? (
+                        <Link
+                          href={`/grupper/${group.slug}`}
+                          className="underline underline-offset-4 hover:text-primary focus-brutal"
+                        >
+                          {group.name}
+                        </Link>
+                      ) : (
+                        group.name
+                      )}
+                    </Fragment>
+                  ))
+                : event.organizerText}
+            </p>
+          </div>
+        )}
+        <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
+      </aside>
     </section>
   )
 }
 
-function EventDetailScheduleItem({
-  date,
-  event,
+function EventDateList({
+  rows,
+  locale,
+  t,
 }: {
-  date: NonNullable<EventDetail["dates"]>[number]
-  event: EventDetail
+  rows: EventDateRow[]
+  locale: AppLocale
+  t: Translator
 }) {
-  const roomTitle = event.room?.title ?? event.roomText
-  const roomSlug = event.room?.slug
-
   return (
-    <div className="grid grid-cols-[1.3fr_0.6fr_1fr] gap-3 px-0 py-4 text-lg leading-tight text-foreground sm:gap-4 sm:text-xl">
-      <p>{formatDate(date.startDate)}</p>
-      <p>{formatScheduleTime(date)}</p>
-      <p>
-        {roomSlug ? (
-          <EventDetailRoomLink
-            event={event}
-            roomSlug={roomSlug}
-            roomTitle={roomTitle}
-          />
-        ) : (
-          (roomTitle ?? "-")
-        )}
-      </p>
-    </div>
+    <section aria-labelledby="event-dates-heading" className="space-y-4">
+      <h2 id="event-dates-heading" className="text-section-title">
+        {t("upcomingDates")}
+      </h2>
+      <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        {rows.map(row => {
+          const roomTitle = row.event.room?.title ?? row.event.roomText
+          const cancelled = row.event.eventStatus !== "scheduled"
+          const content = (
+            <>
+              <span className="flex flex-wrap items-center gap-2 font-heading text-lg">
+                <time dateTime={row.date.startDate}>
+                  {formatLongDate(row.date.startDate, locale)}
+                </time>
+                {cancelled && (
+                  <Tag variant="destructive" className="text-xs">
+                    {t("statusCancelled")}
+                  </Tag>
+                )}
+              </span>
+              <span className="text-foreground-muted">
+                {[
+                  row.date.startTime ? formatScheduleTime(row.date) : null,
+                  roomTitle,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </>
+          )
+          const className =
+            "flex h-full flex-col gap-1 rounded-base bg-card px-4 py-3"
+
+          return (
+            <li key={row.key}>
+              {row.href ? (
+                <Link
+                  href={row.href}
+                  className={`${className} transition-colors hover:bg-muted focus-brutal`}
+                  {...eventTrackingAttributes(row.event, "detail-child")}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div className={className}>{content}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
 
@@ -405,10 +580,12 @@ function EventDetailRoomLink({
   event,
   roomSlug,
   roomTitle,
+  floorLabel,
 }: {
   event: EventDetail
   roomSlug: string
   roomTitle?: string | null
+  floorLabel: string | null
 }) {
   const roomFloor = event.room?.floor
   const roomImageUrl = event.room?.imageUrl
@@ -419,7 +596,7 @@ function EventDetailRoomLink({
     <span className="group relative inline-block">
       <Link
         href={`/rom/${roomSlug}`}
-        className="hover:underline hover:underline-offset-4"
+        className="underline underline-offset-4 hover:no-underline focus-brutal"
       >
         {roomTitle}
       </Link>
@@ -439,80 +616,12 @@ function EventDetailRoomLink({
           )}
           {roomFloor != null && (
             <span className="px-2 py-1 text-sm text-muted-foreground">
-              {roomFloor}. etasje
+              {floorLabel}
             </span>
           )}
         </span>
       )}
     </span>
-  )
-}
-
-function EventChildList({
-  childEvents,
-  t,
-}: {
-  childEvents: EventChild[]
-  t: Awaited<ReturnType<typeof getTranslations>>
-}) {
-  return (
-    <section className="space-y-4">
-      <h2 className="font-heading text-2xl uppercase tracking-widest text-foreground">
-        {t("childEvents")}
-      </h2>
-      <ul className="border-t-2 border-border">
-        {childEvents.map(child => (
-          <li key={child._id} className="border-b-2 border-border">
-            <Link
-              href={`/arrangementer/${child.slug}`}
-              className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4 text-foreground transition-colors hover:bg-muted"
-              {...eventTrackingAttributes(child, "detail-child")}
-            >
-              <span className="flex flex-col gap-1">
-                <span className="font-heading text-lg uppercase tracking-wide">
-                  {child.title}
-                </span>
-                {child.dates[0] && (
-                  <span className="text-base text-foreground-muted">
-                    {formatDate(child.dates[0].startDate)}
-                    {formatScheduleTime(child.dates[0]) !== "-" &&
-                      `, ${formatScheduleTime(child.dates[0])}`}
-                  </span>
-                )}
-              </span>
-              {child.eventStatus !== "scheduled" && (
-                <span className="font-heading uppercase tracking-widest text-destructive">
-                  {t("statusCancelled")}
-                </span>
-              )}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function EventDetailDescription({
-  event,
-  eventSlug,
-  t,
-}: {
-  event: EventDetail
-  eventSlug: string
-  t: Awaited<ReturnType<typeof getTranslations>>
-}) {
-  return (
-    <section className="grid gap-6 lg:grid-cols-[clamp(19rem,20%,23rem)_minmax(0,1fr)]">
-      <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
-      <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
-        {event.description?.length ? (
-          <PortableTextContent value={event.description} nofollowLinks />
-        ) : (
-          <p>-</p>
-        )}
-      </div>
-    </section>
   )
 }
 
@@ -523,7 +632,7 @@ function EventDetailActions({
 }: {
   event: EventDetail
   eventSlug: string
-  t: Awaited<ReturnType<typeof getTranslations>>
+  t: Translator
 }) {
   return (
     <div className="space-y-4">
@@ -543,23 +652,87 @@ function EventDetailActions({
   )
 }
 
-function formatDate(dateStr: string): string {
-  return longDateFormatter.format(new Date(`${dateStr}T00:00:00`))
+function formatLongDate(dateStr: string, locale: AppLocale): string {
+  const formatted = new Intl.DateTimeFormat(
+    locale === "en" ? "en-GB" : "nb-NO",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Europe/Oslo",
+    },
+  ).format(new Date(`${dateStr}T12:00:00Z`))
+  return formatted.charAt(0).toLocaleUpperCase(locale) + formatted.slice(1)
 }
 
-function formatScheduleTime(
-  date: NonNullable<EventDetail["dates"]>[number],
-): string {
+function formatScheduleTime(date: EventDetailDate): string {
   if (!date.startTime) return "-"
   if (!date.endTime) return date.startTime
   return `${date.startTime}–${date.endTime}`
 }
 
-function formatPrices(event: EventDetail): string | null {
-  if (event.isFree) return "Gratis"
+function formatPrices(event: EventDetail, t: Translator): string | null {
+  if (event.isFree) return t("priceFree")
   const parts: string[] = []
-  if (event.priceOrdinar != null) parts.push(`Ord. ${event.priceOrdinar} kr`)
-  if (event.priceStudent != null) parts.push(`Stud. ${event.priceStudent} kr`)
-  if (event.priceMedlem != null) parts.push(`Medl. ${event.priceMedlem} kr`)
+  if (event.priceOrdinar != null)
+    parts.push(t("priceOrdinary", { price: event.priceOrdinar }))
+  if (event.priceStudent != null)
+    parts.push(t("priceStudent", { price: event.priceStudent }))
+  if (event.priceMedlem != null)
+    parts.push(t("priceMember", { price: event.priceMedlem }))
   return parts.length > 0 ? parts.join(" / ") : null
+}
+
+function lowestPrice(event: EventDetail): number | null {
+  const prices = [
+    event.priceOrdinar,
+    event.priceStudent,
+    event.priceMedlem,
+  ].filter((price): price is number => price != null)
+  return prices.length > 0 ? Math.min(...prices) : null
+}
+
+function formatShortDate(dateStr: string, locale: AppLocale): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Oslo",
+  }).format(new Date(`${dateStr}T12:00:00Z`))
+}
+
+/**
+ * The one filled button on the page. Sold-out and cancelled events keep the
+ * button in place, disabled, so the state reads at a glance.
+ */
+function EventTicketAction({
+  event,
+  eventSlug,
+  t,
+}: {
+  event: EventDetail
+  eventSlug: string
+  t: Translator
+}) {
+  if (!event.ticketUrl) return null
+  if (event.eventStatus !== "scheduled" || event.isSoldOut) {
+    return (
+      <Button disabled>
+        {event.isSoldOut ? t("soldOut") : t("statusCancelled")}
+      </Button>
+    )
+  }
+  const from = event.isFree ? null : lowestPrice(event)
+
+  return (
+    <EventTicketButton
+      ticketUrl={event.ticketUrl}
+      label={from == null ? t("tickets") : t("ticketsFrom", { price: from })}
+      newTabLabel={t("opensInNewTab")}
+      eventId={event._id}
+      eventTitle={event.title}
+      eventSlug={eventSlug}
+    />
+  )
 }

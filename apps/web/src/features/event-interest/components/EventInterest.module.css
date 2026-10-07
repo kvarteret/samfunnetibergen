@@ -5,6 +5,12 @@
   gap: 0.75rem;
   color: var(--color-foreground);
 }
+.title {
+  flex-basis: 100%;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-foreground-muted);
+}
 .row {
   position: relative;
   width: fit-content;

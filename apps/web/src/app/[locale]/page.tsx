@@ -3,16 +3,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { SectionMark } from "@/components/section-mark"
+import { EventCard, type EventSummary } from "@/features/events"
 import {
-  EventCard,
-  type EventDateEntry,
-  type EventSummary,
-} from "@/features/events"
-import {
-  computeAllDates,
-  formatPrimaryDate,
-  formatWeekday,
-  getRecurringLabel,
+  buildCardDateLabels,
+  type CardDateLabels,
 } from "@/features/events/domain/dates"
 import type { PublicEvent } from "@/features/events/domain/events"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
@@ -21,6 +15,7 @@ import {
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
 } from "@/features/events/domain/promotedOrdering"
+import { getCardDateLabels } from "@/features/events/server/card-date-labels"
 import {
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
@@ -64,58 +59,19 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
 }
 
 type SanityEvent = PublicEvent
-type SanityEventDate = NonNullable<SanityEvent["dates"]>[number]
-
-type EventCardLabels = {
-  today: string
-  tomorrow: string
-  weekday: (date: Date) => string
-  recurringDaily: string
-  recurringWeekly: string
-  recurringMonthly: string
-  recurringGeneric: string
-}
 
 function toEventSummary(
   event: SanityEvent,
   today: string,
-  labels?: EventCardLabels,
+  labels: CardDateLabels,
 ): EventSummary {
-  const dates: EventDateEntry[] = (event.dates ?? []).map(
-    (d: SanityEventDate) => ({
-      _key: d._key,
-      startDate: d.startDate,
-      startTime: d.startTime ?? null,
-      endTime: d.endTime ?? null,
-    }),
-  )
-
-  const resolvedDates = computeAllDates(dates, today)
-
-  const primaryDateLabels = labels
-    ? {
-        today: labels.today,
-        tomorrow: labels.tomorrow,
-        weekday: labels.weekday,
-      }
-    : undefined
-  const primaryDate = resolvedDates[0]
-  const primaryDateLabel =
-    primaryDate && primaryDateLabels
-      ? formatPrimaryDate(primaryDate, primaryDateLabels)
-      : null
-  const recurringLabel = labels
-    ? event.eventKind === "seriesInstance"
-      ? labels.recurringGeneric
-      : event.isRecurring
-        ? getRecurringLabel(event.rrule, {
-            daily: labels.recurringDaily,
-            weekly: labels.recurringWeekly,
-            monthly: labels.recurringMonthly,
-            generic: labels.recurringGeneric,
-          })
-        : null
-    : null
+  const {
+    dates,
+    resolvedDates,
+    primaryDateLabel,
+    recurringLabel,
+    programmeLabel,
+  } = buildCardDateLabels(event, today, labels)
 
   return {
     _id: event._id,
@@ -132,6 +88,7 @@ function toEventSummary(
     resolvedDates,
     recurringLabel,
     primaryDateLabel,
+    programmeLabel,
     isFree: event.isFree ?? undefined,
     isSoldOut: event.isSoldOut,
     priceOrdinar: event.priceOrdinar ?? null,
@@ -182,14 +139,19 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [{ events }, promotedParentEvents, barPreviews, t, homeT] =
-    await Promise.all([
-      fetchPublicEventSet({ locale, from: today, to: null }),
-      fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
-      fetchBarPreviews(locale),
-      getTranslations({ locale, namespace: "EventCard" }),
-      getTranslations({ locale, namespace: "HomePage" }),
-    ])
+  const [
+    { events },
+    promotedParentEvents,
+    barPreviews,
+    eventCardLabels,
+    homeT,
+  ] = await Promise.all([
+    fetchPublicEventSet({ locale, from: today, to: null }),
+    fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
+    fetchBarPreviews(locale),
+    getCardDateLabels(locale),
+    getTranslations({ locale, namespace: "HomePage" }),
+  ])
   const initialNow = new Date().toISOString()
   const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
@@ -205,16 +167,6 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
     (events ?? []).filter(event => !promotedEventIds.has(event._id)),
     featuredFestivalIds,
   ).slice(0, 30)
-
-  const eventCardLabels: EventCardLabels = {
-    today: t("today"),
-    tomorrow: t("tomorrow"),
-    weekday: (date: Date) => formatWeekday(date, locale),
-    recurringDaily: t("recurringDaily"),
-    recurringWeekly: t("recurringWeekly"),
-    recurringMonthly: t("recurringMonthly"),
-    recurringGeneric: t("recurringGeneric"),
-  }
 
   return (
     <div className="flex flex-col gap-12 pb-12">
@@ -292,7 +244,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
 
 interface HomeEventsSectionProps {
   events: SanityEvent[]
-  labels: EventCardLabels
+  labels: CardDateLabels
   locale: AppLocale
   sectionLabel?: string
   linkLabel: string

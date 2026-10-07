@@ -8,6 +8,8 @@ import { entrySurface } from "@/lib/posthog/placement-entry"
 interface EventTicketButtonProps {
   ticketUrl: string
   label: string
+  /** Screen-reader hint that the shop opens in a new tab. */
+  newTabLabel?: string
   eventId: string
   eventTitle: string
   eventSlug: string
@@ -16,6 +18,7 @@ interface EventTicketButtonProps {
 export function EventTicketButton({
   ticketUrl,
   label,
+  newTabLabel,
   eventId,
   eventTitle,
   eventSlug,
@@ -24,7 +27,7 @@ export function EventTicketButton({
     <Button
       className="w-fit"
       render={<a href={ticketUrl} rel="noreferrer" target="_blank" />}
-      size="default"
+      size="lg"
       onClick={() => {
         posthog.capture("ticket_link_clicked", {
           event_id: eventId,
@@ -37,6 +40,8 @@ export function EventTicketButton({
     >
       <Ticket aria-hidden="true" />
       {label}
+      <ExternalLink aria-hidden="true" className="opacity-70" />
+      {newTabLabel && <span className="sr-only"> ({newTabLabel})</span>}
     </Button>
   )
 }
@@ -57,9 +62,11 @@ export function EventFacebookButton({
   eventSlug,
 }: EventFacebookButtonProps) {
   return (
-    <Button
-      render={<a href={facebookUrl} rel="noreferrer" target="_blank" />}
-      variant="neutral"
+    <a
+      className="inline-flex items-center gap-2 text-foreground-muted underline underline-offset-4 hover:text-foreground focus-brutal"
+      href={facebookUrl}
+      rel="noreferrer"
+      target="_blank"
       onClick={() => {
         posthog.capture("facebook_event_link_clicked", {
           event_id: eventId,
@@ -70,8 +77,8 @@ export function EventFacebookButton({
         })
       }}
     >
-      <ExternalLink aria-hidden="true" />
+      <ExternalLink aria-hidden="true" className="size-4" />
       {label}
-    </Button>
+    </a>
   )
 }

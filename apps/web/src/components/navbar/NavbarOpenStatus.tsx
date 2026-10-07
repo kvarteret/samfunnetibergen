@@ -4,6 +4,7 @@ import { Popover } from "@base-ui/react/popover"
 import { ChevronDown } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useMemo } from "react"
+import { menuPopupClassName } from "@/components/ui/menu-surface"
 import {
   type ClosedDate,
   formatOpeningDate,
@@ -103,7 +104,9 @@ export function NavbarOpenStatus({
           collisionPadding={16}
           sideOffset={12}
         >
-          <Popover.Popup className="w-[min(24rem,var(--available-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] border-2 border-border bg-card p-4 shadow-shadow outline-none sm:p-5">
+          <Popover.Popup
+            className={`w-[min(24rem,var(--available-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-4 sm:p-5 ${menuPopupClassName}`}
+          >
             <p className="sr-only">{t("title")}</p>
             <dl className="space-y-1.5">
               {days.map((day, index) => (
