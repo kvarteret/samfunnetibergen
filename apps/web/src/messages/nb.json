@@ -178,7 +178,14 @@
       "selectTime": "Velg tidspunkt",
       "day": "Dag {number}",
       "addDay": "Legg til dag {number}",
-      "notEnoughTimes": "Ikke nok tidspunkt for å vise en tidsvelger."
+      "notEnoughTimes": "Ikke nok tidspunkt for å vise en tidsvelger.",
+      "legendSelected": "Start og slutt",
+      "legendInRange": "Del av bookingen",
+      "legendUnavailable": "Stengt eller opptatt",
+      "legendToday": "I dag",
+      "legendBooking": "Din booking",
+      "legendNight": "Natt mellom dagene",
+      "legendOccupied": "Opptatt"
     },
     "event": {
       "sectionTitle": "Arrangement",

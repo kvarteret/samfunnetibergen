@@ -179,7 +179,14 @@
       "selectTime": "Choose a time",
       "day": "Day {number}",
       "addDay": "Add day {number}",
-      "notEnoughTimes": "There are not enough times to show a time picker."
+      "notEnoughTimes": "There are not enough times to show a time picker.",
+      "legendSelected": "Start and end",
+      "legendInRange": "Part of the booking",
+      "legendUnavailable": "Closed or booked",
+      "legendToday": "Today",
+      "legendBooking": "Your booking",
+      "legendNight": "Night between days",
+      "legendOccupied": "Booked"
     },
     "event": {
       "sectionTitle": "Event",
