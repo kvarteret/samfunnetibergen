@@ -458,7 +458,9 @@
     "platformInstagram": "Instagram",
     "platformTiktok": "TikTok",
     "platformStudentbergen": "Studentbergen",
-    "platformOther": "Annet"
+    "platformOther": "Annet",
+    "upcomingEvents": "Kommende arrangementer",
+    "allEvents": "Se alle {count}"
   },
   "GroupsPage": {
     "title": "Bli frivillig",
