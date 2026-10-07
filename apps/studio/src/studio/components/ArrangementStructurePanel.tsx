@@ -20,23 +20,34 @@ export const FORMATS: Array<{
   kind: Kind
   title: string
   description: string
+  fill: string[]
+  skip: string
 }> = [
   {
     kind: "single",
     title: "Arrangement",
-    description:
-      "Én side med én eller flere datoer. Hver dato vises i kalenderen.",
+    description: "Én oppføring. Flere datoer vises hver for seg i kalenderen.",
+    fill: ["Én eller flere datoer med tider", "Rom", "Pris"],
+    skip: "Ingen mønster eller egne dager.",
   },
   {
     kind: "seriesParent",
     title: "Serie",
-    description:
-      "Gjentas etter et mønster. Hver dag er en egen oppføring som kan endres eller avlyses.",
+    description: "Gjentas etter et mønster. Hver dag kan endres eller avlyses.",
+    fill: [
+      "Første dato med tider",
+      "Mønster, f.eks. hver tirsdag",
+      "Rom og pris for alle dagene",
+      "Opprett dagene for semesteret",
+    ],
+    skip: "Bare én dato – resten lages fra mønsteret.",
   },
   {
     kind: "festivalParent",
     title: "Festival",
     description: "Festivaler innebærer at hver dag er unik.",
+    fill: ["Festivalbilde og beskrivelse", "Legg til festivaldager"],
+    skip: "Ingen dato, rom eller pris her – det fylles ut på hver dag.",
   },
 ]
 
@@ -297,12 +308,27 @@ export function ArrangementStructurePanel({
                 }}
                 tone={selected ? "primary" : "default"}
               >
-                <Stack gap={2}>
-                  <Text size={1} weight="semibold">
-                    {format.title}
-                  </Text>
+                <Stack gap={3}>
+                  <Flex align="center" gap={2}>
+                    <Text aria-hidden size={1}>
+                      {selected ? "●" : "○"}
+                    </Text>
+                    <Text size={1} weight="semibold">
+                      {format.title}
+                    </Text>
+                  </Flex>
                   <Text muted size={1}>
                     {format.description}
+                  </Text>
+                  <Stack as="ul" gap={2} style={{ margin: 0, paddingLeft: 16 }}>
+                    {format.fill.map(item => (
+                      <Text as="li" key={item} size={1}>
+                        {item}
+                      </Text>
+                    ))}
+                  </Stack>
+                  <Text muted size={0}>
+                    {format.skip}
                   </Text>
                 </Stack>
               </Card>
