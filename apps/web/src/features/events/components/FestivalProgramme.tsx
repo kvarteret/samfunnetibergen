@@ -15,7 +15,6 @@ export type FestivalLabels = {
   browseDays: string
   events: string
   days: string
-  day: string
   about: string
   details: string
   tickets: string
@@ -127,18 +126,18 @@ export function FestivalProgramme({
       ) : (
         <>
           <nav aria-label={labels.browseDays} className="flex flex-wrap gap-2">
-            {days.map((day, index) => (
+            {days.map(day => (
               <a
                 key={day.date}
                 href={`#festival-day-${day.date}`}
                 className="border-2 border-border bg-background px-4 py-3 font-heading transition-colors hover:bg-primary hover:text-primary-foreground focus-brutal"
               >
-                {labels.day} {index + 1} · {festivalDate(day.date, locale)}
+                {festivalDate(day.date, locale, true)}
                 <span className="ml-2 text-sm">({day.occurrences.length})</span>
               </a>
             ))}
           </nav>
-          {days.map((day, index) => (
+          {days.map(day => (
             <section
               key={day.date}
               id={`festival-day-${day.date}`}
@@ -149,12 +148,9 @@ export function FestivalProgramme({
                 id={`festival-heading-${day.date}`}
                 className="border-l-4 border-primary pl-4 font-heading text-2xl capitalize sm:text-3xl"
               >
-                {labels.day} {index + 1}
-                <span className="ml-3 text-lg font-normal text-foreground-muted sm:text-xl">
-                  <time dateTime={day.date}>
-                    {festivalDate(day.date, locale, true)}
-                  </time>
-                </span>
+                <time dateTime={day.date}>
+                  {festivalDate(day.date, locale, true)}
+                </time>
               </h3>
               <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {day.occurrences.map(occurrence => (

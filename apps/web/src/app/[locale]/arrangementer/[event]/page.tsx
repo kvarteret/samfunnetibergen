@@ -69,7 +69,6 @@ export default async function EventPage({ params }: EventPageProps) {
     browseDays: t("festivalBrowseDays"),
     events: t("festivalEvents"),
     days: t("festivalDays"),
-    day: t("festivalDay"),
     about: t("festivalAbout"),
     details: t("festivalDetails"),
     tickets: t("tickets"),
