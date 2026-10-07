@@ -3,6 +3,7 @@
 import { CalendarDays } from "lucide-react"
 import Link from "next/link"
 import { BrandLogo } from "@/components/navbar/BrandLogo"
+import { InfoScreenParty } from "@/components/party/InfoScreenParty"
 import { SectionMark } from "@/components/section-mark"
 import { Button } from "@/components/ui/button"
 import type { SiteLogoContent } from "@/lib/sanity/fetch"
@@ -65,7 +66,10 @@ export function InfoScreen({
 
   return (
     <main className="fixed inset-0 grid place-items-center overflow-hidden bg-foreground">
-      <div className="flex h-[min(100dvh,177.777778vw)] w-[min(100vw,56.25dvh)] flex-col overflow-hidden bg-background text-foreground [container-type:inline-size]">
+      <div
+        className="flex h-[min(100dvh,177.777778vw)] w-[min(100vw,56.25dvh)] flex-col overflow-hidden bg-background text-foreground [container-type:inline-size]"
+        data-party-stage
+      >
         <header className="shrink-0 px-[6cqw] pt-[4cqw] pb-[3cqw]">
           <div className="mb-[3cqw] flex items-center justify-between">
             <BrandLogo
@@ -176,6 +180,7 @@ export function InfoScreen({
             </div>
           </div>
         </footer>
+        <InfoScreenParty stage="[data-party-stage]" />
       </div>
     </main>
   )

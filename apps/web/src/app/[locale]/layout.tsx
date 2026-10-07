@@ -3,6 +3,7 @@ import { getMessages } from "next-intl/server"
 import { Providers } from "@/app/providers"
 import { Footer } from "@/components/footer/Footer"
 import { Navbar } from "@/components/navbar/Navbar"
+import { PartyMode } from "@/components/party/PartyMode"
 import {
   activateRequestLocale,
   getLocaleStaticParams,
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
             <Footer data={footer} initialNow={initialNow} locale={locale} />
           </div>
         </div>
+        <PartyMode />
       </Providers>
     </NextIntlClientProvider>
   )
