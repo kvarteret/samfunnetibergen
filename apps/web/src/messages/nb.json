@@ -200,9 +200,9 @@
       "hintRange": "Klikk en dag for å begynne på nytt.",
       "resetDates": "Velg datoer på nytt",
       "legendPartlyBooked": "Delvis opptatt",
-      "dayClosed": "Ingen leietider denne dagen. Velg en annen dato.",
-      "dayFullyBooked": "Crescat viser at hele leietiden er opptatt.",
-      "dayPartlyBooked": "Deler av leietiden er opptatt. Det finnes også ledige timer.",
+      "dayClosed": "Stengt",
+      "dayFullyBooked": "Helt opptatt",
+      "dayPartlyBooked": "Delvis opptatt",
       "crescatBookings": "Reserverte tider i Crescat:",
       "bookedDateHint": "Du kan velge datoen eller et tidsrom over flere dager. Konflikter med valgt rom og tidspunkt vises under tidsvelgeren og må løses før innsending."
     },

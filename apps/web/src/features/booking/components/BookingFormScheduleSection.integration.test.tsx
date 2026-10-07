@@ -214,14 +214,12 @@ describe("selected-room Crescat calendar availability", () => {
         new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
       )
       expect(partial).not.toBeNull()
-      expect(partial?.className).toContain("bg-amber-100")
+      expect(partial?.className).toContain("booking-partial")
       expect(partial?.disabled).toBe(false)
       expect(full?.className).toContain("booking-stripes")
       expect(full?.disabled).toBe(false)
       await act(async () => full?.click())
-      expect(document.body.textContent).toContain(
-        "Crescat viser at hele leietiden er opptatt.",
-      )
+      expect(document.body.textContent).toContain("Helt opptatt")
       expect(document.body.textContent).toContain(
         "21. aug. 00:00 – 22. aug. 00:00",
       )
@@ -230,12 +228,29 @@ describe("selected-room Crescat calendar availability", () => {
           new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
         )?.click(),
       )
+      expect(
+        dayButton(new Date("2026-08-27T00:00:00").toLocaleDateString("nb"))
+          ?.className,
+      ).toContain("!opacity-25")
+      expect(
+        dayButton(new Date("2026-08-26T00:00:00").toLocaleDateString("nb"))
+          ?.className,
+      ).not.toContain("!opacity-25")
       await act(async () =>
         dayButton(
           new Date("2026-08-22T00:00:00").toLocaleDateString("nb"),
         )?.click(),
       )
-      expect(container.textContent).toContain("3 dager")
+      expect(
+        container.querySelectorAll('button[data-range-start="true"]'),
+      ).toHaveLength(1)
+      expect(
+        container.querySelectorAll('button[data-range-end="true"]'),
+      ).toHaveLength(1)
+      expect(
+        container.querySelectorAll('button[data-range-middle="true"]'),
+      ).toHaveLength(1)
+      expect(container.textContent).not.toContain("Ferdig for én dag")
       const nextMonth = container.querySelector<HTMLButtonElement>(
         "nav button:last-child",
       )

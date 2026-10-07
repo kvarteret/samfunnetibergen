@@ -201,9 +201,9 @@
       "hintRange": "Click a day to start over.",
       "resetDates": "Choose dates again",
       "legendPartlyBooked": "Partly booked",
-      "dayClosed": "No bookable hours on this date. Choose another date.",
-      "dayFullyBooked": "Crescat shows bookings throughout the bookable hours.",
-      "dayPartlyBooked": "Some bookable hours are occupied; other hours are available.",
+      "dayClosed": "Closed",
+      "dayFullyBooked": "Fully booked",
+      "dayPartlyBooked": "Partly booked",
       "crescatBookings": "Reserved times in Crescat:",
       "bookedDateHint": "You can select this date or a range spanning several days. Conflicts with the selected room and times appear below the time picker and must be resolved before submitting."
     },

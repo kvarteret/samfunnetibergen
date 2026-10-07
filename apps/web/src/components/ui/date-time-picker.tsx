@@ -187,83 +187,6 @@ export function computeMultiDayConstraints(
   }
 }
 
-/**
- * Names the current step so it is clear whether the next click picks a new
- * first day or extends the booking to more days.
- */
-function DateSelectionStatus({
-  startDate,
-  endDate,
-  locale,
-  onReset,
-}: {
-  startDate: string
-  endDate: string
-  locale: string
-  onReset: () => void
-}) {
-  const t = useTranslations("RoomBooking")
-  const format = (date: string, withYear = false) =>
-    new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      ...(withYear ? { year: "numeric" as const } : {}),
-    }).format(new Date(`${date}T12:00:00`))
-  const step = !startDate ? "start" : !endDate ? "extend" : "range"
-  const days = endDate
-    ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
-    : 1
-
-  return (
-    <div
-      aria-live="polite"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          aria-hidden
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full font-heading text-sm",
-            step === "start"
-              ? "bg-foreground text-background"
-              : "bg-booking-selected text-booking-selected-foreground",
-          )}
-        >
-          {step === "start" ? "1" : step === "extend" ? "2" : "✓"}
-        </span>
-        <div className="min-w-0">
-          <p className="font-heading text-foreground">
-            {step === "start" && t("dateTime.selectStartDate")}
-            {step === "extend" &&
-              t("dateTime.statusOneDay", { date: format(startDate) })}
-            {step === "range" &&
-              t("dateTime.statusRange", {
-                start: format(startDate),
-                end: format(endDate),
-                days,
-              })}
-          </p>
-          <p className="text-sm text-foreground-muted">
-            {step === "start" && t("dateTime.hintStart")}
-            {step === "extend" && t("dateTime.hintExtend")}
-            {step === "range" && t("dateTime.hintRange")}
-          </p>
-        </div>
-      </div>
-      {step !== "start" && (
-        <button
-          type="button"
-          onClick={onReset}
-          className="text-sm text-foreground-muted underline underline-offset-4 hover:text-foreground focus-brutal"
-        >
-          {t("dateTime.resetDates")}
-        </button>
-      )}
-    </div>
-  )
-}
-
 // Deliberately local-time, not the Oslo helpers: it formats dates the user
 // picked in the calendar widget, which live in the browser's timezone.
 function toDateString(d: Date): string {
@@ -398,15 +321,6 @@ export function DateTimePicker({
 
   return (
     <div className="space-y-6">
-      <DateSelectionStatus
-        startDate={startDate}
-        endDate={endDate}
-        locale={locale}
-        onReset={() => {
-          onStartDateChange("")
-          onEndDateChange("")
-        }}
-      />
       <Calendar
         className="w-full p-0"
         classNames={{
@@ -486,9 +400,9 @@ export function DateTimePicker({
                   !closed &&
                     status.occupied &&
                     !status.fullyOccupied &&
-                    "bg-amber-100 text-amber-950",
+                    "booking-partial",
                   closed && "line-through",
-                  mods.beyond_range && "opacity-40",
+                  mods.beyond_range && "!opacity-25",
                 )}
                 day={day}
                 locale={calendarLocale}
@@ -513,7 +427,7 @@ export function DateTimePicker({
                 />
                 <Popover.Portal>
                   <Popover.Positioner sideOffset={8}>
-                    <Popover.Popup className="z-[100] w-72 space-y-2 rounded-xl border border-border bg-background p-4 shadow-shadow">
+                    <Popover.Popup className="z-[100] w-56 space-y-1.5 rounded-lg border border-border bg-background p-3 shadow-shadow">
                       <p className="font-heading">
                         {day.date.toLocaleDateString(
                           locale === "en" ? "en-GB" : "nb-NO",
@@ -531,17 +445,25 @@ export function DateTimePicker({
                       </p>
                       {!closed && (
                         <>
-                          <p className="text-sm text-foreground-muted">
-                            {t("dateTime.crescatBookings")}
-                          </p>
                           <ul className="space-y-1 text-sm">
-                            {dayBookings.map(booking => (
+                            {dayBookings.slice(0, 3).map(booking => (
                               <li key={booking}>{booking}</li>
                             ))}
                           </ul>
-                          <p className="text-sm text-foreground-muted">
-                            {t("dateTime.bookedDateHint")}
-                          </p>
+                          {dayBookings.length > 3 && (
+                            <details className="text-sm">
+                              <summary className="cursor-pointer">
+                                {t("schedule.showMoreConflicts", {
+                                  count: dayBookings.length - 3,
+                                })}
+                              </summary>
+                              <ul>
+                                {dayBookings.slice(3).map(booking => (
+                                  <li key={booking}>{booking}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
                         </>
                       )}
                     </Popover.Popup>
@@ -563,7 +485,7 @@ export function DateTimePicker({
         onDayMouseEnter={date => setHoveredDate(date)}
         onDayMouseLeave={() => setHoveredDate(null)}
         modifiersClassNames={{
-          beyond_range: "opacity-40",
+          beyond_range: "text-foreground-muted [&_button]:!opacity-25",
           preview: "bg-booking-range",
         }}
         numberOfMonths={2}
@@ -586,7 +508,10 @@ export function DateTimePicker({
               "booking-stripes border border-booking-closed [--stripe:var(--booking-closed)]",
             label: t("dateTime.legendUnavailable"),
           },
-          { swatch: "bg-amber-100", label: t("dateTime.legendPartlyBooked") },
+          {
+            swatch: "booking-partial",
+            label: t("dateTime.legendPartlyBooked"),
+          },
           {
             swatch: "ring-2 ring-inset ring-booking-today",
             label: t("dateTime.legendToday"),
