@@ -382,7 +382,14 @@
     "cancelledNotice": "Dette arrangementet er kansellert.",
     "partOf": "Del av",
     "childEvents": "Program",
-    "statusCancelled": "Kansellert"
+    "statusCancelled": "Kansellert",
+    "festivalBrowseDays": "Velg en dag",
+    "festivalEvents": "arrangementer",
+    "festivalDays": "dager",
+    "festivalAbout": "Om festivalen og praktisk informasjon",
+    "festivalDetails": "Les mer",
+    "festivalTimeUnknown": "Tid kommer",
+    "festivalEmpty": "Programmet publiseres snart."
   },
   "VolunteerProspectForm": {
     "title": "Bli frivillig",
