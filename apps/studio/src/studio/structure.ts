@@ -63,8 +63,18 @@ type ArrangementListOptions = {
 
 // Component panes open documents to their right so the list stays visible.
 function arrangementDocument(S: StructureBuilder) {
-  return (documentId: string) =>
-    S.document().documentId(documentId).schemaType("arrangement")
+  return (
+    documentId: string,
+    { params }: { params?: Record<string, string | undefined> } = {},
+  ) => {
+    const document = S.document()
+      .documentId(documentId)
+      .schemaType("arrangement")
+    // New documents opened from the panes pass the template to start from.
+    return params?.template
+      ? document.initialValueTemplate(params.template)
+      : document
+  }
 }
 
 function arrangementList(S: StructureBuilder, opts: ArrangementListOptions) {

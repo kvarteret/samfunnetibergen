@@ -16,7 +16,10 @@ import {
 import { schemaTypes } from "./src/studio/schemaTypes"
 import { studentGroupLabelValue } from "./src/studio/schemaTypes/documents/studentGroup"
 import { structure } from "./src/studio/structure"
-import { festivalDayInitialValue } from "./src/studio/templates/arrangementTemplates"
+import {
+  festivalDayInitialValue,
+  localizedDefaults,
+} from "./src/studio/templates/arrangementTemplates"
 
 const singletonTypes = new Set<string>(singletonTypeNames)
 
@@ -66,6 +69,8 @@ const config = defineConfig({
       defaultLanguages: ["nb", "en"],
       // "Norsk" / "English" reads clearer than bare "NB" / "EN" codes.
       languageDisplay: "titleOnly",
+      // Reordering on open writes a draft to published documents.
+      restoreOrder: false,
       fieldTypes: [
         "string",
         "text",
@@ -125,6 +130,7 @@ const config = defineConfig({
         title: "Nytt arrangement",
         schemaType: "arrangement",
         value: {
+          ...localizedDefaults(),
           eventKind: "single",
           approvalStatus: "approved",
           eventStatus: "scheduled",
@@ -137,6 +143,7 @@ const config = defineConfig({
         title: "Ny festival",
         schemaType: "arrangement",
         value: {
+          ...localizedDefaults(),
           eventKind: "festivalParent",
           approvalStatus: "approved",
           eventStatus: "scheduled",

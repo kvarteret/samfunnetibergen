@@ -114,6 +114,33 @@ const EMPTY_BROWSER_DATA: BrowserData = {
   },
 }
 
+/** Opens a fresh, unsaved arrangement beside the list. */
+function NewArrangementButton({
+  template,
+  text,
+}: {
+  template: "arrangement" | "festival"
+  text: string
+}) {
+  const { ChildLink } = usePaneRouter()
+  const [id, setId] = useState(() => crypto.randomUUID())
+  return (
+    <RowLink style={{ flex: "none" }}>
+      <ChildLink childId={id} childParameters={{ template }}>
+        <Button
+          as="span"
+          icon={icons.add}
+          // A new id per click, so each button starts its own document.
+          onClick={() => window.setTimeout(() => setId(crypto.randomUUID()))}
+          mode={template === "arrangement" ? "default" : "ghost"}
+          text={text}
+          tone={template === "arrangement" ? "primary" : "default"}
+        />
+      </ChildLink>
+    </RowLink>
+  )
+}
+
 function ArrangementBrowser() {
   const filterId = useId()
   const client = useClient({ apiVersion: "2026-07-29" })
@@ -148,22 +175,11 @@ function ArrangementBrowser() {
         <Flex align="center" gap={3} justify="space-between" wrap="wrap">
           <Heading size={2}>Arrangementer</Heading>
           <Flex gap={2} wrap="wrap">
-            <Button
-              as={IntentLink}
-              icon={icons.add}
-              intent="create"
-              params={{ template: "arrangement", type: "arrangement" }}
+            <NewArrangementButton
+              template="arrangement"
               text="Nytt arrangement"
-              tone="primary"
             />
-            <Button
-              as={IntentLink}
-              icon={icons.add}
-              intent="create"
-              mode="ghost"
-              params={{ template: "festival", type: "arrangement" }}
-              text="Ny festival"
-            />
+            <NewArrangementButton template="festival" text="Ny festival" />
             <Button
               icon={icons.reset}
               mode="bleed"
