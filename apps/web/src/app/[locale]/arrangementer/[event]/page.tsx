@@ -507,7 +507,7 @@ function EventDetailDescription({
       <EventDetailActions event={event} eventSlug={eventSlug} t={t} />
       <div className="space-y-5 border-l-2 border-foreground/60 pl-6 text-lg leading-8 text-foreground-muted max-lg:border-l-0 max-lg:pl-0">
         {event.description?.length ? (
-          <PortableTextContent value={event.description} />
+          <PortableTextContent value={event.description} nofollowLinks />
         ) : (
           <p>-</p>
         )}
