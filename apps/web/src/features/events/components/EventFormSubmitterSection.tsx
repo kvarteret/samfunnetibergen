@@ -23,7 +23,7 @@ export function EventFormSubmitterSection({
   submittedByEmailId,
   submittedByError,
   submittedById,
-  number = "08",
+  number = "07",
   title = "Kontaktinformasjon",
 }: EventFormSubmitterSectionProps) {
   const form = useEventForm()
@@ -92,7 +92,7 @@ export function EventFormSubmitterSection({
               autoComplete="organization"
               id={`${uid}-org`}
               onChange={event => field.handleChange(event.target.value)}
-              placeholder="F.eks. Bandet Skumringen, Realfagskollegiet"
+              placeholder="F.eks. Reodor's Bondeband, Realfagskollegiet"
               value={field.state.value as string}
             />
           )}

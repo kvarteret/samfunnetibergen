@@ -300,6 +300,7 @@
     "promotion": {
       "sectionTitle": "Promotion",
       "question": "I consent to Studentersamfunnet promoting this event on its channels.",
+      "description": "If you agree, we will send you an email with more details.",
       "yes": "Yes please!",
       "no": "No."
     },

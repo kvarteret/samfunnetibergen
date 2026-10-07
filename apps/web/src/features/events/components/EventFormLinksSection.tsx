@@ -14,7 +14,7 @@ interface EventFormLinksSectionProps {
 
 export function EventFormLinksSection({
   uid,
-  number = "07",
+  number = "06",
 }: EventFormLinksSectionProps) {
   const form = useEventForm()
 

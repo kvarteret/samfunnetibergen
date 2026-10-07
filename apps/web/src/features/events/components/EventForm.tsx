@@ -37,7 +37,6 @@ import { EventFormLinksSection } from "./EventFormLinksSection"
 import { EventFormOrganizerSection } from "./EventFormOrganizerSection"
 import { EventFormPlaceSection } from "./EventFormPlaceSection"
 import { EventFormPreview } from "./EventFormPreview"
-import { EventFormPriceSection } from "./EventFormPriceSection"
 import { EventFormScheduleSection } from "./EventFormScheduleSection"
 import { EventFormSubmitterSection } from "./EventFormSubmitterSection"
 import { EventFormContext } from "./eventFormContext"
@@ -257,7 +256,6 @@ export function EventForm({
             organizerTextError={errorFor(fieldIds.organizerText)}
             uid={uid}
           />
-          <EventFormPriceSection uid={uid} />
           <EventFormLinksSection uid={uid} />
           <EventFormSubmitterSection
             submittedByEmailError={errorFor(fieldIds.submittedByEmail)}

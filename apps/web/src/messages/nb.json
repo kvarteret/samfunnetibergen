@@ -299,6 +299,7 @@
     "promotion": {
       "sectionTitle": "Promotering",
       "question": "Jeg godkjenner at Studentersamfunnet kan promotere dette arrangementet på sine kanaler.",
+      "description": "Vi vil i så fall sende deg en e-post med mer detaljer.",
       "yes": "Ja takk!",
       "no": "Nei."
     },

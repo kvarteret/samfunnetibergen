@@ -29,6 +29,9 @@ export function BookingPromotionSection({
       <p className="max-w-3xl leading-6 text-foreground-muted">
         {t("promotion.question")}
       </p>
+      <p className="max-w-3xl text-sm text-foreground-muted">
+        {t("promotion.description")}
+      </p>
 
       <FieldGroup error={error} errorId={errorMessageId}>
         <div id={errorId} tabIndex={-1}>
