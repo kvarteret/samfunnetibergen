@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { cropFrame, imageDimensions, relativeFrame } from "./imageFrames"
+import {
+  cropFrame,
+  croppedArea,
+  imageDimensions,
+  relativeFrame,
+} from "./imageFrames"
 
 const asset = { _ref: "image-abc123-1600x1200-jpg" }
 
@@ -69,5 +74,19 @@ describe("relativeFrame", () => {
     )
     expect(frame.left).toBe(0)
     expect(frame.width).toBeCloseTo(0.4)
+  })
+})
+
+describe("croppedArea", () => {
+  it("returns the crop rectangle and its pixel aspect ratio", () => {
+    expect(
+      croppedArea({
+        asset,
+        crop: { left: 0.25, right: 0.25, top: 0, bottom: 0 },
+      }),
+    ).toEqual({
+      rect: { left: 0.25, top: 0, width: 0.5, height: 1 },
+      aspectRatio: 800 / 1200,
+    })
   })
 })

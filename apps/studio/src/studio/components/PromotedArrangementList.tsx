@@ -4,14 +4,11 @@ import {
   Droppable,
   type DropResult,
 } from "@hello-pangea/dnd"
-import { ArrowDownIcon } from "@sanity/icons/ArrowDown"
-import { ArrowUpIcon } from "@sanity/icons/ArrowUp"
 import { DragHandleIcon } from "@sanity/icons/DragHandle"
 import { ImageIcon } from "@sanity/icons/Image"
 import { TrashIcon } from "@sanity/icons/Trash"
 import { createImageUrlBuilder } from "@sanity/image-url"
 import {
-  Badge,
   Box,
   Button,
   Card,
@@ -113,12 +110,6 @@ const Thumbnail = styled.span`
   background: var(--card-muted-bg-color, rgb(127 127 127 / 0.15));
   img { width: 100%; height: 100%; object-fit: cover; display: block; }
 `
-
-const KIND_LABELS: Record<FeaturedDocument["eventKind"], string> = {
-  single: "Arrangement",
-  seriesParent: "Serie",
-  festivalParent: "Festival",
-}
 
 export function PromotedArrangementList({ today }: { today: string }) {
   const client = useClient({ apiVersion: API_VERSION })
@@ -421,18 +412,17 @@ export function PromotedArrangementList({ today }: { today: string }) {
     section: "visible" | "queue",
   ) => {
     const id = normalizedArrangementId(document._id)
-    const position = section === "visible" ? index : index + 3
-    const sectionLength =
-      section === "visible" ? visibleDocuments.length : queuedDocuments.length
     const slot = schedule[section === "visible" ? index : visibleCount + index]
-    const windowLabel =
-      section === "visible"
-        ? slot?.until
-          ? `På forsiden nå, til og med ${formatStudioDate(slot.until)}`
-          : "På forsiden nå"
-        : slot?.from
-          ? `Kommer på forsiden ${formatStudioDate(slot.from)}`
-          : "Får ikke plass før arrangementet er over"
+    const until =
+      slot?.until && slot.until !== document.nextDate
+        ? `til ${formatStudioDate(slot.until, false)}`
+        : null
+    const queueLabel =
+      section === "queue"
+        ? slot?.from
+          ? `Fra ${formatStudioDate(slot.from)}`
+          : "Får ikke plass"
+        : null
     const thumbnail = document.image?.asset?._ref
       ? imageBuilder
           .image(document.image)
@@ -464,11 +454,6 @@ export function PromotedArrangementList({ today }: { today: string }) {
               >
                 <DragHandleIcon />
               </Box>
-              <Badge tone={section === "visible" ? "primary" : "default"}>
-                {section === "visible"
-                  ? `Plass ${position + 1}`
-                  : `Kø ${position - 2}`}
-              </Badge>
               <RowLink>
                 <ChildLink childId={id}>
                   <Flex align="center" gap={3}>
@@ -491,7 +476,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
                           ]
                             .filter(Boolean)
                             .join(" kl. "),
-                          KIND_LABELS[document.eventKind],
+                          until,
                           document.createdAt
                             ? `lagt ut ${formatStudioDate(document.createdAt, false)}`
                             : null,
@@ -499,30 +484,16 @@ export function PromotedArrangementList({ today }: { today: string }) {
                           .filter(Boolean)
                           .join(" · ")}
                       </Text>
-                      <Text size={1} weight="medium">
-                        {windowLabel}
-                      </Text>
+                      {queueLabel ? (
+                        <Text size={1} weight="medium">
+                          {queueLabel}
+                        </Text>
+                      ) : null}
                     </Stack>
                   </Flex>
                 </ChildLink>
               </RowLink>
               <Flex align="center" gap={1}>
-                <Button
-                  aria-label="Flytt opp"
-                  disabled={saving || index === 0}
-                  icon={ArrowUpIcon}
-                  mode="bleed"
-                  onClick={() => move(section, index, section, index - 1)}
-                  title="Flytt opp"
-                />
-                <Button
-                  aria-label="Flytt ned"
-                  disabled={saving || index === sectionLength - 1}
-                  icon={ArrowDownIcon}
-                  mode="bleed"
-                  onClick={() => move(section, index, section, index + 1)}
-                  title="Flytt ned"
-                />
                 <Button
                   disabled={
                     saving ||
@@ -563,7 +534,9 @@ export function PromotedArrangementList({ today }: { today: string }) {
           <Text size={1} weight="semibold">
             På forsiden nå
           </Text>
-          <Badge tone="positive">{visibleCount} av 3</Badge>
+          <Text muted size={1}>
+            {visibleCount}/3
+          </Text>
         </Flex>
         <Droppable droppableId={VISIBLE_DROPPABLE_ID}>
           {provided => (
@@ -590,12 +563,11 @@ export function PromotedArrangementList({ today }: { today: string }) {
                   <Text size={1} weight="semibold">
                     Kø
                   </Text>
-                  <Badge>{queuedDocuments.length}</Badge>
-                  <Text muted size={1}>
-                    {queuedDocuments.length
-                      ? "Rykker opp automatisk"
-                      : "Dra hit for å vise senere"}
-                  </Text>
+                  {queuedDocuments.length ? null : (
+                    <Text muted size={1}>
+                      Dra hit for å vise senere
+                    </Text>
+                  )}
                 </Flex>
               </Card>
               {provided.placeholder}

@@ -14,7 +14,12 @@ import {
   type PreviewLocale,
   type PreviewReferences,
 } from "./arrangementPreview"
-import { cropFrame, type FrameSource, relativeFrame } from "./imageFrames"
+import {
+  cropFrame,
+  croppedArea,
+  type FrameSource,
+  relativeFrame,
+} from "./imageFrames"
 import { useListeningQuery } from "./useListeningQuery"
 
 const REFERENCE_QUERY = `{
@@ -26,8 +31,10 @@ const REFERENCE_QUERY = `{
 }`
 const LISTEN_QUERY = `*[_id in [$roomId,"drafts."+$roomId,$typeId,"drafts."+$typeId,$organizerId,"drafts."+$organizerId,$parentId,"drafts."+$parentId] || parentEvent._ref == $documentId]`
 // Infoskjermen viser 4:3; arrangementskortene på nettsiden viser 16:9.
-const PRIMARY_RATIO = 4 / 3
-const CARD_RATIO = 16 / 9
+const FRAMES = [
+  { label: "4:3", ratio: 4 / 3, className: "frame primary" },
+  { label: "16:9", ratio: 16 / 9, className: "frame card" },
+]
 const Layout = styled.div`
  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap:1.5rem; align-items:start;
 `
@@ -41,18 +48,22 @@ const CatalogueCard = styled.article`
  .status {background:#ffd9d9;padding:4px 8px;}
  .location {color:#57534b;}
 `
-const ImageFrame = styled.div`
- position:relative; aspect-ratio:4/3; overflow:hidden; background:#ece9de;
+const CardImage = styled.div`
+ aspect-ratio:16/9; background:#ece9de; display:grid; place-items:center; color:#68645b;
  img {width:100%;height:100%;object-fit:cover;display:block;}
- .placeholder {position:absolute;inset:0;display:grid;place-items:center;color:#68645b;}
- .card-frame {
-   position:absolute; border:2px dashed #fff; outline:1px solid rgb(0 0 0 / 0.45);
-   box-shadow:0 0 0 999px rgb(0 0 0 / 0.35); pointer-events:none;
+`
+const ImageTool = styled.div`
+ position:relative; background:#000;
+ img {width:100%;height:100%;display:block;}
+ .frame {position:absolute; pointer-events:none;}
+ .frame span {
+   position:absolute; left:4px; top:4px; color:#000;
+   font:700 11px/1.2 Arial,sans-serif; padding:2px 5px;
  }
- .card-frame span {
-   position:absolute; left:6px; bottom:6px; background:rgb(0 0 0 / 0.7); color:#fff;
-   font:600 11px/1.2 Arial,sans-serif; padding:3px 6px;
- }
+ .primary {border:2px solid #fff; box-shadow:0 0 0 1px rgb(0 0 0 / 0.5);}
+ .primary span {background:#fff;}
+ .card {border:2px dashed #efe548;}
+ .card span {background:#efe548; top:auto; bottom:4px;}
 `
 const FieldList = styled.ul`
  list-style:none; padding:0; margin:0; display:grid; gap:2px;
@@ -192,21 +203,30 @@ export function ArrangementReviewPreview({
         asset: { _ref: preview.imageRef },
       }
     : null
-  const image = imageSource
-    ? createImageUrlBuilder(client)
+  const builder = createImageUrlBuilder(client)
+  const cardImage = imageSource
+    ? builder
         .image(imageSource)
         .width(960)
-        .height(720)
+        .height(540)
         .fit("crop")
         .auto("format")
         .url()
     : null
-  const primaryFrame = imageSource
-    ? cropFrame(imageSource, PRIMARY_RATIO)
-    : null
-  const cardFrame = imageSource ? cropFrame(imageSource, CARD_RATIO) : null
-  const cardOverlay =
-    primaryFrame && cardFrame ? relativeFrame(cardFrame, primaryFrame) : null
+  const area = imageSource ? croppedArea(imageSource) : null
+  const fullImage =
+    imageSource && area
+      ? builder.image(imageSource).width(960).auto("format").url()
+      : null
+  const frames =
+    imageSource && area
+      ? FRAMES.flatMap(frame => {
+          const rect = cropFrame(imageSource, frame.ratio)
+          return rect
+            ? [{ ...frame, rect: relativeFrame(rect, area.rect) }]
+            : []
+        })
+      : []
   const ticket = safeLink(preview.ticketUrl)
   const facebook = safeLink(preview.facebookUrl)
   const isSkonk = document.submittedBy === "E-tjenesten's Skonk"
@@ -246,26 +266,9 @@ export function ArrangementReviewPreview({
         <Layout>
           <Stack gap={3}>
             <CatalogueCard aria-label="Forhåndsvisning av arrangement">
-              <ImageFrame>
-                {image ? (
-                  <img src={image} alt="" />
-                ) : (
-                  <div className="placeholder">Bilde mangler</div>
-                )}
-                {cardOverlay ? (
-                  <div
-                    className="card-frame"
-                    style={{
-                      left: `${cardOverlay.left * 100}%`,
-                      top: `${cardOverlay.top * 100}%`,
-                      width: `${cardOverlay.width * 100}%`,
-                      height: `${cardOverlay.height * 100}%`,
-                    }}
-                  >
-                    <span>16:9</span>
-                  </div>
-                ) : null}
-              </ImageFrame>
+              <CardImage>
+                {cardImage ? <img src={cardImage} alt="" /> : "Bilde mangler"}
+              </CardImage>
               <div className="metadata">
                 {preview.type ? (
                   <span className="tag">{preview.type}</span>
@@ -286,22 +289,42 @@ export function ArrangementReviewPreview({
                     : "⌖ Rom mangler"}
               </p>
             </CatalogueCard>
-            {onEditField && ownImage ? (
-              <Button
-                icon={CropIcon}
-                mode="ghost"
-                onClick={() => onEditField(["image", "hotspot"])}
-                text="Juster utsnitt og fokus"
-              />
-            ) : null}
-            {!ownImage && image ? (
-              <Text muted size={1}>
-                Bildet arves fra{" "}
-                {document.eventKind === "festivalSession"
-                  ? "festivalen"
-                  : "serien"}
-                .
-              </Text>
+            {fullImage && area ? (
+              <Stack gap={2}>
+                <ImageTool style={{ aspectRatio: area.aspectRatio }}>
+                  <img src={fullImage} alt="" />
+                  {frames.map(frame => (
+                    <div
+                      className={frame.className}
+                      key={frame.label}
+                      style={{
+                        left: `${frame.rect.left * 100}%`,
+                        top: `${frame.rect.top * 100}%`,
+                        width: `${frame.rect.width * 100}%`,
+                        height: `${frame.rect.height * 100}%`,
+                      }}
+                    >
+                      <span>{frame.label}</span>
+                    </div>
+                  ))}
+                </ImageTool>
+                {onEditField && ownImage ? (
+                  <Button
+                    icon={CropIcon}
+                    mode="ghost"
+                    onClick={() => onEditField(["image", "hotspot"])}
+                    text="Juster utsnitt og fokus"
+                  />
+                ) : null}
+                {!ownImage ? (
+                  <Text muted size={1}>
+                    Arvet fra{" "}
+                    {document.eventKind === "festivalSession"
+                      ? "festivalen"
+                      : "serien"}
+                  </Text>
+                ) : null}
+              </Stack>
             ) : null}
           </Stack>
           <Stack gap={3}>

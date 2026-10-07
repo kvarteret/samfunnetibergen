@@ -55,7 +55,9 @@ export function formatStudioDate(date: string | undefined, withWeekday = true) {
     ...(withWeekday ? { weekday: "short" } : {}),
     day: "numeric",
     month: "short",
-    year: "numeric",
+    ...(date.slice(0, 4) === todayInOslo().slice(0, 4)
+      ? {}
+      : { year: "numeric" }),
     timeZone: "Europe/Oslo",
   }).format(new Date(date.length === 10 ? `${date}T12:00:00Z` : date))
 }

@@ -89,3 +89,22 @@ export function relativeFrame(inner: FrameRect, outer: FrameRect): FrameRect {
   const bottom = clamp((inner.top + inner.height - outer.top) / outer.height)
   return { left, top, width: right - left, height: bottom - top }
 }
+
+/** The editor's crop as a frame, with its aspect ratio in pixels. */
+export function croppedArea(
+  source: FrameSource,
+): { rect: FrameRect; aspectRatio: number } | null {
+  const size = imageDimensions(source.asset?._ref)
+  if (!size) return null
+  const crop = source.crop ?? FULL_CROP
+  const rect = {
+    left: crop.left,
+    top: crop.top,
+    width: 1 - crop.left - crop.right,
+    height: 1 - crop.top - crop.bottom,
+  }
+  return {
+    rect,
+    aspectRatio: (rect.width * size.width) / (rect.height * size.height),
+  }
+}
