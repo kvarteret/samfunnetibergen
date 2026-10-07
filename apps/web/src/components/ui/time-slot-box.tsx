@@ -64,7 +64,7 @@ export function TimeSlotBox({
                       : "unavailable-slot cursor-not-allowed",
                     opt.value === value &&
                       opt.availability === "available" &&
-                      "border-primary bg-primary/15",
+                      "border-booking-selected bg-booking-range",
                   )}
                   data-availability={opt.availability}
                   disabled={opt.availability === "unavailable"}

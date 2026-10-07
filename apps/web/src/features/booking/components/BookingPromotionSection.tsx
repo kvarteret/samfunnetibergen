@@ -50,12 +50,6 @@ export function BookingPromotionSection({
           </form.Field>
         </div>
       </FieldGroup>
-
-      {form.state.values.promote === "ja" && (
-        <p className="max-w-3xl text-foreground-muted">
-          {t("promotion.followUp")}
-        </p>
-      )}
     </FormSection>
   )
 }

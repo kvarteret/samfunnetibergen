@@ -48,22 +48,25 @@ interface TimeRangeSliderProps {
   timingWarning?: ReactNode
 }
 
-// A mark is unavailable if it falls inside any existing booking for the
-// selected room(s) — used to color the get-in/get-out slot options.
-function isMarkOccupied(
-  minute: number,
+/** A dropdown option represents a whole booking, not just its endpoint. */
+export function isBookingTimeAvailable(
+  startMinute: number,
+  endMinute: number,
   occupiedRanges: { startMin: number; endMin: number }[],
 ): boolean {
-  return occupiedRanges.some(r => minute >= r.startMin && minute < r.endMin)
+  return (
+    endMinute - startMinute >= 60 &&
+    !occupiedRanges.some(
+      range => startMinute < range.endMin && endMinute > range.startMin,
+    )
+  )
 }
 
-// Slot-box options for one thumb: every mark in [minIdx, maxIdx], labeled by
-// local time-of-day and flagged unavailable when it falls in a booked range.
 function buildSlotOptions(
   marks: number[],
   minIdx: number,
   maxIdx: number,
-  occupiedRanges: { startMin: number; endMin: number }[],
+  isAvailable: (index: number) => boolean,
 ): TimeSlotBoxOption[] {
   const options: TimeSlotBoxOption[] = []
   for (let i = minIdx; i <= maxIdx && i < marks.length; i++) {
@@ -71,9 +74,7 @@ function buildSlotOptions(
     options.push({
       value: label,
       label,
-      availability: isMarkOccupied(marks[i], occupiedRanges)
-        ? "unavailable"
-        : "available",
+      availability: isAvailable(i) ? "available" : "unavailable",
     })
   }
   return options
@@ -302,6 +303,9 @@ export function TimeRangeSlider({
         }
       }
 
+      if (!isBookingTimeAvailable(marks[sIdx], marks[eIdx], occupiedRanges))
+        return
+
       if (sIdx >= 0 && sIdx < marks.length) {
         onStartChange(minutesToTime(marks[sIdx]))
       }
@@ -317,6 +321,7 @@ export function TimeRangeSlider({
       maxEndIdx,
       minGapIndices,
       endIndex,
+      occupiedRanges,
       onStartChange,
       onEndChange,
     ],
@@ -333,13 +338,41 @@ export function TimeRangeSlider({
   // slider, so both stay perfectly in sync and share the same clamping rules.
 
   const startOptions = useMemo(
-    () => buildSlotOptions(marks, minStartIdx, maxStartIdx, occupiedRanges),
-    [marks, minStartIdx, maxStartIdx, occupiedRanges],
+    () =>
+      buildSlotOptions(marks, minStartIdx, maxStartIdx, idx => {
+        const end = Math.min(Math.max(endIndex, idx + minGapIndices), maxEndIdx)
+        const start = Math.max(Math.min(idx, end - minGapIndices), minStartIdx)
+        return isBookingTimeAvailable(marks[start], marks[end], occupiedRanges)
+      }),
+    [
+      marks,
+      minStartIdx,
+      maxStartIdx,
+      occupiedRanges,
+      endIndex,
+      minGapIndices,
+      maxEndIdx,
+    ],
   )
 
   const endOptions = useMemo(
-    () => buildSlotOptions(marks, minEndIdx, maxEndIdx, occupiedRanges),
-    [marks, minEndIdx, maxEndIdx, occupiedRanges],
+    () =>
+      buildSlotOptions(marks, minEndIdx, maxEndIdx, idx => {
+        const start = Math.max(
+          Math.min(startIndex, idx - minGapIndices),
+          minStartIdx,
+        )
+        return isBookingTimeAvailable(marks[start], marks[idx], occupiedRanges)
+      }),
+    [
+      marks,
+      minEndIdx,
+      maxEndIdx,
+      occupiedRanges,
+      startIndex,
+      minGapIndices,
+      minStartIdx,
+    ],
   )
 
   const selectStart = useCallback(

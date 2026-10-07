@@ -3,6 +3,7 @@ import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   availabilityWindow,
   calendarBookingStatus,
+  canFitBookingSpan,
   isRoomOccupied,
   occupiedMinuteRanges,
 } from "./availability"
@@ -17,6 +18,72 @@ const booking: CresatBooking = {
   title: "Test booking",
   part_of_event: false,
 }
+
+describe("canFitBookingSpan", () => {
+  const hours = [{ startMin: 12 * 60, endMin: 24 * 60 }]
+  test("allows squeezing endpoint hours around adjacent bookings", () => {
+    expect(
+      canFitBookingSpan(
+        [
+          { start: "2026-10-15T12:00:00", end: "2026-10-15T20:00:00" },
+          { start: "2026-10-17T16:00:00", end: "2026-10-17T23:00:00" },
+        ],
+        "2026-10-15",
+        "2026-10-17",
+        hours,
+        hours,
+      ),
+    ).toBe(true)
+  })
+  test("blocks a collision on an intermediate day", () => {
+    expect(
+      canFitBookingSpan(
+        [{ start: "2026-10-16T17:00:00", end: "2026-10-16T18:00:00" }],
+        "2026-10-15",
+        "2026-10-17",
+        hours,
+        hours,
+      ),
+    ).toBe(false)
+  })
+  test("blocks an overnight collision that spans every possible endpoint", () => {
+    expect(
+      canFitBookingSpan(
+        [{ start: "2026-10-15T23:00:00", end: "2026-10-16T13:00:00" }],
+        "2026-10-15",
+        "2026-10-16",
+        hours,
+        hours,
+      ),
+    ).toBe(false)
+  })
+  test("requires a full hour of continuous free time", () => {
+    const bookings = [
+      { start: "2026-10-15T13:00:00", end: "2026-10-16T00:00:00" },
+    ]
+    expect(
+      canFitBookingSpan(bookings, "2026-10-15", "2026-10-15", hours, hours),
+    ).toBe(true)
+    bookings[0].start = "2026-10-15T12:45:00"
+    expect(
+      canFitBookingSpan(bookings, "2026-10-15", "2026-10-15", hours, hours),
+    ).toBe(false)
+  })
+  test("checks all selected rooms together", () => {
+    expect(
+      canFitBookingSpan(
+        [
+          { start: "2026-10-15T12:00:00", end: "2026-10-15T18:00:00" },
+          { start: "2026-10-15T18:00:00", end: "2026-10-16T00:00:00" },
+        ],
+        "2026-10-15",
+        "2026-10-15",
+        hours,
+        hours,
+      ),
+    ).toBe(false)
+  })
+})
 
 describe("isRoomOccupied", () => {
   test("keeps an adjacent Norwegian civil-time slot available", () => {

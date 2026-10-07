@@ -93,6 +93,7 @@ export function buildBookingPayload(
       ? state.estimatedEndTimes
       : undefined,
     description: state.description,
+    promote: state.promote === "ja",
     audienceCount: Number(state.audienceCount) || 0,
     openOrClosed: state.openOrClosed,
     furniture: state.furniture,
