@@ -13,6 +13,7 @@
     "crescat:introspect": "tsx scripts/crescat-form-introspect.ts",
     "crescat:cleanup": "tsx scripts/crescat-delete-events.ts",
     "events:audit:broadcast": "tsx scripts/audit-broadcast-readiness.ts",
+    "events:backfill:placements": "tsx scripts/backfill-promotion-placements.ts",
     "typecheck": "tsc --noEmit",
     "route-typegen": "next typegen",
     "test": "vitest run",
