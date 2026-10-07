@@ -205,7 +205,8 @@
       "dayFullyBooked": "Fully booked",
       "dayPartlyBooked": "Partly booked",
       "crescatBookings": "Reserved times in Crescat:",
-      "bookedDateHint": "You can select this date or a range spanning several days. Conflicts with the selected room and times appear below the time picker and must be resolved before submitting."
+      "bookedDateHint": "You can select this date or a range spanning several days. Conflicts with the selected room and times appear below the time picker and must be resolved before submitting.",
+      "roomOccupied": "The room is occupied:"
     },
     "event": {
       "sectionTitle": "Event",

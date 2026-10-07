@@ -422,12 +422,12 @@ export function DateTimePicker({
                 <Popover.Trigger
                   render={button}
                   openOnHover
-                  delay={150}
+                  delay={0}
                   closeDelay={100}
                 />
                 <Popover.Portal>
-                  <Popover.Positioner sideOffset={8}>
-                    <Popover.Popup className="z-[100] w-56 space-y-1.5 rounded-lg border border-border bg-background p-3 shadow-shadow">
+                  <Popover.Positioner className="z-[100]" sideOffset={8}>
+                    <Popover.Popup className="relative isolate w-56 space-y-1.5 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-shadow">
                       <p className="font-heading">
                         {day.date.toLocaleDateString(
                           locale === "en" ? "en-GB" : "nb-NO",
@@ -438,9 +438,7 @@ export function DateTimePicker({
                         {t(
                           closed
                             ? "dateTime.dayClosed"
-                            : status.fullyOccupied
-                              ? "dateTime.dayFullyBooked"
-                              : "dateTime.dayPartlyBooked",
+                            : "dateTime.roomOccupied",
                         )}
                       </p>
                       {!closed && (

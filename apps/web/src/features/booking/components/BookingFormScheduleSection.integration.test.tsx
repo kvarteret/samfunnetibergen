@@ -219,7 +219,7 @@ describe("selected-room Crescat calendar availability", () => {
       expect(full?.className).toContain("booking-stripes")
       expect(full?.disabled).toBe(false)
       await act(async () => full?.click())
-      expect(document.body.textContent).toContain("Helt opptatt")
+      expect(document.body.textContent).toContain("Rommet er opptatt:")
       expect(document.body.textContent).toContain(
         "21. aug. 00:00 – 22. aug. 00:00",
       )

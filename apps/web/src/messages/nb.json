@@ -204,7 +204,8 @@
       "dayFullyBooked": "Helt opptatt",
       "dayPartlyBooked": "Delvis opptatt",
       "crescatBookings": "Reserverte tider i Crescat:",
-      "bookedDateHint": "Du kan velge datoen eller et tidsrom over flere dager. Konflikter med valgt rom og tidspunkt vises under tidsvelgeren og må løses før innsending."
+      "bookedDateHint": "Du kan velge datoen eller et tidsrom over flere dager. Konflikter med valgt rom og tidspunkt vises under tidsvelgeren og må løses før innsending.",
+      "roomOccupied": "Rommet er opptatt:"
     },
     "event": {
       "sectionTitle": "Arrangement",
