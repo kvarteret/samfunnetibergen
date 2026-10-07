@@ -10,6 +10,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react"
 import type { DateRange } from "react-day-picker"
@@ -241,6 +242,7 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
+  const resetKey = useRef<string | null>(null)
   const [availabilityHandle] = useState(() =>
     Tooltip.createHandle<BookingAvailability>(),
   )
@@ -268,9 +270,14 @@ export function DateTimePicker({
   }
 
   useEffect(() => {
-    if (!startDate) return
     const handleBackspace = (event: KeyboardEvent) => {
+      if (resetKey.current === event.code) {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
       if (
+        !startDate ||
         (event.code !== "Backspace" && event.code !== "Space") ||
         event.repeat ||
         event.altKey ||
@@ -288,12 +295,29 @@ export function DateTimePicker({
       )
         return
       event.preventDefault()
+      event.stopPropagation()
+      resetKey.current = event.code
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest("[data-slot='calendar']")
+      )
+        event.target.blur()
       onStartDateChange("")
       onEndDateChange("")
       setHoveredDate(null)
     }
-    document.addEventListener("keydown", handleBackspace)
-    return () => document.removeEventListener("keydown", handleBackspace)
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (resetKey.current !== event.code) return
+      event.preventDefault()
+      event.stopPropagation()
+      resetKey.current = null
+    }
+    document.addEventListener("keydown", handleBackspace, true)
+    document.addEventListener("keyup", handleKeyUp, true)
+    return () => {
+      document.removeEventListener("keydown", handleBackspace, true)
+      document.removeEventListener("keyup", handleKeyUp, true)
+    }
   }, [startDate, onStartDateChange, onEndDateChange])
 
   const bookingStatus = (d: Date) => {
@@ -464,6 +488,7 @@ export function DateTimePicker({
               locale={calendarLocale}
               mode="range"
               modifiers={{
+                today: todayDate,
                 occupied: isOccupied,
                 beyond_range: isBeyondRange,
                 span_blocked: isSpanBlocked,
