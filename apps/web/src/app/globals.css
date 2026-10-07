@@ -640,12 +640,35 @@
 }
 
 /* ── Partymodus: a penguin and a hedgehog roam the page ── */
+/* Sits below the sticky navbar (z-30) and its menus so they never get in
+   the way of navigation. */
 .party-critters {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 20;
   overflow: hidden;
+}
+
+.party-leashes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.party-leash {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.party-post {
+  fill: #6b4226;
+  stroke: #3d2614;
+  stroke-width: 1;
 }
 
 .party-critter {
@@ -664,54 +687,107 @@
   transform-origin: 50% 100%;
 }
 
+/* A small marker over the mascot steered with the keyboard. */
+.party-critter[data-controlled="true"]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 0;
+  border: 5px solid transparent;
+  border-top: 6px solid var(--color-primary);
+}
+
 .party-critter[data-facing="left"] svg {
   scale: -1 1;
 }
 
-.party-critter[data-pose="walk"] .party-critter-body {
-  animation: party-waddle 0.32s ease-in-out infinite alternate;
+.party-critter .party-step-a,
+.party-critter .party-step-b {
+  transform-box: fill-box;
 }
 
-.party-critter[data-pose="idle"] .party-critter-body {
-  animation: party-breathe 1.6s ease-in-out infinite;
+/* Walking: feet take alternating steps while the body bobs gently. */
+.party-critter[data-pose="walk"] .party-step-a {
+  animation: party-step var(--party-step) linear infinite;
+}
+
+.party-critter[data-pose="walk"] .party-step-b {
+  animation: party-step var(--party-step) linear infinite;
+  animation-delay: calc(var(--party-step) / -2);
+}
+
+.party-critter[data-pose="walk"] .party-torso {
+  animation: party-bob calc(var(--party-step) / 2) ease-in-out infinite;
+}
+
+.party-critter[data-critter="pingvin"] {
+  --party-step: 0.7s;
+}
+
+.party-critter[data-critter="pinnsvin"] {
+  --party-step: 0.5s;
+}
+
+.party-critter[data-pose="idle"] .party-torso {
+  animation: party-breathe 3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
 }
 
 .party-critter[data-critter="pingvin"][data-pose="air"] .party-wing-front {
-  animation: party-flap 0.14s ease-in-out infinite alternate;
+  animation: party-flap 0.18s ease-in-out infinite alternate;
   transform-box: fill-box;
   transform-origin: 0% 0%;
 }
 
 .party-critter[data-critter="pingvin"][data-pose="air"] .party-wing-back {
-  animation: party-flap 0.14s ease-in-out infinite alternate-reverse;
+  animation: party-flap 0.18s ease-in-out infinite alternate-reverse;
   transform-box: fill-box;
   transform-origin: 100% 0%;
 }
 
 /* The hedgehog curls into a spiky ball mid-air. */
 .party-critter[data-critter="pinnsvin"][data-pose="air"] .party-critter-body {
-  animation: party-roll 0.45s linear infinite;
+  animation: party-roll 0.6s linear infinite;
   transform-origin: 50% 55%;
 }
 
-.party-critter[data-critter="pinnsvin"][data-pose="air"] .party-hedgehog-feet {
+.party-critter[data-critter="pinnsvin"][data-pose="air"] .party-legs {
   opacity: 0;
 }
 
-@keyframes party-waddle {
-  from {
-    rotate: -8deg;
-    translate: 0 0;
+/* Double jump: a quick somersault. */
+.party-critter[data-flip] svg {
+  animation: party-flip 0.4s ease-out;
+}
+
+/* One stride: plant the foot, push it back along the ground, then lift it
+   and swing it forward. */
+@keyframes party-step {
+  0% {
+    translate: 2.5px 0;
   }
-  to {
-    rotate: 8deg;
-    translate: 0 -3px;
+  50% {
+    translate: -2.5px 0;
+  }
+  75% {
+    translate: 0 -2.5px;
+  }
+  100% {
+    translate: 2.5px 0;
+  }
+}
+
+@keyframes party-bob {
+  50% {
+    translate: 0 -1px;
   }
 }
 
 @keyframes party-breathe {
   50% {
-    scale: 1.04 0.96;
+    scale: 1.02 0.98;
   }
 }
 
@@ -721,6 +797,12 @@
   }
   to {
     rotate: 35deg;
+  }
+}
+
+@keyframes party-flip {
+  to {
+    rotate: 360deg;
   }
 }
 
