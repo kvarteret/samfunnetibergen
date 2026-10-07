@@ -1,6 +1,7 @@
 "use client"
 
 import { ExternalLink } from "lucide-react"
+import { ctaClassName } from "@/components/ui/button"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -52,7 +53,10 @@ function DesktopNavItem({
           className={cn(
             active && activeClass,
             item.highlight &&
-              "rounded-base border-primary bg-primary px-4 text-primary-foreground shadow-hard-sm hover:border-primary hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:no-underline",
+              cn(
+                ctaClassName,
+                "self-center border-transparent py-1.5 hover:border-transparent hover:bg-primary hover:text-primary-foreground hs:hover:bg-primary hs:hover:text-primary-foreground hs:hover:after:hidden",
+              ),
           )}
           render={<NavItemLink active={active} item={item} />}
           variant="top"
@@ -76,20 +80,36 @@ function DesktopNavItem({
         {item.label}
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <DropdownGroups groups={item.children ?? []} />
-        {item.includePaperMenu && <PaperMenuSection />}
+        <div className={cn(item.includePaperMenu && "w-[34rem]")}>
+          <DropdownGroups
+            columns={item.includePaperMenu ? 2 : 1}
+            groups={item.children ?? []}
+          />
+          {item.includePaperMenu && <PaperMenuSection />}
+        </div>
       </NavigationMenuContent>
     </NavigationMenuItem>
   )
 }
 
-function DropdownGroups({ groups }: { groups: NavigationGroup[] }) {
+function DropdownGroups({
+  groups,
+  columns = 1,
+}: {
+  groups: NavigationGroup[]
+  columns?: 1 | 2
+}) {
   return (
-    <div className="min-w-56 p-3">
+    <div className="min-w-48 space-y-2 p-1.5">
       {groups.map(group => (
-        <div className="space-y-0.5" key={group.id}>
+        <div
+          className={cn(
+            columns === 2 ? "grid grid-cols-2 gap-0.5" : "space-y-0.5",
+          )}
+          key={group.id}
+        >
           {group.label && (
-            <p className="px-2 py-1.5 font-heading uppercase tracking-widest text-foreground-muted">
+            <p className="px-3 pt-1.5 pb-0.5 font-heading text-sm text-foreground-muted">
               {group.label}
             </p>
           )}

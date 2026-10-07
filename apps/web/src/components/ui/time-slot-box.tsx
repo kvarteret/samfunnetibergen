@@ -1,6 +1,7 @@
 "use client"
 
 import { Popover } from "@base-ui/react/popover"
+import { menuPopupClassName } from "@/components/ui/menu-surface"
 
 import { cn } from "@/lib/utils"
 
@@ -49,7 +50,12 @@ export function TimeSlotBox({
       </div>
       <Popover.Portal>
         <Popover.Positioner className="z-[100]" sideOffset={8}>
-          <Popover.Popup className="max-h-72 w-56 overflow-y-auto panel shadow-shadow p-2">
+          <Popover.Popup
+            className={cn(
+              "max-h-72 w-56 overflow-y-auto p-2",
+              menuPopupClassName,
+            )}
+          >
             <div className="grid grid-cols-3 gap-1.5">
               {options.map(opt => (
                 <Popover.Close

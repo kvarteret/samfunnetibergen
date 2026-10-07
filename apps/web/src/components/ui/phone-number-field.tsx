@@ -10,6 +10,7 @@ import PhoneInput, {
   type Country,
   getCountryCallingCode,
 } from "react-phone-number-input/max"
+import { menuPopupClassName } from "@/components/ui/menu-surface"
 
 import { cn } from "@/lib/utils"
 
@@ -127,9 +128,12 @@ function CountrySelect({
         >
           <Combobox.Popup
             aria-label={ariaLabel}
-            className="w-80 max-w-[var(--available-width)] rounded-base border-2 border-border bg-card text-foreground shadow-shadow outline-none"
+            className={cn(
+              "w-80 max-w-[var(--available-width)]",
+              menuPopupClassName,
+            )}
           >
-            <div className="flex items-center gap-2 border-b-2 border-border px-3">
+            <div className="flex items-center gap-2 border-b border-border px-3">
               <Search
                 aria-hidden
                 className="size-4 shrink-0 text-foreground-muted"

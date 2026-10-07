@@ -43,7 +43,7 @@ export async function GroupEvents({
   return (
     <section aria-labelledby="group-events-heading" className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b-2 border-border pb-3">
-        <h2 id="group-events-heading" className="text-2xl sm:text-3xl">
+        <h2 id="group-events-heading" className="text-section-title">
           {t("upcomingEvents")}
         </h2>
         {groupEvents.length > MAX_GROUP_EVENTS && (

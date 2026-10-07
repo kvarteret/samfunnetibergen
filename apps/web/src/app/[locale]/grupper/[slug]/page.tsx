@@ -244,9 +244,7 @@ function GroupMasthead({ logoUrl, name, summary }: GroupMastheadProps) {
           src={logoUrl}
         />
       </div>
-      <h1 className="wrap-break-word font-heading text-5xl leading-[0.95] text-foreground sm:text-6xl">
-        {name}
-      </h1>
+      <h1 className="text-page-title text-foreground">{name}</h1>
       {summary ? (
         <p className="max-w-2xl text-2xl leading-snug text-foreground sm:text-3xl">
           {summary}

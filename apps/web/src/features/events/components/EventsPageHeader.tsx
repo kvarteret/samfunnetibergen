@@ -16,9 +16,7 @@ export function EventsPageHeader({
   return (
     <header className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <h1 className="wrap-break-word text-4xl leading-none sm:text-6xl">
-          {title}
-        </h1>
+        <h1 className="text-page-title">{title}</h1>
         <Link
           className="inline-flex items-center gap-3 border border-border bg-card px-4 py-3 text-lg text-foreground hover:underline hover:underline-offset-4 focus-brutal"
           href={actionHref}

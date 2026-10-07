@@ -3,8 +3,10 @@
 import type { AnyFieldApi } from "@tanstack/react-form"
 import { Card } from "@/components/ui/card"
 import { FormSection } from "@/components/ui/form-section"
+import { menuPanelClassName } from "@/components/ui/menu-surface"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SelectField } from "@/components/ui/select-field"
+import { cn } from "@/lib/utils"
 import { KARAOKE_PRICING, type KaraokeDerivedState } from "../domain/formState"
 import type { PriceType } from "../types"
 import { useKaraokeForm } from "./karaokeFormContext"
@@ -136,11 +138,11 @@ function KaraokePeopleField({
 
 function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
   return (
-    <div className="border-2 border-primary bg-primary/5 p-4">
+    <div className={cn(menuPanelClassName, "p-4")}>
       <div className="flex items-baseline justify-between">
-        <span className=" text-foreground-muted">Totalpris</span>
+        <span className="text-foreground-muted">Totalpris</span>
         <div className="text-right">
-          <span className="font-heading text-2xl text-primary">
+          <span className="font-heading text-2xl tabular-nums text-foreground">
             {derived.totalPrice.toLocaleString("nb-NO")} kr
           </span>
           <p className="text-sm text-foreground-muted mt-0.5">
