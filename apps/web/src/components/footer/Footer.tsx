@@ -409,9 +409,7 @@ export function Footer({ data, initialNow, locale }: FooterProps) {
 
   return (
     <>
-      <div aria-hidden className="mx-auto mt-6 w-full max-w-4xl px-6 sm:px-10">
-        <div className="footer-illustration w-full" />
-      </div>
+      <div aria-hidden className="footer-illustration mt-6 w-full" />
       <footer className="footer-surface border-t border-border">
       <div className="mx-auto max-w-7xl px-6 py-10 sm:px-10 lg:px-14">
         <div className="grid grid-cols-1 gap-8 lg:grid-auto-side">
