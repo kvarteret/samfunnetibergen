@@ -17,6 +17,9 @@ const SCREEN_PARTY: PartySettings = {
 const PARTY_EVERY_MINUTES = 15
 const PARTY_FOR_MINUTES = 2
 const MUSHROOM_EVERY_SHOWS = 5
+// The screen runs unattended, so the on/off flag is re-read regularly.
+const FLAG_URL = "/api/infoskjerm/party"
+const FLAG_POLL_MS = 60_000
 
 export function isScreenPartyTime(now: Date) {
   return now.getMinutes() % PARTY_EVERY_MINUTES < PARTY_FOR_MINUTES
@@ -27,12 +30,48 @@ export function isScreenMushroomShow(now: Date) {
   return show % MUSHROOM_EVERY_SHOWS === 0
 }
 
+// Whether the mascots are switched on in PostHog. Anything other than a
+// clear yes, including a failed request, counts as off.
+function useInfoScreenPartyFlag() {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const check = async () => {
+      let next = false
+      try {
+        const response = await fetch(FLAG_URL, { cache: "no-store" })
+        if (response.ok) {
+          const body: unknown = await response.json()
+          next =
+            typeof body === "object" &&
+            body !== null &&
+            (body as { enabled?: unknown }).enabled === true
+        }
+      } catch {}
+      if (!cancelled) setEnabled(next)
+    }
+    check()
+    const interval = window.setInterval(check, FLAG_POLL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [])
+
+  return enabled
+}
+
 export function InfoScreenParty({ stage }: { stage: string }) {
-  const [show, setShow] = useState<{ mushroom: boolean } | null>(null)
+  const flagEnabled = useInfoScreenPartyFlag()
+  const [show, setShow] = useState<{
+    mushroom: boolean
+    forced: boolean
+  } | null>(null)
 
   useEffect(() => {
     // `?party` keeps them out permanently, with a mushroom, for checking the
-    // screen.
+    // screen. It skips the schedule and the flag.
     const always = new URLSearchParams(window.location.search).has("party")
     const update = () => {
       const now = new Date()
@@ -41,9 +80,9 @@ export function InfoScreenParty({ stage }: { stage: string }) {
       setShow(current =>
         !active
           ? null
-          : current?.mushroom === mushroom
+          : current?.mushroom === mushroom && current.forced === always
             ? current
-            : { mushroom },
+            : { mushroom, forced: always },
       )
     }
     update()
@@ -51,7 +90,7 @@ export function InfoScreenParty({ stage }: { stage: string }) {
     return () => window.clearInterval(interval)
   }, [])
 
-  if (!show) return null
+  if (!show || !(flagEnabled || show.forced)) return null
   return (
     <PartyCritters
       mushrooms={show.mushroom ? "once" : "off"}
