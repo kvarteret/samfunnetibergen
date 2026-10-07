@@ -206,6 +206,7 @@
       "firstDayHere": "Dette er før startdato. Start på nytt her?",
       "onlyThisDay": "Klikk igjen for kun denne dagen.",
       "selectionDone": "Du er god!",
+      "pastDate": "Kan ikke booke i fortiden",
       "resetDates": "Start på nytt",
       "legendPartlyBooked": "Delvis opptatt",
       "dayClosed": "Stengt",

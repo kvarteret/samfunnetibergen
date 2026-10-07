@@ -207,6 +207,7 @@
       "firstDayHere": "This is before the start date. Start over here?",
       "onlyThisDay": "Click again for this day only.",
       "selectionDone": "Yey!",
+      "pastDate": "Cannot book in the past",
       "resetDates": "Start over",
       "legendPartlyBooked": "Partly booked",
       "dayClosed": "Closed",
