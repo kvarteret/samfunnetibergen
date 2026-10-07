@@ -70,7 +70,7 @@ export function webhookUrl(): string {
 
 export async function notifyWeek(week: Week, design?: Design): Promise<void> {
   const summary = design
-    ? `Skonk har laget Ukas post ${week.number} (${week.from}–${week.to}). Se over tekst, bilder og layout før publisering.`
+    ? `Eg he laga utkast te ukas innlegg ${week.number}. Sjå øve, takk.`
     : `Ingen godkjente offentlige arrangementer for uke ${week.number} (${week.from}–${week.to}). Skonk laget ingen Ukas post.`
   const response = await fetch(webhookUrl(), {
     method: "POST",
