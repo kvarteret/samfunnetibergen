@@ -487,6 +487,35 @@ export function toOsloDay(timestamp: string) {
   return osloDay.format(new Date(timestamp))
 }
 
+/** `kampanje=2` selects the second campaign; anything else selects none. */
+export function parseCampaignParam(
+  value: string | string[] | undefined,
+  count: number,
+): number | null {
+  const parsed = Number(Array.isArray(value) ? value[0] : value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= count
+    ? parsed - 1
+    : null
+}
+
+/** Oslo dates from `first` to `last`, inclusive. */
+export function daysBetween(first: string, last: string) {
+  const days: string[] = []
+  for (let day = dayNumber(first); day <= dayNumber(last); day++) {
+    days.push(new Date(day * DAY_MS).toISOString().slice(0, 10))
+  }
+  return days
+}
+
+/** «1 dag», «12 dager»: how long a campaign ran, or has run so far. */
+export function campaignDuration(
+  campaign: { from: string; until: string | null },
+  today: string,
+) {
+  const days = daysBetween(campaign.from, campaign.until ?? today).length
+  return days === 1 ? "1 dag" : `${days} dager`
+}
+
 /** Every Oslo date a campaign covered, up to and including today. */
 export function campaignDays(
   periods: readonly CampaignPeriod[],
@@ -506,6 +535,11 @@ export function campaignDays(
 export type Exposure = {
   /** Campaign periods from Sanity history (Oslo dates), or null if unknown. */
   campaigns: Array<{ from: string; until: string | null }> | null
+  /** Index into `campaigns` the section is limited to, or null for the period. */
+  selectedCampaign: number | null
+  /** For a running campaign: whether the event is among the three shown on the
+   * front page right now, rather than waiting in the queue. */
+  shownNow: boolean | null
   /** Sessions that saw the event among the three fremhevet on the front page. */
   highlightedImpressions: number
   highlightedClicks: number
@@ -520,6 +554,37 @@ export type Exposure = {
   placements: Array<{ name: string; impressions: number; clicks: number }>
   /** Seen, clicked and resulting visits per listing surface. */
   surfaces: SurfaceFunnel[]
+  /** People who saw it fremhevet per campaign day, oldest first. */
+  reach: ReachPoint[]
+}
+
+/** `firstTime` counts people who had never seen the event fremhevet before. */
+export type ReachPoint = { day: string; people: number; firstTime: number }
+
+/**
+ * Daily reach on any day with impressions, and on campaign days since
+ * impressions were first recorded, where missing days count as zero.
+ */
+export function reachByDay(
+  rows: ReadonlyArray<{ day: unknown; people: unknown; first_time: unknown }>,
+  days: readonly string[],
+  campaignDays: ReadonlySet<string>,
+): ReachPoint[] {
+  const byDay = new Map(rows.map(row => [String(row.day).slice(0, 10), row]))
+  return days
+    .filter(
+      day =>
+        byDay.has(day) ||
+        (day >= PLACEMENT_TRACKING_START && campaignDays.has(day)),
+    )
+    .map(day => {
+      const row = byDay.get(day)
+      return {
+        day,
+        people: toCount(row?.people),
+        firstTime: toCount(row?.first_time),
+      }
+    })
 }
 
 export type SurfaceFunnel = {
