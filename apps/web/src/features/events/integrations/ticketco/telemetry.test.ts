@@ -13,6 +13,7 @@ const generation = {
     url: "https://asf.ticketco.events/no/nb/e/concert",
   },
   model: "gpt-6-luna",
+  deployment: "skonk",
   latency: 2.5,
   usage: { input_tokens: 100, output_tokens: 50 },
   output: { title: "Artist", evidence: "PRIVATE INTERNAL BOOKING" },
@@ -37,6 +38,8 @@ test("awaits generation delivery and excludes private booking evidence", async (
       $ai_session_id: null,
       $ai_is_error: false,
       context_redacted: true,
+      azure_deployment: "skonk",
+      $ai_model: "gpt-6-luna",
     },
   })
   expect(JSON.stringify(event)).not.toContain("PRIVATE INTERNAL BOOKING")

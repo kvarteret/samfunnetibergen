@@ -38,9 +38,7 @@ export function TimeSlotBox({
   return (
     <Popover.Root>
       <div className={cn("space-y-1.5", className)}>
-        <p className="font-heading text-xs uppercase tracking-widest text-foreground-muted">
-          {label}
-        </p>
+        <p className="font-heading text-sm text-foreground-muted">{label}</p>
         <Popover.Trigger
           className="w-full cursor-pointer border-2 border-border bg-card px-3 py-2 text-left font-mono text-lg tabular-nums text-foreground transition-colors hover:bg-muted focus-brutal"
           id={id}

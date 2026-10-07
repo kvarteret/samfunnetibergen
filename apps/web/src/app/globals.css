@@ -137,6 +137,15 @@
     --unavailable-border: #9ca3af;
     --unavailable-foreground: #4b5563;
     --unavailable-stripe: #9ca3af;
+    /* Booking calendar and get-in/get-out states. Each state has its own
+       hue so the calendar, the time track and their legends read the same. */
+    --booking-selected: var(--primary);
+    --booking-selected-foreground: var(--primary-foreground);
+    --booking-range: color-mix(in srgb, var(--primary) 16%, transparent);
+    --booking-night: #c9d4e2;
+    --booking-booked: #e8930c;
+    --booking-closed: #a3a3a3;
+    --booking-today: #1f9d55;
     /* Neutral selection/state color. Skyss keeps the existing amber treatment;
        themes where primary and destructive are both red can override it. */
     --state: var(--primary);
@@ -334,6 +343,13 @@
   --color-success:              var(--success);
   --color-success-foreground:   var(--success-foreground);
   --color-state:                var(--state);
+  --color-booking-selected:     var(--booking-selected);
+  --color-booking-selected-foreground: var(--booking-selected-foreground);
+  --color-booking-range:        var(--booking-range);
+  --color-booking-night:        var(--booking-night);
+  --color-booking-booked:       var(--booking-booked);
+  --color-booking-closed:       var(--booking-closed);
+  --color-booking-today:        var(--booking-today);
   --color-state-foreground:     var(--state-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
@@ -520,6 +536,17 @@
 @utility text-card-title {
   font-size: var(--text-2xl);
   line-height: 1.15;
+}
+
+/* Diagonal stripes for blocked booking states; colour via --stripe. */
+@utility booking-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--stripe, var(--booking-closed)) 0,
+    var(--stripe, var(--booking-closed)) 2px,
+    transparent 2px,
+    transparent 6px
+  );
 }
 
 /* House focus state: cream interior -> 2px black border -> 3px amber ring,

@@ -12,6 +12,7 @@ export type LunaGeneration = {
   traceId: string
   source: TicketCoEvent
   model: string
+  deployment: string
   latency: number
   usage?: LunaUsage
   output?: Record<string, unknown>
@@ -32,6 +33,7 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
       properties: {
         ...release,
         workflow: "ticketco_import",
+        azure_deployment: generation.deployment,
         environment: process.env.GITHUB_ACTIONS
           ? "production"
           : release.environment,
