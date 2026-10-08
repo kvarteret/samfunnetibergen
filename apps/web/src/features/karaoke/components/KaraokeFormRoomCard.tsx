@@ -23,6 +23,7 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         alt={firstImage?.alt ?? room.title}
         className="border-2 border-border/50"
         fallback={<Mic className="size-10 text-foreground-muted" aria-hidden />}
+        frame={firstImage?.frame}
         src={firstImage?.assetUrl}
       />
       <div className="space-y-1">

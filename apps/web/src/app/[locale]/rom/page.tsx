@@ -52,6 +52,7 @@ function RoomImage({
     <ImageWithFallback
       alt={image?.alt || title}
       aspectRatio="16/9"
+      frame={image?.frame}
       fallback={
         <span className="p-6 text-center font-heading text-2xl text-foreground-muted">
           {title}

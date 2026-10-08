@@ -1,14 +1,13 @@
 import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin, Repeat, Tent } from "lucide-react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { SanityImage } from "@/components/sanity-image"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
 import { Link } from "@/i18n/navigation"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import { DateBadges } from "./DateBadges"
 
@@ -144,6 +143,19 @@ export interface EventCardProps extends VariantProps<typeof eventCardVariants> {
 }
 
 type EventCardVariant = "default" | "catalogue" | "promoted" | "slider"
+
+// Rendered card widths, so the browser picks the smallest image that is still
+// sharp. Content is at most 1168px wide with 24px gutters on phones; listings
+// show 2 columns from md and 3 from xl, promoted cards 3 from md.
+const CARD_IMAGE_SIZES: Record<EventCardVariant, string> = {
+  default:
+    "(min-width: 1280px) 368px, (min-width: 768px) calc(50vw - 3.5rem), calc(100vw - 3rem)",
+  catalogue:
+    "(min-width: 1280px) 368px, (min-width: 768px) calc(50vw - 3.5rem), calc(100vw - 3rem)",
+  promoted:
+    "(min-width: 1280px) 370px, (min-width: 768px) calc(33vw - 3rem), calc(100vw - 3rem)",
+  slider: "(max-width: 640px) calc(100vw - 3rem), 21rem",
+}
 type EventCardSize = "default" | "small"
 
 export function EventCard({
@@ -166,15 +178,6 @@ export function EventCard({
   const roomFloor = event.room?.floor
   const href = `/arrangementer/${event.slug}`
   const timeLabel = event.primaryDateLabel
-  const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        cardVariant === "slider"
-          ? { height: 360, width: 640 }
-          : { height: 675, width: 1200 },
-        event.imageFrame,
-      )
-    : null
 
   return (
     <Link
@@ -187,7 +190,6 @@ export function EventCard({
           cardSize={cardSize}
           cardVariant={cardVariant}
           event={event}
-          imageUrl={imageUrl}
           isEditorial={isEditorial}
           priority={priority}
           showFestivalBadge={showFestivalBadge}
@@ -284,7 +286,6 @@ function EventCardMedia({
   cardSize,
   cardVariant,
   event,
-  imageUrl,
   isEditorial,
   priority,
   showFestivalBadge,
@@ -292,38 +293,33 @@ function EventCardMedia({
   cardSize: EventCardSize
   cardVariant: EventCardVariant
   event: EventSummary
-  imageUrl: string | null
   isEditorial: boolean
   priority: boolean
   showFestivalBadge: boolean
 }) {
+  const imageUrl = event.imageUrl
   if (!imageUrl && !isEditorial) return null
 
   return (
     <div
       className={cn(
         "group/image relative w-full shrink-0 overflow-hidden bg-muted",
-        "aspect-video",
+        "aspect-4/3",
         cardSize === "small" && !isEditorial && "border-2 border-border",
       )}
     >
       {imageUrl ? (
-        <Image
+        <SanityImage
           alt={event.imageAlt ?? event.imageCaption ?? event.title}
+          aspectRatio={4 / 3}
           className={cn(
-            "object-cover",
             isEditorial &&
               "transition-transform duration-300 group-hover/image:scale-105",
           )}
-          fill
+          frame={event.imageFrame}
           priority={priority}
-          sizes={
-            cardVariant === "slider"
-              ? "(max-width: 640px) calc(100vw - 3rem), 21rem"
-              : "(max-width: 768px) 100vw, (max-width: 1279px) 50vw, 33vw"
-          }
+          sizes={CARD_IMAGE_SIZES[cardVariant]}
           src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
         />
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-center font-heading text-foreground-muted">

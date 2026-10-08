@@ -1,15 +1,14 @@
 "use client"
 
 import { ArrowDown, CalendarDays } from "lucide-react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
+import { SanityImage } from "@/components/sanity-image"
 
 import { useEvents } from "@/features/events/context/EventsContext"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { cn } from "@/lib/utils"
 import {
   buildCalendarMonths,
@@ -60,12 +59,6 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const t = useTranslations("EventCard")
   const { event } = occurrence
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        { height: 180, width: 320 },
-        event.imageFrame,
-      )
-    : null
   const time = formatTime(occurrence, t("timePrefix"))
 
   return (
@@ -80,18 +73,18 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
       href={`/arrangementer/${event.slug}`}
     >
       {imageUrl ? (
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          <Image
+        <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+          <SanityImage
             alt={event.imageAlt ?? event.imageCaption ?? event.title}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            fill
+            aspectRatio={4 / 3}
+            className="transition-transform duration-300 group-hover:scale-105"
+            frame={event.imageFrame}
             sizes="(max-width: 768px) 30vw, 16rem"
             src={imageUrl}
-            unoptimized={shouldLoadImageDirectly(imageUrl)}
           />
         </div>
       ) : (
-        <div className="flex aspect-video items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
+        <div className="flex aspect-4/3 items-center justify-center bg-muted p-3 text-center font-heading text-sm text-foreground-muted">
           <CalendarDays className="mr-1.5 size-4 shrink-0" aria-hidden />
           <span>{event.title}</span>
         </div>

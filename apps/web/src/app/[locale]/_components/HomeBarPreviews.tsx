@@ -1,5 +1,6 @@
 "use client"
 
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { Music2 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
@@ -31,6 +32,7 @@ interface NowPlayingState {
 interface BarPreviewImage {
   assetUrl?: string | null
   alt?: string | null
+  frame?: ImageFrame | null
 }
 
 export interface HomeBarPreviewRoom {
@@ -173,6 +175,7 @@ function HomeBarPreviewCard({
         <ImageWithFallback
           alt={room.image?.alt ?? room.title ?? translations("barImageAlt")}
           aspectRatio=""
+          frame={room.image?.frame}
           className="min-h-full"
           fallback={
             <Music2 aria-hidden className="size-10 text-foreground-muted" />

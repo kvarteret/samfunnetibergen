@@ -1,8 +1,10 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import type { OpeningHours } from "@/lib/opening-hours"
 
 export interface BookingRoomImage {
   assetUrl: string | null
   alt: string | null
+  frame?: ImageFrame | null
 }
 
 // A room offered in the booking picker. The list is autofetched from Crescat's

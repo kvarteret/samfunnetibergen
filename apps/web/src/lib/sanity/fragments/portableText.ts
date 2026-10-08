@@ -11,6 +11,7 @@ export const portableTextProjection = `{
     },
     _type == "image" => {
         "imageUrl": asset->url,
+        "lqip": asset->metadata.lqip,
         alt,
         caption
     }
