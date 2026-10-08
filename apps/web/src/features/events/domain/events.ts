@@ -62,6 +62,7 @@ export type PublicRoom = {
   slug: string
   floor: number | null
   imageUrl: string | null
+  imageFrame?: ImageFrame | null
 }
 
 type PublicPortableTextBlock = {

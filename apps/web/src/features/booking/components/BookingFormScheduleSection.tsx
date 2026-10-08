@@ -304,6 +304,7 @@ function RoomCard({
               <Building2 aria-hidden className="size-8 text-foreground-muted" />
             }
             sizes="(min-width: 1280px) 25vw, (min-width: 768px) 40vw, 100vw"
+            frame={room.image?.frame}
             src={room.image?.assetUrl}
           />
           {occupied && (

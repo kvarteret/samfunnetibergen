@@ -1,3 +1,5 @@
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
+
 export type PriceType = "ordinær" | "student" | "frivillig"
 
 export type KaraokeBookingPayload = {
@@ -22,6 +24,7 @@ export interface KaraokeRoomImage {
   assetUrl: string | null
   alt: string | null
   caption: string | null
+  frame?: ImageFrame | null
 }
 
 export interface KaraokeRoom {

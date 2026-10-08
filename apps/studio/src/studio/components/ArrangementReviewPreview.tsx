@@ -31,11 +31,8 @@ const REFERENCE_QUERY = `{
  "childDates": *[_type == "arrangement" && parentEvent._ref == $documentId && approvalStatus == "approved"].dates[]
 }`
 const LISTEN_QUERY = `*[_id in [$roomId,"drafts."+$roomId,$typeId,"drafts."+$typeId,$organizerId,"drafts."+$organizerId,$parentId,"drafts."+$parentId] || parentEvent._ref == $documentId]`
-// Infoskjermen viser 4:3; arrangementskortene på nettsiden viser 16:9.
-const FRAMES = [
-  { label: "4:3", ratio: 4 / 3, className: "frame primary" },
-  { label: "16:9", ratio: 16 / 9, className: "frame card" },
-]
+// Både infoskjermen og nettsiden viser arrangementsbilder i 4:3.
+const FRAMES = [{ label: "4:3", ratio: 4 / 3, className: "frame primary" }]
 const Layout = styled.div`
  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap:1.5rem; align-items:start;
 `
@@ -50,7 +47,7 @@ const CatalogueCard = styled.article`
  .location {color:#57534b;}
 `
 const CardImage = styled.div`
- aspect-ratio:16/9; background:#ece9de; display:grid; place-items:center; color:#68645b;
+ aspect-ratio:4/3; background:#ece9de; display:grid; place-items:center; color:#68645b;
  img {width:100%;height:100%;object-fit:cover;display:block;}
 `
 const ImageTool = styled.div`
@@ -63,8 +60,6 @@ const ImageTool = styled.div`
  }
  .primary {border:2px solid #fff; box-shadow:0 0 0 1px rgb(0 0 0 / 0.5);}
  .primary span {background:#fff;}
- .card {border:2px dashed #efe548;}
- .card span {background:#efe548; top:auto; bottom:4px;}
 `
 const FieldList = styled.ul`
  list-style:none; padding:0; margin:0; display:grid; gap:2px;
@@ -213,7 +208,7 @@ export function ArrangementReviewPreview({
     ? builder
         .image(imageSource)
         .width(960)
-        .height(540)
+        .height(720)
         .fit("crop")
         .auto("format")
         .url()

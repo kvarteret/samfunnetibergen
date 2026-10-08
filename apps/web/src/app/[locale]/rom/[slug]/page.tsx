@@ -97,6 +97,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
               src,
               alt: image.alt || title,
               caption: image.caption,
+              frame: image.frame,
             },
           ]
         : []

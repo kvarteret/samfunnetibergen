@@ -47,7 +47,7 @@ const inheritableFieldsProjection = `
     "title": ${localizedNullableTitle},
     "description": ${localizedNullableDescription}[] ${portableTextProjection},
     "imageUrl": image.asset->url,
-    "imageFrame": select(defined(image.asset) => image{crop, hotspot}),
+    "imageFrame": select(defined(image.asset) => image{crop, hotspot, "lqip": asset->metadata.lqip}),
     "imageAlt": select(defined(image.asset) => coalesce(image.alt, "")),
     "imageCaption": ${localizedNullableImageCaption},
     "organizerGroup": organizerGroup-> { _id, "name": ${localizedName}, "slug": coalesce(slug.current, "") },
@@ -135,7 +135,8 @@ const publicEventProjection = `{
         "title": ${localizedTitle},
         "slug": coalesce(slug.current, ""),
         floor,
-        "imageUrl": images[0].image.asset->url
+        "imageUrl": images[0].image.asset->url,
+        "imageFrame": select(defined(images[0].image.asset) => images[0].image{crop, hotspot, "lqip": asset->metadata.lqip})
     },
     "roomText": ${localizedNullableRoomText},
     ${inheritableFieldsProjection}

@@ -1,7 +1,7 @@
-import Image from "next/image"
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { PortableText } from "next-sanity"
 
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
+import { SanityImage } from "@/components/sanity-image"
 import { cn } from "@/lib/utils"
 
 type PortableTextBlock = {
@@ -24,7 +24,7 @@ type PortableTextImageValue = {
   imageUrl?: string
   alt?: string
   caption?: string
-}
+} & ImageFrame
 
 type PortableTextLinkValue = {
   href?: string
@@ -103,21 +103,15 @@ function PortableTextImage({ value }: { value: PortableTextImageValue }) {
     return null
   }
 
-  const imageUrl = sanityImageUrl(value.imageUrl, {
-    height: 720,
-    width: 1280,
-  })
-
   return (
     <figure className="my-10">
       <div className="relative aspect-video overflow-hidden border-2 border-border">
-        <Image
+        <SanityImage
           alt={value.alt ?? ""}
-          className="object-cover"
-          fill
+          aspectRatio={16 / 9}
+          frame={value}
           sizes="(max-width: 1280px) 100vw, 1280px"
-          src={imageUrl}
-          unoptimized={shouldLoadImageDirectly(imageUrl)}
+          src={value.imageUrl}
         />
       </div>
       {value.caption && (

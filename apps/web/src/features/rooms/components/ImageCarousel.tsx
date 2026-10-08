@@ -1,7 +1,8 @@
 "use client"
 
-import Image from "next/image"
+import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { useCallback, useEffect, useState } from "react"
+import { SanityImage } from "@/components/sanity-image"
 
 import {
   Carousel,
@@ -18,6 +19,7 @@ type ImageSlide = {
   src: string
   alt: string
   caption?: string | null
+  frame?: ImageFrame | null
 }
 
 type PanoramaSlide = {
@@ -129,10 +131,10 @@ export function ImageCarousel({ images, slides }: ImageCarouselProps) {
                     src={slide.iframeSrc}
                   />
                 ) : (
-                  <Image
+                  <SanityImage
                     alt={slide.alt}
-                    className="object-cover"
-                    fill
+                    aspectRatio={16 / 9}
+                    frame={slide.frame}
                     priority={i === 0}
                     sizes="100vw"
                     src={slide.src}

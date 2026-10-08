@@ -1,11 +1,11 @@
 import { CalendarDays, Clock, MapPin, Repeat, Ticket } from "lucide-react"
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 import { Fragment, type ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { JsonLd } from "@/components/JsonLd"
+import { SanityImage } from "@/components/sanity-image"
 import { Button } from "@/components/ui/button"
 import { Tag } from "@/components/ui/tag"
 import { EventInterest } from "@/features/event-interest/components/EventInterest"
@@ -30,7 +30,6 @@ import { buildPageMetadata } from "@/lib/page-metadata"
 import { PortableTextContent } from "@/lib/portable-text-components"
 import { eventTrackingAttributes } from "@/lib/posthog/tracking-attributes"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
-import { sanityImageUrl, shouldLoadImageDirectly } from "@/lib/sanity/image-url"
 import { resolveSiteUrl } from "@/lib/site-url"
 import {
   buildEventStructuredData,
@@ -310,12 +309,6 @@ function EventDetailHero({
   t: Translator
 }) {
   const imageUrl = event.imageUrl
-    ? sanityImageUrl(
-        event.imageUrl,
-        { height: 900, width: 1600 },
-        event.imageFrame,
-      )
-    : null
   // Instances of a series are identical by definition, so the series rhythm
   // replaces the parent link. Festival sessions still point to their festival.
   const isSeries =
@@ -392,19 +385,19 @@ function EventDetailHero({
 
       <div className="order-first overflow-hidden rounded-base bg-muted lg:order-none">
         {imageUrl ? (
-          <div className="relative aspect-video">
-            <Image
+          <div className="relative aspect-4/3">
+            <SanityImage
               alt={event.imageAlt ?? event.imageCaption ?? event.title}
-              className="object-cover"
-              fill
+              aspectRatio={4 / 3}
+              frame={event.imageFrame}
               priority
+              quality={82}
               sizes="(max-width: 1024px) 100vw, 60vw"
               src={imageUrl}
-              unoptimized={shouldLoadImageDirectly(imageUrl)}
             />
           </div>
         ) : (
-          <div className="flex aspect-video items-center justify-center p-8 text-center">
+          <div className="flex aspect-4/3 items-center justify-center p-8 text-center">
             <p className="max-w-md font-heading text-4xl leading-tight text-foreground-muted">
               {event.title}
             </p>
@@ -599,8 +592,6 @@ function EventDetailRoomLink({
 }) {
   const roomFloor = event.room?.floor
   const roomImageUrl = event.room?.imageUrl
-    ? sanityImageUrl(event.room.imageUrl, { height: 264, width: 352 })
-    : null
 
   return (
     <span className="group relative inline-block">
@@ -614,13 +605,12 @@ function EventDetailRoomLink({
         <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden w-44 flex-col overflow-hidden rounded border border-border bg-popover shadow-md group-hover:flex">
           {roomImageUrl && (
             <span className="relative block aspect-4/3 w-full">
-              <Image
-                src={roomImageUrl}
+              <SanityImage
                 alt={roomTitle ?? ""}
-                fill
-                className="object-cover"
+                aspectRatio={4 / 3}
+                frame={event.room?.imageFrame}
                 sizes="176px"
-                unoptimized={shouldLoadImageDirectly(roomImageUrl)}
+                src={roomImageUrl}
               />
             </span>
           )}

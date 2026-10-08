@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
+import { SanityImage } from "@/components/sanity-image"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupEvents } from "@/features/events/components/GroupEvents"
 import { GroupVolunteerForm } from "@/features/grupper"
@@ -104,12 +105,12 @@ export default async function GroupPage({ params }: GroupPageProps) {
         {group.image?.assetUrl ? (
           <figure className="space-y-2">
             <div className="relative aspect-video w-full overflow-hidden border-2 border-border bg-muted">
-              <Image
+              <SanityImage
                 alt={
                   group.image.alt ?? t("logoAlt", { group: group.name ?? "" })
                 }
-                className="object-cover"
-                fill
+                aspectRatio={16 / 9}
+                frame={group.image.frame}
                 sizes="(min-width: 1024px) 60vw, 100vw"
                 src={group.image.assetUrl}
               />

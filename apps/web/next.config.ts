@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   // which breaks in-flight form submissions after a deploy.
   deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   images: {
+    // Next's defaults plus 1440: without it a card filling ~700px on a 2x
+    // screen jumps from 1200 to 1920 and downloads twice the bytes.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "cdn.prod.website-files.com" },

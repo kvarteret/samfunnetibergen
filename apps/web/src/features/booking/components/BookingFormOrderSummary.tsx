@@ -203,6 +203,7 @@ function SelectedRoomCard({
               <MapPin aria-hidden className="size-4 text-foreground-muted" />
             }
             sizes="80px"
+            frame={room.image?.frame}
             src={room.image?.assetUrl}
           />
         </div>
@@ -233,6 +234,7 @@ function SelectedRoomCard({
             </span>
           }
           sizes="(min-width: 1024px) 360px, 100vw"
+          frame={room.image?.frame}
           src={room.image?.assetUrl}
         />
       )}

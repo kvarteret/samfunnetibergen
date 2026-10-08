@@ -18,6 +18,8 @@ export type ImageHotspot = {
 export type ImageFrame = {
   crop?: ImageCrop | null
   hotspot?: ImageHotspot | null
+  /** Sanity's blurred preview of the whole original image (`metadata.lqip`). */
+  lqip?: string | null
 }
 
 /** A rectangle in fractions (0–1) of the original image. */
