@@ -1,5 +1,6 @@
 "use client"
 
+import { useLocale, useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "./radio-group"
 
@@ -26,6 +27,8 @@ export function DateScroller({
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
 }: DateScrollerProps) {
+  const locale = useLocale()
+  const t = useTranslations("Karaoke")
   return (
     <div
       aria-describedby={ariaDescribedBy}
@@ -43,11 +46,16 @@ export function DateScroller({
           const availability = getDateAvailability(date)
           const selected = date === selectedDate
           const parsedDate = new Date(date)
-          const weekday = parsedDate.toLocaleDateString("nb-NO", {
-            weekday: "short",
-          })
+          const weekday = parsedDate.toLocaleDateString(
+            locale === "en" ? "en-GB" : "nb-NO",
+            {
+              weekday: "short",
+            },
+          )
           const month = parsedDate
-            .toLocaleDateString("nb-NO", { month: "short" })
+            .toLocaleDateString(locale === "en" ? "en-GB" : "nb-NO", {
+              month: "short",
+            })
             .replace(".", "")
 
           return (
@@ -79,7 +87,7 @@ export function DateScroller({
                 {parsedDate.getDate()}
               </span>
               <span className="text-sm">
-                {availability === "unavailable" ? "Opptatt" : month}
+                {availability === "unavailable" ? t("unavailable") : month}
               </span>
             </RadioGroupItem>
           )

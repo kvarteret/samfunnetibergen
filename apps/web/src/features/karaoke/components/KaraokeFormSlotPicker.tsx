@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { DateScroller } from "@/components/ui/date-scroller"
 import { SlotGrid, type SlotOption } from "@/components/ui/slot-grid"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
@@ -48,6 +49,7 @@ export function KaraokeFormSlotPicker({
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
 }: KaraokeFormSlotPickerProps) {
+  const t = useTranslations("Karaoke")
   const dates = buildDateSequence(today, KARAOKE_DATE_COUNT)
 
   const slotOptions: SlotOption[] = selectedDate
@@ -96,6 +98,7 @@ export function KaraokeFormSlotPicker({
       />
       {selectedDate && slotOptions.length > 0 && (
         <SlotGrid
+          label={t("chooseStart")}
           onValueChange={value => onSlotChange(Number(value))}
           value={selectedSlotMin != null ? String(selectedSlotMin) : null}
           slots={slotOptions}

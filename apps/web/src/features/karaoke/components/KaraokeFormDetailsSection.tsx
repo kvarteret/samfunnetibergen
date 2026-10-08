@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useTranslations } from "next-intl"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -46,14 +47,16 @@ export function KaraokeFormDetailsSection({
   startDateError,
   startDateId,
 }: KaraokeFormDetailsSectionProps) {
+  const t = useTranslations("Karaoke")
+
   const form = useKaraokeForm()
   const eventNameErrorId = `${eventNameId}-error`
   const startDateErrorId = `${startDateId}-error`
 
   return (
-    <FormSection number="01" title="Detaljer">
+    <FormSection number="01" title={t("details")}>
       <FieldGroup error={eventNameError} errorId={eventNameErrorId}>
-        <Label htmlFor={eventNameId}>Navn på arrangement *</Label>
+        <Label htmlFor={eventNameId}>{t("eventName")}</Label>
         <form.Field name="eventName">
           {(field: AnyFieldApi) => (
             <Input
@@ -62,7 +65,7 @@ export function KaraokeFormDetailsSection({
               autoComplete="off"
               id={eventNameId}
               onChange={event => field.handleChange(event.target.value)}
-              placeholder="F.eks. Bursdagsfeiring"
+              placeholder={t("eventPlaceholder")}
               required
               value={field.state.value as string}
             />
@@ -75,11 +78,11 @@ export function KaraokeFormDetailsSection({
           <>
             <SelectField
               id={`${uid}-duration`}
-              label="Varighet"
+              label={t("duration")}
               onChange={value => durationField.handleChange(Number(value))}
               options={KARAOKE_DURATION_OPTIONS.map(hours => ({
                 value: String(hours),
-                label: `${hours} ${hours === 1 ? "time" : "timer"}`,
+                label: t("hours", { count: hours }),
               }))}
               value={String(durationField.state.value)}
             />
@@ -93,7 +96,7 @@ export function KaraokeFormDetailsSection({
                         error={startDateError}
                         errorId={startDateErrorId}
                       >
-                        <Label>Dato og tidspunkt *</Label>
+                        <Label>{t("dateTime")}</Label>
                         <KaraokeFormSlotPicker
                           aria-describedby={
                             startDateError ? startDateErrorId : undefined

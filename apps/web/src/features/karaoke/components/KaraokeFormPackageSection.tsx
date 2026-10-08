@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useLocale, useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { FormSection } from "@/components/ui/form-section"
 import { menuPanelClassName } from "@/components/ui/menu-surface"
@@ -24,10 +25,12 @@ export function KaraokeFormPackageSection({
   numberOfPeopleError,
   numberOfPeopleId,
 }: KaraokeFormPackageSectionProps) {
+  const t = useTranslations("Karaoke")
+
   const form = useKaraokeForm()
 
   return (
-    <FormSection number="02" title="Karaokepakke">
+    <FormSection number="02" title={t("package")}>
       <form.Field name="priceType">
         {(field: AnyFieldApi) => {
           const priceType = field.state.value as PriceType
@@ -40,7 +43,13 @@ export function KaraokeFormPackageSection({
                 options={(["ordinær", "student", "frivillig"] as const).map(
                   type => ({
                     value: type,
-                    label: type,
+                    label: t(
+                      type === "ordinær"
+                        ? "regular"
+                        : type === "student"
+                          ? "student"
+                          : "volunteer",
+                    ),
                   }),
                 )}
                 value={priceType}
@@ -68,18 +77,14 @@ export function KaraokeFormPackageSection({
 }
 
 function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
+  const t = useTranslations("Karaoke")
+
   if (priceType === "frivillig") {
     return (
       <Card className="space-y-2 bg-card p-4 py-4">
-        <p className=" font-heading text-foreground">
-          Gratis for interne frivillige
-        </p>
+        <p className=" font-heading text-foreground">{t("volunteerFree")}</p>
         <p className=" text-foreground-muted leading-6">
-          Som intern frivillig kan du bruke karaokerommet gratis, men eksterne
-          bookinger har alltid prioritet. En ekstern booking kan overta rommet
-          ved å booke senest{" "}
-          <strong className="font-heading text-foreground">12 timer før</strong>{" "}
-          — i så fall vil du bli varslet og bookingen din kanselleres.
+          {t("volunteerNotice")}
         </p>
       </Card>
     )
@@ -88,7 +93,7 @@ function KaraokePackageNotice({ priceType }: { priceType: PriceType }) {
   return (
     <Card className="bg-card p-4 py-4">
       <div className="flex justify-between">
-        <span className="text-foreground-muted">Timepris per person</span>
+        <span className="text-foreground-muted">{t("hourlyPerson")}</span>
         <span className="font-heading">
           {KARAOKE_PRICING[priceType].perPerson} kr
         </span>
@@ -110,6 +115,8 @@ function KaraokePeopleField({
   errorId: string
   id: string
 }) {
+  const t = useTranslations("Karaoke")
+
   const form = useKaraokeForm()
 
   return (
@@ -119,14 +126,14 @@ function KaraokePeopleField({
           className="max-w-44"
           error={error}
           errorId={errorId}
-          hint={`Minimumspris er ${KARAOKE_PRICING[priceType].minPerHour} kr per time.`}
+          hint={t("minimum", { price: KARAOKE_PRICING[priceType].minPerHour })}
           id={id || `${uid}-people`}
-          label="Antall personer *"
+          label={t("peopleLabel")}
           onChange={field.handleChange}
           options={Array.from({ length: 25 }, (_, index) => index + 1).map(
             count => ({
               value: String(count),
-              label: `${count} ${count === 1 ? "person" : "personer"}`,
+              label: t("people", { count }),
             }),
           )}
           value={field.state.value as string}
@@ -137,19 +144,24 @@ function KaraokePeopleField({
 }
 
 function KaraokeTotalPrice({ derived }: { derived: KaraokeDerivedState }) {
+  const locale = useLocale()
+  const t = useTranslations("Karaoke")
+
   return (
     <div className={cn(menuPanelClassName, "p-4")}>
       <div className="flex items-baseline justify-between">
-        <span className="text-foreground-muted">Totalpris</span>
+        <span className="text-foreground-muted">{t("totalPrice")}</span>
         <div className="text-right">
           <span className="font-heading text-2xl tabular-nums text-foreground">
-            {derived.totalPrice.toLocaleString("nb-NO")} kr
+            {derived.totalPrice.toLocaleString(
+              locale === "en" ? "en-GB" : "nb-NO",
+            )}{" "}
+            kr
           </span>
           <p className="text-sm text-foreground-muted mt-0.5">
-            {Math.round(derived.totalPrice / derived.people).toLocaleString(
-              "nb-NO",
-            )}{" "}
-            kr per person
+            {t("perPerson", {
+              price: Math.round(derived.totalPrice / derived.people),
+            })}
           </p>
         </div>
       </div>

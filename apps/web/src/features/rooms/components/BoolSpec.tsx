@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { DetailRow } from "@/components/ui/detail-row"
 
@@ -9,6 +10,7 @@ interface BoolSpecProps {
 }
 
 export function BoolSpec({ value, label, details }: BoolSpecProps) {
+  const t = useTranslations("RoomPage")
   return (
     <DetailRow label={label} layout="labelColumn">
       {value ? (
@@ -18,7 +20,7 @@ export function BoolSpec({ value, label, details }: BoolSpecProps) {
               aria-hidden
               className="size-4 text-green-700 dark:text-green-400"
             />
-            Ja
+            {t("yes")}
           </span>
           {details && (
             <span className="block max-w-xs text-foreground-muted">
@@ -29,7 +31,7 @@ export function BoolSpec({ value, label, details }: BoolSpecProps) {
       ) : (
         <span className="inline-flex items-center gap-1.5 text-foreground-muted">
           <X aria-hidden className="size-4" />
-          Nei
+          {t("no")}
         </span>
       )}
     </DetailRow>

@@ -6,10 +6,6 @@ import type { EventDateEntry } from "../components/EventCard"
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
 const EVENT_TIME_ZONE = "Europe/Oslo"
-const longDateFormatter = new Intl.DateTimeFormat("nb-NO", {
-  dateStyle: "long",
-  timeZone: "Europe/Oslo",
-})
 
 function formatTimeRange(start: string, end?: string | null): string {
   if (end) return `${start}–${end}`
@@ -17,6 +13,7 @@ function formatTimeRange(start: string, end?: string | null): string {
 }
 
 export interface PrimaryDateLabels {
+  locale?: AppLocale
   today: string
   tomorrow: string
   weekday: (date: Date) => string
@@ -58,7 +55,10 @@ export function formatPrimaryDate(
 
   const dayLabel =
     formatHumanDate(date, labels, referenceNow) ??
-    longDateFormatter.format(eventDate)
+    new Intl.DateTimeFormat(labels.locale === "en" ? "en-GB" : "nb-NO", {
+      dateStyle: "long",
+      timeZone: EVENT_TIME_ZONE,
+    }).format(eventDate)
 
   return timeRange ? `${dayLabel}, ${timeRange}` : dayLabel
 }

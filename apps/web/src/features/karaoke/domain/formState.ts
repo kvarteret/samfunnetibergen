@@ -81,13 +81,16 @@ export function buildKaraokePayload(
   }
 }
 
-export function formatKaraokeDate(dateStr: string): string {
+export function formatKaraokeDate(dateStr: string, locale = "nb"): string {
   if (!dateStr) return ""
-  return new Date(dateStr).toLocaleDateString("nb-NO", {
-    weekday: "short",
-    day: "numeric",
-    month: "long",
-  })
+  return new Date(dateStr).toLocaleDateString(
+    locale === "en" ? "en-GB" : "nb-NO",
+    {
+      weekday: "short",
+      day: "numeric",
+      month: "long",
+    },
+  )
 }
 
 export function calcKaraokePrice(
