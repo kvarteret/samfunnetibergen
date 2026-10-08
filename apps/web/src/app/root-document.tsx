@@ -94,7 +94,8 @@ export async function RootDocument({
         </Script>
         <JsonLd data={buildOrganizationWebsiteGraph(siteUrl)} />
         {children}
-        <SanityLive />
+        {/* Reconnects are normal after mobile sleep or a network change. */}
+        <SanityLive onReconnect={false} />
         {isDraftMode && <VisualEditing />}
       </body>
     </html>

@@ -13,12 +13,10 @@ let cached: { enabled: boolean; at: number } | null = null
 async function readFlag() {
   if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return false
   try {
-    const enabled = await getPostHogClient().isFeatureEnabled(
-      INFOSCREEN_PARTY_FLAG,
-      SCREEN_DISTINCT_ID,
-      { sendFeatureFlagEvents: false },
-    )
-    return enabled === true
+    const flags = await getPostHogClient().evaluateFlags(SCREEN_DISTINCT_ID, {
+      flagKeys: [INFOSCREEN_PARTY_FLAG],
+    })
+    return flags.isEnabled(INFOSCREEN_PARTY_FLAG) === true
   } catch {
     return false
   }
