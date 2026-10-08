@@ -23,7 +23,7 @@ export function BookingPromotionLink({ url }: { url: string }) {
             setCopyFailed(true)
           }
         }}
-        variant="outline"
+        variant="neutral"
       >
         {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
         {copied ? t("form.promotionLinkCopied") : t("form.copyPromotionLink")}
