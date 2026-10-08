@@ -144,7 +144,8 @@ export default async function EventPage({ params }: EventPageProps) {
             eventSlug={resolvedParams.event}
             dateRows={eventDateRows(eventData, childEvents, today)}
             recurringLabel={
-              buildCardDateLabels(eventData, today, cardLabels).recurringLabel
+              buildCardDateLabels(eventData, today, cardLabels)
+                .recurringDetailLabel
             }
             locale={locale}
             t={t}

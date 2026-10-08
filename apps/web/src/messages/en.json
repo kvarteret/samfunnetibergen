@@ -210,6 +210,7 @@
       "firstDayHere": "This is before the start date. Start over here?",
       "onlyThisDay": "Click again for this day only.",
       "selectionDone": "Yey!",
+      "pastDate": "Cannot book in the past",
       "resetDates": "Start over",
       "legendPartlyBooked": "Partly booked",
       "dayClosed": "Closed",
@@ -302,6 +303,7 @@
     "promotion": {
       "sectionTitle": "Promotion",
       "question": "I consent to Studentersamfunnet promoting this event on its channels.",
+      "description": "If you agree, we will send you an email with more details.",
       "yes": "Yes please!",
       "no": "No."
     },
@@ -351,6 +353,9 @@
       "validationSummaryTitle": "There is a problem",
       "unexpectedError": "Something went wrong. Please try again later.",
       "promotionReminder": "Remember to promote your event! Add it to our event calendar so more people can discover it.",
+      "copyPromotionLink": "Copy promotion link",
+      "promotionLinkCopied": "Promotion link copied",
+      "promotionLinkHint": "This promotion link prefills the form with your booking details and works on another device. The link is valid for 90 days.",
       "promoteEvent": "Promote your event"
     },
     "validation": {

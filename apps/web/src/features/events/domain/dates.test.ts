@@ -146,6 +146,37 @@ describe("festival cards", () => {
   })
 })
 
+test("weekly cards put plural weekdays on the date line and retain detail recurrence", () => {
+  const result = buildCardDateLabels(
+    {
+      eventKind: "seriesInstance",
+      dates: [
+        {
+          _key: "monday",
+          startDate: "2026-10-12",
+          startTime: "16:30",
+          endTime: "18:00",
+        },
+      ],
+      parentEvent: { rrule: "FREQ=WEEKLY;BYDAY=MO" },
+    },
+    "2026-10-08",
+    {
+      ...labels,
+      recurring,
+      days: count => `${count} dager`,
+      events: count => `${count} arrangementer`,
+      weekdayName: date => formatWeekday(date, "nb").toLowerCase(),
+      weeklyDate: weekday =>
+        `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}er`,
+    },
+    new Date("2026-10-08T12:00:00Z"),
+  )
+  expect(result.primaryDateLabel).toBe("Mandager, 16:30–18:00")
+  expect(result.recurringLabel).toBeNull()
+  expect(result.recurringDetailLabel).toBe("Hver mandag")
+})
+
 test("translates dates outside the relative weekday window", () => {
   expect(
     formatPrimaryDate(

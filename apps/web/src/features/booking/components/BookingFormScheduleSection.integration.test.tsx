@@ -263,6 +263,43 @@ describe("selected-room Crescat calendar availability", () => {
       expect(
         container.querySelectorAll('button[data-range-end="true"]'),
       ).toHaveLength(1)
+      const selectedDay = dayButton(
+        new Date("2026-08-20T00:00:00").toLocaleDateString("nb"),
+      )
+      await act(async () => {
+        selectedDay?.focus()
+        selectedDay?.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            code: "Space",
+            key: " ",
+            bubbles: true,
+            cancelable: true,
+          }),
+        )
+      })
+      const keyUp = new KeyboardEvent("keyup", {
+        code: "Space",
+        key: " ",
+        bubbles: true,
+        cancelable: true,
+      })
+      await act(async () => selectedDay?.dispatchEvent(keyUp))
+      expect(keyUp.defaultPrevented).toBe(true)
+      expect(container.textContent).not.toContain("Booking starter fra")
+      expect(
+        container.querySelectorAll('button[data-range-start="true"]'),
+      ).toHaveLength(0)
+
+      const pastDay = dayButton(
+        new Date("2026-08-08T00:00:00").toLocaleDateString("nb"),
+      )
+      expect(pastDay?.getAttribute("aria-disabled")).toBe("true")
+      await act(async () => pastDay?.click())
+      expect(container.textContent).not.toContain("Booking starter fra")
+      const todayDay = dayButton(
+        new Date("2026-08-09T00:00:00").toLocaleDateString("nb"),
+      )
+      expect(todayDay?.querySelector(".bg-booking-today")).not.toBeNull()
       const nextMonth = container.querySelector<HTMLButtonElement>(
         "nav button:last-child",
       )

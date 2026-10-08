@@ -140,6 +140,7 @@ export interface CardDateLabels extends FestivalRunLabels {
   recurring: RecurringLabels
   events: (count: number) => string
   weekdayName: (date: Date) => string
+  weeklyDate?: (weekday: string) => string
 }
 
 type CardDateEvent = {
@@ -166,7 +167,7 @@ export function buildCardDateLabels(
   const resolvedDates = computeAllDates(dates, todayStr)
   const primaryDate = resolvedDates[0]
   const isFestival = event.eventKind === "festivalParent"
-  const primaryDateLabel = !primaryDate
+  const datedPrimaryLabel = !primaryDate
     ? null
     : isFestival
       ? formatFestivalRun(resolvedDates, labels, referenceNow)
@@ -190,11 +191,27 @@ export function buildCardDateLabels(
             : null,
         )
 
+  const weeklyDateLabel =
+    primaryDate &&
+    labels.weeklyDate &&
+    seriesRule?.match(/FREQ=WEEKLY(?:;|$)/) &&
+    Number(seriesRule.match(/INTERVAL=(\d+)/)?.[1] ?? 1) === 1
+      ? labels.weeklyDate(
+          labels.weekdayName(TZDate.tz(EVENT_TIME_ZONE, primaryDate.startDate)),
+        )
+      : null
+  const primaryDateLabel = weeklyDateLabel
+    ? primaryDate.startTime
+      ? `${weeklyDateLabel}, ${formatTimeRange(primaryDate.startTime, primaryDate.endTime)}`
+      : weeklyDateLabel
+    : datedPrimaryLabel
+
   return {
     dates,
     resolvedDates,
     primaryDateLabel,
-    recurringLabel,
+    recurringLabel: weeklyDateLabel ? null : recurringLabel,
+    recurringDetailLabel: recurringLabel,
     programmeLabel: isFestival ? labels.events(resolvedDates.length) : null,
   }
 }

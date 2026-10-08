@@ -10,6 +10,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react"
 import type { DateRange } from "react-day-picker"
@@ -241,6 +242,7 @@ export function DateTimePicker({
   vacationMode,
   timingWarning,
 }: DateTimePickerProps) {
+  const resetKey = useRef<string | null>(null)
   const [availabilityHandle] = useState(() =>
     Tooltip.createHandle<BookingAvailability>(),
   )
@@ -268,9 +270,14 @@ export function DateTimePicker({
   }
 
   useEffect(() => {
-    if (!startDate) return
     const handleBackspace = (event: KeyboardEvent) => {
+      if (resetKey.current === event.code) {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
       if (
+        !startDate ||
         (event.code !== "Backspace" && event.code !== "Space") ||
         event.repeat ||
         event.altKey ||
@@ -288,12 +295,29 @@ export function DateTimePicker({
       )
         return
       event.preventDefault()
+      event.stopPropagation()
+      resetKey.current = event.code
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest("[data-slot='calendar']")
+      )
+        event.target.blur()
       onStartDateChange("")
       onEndDateChange("")
       setHoveredDate(null)
     }
-    document.addEventListener("keydown", handleBackspace)
-    return () => document.removeEventListener("keydown", handleBackspace)
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (resetKey.current !== event.code) return
+      event.preventDefault()
+      event.stopPropagation()
+      resetKey.current = null
+    }
+    document.addEventListener("keydown", handleBackspace, true)
+    document.addEventListener("keyup", handleKeyUp, true)
+    return () => {
+      document.removeEventListener("keydown", handleBackspace, true)
+      document.removeEventListener("keyup", handleKeyUp, true)
+    }
   }, [startDate, onStartDateChange, onEndDateChange])
 
   const bookingStatus = (d: Date) => {
@@ -449,8 +473,7 @@ export function DateTimePicker({
                 day: "group/day relative m-0 flex-1 border-0 p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l [&:last-child[data-selected=true]_button]:rounded-r",
                 // Today is a small dot under the number, so it never competes with
                 // the selected range.
-                today:
-                  "font-semibold [&_button]:after:absolute [&_button]:after:bottom-1.5 [&_button]:after:left-1/2 [&_button]:after:size-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-booking-today",
+                today: "font-semibold",
                 disabled: "cursor-not-allowed opacity-35",
                 hidden: "invisible",
                 // One continuous tinted band from the first to the last day; the end
@@ -465,6 +488,7 @@ export function DateTimePicker({
               locale={calendarLocale}
               mode="range"
               modifiers={{
+                today: todayDate,
                 occupied: isOccupied,
                 beyond_range: isBeyondRange,
                 span_blocked: isSpanBlocked,
@@ -500,6 +524,7 @@ export function DateTimePicker({
                     className={cn(
                       "relative isolate max-w-64 cursor-default rounded-lg bg-popover px-3 py-2 text-popover-foreground shadow-shadow",
                       !payload?.singleDay &&
+                        !payload?.past &&
                         !payload?.completedEnd &&
                         !payload?.restart &&
                         !payload?.earlierStart &&
@@ -512,21 +537,23 @@ export function DateTimePicker({
                   >
                     {payload && (
                       <ul className="space-y-1 text-xs tabular-nums">
-                        {(payload.completedEnd
-                          ? [t("dateTime.selectionDone")]
-                          : payload.singleDay
-                            ? [t("dateTime.onlyThisDay")]
-                            : payload.restart
-                              ? [t("dateTime.restartHere")]
-                              : payload.earlierStart
-                                ? [t("dateTime.firstDayHere")]
-                                : payload.beyondRange
-                                  ? [t("dateTime.rangeTooLong")]
-                                  : payload.spanBlocked
-                                    ? [t("dateTime.spanBlocked")]
-                                    : payload.closed
-                                      ? ["00:00 – 24:00"]
-                                      : payload.bookings
+                        {(payload.past
+                          ? [t("dateTime.pastDate")]
+                          : payload.completedEnd
+                            ? [t("dateTime.selectionDone")]
+                            : payload.singleDay
+                              ? [t("dateTime.onlyThisDay")]
+                              : payload.restart
+                                ? [t("dateTime.restartHere")]
+                                : payload.earlierStart
+                                  ? [t("dateTime.firstDayHere")]
+                                  : payload.beyondRange
+                                    ? [t("dateTime.rangeTooLong")]
+                                    : payload.spanBlocked
+                                      ? [t("dateTime.spanBlocked")]
+                                      : payload.closed
+                                        ? ["00:00 – 24:00"]
+                                        : payload.bookings
                         ).map(range => (
                           <li key={range} className="flex items-start gap-2">
                             {payload.singleDay || payload.completedEnd ? (
@@ -622,8 +649,7 @@ export function DateTimePicker({
             label: t("dateTime.legendPartlyBooked"),
           },
           {
-            swatch:
-              "relative after:absolute after:inset-1.5 after:rounded-full after:bg-booking-today",
+            swatch: "bg-booking-today !size-1.5 !rounded-full mx-1.25",
             label: t("dateTime.legendToday"),
           },
         ]}
@@ -662,6 +688,7 @@ export function DateTimePicker({
 }
 
 interface BookingAvailability {
+  past: boolean
   completedEnd: boolean
   singleDay: boolean
   earlierStart: boolean
@@ -723,6 +750,7 @@ function BookingCalendarDayButton({
     handleDayClick,
   } = context
   const mods = modifiers as Record<string, boolean>
+  const past = day.date < todayDate
   const status = bookingStatus(day.date)
   const closed = isClosed(day.date)
   const restart =
@@ -764,6 +792,8 @@ function BookingCalendarDayButton({
   const button = (
     <CalendarDayButton
       {...props}
+      disabled={false}
+      tabIndex={past ? -1 : props.tabIndex}
       className={cn(
         dayButtonClassName,
         "aspect-auto h-11 w-full rounded-lg text-sm font-normal tabular-nums transition-colors hover:bg-secondary-100 data-[range-middle=true]:bg-transparent [&:not(:focus-visible)]:ring-0 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
@@ -787,6 +817,12 @@ function BookingCalendarDayButton({
       variant="plain"
     >
       {props.children}
+      {mods.today && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-1.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-booking-today"
+        />
+      )}
       {mods.range_start && (
         <LogIn
           aria-hidden="true"
@@ -801,13 +837,13 @@ function BookingCalendarDayButton({
       )}
     </CalendarDayButton>
   )
-  if (day.date < todayDate) return button
   return (
     <Tooltip.Trigger
       handle={availabilityHandle}
       closeOnClick={false}
       payload={{
         date: day.date,
+        past,
         singleDay,
         completedEnd,
         restart,

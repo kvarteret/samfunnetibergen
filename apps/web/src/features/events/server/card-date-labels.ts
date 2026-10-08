@@ -21,6 +21,10 @@ export async function getCardDateLabels(
     tomorrow: t("tomorrow"),
     weekday: date => formatWeekday(date, locale),
     weekdayName: date => weekdayName.format(date),
+    weeklyDate: weekday => {
+      const plural = locale === "nb" ? `${weekday}er` : `${weekday}s`
+      return plural.charAt(0).toLocaleUpperCase(locale) + plural.slice(1)
+    },
     days: count => t("runDays", { count }),
     events: count => t("programmeEvents", { count }),
     recurring: {

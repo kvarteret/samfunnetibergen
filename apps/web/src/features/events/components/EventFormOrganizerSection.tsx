@@ -53,8 +53,8 @@ export function EventFormOrganizerSection({
       <FieldGroup error={organizerTextError} errorId={organizerTextErrorId}>
         <Label htmlFor={organizerTextId}>Arrangørnavn (fritekst)</Label>
         <FieldHint>
-          Bruk dette om dere ikke er i lista - f.eks. &quot;Bandet
-          Skumringen&quot;, &quot;Fagutvalget ved MN&quot;.
+          Bruk dette om dere ikke er i lista - f.eks. &quot;Reodor&apos;s
+          Bondeband&quot;, &quot;Fagutvalget ved MN&quot;.
         </FieldHint>
         <form.Field name="organizerText">
           {(field: AnyFieldApi) => (
