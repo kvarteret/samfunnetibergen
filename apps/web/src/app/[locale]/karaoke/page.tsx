@@ -1,4 +1,5 @@
 import { ExternalLink, Mic } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { KaraokeForm, type KaraokeRoom } from "@/features/karaoke"
@@ -22,13 +23,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }) {
   const locale = await resolvePageLocale(params)
+  const t = await getTranslations({ locale, namespace: "Karaoke" })
 
   return buildPageMetadata({
     locale,
     canonicalPath: `/${locale}/karaoke`,
-    title: "Booking av karaoke",
-    description:
-      "Book karaoke på Maos Lille Røde hos Studentersamfunnet i Bergen. Fyll ut skjemaet så behandler vi forespørselen din så fort vi ser den.",
+    title: t("bookingTitle"),
+    description: t("metaDescription"),
   })
 }
 
@@ -47,6 +48,7 @@ export default async function KaraokePage({
   params: Promise<{ locale: string }>
 }) {
   const locale = await resolvePageLocale(params)
+  const t = await getTranslations({ locale, namespace: "Karaoke" })
   activateRequestLocale(locale)
 
   const [roomData, houseHours] = await Promise.all([
@@ -67,7 +69,7 @@ export default async function KaraokePage({
           caption: img.caption ?? null,
         })),
       }
-    : MAOS_FALLBACK
+    : { ...MAOS_FALLBACK, summary: t("roomSummary") }
 
   return (
     <article className="flex w-full flex-col gap-10">
@@ -84,7 +86,8 @@ export default async function KaraokePage({
   )
 }
 
-function KaraokePageIntro() {
+async function KaraokePageIntro() {
+  const t = await getTranslations("Karaoke")
   return (
     <header className="space-y-4">
       <div className="flex items-center gap-3">
@@ -94,31 +97,30 @@ function KaraokePageIntro() {
         <p className="font-heading uppercase tracking-widest">Karaoke</p>
       </div>
       <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
-        Booking av karaoke
+        {t("bookingTitle")}
       </h1>
       <p className="text-lg leading-7 text-foreground-muted max-w-xl">
-        Så gøy at du ønsker å booke karaoke hos oss! Fyll ut skjemaet under, så
-        behandler vi forespørselen din så fort vi ser den.
+        {t("intro")}
       </p>
 
       <p className="text-lg leading-7 text-foreground-muted max-w-xl">
-        Vi bruker KaraFun –{" "}
+        {t("karafun")}{" "}
         <a
           className="inline-flex items-center gap-1 text-foreground underline underline-offset-4 hover:no-underline focus-brutal"
           href="https://www.karafun.com/karaoke/"
           rel="noreferrer"
           target="_blank"
         >
-          her er katalogen
+          {t("catalogue")}
           <ExternalLink aria-hidden className="size-4" />
         </a>
         .
       </p>
 
       <p className="font-heading uppercase tracking-widest text-destructive">
-        Aldersgrense 18 år*{" "}
+        {t("age")}{" "}
         <span className="normal-case tracking-normal font-sans text-foreground-muted">
-          (*18 år med studentbevis – 20 år for alle andre)
+          {t("ageNote")}
         </span>
       </p>
 
@@ -127,25 +129,14 @@ function KaraokePageIntro() {
   )
 }
 
-function SameDayKaraokeNotice() {
+async function SameDayKaraokeNotice() {
+  const t = await getTranslations("Karaoke")
   return (
     <div className="space-y-3 max-w-xl panel">
-      <p className=" font-heading text-foreground">
-        Vil du booke et karaokerom i dag?
-      </p>
+      <p className=" font-heading text-foreground">{t("sameDay")}</p>
       <ul className="space-y-1.5 text-foreground-muted leading-6">
-        <li>
-          På <strong className="font-heading text-foreground">hverdager</strong>{" "}
-          må bookinger for samme dag gjøres{" "}
-          <strong className="font-heading text-foreground">før 12:00.</strong>
-        </li>
-        <li>
-          Etter 12:00, eller på{" "}
-          <strong className="font-heading text-foreground">
-            lørdager og søndager,
-          </strong>{" "}
-          må du bestille på telefon:
-        </li>
+        <li>{t("sameDayWeekday")}</li>
+        <li>{t("sameDayPhone")}</li>
       </ul>
       <KaraokePhoneLink />
     </div>

@@ -31,7 +31,7 @@ export function HomeBookingBanner({
         <br />
         {heading2}
       </h2>
-      <p className="mt-4 max-w-lg text-lg text-background/75">{body}</p>
+      <p className="mt-5 max-w-lg text-lg leading-8 text-background">{body}</p>
       <Button
         className="group mt-6"
         render={<Link href="/rom/book" />}

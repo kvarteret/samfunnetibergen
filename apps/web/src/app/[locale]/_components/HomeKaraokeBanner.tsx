@@ -23,7 +23,7 @@ export function HomeKaraokeBanner({
         <br />
         <span className="text-primary">{heading2}</span>
       </h2>
-      <p className="mt-4 max-w-lg text-lg text-background/75">{body}</p>
+      <p className="mt-5 max-w-lg text-lg leading-8 text-background">{body}</p>
       <Button
         className="group mt-6"
         render={<Link href="/karaoke" />}

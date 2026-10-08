@@ -82,6 +82,7 @@ function toEventSummary(
     title: event.title,
     slug: event.slug,
     eventKind: event.eventKind,
+    eventStatus: event.eventStatus,
     isRecurring: event.isRecurring ?? undefined,
     rrule: event.rrule ?? null,
     dates,
@@ -188,7 +189,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         today={today}
       />
       <HomeGrupperBanner
-        body={homeT("grupperBannerBody")}
+        body={homeT.raw("grupperBannerBody")}
         cta={homeT("grupperBannerCta")}
         heading1={homeT("grupperBannerHeading1")}
         heading2={homeT("grupperBannerHeading2")}
@@ -211,7 +212,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
         vacationMode={barPreviews?.vacationMode}
       />
       <HomeKaraokeBanner
-        body={homeT("karaokeBannerBody")}
+        body={homeT.raw("karaokeBannerBody")}
         cta={homeT("karaokeBannerCta")}
         heading1={homeT("karaokeBannerHeading1")}
         heading2={homeT("karaokeBannerHeading2")}

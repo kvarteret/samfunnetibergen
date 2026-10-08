@@ -71,17 +71,12 @@ export type NavigationTranslationKey =
   | "more"
   | "contact"
   | "sponsors"
-  | "linkInBio"
   | "publicDocuments"
 
 export type NavigationTranslator = (key: NavigationTranslationKey) => string
 
 function localized(id: string, label: string, href: string): NavigationLink {
   return { id, label, href, kind: "localized" }
-}
-
-function plain(id: string, label: string, href: string): NavigationLink {
-  return { id, label, href, kind: "plain" }
 }
 
 function external(id: string, label: string, href: string): NavigationLink {
@@ -142,7 +137,6 @@ export function buildNavigation(
           links: [
             localized("contact", t("contact"), "/kontakt"),
             localized("sponsors", t("sponsors"), "/sponsorer"),
-            plain("link-in-bio", t("linkInBio"), "/linkibio"),
             external(
               "public-documents",
               t("publicDocuments"),

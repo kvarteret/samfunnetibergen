@@ -1,3 +1,4 @@
+import { useLocale, useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 export interface DateBadgeEntry {
@@ -6,28 +7,6 @@ export interface DateBadgeEntry {
 }
 
 const MAX_VISIBLE_BADGES = 3
-
-const MONTH_NAMES = [
-  "jan",
-  "feb",
-  "mar",
-  "apr",
-  "mai",
-  "jun",
-  "jul",
-  "aug",
-  "sep",
-  "okt",
-  "nov",
-  "des",
-]
-
-function formatShortDate(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00`)
-  const day = d.getDate()
-  const month = MONTH_NAMES[d.getMonth()]
-  return `${day}. ${month}`
-}
 
 interface DateBadgesProps {
   dates: DateBadgeEntry[]
@@ -40,6 +19,8 @@ export function DateBadges({
   primaryIndex,
   size = "default",
 }: DateBadgesProps) {
+  const locale = useLocale()
+  const t = useTranslations("EventCard")
   const otherDates = dates.filter((_, i) => i !== primaryIndex)
   if (otherDates.length === 0) return null
 
@@ -47,9 +28,9 @@ export function DateBadges({
   const overflow = otherDates.length - MAX_VISIBLE_BADGES
 
   return (
-    <div
+    <fieldset
       className={cn("flex flex-wrap", size === "small" ? "gap-2" : "gap-1.5")}
-      aria-label="Andre datoer"
+      aria-label={t("otherDates")}
     >
       {visible.map(d => (
         <span
@@ -59,7 +40,10 @@ export function DateBadges({
             size === "small" ? "px-2.5 py-1 text-sm" : "px-2 py-0.5 text-sm",
           )}
         >
-          {formatShortDate(d.startDate)}
+          {new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nb-NO", {
+            day: "numeric",
+            month: "short",
+          }).format(new Date(`${d.startDate}T00:00:00`))}
         </span>
       ))}
       {overflow > 0 && (
@@ -72,6 +56,6 @@ export function DateBadges({
           {overflow >= 9 ? "9+" : `+${overflow}`}
         </span>
       )}
-    </div>
+    </fieldset>
   )
 }

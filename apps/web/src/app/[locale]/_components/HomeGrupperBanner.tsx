@@ -29,7 +29,7 @@ export function HomeGrupperBanner({
         <br />
         {heading2}
       </h2>
-      <p className="mt-4 max-w-lg text-lg text-secondary-foreground/75">
+      <p className="mt-5 max-w-lg text-lg leading-8 text-secondary-foreground">
         {body}
       </p>
       <Button
