@@ -3,8 +3,8 @@ import { DM_Mono, DM_Sans, Fraunces } from "next/font/google"
 import localFont from "next/font/local"
 import { draftMode } from "next/headers"
 import Script from "next/script"
-import { getLocale } from "next-intl/server"
 import { VisualEditing } from "next-sanity/visual-editing"
+import type { ReactNode } from "react"
 import { JsonLd } from "@/components/JsonLd"
 import { buildRootMetadata } from "@/lib/page-metadata"
 import { paperPreferenceScript } from "@/lib/paper-preference"
@@ -56,20 +56,32 @@ const hegvalDisplay = localFont({
   ],
 })
 
-export async function generateMetadata(): Promise<Metadata> {
+export function rootMetadata(): Metadata {
   return buildRootMetadata(resolveSiteUrl())
 }
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * The `<html>` document shared by the app's root layouts.
+ *
+ * `lang` must come from the caller rather than next-intl's `getLocale()`: a
+ * root layout above `[locale]` can only resolve the locale from request
+ * headers, which opts every route out of static rendering and ISR.
+ */
+export async function RootDocument({
+  children,
+  lang,
+}: {
+  children: ReactNode
+  lang: string
+}) {
   const { isEnabled: isDraftMode } = await draftMode()
   const siteUrl = resolveSiteUrl()
-  const locale = await getLocale()
 
   return (
     <html
       data-paper="grid"
       data-theme="hs"
-      lang={locale}
+      lang={lang}
       className={`${hegvalDisplay.className} ${hegvalDisplay.variable} ${fraunces.variable} ${dmSans.variable} ${dmMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

@@ -36,20 +36,18 @@ export async function generateMetadata({
 
 export default async function CalendarPage({
   params,
-  searchParams,
 }: PageProps<"/[locale]/arrangementer/kalender">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [t, eventSet, resolvedSearchParams] = await Promise.all([
+  const [t, eventSet] = await Promise.all([
     getTranslations({ locale, namespace: "EventsPage" }),
     fetchPublicEventSet({
       locale,
       from: startOfCurrentWeek(today),
       to: semesterForDate(today)?.endDate ?? today,
     }),
-    searchParams,
   ])
 
   return (
@@ -60,7 +58,6 @@ export default async function CalendarPage({
         listLabel={t("list")}
         locale={locale}
         occurrences={eventSet.occurrences}
-        searchParams={resolvedSearchParams}
         title={t("calendarTitle")}
         today={today}
       />

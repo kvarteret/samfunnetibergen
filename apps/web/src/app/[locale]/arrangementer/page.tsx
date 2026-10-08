@@ -39,25 +39,18 @@ export async function generateMetadata({
 
 export default async function EventsPage({
   params,
-  searchParams,
 }: PageProps<"/[locale]/arrangementer">) {
   const locale = (await resolvePageLocale(params)) as AppLocale
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [
-    t,
-    { events: fetchedArrangements },
-    resolvedSearchParams,
-    cardT,
-    cardLabels,
-  ] = await Promise.all([
-    getTranslations({ locale, namespace: "EventsPage" }),
-    fetchPublicEventSet({ locale, from: today, to: null }),
-    searchParams,
-    getTranslations({ locale, namespace: "EventCard" }),
-    getCardDateLabels(locale),
-  ])
+  const [t, { events: fetchedArrangements }, cardT, cardLabels] =
+    await Promise.all([
+      getTranslations({ locale, namespace: "EventsPage" }),
+      fetchPublicEventSet({ locale, from: today, to: null }),
+      getTranslations({ locale, namespace: "EventCard" }),
+      getCardDateLabels(locale),
+    ])
   const arrangements = filterToFirstInstances(fetchedArrangements)
 
   const precomputedDates = new Map<
@@ -89,7 +82,6 @@ export default async function EventsPage({
         arrangements={arrangements}
         calendarLabel={t("calendar")}
         precomputedDates={precomputedDates}
-        searchParams={resolvedSearchParams}
         title={t("title")}
       />
     </>
