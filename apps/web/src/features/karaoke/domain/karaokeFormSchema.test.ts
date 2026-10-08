@@ -1,6 +1,8 @@
+import { createTranslator } from "next-intl"
 import { describe, expect, test } from "vitest"
+import en from "@/messages/en.json"
 import { initialKaraokeState } from "./formState"
-import { karaokeFormSchema } from "./karaokeFormSchema"
+import { createKaraokeFormSchema, karaokeFormSchema } from "./karaokeFormSchema"
 
 const validKaraoke = {
   ...initialKaraokeState,
@@ -48,4 +50,26 @@ describe("karaokeFormSchema", () => {
       }).success,
     ).toBe(false)
   })
+})
+
+test("uses English validation messages without changing server validation", () => {
+  const t = createTranslator({
+    locale: "en",
+    messages: en.Karaoke.validation,
+  })
+  const result = createKaraokeFormSchema(t).safeParse({
+    ...validKaraoke,
+    eventName: "",
+    contactEmail: "bad",
+    studentProofAccepted: false,
+  })
+  expect(result.success).toBe(false)
+  if (!result.success)
+    expect(result.error.issues.map(issue => issue.message)).toEqual(
+      expect.arrayContaining([
+        "Enter an event name.",
+        "Enter a valid email address.",
+        "Confirm that you will bring student ID.",
+      ]),
+    )
 })

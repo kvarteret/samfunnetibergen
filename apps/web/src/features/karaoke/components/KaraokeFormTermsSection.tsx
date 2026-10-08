@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useTranslations } from "next-intl"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { SectionHeader } from "@/components/ui/section-header"
 import { Link } from "@/i18n/navigation"
@@ -20,13 +21,15 @@ export function KaraokeFormTermsSection({
   studentProofError,
   studentProofId,
 }: KaraokeFormTermsSectionProps) {
+  const t = useTranslations("Karaoke")
+
   const form = useKaraokeForm()
   const acceptTermsErrorId = `${acceptTermsId}-error`
   const studentProofErrorId = `${studentProofId}-error`
 
   return (
     <section className="space-y-4">
-      <SectionHeader number="04" title="Vilkår" />
+      <SectionHeader number="04" title={t("terms")} />
       <div className="space-y-2">
         <form.Field name="acceptTerms">
           {(field: AnyFieldApi) => (
@@ -42,15 +45,16 @@ export function KaraokeFormTermsSection({
               onChange={field.handleChange}
             >
               <span>
-                Ved å krysse av denne boksen aksepterer jeg at jeg har lest,
-                forstått og godkjenner{" "}
-                <Link
-                  className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
-                  href="/vilkar-for-leie-av-karaoke"
-                >
-                  bruksvilkårene
-                </Link>
-                .
+                {t.rich("termsAccept", {
+                  link: chunks => (
+                    <Link
+                      className="underline underline-offset-2 hover:text-foreground transition-colors focus-brutal"
+                      href="/vilkar-for-leie-av-karaoke"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </span>
             </CheckboxField>
           )}
@@ -73,7 +77,7 @@ export function KaraokeFormTermsSection({
                     id={studentProofId}
                     onChange={field.handleChange}
                   >
-                    <span>Jeg lover å ta med studentbevis 🤞</span>
+                    <span>{t("studentPromise")}</span>
                   </CheckboxField>
                 )}
               </form.Field>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useForm, useStore } from "@tanstack/react-form"
+import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
 import type { FormEvent } from "react"
 import { useEffect, useId, useRef, useState } from "react"
@@ -35,7 +36,7 @@ import {
   initialKaraokeState,
   type KaraokeFormState,
 } from "../domain/formState"
-import { karaokeFormSchema } from "../domain/karaokeFormSchema"
+import { createKaraokeFormSchema } from "../domain/karaokeFormSchema"
 import type { KaraokeRoom } from "../types"
 import { KaraokeFormContactSection } from "./KaraokeFormContactSection"
 import { KaraokeFormDetailsSection } from "./KaraokeFormDetailsSection"
@@ -61,6 +62,10 @@ export function KaraokeForm({
   vacationMode,
   initialNow,
 }: KaraokeFormProps) {
+  const t = useTranslations("Karaoke")
+  const karaokeFormSchema = createKaraokeFormSchema(key =>
+    t(`validation.${key}`),
+  )
   const router = useRouter()
   const uid = useId()
   const [bookings, setBookings] = useState<CresatBooking[]>([])
@@ -231,7 +236,11 @@ export function KaraokeForm({
           }}
         >
           {visibleErrors.length > 0 && (
-            <ErrorSummary className="max-w-3xl" errors={visibleErrors} />
+            <ErrorSummary
+              className="max-w-3xl"
+              errors={visibleErrors}
+              title={t("validationTitle")}
+            />
           )}
           <KaraokeFormDetailsSection
             derived={derived}

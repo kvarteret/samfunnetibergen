@@ -19,7 +19,6 @@ const translations: Record<NavigationTranslationKey, string> = {
   more: "More",
   contact: "Contact",
   sponsors: "Sponsors",
-  linkInBio: "Link in bio",
   publicDocuments: "Public documents",
 }
 
@@ -58,10 +57,7 @@ describe("buildNavigation", () => {
       ])
 
       const moreLinks = more.children?.[0]?.links ?? []
-      expect(moreLinks.find(link => link.id === "link-in-bio")).toMatchObject({
-        href: "/linkibio",
-        kind: "plain",
-      })
+      expect(moreLinks.some(link => link.href === "/linkibio")).toBe(false)
       expect(
         moreLinks.find(link => link.id === "public-documents"),
       ).toMatchObject({

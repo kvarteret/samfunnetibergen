@@ -2,6 +2,7 @@ import { Clock, ExternalLink, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Button } from "@/components/ui/button"
@@ -56,13 +57,14 @@ export async function generateMetadata({ params }: RoomPageProps) {
   const room = await fetchRoomBySlug(slug, locale, { stega: false })
   if (!room) return {}
 
+  const t = await getTranslations({ locale, namespace: "RoomPage" })
   const title = room.title ?? slug
   const firstImageUrl = imageUrl(room.images?.[0]) ?? undefined
 
   return buildPageMetadata({
     locale,
     canonicalPath: `/${localeParam}/rom/${slug}`,
-    title: `${title} | Rom`,
+    title: `${title} | ${t("rooms")}`,
     description: room.summary,
     imageUrl: firstImageUrl,
   })
@@ -81,6 +83,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
   ])
   if (!room) notFound()
 
+  const t = await getTranslations({ locale, namespace: "RoomPage" })
   const title = room.title ?? slug
 
   const imageSlides: CarouselSlide[] = (room.images ?? []).flatMap(
@@ -106,7 +109,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
           _key: "panorama",
           type: "panorama",
           iframeSrc: room.panoramaUrl,
-          caption: "360° visning",
+          caption: t("panorama"),
         },
         ...imageSlides,
       ]
@@ -135,7 +138,7 @@ export default async function RoomPage({ params }: RoomPageProps) {
             className="font-heading text-sm uppercase tracking-widest text-foreground-muted hover:text-foreground"
             href={`/${locale}/rom`}
           >
-            Rom
+            {t("rooms")}
           </Link>
           <h1 className="wrap-break-word font-heading text-5xl leading-none text-foreground sm:text-6xl">
             {title}
@@ -162,13 +165,19 @@ export default async function RoomPage({ params }: RoomPageProps) {
           )}
         </section>
         <RoomFloorPlan room={room} />
-        <RoomOpeningHours room={room} vacationMode={houseHours?.vacationMode} />
+        <RoomOpeningHours
+          locale={locale}
+          room={room}
+          vacationMode={houseHours?.vacationMode}
+        />
         <Button
           className="w-fit"
-          render={<Link href={`/rom/book?room=${room.crescatRoomId}`} />}
+          render={
+            <Link href={`/${locale}/rom/book?room=${room.crescatRoomId}`} />
+          }
           size="lg"
         >
-          Book {room.title ?? slug} her
+          {t("book", { room: room.title ?? slug })}
         </Button>
       </div>
     </article>
@@ -179,7 +188,8 @@ interface RoomSpecsProps {
   room: Room
 }
 
-function RoomSpecs({ room }: RoomSpecsProps) {
+async function RoomSpecs({ room }: RoomSpecsProps) {
+  const t = await getTranslations("RoomPage")
   const hasCapacity =
     room.capacityStanding != null || room.capacitySeated != null
   const hasSpecs =
@@ -199,52 +209,56 @@ function RoomSpecs({ room }: RoomSpecsProps) {
     <section className="space-y-6">
       <dl className="panel panel-warm max-w-md">
         {room.floor != null && (
-          <DetailRow label="Etasje" layout="labelColumn">
-            {room.floor}. etasje
+          <DetailRow label={t("floorLabel")} layout="labelColumn">
+            {t("floor", { floor: room.floor })}
           </DetailRow>
         )}
         {room.capacityStanding != null && (
-          <DetailRow label="Stående" layout="labelColumn">
+          <DetailRow label={t("standing")} layout="labelColumn">
             <span className="flex items-center gap-1.5">
               <Users aria-hidden className="size-3.5 text-foreground-muted" />
-              {room.capacityStanding} personer
+              {t("people", { count: room.capacityStanding })}
             </span>
           </DetailRow>
         )}
         {room.capacitySeated != null && (
-          <DetailRow label="Sittende" layout="labelColumn">
+          <DetailRow label={t("seated")} layout="labelColumn">
             <span className="flex items-center gap-1.5">
               <Users aria-hidden className="size-3.5 text-foreground-muted" />
-              {room.capacitySeated} personer
+              {t("people", { count: room.capacitySeated })}
             </span>
           </DetailRow>
         )}
         {room.suitedPurposes?.length ? (
-          <DetailRow label="Passer til" layout="labelColumn">
+          <DetailRow label={t("suitedFor")} layout="labelColumn">
             {room.suitedPurposes.join(", ")}
           </DetailRow>
         ) : null}
         {room.bar != null && (
-          <DetailRow label="Bar" layout="labelColumn">
-            {room.bar ? room.bar : "Nei"}
+          <DetailRow label={t("bar")} layout="labelColumn">
+            {room.bar ? room.bar : t("no")}
           </DetailRow>
         )}
         {room.hasSound != null && (
           <BoolSpec
             details={room.soundDetails}
-            label="Lyd"
+            label={t("sound")}
             value={room.hasSound}
           />
         )}
         {room.hasLighting != null && (
           <BoolSpec
             details={room.lightingDetails}
-            label="Lys"
+            label={t("lighting")}
             value={room.hasLighting}
           />
         )}
         {room.hasAV != null && (
-          <BoolSpec details={room.avDetails} label="A/V" value={room.hasAV} />
+          <BoolSpec
+            details={room.avDetails}
+            label={t("av")}
+            value={room.hasAV}
+          />
         )}
       </dl>
 
@@ -255,7 +269,7 @@ function RoomSpecs({ room }: RoomSpecsProps) {
           rel="noreferrer"
           target="_blank"
         >
-          Tekniske spesifikasjoner
+          {t("specs")}
           <ExternalLink aria-hidden className="size-4" />
         </a>
       )}
@@ -263,7 +277,8 @@ function RoomSpecs({ room }: RoomSpecsProps) {
   )
 }
 
-function RoomFloorPlan({ room }: RoomSpecsProps) {
+async function RoomFloorPlan({ room }: RoomSpecsProps) {
+  const t = await getTranslations("RoomPage")
   const floorPlan = room.floorPlans?.find(
     (plan: NonNullable<typeof room.floorPlans>[number]) =>
       plan.floor === room.floor && plan.assetUrl,
@@ -276,11 +291,13 @@ function RoomFloorPlan({ room }: RoomSpecsProps) {
   return (
     <section className="space-y-4">
       <h2 className="font-heading text-lg text-foreground">
-        {floorPlan.title ?? `${room.floor}. etasje`}
+        {floorPlan.title ?? t("floor", { floor: floorPlan.floor ?? 0 })}
       </h2>
       <div className="max-w-sm">
         <Image
-          alt={floorPlan.title ?? `Plantegning for ${room.floor}. etasje`}
+          alt={
+            floorPlan.title ?? t("floorPlan", { floor: floorPlan.floor ?? 0 })
+          }
           className="h-auto w-full"
           height={600}
           src={floorPlan.assetUrl}
@@ -292,33 +309,40 @@ function RoomFloorPlan({ room }: RoomSpecsProps) {
 }
 
 interface RoomOpeningHoursProps {
+  locale: "nb" | "en"
   room: Room
   vacationMode?: NonNullable<
     Awaited<ReturnType<typeof fetchHouseHours>>
   >["vacationMode"]
 }
 
-function RoomOpeningHours({ room, vacationMode }: RoomOpeningHoursProps) {
+async function RoomOpeningHours({
+  room,
+  vacationMode,
+  locale,
+}: RoomOpeningHoursProps) {
+  const t = await getTranslations("RoomPage")
   if (!room.openingHours?.rows?.length) {
     return null
   }
   const vacationNotice = formatVacationModeNotice(
     isoDate(new Date()),
     vacationMode,
+    locale,
   )
 
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 font-heading text-lg text-foreground">
         <Clock aria-hidden className="size-4" />
-        Åpningstider
+        {t("openingHours")}
       </h2>
       <dl className="max-w-md divide-y divide-border">
         {room.openingHours.rows.map(
           (
             row: NonNullable<NonNullable<Room["openingHours"]>["rows"]>[number],
           ) => {
-            const dayLabel = formatWeekdays(row.weekdays)
+            const dayLabel = formatWeekdays(row.weekdays, locale)
             if (!dayLabel) return null
 
             return (
@@ -329,7 +353,7 @@ function RoomOpeningHours({ room, vacationMode }: RoomOpeningHoursProps) {
                 <dt className="font-heading text-foreground">{dayLabel}</dt>
                 <dd className="text-foreground-muted">
                   {row.status === "closed"
-                    ? "Stengt"
+                    ? t("closed")
                     : `${row.duration?.start ?? "?"}-${row.duration?.end ?? "?"}`}
                   {row.note && (
                     <span className="mt-1 block text-foreground-muted">

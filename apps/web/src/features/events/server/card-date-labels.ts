@@ -16,6 +16,7 @@ export async function getCardDateLabels(
   )
 
   return {
+    locale,
     today: t("today"),
     tomorrow: t("tomorrow"),
     weekday: date => formatWeekday(date, locale),

@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useLocale, useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { DetailRow } from "@/components/ui/detail-row"
 import {
@@ -15,6 +16,9 @@ interface KaraokeOrderPreviewProps {
 }
 
 export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
+  const t = useTranslations("Karaoke")
+  const locale = useLocale()
+
   const form = useKaraokeForm()
 
   return (
@@ -35,41 +39,50 @@ export function KaraokeOrderPreview({ derived }: KaraokeOrderPreviewProps) {
                     return (
                       <Card className="space-y-4 bg-card p-5 py-5">
                         <p className="font-heading uppercase tracking-widest">
-                          Bestillingsoversikt
+                          {t("summary")}
                         </p>
                         {isEmpty ? (
                           <p className=" text-foreground-muted italic">
-                            Fyll ut skjemaet for å se en oversikt.
+                            {t("summaryEmpty")}
                           </p>
                         ) : (
                           <div className="space-y-2">
-                            <DetailRow label="Arrangement">
+                            <DetailRow label={t("event")}>
                               {eventName}
                             </DetailRow>
-                            <DetailRow label="Rom">Maos Lille Røde</DetailRow>
+                            <DetailRow label={t("room")}>
+                              Maos Lille Røde
+                            </DetailRow>
                             {startDate && (
-                              <DetailRow label="Dato">
+                              <DetailRow label={t("date")}>
                                 <span className="capitalize">
-                                  {formatKaraokeDate(startDate)}
+                                  {formatKaraokeDate(startDate, locale)}
                                 </span>
                               </DetailRow>
                             )}
                             {derived.startTime && (
-                              <DetailRow label="Tid">
+                              <DetailRow label={t("time")}>
                                 {derived.startTime}
                                 {derived.endTime && ` → ${derived.endTime}`}
                               </DetailRow>
                             )}
-                            <DetailRow label="Varighet">
-                              {duration} {duration === 1 ? "time" : "timer"}
+                            <DetailRow label={t("duration")}>
+                              {t("hours", { count: duration })}
                             </DetailRow>
-                            <DetailRow label="Pakke">
-                              <span className="capitalize">{priceType}</span>
+                            <DetailRow label={t("packageLabel")}>
+                              <span>
+                                {t(
+                                  priceType === "ordinær"
+                                    ? "regular"
+                                    : priceType === "student"
+                                      ? "student"
+                                      : "volunteer",
+                                )}
+                              </span>
                             </DetailRow>
                             {derived.people > 0 && (
-                              <DetailRow label="Antall">
-                                {derived.people}{" "}
-                                {derived.people === 1 ? "person" : "personer"}
+                              <DetailRow label={t("count")}>
+                                {t("people", { count: derived.people })}
                               </DetailRow>
                             )}
                             <KaraokePriceSummary
@@ -101,11 +114,14 @@ function KaraokePriceSummary({
   people: number
   totalPrice: number
 }) {
+  const t = useTranslations("Karaoke")
+  const locale = useLocale()
+
   if (priceType === "frivillig") {
     return (
       <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
-        <span className="text-foreground-muted shrink-0">Pris</span>
-        <span className="font-heading text-primary text-lg">Gratis</span>
+        <span className="text-foreground-muted shrink-0">{t("price")}</span>
+        <span className="font-heading text-primary text-lg">{t("free")}</span>
       </div>
     )
   }
@@ -114,9 +130,9 @@ function KaraokePriceSummary({
 
   return (
     <div className="flex justify-between gap-4 border-t border-border pt-3 mt-3">
-      <span className="text-foreground-muted shrink-0">Pris</span>
+      <span className="text-foreground-muted shrink-0">{t("price")}</span>
       <span className="font-heading text-primary text-lg">
-        {totalPrice.toLocaleString("nb-NO")} kr
+        {totalPrice.toLocaleString(locale === "en" ? "en-GB" : "nb-NO")} kr
       </span>
     </div>
   )

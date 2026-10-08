@@ -13,7 +13,6 @@ interface EventCalendarPageProps {
   listLabel: string
   locale: AppLocale
   occurrences: PublicOccurrence[]
-  searchParams: Record<string, string | string[] | undefined>
   title: string
   today: string
 }
@@ -23,7 +22,6 @@ export function EventCalendarPage({
   listLabel,
   locale,
   occurrences,
-  searchParams,
   title,
   today,
 }: EventCalendarPageProps) {
@@ -31,7 +29,6 @@ export function EventCalendarPage({
     <EventsProvider
       initialEvents={arrangements}
       initialOccurrences={occurrences}
-      initialSearchParams={searchParams}
     >
       <div className="flex flex-col gap-12">
         <EventsPageHeader

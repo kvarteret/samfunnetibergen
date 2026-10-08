@@ -2,6 +2,7 @@ import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
 import { cva, type VariantProps } from "class-variance-authority"
 import { CalendarDays, MapPin, Repeat, Tent } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Tag } from "@/components/ui/tag"
@@ -47,6 +48,7 @@ export type EventSummary = {
   programmeLabel?: string | null
   /** Precomputed server-side label when the event is cancelled. */
   statusLabel?: string | null
+  eventStatus?: string | null
   isSoldOut?: boolean
   isFree?: boolean
   priceOrdinar?: number | null
@@ -154,6 +156,7 @@ export function EventCard({
   trackingPosition,
   variant,
 }: EventCardProps) {
+  const t = useTranslations("EventCard")
   const cardSize = size ?? "default"
   const cardVariant = variant ?? "default"
   const isEditorial = cardVariant !== "default"
@@ -203,7 +206,12 @@ export function EventCard({
             isEditorial={isEditorial}
             onPrimary={cardVariant === "slider"}
             statusLabel={
-              event.statusLabel ?? (event.isSoldOut ? "Utsolgt" : null)
+              event.eventStatus === "cancelled"
+                ? t("statusCancelled")
+                : event.eventStatus === "postponed"
+                  ? t("statusPostponed")
+                  : (event.statusLabel ??
+                    (event.isSoldOut ? t("soldOut") : null))
             }
             eventTypeLabel={eventTypeLabel}
             timeLabel={timeLabel}
@@ -464,6 +472,7 @@ function EventLocation({
   small: boolean
   onPrimary: boolean
 }) {
+  const t = useTranslations("EventCard")
   if (!roomTitle) return null
 
   return (
@@ -478,7 +487,7 @@ function EventLocation({
         <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
         <span>
           {roomTitle}
-          {roomFloor != null && ` · ${roomFloor}. etasje`}
+          {roomFloor != null && ` · ${t("floor", { floor: roomFloor })}`}
         </span>
       </p>
     </div>

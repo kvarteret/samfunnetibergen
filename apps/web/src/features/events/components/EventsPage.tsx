@@ -17,7 +17,6 @@ interface EventsPageProps {
       statusLabel: string | null
     }
   >
-  searchParams: Record<string, string | string[] | undefined>
   title: string
 }
 
@@ -25,14 +24,10 @@ export function EventsPage({
   arrangements,
   calendarLabel,
   precomputedDates,
-  searchParams,
   title,
 }: EventsPageProps) {
   return (
-    <EventsProvider
-      initialEvents={arrangements}
-      initialSearchParams={searchParams}
-    >
+    <EventsProvider initialEvents={arrangements}>
       <div className="flex flex-col gap-12">
         <EventsPageHeader
           actionHref="/arrangementer/kalender"

@@ -3,6 +3,7 @@ import {
   buildCardDateLabels,
   formatFestivalRun,
   formatHumanDate,
+  formatPrimaryDate,
   formatWeekday,
   getRecurringLabel,
 } from "./dates"
@@ -174,4 +175,21 @@ test("weekly cards put plural weekdays on the date line and retain detail recurr
   expect(result.primaryDateLabel).toBe("Mandager, 16:30–18:00")
   expect(result.recurringLabel).toBeNull()
   expect(result.recurringDetailLabel).toBe("Hver mandag")
+})
+
+test("translates dates outside the relative weekday window", () => {
+  expect(
+    formatPrimaryDate(
+      eventDate("2026-10-24"),
+      { ...labels, locale: "en" },
+      new Date("2026-10-08T12:00:00Z"),
+    ),
+  ).toBe("24 October 2026")
+  expect(
+    formatPrimaryDate(
+      eventDate("2026-10-24"),
+      labels,
+      new Date("2026-10-08T12:00:00Z"),
+    ),
+  ).toBe("24. oktober 2026")
 })

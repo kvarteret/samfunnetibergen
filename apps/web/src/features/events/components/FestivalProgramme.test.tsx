@@ -1,5 +1,15 @@
+import { NextIntlClientProvider } from "next-intl"
 import { createElement } from "react"
-import { renderToStaticMarkup } from "react-dom/server"
+import { renderToStaticMarkup as renderMarkup } from "react-dom/server"
+import en from "@/messages/en.json"
+
+const renderToStaticMarkup = (element: React.ReactNode) =>
+  renderMarkup(
+    <NextIntlClientProvider locale="en" messages={en}>
+      {element}
+    </NextIntlClientProvider>,
+  )
+
 import { describe, expect, it, vi } from "vitest"
 import { resolvePublicEvent } from "../domain/events"
 import {

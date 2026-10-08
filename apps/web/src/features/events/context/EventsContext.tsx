@@ -1,8 +1,9 @@
 "use client"
 
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import {
   createContext,
+  Suspense,
   useCallback,
   useContext,
   useMemo,
@@ -33,19 +34,54 @@ type EventsContextValue = {
 const EventsContext = createContext<EventsContextValue | null>(null)
 const EMPTY_OCCURRENCES: PublicOccurrence[] = []
 
-export function EventsProvider({
-  children,
-  initialEvents,
-  initialOccurrences = EMPTY_OCCURRENCES,
-  initialSearchParams,
-}: {
+type EventsProviderProps = {
   children: React.ReactNode
   initialEvents: PublicEvent[]
   initialOccurrences?: PublicOccurrence[]
-  initialSearchParams: Record<string, string | string[] | undefined>
-}) {
+}
+
+type SearchParamsRecord = Record<string, string | string[] | undefined>
+
+const NO_SEARCH_PARAMS: SearchParamsRecord = {}
+
+/**
+ * Filters live in the URL but are read on the client, so the events pages stay
+ * statically renderable. The prerendered HTML shows the unfiltered list; the
+ * browser then renders with the URL's filters during hydration.
+ */
+export function EventsProvider(props: EventsProviderProps) {
+  return (
+    <Suspense
+      fallback={
+        <EventsStateProvider {...props} searchParams={NO_SEARCH_PARAMS} />
+      }
+    >
+      <EventsProviderFromUrl {...props} />
+    </Suspense>
+  )
+}
+
+function EventsProviderFromUrl(props: EventsProviderProps) {
+  const searchParams = useSearchParams()
+  const record = useMemo(() => {
+    const result: SearchParamsRecord = {}
+    for (const key of new Set(searchParams.keys())) {
+      const values = searchParams.getAll(key)
+      result[key] = values.length > 1 ? values : values[0]
+    }
+    return result
+  }, [searchParams])
+
+  return <EventsStateProvider {...props} searchParams={record} />
+}
+
+function EventsStateProvider({
+  children,
+  initialEvents,
+  initialOccurrences = EMPTY_OCCURRENCES,
+  searchParams,
+}: EventsProviderProps & { searchParams: SearchParamsRecord }) {
   const pathname = usePathname()
-  const router = useRouter()
 
   const taxonomy = useMemo(
     () => buildTaxonomyFromEvents(initialEvents),
@@ -53,18 +89,22 @@ export function EventsProvider({
   )
 
   const [filters, setFiltersState] = useState<EventFilters>(() =>
-    parseEventFilters(initialSearchParams),
+    parseEventFilters(searchParams),
   )
 
   const setFilters = useCallback(
     (nextFilters: EventFilters) => {
       setFiltersState(nextFilters)
       const serialized = serializeEventFilters(nextFilters)
-      router.replace(serialized ? `${pathname}?${serialized}` : pathname, {
-        scroll: false,
-      })
+      // Filtering happens in the browser, so update the URL without a server
+      // round trip. Next.js keeps `useSearchParams` in sync with replaceState.
+      window.history.replaceState(
+        null,
+        "",
+        serialized ? `${pathname}?${serialized}` : pathname,
+      )
     },
-    [pathname, router],
+    [pathname],
   )
 
   const filteredEvents = useMemo(

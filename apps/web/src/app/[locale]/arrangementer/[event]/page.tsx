@@ -21,6 +21,7 @@ import {
 } from "@/features/events/domain/events"
 import { groupFestivalProgramme } from "@/features/events/domain/festival-programme"
 import { getCardDateLabels } from "@/features/events/server/card-date-labels"
+import { fetchPublicEventSlugs } from "@/features/events/server/public-events"
 import { fetchEventPageData } from "@/features/events/server/public-events-page"
 import { Link } from "@/i18n/navigation"
 import type { AppLocale } from "@/i18n/routing"
@@ -55,6 +56,15 @@ type EventPageProps = {
 }
 
 const PARENT_EVENT_KINDS = ["seriesParent", "festivalParent"]
+
+export const revalidate = 60
+
+// Prerender upcoming events so their first visit is already cached. Other
+// events render on their first visit and are cached from then on (ISR).
+export async function generateStaticParams() {
+  const slugs = await fetchPublicEventSlugs(getOsloDateString())
+  return slugs.map(event => ({ event }))
+}
 
 export default async function EventPage({ params }: EventPageProps) {
   const resolvedParams = await params

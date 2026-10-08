@@ -1,6 +1,7 @@
 "use client"
 
 import { ExternalLink, Mic } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Card } from "@/components/ui/card"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -12,6 +13,8 @@ interface KaraokeFormRoomCardProps {
 }
 
 export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
+  const t = useTranslations("Karaoke")
+
   const firstImage: KaraokeRoomImage | undefined = room.images?.[0]
 
   return (
@@ -39,13 +42,13 @@ export function KaraokeFormRoomCard({ room }: KaraokeFormRoomCardProps) {
         <div className="border-t border-border pt-4 flex gap-6">
           {room.capacitySeated && (
             <KaraokeRoomCapacity
-              label="Sitteplasser"
+              label={t("seated")}
               value={room.capacitySeated}
             />
           )}
           {room.capacityStanding && (
             <KaraokeRoomCapacity
-              label="Ståplasser"
+              label={t("standing")}
               value={room.capacityStanding}
             />
           )}

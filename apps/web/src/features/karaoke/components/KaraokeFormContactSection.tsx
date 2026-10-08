@@ -1,6 +1,7 @@
 "use client"
 
 import type { AnyFieldApi } from "@tanstack/react-form"
+import { useLocale, useTranslations } from "next-intl"
 import { FieldGroup } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
 import { Input } from "@/components/ui/input"
@@ -25,16 +26,19 @@ export function KaraokeFormContactSection({
   contactPhoneError,
   contactPhoneId,
 }: KaraokeFormContactSectionProps) {
+  const t = useTranslations("Karaoke")
+  const locale = useLocale()
+
   const form = useKaraokeForm()
   const contactEmailErrorId = `${contactEmailId}-error`
   const contactNameErrorId = `${contactNameId}-error`
   const contactPhoneErrorId = `${contactPhoneId}-error`
 
   return (
-    <FormSection number="03" title="Kontaktinformasjon">
+    <FormSection number="03" title={t("contact")}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup error={contactNameError} errorId={contactNameErrorId}>
-          <Label htmlFor={contactNameId}>Navn *</Label>
+          <Label htmlFor={contactNameId}>{t("name")}</Label>
           <form.Field name="contactName">
             {(field: AnyFieldApi) => (
               <Input
@@ -45,7 +49,7 @@ export function KaraokeFormContactSection({
                 autoComplete="name"
                 id={contactNameId}
                 onChange={event => field.handleChange(event.target.value)}
-                placeholder="Fullt navn"
+                placeholder={t("fullName")}
                 required
                 value={field.state.value as string}
               />
@@ -54,7 +58,7 @@ export function KaraokeFormContactSection({
         </FieldGroup>
 
         <FieldGroup error={contactEmailError} errorId={contactEmailErrorId}>
-          <Label htmlFor={contactEmailId}>E-post *</Label>
+          <Label htmlFor={contactEmailId}>{t("email")}</Label>
           <form.Field name="contactEmail">
             {(field: AnyFieldApi) => (
               <Input
@@ -65,7 +69,7 @@ export function KaraokeFormContactSection({
                 autoComplete="email"
                 id={contactEmailId}
                 onChange={event => field.handleChange(event.target.value)}
-                placeholder="din@epost.no"
+                placeholder={t("emailPlaceholder")}
                 required
                 type="email"
                 value={field.state.value as string}
@@ -76,13 +80,14 @@ export function KaraokeFormContactSection({
       </div>
 
       <FieldGroup error={contactPhoneError} errorId={contactPhoneErrorId}>
-        <Label htmlFor={contactPhoneId}>Telefon</Label>
+        <Label htmlFor={contactPhoneId}>{t("phone")}</Label>
         <form.Field name="contactPhone">
           {(field: AnyFieldApi) => (
             <PhoneNumberField
               describedBy={contactPhoneError ? contactPhoneErrorId : undefined}
               error={!!contactPhoneError}
               id={contactPhoneId}
+              locale={locale === "en" ? "en" : "nb"}
               onChange={value => field.handleChange(value)}
               value={field.state.value as string}
             />
