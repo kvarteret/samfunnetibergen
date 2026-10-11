@@ -8,7 +8,7 @@ import {
   runTicketCoImport,
 } from "./importer"
 import type { Extraction, ImportTaxonomy } from "./luna"
-import { matchBookingRoom, overlappingRooms } from "./rooms"
+import { bestEffortRoom, matchBookingRoom, overlappingRooms } from "./rooms"
 import {
   approvedImageUrl,
   canonicalTicketUrl,
@@ -349,10 +349,10 @@ test("selects Teglverket over its support rooms for the same Crescat event", () 
   ).toBeNull()
 })
 
-test("requires room references, clears location free text and rejects missing paid prices", () => {
-  expect(() =>
-    formFromExtraction({ ...extraction, room: "" }, url, taxonomy, []),
-  ).toThrow("Room could not be determined")
+test("leaves room and price empty for editors, and clears location free text", () => {
+  expect(
+    formFromExtraction({ ...extraction, room: "" }, url, taxonomy, []).room,
+  ).toBe("")
   expect(
     formFromExtraction(
       { ...extraction, roomText: "Kvarteret", roomTextEnglish: "Kvarteret" },
@@ -361,14 +361,14 @@ test("requires room references, clears location free text and rejects missing pa
       [],
     ),
   ).toMatchObject({ room: "tegl", roomText: "", roomTextEnglish: "" })
-  expect(() =>
+  expect(
     formFromExtraction(
       { ...extraction, priceOrdinar: "", priceStudent: "", priceMedlem: "" },
       url,
       taxonomy,
       [],
-    ),
-  ).toThrow("Ticket price could not be determined")
+    ).priceOrdinar,
+  ).toBe("")
 })
 
 test("resolves a missing model room against overlapping Crescat bookings before writing", async () => {
@@ -385,18 +385,48 @@ test("resolves a missing model room against overlapping Crescat bookings before 
   expect(deps.calendar).toHaveBeenCalled()
 })
 
-test("never writes an event when room remains unresolved after calendar lookup and model retry", async () => {
+test("uses the only room booked in Crescat when no title matches", async () => {
   const fixture = fixtureClient()
   const deps = dependencies()
   deps.extract.mockResolvedValue({ ...extraction, room: "" })
-  deps.calendar.mockResolvedValue([{ ...booking, title: "Unrelated booking" }])
-  const report = await importEvents(fixture.client, false, deps)
-  expect(report.imported).toBe(0)
-  expect(report.failed).toEqual([
-    { url, reason: "Room could not be determined" },
+  deps.calendar.mockResolvedValue([{ ...booking, title: "" }])
+  expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+    imported: 1,
+    warnings: [],
+  })
+  expect(fixture.docs.get(ticketDocumentId(url))).toMatchObject({
+    room: { _ref: "tegl" },
+  })
+  expect(deps.extract).toHaveBeenCalledOnce()
+})
+
+test("imports an unresolved room with a warning instead of failing", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([
+    { ...booking, title: "Unrelated" },
+    { ...booking, id: 2, event_id: 2, resourceId: 95, title: "Other" },
   ])
+  expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+    imported: 1,
+    failed: [],
+    warnings: [{ url, reason: "Imported without room" }],
+  })
   expect(deps.extract).toHaveBeenCalledTimes(2)
-  expect(fixture.create).not.toHaveBeenCalled()
+  expect(fixture.docs.get(ticketDocumentId(url))).not.toHaveProperty("room")
+})
+
+test("Teglverket's bundled support rooms do not make the fallback ambiguous", () => {
+  const candidates = overlappingRooms(
+    "2099-10-16",
+    "21:00",
+    "01:00",
+    [booking, { ...booking, id: 2, resourceId: 117 }],
+    [...taxonomy.rooms, { _id: "stoy", name: "Støy", crescatRoomId: 117 }],
+  )
+  expect(bestEffortRoom(candidates)).toBe("tegl")
+  expect(bestEffortRoom([])).toBeNull()
 })
 
 test("imports explicitly sold-out sources with no price and a required room", async () => {
