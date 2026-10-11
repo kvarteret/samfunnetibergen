@@ -68,46 +68,46 @@ export async function notifyPendingRequest(
     _id: string
     _rev: string
     deliveredAt?: string
-    leaseUntil?: string
+    claimedAt?: string
   }>(id)
-  if (
-    !receipt ||
-    receipt.deliveredAt ||
-    Date.parse(receipt.leaseUntil ?? "") > Date.now()
-  )
-    return true
+  if (!receipt || receipt.deliveredAt || receipt.claimedAt) return true
+  // Delivery is at most once: the claim is committed before posting and only
+  // released when Slack definitively rejects the message. A crash or timeout
+  // after the claim leaves it in place, so a request may go unannounced but is
+  // never announced twice.
   let revision: string
   try {
-    const lease = await client
+    const claim = await client
       .patch(id)
       .ifRevisionId(receipt._rev)
-      .set({ leaseUntil: new Date(Date.now() + 60000).toISOString() })
+      .set({ claimedAt: new Date().toISOString() })
       .commit()
-    revision = lease._rev
+    revision = claim._rev
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 409) return true
     throw error
   }
+  let response: Response
   try {
-    const response = await fetch(webhook, {
+    response = await fetch(webhook, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(pendingMessage(event)),
       signal: AbortSignal.timeout(10000),
     })
-    if (!response.ok || (await response.text()).trim() !== "ok")
-      throw new Error("Slack delivery failed")
-    await client
-      .patch(id)
-      .ifRevisionId(revision)
-      .set({ deliveredAt: new Date().toISOString() })
-      .unset(["leaseUntil"])
-      .commit()
-    return true
   } catch {
-    await client.patch(id).ifRevisionId(revision).unset(["leaseUntil"]).commit()
     return false
   }
+  if (!response.ok) {
+    await client.patch(id).ifRevisionId(revision).unset(["claimedAt"]).commit()
+    return false
+  }
+  await client
+    .patch(id)
+    .ifRevisionId(revision)
+    .set({ deliveredAt: new Date().toISOString() })
+    .commit()
+  return true
 }
 
 export async function syncPendingRequests(

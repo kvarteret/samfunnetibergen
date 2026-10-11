@@ -2,7 +2,8 @@ name: Sync pending events to Slack
 
 on:
   schedule:
-    - cron: "37 * * * *"
+    # Daily at 07:37 UTC (09:37 Oslo summer, 08:37 winter).
+    - cron: "37 7 * * *"
   workflow_dispatch:
 
 permissions:

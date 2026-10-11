@@ -49,7 +49,21 @@ describe("pending Slack notifications", () => {
     expect(await notifyPendingRequest(client, event)).toBe(true)
     expect(fetch).not.toHaveBeenCalled()
   })
-  test("failed delivery clears its lease for retry and successful delivery records receipt", async () => {
+  test("skips requests another sender has claimed", async () => {
+    vi.stubEnv(
+      "SLACK_NETTSIDE_WEBHOOK",
+      "https://hooks.slack.com/services/test",
+    )
+    const fetch = vi.fn()
+    vi.stubGlobal("fetch", fetch)
+    const client = {
+      createIfNotExists: vi.fn(),
+      getDocument: vi.fn(async () => ({ claimedAt: "2026-10-06" })),
+    } as unknown as SanityClient
+    expect(await notifyPendingRequest(client, event)).toBe(true)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+  test("rejected delivery releases its claim for retry and successful delivery records receipt", async () => {
     vi.stubEnv(
       "SLACK_NETTSIDE_WEBHOOK",
       "https://hooks.slack.com/services/test",
@@ -58,7 +72,7 @@ describe("pending Slack notifications", () => {
       ifRevisionId: vi.fn().mockReturnThis(),
       set: vi.fn().mockReturnThis(),
       unset: vi.fn().mockReturnThis(),
-      commit: vi.fn(async () => ({ _rev: "lease-rev" })),
+      commit: vi.fn(async () => ({ _rev: "claim-rev" })),
     }
     const client = {
       createIfNotExists: vi.fn(),
@@ -70,12 +84,38 @@ describe("pending Slack notifications", () => {
       vi.fn(async () => new Response("failed", { status: 500 })),
     )
     expect(await notifyPendingRequest(client, event)).toBe(false)
-    expect(patch.unset).toHaveBeenCalledWith(["leaseUntil"])
+    expect(patch.set).toHaveBeenCalledWith({ claimedAt: expect.any(String) })
+    expect(patch.unset).toHaveBeenCalledWith(["claimedAt"])
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("ok")),
     )
     expect(await notifyPendingRequest(client, event)).toBe(true)
     expect(patch.set).toHaveBeenCalledWith({ deliveredAt: expect.any(String) })
+  })
+  test("keeps its claim when the delivery outcome is unknown", async () => {
+    vi.stubEnv(
+      "SLACK_NETTSIDE_WEBHOOK",
+      "https://hooks.slack.com/services/test",
+    )
+    const patch = {
+      ifRevisionId: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      unset: vi.fn().mockReturnThis(),
+      commit: vi.fn(async () => ({ _rev: "claim-rev" })),
+    }
+    const client = {
+      createIfNotExists: vi.fn(),
+      getDocument: vi.fn(async () => ({ _rev: "rev" })),
+      patch: vi.fn(() => patch),
+    } as unknown as SanityClient
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new DOMException("timed out", "TimeoutError")
+      }),
+    )
+    expect(await notifyPendingRequest(client, event)).toBe(false)
+    expect(patch.unset).not.toHaveBeenCalled()
   })
 })
