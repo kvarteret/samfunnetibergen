@@ -48,6 +48,41 @@ function eventKindOf(document: Record<string, unknown> | undefined): string {
   return typeof document?.eventKind === "string" ? document.eventKind : "single"
 }
 
+type Doc = Record<string, unknown>
+
+const hasRef = (value: unknown) => Boolean((value as { _ref?: string })?._ref)
+
+/** Visible text of a localized string or portable-text value. */
+function localizedText(value: unknown, language: string): string {
+  const entry = Array.isArray(value)
+    ? value.find(item => item?.language === language)?.value
+    : undefined
+  if (typeof entry === "string") return entry.trim()
+  if (!Array.isArray(entry)) return ""
+  return entry
+    .flatMap(block => block?.children ?? [])
+    .map((child: { text?: unknown }) =>
+      typeof child?.text === "string" ? child.text : "",
+    )
+    .join("")
+    .trim()
+}
+
+/**
+ * Single arrangements ("Nytt arrangement") must be complete before they can be
+ * published or approved; drafts may be saved incomplete. Series and festivals
+ * keep their own rules.
+ */
+function requiredForSingle(
+  isComplete: (document: Doc) => boolean,
+  message: string,
+) {
+  return (_value: unknown, context: { document?: unknown }) => {
+    const document = (context.document ?? {}) as Doc
+    return eventKindOf(document) !== "single" || isComplete(document) || message
+  }
+}
+
 export const arrangement = defineType({
   name: "arrangement",
   title: "Arrangement",
@@ -148,6 +183,13 @@ export const arrangement = defineType({
       to: [{ type: "eventType" }],
       group: "core",
       options: { disableNew: true },
+      validation: rule =>
+        rule.custom(
+          requiredForSingle(
+            doc => hasRef(doc.eventType),
+            "Velg arrangementstype",
+          ),
+        ),
     }),
     defineField({
       name: "promotedPlacement",
@@ -179,6 +221,15 @@ export const arrangement = defineType({
         rule.custom((value, context) => {
           const base = validateLocalizedArray(value)
           if (base !== true) return base
+          const described = requiredForSingle(
+            doc =>
+              Boolean(
+                localizedText(doc.localizedDescription, "nb") &&
+                  localizedText(doc.localizedDescription, "en"),
+              ),
+            "Skriv inn beskrivelse på norsk og engelsk",
+          )(value, context)
+          if (described !== true) return described
           if (eventKindOf(context.document) !== "festivalParent") return true
           return validateLocalizedArray(value, {
             required: true,
@@ -254,6 +305,7 @@ export const arrangement = defineType({
           const kind = eventKindOf(context.document)
           if (kind === "festivalParent" && !value)
             return "Festivalen må ha et bilde"
+          if (kind === "single" && !value) return "Last opp et bilde"
           if (
             kind === "festivalSession" &&
             context.document?.useFestivalImage === false &&
@@ -288,6 +340,15 @@ export const arrangement = defineType({
       to: [{ type: "room" }],
       group: "schedule",
       options: { disableNew: true },
+      validation: rule =>
+        rule.custom(
+          requiredForSingle(
+            doc =>
+              hasRef(doc.room) ||
+              Boolean(localizedText(doc.localizedRoomText, "nb")),
+            "Velg rom, eller skriv inn sted",
+          ),
+        ),
     }),
     localizedArrayField(
       "localizedRoomText",
@@ -305,6 +366,15 @@ export const arrangement = defineType({
       to: [{ type: "studentGroup" }],
       group: "core",
       options: { disableNew: true },
+      validation: rule =>
+        rule.custom(
+          requiredForSingle(
+            doc =>
+              hasRef(doc.organizerGroup) ||
+              Boolean(localizedText(doc.localizedOrganizerText, "nb")),
+            "Velg arrangørgruppe, eller skriv inn arrangør",
+          ),
+        ),
     }),
     defineField({
       name: "coOrganizerGroups",
@@ -357,10 +427,24 @@ export const arrangement = defineType({
     defineField({
       name: "priceOrdinar",
       title: "Pris — Ordinær (kr)",
+      description: "Fyll ut minst én pris, eller slå på gratis inngang.",
       type: "number",
       group: "tickets",
       hidden: ({ document }) => Boolean(document?.isFree),
-      validation: rule => rule.min(0),
+      validation: rule =>
+        rule
+          .min(0)
+          .custom(
+            requiredForSingle(
+              doc =>
+                doc.isFree === true ||
+                doc.isSoldOut === true ||
+                [doc.priceOrdinar, doc.priceStudent, doc.priceMedlem].some(
+                  price => typeof price === "number",
+                ),
+              "Oppgi minst én pris, eller slå på gratis inngang",
+            ),
+          ),
     }),
     defineField({
       name: "priceStudent",
@@ -383,9 +467,18 @@ export const arrangement = defineType({
     defineField({
       name: "ticketUrl",
       title: "Billettlenke",
+      description: "Påkrevd, med mindre arrangementet er gratis.",
       type: "url",
       group: "tickets",
-      validation: rule => rule.uri({ scheme: ["http", "https"] }),
+      validation: rule =>
+        rule
+          .uri({ scheme: ["http", "https"] })
+          .custom(
+            requiredForSingle(
+              doc => doc.isFree === true || Boolean(doc.ticketUrl),
+              "Legg inn billettlenke, eller slå på gratis inngang",
+            ),
+          ),
     }),
     defineField({
       name: "facebookUrl",
@@ -456,12 +549,26 @@ export const arrangement = defineType({
       title: "Innsendt av (navn)",
       type: "string",
       group: "admin",
+      validation: rule =>
+        rule.custom(
+          requiredForSingle(
+            doc => Boolean(String(doc.submittedBy ?? "").trim()),
+            "Skriv inn kontaktperson",
+          ),
+        ),
     }),
     defineField({
       name: "submittedByEmail",
       title: "Innsendt av (e-post)",
       type: "string",
       group: "admin",
+      validation: rule =>
+        rule.custom(
+          requiredForSingle(
+            doc => Boolean(String(doc.submittedByEmail ?? "").trim()),
+            "Skriv inn e-post til kontaktperson",
+          ),
+        ),
     }),
     defineField({
       name: "submittedByOrganization",

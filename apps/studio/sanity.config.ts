@@ -1,6 +1,10 @@
 import { assist } from "@sanity/assist"
 import { visionTool } from "@sanity/vision"
-import { defineConfig, defineLocaleResourceBundle } from "sanity"
+import {
+  defineConfig,
+  defineLocaleResourceBundle,
+  type InitialValueResolverContext as InitialValueContext,
+} from "sanity"
 import { presentationTool } from "sanity/presentation"
 import { structureTool } from "sanity/structure"
 import { internationalizedArray } from "sanity-plugin-internationalized-array"
@@ -129,14 +133,17 @@ const config = defineConfig({
         id: "arrangement",
         title: "Nytt arrangement",
         schemaType: "arrangement",
-        value: {
+        // The editor is the contact person unless they change it.
+        value: (_params: unknown, { currentUser }: InitialValueContext) => ({
           ...localizedDefaults(),
           eventKind: "single",
           approvalStatus: "approved",
           eventStatus: "scheduled",
           isRecurring: false,
           isPromoted: false,
-        },
+          submittedBy: currentUser?.name ?? "",
+          submittedByEmail: currentUser?.email ?? "",
+        }),
       },
       {
         id: "festival",

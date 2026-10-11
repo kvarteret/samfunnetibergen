@@ -6,7 +6,7 @@ import {
   ROOM_CALENDAR_SLUGS,
 } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
-import { eventFormSchema } from "../../domain/eventFormSchema"
+import { eventDraftSchema } from "../../domain/eventFormSchema"
 import { type FormState, initialState } from "../../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
@@ -15,7 +15,12 @@ import {
 import { buildEventDocument } from "../../server/event-document"
 import { notifyPendingRequest } from "../../server/pending-slack"
 import { type Extraction, extractWithLuna, type ImportTaxonomy } from "./luna"
-import { matchBookingRoom, overlappingRooms, type RoomCandidate } from "./rooms"
+import {
+  bestEffortRoom,
+  matchBookingRoom,
+  overlappingRooms,
+  type RoomCandidate,
+} from "./rooms"
 import { ticketCoSlot } from "./schedule"
 import {
   approvedImageUrl,
@@ -46,7 +51,10 @@ export type ImportReport = {
   discovered: number
   imported: number
   skipped: number
+  /** Not imported; retried next run. */
   failed: { url: string; reason: string }[]
+  /** Imported as pending requests that editors must complete. */
+  warnings: { url: string; reason: string }[]
   status: "complete" | "not-due" | "busy"
 }
 
@@ -63,20 +71,13 @@ export function formFromExtraction(
   url: string,
   taxonomy: ImportTaxonomy,
   candidates: RoomCandidate[],
-  requireRoom = true,
 ): FormState {
-  const room = matchBookingRoom(extracted.title, candidates) || extracted.room
-  if (requireRoom && !room) throw new Error("Room could not be determined")
-  if (
-    !extracted.isFree &&
-    !extracted.isSoldOut &&
-    ![
-      extracted.priceOrdinar,
-      extracted.priceStudent,
-      extracted.priceMedlem,
-    ].some(Boolean)
-  )
-    throw new Error("Ticket price could not be determined")
+  // A missing room or price no longer blocks the request; editors complete it.
+  const room =
+    matchBookingRoom(extracted.title, candidates) ||
+    extracted.room ||
+    bestEffortRoom(candidates) ||
+    ""
   for (const [id, options] of [
     [room, taxonomy.rooms],
     [extracted.organizerGroup, taxonomy.groups],
@@ -98,7 +99,7 @@ export function formFromExtraction(
     )
       throw new Error("Invalid price")
   }
-  return eventFormSchema.parse({
+  return eventDraftSchema.parse({
     ...initialState,
     ...extracted,
     room,
@@ -138,7 +139,7 @@ const defaultDependencies: ImportDependencies = {
   calendar: fetchVenueCalendar,
 }
 
-async function taxonomyForImport(
+export async function taxonomyForImport(
   client: SanityClient,
 ): Promise<ImportTaxonomy> {
   return client.fetch(`{
@@ -194,6 +195,7 @@ export async function importEvents(
     imported: 0,
     skipped: 0,
     failed: [],
+    warnings: [],
     status: "complete",
   }
   const calendars = new Map<
@@ -277,7 +279,7 @@ export async function importEvents(
         extracted.facebookUrl = ""
       // Recompute against the actual extracted local schedule. A provisional
       // full-day booking cannot establish a room by title alone.
-      const parsed = formFromExtraction(extracted, url, taxonomy, [], false)
+      const parsed = formFromExtraction(extracted, url, taxonomy, [])
       const candidates = overlappingRooms(
         parsed.dates[0].startDate,
         parsed.dates[0].startTime,
@@ -288,6 +290,7 @@ export async function importEvents(
       if (
         !extracted.room &&
         !matchBookingRoom(extracted.title, candidates) &&
+        !bestEffortRoom(candidates) &&
         candidates.length
       ) {
         const retry = await dependencies.extract(
@@ -341,6 +344,14 @@ export async function importEvents(
       }
       seen.add(url)
       report.imported++
+      if (!form.room)
+        report.warnings.push({ url, reason: "Imported without room" })
+      if (
+        !form.isFree &&
+        !form.isSoldOut &&
+        ![form.priceOrdinar, form.priceStudent, form.priceMedlem].some(Boolean)
+      )
+        report.warnings.push({ url, reason: "Imported without price" })
     } catch (error) {
       // Status and validation paths are useful; page text, model output and
       // request headers must never reach operator logs.
@@ -350,7 +361,7 @@ export async function importEvents(
           : error instanceof TypeError && error.cause
             ? `Network failure: ${(error.cause as { code?: string })?.code || "request"}`
             : error instanceof Error &&
-                /^(Luna HTTP \d+|Source HTTP \d+|Luna response incomplete|Luna returned no structured output|Luna selected an unknown reference|Invalid price|Invalid Facebook event link|Room could not be determined|Ticket price could not be determined|Source exceeds size limit)$/.test(
+                /^(Luna HTTP \d+|Source HTTP \d+|Luna response incomplete|Luna returned no structured output|Luna selected an unknown reference|Invalid price|Invalid Facebook event link|Source exceeds size limit)$/.test(
                   error.message,
                 )
               ? error.message
@@ -380,6 +391,7 @@ export async function runTicketCoImport(
       imported: 0,
       skipped: 0,
       failed: [],
+      warnings: [],
       status: "not-due",
     }
   if (options.dryRun) return importEvents(client, true, dependencies)
@@ -391,6 +403,7 @@ export async function runTicketCoImport(
     imported: 0,
     skipped: 0,
     failed: [],
+    warnings: [],
     status: "complete",
   }
   const now = Date.now()

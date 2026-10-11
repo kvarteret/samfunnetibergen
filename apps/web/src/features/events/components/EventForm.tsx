@@ -70,6 +70,12 @@ export function EventForm({
     organizerTextEnglish: `${uid}-organizerText-en`,
     submittedBy: `${uid}-submittedBy`,
     submittedByEmail: `${uid}-submittedByEmail`,
+    eventType: `${uid}-eventType`,
+    image: `${uid}-image`,
+    room: `${uid}-room`,
+    organizerGroup: `${uid}-organizerGroup`,
+    price: `${uid}-priceOrdinar`,
+    ticketUrl: `${uid}-ticketUrl`,
   }
 
   const form = useForm({
@@ -130,6 +136,11 @@ export function EventForm({
     form.store,
     state => state.isSubmitSuccessful,
   )
+
+  // The file uploads only at submit; mirror its presence into the schema.
+  useEffect(() => {
+    form.setFieldValue("hasImage", Boolean(image.imageFile))
+  }, [image.imageFile, form.setFieldValue])
 
   // Initialize first date with today
   useEffect(() => {
@@ -227,6 +238,7 @@ export function EventForm({
           <EventFormDetailsSection
             descriptionEnglishError={errorFor(fieldIds.descriptionEnglish)}
             descriptionError={errorFor(fieldIds.description)}
+            eventTypeError={errorFor(fieldIds.eventType)}
             eventTypeOptions={eventTypeSelectOptions}
             titleError={errorFor(fieldIds.title)}
             titleEnglishError={errorFor(fieldIds.titleEnglish)}
@@ -234,6 +246,8 @@ export function EventForm({
             uid={uid}
           />
           <EventFormImageSection
+            imageError={errorFor(fieldIds.image)}
+            imageId={fieldIds.image}
             imagePreviewUrl={image.imagePreviewUrl}
             imageUploadError={image.imageUploadError}
             onImageChange={image.onImageChange}
@@ -245,6 +259,7 @@ export function EventForm({
             uid={uid}
           />
           <EventFormPlaceSection
+            roomError={errorFor(fieldIds.room)}
             roomOptions={roomSelectOptions}
             roomTextEnglishError={errorFor(fieldIds.roomTextEnglish)}
             roomTextError={errorFor(fieldIds.roomText)}
@@ -252,11 +267,16 @@ export function EventForm({
           />
           <EventFormOrganizerSection
             groupOptions={groupSelectOptions}
+            organizerError={errorFor(fieldIds.organizerGroup)}
             organizerTextEnglishError={errorFor(fieldIds.organizerTextEnglish)}
             organizerTextError={errorFor(fieldIds.organizerText)}
             uid={uid}
           />
-          <EventFormLinksSection uid={uid} />
+          <EventFormLinksSection
+            priceError={errorFor(fieldIds.price)}
+            ticketUrlError={errorFor(fieldIds.ticketUrl)}
+            uid={uid}
+          />
           <EventFormSubmitterSection
             submittedByEmailError={errorFor(fieldIds.submittedByEmail)}
             submittedByEmailId={fieldIds.submittedByEmail}
@@ -288,5 +308,11 @@ function eventFieldId(path: string, fieldIds: Record<string, string>): string {
     return fieldIds.firstDate
   }
   if (path === "rrule") return fieldIds.firstDate
+  if (path === "eventTypeId") return fieldIds.eventType
+  if (path === "hasImage") return fieldIds.image
+  if (path === "room") return fieldIds.room
+  if (path === "organizerGroup") return fieldIds.organizerGroup
+  if (path === "priceOrdinar") return fieldIds.price
+  if (path === "ticketUrl") return fieldIds.ticketUrl
   return fieldIds.title
 }

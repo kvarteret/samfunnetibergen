@@ -38,6 +38,7 @@ export const initialState: FormState = {
   isInternalEvent: false,
   isFree: false,
   isSoldOut: false,
+  hasImage: false,
   priceOrdinar: "",
   priceStudent: "",
   priceMedlem: "",

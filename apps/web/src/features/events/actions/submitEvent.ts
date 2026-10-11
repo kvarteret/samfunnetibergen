@@ -26,6 +26,7 @@ const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
 const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
 
 const UPLOAD_LIMIT = 12
+const SANITY_IMAGE_ASSET_ID = /^image-[a-f0-9]+-\d+x\d+-[a-z]+$/
 
 function getWriteClient() {
   if (!WRITE_TOKEN) {
@@ -102,7 +103,11 @@ export async function submitEvent(
     return ok("ignored")
   }
 
-  const formParsed = eventFormSchema.safeParse(input)
+  // Only an uploaded asset counts as an image, whatever the client claims.
+  const formParsed = eventFormSchema.safeParse({
+    ...input,
+    hasImage: SANITY_IMAGE_ASSET_ID.test(input.imageAssetId ?? ""),
+  })
   if (!formParsed.success) {
     captureSubmitFailure(
       "event_submission",

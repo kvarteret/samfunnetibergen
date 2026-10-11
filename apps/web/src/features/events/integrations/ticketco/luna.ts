@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto"
+import type { PromptResult } from "@posthog/ai"
 import { z } from "zod"
 import { getTicketCoPrompt } from "./prompt"
 import type { ImportOption, RoomCandidate } from "./rooms"
 import type { TicketCoEvent } from "./source"
-import { captureLunaGeneration, type LunaUsage } from "./telemetry"
+import {
+  captureLunaGeneration,
+  type LunaUsage,
+  type LunaWorkflow,
+} from "./telemetry"
 
 // Submitter identity, source link and recurrence are controlled by the importer.
 const modelSchema = z.object({
@@ -42,7 +47,11 @@ export async function extractWithLuna(
   text: string,
   taxonomy: ImportTaxonomy,
   candidates: RoomCandidate[],
-  options: { traceId?: string } = {},
+  options: {
+    traceId?: string
+    prompt?: () => Promise<PromptResult>
+    workflow?: LunaWorkflow
+  } = {},
 ): Promise<Extraction> {
   const endpoint =
     process.env.AZURE_OPENAI_ENDPOINT || process.env.AZURE_OPENAI_BASE_URL
@@ -54,7 +63,7 @@ export async function extractWithLuna(
     throw new Error("Azure endpoint must be HTTPS")
   const deployment = process.env.AZURE_OPENAI_LUNA_DEPLOYMENT || "skonk"
   const traceId = options.traceId ?? randomUUID()
-  const prompt = await getTicketCoPrompt()
+  const prompt = await (options.prompt ?? getTicketCoPrompt)()
   const started = performance.now()
   let usage: LunaUsage | undefined
   let extraction: Extraction | undefined
@@ -121,6 +130,7 @@ export async function extractWithLuna(
   } finally {
     await captureLunaGeneration({
       traceId,
+      workflow: options.workflow,
       source,
       model: "gpt-6-luna",
       deployment,

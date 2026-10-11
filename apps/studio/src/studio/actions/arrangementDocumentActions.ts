@@ -9,6 +9,7 @@ import {
   arrangementRequestActions,
 } from "./approvalActions"
 import { CreateFestivalDayAction } from "./createFestivalDayAction"
+import { ImportFromUrlAction } from "./importFromUrlAction"
 import { SoldOutAction } from "./soldOutAction"
 
 function approvedAction(
@@ -45,6 +46,7 @@ export function arrangementDocumentActions(
     ...arrangementEventStatusActions,
     SoldOutAction,
     CreateFestivalDayAction,
+    ImportFromUrlAction,
     ...(schedule
       ? [
           approvedAction(schedule, {

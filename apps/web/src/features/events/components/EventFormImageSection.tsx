@@ -15,6 +15,8 @@ interface EventFormImageSectionProps {
   imageUploadError: string
   onImageChange: (event: ChangeEvent<HTMLInputElement>) => void
   onRemoveImage: () => void
+  imageError?: string
+  imageId?: string
   number?: string
   // When provided, renders an "upload later" acknowledgement. Used by the
   // booking promotion step, where an image is optional but its absence must be
@@ -28,13 +30,21 @@ export function EventFormImageSection({
   imageUploadError,
   onImageChange,
   onRemoveImage,
+  imageError,
+  imageId,
   number = "02",
   uploadLater,
   onUploadLaterChange,
 }: EventFormImageSectionProps) {
   return (
-    <FormSection number={number} title="Bilde">
-      <FieldGroup>
+    <FormSection
+      number={number}
+      title={onUploadLaterChange ? "Bilde" : "Bilde *"}
+    >
+      <FieldGroup
+        error={imageError}
+        errorId={imageId ? `${imageId}-error` : undefined}
+      >
         <FieldHint>
           JPEG, PNG eller WebP - maks {formatEventImageMaxSize()}. Vises i
           listinga og på arrangementssiden. Bildet lastes opp når du sender inn
@@ -48,7 +58,12 @@ export function EventFormImageSection({
             onRemoveImage={onRemoveImage}
           />
         ) : (
-          <ImageDropzone onImageChange={onImageChange} />
+          <ImageDropzone
+            describedBy={imageError && imageId ? `${imageId}-error` : undefined}
+            id={imageId}
+            invalid={Boolean(imageError)}
+            onImageChange={onImageChange}
+          />
         )}
 
         {onUploadLaterChange && !imagePreviewUrl && (

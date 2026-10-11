@@ -120,3 +120,24 @@ export function matchBookingRoom(
   )
   return tiedRooms.size === 1 ? best.candidate.roomId : null
 }
+
+/**
+ * Crescat titles are often hidden, so when no title matches, accept the only
+ * room booked during the event. Teglverket's bundled support rooms (Støy and
+ * Stillhet, same Crescat event) count as Teglverket.
+ */
+export function bestEffortRoom(candidates: RoomCandidate[]): string | null {
+  const rooms = new Set(
+    candidates
+      .filter(
+        candidate =>
+          ![117, 118].includes(candidate.resourceId ?? -1) ||
+          !candidates.some(
+            other =>
+              other.resourceId === 97 && other.eventId === candidate.eventId,
+          ),
+      )
+      .map(candidate => candidate.roomId),
+  )
+  return rooms.size === 1 ? [...rooms][0] : null
+}

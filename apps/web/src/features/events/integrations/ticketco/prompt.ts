@@ -6,13 +6,20 @@ export const TICKETCO_FALLBACK_PROMPT = `Extract a Norwegian event submission fr
 
 let prompts: Prompts | undefined
 
-/** Runtime reads use the existing server key; management stays in PostHog. */
-export async function getTicketCoPrompt(): Promise<PromptResult> {
-  const personalApiKey = process.env.POSTHOG_API_KEY
+/**
+ * Prompt reads need a personal API key (`phx_`). `POSTHOG_API_KEY` is the
+ * project ingestion token and is rejected with 401, so reuse the read-only
+ * personal key that already serves statistics queries.
+ */
+export async function getManagedPrompt(
+  name: string,
+  fallback: string,
+): Promise<PromptResult> {
+  const personalApiKey = process.env.POSTHOG_QUERY_API_KEY
   const projectApiKey = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
   if (!personalApiKey || !projectApiKey)
     return {
-      prompt: TICKETCO_FALLBACK_PROMPT,
+      prompt: fallback,
       source: "code_fallback",
       name: undefined,
       version: undefined,
@@ -24,8 +31,9 @@ export async function getTicketCoPrompt(): Promise<PromptResult> {
     projectApiKey,
     host: "https://eu.posthog.com",
   })
-  return prompts.get(TICKETCO_PROMPT_NAME, {
-    label: TICKETCO_PROMPT_LABEL,
-    fallback: TICKETCO_FALLBACK_PROMPT,
-  })
+  return prompts.get(name, { label: TICKETCO_PROMPT_LABEL, fallback })
+}
+
+export function getTicketCoPrompt(): Promise<PromptResult> {
+  return getManagedPrompt(TICKETCO_PROMPT_NAME, TICKETCO_FALLBACK_PROMPT)
 }

@@ -28,7 +28,11 @@ const eventDateSchema = z.object({
   endTime: optionalTime,
 })
 
-export const eventFormSchema = z
+/**
+ * Structural rules. A draft at this level can be saved; the TicketCo importer
+ * creates pending requests with it. Submitting needs `eventFormSchema`.
+ */
+export const eventDraftSchema = z
   .object({
     title: z.string().trim().min(1, "Skriv inn tittel."),
     titleEnglish: z.string().trim().min(1, "Skriv inn engelsk tittel."),
@@ -48,6 +52,8 @@ export const eventFormSchema = z
     isInternalEvent: z.boolean(),
     isFree: z.boolean(),
     isSoldOut: z.boolean().default(false),
+    // Set from the selected file (client) or uploaded asset (server).
+    hasImage: z.boolean().default(false),
     priceOrdinar: z.string(),
     priceStudent: z.string(),
     priceMedlem: z.string(),
@@ -124,6 +130,40 @@ export const eventFormSchema = z
       }
     }
   })
+
+const filled = (value: string) => value.trim().length > 0
+
+/** Everything a new arrangement needs before it can be submitted. */
+export const eventFormSchema = eventDraftSchema.superRefine(
+  (value, context) => {
+    const require = (ok: boolean, path: string, message: string) => {
+      if (!ok) context.addIssue({ code: "custom", path: [path], message })
+    }
+    require(filled(value.eventTypeId), "eventTypeId", "Velg arrangementstype.")
+    require(filled(
+      value.description,
+    ), "description", "Skriv inn beskrivelse på norsk.")
+    require(filled(
+      value.descriptionEnglish,
+    ), "descriptionEnglish", "Skriv inn beskrivelse på engelsk.")
+    require(value.hasImage, "hasImage", "Last opp et bilde.")
+    require(filled(value.room) ||
+      filled(value.roomText), "room", "Velg rom, eller skriv inn sted.")
+    require(filled(value.organizerGroup) ||
+      filled(
+        value.organizerText,
+      ), "organizerGroup", "Velg arrangørgruppe, eller skriv inn arrangør.")
+    require(value.isFree ||
+      value.isSoldOut ||
+      [value.priceOrdinar, value.priceStudent, value.priceMedlem].some(
+        filled,
+      ), "priceOrdinar", "Oppgi minst én pris, eller merk arrangementet som gratis.")
+    require(value.isFree ||
+      filled(
+        value.ticketUrl,
+      ), "ticketUrl", "Legg inn billettlenke, eller merk arrangementet som gratis.")
+  },
+)
 
 export type EventFormDate = z.input<typeof eventDateSchema>
 export type EventFormState = z.input<typeof eventFormSchema>
