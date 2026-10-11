@@ -32,13 +32,13 @@ Luna reads displayed Norwegian local dates and times because TicketCo JSON-LD ca
 
 ## Pending requests in Slack
 
-Public form submissions and new TicketCo imports attempt an immediate notification. `.github/workflows/sync-pending-slack.yml` also checks all pending arrangements hourly at minute 37, covering Studio-created requests and retrying delivery failures. Messages contain title, date, submitter, and a direct Studio review link. TicketCo imports also include: “Dette arrangementet var automatisk generert fra {ticket_link}. Se nøye gjennom!”, with their source ticket URL. The first sync includes existing pending requests that have no receipt.
+Public form submissions and new TicketCo imports attempt an immediate notification. `.github/workflows/sync-pending-slack.yml` also checks all pending arrangements daily at 07:37 UTC, covering Studio-created requests and retrying messages Slack rejected. Messages contain title, date, submitter, and a direct Studio review link. TicketCo imports also include: “Dette arrangementet var automatisk generert fra {ticket_link}. Se nøye gjennom!”, with their source ticket URL. The first sync includes existing pending requests that have no receipt.
 
 Run the sweep with:
 
     mise run secrets:exec -- npm --workspace @samfunnet/web run events:sync:pending-slack
 
-Separate `pendingSlackDelivery` receipt documents prevent ordinary duplicates without editing arrangement revisions. Published and draft versions share one receipt. A short revision-checked lease prevents concurrent sends. Delivery is at least once: a process failure after Slack accepts a message but before the receipt is committed can result in one retry duplicate. Re-entering pending after a prior successful notification does not resend the request.
+Separate `pendingSlackDelivery` receipt documents prevent ordinary duplicates without editing arrangement revisions. Published and draft versions share one receipt. A revision-checked `claimedAt` is committed before posting, so concurrent senders cannot both send. Delivery is at most once: the claim is released only when Slack responds with an error status. A timeout, network failure or crash after claiming keeps the claim, so that request is never announced rather than risking a duplicate; unset `claimedAt` on its receipt to retry it. Re-entering pending after a prior successful notification does not resend the request.
 
 ## Verification
 
