@@ -139,7 +139,7 @@ const defaultDependencies: ImportDependencies = {
   calendar: fetchVenueCalendar,
 }
 
-async function taxonomyForImport(
+export async function taxonomyForImport(
   client: SanityClient,
 ): Promise<ImportTaxonomy> {
   return client.fetch(`{
