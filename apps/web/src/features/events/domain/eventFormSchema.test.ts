@@ -14,11 +14,53 @@ const validEvent = {
       endTime: "23:00",
     },
   ],
+  description: "Konsert i Teglverket.",
+  descriptionEnglish: "Concert in Teglverket.",
+  eventTypeId: "concert",
+  hasImage: true,
+  room: "tegl",
+  organizerGroup: "asf",
+  priceOrdinar: "200",
+  ticketUrl: "https://ticketco.events/no/nb/e/test",
   submittedBy: "Kari Nordmann",
   submittedByEmail: "kari@example.com",
 }
 
 describe("eventFormSchema", () => {
+  test("requires every field of a new arrangement", () => {
+    const result = eventFormSchema.safeParse({
+      ...initialState,
+      title: "Tittel",
+      titleEnglish: "Title",
+      dates: validEvent.dates,
+      submittedBy: "Kari Nordmann",
+      submittedByEmail: "kari@example.com",
+    })
+    expect(result.success).toBe(false)
+    if (!result.success)
+      expect(result.error.issues.map(issue => issue.path[0])).toEqual([
+        "eventTypeId",
+        "description",
+        "descriptionEnglish",
+        "hasImage",
+        "room",
+        "organizerGroup",
+        "priceOrdinar",
+        "ticketUrl",
+      ])
+  })
+
+  test("free events need neither price nor ticket link", () => {
+    expect(
+      eventFormSchema.safeParse({
+        ...validEvent,
+        isFree: true,
+        priceOrdinar: "",
+        ticketUrl: "",
+      }).success,
+    ).toBe(true)
+  })
+
   test("accepts a complete non-recurring event", () => {
     expect(eventFormSchema.safeParse(validEvent).success).toBe(true)
   })

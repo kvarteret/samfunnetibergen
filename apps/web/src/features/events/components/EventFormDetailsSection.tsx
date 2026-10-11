@@ -1,6 +1,6 @@
 "use client"
 
-import { type AnyFieldApi, useStore } from "@tanstack/react-form"
+import type { AnyFieldApi } from "@tanstack/react-form"
 import { CheckboxField } from "@/components/ui/checkbox-field"
 import { FieldGroup, FieldHint } from "@/components/ui/field-group"
 import { FormSection } from "@/components/ui/form-section"
@@ -13,6 +13,7 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormDetailsSectionProps {
   uid: string
   eventTypeOptions: SelectOption[]
+  eventTypeError?: string
   descriptionEnglishError?: string
   descriptionError?: string
   titleError?: string
@@ -24,6 +25,7 @@ interface EventFormDetailsSectionProps {
 export function EventFormDetailsSection({
   uid,
   eventTypeOptions,
+  eventTypeError,
   descriptionEnglishError,
   descriptionError,
   titleError,
@@ -39,10 +41,6 @@ export function EventFormDetailsSection({
   const descriptionErrorId = `${descriptionId}-error`
   const descriptionEnglishId = `${uid}-description-en`
   const descriptionEnglishErrorId = `${descriptionEnglishId}-error`
-  const hasDescription = useStore(
-    form.store,
-    state => state.values.description.trim().length > 0,
-  )
 
   return (
     <FormSection number={number} title="Om arrangementet">
@@ -86,7 +84,7 @@ export function EventFormDetailsSection({
       </FieldGroup>
 
       <FieldGroup error={descriptionError} errorId={descriptionErrorId}>
-        <Label htmlFor={descriptionId}>Beskrivelse på norsk</Label>
+        <Label htmlFor={descriptionId}>Beskrivelse på norsk *</Label>
         <FieldHint>
           Fortell gjerne om hva som skjer, hvem som opptrer, og hva folk kan
           vente seg.
@@ -102,6 +100,7 @@ export function EventFormDetailsSection({
               id={descriptionId}
               onChange={event => field.handleChange(event.target.value)}
               placeholder="Beskriv arrangementet..."
+              required
               rows={5}
               value={field.state.value as string}
             />
@@ -113,8 +112,8 @@ export function EventFormDetailsSection({
         error={descriptionEnglishError}
         errorId={descriptionEnglishErrorId}
       >
-        <Label htmlFor={descriptionEnglishId}>Beskrivelse på engelsk</Label>
-        <FieldHint>Påkrevd hvis du fyller ut en norsk beskrivelse.</FieldHint>
+        <Label htmlFor={descriptionEnglishId}>Beskrivelse på engelsk *</Label>
+        <FieldHint>Skriv inn den engelske oversettelsen.</FieldHint>
         <form.Field name="descriptionEnglish">
           {(field: AnyFieldApi) => (
             <Textarea
@@ -125,7 +124,7 @@ export function EventFormDetailsSection({
               className="resize-y"
               id={descriptionEnglishId}
               onChange={event => field.handleChange(event.target.value)}
-              required={hasDescription}
+              required
               rows={5}
               value={field.state.value as string}
             />
@@ -136,11 +135,14 @@ export function EventFormDetailsSection({
       <form.Field name="eventTypeId">
         {(field: AnyFieldApi) => (
           <SelectField
+            error={eventTypeError}
+            errorId={`${uid}-eventType-error`}
             id={`${uid}-eventType`}
-            label="Arrangementstype"
+            label="Arrangementstype *"
             onChange={field.handleChange}
             options={eventTypeOptions}
-            placeholder="Velg type (valgfritt)"
+            placeholder="Velg type"
+            required
             value={field.state.value as string}
           />
         )}

@@ -6,7 +6,7 @@ import {
   ROOM_CALENDAR_SLUGS,
 } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
-import { eventFormSchema } from "../../domain/eventFormSchema"
+import { eventDraftSchema } from "../../domain/eventFormSchema"
 import { type FormState, initialState } from "../../domain/formState"
 import {
   EVENT_IMAGE_MAX_SIZE_BYTES,
@@ -98,7 +98,7 @@ export function formFromExtraction(
     )
       throw new Error("Invalid price")
   }
-  return eventFormSchema.parse({
+  return eventDraftSchema.parse({
     ...initialState,
     ...extracted,
     room,

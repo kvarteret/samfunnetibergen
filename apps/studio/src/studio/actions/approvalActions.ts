@@ -3,7 +3,7 @@ import { icons } from "@sanity/icons"
 import { useToast } from "@sanity/ui/toast"
 import { useState } from "react"
 import type { DocumentActionProps, SanityDocument } from "sanity"
-import { useClient, useCurrentUser } from "sanity"
+import { useClient, useCurrentUser, useValidationStatus } from "sanity"
 
 import { missingPublicLocalizedFields } from "../migrations/i18n"
 
@@ -124,6 +124,13 @@ function createStatusAction(transition: ApprovalTransition) {
     const toast = useToast()
     const [busy, setBusy] = useState(false)
     const roles = currentUser?.roles.map(role => role.name) ?? []
+    // Approval writes the published document directly, so it must respect
+    // the same schema validation that blocks the publish button.
+    const { validation } = useValidationStatus(
+      props.id.replace(/^drafts\./, ""),
+      props.type,
+      false,
+    )
 
     if (
       getStatus(props) !== transition.from ||
@@ -137,7 +144,12 @@ function createStatusAction(transition: ApprovalTransition) {
 
     const missingApprovalFields =
       transition.status === "approved" ? arrangementApprovalIssues(source) : []
-    const approvalReason = arrangementApprovalReason(missingApprovalFields)
+    const approvalReason =
+      arrangementApprovalReason(missingApprovalFields) ??
+      (transition.status === "approved" &&
+      validation.some(marker => marker.level === "error")
+        ? "Kan ikke godkjenne før alle påkrevde felt er fylt ut"
+        : undefined)
 
     return {
       label: busy ? "Lagrer …" : transition.label,
@@ -151,7 +163,7 @@ function createStatusAction(transition: ApprovalTransition) {
         if (approvalReason) {
           toast.push({
             status: "error",
-            title: "Mangler engelsk innhold",
+            title: "Mangler innhold",
             description: approvalReason,
           })
           return

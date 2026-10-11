@@ -11,6 +11,7 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormPlaceSectionProps {
   uid: string
   roomOptions: SelectOption[]
+  roomError?: string
   roomTextEnglishError?: string
   roomTextError?: string
   number?: string
@@ -19,6 +20,7 @@ interface EventFormPlaceSectionProps {
 export function EventFormPlaceSection({
   uid,
   roomOptions,
+  roomError,
   roomTextEnglishError,
   roomTextError,
   number = "04",
@@ -34,16 +36,18 @@ export function EventFormPlaceSection({
   )
 
   return (
-    <FormSection number={number} title="Sted">
+    <FormSection number={number} title="Sted *">
       <form.Field name="room">
         {(field: AnyFieldApi) => (
           <SelectField
-            hint="Velg rommet om arrangementet er i et av Kvarterets lokaler."
+            error={roomError}
+            errorId={`${uid}-room-error`}
+            hint="Velg rommet om arrangementet er i et av Kvarterets lokaler. Ellers fyller du ut alternativt sted."
             id={`${uid}-room`}
             label="Rom på Kvarteret"
             onChange={field.handleChange}
             options={roomOptions}
-            placeholder="Velg rom (valgfritt)"
+            placeholder="Velg rom"
             value={field.state.value as string}
           />
         )}

@@ -12,6 +12,7 @@ import { useEventForm } from "./eventFormContext"
 interface EventFormOrganizerSectionProps {
   uid: string
   groupOptions: SelectOption[]
+  organizerError?: string
   organizerTextEnglishError?: string
   organizerTextError?: string
   number?: string
@@ -20,6 +21,7 @@ interface EventFormOrganizerSectionProps {
 export function EventFormOrganizerSection({
   uid,
   groupOptions,
+  organizerError,
   organizerTextEnglishError,
   organizerTextError,
   number = "05",
@@ -35,16 +37,18 @@ export function EventFormOrganizerSection({
   )
 
   return (
-    <FormSection number={number} title="Arrangør">
+    <FormSection number={number} title="Arrangør *">
       <form.Field name="organizerGroup">
         {(field: AnyFieldApi) => (
           <ComboboxField
-            hint="Om din gruppe er registrert på Kvarteret, velg den her."
+            error={organizerError}
+            errorId={`${uid}-organizerGroup-error`}
+            hint="Om din gruppe er registrert på Kvarteret, velg den her. Ellers fyller du ut arrangørnavn."
             id={`${uid}-organizerGroup`}
             label="Gruppe på Kvarteret"
             onChange={field.handleChange}
             options={groupOptions}
-            placeholder="Velg gruppe (valgfritt)"
+            placeholder="Velg gruppe"
             value={field.state.value as string}
           />
         )}

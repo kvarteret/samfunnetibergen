@@ -35,8 +35,19 @@ vi.mock("@/lib/submission", () => ({
   RATE_LIMIT_ERROR: "For mange forsøk. Vent litt og prøv igjen.",
 }))
 
-import { initialState } from "../domain/formState"
+import { initialState as emptyState } from "../domain/formState"
 import { submitEvent } from "./submitEvent"
+
+const initialState = {
+  ...emptyState,
+  description: "Konsert.",
+  descriptionEnglish: "Concert.",
+  eventTypeId: "concert",
+  room: "tegl",
+  organizerGroup: "asf",
+  isFree: true,
+  imageAssetId: "image-abc123-1200x800-jpg",
+}
 
 describe("submitEvent", () => {
   beforeEach(() => {
@@ -84,6 +95,29 @@ describe("submitEvent", () => {
     expect(document.dates[0]).toMatchObject({ startDate: "2026-08-20" })
   })
 
+  test("rejects a submission without an uploaded image asset", async () => {
+    const result = await submitEvent({
+      ...initialState,
+      // A client cannot claim an image it never uploaded.
+      hasImage: true,
+      imageAssetId: undefined,
+      title: "Testarrangement",
+      titleEnglish: "Test event",
+      dates: [
+        {
+          ...initialState.dates[0],
+          startDate: "2026-08-20",
+          startTime: "19:00",
+          endTime: "23:00",
+        },
+      ],
+      submittedBy: "Kari Nordmann",
+      submittedByEmail: "kari@example.com",
+    })
+    expect(result.ok).toBe(false)
+    expect(createMock).not.toHaveBeenCalled()
+  })
+
   test("rejects a submission without an English title", async () => {
     const result = await submitEvent({
       ...initialState,
@@ -115,6 +149,8 @@ describe("submitEvent", () => {
       titleEnglish: "Test event",
       description: "Dette skjer på Kvarteret.",
       descriptionEnglish: "This is happening at Kvarteret.",
+      room: "",
+      organizerGroup: "",
       roomText: "Uteområdet",
       roomTextEnglish: "Outdoor area",
       organizerText: "Studentforeningen",
