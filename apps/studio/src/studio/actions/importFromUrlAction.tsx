@@ -12,6 +12,7 @@ import {
 import { resolvePresentationInitialUrl } from "../presentation/routing"
 
 const API_VERSION = "2026-07-29"
+const IMPORT_ROLES = ["administrator", "developer", "editor"]
 
 type ImportResponse = {
   fields?: Record<string, unknown>
@@ -65,8 +66,8 @@ export function ImportFromUrlAction(props: DocumentActionProps) {
     string,
     unknown
   > | null
-  // Trusted to administrators only for now; festivals and series are out of scope.
-  if (!currentUser?.roles.some(role => role.name === "administrator"))
+  // Editors and above; festivals and series are out of scope for now.
+  if (!currentUser?.roles.some(role => IMPORT_ROLES.includes(role.name)))
     return null
   if (source?.eventKind && source.eventKind !== "single") return null
 

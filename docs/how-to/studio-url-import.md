@@ -1,6 +1,6 @@
 # Fill an arrangement from a link in Studio
 
-Administrators can fill a single arrangement from any public event page: TicketCo, another ticket site, or the organizer's site. Open the arrangement, choose **Fyll ut fra lenke** in the document actions menu, paste the link and choose **Hent og fyll ut**. Other roles, festivals and series do not see the action.
+Editors, developers and administrators can fill a single arrangement from any public event page: TicketCo, another ticket site, or the organizer's site. Open the arrangement, choose **Fyll ut fra lenke** in the document actions menu, paste the link and choose **Hent og fyll ut**. Contributors, viewers, festivals and series do not see the action.
 
 KI (the Azure `gpt-6-luna` deployment) reads the page and fills title, description, type, date and door times, room or place, organizer, prices and links. The page image is uploaded. Found fields overwrite the draft. A warning lists what is still missing, using the same rules that block publishing. Facebook pages need login and cannot be read. The pasted link becomes the ticket link unless the event is free.
 
