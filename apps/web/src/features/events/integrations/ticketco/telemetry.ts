@@ -8,8 +8,22 @@ export type LunaUsage = {
   output_tokens?: number
 }
 
+/** Separates PostHog traces of the scheduled importer and Studio imports. */
+export type LunaWorkflow = {
+  name: string
+  distinctId: string
+  spanName: string
+}
+
+export const TICKETCO_WORKFLOW: LunaWorkflow = {
+  name: "ticketco_import",
+  distinctId: "ticketco-importer",
+  spanName: "TicketCo event extraction",
+}
+
 export type LunaGeneration = {
   traceId: string
+  workflow?: LunaWorkflow
   source: TicketCoEvent
   model: string
   deployment: string
@@ -25,25 +39,27 @@ export type LunaGeneration = {
 export async function captureLunaGeneration(generation: LunaGeneration) {
   if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
   const { evidence: _privateEvidence, ...output } = generation.output ?? {}
+  const workflow = generation.workflow ?? TICKETCO_WORKFLOW
   try {
     const release = getPostHogReleaseProperties()
     await getPostHogClient().captureImmediate({
-      distinctId: "ticketco-importer",
+      distinctId: workflow.distinctId,
       event: "$ai_generation",
       properties: {
         ...release,
-        workflow: "ticketco_import",
+        workflow: workflow.name,
         azure_deployment: generation.deployment,
         environment: process.env.GITHUB_ACTIONS
           ? "production"
           : release.environment,
         git_sha: process.env.GITHUB_SHA ?? release.git_sha,
         ticket_url: generation.source.url,
+        source_url: generation.source.url,
         $ai_trace_id: generation.traceId,
         $ai_generation_id: randomUUID(),
         $ai_parent_id: generation.traceId,
         $ai_session_id: null,
-        $ai_span_name: "TicketCo event extraction",
+        $ai_span_name: workflow.spanName,
         $ai_prompt_name: generation.prompt?.name,
         $ai_prompt_version: generation.prompt?.version,
         prompt_source: generation.prompt?.source,
@@ -76,11 +92,12 @@ export async function captureRoomResolution(
   traceId: string,
   ticketUrl: string,
   room?: string,
+  workflow: LunaWorkflow = TICKETCO_WORKFLOW,
 ) {
   if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
   try {
     await getPostHogClient().captureImmediate({
-      distinctId: "ticketco-importer",
+      distinctId: workflow.distinctId,
       event: "$ai_span",
       properties: {
         $ai_trace_id: traceId,

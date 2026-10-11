@@ -16,7 +16,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 test("uses the checked-in prompt without runtime keys", async () => {
-  vi.stubEnv("POSTHOG_API_KEY", "")
+  vi.stubEnv("POSTHOG_QUERY_API_KEY", "")
   const { getTicketCoPrompt, TICKETCO_FALLBACK_PROMPT } = await import(
     "./prompt"
   )
@@ -28,7 +28,7 @@ test("uses the checked-in prompt without runtime keys", async () => {
   expect(get).not.toHaveBeenCalled()
 })
 test("fetches production label with fallback and returns version metadata", async () => {
-  vi.stubEnv("POSTHOG_API_KEY", "test-server-key")
+  vi.stubEnv("POSTHOG_QUERY_API_KEY", "test-server-key")
   vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test-project")
   get.mockResolvedValue({
     prompt: "Managed instructions",

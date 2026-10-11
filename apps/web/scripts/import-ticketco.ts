@@ -20,7 +20,9 @@ async function main() {
     scheduled: args.includes("--scheduled"),
   })
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
-  if (report.failed.length) process.exitCode = 1
+  // Per-event problems never fail the job; GitHub shows them as warnings.
+  for (const { url, reason } of [...report.failed, ...report.warnings])
+    process.stdout.write(`::warning title=TicketCo import::${url}: ${reason}\n`)
 }
 main().catch(() => {
   process.stderr.write(
