@@ -8,7 +8,9 @@ let prompts: Prompts | undefined
 
 /** Runtime reads use the existing server key; management stays in PostHog. */
 export async function getTicketCoPrompt(): Promise<PromptResult> {
-  const personalApiKey = process.env.POSTHOG_API_KEY
+  // Prompt reads need a personal key (phx_); POSTHOG_API_KEY is the
+  // project token and is rejected with 401.
+  const personalApiKey = process.env.POSTHOG_QUERY_API_KEY
   const projectApiKey = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
   if (!personalApiKey || !projectApiKey)
     return {
