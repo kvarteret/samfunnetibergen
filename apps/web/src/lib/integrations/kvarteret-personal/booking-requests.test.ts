@@ -23,10 +23,7 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 test("retries storage with identical snapshot and fresh signed nonce", async () => {
-  vi.stubEnv(
-    "VOLUNTEER_PROSPECT_HMAC_SECRET",
-    "0123456789abcdef0123456789abcdef",
-  )
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "0123456789abcdef0123456789abcdef")
   const fetch = vi
     .fn()
     .mockResolvedValueOnce(new Response("", { status: 503 }))
@@ -52,12 +49,9 @@ test("retries storage with identical snapshot and fresh signed nonce", async () 
   )
 })
 test("fails without storage configuration or a committed receipt", async () => {
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", "")
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "")
   await expect(storeBookingRequest(snapshot)).rejects.toThrow()
-  vi.stubEnv(
-    "VOLUNTEER_PROSPECT_HMAC_SECRET",
-    "0123456789abcdef0123456789abcdef",
-  )
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "0123456789abcdef0123456789abcdef")
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(new Response("", { status: 503 })),
@@ -81,10 +75,7 @@ test("signature binds snapshot and submission identity", () => {
 })
 
 test("prefill read is signed for its own path and falls back on unavailable storage", async () => {
-  vi.stubEnv(
-    "VOLUNTEER_PROSPECT_HMAC_SECRET",
-    "0123456789abcdef0123456789abcdef",
-  )
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "0123456789abcdef0123456789abcdef")
   const fetch = vi.fn().mockResolvedValue(new Response("", { status: 503 }))
   vi.stubGlobal("fetch", fetch)
   const { fetchBookingEventPrefill } = await import("./booking-requests")

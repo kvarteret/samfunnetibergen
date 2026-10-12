@@ -8,6 +8,7 @@ import {
   volunteerFormSchema,
   volunteerHoneypotSchema,
 } from "@/features/grupper/domain/volunteerFormSchema"
+import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import {
   createVolunteerProspectAuthHeaders,
   createVolunteerProspectClientKey,
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
   try {
     authenticationHeaders = createVolunteerProspectAuthHeaders(
       serializedRequestBody,
-      process.env.VOLUNTEER_PROSPECT_HMAC_SECRET,
+      personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET"),
       { idempotencyKey, clientKey },
     )
   } catch (error) {

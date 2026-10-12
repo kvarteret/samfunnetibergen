@@ -56,7 +56,8 @@ diagnostics.
 ## Consequences
 
 The website Vercel project and Personal must hold the same active
-`VOLUNTEER_PROSPECT_HMAC_SECRET`. The website alone holds a separate
+`PERSONAL_SIGNING_SECRET` (formerly `VOLUNTEER_PROSPECT_HMAC_SECRET`), the one
+key for every signed website → Personal request. The website alone holds a separate
 `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`; Personal never receives it. Both values
 require at least 32 characters and must not be prefixed with `NEXT_PUBLIC_`.
 Rotate by deploying Personal support for the new canonical form (or new active

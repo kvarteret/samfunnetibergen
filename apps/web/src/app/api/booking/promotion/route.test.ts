@@ -15,7 +15,7 @@ const receiptId = "123e4567-e89b-42d3-a456-426614174001"
 const submissionId = "123e4567-e89b-42d3-a456-426614174002"
 
 test("redeems a link in a new browser and redirects without exposing token", async () => {
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", secret)
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
   const token = signPromotionLink(receiptId, submissionId, secret)
   const response = await GET(
     new Request(
@@ -32,7 +32,7 @@ test("redeems a link in a new browser and redirects without exposing token", asy
 })
 
 test("rejects expired or forged links without changing the current booking", async () => {
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", secret)
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
   for (const token of [
     "forged",
     signPromotionLink(receiptId, submissionId, secret, 0),
@@ -46,4 +46,18 @@ test("rejects expired or forged links without changing the current booking", asy
     expect(await response.text()).toContain("Promoteringslenken er ugyldig")
   }
   expect(setBookingContinuation).not.toHaveBeenCalled()
+})
+
+test("redeems links signed with the previous or legacy key during cutover", async () => {
+  const legacy = "l".repeat(32)
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
+  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", legacy)
+  const token = signPromotionLink(receiptId, submissionId, legacy)
+  const response = await GET(
+    new Request(
+      `https://www.samfunnetibergen.no/api/booking/promotion?token=${token}`,
+    ),
+  )
+  expect(response.status).toBe(303)
+  expect(setBookingContinuation).toHaveBeenCalledWith(receiptId, submissionId)
 })

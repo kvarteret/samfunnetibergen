@@ -45,10 +45,7 @@ export function createVolunteerProspectAuthHeaders(
   secret: string | undefined,
   options: VolunteerProspectSigningOptions,
 ): Record<string, string> {
-  const normalizedSecret = requireSecret(
-    secret,
-    "VOLUNTEER_PROSPECT_HMAC_SECRET",
-  )
+  const normalizedSecret = requireSecret(secret, "PERSONAL_SIGNING_SECRET")
   if (!CANONICAL_UUID_PATTERN.test(options.idempotencyKey)) {
     throw new Error(
       "Volunteer prospect idempotency key must be a canonical UUID.",
