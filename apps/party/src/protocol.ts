@@ -41,6 +41,9 @@ export type ServerMessage =
   | { type: "move"; id: string; state: PlayerState }
   | { type: "leave"; id: string }
 
+// Answers 200 for an allowed origin while the server is up.
+export const HEALTH_PATH = "/health"
+
 // Generous, but small enough that nobody can push large frames through.
 export const MAX_MESSAGE_BYTES = 512
 export const MAX_PLAYERS_PER_ROOM = 40

@@ -16,6 +16,7 @@ import {
   usePartySettings,
 } from "@/lib/party-mode"
 import {
+  markPlaygroundFailed,
   type Playground,
   playerHue,
   type RemotePlayer,
@@ -802,8 +803,14 @@ export function PartyCritters({
       collectPlatforms(now)
       updateMushrooms(now)
       for (const critter of critters) step(critter, dt, now)
-      drawPlayers(dt)
-      publish()
+      // Multiplayer must never take the local critters down with it.
+      try {
+        drawPlayers(dt)
+        publish()
+      } catch {
+        markPlaygroundFailed()
+        for (const el of remoteRefs.current.values()) el.style.display = "none"
+      }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)

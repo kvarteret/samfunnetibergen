@@ -1,6 +1,7 @@
 import { type Connection, routePartykitRequest, Server } from "partyserver"
 
 import {
+  HEALTH_PATH,
   isAllowedOrigin,
   MAX_PLAYERS_PER_ROOM,
   type Player,
@@ -91,8 +92,27 @@ export class Lekeplass extends Server<Env> {
   }
 }
 
+// The website only offers "Spill med andre" once this answers, so a broken
+// or unreachable server hides the option instead of showing a dead one.
+function health(request: Request, env: Env) {
+  const origin = request.headers.get("Origin")
+  if (!origin || !isAllowedOrigin(origin, env.ALLOWED_ORIGINS)) {
+    return new Response("Forbidden", { status: 403 })
+  }
+  return new Response("ok", {
+    headers: {
+      "Access-Control-Allow-Origin": origin,
+      "Cache-Control": "no-store",
+      Vary: "Origin",
+    },
+  })
+}
+
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname === HEALTH_PATH) {
+      return health(request, env)
+    }
     return (
       (await routePartykitRequest(request, env, {
         onBeforeConnect: req => {

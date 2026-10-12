@@ -2,19 +2,108 @@
 
 import {
   type ClientMessage,
+  HEALTH_PATH,
   type Mascot,
   type PlayerState,
   parseServerMessage,
   roomForPath,
 } from "@samfunnet/party/protocol"
 import { PartySocket } from "partysocket"
-import { useEffect, useRef, useState } from "react"
+import posthog from "posthog-js"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
 // "Spill med andre": visitors on the same page see each other's steered
-// mascot. The lekeplass server lives in apps/party; without a host the
-// option is not offered at all.
+// mascot. The lekeplass server lives in apps/party.
 const PLAYGROUND_HOST = process.env.NEXT_PUBLIC_PARTY_HOST ?? ""
-export const multiplayerAvailable = PLAYGROUND_HOST !== ""
+// partysocket talks plain ws to a local server, so the health check does too.
+const PLAYGROUND_ORIGIN = `${
+  /^(localhost|127\.0\.0\.1)(:|$)/.test(PLAYGROUND_HOST) ? "http" : "https"
+}://${PLAYGROUND_HOST}`
+const HEALTH_TIMEOUT_MS = 4000
+// PostHog switch for the whole feature. Turning it off withdraws the option
+// and disconnects everyone on their next flag reload.
+export const MULTIPLAYER_FLAG = "partymodus-spill-med-andre"
+const FLAG_TIMEOUT_MS = 5000
+// Failed connection attempts in a row before giving up for this visit.
+const MAX_FAILED_CONNECTS = 3
+// The server closes with this when a room is full.
+const ROOM_FULL = 1013
+
+// The option fails closed: it is only offered once the server has answered
+// a health check and the PostHog flag is on, and is withdrawn for the rest
+// of the visit as soon as anything goes wrong. Without a configured host it
+// is never offered.
+type Status = "unknown" | "checking" | "ok" | "failed"
+let status: Status = PLAYGROUND_HOST ? "unknown" : "failed"
+const listeners = new Set<() => void>()
+
+function setStatus(next: Status) {
+  if (status === next || status === "failed") return
+  status = next
+  for (const listener of listeners) listener()
+}
+
+export function markPlaygroundFailed() {
+  setStatus("failed")
+}
+
+async function serverHealthy() {
+  try {
+    const response = await fetch(`${PLAYGROUND_ORIGIN}${HEALTH_PATH}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS),
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+// PostHog does not load on localhost, so local development skips the flag.
+// Anywhere else a missing, slow or blocked PostHog counts as off.
+function flagEnabled() {
+  if (process.env.NODE_ENV === "development") return Promise.resolve(true)
+  return new Promise<boolean>(resolve => {
+    const timer = window.setTimeout(() => resolve(false), FLAG_TIMEOUT_MS)
+    posthog.onFeatureFlags(() => {
+      window.clearTimeout(timer)
+      const enabled = posthog.isFeatureEnabled(MULTIPLAYER_FLAG) === true
+      if (!enabled) markPlaygroundFailed()
+      resolve(enabled)
+    })
+  })
+}
+
+export function checkPlayground() {
+  if (status !== "unknown") return
+  setStatus("checking")
+  void Promise.all([serverHealthy(), flagEnabled()]).then(([healthy, on]) =>
+    setStatus(healthy && on ? "ok" : "failed"),
+  )
+}
+
+export const getPlaygroundStatus = () => status
+
+function subscribeStatus(onChange: () => void) {
+  listeners.add(onChange)
+  return () => {
+    listeners.delete(onChange)
+  }
+}
+
+// Whether "Spill med andre" works right now. Nothing contacts the server
+// until `wanted` is true, which is once partymodus is on.
+export function usePlaygroundReady(wanted: boolean) {
+  const current = useSyncExternalStore(
+    subscribeStatus,
+    () => status,
+    (): Status => "unknown",
+  )
+  useEffect(() => {
+    if (wanted) checkPlayground()
+  }, [wanted])
+  return current === "ok"
+}
 
 // About 15 updates a second is smooth enough once the receiver eases
 // toward each one.
@@ -53,15 +142,26 @@ const idle: Playground = { states: new Map(), publish: () => {} }
 export function usePlayground(enabled: boolean, pathname: string) {
   const [players, setPlayers] = useState<RemotePlayer[]>([])
   const playground = useRef<Playground>(idle)
+  const ready = usePlaygroundReady(enabled)
 
   useEffect(() => {
-    if (!enabled || !multiplayerAvailable) return
+    if (!enabled || !ready) return
 
     const states = new Map<string, PlayerState>()
     const socket = new PartySocket({
       host: PLAYGROUND_HOST,
       party: "lekeplass",
       room: roomForPath(pathname),
+    })
+
+    let failedConnects = 0
+    socket.addEventListener("close", event => {
+      if (event.code === ROOM_FULL) {
+        markPlaygroundFailed()
+        return
+      }
+      failedConnects += 1
+      if (failedConnects >= MAX_FAILED_CONNECTS) markPlaygroundFailed()
     })
 
     // The roster only changes when someone joins, leaves or swaps mascot,
@@ -99,6 +199,7 @@ export function usePlayground(enabled: boolean, pathname: string) {
     // A reconnect is a new connection to the server, so start over.
     socket.addEventListener("open", () => {
       sent = ""
+      failedConnects = 0
     })
 
     const flush = () => {
@@ -129,7 +230,7 @@ export function usePlayground(enabled: boolean, pathname: string) {
       playground.current = idle
       setPlayers([])
     }
-  }, [enabled, pathname])
+  }, [enabled, ready, pathname])
 
   return { players, playground }
 }
