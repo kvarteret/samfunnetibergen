@@ -24,6 +24,8 @@ import type { EditorialSection } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
+
 export function generateStaticParams() {
   return getLocaleStaticParams()
 }
@@ -60,9 +62,6 @@ function QuestionsSection({ section }: { section: EditorialSection }) {
     </div>
   )
 }
-
-
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 function RoomImage({
   image,
