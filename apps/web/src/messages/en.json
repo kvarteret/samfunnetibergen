@@ -510,6 +510,8 @@
     "allEvents": "See all {count}"
   },
   "GroupVolunteerForm": {
+    "applicationsClosedExternal": "This group doesn't take applications through the form, see the description.",
+    "applicationsClosedFull": "This group is full for this semester.",
     "title": "Volunteer",
     "selectSubGroup": "Choose the group you would like to apply to:",
     "applyingTo": "You are applying to: {group}",

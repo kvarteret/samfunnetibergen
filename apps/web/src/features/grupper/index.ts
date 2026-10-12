@@ -1,3 +1,5 @@
+export { GroupApplicationsClosed } from "./components/GroupApplicationsClosed"
 export { GroupsFilter } from "./components/GroupsFilter"
 export { GroupVolunteerForm } from "./components/GroupVolunteerForm"
 export { ValgomatenInfobox } from "./components/ValgomatenInfobox"
+export { closedApplicationStatus } from "./domain/applicationStatus"

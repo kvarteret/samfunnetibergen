@@ -8,7 +8,11 @@ import { ContentPageViewTracking } from "@/components/content-page-view-tracking
 import { SanityImage } from "@/components/sanity-image"
 import { Avatar } from "@/components/ui/avatar"
 import { GroupEvents } from "@/features/events/components/GroupEvents"
-import { GroupVolunteerForm } from "@/features/grupper"
+import {
+  closedApplicationStatus,
+  GroupApplicationsClosed,
+  GroupVolunteerForm,
+} from "@/features/grupper"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -74,6 +78,8 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const hasLinks =
     "links" in group && Array.isArray(group.links) && group.links.length > 0
 
+  const closedStatus = closedApplicationStatus(group.applicationStatus)
+
   const institutionOptions = (locale === "en" ? enMessages : nbMessages)
     .InstitutionOptions as Array<{
     value: string
@@ -133,20 +139,25 @@ export default async function GroupPage({ params }: GroupPageProps) {
       <aside className="min-w-0 space-y-6">
         {group.slug && (
           <section className="panel">
-            <GroupVolunteerForm
-              groupId={group._id}
-              groupSlug={group.slug}
-              groupName={group.name ?? group.slug}
-              institutionOptions={institutionOptions}
-              subGroups={
-                group.subGroups?.flatMap(
-                  (sg: { slug?: string; name?: string }) =>
-                    sg.slug && sg.name
+            {closedStatus ? (
+              <GroupApplicationsClosed status={closedStatus} />
+            ) : (
+              <GroupVolunteerForm
+                groupId={group._id}
+                groupSlug={group.slug}
+                groupName={group.name ?? group.slug}
+                institutionOptions={institutionOptions}
+                subGroups={
+                  group.subGroups?.flatMap(sg =>
+                    sg.slug &&
+                    sg.name &&
+                    !closedApplicationStatus(sg.applicationStatus)
                       ? [{ slug: sg.slug, name: sg.name }]
                       : [],
-                ) ?? []
-              }
-            />
+                  ) ?? []
+                }
+              />
+            )}
           </section>
         )}
 
