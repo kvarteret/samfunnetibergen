@@ -791,6 +791,26 @@
   border-top: 6px solid var(--color-primary);
 }
 
+/* Other visitors' mascots carry a dot in their own colour, and only their
+   owner can move them. */
+.party-critter[data-remote] {
+  cursor: default;
+  pointer-events: none;
+}
+
+.party-critter[data-remote]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% * var(--party-scale, 1) + 6px);
+  left: 50%;
+  translate: -50% 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(0.68 0.19 var(--party-player-hue, 0));
+  box-shadow: 0 0 0 2px var(--color-background);
+}
+
 .party-critter[data-facing="left"] svg {
   scale: -1 1;
 }

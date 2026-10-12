@@ -10,6 +10,7 @@ const SCREEN_PARTY: PartySettings = {
   enabled: true,
   leash: false,
   control: null,
+  multiplayer: false,
 }
 
 // The mascots come out for the first two minutes of every quarter hour, and

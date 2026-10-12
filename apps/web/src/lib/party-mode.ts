@@ -14,12 +14,15 @@ export interface PartySettings {
   leash: boolean
   // The mascot steered with the keyboard, if any.
   control: PartyMascot | null
+  // Share the steered mascot with others on the same page.
+  multiplayer: boolean
 }
 
 const defaultSettings: PartySettings = {
   enabled: false,
   leash: false,
   control: null,
+  multiplayer: false,
 }
 
 // Kept in memory too, so the toggles still work when storage is blocked.
@@ -40,6 +43,7 @@ function readStoredSettings(): PartySettings {
       enabled: stored.enabled === true,
       leash: stored.leash === true,
       control: isMascot(stored.control) ? stored.control : null,
+      multiplayer: stored.multiplayer === true,
     }
   } catch {
     return defaultSettings

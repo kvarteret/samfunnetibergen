@@ -4,6 +4,7 @@ import { Collapsible } from "@base-ui/react/collapsible"
 import { Check, ChevronDown, PartyPopper } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useId, useState, useSyncExternalStore } from "react"
+import { usePlaygroundReady } from "@/components/party/playground"
 import { CheckboxSquare } from "@/components/ui/checkbox-field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { SegmentedControl } from "@/components/ui/segmented-control"
@@ -166,6 +167,7 @@ function PaperChoices({
 function PartyModeChoice({ className }: { className?: string }) {
   const t = useTranslations("Navigation")
   const party = usePartySettings()
+  const playable = usePlaygroundReady(party.enabled)
   const controlLabelId = useId()
 
   const controlOptions: { value: PartyMascot | "none"; label: string }[] = [
@@ -213,6 +215,24 @@ function PartyModeChoice({ className }: { className?: string }) {
               </p>
             )}
           </div>
+          {playable ? (
+            <div className="space-y-2 border-t-2 border-border/30 pt-3">
+              <label className="flex cursor-pointer items-center gap-3 px-1 py-1 font-heading">
+                <CheckboxSquare
+                  checked={party.multiplayer}
+                  onChange={multiplayer => updatePartySettings({ multiplayer })}
+                />
+                {t("partyMultiplayer")}
+              </label>
+              {party.multiplayer && (
+                <p className="text-foreground-muted text-sm">
+                  {party.control
+                    ? t("partyMultiplayerHint")
+                    : t("partyMultiplayerJoin")}
+                </p>
+              )}
+            </div>
+          ) : null}
         </>
       ) : null}
     </fieldset>

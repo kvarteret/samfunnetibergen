@@ -72,3 +72,7 @@ sonar-project.properties
 
 # Machine-private fnox overrides
 fnox.local.toml
+
+# Wrangler local state and bundles
+.wrangler/
+.dev.vars
