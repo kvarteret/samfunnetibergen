@@ -1,5 +1,6 @@
 import "server-only"
 import { createHash, createHmac, randomUUID } from "node:crypto"
+import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import {
   type ClickBatch,
   type InterestState,
@@ -17,9 +18,8 @@ async function backendInterest(
     batch_id?: string
   },
 ): Promise<InterestState> {
-  const secret = process.env.EVENT_INTEREST_SECRET
-  if (!secret || secret.length < 32)
-    throw new Error("EVENT_INTEREST_SECRET is required")
+  const secret = personalSigningSecret("EVENT_INTEREST_SECRET")
+  if (!secret) throw new Error("PERSONAL_SIGNING_SECRET is required")
   const base =
     process.env.PERSONAL_APP_BASE_URL?.trim() ||
     "https://personal.samfunnetibergen.no"

@@ -33,7 +33,7 @@ test("promotion token is bound to booking IDs, signature and 90-day expiration",
 })
 
 test("personalized link resolves to a non-page route without contact data", () => {
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", secret)
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
   vi.stubEnv("SITE_URL", "https://www.samfunnetibergen.no")
   const link = createBookingPromotionLink(receiptId, submissionId, "en")
   if (!link) throw new Error("Expected a promotion link")
@@ -43,6 +43,6 @@ test("personalized link resolves to a non-page route without contact data", () =
   expect(
     verifyPromotionLink(url.searchParams.get("token") ?? "", secret),
   ).toMatchObject({ receiptId, submissionId })
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", "")
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "")
   expect(createBookingPromotionLink(receiptId, submissionId)).toBeNull()
 })

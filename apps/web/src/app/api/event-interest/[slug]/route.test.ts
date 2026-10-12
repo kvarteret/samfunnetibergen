@@ -36,7 +36,7 @@ function request(
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.stubEnv("EVENT_INTEREST_SECRET", "a".repeat(32))
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "a".repeat(32))
   vi.mocked(fetchPublicEventBySlug).mockResolvedValue({
     event: { _id: "event-id", eventStatus: "scheduled" },
     children: [],

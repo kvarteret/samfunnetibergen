@@ -5,19 +5,39 @@ import {
   randomBytes,
   timingSafeEqual,
 } from "node:crypto"
+import {
+  personalSigningSecret,
+  personalVerificationSecrets,
+} from "@/lib/integrations/kvarteret-personal/signing-secret"
 import { RETENTION_SECONDS } from "../domain/interest"
 
-function secret() {
-  const value = process.env.EVENT_INTEREST_SECRET
-  if (!value || value.length < 32)
-    throw new Error("EVENT_INTEREST_SECRET must contain at least 32 characters")
-  return value
+const DOMAIN = "event-interest-source-v1:"
+
+function sign(secret: string, message: string) {
+  return createHmac("sha256", secret).update(message).digest("hex")
 }
 
 function signature(eventId: string, token: string) {
-  return createHmac("sha256", secret())
-    .update(`${eventId}:${token}`)
-    .digest("hex")
+  const secret = personalSigningSecret("EVENT_INTEREST_SECRET")
+  if (!secret)
+    throw new Error(
+      "PERSONAL_SIGNING_SECRET must contain at least 32 characters",
+    )
+  return sign(secret, `${DOMAIN}${eventId}:${token}`)
+}
+
+/** Signatures the cookie may carry: current format, then the unprefixed
+ * EVENT_INTEREST_SECRET format issued before the shared signing key. */
+function acceptedSignatures(eventId: string, token: string) {
+  const legacy = process.env.EVENT_INTEREST_SECRET
+  return [
+    ...personalVerificationSecrets("EVENT_INTEREST_SECRET").map(secret =>
+      sign(secret, `${DOMAIN}${eventId}:${token}`),
+    ),
+    ...(legacy && legacy.length >= 32
+      ? [sign(legacy, `${eventId}:${token}`)]
+      : []),
+  ]
 }
 
 export function sourceCookieName(eventId: string) {
@@ -39,10 +59,9 @@ export function sourceHash(
   const [random, issued, signed] = cookie.split(".")
   const age = Math.floor(now / 1000) - Number(issued)
   if (age < 0 || age >= RETENTION_SECONDS) return null
-  const expected = signature(eventId, `${random}.${issued}`)
-  if (
-    !timingSafeEqual(Buffer.from(signed, "hex"), Buffer.from(expected, "hex"))
+  const received = Buffer.from(signed, "hex")
+  const valid = acceptedSignatures(eventId, `${random}.${issued}`).some(
+    expected => timingSafeEqual(received, Buffer.from(expected, "hex")),
   )
-    return null
-  return signed
+  return valid ? signed : null
 }
