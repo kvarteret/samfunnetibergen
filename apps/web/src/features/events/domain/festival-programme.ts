@@ -2,6 +2,7 @@ import {
   flattenPublicOccurrences,
   type PublicEvent,
   type PublicOccurrence,
+  type PublicSchedule,
 } from "./events"
 
 export type FestivalDay = {
@@ -40,4 +41,19 @@ export function festivalDate(
 export function festivalRunDays(firstDate: string, lastDate: string): number {
   const toDay = (date: string) => Date.parse(`${date}T00:00:00Z`) / 86_400_000
   return toDay(lastDate) - toDay(firstDate) + 1
+}
+
+/**
+ * A screening is over once its end time has passed. Without an end time it
+ * counts as over only after its day has ended in Oslo.
+ */
+export function isOccurrenceOver(
+  schedule: PublicSchedule,
+  now: Date = new Date(),
+): boolean {
+  if (schedule.endsAt) return Date.parse(schedule.endsAt) <= now.getTime()
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Oslo",
+  }).format(now)
+  return schedule.startDate < today
 }

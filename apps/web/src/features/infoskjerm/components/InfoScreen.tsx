@@ -56,13 +56,12 @@ export function InfoScreen({
   roomHours,
   promotions = EMPTY_PROMOTIONS,
 }: InfoScreenProps) {
-  const { now, currentPage, pageCount, pageIds, visibleEvents, eventsPerPage } =
-    useInfoScreen({
-      date,
-      events,
-      initialNow,
-      hasPromotions: promotions.length > 0,
-    })
+  const { now, visibleEvents, laterCount } = useInfoScreen({
+    date,
+    events,
+    initialNow,
+    hasPromotions: promotions.length > 0,
+  })
 
   return (
     <main className="fixed inset-0 grid place-items-center overflow-hidden bg-foreground">
@@ -114,7 +113,6 @@ export function InfoScreen({
               style={{
                 gridTemplateRows: `repeat(${visibleEvents.length}, minmax(min-content, 1fr))`,
               }}
-              start={currentPage * eventsPerPage + 1}
             >
               {visibleEvents.map(event => (
                 <ScreenEventCard
@@ -137,21 +135,10 @@ export function InfoScreen({
               <p>Se hva som skjer fremover på samfunnetibergen.no</p>
             </div>
           )}
-          {pageCount > 1 && (
-            <div className="flex h-[4cqw] shrink-0 items-center justify-between text-[1.8cqw]">
-              <div className="flex gap-[0.8cqw]" aria-hidden>
-                {pageIds.map((id, index) => (
-                  <span
-                    key={id}
-                    data-active={index === currentPage}
-                    className="size-[0.9cqw] rounded-full bg-border data-[active=true]:bg-primary"
-                  />
-                ))}
-              </div>
-              <span>
-                Side {currentPage + 1} av {pageCount}
-              </span>
-            </div>
+          {laterCount > 0 && (
+            <p className="flex h-[4cqw] shrink-0 items-center justify-end text-[1.8cqw]">
+              + {laterCount} til senere i dag
+            </p>
           )}
         </section>
 

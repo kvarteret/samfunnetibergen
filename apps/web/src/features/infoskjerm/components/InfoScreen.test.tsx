@@ -3,11 +3,7 @@ import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import type { ScreenRoomHours } from "../domain/opening-hours"
-import {
-  PAGE_DURATION_MS,
-  REFRESH_INTERVAL_MS,
-  type ScreenEvent,
-} from "../domain/schedule"
+import { REFRESH_INTERVAL_MS, type ScreenEvent } from "../domain/schedule"
 import { InfoScreen } from "./InfoScreen"
 
 const { refresh, router } = vi.hoisted(() => {
@@ -39,14 +35,14 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 
-function event(id: string): ScreenEvent {
+function event(id: string, endsAt = "2026-10-01T19:00:00Z"): ScreenEvent {
   return {
     id,
     title: `Arrangement ${id}`,
     startTime: "19:00",
     endTime: "21:00",
     startsAt: "2026-10-01T17:00:00Z",
-    endsAt: "2026-10-01T19:00:00Z",
+    endsAt,
     room: "Teglverket",
     floor: 2,
     organizer: null,
@@ -68,32 +64,40 @@ async function render(
   })
 }
 
-it("rotates every event onto the display and wraps back to the first page", async () => {
-  await render([event("1"), event("2"), event("3"), event("4"), event("5")])
+it("shows four events and moves past them as they end", async () => {
+  const events = ["14", "15", "16", "17", "18", "19"].map(hour =>
+    event(hour, `2026-10-01T${hour}:00:00Z`),
+  )
+  await render(events)
   expect(container.querySelectorAll("li")).toHaveLength(4)
   expect(container.textContent).toContain("2. etasje")
-  expect(container.textContent).not.toContain("Arrangement 5")
+  expect(container.textContent).toContain("Arrangement 14")
+  expect(container.textContent).not.toContain("Arrangement 18")
+  expect(container.textContent).toContain("+ 2 til senere i dag")
 
-  await act(async () => vi.advanceTimersByTime(PAGE_DURATION_MS))
-  expect(container.querySelectorAll("li")).toHaveLength(1)
-  expect(container.textContent).toContain("Arrangement 5")
-  expect(container.textContent).toContain("Side 2 av 2")
+  vi.setSystemTime(new Date("2026-10-01T15:00:00Z"))
+  await act(async () => vi.advanceTimersByTime(1_000))
+  expect(container.textContent).not.toContain("Arrangement 14")
+  expect(container.textContent).not.toContain("Arrangement 15")
+  expect(container.textContent).toContain("Arrangement 19")
+  expect(container.textContent).not.toContain("senere i dag")
 
-  await act(async () => vi.advanceTimersByTime(PAGE_DURATION_MS))
-  expect(container.textContent).toContain("Arrangement 1")
-  expect(container.textContent).toContain("Side 1 av 2")
+  vi.setSystemTime(new Date("2026-10-01T20:00:00Z"))
+  await act(async () => vi.advanceTimersByTime(1_000))
+  expect(container.querySelectorAll('li[data-expired="true"]')).toHaveLength(4)
+  expect(container.textContent).toContain("Arrangement 19")
 })
 
 it("adapts sparse daily pages and omits empty pagination", async () => {
   await render([event("1"), event("2")])
   expect(container.querySelector("ol")?.getAttribute("data-count")).toBe("2")
-  expect(container.textContent).not.toContain("Side")
+  expect(container.textContent).not.toContain("senere i dag")
   expect(container.querySelector("ol")?.style.gridTemplateRows).toBe(
     "repeat(2, minmax(min-content, 1fr))",
   )
 })
 
-it("reserves promoted previews and rotates daily pages of three without losing events", async () => {
+it("reserves promoted previews and shows three daily events", async () => {
   await act(async () =>
     root.render(
       <InfoScreen
@@ -143,10 +147,7 @@ it("reserves promoted previews and rotates daily pages of three without losing e
   expect(container.querySelector("footer")?.textContent).toContain(
     "Spørsmål? Spør driftsleder!",
   )
-  await act(async () => vi.advanceTimersByTime(PAGE_DURATION_MS))
-  expect(container.querySelectorAll("li")).toHaveLength(1)
-  expect(container.textContent).toContain("Arrangement 4")
-  expect(container.textContent).toContain("Neste ukes konsert")
+  expect(container.textContent).toContain("+ 1 til senere i dag")
 })
 
 it("shows MET weather beside the clock and keeps the footer free of the arrow", async () => {
@@ -276,7 +277,7 @@ it("shows an empty day and clearly marks cancelled events with missing times", a
   expect(container.textContent).toContain("Avlyst")
 })
 
-it("cleans up the refresh and rotation timers when the screen closes", async () => {
+it("cleans up the refresh timer when the screen closes", async () => {
   await render([event("1"), event("2"), event("3"), event("4"), event("5")])
   await act(async () => root.render(null))
   await act(async () => vi.advanceTimersByTime(REFRESH_INTERVAL_MS * 2))

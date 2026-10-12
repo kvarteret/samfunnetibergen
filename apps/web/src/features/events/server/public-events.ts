@@ -72,8 +72,9 @@ export async function fetchPublicPromotedParentEvents({
   to,
   includeInternal = false,
   live = false,
-}: PublicEventSetOptions): Promise<PublicEvent[]> {
-  const params = { locale, from, to, includeInternal }
+  promotedOnly = true,
+}: PublicEventSetOptions & { promotedOnly?: boolean }): Promise<PublicEvent[]> {
+  const params = { locale, from, to, includeInternal, promotedOnly }
   const liveFetch = live
     ? (await import("@/lib/sanity/fetcher")).sanityFetch
     : null

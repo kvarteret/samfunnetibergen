@@ -6,6 +6,7 @@ import {
   type FestivalDay,
   festivalDate,
   festivalRunDays,
+  isOccurrenceOver,
 } from "@/features/events/domain/festival-programme"
 import { cn } from "@/lib/utils"
 import { EventCard } from "./EventCard"
@@ -98,10 +99,12 @@ export function FestivalProgramme({
   days,
   locale,
   labels,
+  now = new Date(),
 }: {
   days: FestivalDay[]
   locale: string
   labels: FestivalLabels
+  now?: Date
 }) {
   const total = days.reduce((sum, day) => sum + day.occurrences.length, 0)
 
@@ -131,6 +134,9 @@ export function FestivalProgramme({
                 className={cn(
                   selectionControlVariants({ size: "default" }),
                   "gap-2 rounded-full px-4",
+                  day.occurrences.every(({ schedule }) =>
+                    isOccurrenceOver(schedule, now),
+                  ) && "opacity-50",
                 )}
               >
                 {capitalize(festivalDayChip(day.date, locale), locale)}
@@ -165,7 +171,14 @@ export function FestivalProgramme({
             </h3>
             <ul className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3 xl:gap-x-8">
               {day.occurrences.map(occurrence => (
-                <li key={occurrence.id} className="min-w-0">
+                <li
+                  key={occurrence.id}
+                  className={cn(
+                    "min-w-0",
+                    isOccurrenceOver(occurrence.schedule, now) &&
+                      "opacity-50 grayscale transition duration-base hover:opacity-100 hover:grayscale-0",
+                  )}
+                >
                   <FestivalCard
                     event={occurrence.event}
                     dateKey={occurrence.dateKey}

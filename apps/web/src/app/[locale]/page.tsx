@@ -140,21 +140,21 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [
-    { events },
-    promotedParentEvents,
-    barPreviews,
-    eventCardLabels,
-    homeT,
-  ] = await Promise.all([
-    fetchPublicEventSet({ locale, from: today, to: null }),
-    fetchPublicPromotedParentEvents({ locale, from: today, to: null }),
-    fetchBarPreviews(locale),
-    getCardDateLabels(locale),
-    getTranslations({ locale, namespace: "HomePage" }),
-  ])
+  const [{ events }, parentEvents, barPreviews, eventCardLabels, homeT] =
+    await Promise.all([
+      fetchPublicEventSet({ locale, from: today, to: null }),
+      fetchPublicPromotedParentEvents({
+        locale,
+        from: today,
+        to: null,
+        promotedOnly: false,
+      }),
+      fetchBarPreviews(locale),
+      getCardDateLabels(locale),
+      getTranslations({ locale, namespace: "HomePage" }),
+    ])
   const initialNow = new Date().toISOString()
-  const promotedCandidates = [...promotedParentEvents, ...(events ?? [])]
+  const promotedCandidates = [...parentEvents, ...(events ?? [])]
     .filter(event => isPromotableEventKind(event.eventKind))
     .filter(event => event.isPromoted)
   const promotedEvents = selectHomepagePromotedEvents(promotedCandidates, today)
@@ -167,6 +167,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const upcomingEvents = filterToFirstInstances(
     (events ?? []).filter(event => !promotedEventIds.has(event._id)),
     featuredFestivalIds,
+    parentEvents.filter(event => event.eventKind === "festivalParent"),
   ).slice(0, 30)
 
   return (

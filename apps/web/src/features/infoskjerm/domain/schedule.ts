@@ -1,6 +1,5 @@
 import type { ImageFrame } from "@samfunnet/content-domain/image-frame"
-export const EVENTS_PER_PAGE = 4
-export const PAGE_DURATION_MS = 15_000
+export const EVENTS_PER_SCREEN = 4
 export const REFRESH_INTERVAL_MS = 60 * 60 * 1_000
 export const SCREEN_TIME_ZONE = "Europe/Oslo"
 
@@ -47,4 +46,28 @@ export type ScreenPromotion = {
 export function isScreenEventExpired(event: ScreenEvent, now: Date): boolean {
   const expiresAt = event.endsAt ?? event.startsAt
   return expiresAt !== null && Date.parse(expiresAt) <= now.getTime()
+}
+
+/**
+ * The screen shows a fixed number of events and moves through the day: the
+ * window starts at the first event that has not ended. Once every event is
+ * over, the last ones stay on screen, greyed out.
+ */
+export function selectScreenWindow(
+  events: readonly ScreenEvent[],
+  now: Date,
+  size: number,
+): { visibleEvents: ScreenEvent[]; laterCount: number } {
+  const firstActive = events.findIndex(
+    event => !isScreenEventExpired(event, now),
+  )
+  const start =
+    firstActive === -1
+      ? Math.max(0, events.length - size)
+      : Math.min(firstActive, Math.max(0, events.length - size))
+  const visibleEvents = events.slice(start, start + size)
+  return {
+    visibleEvents,
+    laterCount: events.length - start - visibleEvents.length,
+  }
 }
