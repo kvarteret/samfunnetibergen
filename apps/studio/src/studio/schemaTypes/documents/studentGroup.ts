@@ -19,6 +19,15 @@ export const STUDENT_GROUP_CATEGORIES = [
   { title: "Brukerorganisasjon (Borg)", value: "borg" },
 ]
 
+export const STUDENT_GROUP_APPLICATION_STATUSES = [
+  { title: "Tar imot søknader via søknadsskjema", value: "open" },
+  {
+    title: "Gruppen tar ikke imot søknader via søknadsskjema",
+    value: "external",
+  },
+  { title: "Gruppen er full for i år", value: "full" },
+]
+
 export const studentGroupLabelValue = defineField({
   name: "studentGroupLabelValue",
   title: "Etikett",
@@ -132,6 +141,19 @@ export const studentGroup = defineType({
       "internationalizedArrayPortableTextContent",
       { group: "identity" },
     ),
+    defineField({
+      name: "applicationStatus",
+      title: "Søknader",
+      description:
+        "Styrer om søknadsskjemaet vises på gruppesiden. Når skjemaet er stengt vises en melding i stedet.",
+      type: "string",
+      group: "identity",
+      initialValue: "open",
+      options: {
+        list: STUDENT_GROUP_APPLICATION_STATUSES,
+        layout: "radio",
+      },
+    }),
     defineField({
       name: "recruitmentLabel",
       title: "Rekrutteringskategori",

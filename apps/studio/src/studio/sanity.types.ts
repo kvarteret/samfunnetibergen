@@ -567,6 +567,7 @@ export type StudentGroup = {
   parentGroup?: StudentGroupReference
   localizedSummary: InternationalizedArrayText
   localizedBody?: InternationalizedArrayPortableTextContent
+  applicationStatus?: "open" | "external" | "full"
   recruitmentLabel?: string
   recruitmentLead?: string
   recruitmentSections?: Array<{

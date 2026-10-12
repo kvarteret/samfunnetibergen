@@ -534,6 +534,8 @@
     "quizContactAfter": "for å høre mer om hva som kan passe deg!"
   },
   "GroupVolunteerForm": {
+    "applicationsClosedExternal": "Denne gruppen tar ikke imot søknader via skjema, se beskrivelse.",
+    "applicationsClosedFull": "Denne gruppen er full for i år.",
     "title": "Bli frivillig",
     "selectSubGroup": "Velg hvilken gruppe du vil søke til:",
     "applyingTo": "Du søker til: {group}",

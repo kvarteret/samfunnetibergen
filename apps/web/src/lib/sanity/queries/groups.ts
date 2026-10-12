@@ -50,6 +50,7 @@ export const studentGroupBySlugQuery =
       "customLabel": coalesce(localizedCustomLabel[language == $locale && defined(value) && value != ""][0].value, localizedCustomLabel[language == "nb" && defined(value) && value != ""][0].value, customLabel)
     }, []),
     "category": coalesce(category, "arbeidsgruppe"),
+    "applicationStatus": coalesce(applicationStatus, "open"),
     "logoUrl": logo.asset->url,
     "parentGroup": parentGroup-> {
         "name": ${groupName},
@@ -60,6 +61,7 @@ export const studentGroupBySlugQuery =
         "slug": coalesce(slug.current, ""),
         "summary": ${groupSummary},
         "category": coalesce(category, "arbeidsgruppe"),
+        "applicationStatus": coalesce(applicationStatus, "open"),
         "image": image ${sourcedImageProjection}
     }, []),
     "image": image ${sourcedImageProjection}
