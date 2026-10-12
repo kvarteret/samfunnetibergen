@@ -15,6 +15,7 @@ not rewrite a decision, supersede it with a new ADR and update the status here.
 | [008](./008-durable-booking-submissions.md) | Durable booking submissions in Postgres | Deferred pending an evidence trigger |
 | [009](./009-public-events-api-and-feed-alignment.md) | One complete versioned events API | Accepted |
 | [010](./010-signed-volunteer-prospect-proxy-boundary.md) | Signed volunteer-prospect proxy boundary | Accepted |
+| [011](./011-event-schedule-contract-and-occurrence-identity.md) | Event schedule contract and durable occurrence identity | Proposed |
 
 Related durable docs live under `docs/how-to/` (procedures) and
 `docs/reference/` (contracts).
