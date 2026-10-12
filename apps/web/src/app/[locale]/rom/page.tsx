@@ -47,7 +47,6 @@ export async function generateMetadata({ params }: RoomsPageProps) {
   })
 }
 
-
 function QuestionsSection({ section }: { section: EditorialSection }) {
   return (
     <div className="space-y-3 panel max-w-2xl">
@@ -98,17 +97,13 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   const leietiderSection = content?.sections?.find(s => s.title === "Leietider")
 
-  const [
-    houseHours,
-    roomsPageContent,
-    termsPage,
-    cancellationPage,
-  ] = await Promise.all([
-    fetchHouseHours(locale),
-    fetchPublishedRoomsPageContent(locale),
-    fetchPageBySlug("leievilkaar", locale),
-    fetchPageBySlug("avbestillingsvilkar", locale),
-  ])
+  const [houseHours, roomsPageContent, termsPage, cancellationPage] =
+    await Promise.all([
+      fetchHouseHours(locale),
+      fetchPublishedRoomsPageContent(locale),
+      fetchPageBySlug("leievilkaar", locale),
+      fetchPageBySlug("avbestillingsvilkar", locale),
+    ])
 
   const questionsSection = roomsPageContent?.sections?.find(s =>
     ["Spørsmål og vilkår", "Questions and terms"].includes(s.title ?? ""),
@@ -137,7 +132,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             Book rom her
           </Button>
         </div>
-        
+
         <LeietiderSection
           className="lg:justify-self-end lg:[&>div]:h-full"
           section={leietiderSection}
@@ -210,8 +205,8 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
       </section>
       <div>
         {questionsSection?.body?.length ? (
-        <QuestionsSection section={questionsSection} />
-      ) : null}
+          <QuestionsSection section={questionsSection} />
+        ) : null}
       </div>
     </div>
   )
