@@ -55,7 +55,7 @@
     "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.7.0",
     "nanoid": "^6.0.1",
-    "next": "16.3.5",
+    "next": "16.3.8",
     "next-intl": "^4.9.0",
     "next-sanity": "^13.2.3",
     "partysocket": "^1.3.0",
@@ -74,12 +74,12 @@
     "zod": "^4.4.3"
   },
   "overrides": {
-    "fast-uri": "3.1.7",
+    "fast-uri": "3.1.8",
     "ws": "8.21.0",
     "qs": "6.16.0",
     "postcss": "8.5.18",
     "hono": "4.13.8",
-    "dompurify": "3.4.13",
+    "dompurify": "3.4.17",
     "ip-address": "10.7.2",
     "sharp": "0.35.4",
     "prismjs": "1.30.0",
