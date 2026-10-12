@@ -5,7 +5,10 @@ import { EventsPage as EventsPageContent } from "@/features/events"
 import { buildCardDateLabels } from "@/features/events/domain/dates"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
 import { getCardDateLabels } from "@/features/events/server/card-date-labels"
-import { fetchPublicEventSet } from "@/features/events/server/public-events"
+import {
+  fetchPublicEventSet,
+  fetchPublicPromotedParentEvents,
+} from "@/features/events/server/public-events"
 import type { AppLocale } from "@/i18n/routing"
 import {
   activateRequestLocale,
@@ -44,14 +47,24 @@ export default async function EventsPage({
   activateRequestLocale(locale)
   const today = getOsloDateString()
 
-  const [t, { events: fetchedArrangements }, cardT, cardLabels] =
+  const [t, { events: fetchedArrangements }, parentEvents, cardT, cardLabels] =
     await Promise.all([
       getTranslations({ locale, namespace: "EventsPage" }),
       fetchPublicEventSet({ locale, from: today, to: null }),
+      fetchPublicPromotedParentEvents({
+        locale,
+        from: today,
+        to: null,
+        promotedOnly: false,
+      }),
       getTranslations({ locale, namespace: "EventCard" }),
       getCardDateLabels(locale),
     ])
-  const arrangements = filterToFirstInstances(fetchedArrangements)
+  const arrangements = filterToFirstInstances(
+    fetchedArrangements,
+    undefined,
+    parentEvents.filter(event => event.eventKind === "festivalParent"),
+  )
 
   const precomputedDates = new Map<
     string,
@@ -59,11 +72,12 @@ export default async function EventsPage({
       resolvedDates: EventDateEntry[]
       recurringLabel: string | null
       primaryDateLabel: string | null
+      programmeLabel: string | null
       statusLabel: string | null
     }
   >()
   for (const event of arrangements) {
-    const { resolvedDates, primaryDateLabel, recurringLabel } =
+    const { resolvedDates, primaryDateLabel, recurringLabel, programmeLabel } =
       buildCardDateLabels(event, today, cardLabels)
     const statusLabel =
       event.eventStatus === "cancelled" ? cardT("statusCancelled") : null
@@ -71,6 +85,7 @@ export default async function EventsPage({
       resolvedDates,
       recurringLabel,
       primaryDateLabel,
+      programmeLabel,
       statusLabel,
     })
   }
