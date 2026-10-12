@@ -45,6 +45,7 @@ export type ServerMessage =
 export const HEALTH_PATH = "/health"
 
 // Generous, but small enough that nobody can push large frames through.
+export const MAX_PLAYER_NAME_LENGTH = 32
 export const MAX_MESSAGE_BYTES = 512
 export const MAX_PLAYERS_PER_ROOM = 40
 const MAX_REF = 5000
@@ -168,4 +169,121 @@ export function isAllowedOrigin(origin: string | null, allowed: string) {
       }
       return origin === entry
     })
+}
+
+// This room carries controller input only. The physical infoskjerm runs the
+// movement simulation; phones never send animal positions or platform IDs.
+export const INFOSCREEN_ROOM = "infoskjerm-central"
+export const NEUTRAL_INPUT: ScreenInput = {
+  left: false,
+  right: false,
+  heldJump: false,
+  jump: 0,
+  drop: 0,
+}
+export interface ScreenInput {
+  left: boolean
+  right: boolean
+  heldJump: boolean
+  // Counters preserve quick taps between network updates.
+  jump: number
+  drop: number
+}
+export interface ScreenPlayer {
+  id: string
+  mascot: Mascot
+  input: ScreenInput
+}
+export type ScreenClientMessage =
+  | { type: "screen" }
+  | { type: "join"; name: string; mascot: Mascot }
+  | { type: "input"; input: ScreenInput }
+export type ScreenServerMessage =
+  | { type: "players"; players: ScreenPlayer[] }
+  | { type: "input"; id: string; input: ScreenInput }
+  | { type: "joined" }
+  | { type: "screen-status"; available: boolean }
+
+function parseScreenInput(value: unknown): ScreenInput | null {
+  if (!isObject(value)) return null
+  const { left, right, heldJump, jump, drop } = value
+  if (
+    typeof left !== "boolean" ||
+    typeof right !== "boolean" ||
+    typeof heldJump !== "boolean"
+  )
+    return null
+  if (
+    !Number.isSafeInteger(jump) ||
+    !isFiniteBetween(jump, 0, Number.MAX_SAFE_INTEGER)
+  )
+    return null
+  if (
+    !Number.isSafeInteger(drop) ||
+    !isFiniteBetween(drop, 0, Number.MAX_SAFE_INTEGER)
+  )
+    return null
+  return { left, right, heldJump, jump: jump as number, drop: drop as number }
+}
+
+export function parseScreenClientMessage(
+  raw: unknown,
+): ScreenClientMessage | null {
+  if (typeof raw !== "string" || raw.length > MAX_MESSAGE_BYTES) return null
+  const value = parseJson(raw)
+  if (!isObject(value)) return null
+  if (value.type === "screen") return { type: "screen" }
+  if (value.type === "join") {
+    const { name, mascot } = value
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      name.length > MAX_PLAYER_NAME_LENGTH ||
+      Array.from(name).some(
+        char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
+      ) ||
+      !mascots.some(m => m === mascot)
+    )
+      return null
+    return { type: "join", name: name.trim(), mascot: mascot as Mascot }
+  }
+  if (value.type === "input") {
+    const input = parseScreenInput(value.input)
+    return input ? { type: "input", input } : null
+  }
+  return null
+}
+
+export function parseScreenServerMessage(
+  raw: unknown,
+): ScreenServerMessage | null {
+  const value = parseJson(raw)
+  if (!isObject(value)) return null
+  if (value.type === "joined") return { type: "joined" }
+  if (value.type === "screen-status" && typeof value.available === "boolean")
+    return { type: "screen-status", available: value.available }
+  if (value.type === "input" && isId(value.id)) {
+    const input = parseScreenInput(value.input)
+    return input ? { type: "input", id: value.id, input } : null
+  }
+  if (
+    value.type === "players" &&
+    Array.isArray(value.players) &&
+    value.players.length <= MAX_PLAYERS_PER_ROOM
+  ) {
+    const players = value.players.flatMap(player => {
+      if (
+        !isObject(player) ||
+        !isId(player.id) ||
+        !mascots.some(m => m === player.mascot)
+      )
+        return []
+      const input = parseScreenInput(player.input)
+      return input
+        ? [{ id: player.id, mascot: player.mascot as Mascot, input }]
+        : []
+    })
+    return { type: "players", players }
+  }
+  return null
 }

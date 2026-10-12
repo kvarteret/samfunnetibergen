@@ -4,6 +4,8 @@ import {
   isAllowedOrigin,
   type PlayerState,
   parseClientMessage,
+  parseScreenClientMessage,
+  parseScreenServerMessage,
   parseServerMessage,
   roomForPath,
 } from "./protocol"
@@ -112,5 +114,64 @@ describe("isAllowedOrigin", () => {
     expect(isAllowedOrigin("http://preview.example.dev", allowed)).toBe(false)
     expect(isAllowedOrigin("https://example.dev.evil.no", allowed)).toBe(false)
     expect(isAllowedOrigin("not a url", allowed)).toBe(false)
+  })
+})
+
+describe("central infoskjerm messages", () => {
+  it("accepts named joins and screen watchers, but rejects missing or oversized names", () => {
+    expect(
+      parseScreenClientMessage(
+        JSON.stringify({ type: "join", name: "Anna", mascot: "pingvin" }),
+      ),
+    ).toEqual({ type: "join", name: "Anna", mascot: "pingvin" })
+    expect(parseScreenClientMessage('{"type":"screen"}')).toEqual({
+      type: "screen",
+    })
+    for (const name of [undefined, "", "a".repeat(33), "a\nb"])
+      expect(
+        parseScreenClientMessage(
+          JSON.stringify({ type: "join", name, mascot: "pingvin" }),
+        ),
+      ).toBeNull()
+  })
+  it("validates simultaneous input and action counters", () => {
+    const input = { left: false, right: true, heldJump: true, jump: 2, drop: 0 }
+    expect(
+      parseScreenClientMessage(JSON.stringify({ type: "input", input })),
+    ).toEqual({ type: "input", input })
+    for (const bad of [
+      { ...input, left: 1 },
+      { ...input, jump: -1 },
+      { ...input, drop: 1.2 },
+    ])
+      expect(
+        parseScreenClientMessage(JSON.stringify({ type: "input", input: bad })),
+      ).toBeNull()
+    // Position updates cannot control the central display.
+    expect(
+      parseScreenClientMessage(JSON.stringify({ type: "move", state })),
+    ).toBeNull()
+  })
+  it("supports repeated animals as separate players without broadcasting names", () => {
+    const input = {
+      left: false,
+      right: false,
+      heldJump: false,
+      jump: 0,
+      drop: 0,
+    }
+    const players = [
+      { id: "a", mascot: "pingvin", name: "Anna", input },
+      { id: "b", mascot: "pingvin", name: "Anna", input },
+    ]
+    expect(
+      parseScreenServerMessage(JSON.stringify({ type: "players", players })),
+    ).toEqual({
+      type: "players",
+      players: players.map(({ name: _name, ...player }) => player),
+    })
+    expect(
+      parseScreenServerMessage('{"type":"screen-status","available":true}'),
+    ).toEqual({ type: "screen-status", available: true })
   })
 })
