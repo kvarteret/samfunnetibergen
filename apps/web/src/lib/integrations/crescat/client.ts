@@ -6,6 +6,14 @@ import type { CresatResult, EventRequestBody } from "./types"
 
 const BASE_URL = "https://app.crescat.io"
 
+// Without a timeout a hung Crescat call runs until the function limit. The
+// POST is longer because aborting after Crescat accepted the request makes the
+// outcome ambiguous: the user sees an error, retries, and Crescat gets the
+// request twice (it has no idempotency key). A timeout cannot remove that risk,
+// only bound how long the user waits for it.
+const SESSION_TIMEOUT_MS = 10_000
+const SUBMIT_TIMEOUT_MS = 20_000
+
 // These are the only public Crescat forms this server is allowed to contact.
 // Return complete constant URLs so request input can never influence the
 // outbound origin or path.
@@ -35,6 +43,7 @@ async function fetchXsrfSession(
   injectActiveTraceContext(headers)
   const res = await fetch(url, {
     headers,
+    signal: AbortSignal.timeout(SESSION_TIMEOUT_MS),
   })
 
   if (!res.ok) return null
@@ -94,6 +103,7 @@ export async function postEventRequest(
     method: "POST",
     headers,
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(SUBMIT_TIMEOUT_MS),
   })
 
   if (res.status === 201 || res.status === 200) {
