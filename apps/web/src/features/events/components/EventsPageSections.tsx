@@ -15,6 +15,7 @@ interface EventsPageSectionsProps {
       resolvedDates: EventDateEntry[]
       recurringLabel: string | null
       primaryDateLabel: string | null
+      programmeLabel: string | null
       statusLabel: string | null
     }
   >
@@ -50,6 +51,7 @@ function toEventSummary(
     resolvedDates: precomputed?.resolvedDates ?? dates,
     recurringLabel: precomputed?.recurringLabel ?? null,
     primaryDateLabel: precomputed?.primaryDateLabel ?? null,
+    programmeLabel: precomputed?.programmeLabel ?? null,
     statusLabel: precomputed?.statusLabel ?? null,
     isFree: event.isFree ?? undefined,
     isSoldOut: event.isSoldOut,

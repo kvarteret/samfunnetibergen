@@ -14,6 +14,7 @@ interface EventsPageProps {
       resolvedDates: EventDateEntry[]
       recurringLabel: string | null
       primaryDateLabel: string | null
+      programmeLabel: string | null
       statusLabel: string | null
     }
   >
