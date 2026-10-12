@@ -112,33 +112,41 @@ export function filterEvents<T extends FilterableEvent>(
  * Generated children are already ordered by their first future date at the
  * Sanity boundary, so preserving input order makes the first row the earliest
  * visible instance without changing the shared query used by other surfaces.
+ * A festival whose parent is in `festivalParents` shows as that parent card in
+ * the slot of its next session.
  */
 export function filterToFirstInstances(
   events: PublicEvent[],
   featuredFestivalIds: ReadonlySet<string> = new Set(),
+  festivalParents: readonly PublicEvent[] = [],
 ): PublicEvent[] {
   const seenParents = new Set<string>()
+  const parentsById = new Map(
+    festivalParents.map(parent => [parent._id, parent]),
+  )
 
-  return events.filter(event => {
+  return events.flatMap(event => {
     if (
       event.eventKind === "festivalSession" &&
       event.parentEvent &&
       featuredFestivalIds.has(event.parentEvent._id)
     ) {
-      return false
+      return []
     }
 
     const isMaterializedInstance =
       event.eventKind === "seriesInstance" ||
       event.eventKind === "festivalSession"
 
-    if (!isMaterializedInstance) return true
+    if (!isMaterializedInstance) return [event]
 
     const parentId = event.parentEvent?._id ?? event._id
-    if (seenParents.has(parentId)) return false
+    if (seenParents.has(parentId)) return []
 
     seenParents.add(parentId)
-    return true
+    const festivalParent =
+      event.eventKind === "festivalSession" && parentsById.get(parentId)
+    return [festivalParent || event]
   })
 }
 

@@ -75,6 +75,37 @@ describe("first materialized event instances", () => {
   })
 })
 
+describe("festival parent cards", () => {
+  it("replaces sessions with their parent at the next session's slot", () => {
+    const events = [
+      event("single-early", "single"),
+      event("biff-next", "festivalSession", "biff"),
+      event("single-late", "single"),
+      event("biff-later", "festivalSession", "biff"),
+    ]
+
+    expect(
+      filterToFirstInstances(events, new Set(), [
+        event("biff", "festivalParent"),
+      ]).map(item => item._id),
+    ).toEqual(["single-early", "biff", "single-late"])
+  })
+
+  it("drops featured festivals and keeps sessions without a fetched parent", () => {
+    const events = [
+      event("biff-next", "festivalSession", "biff"),
+      event("orphan", "festivalSession", "internal"),
+      event("series", "seriesInstance", "series"),
+    ]
+
+    expect(
+      filterToFirstInstances(events, new Set(["biff"]), [
+        event("biff", "festivalParent"),
+      ]).map(item => item._id),
+    ).toEqual(["orphan", "series"])
+  })
+})
+
 describe("co-organizers", () => {
   const samklang = { _id: "samklang", name: "Samklang" }
   const etjenesten = { _id: "e-tjenesten", name: "E-tjenesten" }

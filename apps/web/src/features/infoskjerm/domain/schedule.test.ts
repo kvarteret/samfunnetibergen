@@ -3,6 +3,7 @@ import {
   getScreenDate,
   isScreenEventExpired,
   type ScreenEvent,
+  selectScreenWindow,
 } from "./schedule"
 
 describe("the information screen's Oslo calendar date", () => {
@@ -39,5 +40,32 @@ describe("expired events", () => {
     expect(
       isScreenEventExpired({ ...event, startsAt: null, endsAt: null }, now),
     ).toBe(false)
+  })
+})
+
+describe("the screen's moving window", () => {
+  const events = ["a", "b", "c", "d"].map(
+    (id, index) =>
+      ({
+        id,
+        startsAt: null,
+        endsAt: `2026-10-01T1${index}:00:00Z`,
+      }) as ScreenEvent,
+  )
+  const ids = (now: string) =>
+    selectScreenWindow(events, new Date(now), 2).visibleEvents.map(e => e.id)
+
+  it("starts at the first event that has not ended", () => {
+    expect(ids("2026-10-01T09:00:00Z")).toEqual(["a", "b"])
+    expect(ids("2026-10-01T10:30:00Z")).toEqual(["b", "c"])
+    expect(
+      selectScreenWindow(events, new Date("2026-10-01T10:30:00Z"), 2)
+        .laterCount,
+    ).toBe(1)
+  })
+
+  it("keeps a full window at the end of the day", () => {
+    expect(ids("2026-10-01T12:30:00Z")).toEqual(["c", "d"])
+    expect(ids("2026-10-01T23:00:00Z")).toEqual(["c", "d"])
   })
 })

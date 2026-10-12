@@ -153,12 +153,16 @@ export const publicEventsQuery = defineQuery(`
         && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
     ] | order(dates[${PUBLIC_DATE_FILTER}][0].startDate asc, dates[${PUBLIC_DATE_FILTER}][0].startTime asc, _id asc) ${publicEventProjection}`)
 
-/** Promoted public parents used by the homepage feature surface. */
+/**
+ * Public parents with upcoming children. Promoted ones feed the homepage
+ * feature surface; with $promotedOnly false, festival parents also replace
+ * their sessions in the homepage event row.
+ */
 export const publicPromotedParentEventsQuery = defineQuery(`
     *[
         _type == "arrangement"
         && approvalStatus == "approved"
-        && isPromoted == true
+        && ($promotedOnly == false || isPromoted == true)
         && ${PARENT_EVENT_KINDS}
         && count(*[
           _type == "arrangement"

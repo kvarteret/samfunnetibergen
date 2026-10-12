@@ -15,6 +15,7 @@ import { resolvePublicEvent } from "../domain/events"
 import {
   festivalDate,
   groupFestivalProgramme,
+  isOccurrenceOver,
 } from "../domain/festival-programme"
 import {
   FestivalHero,
@@ -55,7 +56,7 @@ const labels: FestivalLabels = {
 }
 const event = (
   id: string,
-  dates: { startDate: string; startTime?: string }[],
+  dates: { startDate: string; startTime?: string; endTime?: string }[],
   status: "scheduled" | "cancelled" = "scheduled",
 ) =>
   resolvePublicEvent({
@@ -146,5 +147,27 @@ describe("festival programme", () => {
       ),
     ).toContain("Coming soon")
     expect(festivalDate("2026-10-15", "nb", true)).toBe("torsdag 15. oktober")
+  })
+
+  it("greys out screenings that are over", () => {
+    const now = new Date("2026-10-15T19:00:00Z") // 21:00 in Oslo
+    const days = groupFestivalProgramme([
+      event("yesterday", [{ startDate: "2026-10-14" }]),
+      event("ended", [
+        { startDate: "2026-10-15", startTime: "18:00", endTime: "20:00" },
+      ]),
+      event("running", [{ startDate: "2026-10-15", startTime: "20:00" }]),
+      event("later", [{ startDate: "2026-10-15", startTime: "22:00" }]),
+    ])
+    const over = days
+      .flatMap(day => day.occurrences)
+      .filter(({ schedule }) => isOccurrenceOver(schedule, now))
+      .map(({ event }) => event._id)
+    expect(over).toEqual(["yesterday", "ended"])
+
+    const html = renderToStaticMarkup(
+      <FestivalProgramme days={days} locale="en" labels={labels} now={now} />,
+    )
+    expect(html.match(/grayscale transition/g)).toHaveLength(2)
   })
 })

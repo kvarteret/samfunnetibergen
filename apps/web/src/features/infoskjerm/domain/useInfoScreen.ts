@@ -2,11 +2,11 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { watchScreenDeployment } from "./deployment"
 import {
-  EVENTS_PER_PAGE,
+  EVENTS_PER_SCREEN,
   getScreenDate,
-  PAGE_DURATION_MS,
   REFRESH_INTERVAL_MS,
   type ScreenEvent,
+  selectScreenWindow,
 } from "./schedule"
 
 export function useInfoScreen({
@@ -22,16 +22,10 @@ export function useInfoScreen({
 }) {
   const router = useRouter()
   const [now, setNow] = useState(() => new Date(initialNow))
-  const [page, setPage] = useState(0)
-  const eventsPerPage = hasPromotions ? 3 : EVENTS_PER_PAGE
-  const pageCount = Math.max(1, Math.ceil(events.length / eventsPerPage))
-  const currentPage = page % pageCount
-  const pageIds = events
-    .filter((_, index) => index % eventsPerPage === 0)
-    .map(event => event.id)
-  const visibleEvents = events.slice(
-    currentPage * eventsPerPage,
-    (currentPage + 1) * eventsPerPage,
+  const { visibleEvents, laterCount } = selectScreenWindow(
+    events,
+    now,
+    hasPromotions ? 3 : EVENTS_PER_SCREEN,
   )
 
   useEffect(
@@ -71,14 +65,5 @@ export function useInfoScreen({
     }
   }, [date, initialNow, router])
 
-  useEffect(() => {
-    if (pageCount <= 1) return
-    const rotation = window.setInterval(
-      () => setPage(page => (page + 1) % pageCount),
-      PAGE_DURATION_MS,
-    )
-    return () => window.clearInterval(rotation)
-  }, [pageCount])
-
-  return { now, currentPage, pageCount, pageIds, visibleEvents, eventsPerPage }
+  return { now, visibleEvents, laterCount }
 }
