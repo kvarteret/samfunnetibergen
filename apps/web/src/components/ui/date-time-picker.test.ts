@@ -79,7 +79,6 @@ describe("computeMultiDayConstraints", () => {
       "2026-06-23",
       1,
       DAYTIME_HOURS,
-      null,
       [],
     )
 
@@ -92,7 +91,6 @@ describe("computeMultiDayConstraints", () => {
       "2026-06-23",
       3,
       DAYTIME_HOURS,
-      null,
       [],
     )
 
@@ -109,13 +107,9 @@ describe("computeMultiDayConstraints", () => {
   test("skips closed days so first/last entries are the open days", () => {
     // Day 1 (the middle day) is a house-closed date; constraints should still
     // anchor to days 0 and 2 and not crash on the empty middle day.
-    const result = computeMultiDayConstraints(
-      "2026-06-23",
-      3,
-      DAYTIME_HOURS,
-      null,
-      [{ date: "2026-06-24" }],
-    )
+    const result = computeMultiDayConstraints("2026-06-23", 3, DAYTIME_HOURS, [
+      { date: "2026-06-24" },
+    ])
 
     expect(result.firstDayStartIdx).toBe(12)
     expect(result.lastDayEndIdx).toBe(70)
@@ -123,13 +117,7 @@ describe("computeMultiDayConstraints", () => {
 
   test("extends the final day's get-out past midnight, get-in stays clamped", () => {
     // 2-day booking, each day open 18:00–03:00. Hourly grid → index = d*24 + h.
-    const result = computeMultiDayConstraints(
-      "2026-06-23",
-      2,
-      NIGHT_HOURS,
-      null,
-      [],
-    )
+    const result = computeMultiDayConstraints("2026-06-23", 2, NIGHT_HOURS, [])
 
     // Day 0 get-in: 18:00 (index 18). Get-out (first-day end) clamped to 23:00
     // so get-in never crosses into the next calendar day.
@@ -145,7 +133,7 @@ describe("computeMultiDayConstraints", () => {
 
 describe("multiDayMarks", () => {
   test("uniform full grid when no day closes past midnight", () => {
-    const marks = multiDayMarks("2026-06-23", 2, DAYTIME_HOURS, null, [])
+    const marks = multiDayMarks("2026-06-23", 2, DAYTIME_HOURS, [])
 
     expect(marks).toHaveLength(2 * 24)
     expect(marks.every((value, index) => value === index * 60)).toBe(true)
@@ -154,7 +142,7 @@ describe("multiDayMarks", () => {
   test("appends the final day's post-midnight slots so get-out can reach them", () => {
     // Last day closes 03:00 → append 00:00,01:00,02:00,03:00 of the morning
     // after (indices 48–51), preserving value === index * 60.
-    const marks = multiDayMarks("2026-06-23", 2, NIGHT_HOURS, null, [])
+    const marks = multiDayMarks("2026-06-23", 2, NIGHT_HOURS, [])
 
     expect(marks).toHaveLength(2 * 24 + 4)
     expect(marks.every((value, index) => value === index * 60)).toBe(true)

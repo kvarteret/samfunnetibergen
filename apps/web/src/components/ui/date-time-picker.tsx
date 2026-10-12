@@ -28,11 +28,11 @@ import {
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
-  combineOpeningRangesForDate,
   hasOpeningHoursRows,
   isHouseClosed,
   minutesToTime,
   type OpeningHours,
+  openingRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
 import { timeToMinutes } from "@/lib/time"
@@ -49,38 +49,29 @@ const SLOTS_PER_DAY = 24
 function slotMarks(
   date: string,
   hours: OpeningHours | null,
-  roomHours: OpeningHours | null,
   closed: ClosedDate[],
   vacationMode?: VacationMode | null,
   stepMin = SLOT_STEP_MIN,
 ): number[] {
   const marks = new Set<number>()
-  for (const range of combineOpeningRangesForDate(
-    date,
-    hours,
-    roomHours,
-    closed,
-    vacationMode,
-  )) {
+  for (const range of openingRangesForDate(date, hours, closed, vacationMode)) {
     for (let m = range.startMin; m <= range.endMin; m += stepMin) marks.add(m)
   }
   return Array.from(marks).toSorted((a, b) => a - b)
 }
 
-/** Latest closing minute (from its own midnight) across a day's combined
- * opening ranges; may exceed 1440 when the room closes after midnight.
+/** Latest closing minute (from its own midnight) across a day's bookable
+ * ranges; may exceed 1440 when the house closes after midnight.
  * 0 when the day has no opening hours (closed or unconfigured). */
 function dayClosingMinute(
   date: string,
   openingHours: OpeningHours | null,
-  roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
   vacationMode?: VacationMode | null,
 ): number {
-  const ranges = combineOpeningRangesForDate(
+  const ranges = openingRangesForDate(
     date,
     openingHours,
-    roomOpeningHours,
     closedDates,
     vacationMode,
   )
@@ -98,7 +89,6 @@ export function multiDayMarks(
   startDate: string,
   dayCount: number,
   openingHours: OpeningHours | null,
-  roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
   vacationMode?: VacationMode | null,
 ): number[] {
@@ -108,7 +98,6 @@ export function multiDayMarks(
   const lastClose = dayClosingMinute(
     lastDate,
     openingHours,
-    roomOpeningHours,
     closedDates,
     vacationMode,
   )
@@ -141,7 +130,6 @@ export function computeMultiDayConstraints(
   startDate: string,
   dayCount: number,
   openingHours: OpeningHours | null,
-  roomOpeningHours: OpeningHours | null,
   closedDates: ClosedDate[],
   vacationMode?: VacationMode | null,
 ): MultiDayConstraints {
@@ -150,10 +138,9 @@ export function computeMultiDayConstraints(
   const dayIndices: { start: number; end: number }[] = []
   for (let d = 0; d < dayCount; d++) {
     const date = addDays(parseISO(startDate), d)
-    const ranges = combineOpeningRangesForDate(
+    const ranges = openingRangesForDate(
       toDateString(date),
       openingHours,
-      roomOpeningHours,
       closedDates,
       vacationMode,
     )
@@ -217,7 +204,6 @@ interface DateTimePickerProps {
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
   openingHours: OpeningHours | null
-  roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   timingWarning?: ReactNode
@@ -237,7 +223,6 @@ export function DateTimePicker({
   onStartChange,
   onEndChange,
   openingHours,
-  roomOpeningHours,
   closedDates,
   vacationMode,
   timingWarning,
@@ -252,8 +237,7 @@ export function DateTimePicker({
   const todayDate = new Date(`${today}T00:00:00`)
 
   const closedDateSet = new Set(closedDates.map(d => d.date))
-  const hasHours =
-    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+  const hasHours = hasOpeningHoursRows(openingHours)
 
   const selectedRange: DateRange = {
     from: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
@@ -326,13 +310,7 @@ export function DateTimePicker({
       calendarBookings,
       date,
       hasHours
-        ? combineOpeningRangesForDate(
-            date,
-            openingHours,
-            roomOpeningHours,
-            closedDates,
-            vacationMode,
-          )
+        ? openingRangesForDate(date, openingHours, closedDates, vacationMode)
         : [{ startMin: 0, endMin: MINUTES_IN_DAY }],
     )
   }
@@ -343,8 +321,7 @@ export function DateTimePicker({
       return true
     return (
       hasHours &&
-      slotMarks(ds, openingHours, roomOpeningHours, closedDates, vacationMode)
-        .length === 0
+      slotMarks(ds, openingHours, closedDates, vacationMode).length === 0
     )
   }
 
@@ -406,13 +383,7 @@ export function DateTimePicker({
     if (!fitCache.has(key)) {
       const ranges = (day: string) =>
         hasHours
-          ? combineOpeningRangesForDate(
-              day,
-              openingHours,
-              roomOpeningHours,
-              closedDates,
-              vacationMode,
-            )
+          ? openingRangesForDate(day, openingHours, closedDates, vacationMode)
           : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
       fitCache.set(
         key,
@@ -441,7 +412,6 @@ export function DateTimePicker({
           todayDate,
           hasHours,
           openingHours,
-          roomOpeningHours,
           closedDates,
           vacationMode,
           calendarLocale,
@@ -667,7 +637,6 @@ export function DateTimePicker({
               endDate={endDate}
               occupiedRanges={occupiedRanges}
               openingHours={openingHours}
-              roomOpeningHours={roomOpeningHours}
               closedDates={closedDates}
               vacationMode={vacationMode}
               startTime={startTime}
@@ -712,7 +681,6 @@ interface BookingCalendarContextValue {
   todayDate: Date
   hasHours: boolean
   openingHours: OpeningHours | null
-  roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   calendarLocale: typeof nb
@@ -743,7 +711,6 @@ function BookingCalendarDayButton({
     todayDate,
     hasHours,
     openingHours,
-    roomOpeningHours,
     closedDates,
     vacationMode,
     calendarLocale,
@@ -768,13 +735,7 @@ function BookingCalendarDayButton({
   const completedEnd = selectionComplete && Boolean(mods.range_end)
   const dateString = toDateString(day.date)
   const dayRanges = hasHours
-    ? combineOpeningRangesForDate(
-        dateString,
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-        vacationMode,
-      )
+    ? openingRangesForDate(dateString, openingHours, closedDates, vacationMode)
     : [{ startMin: 0, endMin: MINUTES_IN_DAY }]
   const dayBookings = Array.from(
     new Set(
@@ -863,7 +824,6 @@ interface TimeSlotsProps {
   endDate: string
   occupiedRanges: { startMin: number; endMin: number }[]
   openingHours: OpeningHours | null
-  roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   startTime: string
@@ -895,7 +855,6 @@ function TimeSlots({
   endDate,
   occupiedRanges,
   openingHours,
-  roomOpeningHours,
   closedDates,
   vacationMode,
   startTime,
@@ -905,8 +864,7 @@ function TimeSlots({
   timingWarning,
 }: TimeSlotsProps) {
   const t = useTranslations("RoomBooking")
-  const hasHours =
-    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+  const hasHours = hasOpeningHoursRows(openingHours)
 
   const dayCount = endDate
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
@@ -914,22 +872,16 @@ function TimeSlots({
 
   // Multi-day rides an hourly grid (extended past midnight on the final day to
   // its real close); single-day uses the day's actual slots.
-  const openingMarks = endDate
-    ? multiDayMarks(
-        startDate,
-        dayCount,
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-        vacationMode,
-      )
-    : slotMarks(
-        startDate,
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-        vacationMode,
-      )
+  const openingMarks =
+    dayCount > 1
+      ? multiDayMarks(
+          startDate,
+          dayCount,
+          openingHours,
+          closedDates,
+          vacationMode,
+        )
+      : slotMarks(startDate, openingHours, closedDates, vacationMode)
 
   if (openingMarks.length < 2 && hasHours) {
     return (
@@ -954,7 +906,6 @@ function TimeSlots({
         startDate,
         dayCount,
         openingHours,
-        roomOpeningHours,
         closedDates,
         vacationMode,
       )
@@ -1051,7 +1002,6 @@ interface BookingEventTimesProps {
   doorsTimes: string[]
   estimatedEndTimes: string[]
   openingHours: OpeningHours | null
-  roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   onDoorsChange: (dayIndex: number, value: string) => void
@@ -1074,7 +1024,6 @@ export function BookingEventTimes({
   doorsTimes,
   estimatedEndTimes,
   openingHours,
-  roomOpeningHours,
   closedDates,
   vacationMode,
   onDoorsChange,
@@ -1086,24 +1035,17 @@ export function BookingEventTimes({
   const dayCount = endDate
     ? differenceInCalendarDays(parseISO(endDate), parseISO(startDate)) + 1
     : 1
-  const openingMarks = endDate
-    ? multiDayMarks(
-        startDate,
-        dayCount,
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-        vacationMode,
-      )
-    : slotMarks(
-        startDate,
-        openingHours,
-        roomOpeningHours,
-        closedDates,
-        vacationMode,
-      )
-  const hasHours =
-    hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
+  const openingMarks =
+    dayCount > 1
+      ? multiDayMarks(
+          startDate,
+          dayCount,
+          openingHours,
+          closedDates,
+          vacationMode,
+        )
+      : slotMarks(startDate, openingHours, closedDates, vacationMode)
+  const hasHours = hasOpeningHoursRows(openingHours)
 
   if (openingMarks.length < 2 && hasHours) return null
 

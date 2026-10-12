@@ -25,8 +25,8 @@ import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   type ClosedDate,
   hasOpeningHoursRows,
+  isBookingWindowAllowed,
   isoDate,
-  isSlotAllowedForCombinedHours,
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
@@ -44,7 +44,6 @@ import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
 import {
   availabilityWindow,
-  durationHoursBetween,
   findRoomConflicts,
   occupiedMinuteRanges,
 } from "../domain/availability"
@@ -241,10 +240,6 @@ export function BookingForm({
     typeof errorMap.onServer === "string" ? errorMap.onServer : undefined
   const bookerType = values.bookerType
 
-  const selectedRooms = rooms.filter(room =>
-    values.selectedRoomIds.includes(room.crescatRoomId),
-  )
-
   useEffect(() => {
     let active = true
     fetchBookableRoomsForBooker(bookerType).then(next => {
@@ -284,7 +279,6 @@ export function BookingForm({
   }, [bookerType, availabilityStart, availabilityEnd])
 
   const selectedRoomIds = values.selectedRoomIds
-  const primaryRoom = selectedRooms[0]
 
   const roomOccupancy = new Map<number, string[]>()
   if (values.startDate && values.startTime && values.endTime) {
@@ -312,28 +306,22 @@ export function BookingForm({
     values.endDate,
   )
 
-  const slotWithinHours = (() => {
-    const hasConfiguredHours =
-      hasOpeningHoursRows(bookableHours) ||
-      hasOpeningHoursRows(primaryRoom?.openingHours ?? null)
-    if (
-      !hasConfiguredHours ||
-      !values.startDate ||
-      !values.startTime ||
-      !values.endTime
-    ) {
-      return !hasConfiguredHours
-    }
-    return isSlotAllowedForCombinedHours(
+  // Rooms are bookable whenever the house is, so only the house's bookable
+  // hours (minus closed dates and vacation) constrain the window.
+  const slotWithinHours =
+    !hasOpeningHoursRows(bookableHours) ||
+    !values.startDate ||
+    !values.startTime ||
+    !values.endTime ||
+    isBookingWindowAllowed(
       values.startDate,
       values.startTime,
-      durationHoursBetween(values.startTime, values.endTime),
+      values.endDate,
+      values.endTime,
       bookableHours,
-      primaryRoom?.openingHours ?? null,
       closedDates,
       vacationMode,
     )
-  })()
 
   const schemaIssues = getFormValidationIssues(
     errorMap.onChange,
@@ -443,6 +431,7 @@ export function BookingForm({
             )}
             onVisibleMonthChange={setVisibleMonth}
             openingHours={bookableHours}
+            slotWithinHours={slotWithinHours}
             today={today}
             closedDates={closedDates}
             vacationMode={vacationMode}
@@ -465,7 +454,6 @@ export function BookingForm({
                 eventNameError={errorFor(fieldIds.eventName)}
                 eventNameId={fieldIds.eventName}
                 openingHours={bookableHours}
-                roomOpeningHours={primaryRoom?.openingHours ?? null}
                 vacationMode={vacationMode}
               />
               <BookingFormTicketSection
@@ -517,14 +505,6 @@ export function BookingForm({
               />
 
               <section className="space-y-4 border-t-2 border-border pt-8">
-                {!slotWithinHours && values.startDate && (
-                  <Alert className="max-w-3xl" variant="destructive">
-                    <AlertTitle>{t("form.outsideHours")}</AlertTitle>
-                    <AlertDescription>
-                      {t("form.outsideHoursDescription")}
-                    </AlertDescription>
-                  </Alert>
-                )}
                 <Button
                   className="w-full sm:w-auto"
                   disabled={isSubmitting}
@@ -585,8 +565,8 @@ export function BookingForm({
           <form.Subscribe selector={s => s.values}>
             {values => (
               <BookingFormOrderSummary
+                bookableHours={bookableHours}
                 closedDates={closedDates}
-                openingHours={bookableHours}
                 vacationMode={vacationMode}
                 rooms={rooms}
                 selectedRoomIds={values.selectedRoomIds}
