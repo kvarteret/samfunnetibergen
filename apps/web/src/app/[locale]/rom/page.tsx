@@ -11,16 +11,19 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import type { RoomSummary, SourcedImage } from "@/lib/sanity/fetch"
-import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
+import { PortableTextContent } from "@/lib/portable-text-components"
+import type {
+  EditorialSection,
+  RoomSummary,
+  SourcedImage,
+} from "@/lib/sanity/fetch"
 import {
   fetchHouseHours,
   fetchPageBySlug,
   fetchPublishedRoomsPageContent,
+  fetchRooms,
+  fetchRoomsPageContent,
 } from "@/lib/sanity/fetch"
-
-import { PortableTextContent } from "@/lib/portable-text-components"
-import type { EditorialSection } from "@/lib/sanity/fetch"
 
 export const revalidate = 300
 
@@ -97,7 +100,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   const leietiderSection = content?.sections?.find(s => s.title === "Leietider")
 
-  const [houseHours, roomsPageContent, termsPage, cancellationPage] =
+  const [_houseHours, roomsPageContent, _termsPage, _cancellationPage] =
     await Promise.all([
       fetchHouseHours(locale),
       fetchPublishedRoomsPageContent(locale),
