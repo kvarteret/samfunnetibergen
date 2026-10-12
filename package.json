@@ -14,6 +14,7 @@
     "dev": "npm run dev:web",
     "dev:web": "npm --workspace @samfunnet/web run dev",
     "dev:studio": "npm --workspace @samfunnet/studio run dev",
+    "dev:party": "npm --workspace @samfunnet/party run dev",
     "build": "npm run build:web && npm run build:studio",
     "build:web": "npm --workspace @samfunnet/web run build",
     "build:studio": "npm --workspace @samfunnet/studio run build",
@@ -32,15 +33,17 @@
     "sanity:audit": "npm --workspace @samfunnet/studio run sanity:audit",
     "crescat:introspect": "npm --workspace @samfunnet/web run crescat:introspect",
     "crescat:cleanup": "npm --workspace @samfunnet/web run crescat:cleanup",
-    "typecheck": "npm run typecheck:web && npm run typecheck:studio && npm run typecheck:domain",
+    "typecheck": "npm run typecheck:web && npm run typecheck:studio && npm run typecheck:domain && npm run typecheck:party",
     "typecheck:web": "npm --workspace @samfunnet/web run typecheck",
     "typecheck:studio": "npm --workspace @samfunnet/studio run typecheck",
     "typecheck:domain": "npm --workspace @samfunnet/content-domain run typecheck",
+    "typecheck:party": "npm --workspace @samfunnet/party run typecheck",
     "route-typegen": "npm --workspace @samfunnet/web run route-typegen",
-    "test": "npm run test:web && npm run test:studio && npm run test:domain",
+    "test": "npm run test:web && npm run test:studio && npm run test:domain && npm run test:party",
     "test:web": "npm --workspace @samfunnet/web run test",
     "test:studio": "npm --workspace @samfunnet/studio run test",
     "test:domain": "npm --workspace @samfunnet/content-domain run test",
+    "test:party": "npm --workspace @samfunnet/party run test",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
     "lint": "npx --no-install biome check .",
@@ -79,7 +82,9 @@
     "@posthog/cli@0.16.2": true,
     "@swc/core@1.16.2": true,
     "core-js@3.50.0": true,
+    "esbuild@0.28.1": true,
     "esbuild@0.28.2": true,
-    "fsevents@2.3.3": true
+    "fsevents@2.3.3": true,
+    "workerd@1.20260926.1": true
   }
 }

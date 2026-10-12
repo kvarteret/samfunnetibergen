@@ -1,12 +1,26 @@
 "use client"
 
-import { type ReactNode, useEffect, useRef } from "react"
+import type { PlayerState } from "@samfunnet/party/protocol"
+import { usePathname } from "next/navigation"
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+} from "react"
 
 import {
   type PartyMascot,
   type PartySettings,
   usePartySettings,
 } from "@/lib/party-mode"
+import {
+  type Playground,
+  playerHue,
+  type RemotePlayer,
+  usePlayground,
+} from "./playground"
 
 // Elements the critters can stand on. Anything with a visible top edge works,
 // these just give a good spread of ledges across every page.
@@ -82,6 +96,9 @@ interface Critter {
   vy: number
   grounded: boolean
   platform: Element | null
+  // The ledge it last left, null for the floor. Other players see a critter
+  // in the air relative to it.
+  lastPlatform: Element | null
   // Platform the critter is dropping through, ignored until it is clear.
   dropping: Element | null
   facing: 1 | -1
@@ -121,8 +138,19 @@ function replay(el: HTMLElement, attribute: string, value = "") {
 
 export function PartyMode() {
   const settings = usePartySettings()
+  const pathname = usePathname()
+  const { players, playground } = usePlayground(
+    settings.enabled && settings.multiplayer,
+    pathname,
+  )
   if (!settings.enabled) return null
-  return <PartyCritters settings={settings} />
+  return (
+    <PartyCritters
+      players={players}
+      playground={playground}
+      settings={settings}
+    />
+  )
 }
 
 interface PartyCrittersProps {
@@ -133,22 +161,35 @@ interface PartyCrittersProps {
   // "rare": one every few minutes. "once": a single one shortly after the
   // critters appear. "off": none.
   mushrooms?: "rare" | "once" | "off"
+  // Other visitors' mascots on the same page, see "Spill med andre".
+  players?: RemotePlayer[]
+  playground?: RefObject<Playground>
 }
+
+const NO_PLAYERS: RemotePlayer[] = []
 
 export function PartyCritters({
   settings,
   stage,
   mushrooms: mushroomMode = "rare",
+  players = NO_PLAYERS,
+  playground,
 }: PartyCrittersProps) {
   const refs = useRef<(HTMLDivElement | null)[]>([])
   const leashRefs = useRef<(SVGPathElement | null)[]>([])
   const postRefs = useRef<(SVGRectElement | null)[]>([])
   const mushroomLayerRef = useRef<HTMLDivElement>(null)
+  const remoteRefs = useRef(new Map<string, HTMLDivElement>())
   const settingsRef = useRef(settings)
+  const playgroundRef = useRef(playground)
 
   useEffect(() => {
     settingsRef.current = settings
   }, [settings])
+
+  useEffect(() => {
+    playgroundRef.current = playground
+  }, [playground])
 
   useEffect(() => {
     const stageEl = stage ? document.querySelector(stage) : null
@@ -185,6 +226,7 @@ export function PartyCritters({
           vy: 0,
           grounded: false,
           platform: null,
+          lastPlatform: null,
           dropping: null,
           facing: index === 0 ? 1 : -1,
           airJumps: 0,
@@ -203,6 +245,11 @@ export function PartyCritters({
     const heightOf = (critter: Critter) => critter.spec.height * size(critter)
 
     let candidates: Element[] = []
+    // Ledges every visitor's page renders in the same order, which positions
+    // are shared against. Our own critters and the navbar are left out, since
+    // they differ between visitors.
+    let landmarks: Element[] = []
+    let landmarkIndex = new Map<Element, number>()
     let candidatesAt = 0
     let platforms: Platform[] = []
     // Ledges above this are hidden: behind the sticky navbar on the site, or
@@ -226,6 +273,10 @@ export function PartyCritters({
           (stageEl ?? document).querySelectorAll(PLATFORM_SELECTOR),
         )
         candidatesAt = now
+        landmarks = candidates.filter(
+          el => !el.closest("header, .party-critters"),
+        )
+        landmarkIndex = new Map(landmarks.map((el, i) => [el, i]))
       }
       const area = bounds()
       // On a stage, leave headroom so a critter on the top ledge stays inside.
@@ -267,6 +318,7 @@ export function PartyCritters({
     })
 
     const leave = (critter: Critter) => {
+      critter.lastPlatform = critter.platform
       critter.grounded = false
       critter.platform = null
     }
@@ -652,6 +704,96 @@ export function PartyCritters({
       if (critter.growth === 1) resize(critter, GROWN_SCALE, now)
     }
 
+    // Where our steered critter is, in terms another visitor's page can
+    // place: relative to a shared ledge, or to the bottom of the viewport.
+    const share = (critter: Critter): PlayerState => {
+      const ref = critter.grounded ? critter.platform : critter.lastPlatform
+      const index = ref?.isConnected ? landmarkIndex.get(ref) : undefined
+      const rect =
+        ref && index !== undefined ? ref.getBoundingClientRect() : null
+      const area = bounds()
+      const left = rect?.left ?? area.left
+      const width = rect?.width ?? area.width
+      const top = rect?.top ?? area.bottom
+      return {
+        mascot: critter.spec.name,
+        ref: rect ? (index ?? -1) : -1,
+        fx: Math.min(2, Math.max(-1, (critter.x - left) / Math.max(width, 1))),
+        dy: Math.min(4000, Math.max(-4000, critter.y - top)),
+        facing: critter.facing,
+        pose: critter.pose,
+        growth: critter.growth,
+      }
+    }
+
+    const place = (state: PlayerState) => {
+      const area = bounds()
+      if (state.ref === -1) {
+        return {
+          x: area.left + state.fx * area.width,
+          y: area.bottom + state.dy,
+        }
+      }
+      const el = landmarks[state.ref]
+      if (!el?.isConnected) return null
+      const rect = el.getBoundingClientRect()
+      return { x: rect.left + state.fx * rect.width, y: rect.top + state.dy }
+    }
+
+    // Other players ease toward their latest reported spot, which arrives
+    // a few times less often than we draw.
+    const shown = new Map<string, { x: number; y: number; growth: number }>()
+    const drawPlayers = (dt: number) => {
+      const states = playgroundRef.current?.current.states
+      const area = bounds()
+      for (const [id, el] of remoteRefs.current) {
+        const state = states?.get(id)
+        const target = state ? place(state) : null
+        if (
+          !state ||
+          !target ||
+          target.y < ceiling ||
+          target.y > area.bottom + 40
+        ) {
+          el.style.display = "none"
+          shown.delete(id)
+          continue
+        }
+        let spot = shown.get(id)
+        const far =
+          spot && Math.hypot(target.x - spot.x, target.y - spot.y) > 400
+        if (!spot || far) {
+          spot = { ...target, growth: state.growth }
+          shown.set(id, spot)
+        } else {
+          const ease = Math.min(1, dt * 14)
+          spot.x += (target.x - spot.x) * ease
+          spot.y += (target.y - spot.y) * ease
+        }
+        if (spot.growth !== state.growth) {
+          replay(el, "grow", state.growth > spot.growth ? "up" : "down")
+          spot.growth = state.growth
+        }
+        const spec = specFor(state.mascot)
+        el.style.display = ""
+        el.style.setProperty("--party-base", String(k))
+        el.style.setProperty("--party-scale", String(k * state.growth))
+        el.style.transform = `translate3d(${spot.x - spec.width / 2}px, ${
+          spot.y - spec.height
+        }px, 0)`
+        el.dataset.pose = state.pose
+        el.dataset.facing = state.facing === 1 ? "right" : "left"
+      }
+    }
+
+    const publish = () => {
+      const current = playgroundRef.current?.current
+      if (!current) return
+      const { control } = settingsRef.current
+      const mine = critters.find(c => c.spec.name === control)
+      current.publish(mine && !stageEl ? share(mine) : null)
+    }
+
     let frame = 0
     let last = performance.now()
     const tick = (now: number) => {
@@ -660,6 +802,8 @@ export function PartyCritters({
       collectPlatforms(now)
       updateMushrooms(now)
       for (const critter of critters) step(critter, dt, now)
+      drawPlayers(dt)
+      publish()
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -756,6 +900,36 @@ export function PartyCritters({
         ))}
       </svg>
       <div ref={mushroomLayerRef} />
+      {players.map(player => {
+        const spec = specFor(player.mascot)
+        return (
+          <div
+            className="party-critter"
+            data-critter={spec.name}
+            data-party-critter
+            data-pose="air"
+            data-remote
+            key={player.id}
+            ref={el => {
+              if (!el) return
+              remoteRefs.current.set(player.id, el)
+              return () => {
+                remoteRefs.current.delete(player.id)
+              }
+            }}
+            style={
+              {
+                width: spec.width,
+                height: spec.height,
+                display: "none",
+                "--party-player-hue": playerHue(player.id),
+              } as CSSProperties
+            }
+          >
+            <div className="party-critter-body">{spec.sprite}</div>
+          </div>
+        )
+      })}
       {CRITTERS.map((critter, index) => (
         <div
           className="party-critter"
@@ -927,3 +1101,6 @@ const CRITTERS: CritterSpec[] = [
     sprite: <Hedgehog />,
   },
 ]
+
+const specFor = (mascot: PartyMascot) =>
+  CRITTERS.find(spec => spec.name === mascot) ?? CRITTERS[0]

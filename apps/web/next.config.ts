@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: [
     "@samfunnet/content-domain",
+    "@samfunnet/party",
     "sanity",
     "next-sanity",
     "@sanity/vision",

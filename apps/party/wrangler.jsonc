@@ -1,0 +1,14 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "samfunnet-lekeplass",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://samfunnetibergen.no,https://www.samfunnetibergen.no,http://localhost:3187"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "Lekeplass", "class_name": "Lekeplass" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Lekeplass"] }],
+  "observability": { "enabled": true }
+}
