@@ -11,10 +11,23 @@ import {
   resolvePageLocale,
 } from "@/lib/app-locale"
 import { buildPageMetadata } from "@/lib/page-metadata"
-import type { RoomSummary, SourcedImage } from "@/lib/sanity/fetch"
-import { fetchRooms, fetchRoomsPageContent } from "@/lib/sanity/fetch"
+import { PortableTextContent } from "@/lib/portable-text-components"
+import type {
+  EditorialSection,
+  RoomSummary,
+  SourcedImage,
+} from "@/lib/sanity/fetch"
+import {
+  fetchHouseHours,
+  fetchPageBySlug,
+  fetchPublishedRoomsPageContent,
+  fetchRooms,
+  fetchRoomsPageContent,
+} from "@/lib/sanity/fetch"
 
 export const revalidate = 300
+
+const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
 
 export function generateStaticParams() {
   return getLocaleStaticParams()
@@ -37,7 +50,20 @@ export async function generateMetadata({ params }: RoomsPageProps) {
   })
 }
 
-const imageUrl = (image: SourcedImage | null | undefined) => image?.assetUrl
+function QuestionsSection({ section }: { section: EditorialSection }) {
+  return (
+    <div className="space-y-3 panel max-w-2xl">
+      {section.title ? (
+        <h2 className="font-heading text-xl leading-tight text-foreground">
+          {section.title}
+        </h2>
+      ) : null}
+      <div>
+        <PortableTextContent value={section.body} />
+      </div>
+    </div>
+  )
+}
 
 function RoomImage({
   image,
@@ -75,6 +101,18 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
 
   const leietiderSection = content?.sections?.find(s => s.title === "Leietider")
 
+  const [_houseHours, roomsPageContent, _termsPage, _cancellationPage] =
+    await Promise.all([
+      fetchHouseHours(locale),
+      fetchPublishedRoomsPageContent(locale),
+      fetchPageBySlug("leievilkaar", locale),
+      fetchPageBySlug("avbestillingsvilkar", locale),
+    ])
+
+  const questionsSection = roomsPageContent?.sections?.find(s =>
+    ["Spørsmål og vilkår", "Questions and terms"].includes(s.title ?? ""),
+  )
+
   return (
     <div className="space-y-16">
       <Breadcrumbs path="/rom" />
@@ -98,6 +136,7 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
             Book rom her
           </Button>
         </div>
+
         <LeietiderSection
           className="lg:justify-self-end lg:[&>div]:h-full"
           section={leietiderSection}
@@ -168,6 +207,11 @@ export default async function RoomsPage({ params }: RoomsPageProps) {
           })}
         </div>
       </section>
+      <div>
+        {questionsSection?.body?.length ? (
+          <QuestionsSection section={questionsSection} />
+        ) : null}
+      </div>
     </div>
   )
 }
