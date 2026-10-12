@@ -135,11 +135,15 @@ export function parseServerMessage(raw: unknown): ServerMessage | null {
 // One room per page. Room names travel in the URL path, so the pathname is
 // flattened to a short, URL-safe slug.
 export function roomForPath(pathname: string) {
-  const slug = pathname
+  // Runs collapse to a single dash, so trimming needs no second regex, and
+  // the input is capped first so a hostile path cannot cost much.
+  let slug = pathname
+    .slice(0, 512)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 96)
+  if (slug.startsWith("-")) slug = slug.slice(1)
+  slug = slug.slice(0, 96)
+  if (slug.endsWith("-")) slug = slug.slice(0, -1)
   return slug || "forside"
 }
 

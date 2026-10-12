@@ -90,6 +90,9 @@ describe("roomForPath", () => {
     expect(roomForPath("/en/arrangementer/Quiz%20Night")).toBe(
       "en-arrangementer-quiz-20night",
     )
+    expect(roomForPath("///")).toBe("forside")
+    expect(roomForPath(`/a${"-".repeat(200)}/`)).toBe("a")
+    expect(roomForPath(`/${"b".repeat(95)}/c`)).toBe("b".repeat(95))
   })
 })
 
