@@ -599,6 +599,7 @@ export type StudentGroup = {
     crop?: SanityImageCrop
     _type: "image"
   }
+  hideName?: boolean
   localizedLabels?: InternationalizedArrayStudentGroupLabelValue
   image?: SourcedImage
   orderRank?: string

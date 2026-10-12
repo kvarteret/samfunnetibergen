@@ -23,6 +23,7 @@ export const studentGroupsQuery =
     "category": coalesce(category, "arbeidsgruppe"),
     "labels": ${groupLabels},
     "logoUrl": logo.asset->url,
+    "hideName": coalesce(hideName, false),
     "image": image ${sourcedImageProjection},
     "subGroups": coalesce(*[_type == "studentGroup" && parentGroup._ref == ^._id] | order(orderRank asc, ${groupName} asc) {
         "name": ${groupName},
@@ -52,6 +53,7 @@ export const studentGroupBySlugQuery =
     "category": coalesce(category, "arbeidsgruppe"),
     "applicationStatus": coalesce(applicationStatus, "open"),
     "logoUrl": logo.asset->url,
+    "hideName": coalesce(hideName, false),
     "parentGroup": parentGroup-> {
         "name": ${groupName},
         "slug": coalesce(slug.current, "")
