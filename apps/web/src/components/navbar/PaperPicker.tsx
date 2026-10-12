@@ -224,11 +224,9 @@ function PartyModeChoice({ className }: { className?: string }) {
                 />
                 {t("partyMultiplayer")}
               </label>
-              {party.multiplayer && (
+              {party.multiplayer && !party.control && (
                 <p className="text-foreground-muted text-sm">
-                  {party.control
-                    ? t("partyMultiplayerHint")
-                    : t("partyMultiplayerJoin")}
+                  {t("partyMultiplayerJoin")}
                 </p>
               )}
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import type { PlayerState } from "@samfunnet/party/protocol"
+import type { PlayerState, ScreenPlayer } from "@samfunnet/party/protocol"
 import { usePathname } from "next/navigation"
 import {
   type CSSProperties,
@@ -16,12 +16,18 @@ import {
   usePartySettings,
 } from "@/lib/party-mode"
 import {
+  createPartyInput,
+  type ReceivedInput,
+  readScreenControls,
+} from "./input"
+import {
   markPlaygroundFailed,
   type Playground,
   playerHue,
   type RemotePlayer,
   usePlayground,
 } from "./playground"
+import { TouchControls } from "./TouchControls"
 
 // Elements the critters can stand on. Anything with a visible top edge works,
 // these just give a good spread of ledges across every page.
@@ -86,6 +92,9 @@ interface Anchor {
 
 interface Critter {
   spec: CritterSpec
+  playerId?: string
+  lastJump: number
+  lastDrop: number
   el: HTMLDivElement
   leash: SVGPathElement | null
   post: SVGRectElement | null
@@ -165,6 +174,9 @@ interface PartyCrittersProps {
   // Other visitors' mascots on the same page, see "Spill med andre".
   players?: RemotePlayer[]
   playground?: RefObject<Playground>
+  screenPlayers?: ScreenPlayer[]
+  screenInputs?: RefObject<Map<string, ReceivedInput>>
+  ambient?: boolean
 }
 
 const NO_PLAYERS: RemotePlayer[] = []
@@ -175,18 +187,30 @@ export function PartyCritters({
   mushrooms: mushroomMode = "rare",
   players = NO_PLAYERS,
   playground,
+  screenPlayers = [],
+  screenInputs,
+  ambient = true,
 }: PartyCrittersProps) {
+  const mushroomModeRef = useRef(mushroomMode)
+  mushroomModeRef.current = mushroomMode
+  const input = useRef(createPartyInput()).current
+  const centralRefs = useRef(new Map<string, HTMLDivElement>())
+  const screenInputsRef = useRef(screenInputs)
+  screenInputsRef.current = screenInputs
   const refs = useRef<(HTMLDivElement | null)[]>([])
   const leashRefs = useRef<(SVGPathElement | null)[]>([])
   const postRefs = useRef<(SVGRectElement | null)[]>([])
   const mushroomLayerRef = useRef<HTMLDivElement>(null)
   const remoteRefs = useRef(new Map<string, HTMLDivElement>())
+  const ambientRef = useRef(ambient)
+  ambientRef.current = ambient
   const settingsRef = useRef(settings)
   const playgroundRef = useRef(playground)
 
   useEffect(() => {
+    if (settingsRef.current.control !== settings.control) input.clear()
     settingsRef.current = settings
-  }, [settings])
+  }, [settings, input])
 
   useEffect(() => {
     playgroundRef.current = playground
@@ -208,37 +232,63 @@ export function PartyCritters({
       }
     const floor = () => bounds().bottom
 
-    const critters: Critter[] = CRITTERS.flatMap((spec, index) => {
-      const el = refs.current[index]
-      if (!el) return []
+    const makeCritter = (
+      spec: CritterSpec,
+      el: HTMLDivElement,
+      index: number,
+    ): Critter => {
       const { left, width, top } = bounds()
       el.style.setProperty("--party-base", String(k))
       el.style.setProperty("--party-scale", String(k))
-      return [
-        {
-          spec,
-          el,
-          leash: leashRefs.current[index] ?? null,
-          post: postRefs.current[index] ?? null,
-          tether: null,
-          x: left + width * (index === 0 ? 0.25 : 0.75),
-          y: top - spec.height * k,
-          vx: 0,
-          vy: 0,
-          grounded: false,
-          platform: null,
-          lastPlatform: null,
-          dropping: null,
-          facing: index === 0 ? 1 : -1,
-          airJumps: 0,
-          pose: "air",
-          nextActionAt: 0,
-          growth: 1,
-          grownUntil: 0,
-          frozenUntil: 0,
-        },
-      ]
+      return {
+        spec,
+        el,
+        lastJump: 0,
+        lastDrop: 0,
+        leash: null,
+        post: null,
+        tether: null,
+        x: left + width * (0.2 + (index % 7) * 0.1),
+        y: top - spec.height * k,
+        vx: 0,
+        vy: 0,
+        grounded: false,
+        platform: null,
+        lastPlatform: null,
+        dropping: null,
+        facing: index % 2 === 0 ? 1 : -1,
+        airJumps: 0,
+        pose: "air",
+        nextActionAt: 0,
+        growth: 1,
+        grownUntil: 0,
+        frozenUntil: 0,
+      }
+    }
+    const critters: Critter[] = CRITTERS.flatMap((spec, index) => {
+      const el = refs.current[index]
+      if (!el) return []
+      const critter = makeCritter(spec, el, index)
+      critter.leash = leashRefs.current[index] ?? null
+      critter.post = postRefs.current[index] ?? null
+      return [critter]
     })
+    const centralCritters = new Map<string, Critter>()
+    const syncCentralCritters = () => {
+      for (const id of centralCritters.keys()) {
+        if (!centralRefs.current.has(id)) centralCritters.delete(id)
+      }
+      for (const [id, el] of centralRefs.current) {
+        if (centralCritters.has(id)) continue
+        const spec = specFor(el.dataset.critter as PartyMascot)
+        const critter = makeCritter(spec, el, centralCritters.size)
+        critter.playerId = id
+        const received = screenInputsRef.current?.current.get(id)
+        critter.lastJump = received?.input.jump ?? 0
+        critter.lastDrop = received?.input.drop ?? 0
+        centralCritters.set(id, critter)
+      }
+    }
 
     const size = (critter: Critter) => k * critter.growth
     const halfWidthOf = (critter: Critter) =>
@@ -256,15 +306,13 @@ export function PartyCritters({
     // Ledges above this are hidden: behind the sticky navbar on the site, or
     // outside the stage.
     let ceiling = 24
-    const keys = new Set<string>()
-    let jumpQueued = false
-    let dropQueued = false
     const mushrooms: Mushroom[] = []
+    let currentMushroomMode = mushroomModeRef.current
     let nextMushroomAt =
-      mushroomMode === "off"
+      currentMushroomMode === "off"
         ? Number.POSITIVE_INFINITY
         : performance.now() +
-          (mushroomMode === "once"
+          (currentMushroomMode === "once"
             ? random(10_000, 30_000)
             : random(30_000, 90_000))
 
@@ -275,7 +323,7 @@ export function PartyCritters({
         )
         candidatesAt = now
         landmarks = candidates.filter(
-          el => !el.closest("header, .party-critters"),
+          el => !el.closest("header, .party-critters, [data-party-controls]"),
         )
         landmarkIndex = new Map(landmarks.map((el, i) => [el, i]))
       }
@@ -290,8 +338,8 @@ export function PartyCritters({
           )
       // The site's navbar is excluded; it sits on top of the critters.
       const excluded = stageEl
-        ? "[data-party-critter]"
-        : "header, [data-party-critter]"
+        ? "[data-party-critter], [data-party-controls]"
+        : "header, [data-party-critter], [data-party-controls]"
       platforms = []
       for (const el of candidates) {
         if (el.closest(excluded)) continue
@@ -404,8 +452,25 @@ export function PartyCritters({
       critter.vx = 0
     }
 
-    const steer = (critter: Critter) => {
-      const direction = (keys.has("right") ? 1 : 0) - (keys.has("left") ? 1 : 0)
+    const controlsFor = (critter: Critter, now: number) => {
+      if (!critter.playerId)
+        return {
+          left: input.held("left"),
+          right: input.held("right"),
+          heldJump: input.held("jump"),
+          jumpQueued: input.consume("jump"),
+          dropQueued: input.consume("drop"),
+        }
+      const received = screenInputsRef.current?.current.get(critter.playerId)
+      return readScreenControls(received, critter, now)
+    }
+
+    const steer = (
+      critter: Critter,
+      controls: ReturnType<typeof controlsFor>,
+    ) => {
+      const { jumpQueued, dropQueued } = controls
+      const direction = (controls.right ? 1 : 0) - (controls.left ? 1 : 0)
       if (critter.grounded) {
         critter.vx = direction * CONTROL_SPEED * k
         if (jumpQueued) {
@@ -424,8 +489,6 @@ export function PartyCritters({
           replay(critter.el, "flip")
         }
       }
-      jumpQueued = false
-      dropQueued = false
     }
 
     // A taut leash keeps the critter within reach of its post.
@@ -464,10 +527,12 @@ export function PartyCritters({
       const halfWidth = halfWidthOf(critter)
       const area = bounds()
       const { control, leash } = settingsRef.current
-      const controlled = control === critter.spec.name
+      const controlled =
+        Boolean(critter.playerId) || control === critter.spec.name
       const frozen = now < critter.frozenUntil
+      const controls = controlled && !frozen ? controlsFor(critter, now) : null
 
-      if (!leash) critter.tether = null
+      if (!leash || critter.playerId) critter.tether = null
       else if (!critter.tether && critter.grounded) tieUp(critter)
       const tied = critter.tether !== null
 
@@ -476,7 +541,7 @@ export function PartyCritters({
       }
 
       if (frozen) critter.vx = 0
-      else if (controlled) steer(critter)
+      else if (controls) steer(critter, controls)
       else if (tied && critter.grounded) critter.vx = 0
       else if (critter.grounded) wander(critter, now)
 
@@ -510,7 +575,7 @@ export function PartyCritters({
         }
       } else {
         const previousY = critter.y
-        const floaty = controlled && critter.vy < 0 && keys.has("jump")
+        const floaty = controlled && critter.vy < 0 && controls?.heldJump
         critter.vy += gravity * (floaty ? HELD_JUMP_GRAVITY : 1) * dt
         critter.x += critter.vx * dt
         critter.y += critter.vy * dt
@@ -620,9 +685,15 @@ export function PartyCritters({
       if (!layer) return
       const area = bounds()
       const margin = MUSHROOM_WIDTH * k
-      const walker = critters.find(c => c.grounded && !c.tether)
+      const walker = [
+        ...critters.filter(
+          c =>
+            ambientRef.current || settingsRef.current.control === c.spec.name,
+        ),
+        ...centralCritters.values(),
+      ].find(c => c.grounded && !c.tether)
       let anchor: Anchor
-      if (walker && (mushroomMode === "once" || Math.random() < 0.7)) {
+      if (walker && (currentMushroomMode === "once" || Math.random() < 0.7)) {
         const rect = walker.platform?.getBoundingClientRect()
         const left = (rect?.left ?? area.left) + margin
         const right = (rect?.right ?? area.right) - margin
@@ -663,10 +734,22 @@ export function PartyCritters({
     }
 
     const updateMushrooms = (now: number) => {
+      if (currentMushroomMode !== mushroomModeRef.current) {
+        currentMushroomMode = mushroomModeRef.current
+        nextMushroomAt =
+          currentMushroomMode === "off"
+            ? Number.POSITIVE_INFINITY
+            : now +
+              (currentMushroomMode === "once"
+                ? random(10_000, 30_000)
+                : random(30_000, 90_000))
+        if (currentMushroomMode === "off")
+          for (const mushroom of [...mushrooms]) removeMushroom(mushroom)
+      }
       if (now >= nextMushroomAt) {
         if (mushrooms.length < MAX_MUSHROOMS) spawnMushroom()
         nextMushroomAt =
-          mushroomMode === "once"
+          currentMushroomMode === "once"
             ? Number.POSITIVE_INFINITY
             : now + random(...MUSHROOM_INTERVAL)
       }
@@ -802,7 +885,15 @@ export function PartyCritters({
       last = now
       collectPlatforms(now)
       updateMushrooms(now)
-      for (const critter of critters) step(critter, dt, now)
+      syncCentralCritters()
+      for (const critter of [
+        ...critters.filter(
+          c =>
+            ambientRef.current || settingsRef.current.control === c.spec.name,
+        ),
+        ...centralCritters.values(),
+      ])
+        step(critter, dt, now)
       // Multiplayer must never take the local critters down with it.
       try {
         drawPlayers(dt)
@@ -836,21 +927,15 @@ export function PartyCritters({
 
       event.preventDefault()
       if (event.repeat) return
-      if (action === "jump") {
-        jumpQueued = true
-        keys.add("jump")
-      } else if (action === "drop") dropQueued = true
-      else keys.add(action)
+      input.press(`key:${event.key}`, action)
     }
 
-    const onKeyUp = (event: KeyboardEvent) => {
-      const action = keyFor(event.key)
-      if (action === "left" || action === "right" || action === "jump") {
-        keys.delete(action)
-      }
+    const onKeyUp = (event: KeyboardEvent) => input.release(`key:${event.key}`)
+    const onBlur = () => input.clear()
+    const onVisibility = () => {
+      if (document.hidden) input.clear()
     }
-
-    const onBlur = () => keys.clear()
+    document.addEventListener("visibilitychange", onVisibility)
 
     window.addEventListener("keydown", onKeyDown)
     window.addEventListener("keyup", onKeyUp)
@@ -875,6 +960,8 @@ export function PartyCritters({
     })
 
     return () => {
+      input.clear()
+      document.removeEventListener("visibilitychange", onVisibility)
       cancelAnimationFrame(frame)
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("keyup", onKeyUp)
@@ -882,76 +969,116 @@ export function PartyCritters({
       for (const cleanup of cleanups) cleanup()
       for (const mushroom of mushrooms) mushroom.node.remove()
     }
-  }, [stage, mushroomMode])
+  }, [stage, input])
 
   return (
-    <div aria-hidden className="party-critters">
-      <svg aria-hidden className="party-leashes">
+    <>
+      <div aria-hidden className="party-critters">
+        <svg aria-hidden className="party-leashes">
+          {CRITTERS.map((critter, index) => (
+            <g key={critter.name}>
+              <rect
+                className="party-post"
+                ref={el => {
+                  postRefs.current[index] = el
+                }}
+                rx="1.5"
+                style={{ display: "none" }}
+              />
+              <path
+                className="party-leash"
+                ref={el => {
+                  leashRefs.current[index] = el
+                }}
+              />
+            </g>
+          ))}
+        </svg>
+        <div ref={mushroomLayerRef} />
+        {players.map(player => {
+          const spec = specFor(player.mascot)
+          return (
+            <div
+              className="party-critter"
+              data-critter={spec.name}
+              data-party-critter
+              data-pose="air"
+              data-remote
+              key={player.id}
+              ref={el => {
+                if (!el) return
+                remoteRefs.current.set(player.id, el)
+                return () => {
+                  remoteRefs.current.delete(player.id)
+                }
+              }}
+              style={
+                {
+                  width: spec.width,
+                  height: spec.height,
+                  display: "none",
+                  "--party-player-hue": playerHue(player.id),
+                } as CSSProperties
+              }
+            >
+              <div className="party-critter-body">{spec.sprite}</div>
+            </div>
+          )
+        })}
+        {screenPlayers.map(player => {
+          const spec = specFor(player.mascot)
+          return (
+            <div
+              className="party-critter"
+              data-critter={spec.name}
+              data-party-critter
+              data-player={player.id}
+              data-pose="air"
+              key={player.id}
+              ref={el => {
+                if (!el) return
+                centralRefs.current.set(player.id, el)
+                return () => {
+                  centralRefs.current.delete(player.id)
+                }
+              }}
+              style={{ width: spec.width, height: spec.height }}
+            >
+              <div className="party-critter-body">{spec.sprite}</div>
+            </div>
+          )
+        })}
         {CRITTERS.map((critter, index) => (
-          <g key={critter.name}>
-            <rect
-              className="party-post"
-              ref={el => {
-                postRefs.current[index] = el
-              }}
-              rx="1.5"
-              style={{ display: "none" }}
-            />
-            <path
-              className="party-leash"
-              ref={el => {
-                leashRefs.current[index] = el
-              }}
-            />
-          </g>
-        ))}
-      </svg>
-      <div ref={mushroomLayerRef} />
-      {players.map(player => {
-        const spec = specFor(player.mascot)
-        return (
           <div
             className="party-critter"
-            data-critter={spec.name}
+            data-critter={critter.name}
             data-party-critter
             data-pose="air"
-            data-remote
-            key={player.id}
+            key={critter.name}
             ref={el => {
-              if (!el) return
-              remoteRefs.current.set(player.id, el)
-              return () => {
-                remoteRefs.current.delete(player.id)
-              }
+              refs.current[index] = el
             }}
-            style={
-              {
-                width: spec.width,
-                height: spec.height,
-                display: "none",
-                "--party-player-hue": playerHue(player.id),
-              } as CSSProperties
-            }
+            style={{
+              width: critter.width,
+              height: critter.height,
+              display:
+                ambient || settings.control === critter.name ? "" : "none",
+            }}
           >
-            <div className="party-critter-body">{spec.sprite}</div>
+            <div className="party-critter-body">{critter.sprite}</div>
           </div>
-        )
-      })}
-      {CRITTERS.map((critter, index) => (
-        <div
-          className="party-critter"
-          data-critter={critter.name}
-          data-party-critter
-          data-pose="air"
-          key={critter.name}
-          ref={el => {
-            refs.current[index] = el
-          }}
-          style={{ width: critter.width, height: critter.height }}
-        >
-          <div className="party-critter-body">{critter.sprite}</div>
-        </div>
-      ))}
+        ))}
+      </div>
+      {settings.control && <TouchControls input={input} />}
+    </>
+  )
+}
+
+export function PartyAnimal({ mascot }: { mascot: PartyMascot }) {
+  const spec = specFor(mascot)
+  return (
+    <div aria-hidden style={{ width: spec.width * 2, height: spec.height * 2 }}>
+      {spec.sprite}
     </div>
   )
 }

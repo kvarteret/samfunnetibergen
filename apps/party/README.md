@@ -30,3 +30,27 @@ Then set `NEXT_PUBLIC_PARTY_HOST` on the website (for example
 `samfunnet-lekeplass.<account>.workers.dev`, or a custom domain) and redeploy
 it. The "Spill med andre" option only appears when that variable is set.
 `ALLOWED_ORIGINS` in `wrangler.jsonc` lists the origins that may connect.
+
+## Central infoskjerm controls
+
+Open `/infoskjerm` on the physical display. Open `/infoskjerm?player=Anna` on
+one or more phones to join. Each connection gets a random penguin or hedgehog;
+names are internal and never displayed or included in the screen roster.
+Repeated names and animals still create separate players. The controller shows
+the assigned animal and touch arrows, with WASD and arrow-key support too.
+Hold ↑ for a higher jump, tap it again for a double jump, and use ↓ to drop
+through a ledge.
+
+The dedicated `infoskjerm-central` room relays button inputs. The physical
+screen runs movement, ledge collisions and power-ups. Controllers cannot send
+positions into that room. Multiple physical screens receive the same inputs
+and run their own scenes. Losing controller input for a second releases held
+buttons; disconnecting removes the animal. Player animals stay visible outside
+the ambient mascot schedule.
+
+Production requires `NEXT_PUBLIC_PARTY_HOST` and the
+`partymodus-spill-med-andre` PostHog flag enabled for the `infoskjerm` distinct
+ID. The existing `/api/infoskjerm/party` endpoint evaluates this flag separately
+from `infoskjerm-maskoter`, without initializing browser analytics. Local
+development skips the multiplayer flag. Deploy both the Worker and website
+for this protocol extension.

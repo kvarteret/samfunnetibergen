@@ -965,3 +965,57 @@
     rotate: 360deg;
   }
 }
+
+.party-touch-controls {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.party-touch-controls button {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px solid var(--color-foreground);
+  border-radius: 0.75rem;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-size: 1.75rem;
+  font-weight: 700;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-touch-controls button:active {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.party-touch-controls button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.party-screen-controller {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 6rem;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  text-align: center;
+}
+
+.party-screen-controller .party-touch-controls {
+  z-index: 51;
+}

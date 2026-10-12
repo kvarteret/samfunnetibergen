@@ -2,13 +2,22 @@ import { type Connection, routePartykitRequest, Server } from "partyserver"
 
 import {
   HEALTH_PATH,
+  INFOSCREEN_ROOM,
   isAllowedOrigin,
   MAX_PLAYERS_PER_ROOM,
+  NEUTRAL_INPUT,
   type Player,
   type PlayerState,
   parseClientMessage,
+  parseScreenClientMessage,
+  type ScreenPlayer,
+  type ScreenServerMessage,
   type ServerMessage,
 } from "./protocol"
+
+type ScreenConnectionState =
+  | { role: "screen" }
+  | { role: "controller"; name: string; player: ScreenPlayer }
 
 interface Env {
   Lekeplass: DurableObjectNamespace<Lekeplass>
@@ -38,6 +47,11 @@ export class Lekeplass extends Server<Env> {
   }
 
   onConnect(connection: Connection<PlayerState>) {
+    if (this.name === INFOSCREEN_ROOM) {
+      if (Array.from(this.getConnections()).length > MAX_PLAYERS_PER_ROOM)
+        connection.close(1013, "Lekeplassen er full")
+      return
+    }
     const players: Player[] = []
     let count = 0
     for (const other of this.getConnections<PlayerState>()) {
@@ -55,6 +69,13 @@ export class Lekeplass extends Server<Env> {
 
   onMessage(connection: Connection<PlayerState>, raw: string | ArrayBuffer) {
     if (!this.#allow(connection.id)) return
+    if (this.name === INFOSCREEN_ROOM) {
+      this.#screenMessage(
+        connection as unknown as Connection<ScreenConnectionState>,
+        raw,
+      )
+      return
+    }
     const message = parseClientMessage(raw)
     if (!message) return
     if (message.type === "rest") {
@@ -71,6 +92,10 @@ export class Lekeplass extends Server<Env> {
 
   onClose(connection: Connection<PlayerState>) {
     this.#window.delete(connection.id)
+    if (this.name === INFOSCREEN_ROOM) {
+      this.#screenRoster(connection.id)
+      return
+    }
     if (connection.state) {
       this.#broadcast({ type: "leave", id: connection.id }, [connection.id])
     }
@@ -78,6 +103,73 @@ export class Lekeplass extends Server<Env> {
 
   onError(connection: Connection<PlayerState>) {
     this.onClose(connection)
+  }
+
+  #screenSend(connection: Connection, message: ScreenServerMessage) {
+    connection.send(JSON.stringify(message))
+  }
+
+  #screenRoster(exclude?: string) {
+    const connections = Array.from(
+      this.getConnections<ScreenConnectionState>(),
+    ).filter(c => c.id !== exclude)
+    const players = connections.flatMap(c =>
+      c.state?.role === "controller" ? [c.state.player] : [],
+    )
+    const available = connections.some(c => c.state?.role === "screen")
+    for (const connection of connections) {
+      if (connection.state?.role === "screen")
+        this.#screenSend(connection, { type: "players", players })
+      if (connection.state?.role === "controller")
+        this.#screenSend(connection, { type: "screen-status", available })
+    }
+  }
+
+  #screenMessage(
+    connection: Connection<ScreenConnectionState>,
+    raw: string | ArrayBuffer,
+  ) {
+    const message = parseScreenClientMessage(raw)
+    if (!message) return
+    if (message.type === "screen" && !connection.state) {
+      connection.setState({ role: "screen" })
+      this.#screenRoster()
+    } else if (message.type === "join" && !connection.state) {
+      connection.setState({
+        role: "controller",
+        name: message.name,
+        player: {
+          id: connection.id,
+          mascot: message.mascot,
+          input: { ...NEUTRAL_INPUT },
+        },
+      })
+      this.#screenSend(connection, { type: "joined" })
+      this.#screenRoster()
+    } else if (
+      message.type === "input" &&
+      connection.state?.role === "controller"
+    ) {
+      const state = connection.state
+      // Counters may only advance; a replay cannot manufacture more jumps.
+      if (
+        message.input.jump < state.player.input.jump ||
+        message.input.drop < state.player.input.drop
+      )
+        return
+      connection.setState({
+        ...state,
+        player: { ...state.player, input: message.input },
+      })
+      for (const screen of this.getConnections<ScreenConnectionState>()) {
+        if (screen.state?.role === "screen")
+          this.#screenSend(screen, {
+            type: "input",
+            id: connection.id,
+            input: message.input,
+          })
+      }
+    }
   }
 
   #allow(id: string) {

@@ -8,7 +8,12 @@ vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: () => ({ evaluateFlags: evaluateFlagsMock }),
 }))
 
-import { GET, resetInfoscreenPartyFlagCache } from "./route"
+import {
+  GET,
+  INFOSCREEN_MULTIPLAYER_FLAG,
+  INFOSCREEN_PARTY_FLAG,
+  resetInfoscreenPartyFlagCache,
+} from "./route"
 
 async function readEnabled() {
   const response = await GET()
@@ -53,5 +58,17 @@ describe("GET /api/infoskjerm/party", () => {
     await readEnabled()
     await readEnabled()
     expect(evaluateFlagsMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+it("evaluates central multiplayer separately from the ambient mascot flag", async () => {
+  resetInfoscreenPartyFlagCache()
+  evaluateFlagsMock.mockResolvedValue({
+    isEnabled: (key: string) => key === INFOSCREEN_MULTIPLAYER_FLAG,
+  })
+  const response = await GET()
+  expect(await response.json()).toEqual({ enabled: false, multiplayer: true })
+  expect(evaluateFlagsMock).toHaveBeenCalledWith("infoskjerm", {
+    flagKeys: [INFOSCREEN_PARTY_FLAG, INFOSCREEN_MULTIPLAYER_FLAG],
   })
 })
