@@ -1,6 +1,7 @@
 import { createHash, createHmac, randomUUID } from "node:crypto"
 import { z } from "zod"
 import type { EventRequestBody } from "@/lib/integrations/crescat/types"
+import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 
 const PATH = "/api/v1/booking-requests"
 const receiptSchema = z.object({
@@ -49,9 +50,8 @@ export function bookingAuthHeaders(
 export async function storeBookingRequest(
   snapshot: BookingSnapshot,
 ): Promise<string> {
-  const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
-  if (!secret || secret.length < 32)
-    throw new Error("Booking storage is not configured")
+  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  if (!secret) throw new Error("Booking storage is not configured")
   const baseUrl = new URL(
     process.env.PERSONAL_APP_BASE_URL?.trim() ||
       "https://personal.samfunnetibergen.no",
@@ -125,8 +125,8 @@ export async function fetchBookingEventPrefill(
   submissionId: string,
 ): Promise<BookingEventPrefill | null> {
   try {
-    const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
-    if (!secret || secret.length < 32) return null
+    const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+    if (!secret) return null
     const baseUrl = new URL(
       process.env.PERSONAL_APP_BASE_URL?.trim() ||
         "https://personal.kvarteret.no",

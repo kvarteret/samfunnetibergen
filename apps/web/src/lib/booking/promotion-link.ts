@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { z } from "zod"
+import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import { resolveSiteUrl } from "@/lib/site-url"
 
 const LIFETIME_MS = 90 * 24 * 60 * 60 * 1000
@@ -56,8 +57,8 @@ export function createBookingPromotionLink(
   submissionId: string,
   locale = "nb",
 ) {
-  const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
-  if (!secret || secret.length < 32) return null
+  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  if (!secret) return null
   const url = new URL("/api/booking/promotion", resolveSiteUrl())
   url.searchParams.set(
     "token",

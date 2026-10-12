@@ -417,10 +417,7 @@ test("waits for the storage receipt before Crescat and keeps capture on Crescat 
 })
 
 test("includes the personalized prefill link in the Crescat POST after durable storage", async () => {
-  vi.stubEnv(
-    "VOLUNTEER_PROSPECT_HMAC_SECRET",
-    "0123456789abcdef0123456789abcdef",
-  )
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "0123456789abcdef0123456789abcdef")
   vi.stubEnv("SITE_URL", "https://www.samfunnetibergen.no")
   const receiptId = "123e4567-e89b-42d3-a456-426614174001"
   vi.mocked(storeBookingRequest).mockResolvedValueOnce(receiptId)
@@ -451,7 +448,7 @@ test("includes the personalized prefill link in the Crescat POST after durable s
     expect(
       verifyPromotionLink(
         link.searchParams.get("token") ?? "",
-        process.env.VOLUNTEER_PROSPECT_HMAC_SECRET ?? "",
+        process.env.PERSONAL_SIGNING_SECRET ?? "",
       ),
     ).toMatchObject({
       receiptId,

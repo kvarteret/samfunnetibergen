@@ -93,7 +93,7 @@ function volunteerRequest(
 
 describe("POST /api/volunteer-prospects", () => {
   beforeEach(() => {
-    process.env.VOLUNTEER_PROSPECT_HMAC_SECRET = HMAC_SECRET
+    process.env.PERSONAL_SIGNING_SECRET = HMAC_SECRET
     process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET = CLIENT_KEY_SECRET
     captureMock.mockReset()
     emitOperationalEventMock.mockReset()
@@ -286,7 +286,7 @@ describe("POST /api/volunteer-prospects", () => {
   })
 
   it("fails closed when the HMAC secret is missing", async () => {
-    delete process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
+    delete process.env.PERSONAL_SIGNING_SECRET
 
     const response = await POST(volunteerRequest())
 
@@ -295,8 +295,7 @@ describe("POST /api/volunteer-prospects", () => {
     expect(captureMock).toHaveBeenCalledWith(
       "volunteer_application",
       expect.objectContaining({
-        message:
-          "VOLUNTEER_PROSPECT_HMAC_SECRET must contain at least 32 characters.",
+        message: "PERSONAL_SIGNING_SECRET must contain at least 32 characters.",
       }),
       expect.objectContaining({
         failure_branch: "hmac_configuration_invalid",

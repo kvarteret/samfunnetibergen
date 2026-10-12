@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server"
 import { setBookingContinuation } from "@/lib/booking/continuation"
 import { verifyPromotionLink } from "@/lib/booking/promotion-link"
+import { personalVerificationSecrets } from "@/lib/integrations/kvarteret-personal/signing-secret"
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const locale = url.searchParams.get("locale") === "en" ? "en" : "nb"
-  const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
   const token = url.searchParams.get("token")
-  const receipt =
-    secret && secret.length >= 32 && token
-      ? verifyPromotionLink(token, secret)
-      : null
+  const receipt = token
+    ? personalVerificationSecrets("VOLUNTEER_PROSPECT_HMAC_SECRET")
+        .map(secret => verifyPromotionLink(token, secret))
+        .find(Boolean)
+    : null
   const headers = {
     "Cache-Control": "no-store",
     "Referrer-Policy": "no-referrer",

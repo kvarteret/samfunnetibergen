@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { cookies } from "next/headers"
 import { z } from "zod"
+import {
+  personalSigningSecret,
+  personalVerificationSecrets,
+} from "@/lib/integrations/kvarteret-personal/signing-secret"
 
 const COOKIE = "booking-continuation"
 const MAX_AGE = 60 * 60
@@ -52,8 +56,8 @@ export async function setBookingContinuation(
   receiptId: string,
   submissionId: string,
 ) {
-  const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
-  if (!secret || secret.length < 32) return
+  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  if (!secret) return
   ;(await cookies()).set(
     COOKIE,
     signBookingReceipt(receiptId, submissionId, secret),
@@ -68,11 +72,13 @@ export async function setBookingContinuation(
 }
 
 export async function getBookingContinuation() {
-  const secret = process.env.VOLUNTEER_PROSPECT_HMAC_SECRET
   const value = (await cookies()).get(COOKIE)?.value
-  return secret && secret.length >= 32 && value
-    ? verifyBookingReceipt(value, secret)
-    : null
+  if (!value) return null
+  return (
+    personalVerificationSecrets("VOLUNTEER_PROSPECT_HMAC_SECRET")
+      .map(secret => verifyBookingReceipt(value, secret))
+      .find(Boolean) ?? null
+  )
 }
 
 export async function clearBookingContinuation() {
