@@ -50,3 +50,45 @@ describe("postEventRequest URL allowlist", () => {
     )
   })
 })
+
+describe("postEventRequest timeouts", () => {
+  test("bounds both the session GET and the submit POST", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response("", {
+          status: 200,
+          headers: [
+            ["set-cookie", "XSRF-TOKEN=token; Path=/"],
+            ["set-cookie", "crescat_session=session; Path=/"],
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(new Response("", { status: 201 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await postEventRequest(
+      "studentersamfunnet-i-bergen-booking-av-karoke",
+      body,
+    )
+
+    for (const call of fetchMock.mock.calls) {
+      expect(call[1]?.signal).toBeInstanceOf(AbortSignal)
+    }
+  })
+
+  test("propagates a timeout so the action can classify it", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockRejectedValue(
+          new DOMException("The operation timed out.", "TimeoutError"),
+        ),
+    )
+
+    await expect(
+      postEventRequest("studentersamfunnet-i-bergen-booking-av-karoke", body),
+    ).rejects.toMatchObject({ name: "TimeoutError" })
+  })
+})
