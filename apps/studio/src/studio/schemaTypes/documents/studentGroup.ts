@@ -295,6 +295,16 @@ export const studentGroup = defineType({
       group: "identity",
       options: { hotspot: false },
     }),
+    defineField({
+      name: "hideName",
+      title: "Skjul navn ved siden av logoen",
+      description:
+        "Slå på når logoen allerede viser gruppenavnet. Logoen vises da større, og navnet er bare tilgjengelig for skjermlesere og søkemotorer.",
+      type: "boolean",
+      group: "identity",
+      initialValue: false,
+      hidden: ({ document }) => !document?.logo,
+    }),
     localizedArrayField(
       "localizedLabels",
       "Etiketter (oversettelser)",

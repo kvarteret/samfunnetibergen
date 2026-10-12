@@ -6,7 +6,6 @@ import type { ComponentType, ReactNode } from "react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { SanityImage } from "@/components/sanity-image"
-import { Avatar } from "@/components/ui/avatar"
 import { GroupEvents } from "@/features/events/components/GroupEvents"
 import {
   closedApplicationStatus,
@@ -103,6 +102,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
           path={`/grupper/${slug}`}
         />
         <GroupMasthead
+          hideName={group.hideName}
           logoUrl={group.logoUrl}
           name={group.name}
           summary={group.summary}
@@ -239,24 +239,55 @@ export default async function GroupPage({ params }: GroupPageProps) {
 }
 
 interface GroupMastheadProps {
+  hideName?: boolean | null
   logoUrl?: string | null
   name?: string | null
   summary?: string | null
 }
 
-function GroupMasthead({ logoUrl, name, summary }: GroupMastheadProps) {
+function GroupMasthead({
+  hideName,
+  logoUrl,
+  name,
+  summary,
+}: GroupMastheadProps) {
+  const logoOnly = Boolean(hideName && logoUrl)
+
   return (
-    <header className="space-y-5 border-b-2 border-border pb-8">
-      <div className="flex flex-wrap items-center gap-3">
-        <Avatar
-          alt={`${name ?? ""} logo`}
-          className="size-9 bg-card"
-          imageClassName="object-contain p-1"
-          name={name}
-          src={logoUrl}
-        />
-      </div>
-      <h1 className="text-page-title text-foreground">{name}</h1>
+    <header className="space-y-6 border-b-2 border-border pb-8">
+      {logoOnly && logoUrl ? (
+        <>
+          <div className="relative h-32 w-full max-w-md sm:h-40">
+            <Image
+              alt=""
+              className="object-contain object-left"
+              fill
+              priority
+              sizes="28rem"
+              src={logoUrl}
+            />
+          </div>
+          <h1 className="sr-only">{name}</h1>
+        </>
+      ) : (
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6 lg:flex-col lg:items-start xl:flex-row xl:items-center">
+          {logoUrl ? (
+            <div className="relative size-24 shrink-0 sm:size-28">
+              <Image
+                alt=""
+                className="object-contain"
+                fill
+                priority
+                sizes="112px"
+                src={logoUrl}
+              />
+            </div>
+          ) : null}
+          <h1 className="min-w-0 wrap-break-word text-page-title text-foreground">
+            {name}
+          </h1>
+        </div>
+      )}
       {summary ? (
         <p className="max-w-2xl text-2xl leading-snug text-foreground sm:text-3xl">
           {summary}

@@ -69,33 +69,47 @@ export function GroupsFilter({
 }
 
 function GroupCard({ group }: { group: StudentGroupSummary }) {
+  // The logo is decorative here: the heading names the group, visibly or not.
+  const logoOnly = Boolean(group.hideName && group.logoUrl)
+
   return (
     <Link
-      className="group flex min-h-full flex-col gap-4 bg-card focus-brutal"
+      className="group flex h-full flex-col gap-4 border-2 border-border bg-card p-5 transition-colors hover:border-foreground focus-brutal"
       href={`/grupper/${group.slug}`}
       {...groupTrackingAttributes(group, "groups-card")}
     >
-      <div className="space-y-3">
-        <div className="flex min-w-0 items-start gap-4">
+      {logoOnly && group.logoUrl ? (
+        <>
+          <div className="relative h-20 w-full">
+            <Image
+              alt=""
+              className="object-contain object-left"
+              fill
+              sizes="(min-width: 1280px) 24rem, (min-width: 768px) 45vw, 90vw"
+              src={group.logoUrl}
+            />
+          </div>
+          <h3 className="sr-only">{group.name}</h3>
+        </>
+      ) : (
+        <div className="flex min-h-16 min-w-0 items-center gap-4">
           {group.logoUrl ? (
-            <div className="relative size-14 shrink-0">
+            <div className="relative size-16 shrink-0">
               <Image
-                alt={`${group.name} logo`}
+                alt=""
                 className="object-contain"
                 fill
-                sizes="56px"
+                sizes="64px"
                 src={group.logoUrl}
               />
             </div>
           ) : null}
-          <h3 className="min-w-0 font-heading text-3xl leading-none text-foreground group-hover:underline group-hover:underline-offset-2">
+          <h3 className="min-w-0 font-heading text-2xl leading-tight text-foreground group-hover:underline group-hover:underline-offset-4">
             {group.name}
           </h3>
         </div>
-        <p className="line-clamp-4 leading-7 text-foreground">
-          {group.summary}
-        </p>
-      </div>
+      )}
+      <p className="line-clamp-3 leading-7 text-foreground">{group.summary}</p>
     </Link>
   )
 }
