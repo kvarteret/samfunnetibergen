@@ -25,7 +25,7 @@ export const STUDENT_GROUP_APPLICATION_STATUSES = [
     title: "Gruppen tar ikke imot søknader via søknadsskjema",
     value: "external",
   },
-  { title: "Gruppen er full for i år", value: "full" },
+  { title: "Gruppen er full for dette semesteret", value: "full" },
 ]
 
 export const studentGroupLabelValue = defineField({

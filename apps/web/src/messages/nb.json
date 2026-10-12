@@ -535,7 +535,7 @@
   },
   "GroupVolunteerForm": {
     "applicationsClosedExternal": "Denne gruppen tar ikke imot søknader via skjema, se beskrivelse.",
-    "applicationsClosedFull": "Denne gruppen er full for i år.",
+    "applicationsClosedFull": "Denne gruppen er full for dette semesteret.",
     "title": "Bli frivillig",
     "selectSubGroup": "Velg hvilken gruppe du vil søke til:",
     "applyingTo": "Du søker til: {group}",
