@@ -18,6 +18,8 @@ on:
 
 permissions:
   contents: read
+  # GitHub OIDC login to Infisical.
+  id-token: write
 
 concurrency:
   group: ticketco-import
@@ -35,15 +37,19 @@ jobs:
           node-version: 24.16.0
           cache: npm
       - run: npm ci
+      - name: Load /nettside configuration from Infisical
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: ${{ vars.INFISICAL_JOBS_IDENTITY_ID }}
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: faedb783-c2d7-45aa-ae13-f6607c5cca93
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
       - name: Import with Luna
         env:
-          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_LUNA_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_LUNA_DEPLOYMENT || 'skonk' }}
-          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}
-          POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
-          SLACK_NETTSIDE_WEBHOOK: ${{ secrets.SLACK_NETTSIDE_WEBHOOK }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
           SCHEDULED: ${{ github.event_name == 'schedule' }}
