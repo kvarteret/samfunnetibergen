@@ -39,9 +39,10 @@ If it is missing, add exactly the origin (not a path and not a wildcard):
     npx sanity cors add https://studio.samfunnetibergen.no \
       --project-id "$NEXT_PUBLIC_SANITY_PROJECT_ID" --credentials
 
-Use a Sanity token with permission to register an external Studio. The
-workflow accepts it as the GitHub Actions `SANITY_AUTH_TOKEN` secret only for a
-manual run with `register_external=true`; it is never committed or printed.
+Use a Sanity API token with the Deploy Studio permission (sanity.io/manage →
+project → API → Tokens). Store it as `SANITY_AUTH_TOKEN` in the Infisical
+Samfunnet Deployments project, `prod`, `/studio`, beside a `VERCEL_TOKEN` reference to `/nettside`. The workflow uses it only
+for a manual run with `register_external=true`; it is never committed or printed.
 That step runs the installed CLI's supported command:
 
     npm --workspace @samfunnet/studio exec -- sanity deploy \
