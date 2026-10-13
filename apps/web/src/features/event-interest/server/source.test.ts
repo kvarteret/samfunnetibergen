@@ -24,18 +24,33 @@ describe("event-specific sources", () => {
     vi.stubEnv("PERSONAL_SIGNING_SECRET", "")
     expect(() => createSourceCookie("event")).toThrow()
   })
-  it("keeps sources issued with the legacy EVENT_INTEREST_SECRET during cutover", () => {
+  it("rejects retired event-interest keys and unprefixed legacy cookies", () => {
     const legacy = "l".repeat(32)
     vi.stubEnv("PERSONAL_SIGNING_SECRET", "s".repeat(32))
     vi.stubEnv("EVENT_INTEREST_SECRET", legacy)
     const now = 1800000000000
     const token = `${"0".repeat(32)}.${now / 1000}`
-    const signed = createHmac("sha256", legacy)
-      .update(`event-a:${token}`)
+    for (const message of [
+      `event-a:${token}`,
+      `event-interest-source-v1:event-a:${token}`,
+    ]) {
+      const signed = createHmac("sha256", legacy).update(message).digest("hex")
+      expect(sourceHash("event-a", `${token}.${signed}`, now)).toBeNull()
+    }
+    vi.stubEnv("PERSONAL_SIGNING_SECRET", "")
+    expect(() => createSourceCookie("event-a", now)).toThrow()
+  })
+  it("accepts the previous shared key only with the event-interest purpose prefix", () => {
+    const previous = "p".repeat(32)
+    vi.stubEnv("PERSONAL_SIGNING_SECRET", "s".repeat(32))
+    vi.stubEnv("PERSONAL_SIGNING_PREVIOUS_SECRET", previous)
+    const now = 1800000000000
+    const token = `${"0".repeat(32)}.${now / 1000}`
+    const signed = createHmac("sha256", previous)
+      .update(`event-interest-source-v1:event-a:${token}`)
       .digest("hex")
     expect(sourceHash("event-a", `${token}.${signed}`, now)).toBe(signed)
-    vi.stubEnv("EVENT_INTEREST_SECRET", "")
-    expect(sourceHash("event-a", `${token}.${signed}`, now)).toBeNull()
+    expect(sourceHash("event-b", `${token}.${signed}`, now)).toBeNull()
   })
   it("signs new sources under their own purpose prefix", () => {
     const secret = "s".repeat(32)

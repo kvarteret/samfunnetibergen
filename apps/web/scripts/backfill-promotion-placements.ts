@@ -21,8 +21,9 @@ event_placement_clicked per such page view, under the original visitor and
 session, marked backfilled=true. Event uuids derive from the source events, and
 the script refuses to run twice for the same event.
 
-Requires SANITY_API_READ_TOKEN, POSTHOG_QUERY_API_KEY, POSTHOG_QUERY_PROJECT_ID
-(or POSTHOG_CLI_PROJECT_ID) and, with --send, NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN.`
+Requires SANITY_API_READ_TOKEN, POSTHOG_QUERY_API_KEY and, with --send,
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN. The project id defaults to 202551;
+POSTHOG_QUERY_PROJECT_ID or POSTHOG_CLI_PROJECT_ID can override it.`
 
 const BACKFILL_VERSION = "assume-all-2026-10"
 const UUID_NAMESPACE = "9b5c7a52-6d0e-4f0b-9a55-2f4f3c6b1d7e"
@@ -58,7 +59,10 @@ async function hogql<T extends Row>(query: string): Promise<T[]> {
   const host = (
     process.env.POSTHOG_QUERY_HOST?.trim() || "https://eu.posthog.com"
   ).replace(/\/+$/, "")
-  const project = required("POSTHOG_QUERY_PROJECT_ID", "POSTHOG_CLI_PROJECT_ID")
+  const project =
+    process.env.POSTHOG_QUERY_PROJECT_ID?.trim() ||
+    process.env.POSTHOG_CLI_PROJECT_ID?.trim() ||
+    "202551"
   const response = await fetch(`${host}/api/projects/${project}/query/`, {
     method: "POST",
     headers: {
