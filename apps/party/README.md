@@ -22,12 +22,19 @@ NEXT_PUBLIC_PARTY_HOST=localhost:1999 npm run dev:web
 ## Deploy
 
 The production release workflow (`.github/workflows/release-production.yml`)
-deploys the Worker together with the website. It deploys only when
-`apps/party` (other than this README and tests) or `package-lock.json`
-changed since the previous `prod-*` tag. The Worker goes out after the staged
-website passes its smoke tests and before promotion, then must answer
-`/health`. If either step fails, the website is not promoted. Keep the Worker
-compatible with the website that is live for those few minutes.
+deploys the Worker together with the website, but only when the Worker that
+would run actually changes. `scripts/fingerprint.mjs` hashes the bundle
+wrangler would upload together with `wrangler.jsonc`, and every deploy records
+that fingerprint in the version message. The release compares it with the live
+version's (`npm --workspace @samfunnet/party run deploy:check`). So website
+changes, dependency bumps that do not reach the Worker bundle, tests, docs and
+comments never redeploy it. A live version without a fingerprint, such as one
+deployed with plain `wrangler deploy`, is redeployed once.
+
+The Worker goes out after the staged website passes its smoke tests and before
+promotion, then must answer `/health`. If either step fails, the website is not
+promoted. Keep the Worker compatible with the website that is live for those
+few minutes.
 
 CI authenticates with `CLOUDFLARE_API_TOKEN` from Infisical's Samfunnet
 Deployments project (`/nettside`, `prod`). The account is pinned in
@@ -35,7 +42,8 @@ Deployments project (`/nettside`, `prod`). The account is pinned in
 (`samfunnet-lekeplass.samfunnetibergen.workers.dev`), and `ALLOWED_ORIGINS`
 lists the origins that may connect.
 
-To deploy by hand, for example to hotfix the Worker alone:
+To deploy by hand, for example to hotfix the Worker alone (this records the
+fingerprint too):
 
 ```bash
 npx wrangler login

@@ -74,25 +74,11 @@ jobs:
             exit 1
           fi
 
-          # The lekeplass Worker ships with the website, but only when its
-          # code or dependencies changed since the last production release.
-          # Without an earlier release it is deployed to be safe.
-          previous_tag="$(git describe --tags --abbrev=0 --match 'prod-*' HEAD 2>/dev/null || true)"
-          if [[ -z "$previous_tag" ]] || ! git diff --quiet "$previous_tag" HEAD -- \
-              apps/party package-lock.json \
-              ':(exclude)apps/party/README.md' ':(exclude)apps/party/src/*.test.ts'; then
-            deploy_worker=true
-          else
-            deploy_worker=false
-          fi
-          echo "Lekeplass Worker changed since ${previous_tag:-<none>}: ${deploy_worker}"
-
           {
             echo "source_sha=${source_sha}"
             echo "short_sha=${short_sha}"
             echo "tag=${release_tag}"
             echo "deployment_id=${deployment_id}"
-            echo "deploy_worker=${deploy_worker}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js
@@ -145,6 +131,13 @@ jobs:
           env-slug: prod
           secret-path: /nettside
           export-type: env
+
+      # Compares the bundle wrangler would upload with the fingerprint recorded
+      # on the live Worker version, so the Worker deploys only when what runs
+      # would actually change, however the repository changed.
+      - name: Check lekeplass Worker
+        id: worker
+        run: npm --workspace @samfunnet/party run --silent deploy:check >> "$GITHUB_OUTPUT"
 
       - name: Install Vercel CLI
         run: npm install --global vercel@59.16.0
@@ -309,18 +302,13 @@ jobs:
       # it speaks. The Worker must stay compatible with the live website for
       # the minutes until promotion.
       - name: Deploy lekeplass Worker
-        if: ${{ steps.release.outputs.deploy_worker == 'true' && (github.event_name == 'push' || inputs.promote) }}
+        if: ${{ steps.worker.outputs.changed == 'true' && (github.event_name == 'push' || inputs.promote) }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-            echo "The lekeplass Worker changed but CLOUDFLARE_API_TOKEN is missing from Samfunnet Deployments /nettside" >&2
-            exit 1
-          fi
-
           npm --workspace @samfunnet/party run deploy -- \
-            --message "${{ steps.release.outputs.tag }} (${{ steps.release.outputs.short_sha }})"
+            "${{ steps.release.outputs.tag }} ${{ steps.release.outputs.short_sha }}"
 
           host="${NEXT_PUBLIC_PARTY_HOST:-}"
           if [[ -z "$host" ]]; then
@@ -376,6 +364,6 @@ jobs:
             echo "- Source: \`${{ steps.release.outputs.short_sha }}\`"
             echo "- Tag: \`${{ steps.release.outputs.tag }}\`"
             echo "- Staged deployment: ${{ steps.deploy.outputs.url }}"
-            echo "- Lekeplass Worker deployed: \`${{ steps.release.outputs.deploy_worker == 'true' && (github.event_name == 'push' || inputs.promote) }}\`"
+            echo "- Lekeplass Worker deployed: \`${{ steps.worker.outputs.changed == 'true' && (github.event_name == 'push' || inputs.promote) }}\` (fingerprint \`${{ steps.worker.outputs.fingerprint }}\`)"
             echo "- Promoted: \`${{ github.event_name == 'push' || inputs.promote }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
