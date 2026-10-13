@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - apps/web/**
+      - apps/party/**
       - packages/content-domain/**
       - package.json
       - package-lock.json
@@ -73,11 +74,25 @@ jobs:
             exit 1
           fi
 
+          # The lekeplass Worker ships with the website, but only when its
+          # code or dependencies changed since the last production release.
+          # Without an earlier release it is deployed to be safe.
+          previous_tag="$(git describe --tags --abbrev=0 --match 'prod-*' HEAD 2>/dev/null || true)"
+          if [[ -z "$previous_tag" ]] || ! git diff --quiet "$previous_tag" HEAD -- \
+              apps/party package-lock.json \
+              ':(exclude)apps/party/README.md' ':(exclude)apps/party/src/*.test.ts'; then
+            deploy_worker=true
+          else
+            deploy_worker=false
+          fi
+          echo "Lekeplass Worker changed since ${previous_tag:-<none>}: ${deploy_worker}"
+
           {
             echo "source_sha=${source_sha}"
             echo "short_sha=${short_sha}"
             echo "tag=${release_tag}"
             echo "deployment_id=${deployment_id}"
+            echo "deploy_worker=${deploy_worker}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js
@@ -289,6 +304,39 @@ jobs:
             exit 1
           fi
 
+      # Deployed before promotion: a failed Worker deploy or health check
+      # stops the release, so the website never ships ahead of the protocol
+      # it speaks. The Worker must stay compatible with the live website for
+      # the minutes until promotion.
+      - name: Deploy lekeplass Worker
+        if: ${{ steps.release.outputs.deploy_worker == 'true' && (github.event_name == 'push' || inputs.promote) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "The lekeplass Worker changed but CLOUDFLARE_API_TOKEN is missing from Samfunnet Deployments /nettside" >&2
+            exit 1
+          fi
+
+          npm --workspace @samfunnet/party run deploy -- \
+            --message "${{ steps.release.outputs.tag }} (${{ steps.release.outputs.short_sha }})"
+
+          host="${NEXT_PUBLIC_PARTY_HOST:-}"
+          if [[ -z "$host" ]]; then
+            echo "NEXT_PUBLIC_PARTY_HOST is missing; cannot verify the Worker" >&2
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5; do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              --header "Origin: ${NEXT_PUBLIC_SITE_URL%/}" "https://${host}/health" || true)"
+            echo "Worker health attempt ${attempt}: HTTP ${status}"
+            [[ "$status" == "200" ]] && exit 0
+            sleep 5
+          done
+          echo "Lekeplass Worker failed its health check after deploy" >&2
+          exit 1
+
       - name: Promote staged deployment
         if: ${{ github.event_name == 'push' || inputs.promote }}
         run: |
@@ -328,5 +376,6 @@ jobs:
             echo "- Source: \`${{ steps.release.outputs.short_sha }}\`"
             echo "- Tag: \`${{ steps.release.outputs.tag }}\`"
             echo "- Staged deployment: ${{ steps.deploy.outputs.url }}"
+            echo "- Lekeplass Worker deployed: \`${{ steps.release.outputs.deploy_worker == 'true' && (github.event_name == 'push' || inputs.promote) }}\`"
             echo "- Promoted: \`${{ github.event_name == 'push' || inputs.promote }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
