@@ -19,14 +19,11 @@ staged smoke tests pass.
 - The website Vercel project has a server-only
   `PERSONAL_SIGNING_SECRET` of at least 32 characters, matching Personal's
   active value (it signs prospects, bookings, event interest and booking
-  promotion links; the website falls back to the deprecated
-  `VOLUNTEER_PROSPECT_HMAC_SECRET` while it exists; `EVENT_INTEREST_SECRET` is retired), and a separate server-only
-  `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET` of at least 32 characters used only to
-  pseudonymize the browser-scoped client identity. Do not prefix either with
-  `NEXT_PUBLIC_`.
-  Personal does not receive or need the client-key secret. Before releasing the
-  website's v2 signer, deploy Personal support for the v2 canonical request;
-  Personal may retain v1 verification temporarily during this rollout. During
+  promotion links). Personal also accepts the optional
+  `PERSONAL_SIGNING_PREVIOUS_SECRET` during rotation. The website derives its
+  client-key pseudonym subkey from the shared value with HKDF-SHA256; no
+  independent client-key secret is configured. Keep both signing values
+  server-only and never prefix them with `NEXT_PUBLIC_`. During
   later request HMAC secret rotations, update Personal to accept the new and
   previous values before switching the website.
 

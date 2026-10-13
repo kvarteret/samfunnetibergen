@@ -1,11 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const HMAC_SECRET = "test-shared-secret-0123456789abcdef"
-const CLIENT_KEY_SECRET = "test-client-key-secret-0123456789abcdef"
 const CLIENT_IP = "203.0.113.42"
 const FIXED_IDEMPOTENCY_KEY = "123e4567-e89b-42d3-a456-426614174001"
-const EXPECTED_CLIENT_KEY =
-  "v1=824d07cc5a6254c1187713a923496056e2f42635d0d498947eca539ddcabbe37"
 
 const {
   captureMock,
@@ -94,7 +91,8 @@ function volunteerRequest(
 describe("POST /api/volunteer-prospects", () => {
   beforeEach(() => {
     process.env.PERSONAL_SIGNING_SECRET = HMAC_SECRET
-    process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET = CLIENT_KEY_SECRET
+    process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET =
+      "retired-client-key-value"
     captureMock.mockReset()
     emitOperationalEventMock.mockReset()
     fetchMock.mockReset()
@@ -142,7 +140,7 @@ describe("POST /api/volunteer-prospects", () => {
       "X-Kvarteret-Timestamp": expect.stringMatching(/^\d+$/),
       "X-Kvarteret-Nonce": expect.stringMatching(/^[0-9a-f-]{36}$/),
       "X-Kvarteret-Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/),
-      "X-Kvarteret-Client-Key": EXPECTED_CLIENT_KEY,
+      "X-Kvarteret-Client-Key": expect.stringMatching(/^v1=[0-9a-f]{64}$/),
       "X-Kvarteret-Signature": expect.stringMatching(/^v2=[0-9a-f]{64}$/),
       traceparent: "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01",
       tracestate: "vendor=test",
@@ -285,7 +283,7 @@ describe("POST /api/volunteer-prospects", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("fails closed when the HMAC secret is missing", async () => {
+  it("fails closed when the shared signing secret is missing", async () => {
     delete process.env.PERSONAL_SIGNING_SECRET
 
     const response = await POST(volunteerRequest())
@@ -298,25 +296,8 @@ describe("POST /api/volunteer-prospects", () => {
         message: "PERSONAL_SIGNING_SECRET must contain at least 32 characters.",
       }),
       expect.objectContaining({
-        failure_branch: "hmac_configuration_invalid",
+        failure_branch: "client_key_unavailable",
       }),
-    )
-  })
-
-  it("fails closed when the client-key secret is missing", async () => {
-    delete process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET
-
-    const response = await POST(volunteerRequest())
-
-    expect(response.status).toBe(503)
-    expect(fetchMock).not.toHaveBeenCalled()
-    expect(captureMock).toHaveBeenCalledWith(
-      "volunteer_application",
-      expect.objectContaining({
-        message:
-          "VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET must contain at least 32 characters.",
-      }),
-      expect.objectContaining({ failure_branch: "client_key_unavailable" }),
     )
   })
 

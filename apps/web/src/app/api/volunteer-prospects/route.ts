@@ -116,7 +116,7 @@ export async function POST(request: Request) {
   try {
     clientKey = createVolunteerProspectClientKey(
       request.headers,
-      process.env.VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET,
+      personalSigningSecret(),
     )
   } catch (error) {
     captureSubmitFailure("volunteer_application", error, {
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
   try {
     authenticationHeaders = createVolunteerProspectAuthHeaders(
       serializedRequestBody,
-      personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET"),
+      personalSigningSecret(),
       { idempotencyKey, clientKey },
     )
   } catch (error) {

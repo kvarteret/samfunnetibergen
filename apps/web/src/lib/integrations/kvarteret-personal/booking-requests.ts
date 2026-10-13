@@ -51,7 +51,7 @@ export function bookingAuthHeaders(
 export async function storeBookingRequest(
   snapshot: BookingSnapshot,
 ): Promise<string> {
-  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  const secret = personalSigningSecret()
   if (!secret) throw new Error("Booking storage is not configured")
   const baseUrl = new URL(personalAppBaseUrl())
   if (
@@ -123,7 +123,7 @@ export async function fetchBookingEventPrefill(
   submissionId: string,
 ): Promise<BookingEventPrefill | null> {
   try {
-    const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+    const secret = personalSigningSecret()
     if (!secret) return null
     const baseUrl = new URL(personalAppBaseUrl())
     if (

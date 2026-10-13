@@ -10,22 +10,22 @@ const legacy = "l".repeat(32)
 
 afterEach(() => vi.unstubAllEnvs())
 
-test("signs with the shared key and falls back to the route's legacy name", () => {
+test("signs only with the shared key and ignores retired volunteer secrets", () => {
   vi.stubEnv("PERSONAL_SIGNING_SECRET", shared)
   vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", legacy)
-  expect(personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")).toBe(shared)
+  expect(personalSigningSecret()).toBe(shared)
   vi.stubEnv("PERSONAL_SIGNING_SECRET", "too-short")
-  expect(personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")).toBe(legacy)
   expect(personalSigningSecret()).toBeUndefined()
 })
 
-test("verifies with shared, previous and only the route's legacy key", () => {
+test("verifies with only the shared key and its previous rotation key", () => {
   vi.stubEnv("PERSONAL_SIGNING_SECRET", shared)
   vi.stubEnv("PERSONAL_SIGNING_PREVIOUS_SECRET", previous)
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", shared)
+  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", legacy)
+  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_PREVIOUS_SECRET", legacy)
   vi.stubEnv("EVENT_INTEREST_SECRET", legacy)
-  expect(personalVerificationSecrets("VOLUNTEER_PROSPECT_HMAC_SECRET")).toEqual(
-    [shared, previous],
-  )
   expect(personalVerificationSecrets()).toEqual([shared, previous])
+  vi.stubEnv("PERSONAL_SIGNING_SECRET", "")
+  expect(personalSigningSecret()).toBeUndefined()
+  expect(personalVerificationSecrets()).toEqual([previous])
 })
