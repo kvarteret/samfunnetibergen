@@ -48,6 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: studio-production
+    # Public Vercel identifiers; only credentials come from Infisical.
+    env:
+      VERCEL_ORG_ID: team_ZgZXWbgIa2o1LwXiVJBCkfSb
+      STUDIO_VERCEL_PROJECT_ID: prj_pIrtmJgiVXRU4r6Hvf1WhqZYoZO5
 
     steps:
       - name: Checkout release source
@@ -128,7 +132,7 @@ jobs:
           domain: https://secrets.samfunnetibergen.no
           project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
           env-slug: prod
-          secret-path: /nettside
+          secret-path: /studio
           export-type: env
 
       - name: Install Vercel CLI
@@ -198,7 +202,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.register_external }}
         shell: bash
         # SANITY_AUTH_TOKEN (a Deploy Studio token) comes from Samfunnet
-        # Deployments /nettside, loaded above.
+        # Deployments /studio, loaded above.
         run: |
           set -euo pipefail
           if [[ -z "${SANITY_AUTH_TOKEN:-}" ]]; then

@@ -41,7 +41,7 @@ If it is missing, add exactly the origin (not a path and not a wildcard):
 
 Use a Sanity API token with the Deploy Studio permission (sanity.io/manage →
 project → API → Tokens). Store it as `SANITY_AUTH_TOKEN` in the Infisical
-Samfunnet Deployments project, `prod`, `/nettside`. The workflow uses it only
+Samfunnet Deployments project, `prod`, `/studio`, beside a `VERCEL_TOKEN` reference to `/nettside`. The workflow uses it only
 for a manual run with `register_external=true`; it is never committed or printed.
 That step runs the installed CLI's supported command:
 

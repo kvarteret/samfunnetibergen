@@ -40,6 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+    # Public Vercel identifiers; only credentials come from Infisical.
+    env:
+      VERCEL_ORG_ID: team_ZgZXWbgIa2o1LwXiVJBCkfSb
+      VERCEL_PROJECT_ID: prj_OHYAWhiMGYIYvZ2UaBqnVSLRRQQi
 
     steps:
       - name: Checkout release source
