@@ -1,6 +1,10 @@
 import type { SanityClient } from "@sanity/client"
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { notifyPendingRequest, pendingMessage } from "./pending-slack"
+import {
+  notifyPendingRequest,
+  pendingMessage,
+  previewPendingRequests,
+} from "./pending-slack"
 
 const event = {
   _id: "drafts.event-1",
@@ -117,5 +121,33 @@ describe("pending Slack notifications", () => {
     )
     expect(await notifyPendingRequest(client, event)).toBe(false)
     expect(patch.unset).not.toHaveBeenCalled()
+  })
+  test("previews without claiming, writing or posting", async () => {
+    vi.stubEnv(
+      "SLACK_NETTSIDE_WEBHOOK",
+      "https://hooks.slack.com/services/test",
+    )
+    const fetch = vi.fn()
+    vi.stubGlobal("fetch", fetch)
+    const client = {
+      fetch: vi.fn(async () => [
+        event,
+        { ...event, _id: "event-1" },
+        { ...event, _id: "drafts.event-2" },
+      ]),
+      getDocument: vi
+        .fn()
+        .mockResolvedValueOnce({ deliveredAt: "2026-10-13T00:00:00Z" })
+        .mockResolvedValueOnce(null),
+      createIfNotExists: vi.fn(),
+      patch: vi.fn(),
+    } as unknown as SanityClient
+    expect(await previewPendingRequests(client)).toEqual({
+      wouldSend: 1,
+      alreadyAnnounced: 1,
+    })
+    expect(client.createIfNotExists).not.toHaveBeenCalled()
+    expect(client.patch).not.toHaveBeenCalled()
+    expect(fetch).not.toHaveBeenCalled()
   })
 })

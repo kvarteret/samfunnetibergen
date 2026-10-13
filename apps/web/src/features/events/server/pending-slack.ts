@@ -45,14 +45,9 @@ export function pendingMessage(event: PendingRequest): {
   }
 }
 
-// A receipt is separate from the arrangement so notification retries never
-// change an editor's revision or accidentally publish a draft.
-export async function notifyPendingRequest(
-  client: SanityClient,
-  event: PendingRequest,
-): Promise<boolean> {
+function slackWebhook(): string | null {
   const webhook = process.env.SLACK_NETTSIDE_WEBHOOK
-  if (!webhook) return false
+  if (!webhook) return null
   const url = new URL(webhook)
   if (
     url.protocol !== "https:" ||
@@ -60,9 +55,24 @@ export async function notifyPendingRequest(
     !url.pathname.startsWith("/services/")
   )
     throw new Error("Invalid #nettside webhook")
-  const id = `pending-slack-${createHash("sha256")
+  return webhook
+}
+
+function receiptId(event: PendingRequest) {
+  return `pending-slack-${createHash("sha256")
     .update(event._id.replace(/^drafts\./, ""))
     .digest("hex")}`
+}
+
+// A receipt is separate from the arrangement so notification retries never
+// change an editor's revision or accidentally publish a draft.
+export async function notifyPendingRequest(
+  client: SanityClient,
+  event: PendingRequest,
+): Promise<boolean> {
+  const webhook = slackWebhook()
+  if (!webhook) return false
+  const id = receiptId(event)
   await client.createIfNotExists({ _id: id, _type: "pendingSlackDelivery" })
   const receipt = await client.getDocument<{
     _id: string
@@ -110,21 +120,46 @@ export async function notifyPendingRequest(
   return true
 }
 
-export async function syncPendingRequests(
-  client: SanityClient,
-): Promise<{ sentOrExisting: number; failed: number }> {
-  if (!process.env.SLACK_NETTSIDE_WEBHOOK)
-    throw new Error("SLACK_NETTSIDE_WEBHOOK is not configured")
+async function pendingRequests(client: SanityClient) {
   const events = await client.fetch<PendingRequest[]>(
     `*[_type == "arrangement" && approvalStatus == "pending"]{_id, localizedTitle, submittedBy, ticketUrl, dates}`,
   )
+  const seen = new Set<string>()
+  return events.filter(event => {
+    const id = event._id.replace(/^drafts\./, "")
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
+/** Read-only: reports what a sync would announce without claiming or posting. */
+export async function previewPendingRequests(
+  client: SanityClient,
+): Promise<{ wouldSend: number; alreadyAnnounced: number }> {
+  if (!slackWebhook())
+    throw new Error("SLACK_NETTSIDE_WEBHOOK is not configured")
+  let wouldSend = 0
+  let alreadyAnnounced = 0
+  for (const event of await pendingRequests(client)) {
+    const receipt = await client.getDocument<{
+      deliveredAt?: string
+      claimedAt?: string
+    }>(receiptId(event))
+    if (receipt?.deliveredAt || receipt?.claimedAt) alreadyAnnounced++
+    else wouldSend++
+  }
+  return { wouldSend, alreadyAnnounced }
+}
+
+export async function syncPendingRequests(
+  client: SanityClient,
+): Promise<{ sentOrExisting: number; failed: number }> {
+  if (!slackWebhook())
+    throw new Error("SLACK_NETTSIDE_WEBHOOK is not configured")
   let sentOrExisting = 0
   let failed = 0
-  const seen = new Set<string>()
-  for (const event of events) {
-    const id = event._id.replace(/^drafts\./, "")
-    if (seen.has(id)) continue
-    seen.add(id)
+  for (const event of await pendingRequests(client)) {
     try {
       if (await notifyPendingRequest(client, event)) sentOrExisting++
       else failed++
