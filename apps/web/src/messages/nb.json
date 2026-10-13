@@ -354,7 +354,7 @@
       "promotionReminder": "Husk å promotere arrangementet ditt! Legg det til i arrangementskalenderen vår, så kan flere oppdage det.",
       "copyPromotionLink": "Kopier promoteringslenke",
       "promotionLinkCopied": "Promoteringslenke kopiert",
-      "promotionLinkHint": "Denne promoteringslenken fyller ut skjemaet med bookingdetaljene dine og kan åpnes på en annen enhet. Lenken er gyldig i 90 dager.",
+      "promotionLinkHint": "Denne promoteringslenken fyller ut skjemaet med bookingdetaljene dine og kan åpnes på en annen enhet. Lenken har ingen utløpsdato.",
       "promoteEvent": "Promoter arrangementet ditt"
     },
     "validation": {

@@ -3,33 +3,29 @@ import { z } from "zod"
 import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import { resolveSiteUrl } from "@/lib/site-url"
 
-const LIFETIME_MS = 90 * 24 * 60 * 60 * 1000
 const DOMAIN = "booking-promotion-v1:"
 const schema = z.object({
   receiptId: z.string().uuid(),
   submissionId: z.string().uuid(),
-  expires: z.number().int(),
+  // Previously issued links carry an expiry; retain their signed payload
+  // compatibility while making both old and new promotion links permanent.
+  expires: z.number().int().optional(),
 })
 
 export function signPromotionLink(
   receiptId: string,
   submissionId: string,
   secret: string,
-  now = Date.now(),
 ) {
   const payload = Buffer.from(
-    JSON.stringify({ receiptId, submissionId, expires: now + LIFETIME_MS }),
+    JSON.stringify({ receiptId, submissionId }),
   ).toString("base64url")
   return `${payload}.${createHmac("sha256", secret)
     .update(DOMAIN + payload)
     .digest("base64url")}`
 }
 
-export function verifyPromotionLink(
-  token: string,
-  secret: string,
-  now = Date.now(),
-) {
+export function verifyPromotionLink(token: string, secret: string) {
   try {
     if (token.length > 1024) return null
     const [payload, signature, extra] = token.split(".")
@@ -46,7 +42,7 @@ export function verifyPromotionLink(
     const receipt = schema.parse(
       JSON.parse(Buffer.from(payload, "base64url").toString()),
     )
-    return receipt.expires > now ? receipt : null
+    return receipt
   } catch {
     return null
   }

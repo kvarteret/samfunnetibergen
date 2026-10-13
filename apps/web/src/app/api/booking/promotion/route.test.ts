@@ -31,11 +31,11 @@ test("redeems a link in a new browser and redirects without exposing token", asy
   expect(setBookingContinuation).toHaveBeenCalledWith(receiptId, submissionId)
 })
 
-test("rejects expired or forged links without changing the current booking", async () => {
+test("rejects forged links without changing the current booking", async () => {
   vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
   for (const token of [
     "forged",
-    signPromotionLink(receiptId, submissionId, secret, 0),
+    `${signPromotionLink(receiptId, submissionId, secret)}x`,
   ]) {
     const response = await GET(
       new Request(

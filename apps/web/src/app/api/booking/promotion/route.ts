@@ -19,8 +19,8 @@ export async function GET(request: Request) {
   if (!receipt) {
     return new Response(
       locale === "en"
-        ? "This promotion link is invalid or has expired. Please contact pr@samfunnetibergen.no for help."
-        : "Promoteringslenken er ugyldig eller har utløpt. Kontakt pr@samfunnetibergen.no for hjelp.",
+        ? "This promotion link is invalid. Please contact pr@samfunnetibergen.no for help."
+        : "Promoteringslenken er ugyldig. Kontakt pr@samfunnetibergen.no for hjelp.",
       { status: 400, headers },
     )
   }

@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto"
 import { afterEach, expect, test, vi } from "vitest"
 import { signBookingReceipt } from "./continuation"
 import {
@@ -12,24 +13,37 @@ const secret = "0123456789abcdef0123456789abcdef"
 
 afterEach(() => vi.unstubAllEnvs())
 
-test("promotion token is bound to booking IDs, signature and 90-day expiration", () => {
-  const token = signPromotionLink(receiptId, submissionId, secret, 1000)
-  expect(verifyPromotionLink(token, secret, 2000)).toMatchObject({
-    receiptId,
-    submissionId,
-  })
-  expect(verifyPromotionLink(`${token}x`, secret, 2000)).toBeNull()
-  expect(verifyPromotionLink(token, "other secret", 2000)).toBeNull()
-  expect(
-    verifyPromotionLink(token, secret, 1000 + 90 * 24 * 60 * 60 * 1000),
-  ).toBeNull()
-  expect(
-    verifyPromotionLink(
-      signBookingReceipt(receiptId, submissionId, secret, 1000),
-      secret,
-      2000,
-    ),
-  ).toBeNull()
+function legacyToken() {
+  const payload = Buffer.from(
+    JSON.stringify({ receiptId, submissionId, expires: 1 }),
+  ).toString("base64url")
+  return `${payload}.${createHmac("sha256", secret).update(`booking-promotion-v1:${payload}`).digest("base64url")}`
+}
+
+test("promotion links remain valid over time and require their purpose-specific signature", () => {
+  const token = signPromotionLink(receiptId, submissionId, secret)
+  const now = Date.now()
+  vi.spyOn(Date, "now").mockReturnValue(now + 100 * 365 * 24 * 60 * 60 * 1000)
+  try {
+    expect(verifyPromotionLink(token, secret)).toEqual({
+      receiptId,
+      submissionId,
+    })
+    expect(verifyPromotionLink(legacyToken(), secret)).toMatchObject({
+      receiptId,
+      submissionId,
+    })
+    expect(verifyPromotionLink(`${token}x`, secret)).toBeNull()
+    expect(verifyPromotionLink(token, "other secret")).toBeNull()
+    expect(
+      verifyPromotionLink(
+        signBookingReceipt(receiptId, submissionId, secret),
+        secret,
+      ),
+    ).toBeNull()
+  } finally {
+    vi.restoreAllMocks()
+  }
 })
 
 test("personalized link resolves to a non-page route without contact data", () => {

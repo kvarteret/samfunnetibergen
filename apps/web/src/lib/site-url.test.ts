@@ -42,6 +42,11 @@ describe("resolveSiteUrl", () => {
     expect(resolveSiteUrl()).toBe("https://example.com")
   })
 
+  test("uses the canonical website when Vercel selects the recruitment domain", () => {
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "blifrivillig.no"
+    expect(resolveSiteUrl()).toBe("https://www.samfunnetibergen.no")
+  })
+
   test("falls back to the next variable when a value is a pulled placeholder", () => {
     process.env.SITE_URL = "[SENSITIVE]"
     process.env.NEXT_PUBLIC_SITE_URL = "https://preview.example.com"
