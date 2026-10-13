@@ -39,5 +39,4 @@ jobs:
           secret-path: /nettside
           export-type: env
       - name: Notify new pending requests in nettside
-        env:
         run: npm --workspace @samfunnet/web run events:sync:pending-slack
