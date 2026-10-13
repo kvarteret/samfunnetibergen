@@ -57,7 +57,7 @@ export function createBookingPromotionLink(
   submissionId: string,
   locale = "nb",
 ) {
-  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  const secret = personalSigningSecret()
   if (!secret) return null
   const url = new URL("/api/booking/promotion", resolveSiteUrl())
   url.searchParams.set(

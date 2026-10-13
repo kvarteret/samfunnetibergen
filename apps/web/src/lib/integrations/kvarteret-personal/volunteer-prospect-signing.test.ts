@@ -1,3 +1,4 @@
+import { createHmac, hkdfSync } from "node:crypto"
 import { describe, expect, it } from "vitest"
 import {
   buildVolunteerProspectSignature,
@@ -7,14 +8,11 @@ import {
 } from "./volunteer-prospect-signing"
 
 const HMAC_SECRET = "test-shared-secret-0123456789abcdef"
-const CLIENT_KEY_SECRET = "test-client-key-secret-0123456789abcdef"
 const FIXED_TIMESTAMP = "1760000000"
 const FIXED_NONCE = "123e4567-e89b-42d3-a456-426614174000"
 const FIXED_IDEMPOTENCY_KEY = "123e4567-e89b-42d3-a456-426614174001"
 const FIXED_CLIENT_KEY =
   "v1=9a0dcfcc46f5fc85d1151d64c99635e5d32febbe873c1d9467cf618652eb84e5"
-const FIXED_FALLBACK_CLIENT_KEY =
-  "v1=824d07cc5a6254c1187713a923496056e2f42635d0d498947eca539ddcabbe37"
 const FIXED_BODY = '{"full_name":"Kari Nordmann","email":"kari@example.com"}'
 const FIXED_SIGNATURE =
   "v2=4494eaa27eeaa0095320f8293384f7dbd3c814d81b17c9e6c83cd0539615837a"
@@ -95,12 +93,25 @@ describe("volunteer prospect HMAC signing", () => {
       "x-forwarded-for": "198.51.100.7",
     })
 
-    const clientKey = createVolunteerProspectClientKey(
-      headers,
-      CLIENT_KEY_SECRET,
-    )
+    const clientKey = createVolunteerProspectClientKey(headers, HMAC_SECRET)
 
-    expect(clientKey).toBe(FIXED_FALLBACK_CLIENT_KEY)
+    expect(clientKey).toMatch(/^v1=[0-9a-f]{64}$/)
+    expect(clientKey).toBe(
+      createVolunteerProspectClientKey(headers, HMAC_SECRET),
+    )
+    expect(clientKey).not.toBe(`v1=${"0".repeat(64)}`)
+    const identity = "ip:203.0.113.42"
+    const hmacWithMaster = createHmac("sha256", HMAC_SECRET)
+      .update(identity, "utf8")
+      .digest("hex")
+    const otherPurposeKey = Buffer.from(
+      hkdfSync("sha256", HMAC_SECRET, "", "kvarteret/test-purpose/v1", 32),
+    )
+    const hmacWithOtherPurpose = createHmac("sha256", otherPurposeKey)
+      .update(identity, "utf8")
+      .digest("hex")
+    expect(clientKey).not.toBe(`v1=${hmacWithMaster}`)
+    expect(clientKey).not.toBe(`v1=${hmacWithOtherPurpose}`)
     expect(clientKey).not.toContain("203.0.113.42")
     expect(clientKey).not.toContain("198.51.100.7")
   })
@@ -109,16 +120,16 @@ describe("volunteer prospect HMAC signing", () => {
     expect(
       createVolunteerProspectClientKey(
         new Headers({ "x-forwarded-for": "203.0.113.42, 198.51.100.7" }),
-        CLIENT_KEY_SECRET,
+        HMAC_SECRET,
       ),
-    ).toBe(FIXED_FALLBACK_CLIENT_KEY)
+    ).toMatch(/^v1=[0-9a-f]{64}$/)
     expect(() =>
-      createVolunteerProspectClientKey(new Headers(), CLIENT_KEY_SECRET),
+      createVolunteerProspectClientKey(new Headers(), HMAC_SECRET),
     ).toThrow("trusted client IP")
     expect(() =>
       createVolunteerProspectClientKey(
         new Headers({ "x-forwarded-for": "not-an-ip" }),
-        CLIENT_KEY_SECRET,
+        HMAC_SECRET,
       ),
     ).toThrow("trusted client IP")
     expect(() =>
@@ -138,14 +149,14 @@ describe("volunteer prospect HMAC signing", () => {
         cookie,
         "x-vercel-forwarded-for": "203.0.113.42",
       }),
-      CLIENT_KEY_SECRET,
+      HMAC_SECRET,
     )
     const sameVisitorFromAnotherIp = createVolunteerProspectClientKey(
       new Headers({
         cookie,
         "x-vercel-forwarded-for": "198.51.100.7",
       }),
-      CLIENT_KEY_SECRET,
+      HMAC_SECRET,
     )
     const otherVisitor = createVolunteerProspectClientKey(
       new Headers({
@@ -154,7 +165,7 @@ describe("volunteer prospect HMAC signing", () => {
         )}`,
         "x-vercel-forwarded-for": "203.0.113.42",
       }),
-      CLIENT_KEY_SECRET,
+      HMAC_SECRET,
     )
 
     expect(sameVisitorFromAnotherIp).toBe(first)
@@ -169,14 +180,14 @@ describe("volunteer prospect HMAC signing", () => {
         "x-forwarded-for": "203.0.113.42",
         "user-agent": "ExampleBrowser/1.0",
       }),
-      CLIENT_KEY_SECRET,
+      HMAC_SECRET,
     )
     const otherUserAgent = createVolunteerProspectClientKey(
       new Headers({
         "x-forwarded-for": "203.0.113.42",
         "user-agent": "ExampleBrowser/2.0",
       }),
-      CLIENT_KEY_SECRET,
+      HMAC_SECRET,
     )
 
     expect(otherUserAgent).not.toBe(first)

@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomUUID } from "node:crypto"
+import { createHash, createHmac, hkdfSync, randomUUID } from "node:crypto"
 import { isIP } from "node:net"
 import { getPostHogDistinctIdFromCookie } from "@/lib/posthog/distinct-id"
 
@@ -7,6 +7,7 @@ export const VOLUNTEER_PROSPECT_PATH = "/api/v1/volunteer-prospects"
 const CANONICAL_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const CLIENT_KEY_PATTERN = /^v1=[0-9a-f]{64}$/
+const CLIENT_KEY_INFO = "kvarteret/volunteer-client-fingerprint/v1"
 
 export type VolunteerProspectSigningOptions = {
   idempotencyKey: string
@@ -94,11 +95,11 @@ export function resolveVolunteerProspectIdempotencyKey(
 
 export function createVolunteerProspectClientKey(
   headers: Headers,
-  secret: string | undefined,
+  signingSecret: string | undefined,
 ): string {
   const normalizedSecret = requireSecret(
-    secret,
-    "VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET",
+    signingSecret,
+    "PERSONAL_SIGNING_SECRET",
   )
   const visitorId = getPostHogDistinctIdFromCookie(
     headers.get("cookie") ?? undefined,
@@ -119,7 +120,10 @@ export function createVolunteerProspectClientKey(
       ? `ip:${canonicalClientIp}\nuser-agent:${userAgent.slice(0, 512)}`
       : `ip:${canonicalClientIp}`
   }
-  const digest = createHmac("sha256", normalizedSecret)
+  const clientKeySecret = Buffer.from(
+    hkdfSync("sha256", normalizedSecret, "", CLIENT_KEY_INFO, 32),
+  )
+  const digest = createHmac("sha256", clientKeySecret)
     .update(clientIdentity, "utf8")
     .digest("hex")
   return `v1=${digest}`

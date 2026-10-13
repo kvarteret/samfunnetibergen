@@ -41,11 +41,13 @@ creates one UUID per submitted value set, reuses it for same-value retries while
 the component stays mounted, and creates a new key after the values change. The
 route generates a UUID v4 fallback for callers that omit one.
 
-The client key is a pseudonymous, Samfunnet-only identifier. The route prefers
+The client key is a pseudonymous identifier. The route prefers
 the browser-scoped PostHog distinct ID from the request cookie, otherwise it
 prefers `x-vercel-forwarded-for` and falls back to `x-forwarded-for`, selects
 the first address, validates it as IPv4 or IPv6, and combines it with the
-user-agent. It hashes that material with `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`.
+user-agent. It hashes that material with an HKDF-SHA256 subkey derived from
+`PERSONAL_SIGNING_SECRET` using `kvarteret/volunteer-client-fingerprint/v1` as
+the fixed purpose string. The derived key exists only in memory.
 Raw identity material is never sent to Personal or included in application
 diagnostics.
 
@@ -55,14 +57,13 @@ diagnostics.
 
 ## Consequences
 
-The website Vercel project and Personal must hold the same active
-`PERSONAL_SIGNING_SECRET` (formerly `VOLUNTEER_PROSPECT_HMAC_SECRET`), the one
-key for every signed website → Personal request. The website alone holds a separate
-`VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET`; Personal never receives it. Both values
-require at least 32 characters and must not be prefixed with `NEXT_PUBLIC_`.
-Rotate by deploying Personal support for the new canonical form (or new active
-and previous HMAC secrets) before switching the website. The exact secret setup
-and rollout order live in `docs/how-to/release-production.md`.
+All signed website requests and booking tokens use the shared
+`PERSONAL_SIGNING_SECRET` and purpose-specific prefixes. `PERSONAL_SIGNING_PREVIOUS_SECRET`
+supports rotation. The website no longer stores a separate client-key secret.
+Old volunteer and booking secret environment variables are ignored. Existing
+booking promotion links remain valid because the retired volunteer key had the
+same value as `PERSONAL_SIGNING_SECRET`. Keep signing values server-only. The
+secret setup and rotation steps live in `docs/how-to/release-production.md`.
 
 The client-key fallback assumes the route stays directly behind Vercel, which
 overwrites `x-forwarded-for` and preserves `x-vercel-forwarded-for` when another

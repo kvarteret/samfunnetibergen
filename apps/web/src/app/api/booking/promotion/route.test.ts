@@ -48,11 +48,10 @@ test("rejects expired or forged links without changing the current booking", asy
   expect(setBookingContinuation).not.toHaveBeenCalled()
 })
 
-test("redeems links signed with the previous or legacy key during cutover", async () => {
-  const legacy = "l".repeat(32)
+test("redeems existing shared-key links and ignores retired volunteer keys", async () => {
   vi.stubEnv("PERSONAL_SIGNING_SECRET", secret)
-  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", legacy)
-  const token = signPromotionLink(receiptId, submissionId, legacy)
+  vi.stubEnv("VOLUNTEER_PROSPECT_HMAC_SECRET", secret)
+  const token = signPromotionLink(receiptId, submissionId, secret)
   const response = await GET(
     new Request(
       `https://www.samfunnetibergen.no/api/booking/promotion?token=${token}`,
