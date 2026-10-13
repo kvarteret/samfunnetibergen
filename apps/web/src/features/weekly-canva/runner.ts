@@ -1,4 +1,5 @@
 import { createClient, type SanityClient } from "@sanity/client"
+import { dataset, projectId } from "@/lib/sanity/env"
 import { accessToken } from "./auth"
 import { Canva, type Design, jobDesign, pageData, TEMPLATE_ID } from "./canva"
 import { writeCopy } from "./copy"
@@ -44,8 +45,8 @@ export function weeklyClient(requireWrite = true): SanityClient {
   if (requireWrite && !process.env.SANITY_WRITE_TOKEN)
     throw new Error("Configure SANITY_WRITE_TOKEN")
   return createClient({
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "mkjoahvv",
-    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
+    projectId,
+    dataset,
     token: process.env.SANITY_WRITE_TOKEN,
     apiVersion: "2024-01-01",
     useCdn: false,

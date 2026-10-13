@@ -6,6 +6,7 @@ import {
   ROOM_CALENDAR_SLUGS,
 } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import { dataset, projectId } from "@/lib/sanity/env"
 import { eventDraftSchema } from "../../domain/eventFormSchema"
 import { type FormState, initialState } from "../../domain/formState"
 import {
@@ -454,8 +455,8 @@ export function importClient(): SanityClient {
   if (!process.env.SANITY_WRITE_TOKEN)
     throw new Error("SANITY_WRITE_TOKEN is not configured")
   return createClient({
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "mkjoahvv",
-    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
+    projectId,
+    dataset,
     token: process.env.SANITY_WRITE_TOKEN,
     apiVersion: "2024-01-01",
     useCdn: false,

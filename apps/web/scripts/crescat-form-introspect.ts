@@ -119,8 +119,8 @@ async function fetchResources(
 }
 
 async function fetchSanityRoomIds(): Promise<Map<number, string>> {
-  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "mkjoahvv"
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production"
   const query =
     '*[_type == "room" && defined(crescatRoomId)]{crescatRoomId, "title": title}'
   const url =

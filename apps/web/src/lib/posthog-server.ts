@@ -1,10 +1,10 @@
 import { PostHog } from "posthog-node"
 
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST!
+const POSTHOG_HOST =
+  process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim() || "https://eu.i.posthog.com"
 if (
-  POSTHOG_HOST &&
-  (POSTHOG_HOST.includes("localhost") ||
-    POSTHOG_HOST.startsWith("http://127.0.0"))
+  POSTHOG_HOST.includes("localhost") ||
+  POSTHOG_HOST.startsWith("http://127.0.0")
 ) {
   throw new Error(`PostHog host must not be localhost, got: ${POSTHOG_HOST}`)
 }

@@ -1,3 +1,4 @@
+import { personalAppBaseUrl } from "@/lib/integrations/kvarteret-personal/base-url"
 import { injectActiveTraceContext } from "@/lib/observability"
 import { getPostHogClient } from "@/lib/posthog-server"
 import {
@@ -6,9 +7,7 @@ import {
   RATE_LIMIT_ERROR,
 } from "@/lib/submission"
 
-const PERSONAL_APP_BASE_URL =
-  process.env.PERSONAL_APP_BASE_URL?.trim() ||
-  "https://personal.samfunnetibergen.no"
+const PERSONAL_APP_BASE_URL = personalAppBaseUrl()
 
 const ALLOWED_TYPES = new Set(["bug", "feature", "improvement"])
 

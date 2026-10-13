@@ -1,5 +1,6 @@
 import "server-only"
 import { createHash, createHmac, randomUUID } from "node:crypto"
+import { personalAppBaseUrl } from "@/lib/integrations/kvarteret-personal/base-url"
 import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import {
   type ClickBatch,
@@ -20,9 +21,7 @@ async function backendInterest(
 ): Promise<InterestState> {
   const secret = personalSigningSecret("EVENT_INTEREST_SECRET")
   if (!secret) throw new Error("PERSONAL_SIGNING_SECRET is required")
-  const base =
-    process.env.PERSONAL_APP_BASE_URL?.trim() ||
-    "https://personal.samfunnetibergen.no"
+  const base = personalAppBaseUrl()
   const apiPath = `/api/v1/event-interest/${path}`
   const payload = JSON.stringify(body)
   const timestamp = String(Math.floor(Date.now() / 1000))

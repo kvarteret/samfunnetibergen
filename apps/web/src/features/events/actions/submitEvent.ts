@@ -2,6 +2,7 @@
 
 import { createClient } from "@sanity/client"
 import { err, ok, type Result } from "@/lib/result"
+import { dataset, projectId } from "@/lib/sanity/env"
 import {
   captureSubmitFailure,
   GENERIC_SUBMIT_ERROR,
@@ -17,13 +18,12 @@ import {
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
-
 import { buildEventDocument } from "../server/event-document"
 import { notifyPendingRequest } from "../server/pending-slack"
 
 const WRITE_TOKEN = process.env.SANITY_WRITE_TOKEN
-const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "mkjoahvv"
-const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production"
+const PROJECT_ID = projectId
+const DATASET = dataset
 
 const UPLOAD_LIMIT = 12
 const SANITY_IMAGE_ASSET_ID = /^image-[a-f0-9]+-\d+x\d+-[a-z]+$/

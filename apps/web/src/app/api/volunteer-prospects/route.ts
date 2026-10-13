@@ -8,6 +8,7 @@ import {
   volunteerFormSchema,
   volunteerHoneypotSchema,
 } from "@/features/grupper/domain/volunteerFormSchema"
+import { personalAppBaseUrl } from "@/lib/integrations/kvarteret-personal/base-url"
 import { personalSigningSecret } from "@/lib/integrations/kvarteret-personal/signing-secret"
 import {
   createVolunteerProspectAuthHeaders,
@@ -25,9 +26,7 @@ import {
   getValidationDiagnostics,
 } from "@/lib/submission"
 
-const PERSONAL_APP_BASE_URL =
-  process.env.PERSONAL_APP_BASE_URL?.trim() ||
-  "https://personal.samfunnetibergen.no"
+const PERSONAL_APP_BASE_URL = personalAppBaseUrl()
 
 const GENERIC_ERROR = "Kunne ikke registrere frivillig."
 const REQUEST_BODY_LIMIT_BYTES = 16 * 1_024

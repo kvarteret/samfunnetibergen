@@ -130,19 +130,18 @@ const nextConfig: NextConfig = {
 
 const config = withNextIntl(nextConfig)
 
-// PostHog source-map upload only runs when its CLI credentials are present.
-// Since sourcemaps default to enabled, the plugin throws ("projectId is
-// required when sourcemaps are enabled") in environments that don't set these
-// vars (e.g. Vercel), which breaks the build. Fall back to the plain config
-// there and only enable upload when both credentials exist.
+// PostHog source-map upload only runs when its personal API key is present.
+// Since sourcemaps default to enabled, the plugin throws in environments
+// without that key (e.g. Vercel), which breaks the build. Fall back to the
+// plain config there. The project id and host are public defaults.
 const posthogApiKey = process.env.POSTHOG_CLI_API_KEY
-const posthogProjectId = process.env.POSTHOG_CLI_PROJECT_ID
+const posthogProjectId = process.env.POSTHOG_CLI_PROJECT_ID || "202551"
 
-export default posthogApiKey && posthogProjectId
+export default posthogApiKey
   ? withPostHogConfig(config, {
       personalApiKey: posthogApiKey,
       projectId: posthogProjectId,
-      host: process.env.POSTHOG_CLI_HOST,
+      host: process.env.POSTHOG_CLI_HOST || "https://eu.i.posthog.com",
       sourcemaps: {
         releaseName: "samfunnetibergen",
         releaseVersion: process.env.POSTHOG_RELEASE_VERSION,
