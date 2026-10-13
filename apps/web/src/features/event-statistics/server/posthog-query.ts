@@ -19,7 +19,8 @@ function posthogQueryConfig() {
   const apiKey = process.env.POSTHOG_QUERY_API_KEY?.trim()
   const projectId =
     process.env.POSTHOG_QUERY_PROJECT_ID?.trim() ||
-    process.env.POSTHOG_CLI_PROJECT_ID?.trim()
+    process.env.POSTHOG_CLI_PROJECT_ID?.trim() ||
+    "202551"
   const host = (
     process.env.POSTHOG_QUERY_HOST?.trim() || "https://eu.posthog.com"
   ).replace(/\/+$/, "")

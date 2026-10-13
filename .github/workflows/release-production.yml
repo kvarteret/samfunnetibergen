@@ -151,7 +151,9 @@ jobs:
           set -euo pipefail
 
           missing=()
-          for name in POSTHOG_CLI_API_KEY POSTHOG_CLI_PROJECT_ID POSTHOG_CLI_HOST NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN NEXT_PUBLIC_POSTHOG_HOST POSTHOG_API_KEY; do
+          # The PostHog host and project id are committed defaults; these two
+          # values come from Infisical.
+          for name in POSTHOG_CLI_API_KEY NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN; do
             if [[ -z "${!name:-}" ]]; then
               missing+=("${name}")
             fi
@@ -163,8 +165,7 @@ jobs:
           fi
 
           if [[ ! "$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN" =~ ^phc_[a-zA-Z0-9_-]+$ ]] ||
-             [[ "$NEXT_PUBLIC_POSTHOG_HOST" != "https://eu.i.posthog.com" ]] ||
-             [[ "$POSTHOG_API_KEY" != "$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN" ]]; then
+             [[ "${NEXT_PUBLIC_POSTHOG_HOST:-https://eu.i.posthog.com}" != "https://eu.i.posthog.com" ]]; then
             echo "Invalid or inconsistent PostHog capture credentials" >&2
             exit 1
           fi
@@ -178,9 +179,9 @@ jobs:
           vercel build --prod \
             "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN"
         env:
-          # Infisical supplies the canonical origin for prerendered metadata,
-          # including values Vercel environment pulls cannot decrypt.
-          SITE_URL: ${{ env.NEXT_PUBLIC_SITE_URL }}
+          # The canonical origin for prerendered metadata is public and fixed;
+          # pulled Vercel values can be undecryptable placeholders.
+          SITE_URL: https://www.samfunnetibergen.no
           NEXT_PUBLIC_DEPLOYMENT_TAG: ${{ steps.release.outputs.tag }}
           NEXT_PUBLIC_GIT_SHA: ${{ steps.release.outputs.source_sha }}
           POSTHOG_RELEASE_BUILD: ${{ steps.release.outputs.source_sha }}

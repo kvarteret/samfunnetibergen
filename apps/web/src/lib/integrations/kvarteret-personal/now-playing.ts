@@ -1,5 +1,6 @@
 import "server-only"
 
+import { personalAppBaseUrl } from "@/lib/integrations/kvarteret-personal/base-url"
 import { injectActiveTraceContext } from "@/lib/observability"
 
 export interface NowPlayingState {
@@ -16,9 +17,7 @@ export interface NowPlayingState {
   connectUrl: string
 }
 
-const PERSONAL_APP_BASE_URL =
-  process.env.PERSONAL_APP_BASE_URL?.trim() ||
-  "https://personal.samfunnetibergen.no"
+const PERSONAL_APP_BASE_URL = personalAppBaseUrl()
 
 function parseBoolean(value: unknown): boolean {
   return typeof value === "boolean" ? value : false

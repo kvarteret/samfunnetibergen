@@ -2,7 +2,7 @@ import "server-only"
 
 import { cookies } from "next/headers"
 import { z } from "zod"
-
+import { personalAppBaseUrl } from "@/lib/integrations/kvarteret-personal/base-url"
 import { injectActiveTraceContext } from "@/lib/observability"
 
 /**
@@ -39,10 +39,7 @@ export type StatisticsAccess =
   | { status: "unavailable" }
 
 export function personalBaseUrl(): string {
-  return (
-    process.env.PERSONAL_APP_BASE_URL?.trim() ||
-    "https://personal.samfunnetibergen.no"
-  ).replace(/\/+$/, "")
+  return personalAppBaseUrl()
 }
 
 /** Personal logs the viewer in, then sends them back via its /statistikk. */
