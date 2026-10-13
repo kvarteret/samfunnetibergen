@@ -56,7 +56,7 @@ export async function setBookingContinuation(
   receiptId: string,
   submissionId: string,
 ) {
-  const secret = personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET")
+  const secret = personalSigningSecret()
   if (!secret) return
   ;(await cookies()).set(
     COOKIE,
@@ -75,7 +75,7 @@ export async function getBookingContinuation() {
   const value = (await cookies()).get(COOKIE)?.value
   if (!value) return null
   return (
-    personalVerificationSecrets("VOLUNTEER_PROSPECT_HMAC_SECRET")
+    personalVerificationSecrets()
       .map(secret => verifyBookingReceipt(value, secret))
       .find(Boolean) ?? null
   )

@@ -3,40 +3,25 @@
  * Personal. Each use signs its own purpose prefix (`v2`, `booking-v1`,
  * `event-interest-v1`, `booking-promotion-v1:`, `booking-continuation-v1:`,
  * `event-interest-source-v1:`), so a signature never verifies for another use.
- *
- * The per-route names were deprecated on 2026-10-13 and merged into
- * PERSONAL_SIGNING_SECRET. They are read only as a fallback; remove them, and
- * their Infisical and Vercel values, on or after 2027-01-12, when booking links
- * and event-interest source cookies signed with them have expired.
  */
-type LegacySecretName =
-  | "VOLUNTEER_PROSPECT_HMAC_SECRET"
-  | "EVENT_INTEREST_SECRET"
-
 const MIN_SECRET_LENGTH = 32
 
 function configured(value: string | undefined): value is string {
   return Boolean(value && value.length >= MIN_SECRET_LENGTH)
 }
 
-export function personalSigningSecret(
-  legacyName: LegacySecretName,
-): string | undefined {
-  return [process.env.PERSONAL_SIGNING_SECRET, process.env[legacyName]].find(
-    configured,
-  )
+export function personalSigningSecret(): string | undefined {
+  const secret = process.env.PERSONAL_SIGNING_SECRET
+  return configured(secret) ? secret : undefined
 }
 
 /** Keys that may have signed a token this website issued earlier. */
-export function personalVerificationSecrets(
-  legacyName: LegacySecretName,
-): string[] {
+export function personalVerificationSecrets(): string[] {
   return [
     ...new Set(
       [
         process.env.PERSONAL_SIGNING_SECRET,
         process.env.PERSONAL_SIGNING_PREVIOUS_SECRET,
-        process.env[legacyName],
       ].filter(configured),
     ),
   ]

@@ -146,7 +146,7 @@ export async function POST(request: Request) {
   try {
     authenticationHeaders = createVolunteerProspectAuthHeaders(
       serializedRequestBody,
-      personalSigningSecret("VOLUNTEER_PROSPECT_HMAC_SECRET"),
+      personalSigningSecret(),
       { idempotencyKey, clientKey },
     )
   } catch (error) {

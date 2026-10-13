@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const locale = url.searchParams.get("locale") === "en" ? "en" : "nb"
   const token = url.searchParams.get("token")
   const receipt = token
-    ? personalVerificationSecrets("VOLUNTEER_PROSPECT_HMAC_SECRET")
+    ? personalVerificationSecrets()
         .map(secret => verifyPromotionLink(token, secret))
         .find(Boolean)
     : null
