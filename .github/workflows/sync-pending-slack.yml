@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  # GitHub OIDC login to Infisical.
+  id-token: write
 
 concurrency:
   group: pending-slack-sync
@@ -25,10 +27,17 @@ jobs:
           node-version: 24.16.0
           cache: npm
       - run: npm ci
+      - name: Load /nettside configuration from Infisical
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: ${{ vars.INFISICAL_JOBS_IDENTITY_ID }}
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: faedb783-c2d7-45aa-ae13-f6607c5cca93
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
       - name: Notify new pending requests in nettside
         env:
-          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
-          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
-          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
-          SLACK_NETTSIDE_WEBHOOK: ${{ secrets.SLACK_NETTSIDE_WEBHOOK }}
         run: npm --workspace @samfunnet/web run events:sync:pending-slack
