@@ -197,8 +197,8 @@ jobs:
       - name: Register external Studio and schema with Sanity
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.register_external }}
         shell: bash
-        env:
-          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+        # SANITY_AUTH_TOKEN (a Deploy Studio token) comes from Samfunnet
+        # Deployments /nettside, loaded above.
         run: |
           set -euo pipefail
           if [[ -z "${SANITY_AUTH_TOKEN:-}" ]]; then
