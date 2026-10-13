@@ -20,7 +20,7 @@ staged smoke tests pass.
   `PERSONAL_SIGNING_SECRET` of at least 32 characters, matching Personal's
   active value (it signs prospects, bookings, event interest and booking
   promotion links; the website falls back to the deprecated
-  `VOLUNTEER_PROSPECT_HMAC_SECRET` / `EVENT_INTEREST_SECRET` while they exist), and a separate server-only
+  `VOLUNTEER_PROSPECT_HMAC_SECRET` while it exists; `EVENT_INTEREST_SECRET` is retired), and a separate server-only
   `VOLUNTEER_PROSPECT_CLIENT_KEY_SECRET` of at least 32 characters used only to
   pseudonymize the browser-scoped client identity. Do not prefix either with
   `NEXT_PUBLIC_`.

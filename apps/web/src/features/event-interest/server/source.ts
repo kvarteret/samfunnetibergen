@@ -18,7 +18,7 @@ function sign(secret: string, message: string) {
 }
 
 function signature(eventId: string, token: string) {
-  const secret = personalSigningSecret("EVENT_INTEREST_SECRET")
+  const secret = personalSigningSecret()
   if (!secret)
     throw new Error(
       "PERSONAL_SIGNING_SECRET must contain at least 32 characters",
@@ -26,18 +26,11 @@ function signature(eventId: string, token: string) {
   return sign(secret, `${DOMAIN}${eventId}:${token}`)
 }
 
-/** Signatures the cookie may carry: current format, then the unprefixed
- * EVENT_INTEREST_SECRET format issued before the shared signing key. */
+/** Only purpose-prefixed signatures from the shared key or its rotation key. */
 function acceptedSignatures(eventId: string, token: string) {
-  const legacy = process.env.EVENT_INTEREST_SECRET
-  return [
-    ...personalVerificationSecrets("EVENT_INTEREST_SECRET").map(secret =>
-      sign(secret, `${DOMAIN}${eventId}:${token}`),
-    ),
-    ...(legacy && legacy.length >= 32
-      ? [sign(legacy, `${eventId}:${token}`)]
-      : []),
-  ]
+  return personalVerificationSecrets().map(secret =>
+    sign(secret, `${DOMAIN}${eventId}:${token}`),
+  )
 }
 
 export function sourceCookieName(eventId: string) {

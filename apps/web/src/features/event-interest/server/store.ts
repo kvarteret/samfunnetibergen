@@ -19,7 +19,7 @@ async function backendInterest(
     batch_id?: string
   },
 ): Promise<InterestState> {
-  const secret = personalSigningSecret("EVENT_INTEREST_SECRET")
+  const secret = personalSigningSecret()
   if (!secret) throw new Error("PERSONAL_SIGNING_SECRET is required")
   const base = personalAppBaseUrl()
   const apiPath = `/api/v1/event-interest/${path}`

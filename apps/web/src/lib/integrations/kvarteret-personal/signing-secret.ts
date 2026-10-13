@@ -4,14 +4,11 @@
  * `event-interest-v1`, `booking-promotion-v1:`, `booking-continuation-v1:`,
  * `event-interest-source-v1:`), so a signature never verifies for another use.
  *
- * The per-route names were deprecated on 2026-10-13 and merged into
- * PERSONAL_SIGNING_SECRET. They are read only as a fallback; remove them, and
- * their Infisical and Vercel values, on or after 2027-01-12, when booking links
- * and event-interest source cookies signed with them have expired.
+ * EVENT_INTEREST_SECRET was retired on 2026-10-13; event-interest requests and
+ * cookies use only the shared keys. The volunteer/booking legacy key remains
+ * a fallback until 2027-01-12, when old booking links have expired.
  */
-type LegacySecretName =
-  | "VOLUNTEER_PROSPECT_HMAC_SECRET"
-  | "EVENT_INTEREST_SECRET"
+type LegacySecretName = "VOLUNTEER_PROSPECT_HMAC_SECRET"
 
 const MIN_SECRET_LENGTH = 32
 
@@ -20,23 +17,24 @@ function configured(value: string | undefined): value is string {
 }
 
 export function personalSigningSecret(
-  legacyName: LegacySecretName,
+  legacyName?: LegacySecretName,
 ): string | undefined {
-  return [process.env.PERSONAL_SIGNING_SECRET, process.env[legacyName]].find(
-    configured,
-  )
+  return [
+    process.env.PERSONAL_SIGNING_SECRET,
+    legacyName && process.env[legacyName],
+  ].find(configured)
 }
 
 /** Keys that may have signed a token this website issued earlier. */
 export function personalVerificationSecrets(
-  legacyName: LegacySecretName,
+  legacyName?: LegacySecretName,
 ): string[] {
   return [
     ...new Set(
       [
         process.env.PERSONAL_SIGNING_SECRET,
         process.env.PERSONAL_SIGNING_PREVIOUS_SECRET,
-        process.env[legacyName],
+        legacyName && process.env[legacyName],
       ].filter(configured),
     ),
   ]
