@@ -4,8 +4,10 @@
  * `event-interest-v1`, `booking-promotion-v1:`, `booking-continuation-v1:`,
  * `event-interest-source-v1:`), so a signature never verifies for another use.
  *
- * The deprecated per-route names are read as a fallback until
- * PERSONAL_SIGNING_SECRET is provisioned everywhere.
+ * The per-route names were deprecated on 2026-10-13 and merged into
+ * PERSONAL_SIGNING_SECRET. They are read only as a fallback; remove them, and
+ * their Infisical and Vercel values, on or after 2027-01-12, when booking links
+ * and event-interest source cookies signed with them have expired.
  */
 type LegacySecretName =
   | "VOLUNTEER_PROSPECT_HMAC_SECRET"
