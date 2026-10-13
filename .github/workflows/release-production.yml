@@ -195,7 +195,7 @@ jobs:
 
           token_flag="--""token"
           scope_flag="--""scope"
-          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN")"
+          deployment_url="$(vercel deploy --prebuilt --archive=tgz --prod --skip-domain "$scope_flag" "$VERCEL_ORG_ID" "$token_flag" "$VERCEL_TOKEN")"
           if [[ "${deployment_url}" != http* ]]; then
             deployment_url="https://${deployment_url}"
           fi

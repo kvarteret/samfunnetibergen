@@ -38,7 +38,9 @@ export function resolveSiteUrl() {
 
     if (
       hostname === "samfunnetibergen.no" ||
-      hostname === "www.samfunnetibergen.no"
+      hostname === "www.samfunnetibergen.no" ||
+      hostname === "blifrivillig.no" ||
+      hostname === "www.blifrivillig.no"
     ) {
       return CANONICAL_PRODUCTION_ORIGIN
     }

@@ -26,6 +26,13 @@ staged smoke tests pass.
   server-only and never prefix them with `NEXT_PUBLIC_`. During
   later request HMAC secret rotations, update Personal to accept the new and
   previous values before switching the website.
+- Booking promotion links have no expiry date, including previously issued
+  links carrying a legacy expiry. They require the saved booking and an accepted
+  signing key. Retain the previous signing key while links signed with it must
+  remain usable; removing that key invalidates those links.
+- Infisical `/nettside` holds `SITE_URL=https://www.samfunnetibergen.no` for
+  absolute website links. The recruitment domain redirects to recruitment and
+  must not be used as the booking promotion origin.
 
 Pull-request-specific Vercel Preview deployments are the normal place to review
 changes before merging. The release workflow still provides the integration
