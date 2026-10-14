@@ -20,7 +20,7 @@ export const STUDENT_GROUP_CATEGORIES = [
 ]
 
 export const STUDENT_GROUP_APPLICATION_STATUSES = [
-  { title: "Tar imot søknader via søknadsskjema", value: "open" },
+  { title: "Aktiv rekruttering", value: "open" },
   {
     title: "Gruppen tar ikke imot søknader via søknadsskjema",
     value: "external",
