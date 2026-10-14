@@ -16,6 +16,7 @@ import {
 import { buildEventDocument } from "../../server/event-document"
 import { notifyPendingRequest } from "../../server/pending-slack"
 import { type Extraction, extractWithLuna, type ImportTaxonomy } from "./luna"
+import { mergeDuplicateListing } from "./merge"
 import {
   bestEffortRoom,
   matchBookingRoom,
@@ -51,6 +52,8 @@ type RunState = {
 export type ImportReport = {
   discovered: number
   imported: number
+  /** Extra performances folded into an existing arrangement as dates. */
+  merged: number
   skipped: number
   /** Not imported; retried next run. */
   failed: { url: string; reason: string }[]
@@ -67,6 +70,30 @@ export function isDue(lastSuccessAt: string | undefined, now: number): boolean {
   )
 }
 
+/**
+ * Crescat bookings are titled by whoever booked the room, often the organizer
+ * ("Immaturus - Mikroproduksjon") rather than the show. A booking that shares
+ * a name with the organizer during the event is assumed to be its room.
+ */
+export function matchListingRoom(
+  extracted: Pick<
+    Extraction,
+    "title" | "organizerGroup" | "organizerText" | "submittedByOrganization"
+  >,
+  taxonomy: ImportTaxonomy,
+  candidates: RoomCandidate[],
+): string | null {
+  const organizer =
+    taxonomy.groups.find(group => group._id === extracted.organizerGroup)
+      ?.name ||
+    extracted.organizerText ||
+    extracted.submittedByOrganization
+  return (
+    matchBookingRoom(extracted.title, candidates) ||
+    (organizer ? matchBookingRoom(organizer, candidates) : null)
+  )
+}
+
 export function formFromExtraction(
   extracted: Extraction,
   url: string,
@@ -75,7 +102,7 @@ export function formFromExtraction(
 ): FormState {
   // A missing room or price no longer blocks the request; editors complete it.
   const room =
-    matchBookingRoom(extracted.title, candidates) ||
+    matchListingRoom(extracted, taxonomy, candidates) ||
     extracted.room ||
     bestEffortRoom(candidates) ||
     ""
@@ -182,18 +209,25 @@ export async function importEvents(
   const taxonomy = await taxonomyForImport(client)
   // Raw perspective includes pending, rejected and draft arrangements. Preserve
   // manual submissions and editorial corrections, including locale variants.
-  const existing = await client.fetch<{ _id: string; ticketUrl?: string }[]>(
-    `*[_type == "arrangement" && defined(ticketUrl)]{_id, ticketUrl}`,
+  const existing = await client.fetch<
+    { _id: string; ticketUrl?: string; sourceTicketUrls?: string[] }[]
+  >(
+    `*[_type == "arrangement" && (defined(ticketUrl) || defined(sourceTicketUrls))]{_id, ticketUrl, sourceTicketUrls}`,
   )
   const seen = new Set(
-    existing.flatMap(event => {
-      const url = canonicalTicketUrl(event.ticketUrl ?? "")
-      return url ? [url] : []
-    }),
+    existing.flatMap(event =>
+      [event.ticketUrl ?? "", ...(event.sourceTicketUrls ?? [])].flatMap(
+        value => {
+          const url = canonicalTicketUrl(value)
+          return url ? [url] : []
+        },
+      ),
+    ),
   )
   const report: ImportReport = {
     discovered: events.length,
     imported: 0,
+    merged: 0,
     skipped: 0,
     failed: [],
     warnings: [],
@@ -290,7 +324,7 @@ export async function importEvents(
       )
       if (
         !extracted.room &&
-        !matchBookingRoom(extracted.title, candidates) &&
+        !matchListingRoom(extracted, taxonomy, candidates) &&
         !bestEffortRoom(candidates) &&
         candidates.length
       ) {
@@ -332,6 +366,21 @@ export async function importEvents(
           )
         } catch {
           /* Missing image does not block an otherwise complete submission. */
+        }
+        // Another performance of a show already imported: same title and the
+        // same poster (by perceptual hash) becomes an extra date, not a copy.
+        const mergedInto =
+          imageAssetId &&
+          (await mergeDuplicateListing(client, {
+            url,
+            title: form.title,
+            imageAssetId,
+            date: form.dates[0],
+          }))
+        if (mergedInto) {
+          seen.add(url)
+          report.merged++
+          continue
         }
         const created = await client.createIfNotExists({
           ...buildEventDocument({ ...form, imageAssetId }),
@@ -390,6 +439,7 @@ export async function runTicketCoImport(
     return {
       discovered: 0,
       imported: 0,
+      merged: 0,
       skipped: 0,
       failed: [],
       warnings: [],
@@ -402,6 +452,7 @@ export async function runTicketCoImport(
   const empty: ImportReport = {
     discovered: 0,
     imported: 0,
+    merged: 0,
     skipped: 0,
     failed: [],
     warnings: [],
