@@ -481,6 +481,18 @@ export const arrangement = defineType({
           ),
     }),
     defineField({
+      name: "sourceTicketUrls",
+      title: "Sammenslåtte billettlenker",
+      description:
+        "TicketCo-oppføringer for flere forestillinger, slått sammen hit av importen.",
+      type: "array",
+      group: "tickets",
+      // Written by the TicketCo import so merged listings are not re-imported.
+      hidden: true,
+      readOnly: true,
+      of: [defineArrayMember({ type: "url" })],
+    }),
+    defineField({
       name: "facebookUrl",
       title: "Facebook-arrangement",
       type: "url",

@@ -538,6 +538,7 @@ export type Arrangement = {
   priceStudent?: number
   priceMedlem?: number
   ticketUrl?: string
+  sourceTicketUrls?: Array<string>
   facebookUrl?: string
   isInternalEvent?: boolean
   eventStatus: "scheduled" | "cancelled"

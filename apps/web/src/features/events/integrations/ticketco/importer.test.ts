@@ -5,6 +5,7 @@ import {
   INTERVAL_MS,
   importEvents,
   isDue,
+  matchListingRoom,
   runTicketCoImport,
 } from "./importer"
 import type { Extraction, ImportTaxonomy } from "./luna"
@@ -476,4 +477,82 @@ test("uses the linked Sanity organizer instead of translated free text", () => {
     organizerText: "",
     organizerTextEnglish: "",
   })
+})
+
+test("matches the room booked under the organizer's name when the title does not", () => {
+  const rooms = [
+    ...taxonomy.rooms,
+    { _id: "storelogen", name: "Storelogen", crescatRoomId: 23 },
+    { _id: "speilsalen", name: "Speilsalen", crescatRoomId: 96 },
+  ]
+  const groups = [{ _id: "immaturus", name: "Studentteateret Immaturus" }]
+  // Real Crescat bookings for «Hvor er Tassi?!?!», 2026-10-23 19:00–20:00.
+  const candidates = overlappingRooms(
+    "2099-10-23",
+    "19:00",
+    "20:00",
+    [
+      {
+        ...booking,
+        resourceId: 95,
+        event_id: 2,
+        start: "2099-10-23 12:00:00",
+        end: "2099-10-23 23:59:00",
+        title: "BIFF 2026",
+      },
+      {
+        ...booking,
+        resourceId: 97,
+        event_id: 3,
+        start: "2099-10-23 12:00:00",
+        end: "2099-10-24 03:00:00",
+        title: "ASF - HLNA",
+      },
+      {
+        ...booking,
+        resourceId: 23,
+        event_id: 4,
+        start: "2099-10-23 16:30:00",
+        end: "2099-10-23 23:45:00",
+        title: "Immaturus - Mikroproduksjon",
+      },
+      {
+        ...booking,
+        resourceId: 96,
+        event_id: 5,
+        start: "2099-10-23 18:30:00",
+        end: "2099-10-24 00:00:00",
+        title: "Bursdagsfeiring",
+      },
+    ],
+    rooms,
+  )
+  const listing = {
+    title: "Hvor er Tassi?!?!",
+    organizerGroup: "immaturus",
+    organizerText: "",
+    submittedByOrganization: "",
+  }
+  expect(bestEffortRoom(candidates)).toBeNull()
+  expect(
+    matchListingRoom(listing, { ...taxonomy, rooms, groups }, candidates),
+  ).toBe("storelogen")
+  expect(
+    matchListingRoom(
+      {
+        ...listing,
+        organizerGroup: "",
+        submittedByOrganization: "Studentteateret Immaturus",
+      },
+      { ...taxonomy, rooms },
+      candidates,
+    ),
+  ).toBe("storelogen")
+  expect(
+    matchListingRoom(
+      { ...listing, organizerGroup: "" },
+      { ...taxonomy, rooms },
+      candidates,
+    ),
+  ).toBeNull()
 })
