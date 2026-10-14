@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - apps/web/**
+      - apps/party/**
       - packages/content-domain/**
       - package.json
       - package-lock.json
@@ -134,6 +135,13 @@ jobs:
           env-slug: prod
           secret-path: /nettside
           export-type: env
+
+      # Compares the bundle wrangler would upload with the fingerprint recorded
+      # on the live Worker version, so the Worker deploys only when what runs
+      # would actually change, however the repository changed.
+      - name: Check lekeplass Worker
+        id: worker
+        run: npm --workspace @samfunnet/party run --silent deploy:check >> "$GITHUB_OUTPUT"
 
       - name: Install Vercel CLI
         run: npm install --global vercel@59.16.0
@@ -292,6 +300,34 @@ jobs:
             exit 1
           fi
 
+      # Deployed before promotion: a failed Worker deploy or health check
+      # stops the release, so the website never ships ahead of the protocol
+      # it speaks. The Worker must stay compatible with the live website for
+      # the minutes until promotion.
+      - name: Deploy lekeplass Worker
+        if: ${{ steps.worker.outputs.changed == 'true' && (github.event_name == 'push' || inputs.promote) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm --workspace @samfunnet/party run deploy -- \
+            "${{ steps.release.outputs.tag }} ${{ steps.release.outputs.short_sha }}"
+
+          host="${NEXT_PUBLIC_PARTY_HOST:-}"
+          if [[ -z "$host" ]]; then
+            echo "NEXT_PUBLIC_PARTY_HOST is missing; cannot verify the Worker" >&2
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5; do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              --header "Origin: ${NEXT_PUBLIC_SITE_URL%/}" "https://${host}/health" || true)"
+            echo "Worker health attempt ${attempt}: HTTP ${status}"
+            [[ "$status" == "200" ]] && exit 0
+            sleep 5
+          done
+          echo "Lekeplass Worker failed its health check after deploy" >&2
+          exit 1
+
       - name: Promote staged deployment
         if: ${{ github.event_name == 'push' || inputs.promote }}
         run: |
@@ -331,5 +367,6 @@ jobs:
             echo "- Source: \`${{ steps.release.outputs.short_sha }}\`"
             echo "- Tag: \`${{ steps.release.outputs.tag }}\`"
             echo "- Staged deployment: ${{ steps.deploy.outputs.url }}"
+            echo "- Lekeplass Worker deployed: \`${{ steps.worker.outputs.changed == 'true' && (github.event_name == 'push' || inputs.promote) }}\` (fingerprint \`${{ steps.worker.outputs.fingerprint }}\`)"
             echo "- Promoted: \`${{ github.event_name == 'push' || inputs.promote }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
