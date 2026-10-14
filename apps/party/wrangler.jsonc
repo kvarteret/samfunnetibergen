@@ -1,8 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "samfunnet-lekeplass",
-  // it.leder@kvarteret.no's account. Not secret; CI supplies only the token.
-  "account_id": "bbeebbdd2cbe3f6a5b64ddbb9cd12e64",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "vars": {
