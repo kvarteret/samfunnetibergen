@@ -1,10 +1,21 @@
 import { importClient } from "@/features/events/integrations/ticketco/importer"
-import { syncPendingRequests } from "@/features/events/server/pending-slack"
+import {
+  previewPendingRequests,
+  syncPendingRequests,
+} from "@/features/events/server/pending-slack"
 
-syncPendingRequests(importClient())
+const dryRun = process.argv.includes("--dry-run")
+
+;(dryRun
+  ? previewPendingRequests(importClient()).then(report => ({
+      dryRun: true,
+      ...report,
+    }))
+  : syncPendingRequests(importClient())
+)
   .then(report => {
     process.stdout.write(`${JSON.stringify(report)}\n`)
-    if (report.failed) process.exitCode = 1
+    if ("failed" in report && report.failed) process.exitCode = 1
   })
   .catch(() => {
     process.stderr.write(

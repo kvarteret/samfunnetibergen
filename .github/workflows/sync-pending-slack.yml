@@ -5,6 +5,11 @@ on:
     # Daily at 07:37 UTC (09:37 Oslo summer, 08:37 winter).
     - cron: "37 7 * * *"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report what would be announced without claiming or posting"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -39,4 +44,9 @@ jobs:
           secret-path: /nettside
           export-type: env
       - name: Notify new pending requests in nettside
-        run: npm --workspace @samfunnet/web run events:sync:pending-slack
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          npm --workspace @samfunnet/web run events:sync:pending-slack -- "${args[@]}"
