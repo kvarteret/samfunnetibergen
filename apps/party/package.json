@@ -8,9 +8,10 @@
   },
   "scripts": {
     "dev": "wrangler dev --port 1999",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/fingerprint.mjs deploy",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy:check": "node scripts/fingerprint.mjs check"
   },
   "dependencies": {
     "partyserver": "0.5.10"
