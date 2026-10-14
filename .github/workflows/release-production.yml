@@ -136,6 +136,18 @@ jobs:
           secret-path: /nettside
           export-type: env
 
+      - name: Load Worker deployment credentials
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 242f2c14-008b-4e8a-a78c-820300ee0c5f
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
+          env-slug: prod
+          secret-path: /party
+          export-type: env
+
       # Compares the bundle wrangler would upload with the fingerprint recorded
       # on the live Worker version, so the Worker deploys only when what runs
       # would actually change, however the repository changed.

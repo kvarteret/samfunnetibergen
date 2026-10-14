@@ -60,7 +60,7 @@ const [command, label = "manual"] = process.argv.slice(2)
 
 if (process.env.CI && !process.env.CLOUDFLARE_API_TOKEN) {
   console.error(
-    "CLOUDFLARE_API_TOKEN is missing from Samfunnet Deployments /nettside",
+    "CLOUDFLARE_API_TOKEN is missing from Samfunnet Deployments /party",
   )
   process.exit(1)
 }
