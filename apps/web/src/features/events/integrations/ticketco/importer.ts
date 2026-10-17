@@ -34,7 +34,7 @@ import {
   type TicketCoEvent,
   ticketDocumentId,
 } from "./source"
-import { captureRoomResolution } from "./telemetry"
+import { captureRoomResolution, type ImportOutcome } from "./telemetry"
 import { facebookEventUrl, ticketDetails } from "./ticket-details"
 
 export const INTERVAL_MS = 72 * 60 * 60 * 1000
@@ -57,7 +57,7 @@ export type ImportReport = {
   skipped: number
   /** Not imported; retried next run. */
   failed: { url: string; reason: string }[]
-  /** Imported as pending requests that editors must complete. */
+  /** Imported as drafts or pending requests that editors must complete. */
   warnings: { url: string; reason: string }[]
   status: "complete" | "not-due" | "busy"
 }
@@ -265,7 +265,7 @@ export async function importEvents(
       continue
     }
     const traceId = randomUUID()
-    let resolvedRoom: string | undefined
+    const outcome: ImportOutcome = { status: "failed" }
     try {
       const html = await dependencies.fetchPage(url)
       const date = calendarDate(event)
@@ -342,7 +342,7 @@ export async function importEvents(
           : ""
       }
       const form = formFromExtraction(extracted, url, taxonomy, candidates)
-      resolvedRoom = form.room
+      outcome.room = form.room
       // Do not import historical or cancelled search results as scheduled events.
       const today = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Oslo",
@@ -355,6 +355,8 @@ export async function importEvents(
         String(event.eventStatus).includes("Cancelled")
       ) {
         report.skipped++
+        outcome.status = "skipped"
+        outcome.reason = "Historical or cancelled source event"
         continue
       }
       let imageAssetId: string | undefined
@@ -370,6 +372,7 @@ export async function importEvents(
         // Another performance of a show already imported: same title and the
         // same poster (by perceptual hash) becomes an extra date, not a copy.
         const mergedInto =
+          form.room &&
           imageAssetId &&
           (await mergeDuplicateListing(client, {
             url,
@@ -380,11 +383,12 @@ export async function importEvents(
         if (mergedInto) {
           seen.add(url)
           report.merged++
+          outcome.status = "merged"
           continue
         }
         const created = await client.createIfNotExists({
           ...buildEventDocument({ ...form, imageAssetId }),
-          _id: ticketDocumentId(url),
+          _id: `${form.room ? "" : "drafts."}${ticketDocumentId(url)}`,
         })
         try {
           await notifyPendingRequest(client, created)
@@ -394,8 +398,15 @@ export async function importEvents(
       }
       seen.add(url)
       report.imported++
-      if (!form.room)
-        report.warnings.push({ url, reason: "Imported without room" })
+      outcome.status = dryRun ? "dry-run" : form.room ? "pending" : "draft"
+      if (!form.room) {
+        outcome.reason =
+          "Room unresolved; select a room in Studio before approving"
+        report.warnings.push({
+          url,
+          reason: `${dryRun ? "Would create draft" : "Created draft"}: ${outcome.reason}`,
+        })
+      }
       if (
         !form.isFree &&
         !form.isSoldOut &&
@@ -417,8 +428,10 @@ export async function importEvents(
               ? error.message
               : "Extraction or validation failed; event will be retried"
       report.failed.push({ url, reason })
+      outcome.status = "failed"
+      outcome.reason = reason
     } finally {
-      await captureRoomResolution(traceId, url, resolvedRoom)
+      await captureRoomResolution(traceId, url, outcome)
     }
   }
   return report

@@ -60,30 +60,53 @@ test("analytics failures do not fail event extraction", async () => {
   stderr.mockRestore()
 })
 
-test("records final room resolution and fatal missing room in the same trace", async () => {
+test.each([
+  ["pending", "room-teglverket", true, false],
+  ["draft", "", true, false],
+  ["dry-run", "", true, false],
+  ["merged", "room-teglverket", true, false],
+  ["skipped", "", false, false],
+  ["failed", "room-teglverket", false, true],
+] as const)(
+  "records %s from the actual importer outcome",
+  async (status, room, accepted, isError) => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test")
+    const reason =
+      status === "failed" ? "Validation: dates.0.endTime:custom" : undefined
+    await captureRoomResolution("trace-test", generation.source.url, {
+      status,
+      room,
+      reason,
+    })
+    expect(capture).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        event: "$ai_span",
+        properties: expect.objectContaining({
+          $ai_trace_id: "trace-test",
+          $ai_output_state: { room: room || null, accepted, status, reason },
+          $ai_is_error: isError,
+          $ai_error: reason,
+        }),
+      }),
+    )
+  },
+)
+
+test("missing-room drafts carry an actionable reason without an error", async () => {
   vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test")
-  await captureRoomResolution(
-    "trace-test",
-    generation.source.url,
-    "room-teglverket",
-  )
-  expect(capture).toHaveBeenLastCalledWith(
-    expect.objectContaining({
-      event: "$ai_span",
-      properties: expect.objectContaining({
-        $ai_trace_id: "trace-test",
-        $ai_output_state: { room: "room-teglverket", accepted: true },
-        $ai_is_error: false,
-      }),
-    }),
-  )
-  await captureRoomResolution("trace-test", generation.source.url)
-  expect(capture).toHaveBeenLastCalledWith(
-    expect.objectContaining({
-      properties: expect.objectContaining({
-        $ai_is_error: true,
-        $ai_output_state: { room: null, accepted: false },
-      }),
-    }),
-  )
+  await captureRoomResolution("trace-test", generation.source.url, {
+    status: "draft",
+    room: "",
+    reason: "Room unresolved; select a room in Studio before approving",
+  })
+  expect(capture.mock.calls[0][0].properties).toMatchObject({
+    $ai_output_state: {
+      accepted: true,
+      status: "draft",
+      room: null,
+      reason: expect.stringContaining("select a room in Studio"),
+    },
+    $ai_is_error: false,
+    $ai_error: undefined,
+  })
 })

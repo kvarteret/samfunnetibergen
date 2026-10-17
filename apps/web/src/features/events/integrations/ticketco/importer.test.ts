@@ -9,6 +9,7 @@ import {
   runTicketCoImport,
 } from "./importer"
 import type { Extraction, ImportTaxonomy } from "./luna"
+import { mergeDuplicateListing } from "./merge"
 import { bestEffortRoom, matchBookingRoom, overlappingRooms } from "./rooms"
 import {
   approvedImageUrl,
@@ -17,6 +18,10 @@ import {
   parseListing,
   ticketDocumentId,
 } from "./source"
+import { captureRoomResolution } from "./telemetry"
+
+vi.mock("./telemetry", () => ({ captureRoomResolution: vi.fn() }))
+vi.mock("./merge", () => ({ mergeDuplicateListing: vi.fn() }))
 
 const url = "https://asf.ticketco.events/no/nb/e/concert"
 const taxonomy: ImportTaxonomy = {
@@ -218,6 +223,11 @@ describe("imports", () => {
     const report = await importEvents(fixture.client, false, deps)
     expect(report.failed).toHaveLength(1)
     expect(fixture.create).not.toHaveBeenCalled()
+    expect(captureRoomResolution).toHaveBeenLastCalledWith(
+      expect.any(String),
+      url,
+      { status: "failed", reason: expect.stringContaining("dates.0.endTime") },
+    )
   })
   test("72-hour schedule survives month boundaries", () => {
     const start = Date.parse("2026-10-31T05:17:00Z")
@@ -401,7 +411,7 @@ test("uses the only room booked in Crescat when no title matches", async () => {
   expect(deps.extract).toHaveBeenCalledOnce()
 })
 
-test("imports an unresolved room with a warning instead of failing", async () => {
+test("creates an editable draft for an unresolved room and preserves it on retry", async () => {
   const fixture = fixtureClient()
   const deps = dependencies()
   deps.extract.mockResolvedValue({ ...extraction, room: "" })
@@ -412,10 +422,126 @@ test("imports an unresolved room with a warning instead of failing", async () =>
   expect(await importEvents(fixture.client, false, deps)).toMatchObject({
     imported: 1,
     failed: [],
-    warnings: [{ url, reason: "Imported without room" }],
+    warnings: [
+      {
+        url,
+        reason:
+          "Created draft: Room unresolved; select a room in Studio before approving",
+      },
+    ],
   })
   expect(deps.extract).toHaveBeenCalledTimes(2)
-  expect(fixture.docs.get(ticketDocumentId(url))).not.toHaveProperty("room")
+  const id = `drafts.${ticketDocumentId(url)}`
+  const doc = fixture.docs.get(id)
+  expect(doc).toMatchObject({
+    _type: "arrangement",
+    approvalStatus: "pending",
+    ticketUrl: url,
+    localizedTitle: expect.any(Array),
+    dates: [expect.objectContaining({ startDate: extraction.startDate })],
+  })
+  expect(doc).not.toHaveProperty("room")
+  expect(fixture.docs.has(ticketDocumentId(url))).toBe(false)
+  expect(captureRoomResolution).toHaveBeenLastCalledWith(
+    expect.any(String),
+    url,
+    {
+      status: "draft",
+      room: "",
+      reason: expect.stringContaining("select a room in Studio"),
+    },
+  )
+  if (doc) doc.localizedTitle = [{ language: "nb", value: "Edited title" }]
+  const secondDeps = dependencies()
+  expect(await importEvents(fixture.client, false, secondDeps)).toMatchObject({
+    skipped: 1,
+  })
+  expect(secondDeps.extract).not.toHaveBeenCalled()
+  expect(fixture.create).toHaveBeenCalledOnce()
+  expect(fixture.docs.get(id)).toBe(doc)
+})
+
+test("creates a draft with no calendar candidates", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([])
+  expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+    imported: 1,
+    failed: [],
+  })
+  expect(fixture.docs.has(`drafts.${ticketDocumentId(url)}`)).toBe(true)
+  expect(deps.extract).toHaveBeenCalledOnce()
+})
+
+test("missing-room dry-run reports a draft without writing", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([])
+  expect(await importEvents(fixture.client, true, deps)).toMatchObject({
+    imported: 1,
+    failed: [],
+    warnings: [{ url, reason: expect.stringContaining("Would create draft") }],
+  })
+  expect(fixture.create).not.toHaveBeenCalled()
+  expect(captureRoomResolution).toHaveBeenLastCalledWith(
+    expect.any(String),
+    url,
+    expect.objectContaining({ status: "dry-run", room: "" }),
+  )
+})
+
+test("a save failure remains a failure even after resolving the room", async () => {
+  const fixture = fixtureClient()
+  fixture.create.mockRejectedValueOnce(new Error("save failed"))
+  expect(
+    await importEvents(fixture.client, false, dependencies()),
+  ).toMatchObject({
+    imported: 0,
+    failed: [{ url, reason: expect.any(String) }],
+  })
+  expect(captureRoomResolution).toHaveBeenLastCalledWith(
+    expect.any(String),
+    url,
+    expect.objectContaining({
+      status: "failed",
+      room: "tegl",
+      reason: expect.any(String),
+    }),
+  )
+})
+
+test("a missing-room import with an image cannot merge into an existing show", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([])
+  deps.fetchPage.mockResolvedValue(
+    '<meta property="og:image" content="https://tuploads.s3.amazonaws.com/image.png">',
+  )
+  const upload = vi.fn(async () => ({ _id: "image-asset" }))
+  Object.assign(fixture.client, { assets: { upload } })
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response("image", { headers: { "content-type": "image/png" } }),
+    ),
+  )
+  try {
+    expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+      imported: 1,
+      merged: 0,
+    })
+    expect(upload).toHaveBeenCalledOnce()
+    expect(mergeDuplicateListing).not.toHaveBeenCalled()
+    expect(fixture.docs.get(`drafts.${ticketDocumentId(url)}`)).toMatchObject({
+      image: { asset: { _ref: "image-asset" } },
+    })
+  } finally {
+    vi.unstubAllGlobals()
+  }
 })
 
 test("Teglverket's bundled support rooms do not make the fallback ambiguous", () => {

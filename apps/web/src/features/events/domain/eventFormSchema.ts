@@ -30,7 +30,7 @@ const eventDateSchema = z.object({
 
 /**
  * Structural rules. A draft at this level can be saved; the TicketCo importer
- * creates pending requests with it. Submitting needs `eventFormSchema`.
+ * creates drafts or pending requests with it. Submitting needs `eventFormSchema`.
  */
 export const eventDraftSchema = z
   .object({
