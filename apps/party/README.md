@@ -37,7 +37,7 @@ promoted. Keep the Worker compatible with the website that is live for those
 few minutes.
 
 CI authenticates with `CLOUDFLARE_API_TOKEN` from Infisical's Samfunnet
-Deployments project (`/nettside`, `prod`). The account is pinned in
+Deployments project (`/party`, `prod`). The account is pinned in
 `wrangler.jsonc`. The website finds the Worker through `NEXT_PUBLIC_PARTY_HOST`
 (`samfunnet-lekeplass.samfunnetibergen.workers.dev`), and `ALLOWED_ORIGINS`
 lists the origins that may connect.
