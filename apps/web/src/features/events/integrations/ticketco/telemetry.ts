@@ -88,13 +88,22 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
 }
 
 /** Show the importer outcome separately from provisional model output. */
+export type ImportOutcome = {
+  status: "pending" | "draft" | "merged" | "skipped" | "dry-run" | "failed"
+  room?: string
+  reason?: string
+}
+
 export async function captureRoomResolution(
   traceId: string,
   ticketUrl: string,
-  room?: string,
+  outcome: ImportOutcome,
   workflow: LunaWorkflow = TICKETCO_WORKFLOW,
 ) {
   if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
+  const accepted = ["pending", "draft", "merged", "dry-run"].includes(
+    outcome.status,
+  )
   try {
     await getPostHogClient().captureImmediate({
       distinctId: workflow.distinctId,
@@ -104,11 +113,14 @@ export async function captureRoomResolution(
         $ai_parent_id: traceId,
         $ai_span_id: `${traceId}-validation`,
         $ai_span_name: "Import validation and room resolution",
-        $ai_output_state: { room: room ?? null, accepted: Boolean(room) },
-        $ai_is_error: !room,
-        $ai_error: room
-          ? undefined
-          : "Event not imported: room or required fields unresolved",
+        $ai_output_state: {
+          room: outcome.room || null,
+          accepted,
+          status: outcome.status,
+          reason: outcome.reason,
+        },
+        $ai_is_error: outcome.status === "failed",
+        $ai_error: outcome.status === "failed" ? outcome.reason : undefined,
         ticket_url: ticketUrl,
       },
     })
