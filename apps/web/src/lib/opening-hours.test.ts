@@ -3,6 +3,7 @@ import {
   formatOpeningDate,
   formatOpeningHoursTime,
   formatVacationModeNotice,
+  isBookingWindowAllowed,
   isVacationModeActive,
   minutesToTime,
   type OpeningHours,
@@ -258,5 +259,109 @@ describe("vacation mode", () => {
     })
 
     expect(notice).toBe("Vi åpner igjen 1. august 2026")
+  })
+})
+
+describe("isBookingWindowAllowed", () => {
+  // Mirrors the house's bookable hours: Mon–Thu 12–01, Fri 12–03, Sat 14–03,
+  // Sun 16:30–22.
+  const bookable = {
+    rows: [
+      {
+        weekdays: [1, 2, 3, 4],
+        status: "open",
+        duration: { start: "12:00", end: "01:00" },
+      },
+      {
+        weekdays: [5],
+        status: "open",
+        duration: { start: "12:00", end: "03:00" },
+      },
+      {
+        weekdays: [6],
+        status: "open",
+        duration: { start: "14:00", end: "03:00" },
+      },
+      {
+        weekdays: [7],
+        status: "open",
+        duration: { start: "16:30", end: "22:00" },
+      },
+    ],
+  }
+
+  test("single day must fit one opening range", () => {
+    // 2026-10-17 is a Saturday.
+    expect(
+      isBookingWindowAllowed("2026-10-17", "14:00", "", "02:00", bookable),
+    ).toBe(true)
+    expect(
+      isBookingWindowAllowed("2026-10-17", "12:00", "", "13:00", bookable),
+    ).toBe(false)
+    expect(
+      isBookingWindowAllowed(
+        "2026-10-17",
+        "12:00",
+        "2026-10-17",
+        "13:00",
+        bookable,
+      ),
+    ).toBe(false)
+  })
+
+  test("multi-day only pins get-in to the first day and get-out to the last", () => {
+    // Fri 19:00 → Sat 18:00 used to be checked as one 23h slot on Friday and
+    // rejected; both endpoints are inside their own day's hours.
+    expect(
+      isBookingWindowAllowed(
+        "2026-10-16",
+        "19:00",
+        "2026-10-17",
+        "18:00",
+        bookable,
+      ),
+    ).toBe(true)
+    // Get-out after the previous night's close runs past midnight is fine.
+    expect(
+      isBookingWindowAllowed(
+        "2026-10-16",
+        "19:00",
+        "2026-10-18",
+        "02:00",
+        bookable,
+      ),
+    ).toBe(true)
+    // Get-in before Saturday opens, or get-out after Sunday closes, is not.
+    expect(
+      isBookingWindowAllowed(
+        "2026-10-17",
+        "12:00",
+        "2026-10-18",
+        "20:00",
+        bookable,
+      ),
+    ).toBe(false)
+    expect(
+      isBookingWindowAllowed(
+        "2026-10-17",
+        "15:00",
+        "2026-10-18",
+        "23:00",
+        bookable,
+      ),
+    ).toBe(false)
+  })
+
+  test("closed dates block either endpoint", () => {
+    expect(
+      isBookingWindowAllowed(
+        "2026-12-22",
+        "14:00",
+        "2026-12-23",
+        "18:00",
+        bookable,
+        [{ date: "2026-12-23" }],
+      ),
+    ).toBe(false)
   })
 })

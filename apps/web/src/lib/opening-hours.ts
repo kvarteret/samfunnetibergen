@@ -512,3 +512,108 @@ export function isSlotAllowedForCombinedHours(
     ),
   )
 }
+
+/**
+ * Whether a booking's get-in → get-out fits the bookable hours. A single-day
+ * booking must sit inside one opening range. A multi-day booking only pins its
+ * endpoints: get-in inside the first day's hours, get-out inside the last
+ * day's (or the previous night's range running past midnight) — the days in
+ * between are part of the booking whatever their hours.
+ */
+export function isBookingWindowAllowed(
+  startDate: string,
+  startTime: string,
+  endDate: string | null | undefined,
+  endTime: string,
+  hours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
+): boolean {
+  const startMin = timeToMinutes(startTime)
+  const endMin = timeToMinutes(endTime)
+  if (startMin === null || endMin === null) return false
+
+  if (!endDate || endDate === startDate) {
+    const durationMin =
+      endMin > startMin ? endMin - startMin : endMin + MINUTES_IN_DAY - startMin
+    return isSlotAllowed(
+      startDate,
+      startTime,
+      durationMin / 60,
+      hours,
+      closedDates,
+      vacationMode,
+    )
+  }
+
+  if (!isSlotAllowed(startDate, startTime, 0, hours, closedDates, vacationMode))
+    return false
+
+  const previousDate = addCalendarDays(endDate, -1)
+  return [
+    { date: endDate, minute: endMin },
+    { date: previousDate, minute: endMin + MINUTES_IN_DAY },
+  ].some(candidate =>
+    openingRangesForDate(candidate.date, hours, closedDates, vacationMode).some(
+      range =>
+        candidate.minute > range.startMin && candidate.minute <= range.endMin,
+    ),
+  )
+}
+
+/**
+ * Minutes of a booking that fall inside the bookable hours — i.e. the time the
+ * booker actually has access to the house. Nights and closed days inside a
+ * multi-day booking don't count. Minutes are measured from `startDate`'s
+ * midnight; the previous day is included so an early-morning get-in picks up
+ * the tail of the night before's range.
+ */
+export function bookableMinutesWithin(
+  startDate: string,
+  startTime: string,
+  endDate: string | null | undefined,
+  endTime: string,
+  hours?: OpeningHours | null,
+  closedDates?: ClosedDate[] | null,
+  vacationMode?: VacationMode | null,
+): number {
+  const startMin = timeToMinutes(startTime)
+  const endTimeMin = timeToMinutes(endTime)
+  if (startMin === null || endTimeMin === null) return 0
+
+  const lastDay =
+    endDate && endDate !== startDate
+      ? Math.round(
+          (parseISO(endDate).getTime() - parseISO(startDate).getTime()) /
+            (MINUTES_IN_DAY * 60_000),
+        )
+      : 0
+  let endMin = lastDay * MINUTES_IN_DAY + endTimeMin
+  if (endMin <= startMin) endMin += MINUTES_IN_DAY
+
+  const ranges = []
+  for (let day = -1; day <= lastDay; day++) {
+    const offset = day * MINUTES_IN_DAY
+    for (const range of openingRangesForDate(
+      addCalendarDays(startDate, day),
+      hours,
+      closedDates,
+      vacationMode,
+    )) {
+      ranges.push({
+        startMin: range.startMin + offset,
+        endMin: range.endMin + offset,
+      })
+    }
+  }
+
+  return mergeRanges(ranges).reduce(
+    (sum, range) =>
+      sum +
+      Math.max(
+        0,
+        Math.min(endMin, range.endMin) - Math.max(startMin, range.startMin),
+      ),
+    0,
+  )
+}

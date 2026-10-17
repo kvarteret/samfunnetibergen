@@ -1,9 +1,8 @@
 import {
+  bookableMinutesWithin,
   type ClosedDate,
-  combineOpeningRangesForDate,
   hasOpeningHoursRows,
   type OpeningHours,
-  timeToMinutes,
   type VacationMode,
 } from "@/lib/opening-hours"
 import type { BookingRoom } from "../types"
@@ -58,50 +57,6 @@ const DEFAULT_PRICE_SUMMARY_LABELS: PriceSummaryLabels = {
   barHouse: "Kvarteret står i bar",
 }
 
-function billableHoursForRoom(
-  room: BookingRoom,
-  startDate: string,
-  endDate: string,
-  startTime: string,
-  endTime: string,
-  baseHours: OpeningHours | null,
-  closedDates: ClosedDate[],
-  vacationMode?: VacationMode | null,
-): number {
-  const totalHours = durationHoursBetweenDates(
-    startDate,
-    startTime,
-    endDate,
-    endTime,
-  )
-  const hasRoomHours = hasOpeningHoursRows(room.openingHours ?? null)
-  if (!hasRoomHours || (endDate && endDate !== startDate)) return totalHours
-
-  const ranges = combineOpeningRangesForDate(
-    startDate,
-    baseHours,
-    room.openingHours ?? null,
-    closedDates,
-    vacationMode,
-  )
-  if (ranges.length === 0) return totalHours
-
-  const bookStart = timeToMinutes(startTime) ?? 0
-  let bookEnd = timeToMinutes(endTime) ?? 0
-  if (bookEnd <= bookStart) bookEnd += 24 * 60
-
-  let billableMinutes = 0
-  for (const range of ranges) {
-    const overlapStart = Math.max(bookStart, range.startMin)
-    const overlapEnd = Math.min(bookEnd, range.endMin)
-    if (overlapStart < overlapEnd) {
-      billableMinutes += overlapEnd - overlapStart
-    }
-  }
-
-  return billableMinutes / 60
-}
-
 function formatHours(hours: number): string {
   return hours % 1 === 0 ? String(hours) : hours.toFixed(1)
 }
@@ -150,28 +105,33 @@ function roomRentLines(
 export function computePriceSummary(
   state: BookingFormState,
   rooms: BookingRoom[],
-  baseHours: OpeningHours | null = null,
+  bookableHours: OpeningHours | null = null,
   closedDates: ClosedDate[] = [],
   vacationMode?: VacationMode | null,
   labels: PriceSummaryLabels = DEFAULT_PRICE_SUMMARY_LABELS,
 ): PriceSummary {
+  // Rooms are billed for the hours the booker has access to the house: the
+  // booking's overlap with the house's bookable hours. Nights and closed days
+  // inside a multi-day booking are free. Room opening hours never reduce it.
   const hoursPerRoom = new Map<number, number>()
   if (state.startDate && state.startTime && state.endTime) {
-    for (const room of rooms) {
-      hoursPerRoom.set(
-        room.crescatRoomId,
-        billableHoursForRoom(
-          room,
+    const hours = hasOpeningHoursRows(bookableHours)
+      ? bookableMinutesWithin(
           state.startDate,
-          state.endDate,
           state.startTime,
+          state.endDate,
           state.endTime,
-          baseHours,
+          bookableHours,
           closedDates,
           vacationMode,
-        ),
-      )
-    }
+        ) / 60
+      : durationHoursBetweenDates(
+          state.startDate,
+          state.startTime,
+          state.endDate,
+          state.endTime,
+        )
+    for (const room of rooms) hoursPerRoom.set(room.crescatRoomId, hours)
   }
 
   const lines: PriceLine[] = []

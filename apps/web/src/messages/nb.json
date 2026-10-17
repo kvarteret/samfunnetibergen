@@ -133,6 +133,10 @@
       "getInOutHint": "Husk å beregne tid til opprigg og nedrigg innenfor bookingens start- og sluttid.",
       "roomBusyTitle": "{rooms} er opptatt i valgt tidsrom",
       "roomBusyDescription": "Endre tidspunktet eller fjern rommet fra bookingen.",
+      "outsideHoursTitle": "Utenfor tiden huset kan bookes",
+      "outsideHoursDescription": "{date} kan huset bookes {hours}. Flytt get-in og get-out innenfor dette tidsrommet.",
+      "outsideHoursClosed": "Huset kan ikke bookes {date}. Velg en annen dato.",
+      "outsideHoursSnap": "Bruk {start}–{end}",
       "removeRoom": "Fjern {room}",
       "flexibleDates": "Dato og rom er fleksibelt. Kvarteret kan foreslå et annet tidspunkt eller rom hvis dette passer bedre.",
       "noRooms": "Ingen rom er tilgjengelige for booking akkurat nå.",
@@ -342,8 +346,6 @@
       "successTitle": "Din booking er nå innsendt!",
       "successDescription": "Takk for din bookingforespørsel. Vi behandler den så fort vi kan og tar kontakt på e-post.",
       "backToRooms": "Tilbake til rom",
-      "outsideHours": "Utenfor åpningstid",
-      "outsideHoursDescription": "Valgt start- eller sluttid er utenfor husets åpningstider for denne dagen.",
       "genericErrorTitle": "Det oppstod en feil",
       "submit": "Send bookingforespørsel",
       "submitting": "Sender inn...",
@@ -385,7 +387,7 @@
       "organizationNumber": "Organisasjonsnummeret kan bare inneholde sifre.",
       "promotion": "Velg om du vil promotere arrangementet.",
       "availabilityConflict": "Velg et tidsrom som ikke overlapper en eksisterende booking.",
-      "outsideOpeningHours": "Velg et tidsrom innenfor åpningstiden."
+      "outsideOpeningHours": "Velg et tidsrom innenfor tiden huset kan bookes."
     },
     "bookerLabels": {
       "private": "Ekstern",

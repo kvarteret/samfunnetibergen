@@ -2,7 +2,6 @@ import { MapPin, X } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { DetailRow } from "@/components/ui/detail-row"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
-
 import type {
   ClosedDate,
   OpeningHours,
@@ -21,7 +20,7 @@ interface BookingOrderSummaryProps {
   state: BookingFormState
   rooms: BookingRoom[]
   selectedRoomIds: number[]
-  openingHours: OpeningHours | null
+  bookableHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
 }
@@ -30,7 +29,7 @@ export function BookingFormOrderSummary({
   state,
   rooms,
   selectedRoomIds,
-  openingHours,
+  bookableHours,
   closedDates,
   vacationMode,
 }: BookingOrderSummaryProps) {
@@ -45,7 +44,7 @@ export function BookingFormOrderSummary({
   const priceSummary = computePriceSummary(
     state,
     selectedRooms,
-    openingHours,
+    bookableHours,
     closedDates,
     vacationMode,
     {

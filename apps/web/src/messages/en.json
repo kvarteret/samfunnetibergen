@@ -134,6 +134,10 @@
       "getInOutHint": "Remember to allow time for setup and teardown within the booking's start and end times.",
       "roomBusyTitle": "{rooms} is busy during the selected time",
       "roomBusyDescription": "Change the time or remove the room from the booking.",
+      "outsideHoursTitle": "Outside the house's booking hours",
+      "outsideHoursDescription": "On {date} the house can be booked {hours}. Move get-in and get-out within this window.",
+      "outsideHoursClosed": "The house can't be booked on {date}. Pick another date.",
+      "outsideHoursSnap": "Use {start}–{end}",
       "removeRoom": "Remove {room}",
       "flexibleDates": "The date and room are flexible. Kvarteret may suggest another time or room if that works better.",
       "noRooms": "No rooms are available for booking right now.",
@@ -343,8 +347,6 @@
       "successTitle": "Your booking request has been submitted!",
       "successDescription": "Thank you for your booking request. We will process it as soon as possible and contact you by email.",
       "backToRooms": "Back to rooms",
-      "outsideHours": "Outside opening hours",
-      "outsideHoursDescription": "The selected start or end time is outside the house's opening hours for this day.",
       "genericErrorTitle": "Something went wrong",
       "submit": "Send booking request",
       "submitting": "Sending...",
@@ -386,7 +388,7 @@
       "organizationNumber": "The organization number may only contain digits.",
       "promotion": "Choose whether you want to promote the event.",
       "availabilityConflict": "Choose a time that does not overlap an existing booking.",
-      "outsideOpeningHours": "Choose a time within opening hours."
+      "outsideOpeningHours": "Choose a time within the house's booking hours."
     },
     "bookerLabels": {
       "private": "External",

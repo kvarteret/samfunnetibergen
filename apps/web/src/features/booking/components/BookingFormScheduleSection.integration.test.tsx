@@ -65,6 +65,7 @@ function ScheduleHarness(
           closedDates={[]}
           occupiedRanges={[{ startMin: 0, endMin: 24 * 60 }]}
           openingHours={null}
+          slotWithinHours
           roomOccupancy={new Map([[95, ["3. jun 07:00 – 28. aug 13:00"]]])}
           rooms={[TIVOLI]}
           startDateId="booking-date"
@@ -112,6 +113,33 @@ describe("BookingFormScheduleSection occupied selected room", () => {
     expect(container.textContent).not.toContain(
       "Tivoli er opptatt i valgt tidsrom",
     )
+  })
+
+  test("explains the house's booking window next to get-in/get-out", async () => {
+    await act(async () =>
+      root.render(
+        <ScheduleHarness
+          openingHours={{
+            rows: [
+              {
+                weekdays: [6],
+                status: "open",
+                duration: { start: "16:30", end: "22:00" },
+              },
+            ],
+          }}
+          roomOccupancy={new Map()}
+          slotWithinHours={false}
+        />,
+      ),
+    )
+
+    const warning = container.querySelector("#booking-date-time")
+    expect(warning?.textContent).toContain("Utenfor tiden huset kan bookes")
+    expect(warning?.textContent).toContain(
+      "29. august kan huset bookes 16:30–22:00",
+    )
+    expect(warning?.textContent).toContain("Bruk 16:30–22:00")
   })
 
   const rooms = [TIVOLI, { ...TIVOLI, crescatRoomId: 97, title: "Teglverket" }]

@@ -40,8 +40,7 @@ function EventDetailsHarness({
           doorsTimeError={doorsTimeError}
           doorsTimeId="doors-time"
           eventNameId="event-name"
-          openingHours={null}
-          roomOpeningHours={
+          openingHours={
             crossMidnightHours
               ? {
                   rows: [
