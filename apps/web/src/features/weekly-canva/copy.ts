@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto"
 import { z } from "zod"
+import {
+  configuredLunaDeployment,
+  shouldCaptureSkonkTelemetry,
+} from "@/lib/posthog/ai-policy"
 import { getPostHogClient } from "@/lib/posthog-server"
 import type { WeeklyEvent } from "./plan"
 
@@ -58,6 +62,7 @@ export async function writeCopy(events: WeeklyEvent[]): Promise<WeeklyEvent[]> {
   const base = new URL(endpoint)
   if (base.protocol !== "https:" || base.username || base.password)
     throw new Error("Invalid Azure endpoint")
+  const deployment = configuredLunaDeployment()
   // Small batches bound token usage and let all events fit the structured response.
   const result: WeeklyEvent[] = []
   for (let i = 0; i < events.length; i += 12) {
@@ -79,7 +84,7 @@ export async function writeCopy(events: WeeklyEvent[]): Promise<WeeklyEvent[]> {
           signal: AbortSignal.timeout(120000),
           headers: { "api-key": key, "content-type": "application/json" },
           body: JSON.stringify({
-            model: process.env.AZURE_OPENAI_LUNA_DEPLOYMENT || "skonk",
+            model: deployment,
             store: false,
             max_output_tokens: 6000,
             instructions: COPY_INSTRUCTIONS,
@@ -113,7 +118,10 @@ export async function writeCopy(events: WeeklyEvent[]): Promise<WeeklyEvent[]> {
       result.push(...accepted)
       failed = false
     } finally {
-      if (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) {
+      if (
+        process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+        shouldCaptureSkonkTelemetry(deployment)
+      ) {
         try {
           await getPostHogClient().captureImmediate({
             distinctId: "weekly-canva-skonk",
@@ -121,8 +129,9 @@ export async function writeCopy(events: WeeklyEvent[]): Promise<WeeklyEvent[]> {
             properties: {
               workflow: "weekly_canva",
               $ai_trace_id: randomUUID(),
-              $ai_model: "gpt-6-luna",
+              $ai_model: deployment,
               $ai_provider: "azure",
+              azure_deployment: deployment,
               $ai_input: [{ role: "user", content: JSON.stringify(input) }],
               $ai_output_choices: accepted
                 ? [

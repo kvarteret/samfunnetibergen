@@ -1,4 +1,8 @@
 import { randomUUID } from "node:crypto"
+import {
+  configuredLunaDeployment,
+  shouldCaptureSkonkTelemetry,
+} from "@/lib/posthog/ai-policy"
 import { getPostHogReleaseProperties } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
 import type { TicketCoEvent } from "./source"
@@ -37,7 +41,11 @@ export type LunaGeneration = {
 
 /** Record public source and validated fields, never private calendar context. */
 export async function captureLunaGeneration(generation: LunaGeneration) {
-  if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
+  if (
+    !process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    !shouldCaptureSkonkTelemetry(generation.deployment)
+  )
+    return
   const { evidence: _privateEvidence, ...output } = generation.output ?? {}
   const workflow = generation.workflow ?? TICKETCO_WORKFLOW
   try {
@@ -63,7 +71,7 @@ export async function captureLunaGeneration(generation: LunaGeneration) {
         $ai_prompt_name: generation.prompt?.name,
         $ai_prompt_version: generation.prompt?.version,
         prompt_source: generation.prompt?.source,
-        $ai_model: generation.model,
+        $ai_model: generation.deployment,
         $ai_provider: "azure",
         $ai_input: [
           { role: "user", content: JSON.stringify(generation.source) },
@@ -100,7 +108,11 @@ export async function captureRoomResolution(
   outcome: ImportOutcome,
   workflow: LunaWorkflow = TICKETCO_WORKFLOW,
 ) {
-  if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) return
+  if (
+    !process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    !shouldCaptureSkonkTelemetry(configuredLunaDeployment())
+  )
+    return
   const accepted = ["pending", "draft", "merged", "dry-run"].includes(
     outcome.status,
   )

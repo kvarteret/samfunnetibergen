@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import type { PromptResult } from "@posthog/ai"
 import { z } from "zod"
+import { configuredLunaDeployment } from "@/lib/posthog/ai-policy"
 import { getTicketCoPrompt } from "./prompt"
 import type { ImportOption, RoomCandidate } from "./rooms"
 import type { TicketCoEvent } from "./source"
@@ -61,7 +62,7 @@ export async function extractWithLuna(
   const base = new URL(endpoint)
   if (base.protocol !== "https:" || base.username || base.password)
     throw new Error("Azure endpoint must be HTTPS")
-  const deployment = process.env.AZURE_OPENAI_LUNA_DEPLOYMENT || "skonk"
+  const deployment = configuredLunaDeployment()
   const traceId = options.traceId ?? randomUUID()
   const prompt = await (options.prompt ?? getTicketCoPrompt)()
   const started = performance.now()

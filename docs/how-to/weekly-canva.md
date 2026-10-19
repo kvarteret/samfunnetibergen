@@ -59,7 +59,7 @@ Or select an explicit Monday:
 
     mise run secrets:exec -- npm --workspace @samfunnet/web run events:weekly:canva -- --dry-run --week 2026-10-12
 
-A dry run reads the public events API and calls Luna, including PostHog analytics when configured. It creates no designs, rotates no Canva tokens, writes no receipt and sends no Slack message. Timed API timestamps are converted to Europe/Oslo; date-only schedules explicitly show Tid ikke oppgitt; failed copy validation does not silently truncate or omit events.
+A dry run reads the public events API and calls Luna. When the Azure deployment is `skonk`, it records the generation in PostHog as `$ai_generation`; other deployments are not tracked. It creates no designs, rotates no Canva tokens, writes no receipt and sends no Slack message. Timed API timestamps are converted to Europe/Oslo; date-only schedules explicitly show Tid ikke oppgitt; failed copy validation does not silently truncate or omit events.
 
 After connecting, run the **Generate Ukas post with Skonk** workflow manually with `dry_run: false`. Verify the final Canva design's date range, titles, images, chronological pages and Slack edit link. Repeating the same week returns `already-delivered`. Set `WEEKLY_CANVA_ENABLED=true` as a repository Actions variable only after this succeeds. An optional repository variable `CANVA_WEEKLY_TEMPLATE_DESIGN_ID` selects another compatible labeled design. Do not set an environment-only activation variable: the workflow gate is evaluated before entering the production environment.
 

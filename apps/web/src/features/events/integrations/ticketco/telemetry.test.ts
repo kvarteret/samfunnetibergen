@@ -39,7 +39,7 @@ test("awaits generation delivery and excludes private booking evidence", async (
       $ai_is_error: false,
       context_redacted: true,
       azure_deployment: "skonk",
-      $ai_model: "gpt-6-luna",
+      $ai_model: "skonk",
     },
   })
   expect(JSON.stringify(event)).not.toContain("PRIVATE INTERNAL BOOKING")
@@ -50,6 +50,12 @@ test("awaits generation delivery and excludes private booking evidence", async (
 test("does nothing when PostHog is not configured", async () => {
   vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "")
   await captureLunaGeneration(generation)
+  expect(capture).not.toHaveBeenCalled()
+})
+
+test("does not capture non-Skonk deployments", async () => {
+  vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test")
+  await captureLunaGeneration({ ...generation, deployment: "gpt-6.1-sol" })
   expect(capture).not.toHaveBeenCalled()
 })
 test("analytics failures do not fail event extraction", async () => {
