@@ -224,6 +224,11 @@ export async function runWeekly(
           })
         }
       }
+      // Keep uploaded event assets with Skonk as well as the generated
+      // designs. Saving the asset ID before filing it makes a retry reuse the
+      // upload instead of creating another copy if the move fails.
+      for (const assetId of Object.values(images))
+        await instance.moveToFolder(assetId, workFolder)
       const cover = Object.values(images).slice(0, 3)
       // First copy supplies cover; last supplies the volunteer page.
       const pages = [undefined, ...(receipt.pages ?? []), undefined]

@@ -368,6 +368,18 @@ test("files intermediate parts in the work folder and the final carousel in outp
   expect(canva.moveToFolder).toHaveBeenLastCalledWith(design.id, "Fshared")
 })
 
+test("files uploaded event images in the work folder", async () => {
+  const { client, deps, canva } = fixture()
+  vi.mocked(deps.read).mockResolvedValue([
+    { ...event(), imageUrl: "https://cdn.sanity.io/images/p/d/event.jpg" },
+  ])
+  await runWeekly(client, { monday: "2026-10-12" }, deps)
+  expect(canva.uploadImage).toHaveBeenCalledWith(
+    "https://cdn.sanity.io/images/p/d/event.jpg",
+  )
+  expect(canva.moveToFolder).toHaveBeenCalledWith("Mimage", "Fwork")
+})
+
 test("generation resumes after Slack failure without creating more designs", async () => {
   const { client, deps, canva } = fixture()
   vi.mocked(deps.notify).mockRejectedValueOnce(new Error("Slack failed"))
