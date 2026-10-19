@@ -112,7 +112,7 @@ export function SubwaySurfers({
         speed: Math.round(speedAt(state.distance)),
         dead: state.dead,
       }
-      const sig = JSON.stringify(next)
+      const sig = `${next.score}|${next.coins}|${next.best}|${next.speed}|${next.dead}`
       if (sig !== shown) {
         shown = sig
         setHud(next)

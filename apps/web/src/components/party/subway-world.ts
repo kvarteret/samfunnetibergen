@@ -47,8 +47,17 @@ function disposeTree(root: THREE.Object3D, shared: Set<unknown>) {
 
 // Builds the 3D scene and returns controls for the React wrapper.
 export function createWorld(canvas: HTMLCanvasElement) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // No MSAA and a capped pixel ratio: fill-rate is the bottleneck on weak GPUs.
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: false,
+    powerPreference: "high-performance",
+  })
+  const low =
+    new URLSearchParams(window.location.search).get("quality") === "low"
+  const maxRatio = low ? 0.5 : Math.min(window.devicePixelRatio, 1)
+  let ratio = maxRatio
+  renderer.setPixelRatio(ratio)
   const scene = new THREE.Scene()
   scene.background = sky()
   scene.fog = new THREE.Fog(FOG, 22, 58)
@@ -117,7 +126,7 @@ export function createWorld(canvas: HTMLCanvasElement) {
 
   // Shared building blocks.
   const boxGeo = geo(new THREE.BoxGeometry(1, 1, 1))
-  const facadeTextures = new Map<string, THREE.Texture>()
+  const facadeMats = new Map<string, THREE.Material>()
   const wallMats = new Map<string, THREE.Material>()
   const roofGeo = geo(new THREE.PlaneGeometry(6.2, 3.45).rotateY(Math.PI / 2))
   const trimMat = mat("#f1ece0")
@@ -129,10 +138,14 @@ export function createWorld(canvas: HTMLCanvasElement) {
     const double = hash(key, 3) % 2 === 1
     const variant = key % 6
     const tag = `${wall}${double}${variant}`
-    let tex = facadeTextures.get(tag)
-    if (!tex) {
-      tex = facade(wall, double, variant)
-      facadeTextures.set(tag, tex)
+    let frontMat = facadeMats.get(tag)
+    if (!frontMat) {
+      frontMat = new THREE.MeshLambertMaterial({
+        map: facade(wall, double, variant),
+        transparent: true,
+        alphaTest: 0.4,
+      })
+      facadeMats.set(tag, frontMat)
     }
     let wallMat = wallMats.get(wall)
     if (!wallMat) {
@@ -144,14 +157,7 @@ export function createWorld(canvas: HTMLCanvasElement) {
     body.scale.set(3.4, 6, 5.5)
     body.position.y = 3
     g.add(body)
-    const front = new THREE.Mesh(
-      frontGeo,
-      new THREE.MeshLambertMaterial({
-        map: tex,
-        transparent: true,
-        alphaTest: 0.4,
-      }),
-    )
+    const front = new THREE.Mesh(frontGeo, frontMat)
     front.position.set(0, 4.5, 2.76)
     g.add(front)
     const roofMat = mat(roof, { side: THREE.DoubleSide })
@@ -359,13 +365,30 @@ export function createWorld(canvas: HTMLCanvasElement) {
   resize()
 
   // Screen position of a point on the runner, for the mascot overlay.
+  const vec = new THREE.Vector3()
   const toScreen = (x: number, y: number, z: number) => {
-    const v = new THREE.Vector3(x, y, z).project(camera)
+    const v = vec.set(x, y, z).project(camera)
     return { x: ((v.x + 1) / 2) * size.w, y: ((1 - v.y) / 2) * size.h }
+  }
+
+  // Adaptive resolution: drop the pixel ratio while frames stay slow.
+  let avg = 16
+  let prev = 0
+  let slowSince = 0
+  const adapt = (now: number) => {
+    if (prev) avg += (Math.min(now - prev, 250) - avg) * 0.1
+    prev = now
+    if (avg > 33 && ratio > 0.4 && now - slowSince > 1000) {
+      slowSince = now
+      ratio = Math.max(0.4, ratio - 0.15)
+      renderer.setPixelRatio(ratio)
+      renderer.setSize(size.w, size.h, false)
+    }
   }
 
   let camX = 0
   const update = (s: SubwayState, now: number) => {
+    adapt(now)
     seen.clear()
     const d = s.distance
     groundTex.offset.y = (d / (140 / 12)) % 1
