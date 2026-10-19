@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import {
   averagePose,
+  cropRect,
+  DEFAULT_VIEW,
   type Gestures,
   NO_GESTURES,
   type Pose,
@@ -10,6 +12,7 @@ import {
   readGestures,
   SIDE_ON,
   VERTICAL_ON,
+  type View,
 } from "./camera-pose"
 import type { PartyInput } from "./input"
 
@@ -108,6 +111,16 @@ export function CameraControls({ input }: { input: PartyInput }) {
   const [calibration, setCalibration] = useState(0)
   const video = useRef<HTMLVideoElement>(null)
   const overlay = useRef<HTMLCanvasElement>(null)
+  const crop = useRef<HTMLCanvasElement>(null)
+  const [view, setView] = useState<View>(DEFAULT_VIEW)
+  const viewRef = useRef(view)
+  const recalibrate = useRef(false)
+  const changeView = (patch: Partial<View>) => {
+    const next = { ...viewRef.current, ...patch }
+    viewRef.current = next
+    recalibrate.current = true
+    setView(next)
+  }
 
   // `calibration` restarts the effect so the player can reset their stance.
   // biome-ignore lint/correctness/useExhaustiveDependencies: calibration is a restart trigger
@@ -150,7 +163,7 @@ export function CameraControls({ input }: { input: PartyInput }) {
           "@mediapipe/tasks-vision"
         )
         const media = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: 320, height: 240 },
+          video: { facingMode: "user", width: 640, height: 480 },
         })
         if (cancelled) return stopTracks(media)
         stream = media
@@ -183,7 +196,26 @@ export function CameraControls({ input }: { input: PartyInput }) {
           if (el.currentTime === lastTime) return
           lastTime = el.currentTime
           const now = performance.now()
-          const landmarks = model.detectForVideo(el, now).landmarks[0]
+          const c = crop.current
+          const cx = c?.getContext("2d")
+          if (!c || !cx) return
+          // The model only sees the zoomed/panned window, so a far-away
+          // player can be filled into the frame.
+          const { sx, sy, sw, sh } = cropRect(
+            el.videoWidth,
+            el.videoHeight,
+            viewRef.current,
+          )
+          cx.drawImage(el, sx, sy, sw, sh, 0, 0, c.width, c.height)
+          if (recalibrate.current) {
+            recalibrate.current = false
+            base = null
+            samples.length = 0
+            calibrationStart = now
+            apply(NO_GESTURES)
+            setStatus("calibrating")
+          }
+          const landmarks = model.detectForVideo(c, now).landmarks[0]
           const pose = poseFromLandmarks(landmarks)
           if (overlay.current) drawTracking(overlay.current, landmarks, base)
           if (!base) {
@@ -249,6 +281,28 @@ export function CameraControls({ input }: { input: PartyInput }) {
             {chip(shown.duck, "↓ huk")}
             {chip(shown.side === 1, "høyre →")}
           </div>
+          <div className="flex w-48 flex-col gap-1 text-sm">
+            {(
+              [
+                ["Zoom", "zoom", 1, 3, 0.1],
+                ["Sideveis", "panX", 0, 1, 0.05],
+                ["Høyde", "panY", 0, 1, 0.05],
+              ] as const
+            ).map(([label, key, min, max, stepBy]) => (
+              <label key={key} className="flex items-center gap-2">
+                <span className="w-16">{label}</span>
+                <input
+                  type="range"
+                  className="flex-1"
+                  min={min}
+                  max={max}
+                  step={stepBy}
+                  value={view[key]}
+                  onChange={e => changeView({ [key]: Number(e.target.value) })}
+                />
+              </label>
+            ))}
+          </div>
           {status === "ready" && (
             <button
               type="button"
@@ -262,7 +316,13 @@ export function CameraControls({ input }: { input: PartyInput }) {
       )}
       {/* Mirrored like a mirror; the video stays on this phone. */}
       <div className="relative w-48 -scale-x-100" hidden={!enabled}>
-        <video ref={video} muted playsInline className="w-full rounded" />
+        <video ref={video} muted playsInline className="hidden" />
+        <canvas
+          ref={crop}
+          width={320}
+          height={240}
+          className="w-full rounded"
+        />
         <canvas
           ref={overlay}
           width={320}

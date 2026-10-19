@@ -39,10 +39,31 @@ export function averagePose(poses: Pose[]): Pose | null {
   return { x: mean("x"), y: mean("y"), scale: mean("scale") }
 }
 
-export const SIDE_ON = 0.6
-const SIDE_OFF = 0.3
-export const VERTICAL_ON = 0.4
-const VERTICAL_OFF = 0.2
+export const SIDE_ON = 0.35
+const SIDE_OFF = 0.18
+export const VERTICAL_ON = 0.25
+const VERTICAL_OFF = 0.12
+
+export interface View {
+  zoom: number
+  panX: number
+  panY: number
+}
+
+export const DEFAULT_VIEW: View = { zoom: 1, panX: 0.5, panY: 0.5 }
+
+// Source rectangle of the video the model sees. panX is in mirrored (preview)
+// space, so dragging right moves the window right on screen.
+export function cropRect(vw: number, vh: number, view: View) {
+  const sw = vw / view.zoom
+  const sh = vh / view.zoom
+  return {
+    sx: (1 - view.panX) * (vw - sw),
+    sy: view.panY * (vh - sh),
+    sw,
+    sh,
+  }
+}
 
 // Higher "on" than "off" thresholds keep a wobbling body from flickering.
 export function readGestures(pose: Pose, base: Pose, prev: Gestures): Gestures {
