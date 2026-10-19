@@ -99,15 +99,10 @@ export function createWorld(canvas: HTMLCanvasElement, low = false) {
   const mat = (color: string | number, extra: object = {}) => {
     const k = `${color}${JSON.stringify(extra)}`
     let m = matCache.get(k)
-    if (!m)
-      matCache.set(
-        k,
-        (m = new THREE.MeshBasicMaterial({
-          color,
-          vertexColors: true,
-          ...extra,
-        })),
-      )
+    if (!m) {
+      m = new THREE.MeshBasicMaterial({ color, vertexColors: true, ...extra })
+      matCache.set(k, m)
+    }
     return m
   }
   // Lit props only exist for lamps and coins, which still use real lights.
