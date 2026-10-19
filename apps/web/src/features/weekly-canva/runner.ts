@@ -122,10 +122,15 @@ export async function runWeekly(
     }
   }
   webhookUrl()
-  const folder = process.env.CANVA_WEEKLY_OUTPUT_FOLDER_ID
-  if (!folder || !/^F[A-Za-z0-9_-]+$/.test(folder))
+  const outputFolder = process.env.CANVA_WEEKLY_OUTPUT_FOLDER_ID
+  const workFolder = process.env.CANVA_WEEKLY_WORK_FOLDER_ID
+  if (!outputFolder || !/^F[A-Za-z0-9_-]+$/.test(outputFolder))
     throw new Error(
       "Configure CANVA_WEEKLY_OUTPUT_FOLDER_ID as a shared Canva folder",
+    )
+  if (!workFolder || !/^F[A-Za-z0-9_-]+$/.test(workFolder))
+    throw new Error(
+      "Configure CANVA_WEEKLY_WORK_FOLDER_ID as a shared Canva folder",
     )
   await client.createIfNotExists({ _id: LOCK_ID, _type: "weeklyCanvaLock" })
   const lock = await client.getDocument<{
@@ -185,19 +190,32 @@ export async function runWeekly(
       await save({ deliveredAt: new Date().toISOString() })
       return { status: "empty", week }
     }
+    let canvaClient: Canva | undefined
+    const canva = async (): Promise<Canva> =>
+      (canvaClient ??= await deps.canva(client))
+    let foldersChecked = false
+    const ensureFolders = async (): Promise<Canva> => {
+      const instance = await canva()
+      if (!foldersChecked) {
+        await instance.folder(workFolder)
+        await instance.folder(outputFolder)
+        foldersChecked = true
+      }
+      return instance
+    }
+    const filedPartIndexes = new Set<number>()
     if (
       !receipt.design ||
       (receipt.mergedParts ?? 0) < (receipt.pages?.length ?? 0) + 2
     ) {
-      const canva = await deps.canva(client)
-      await canva.folder(folder)
-      await canva.dataset(receipt.template)
+      const instance = await ensureFolders()
+      await instance.dataset(receipt.template)
       const images = Object.fromEntries(
         (receipt.images ?? []).map(item => [item.url, item.assetId]),
       )
       for (const event of receipt.pages?.flatMap(p => p.events) ?? []) {
         if (event.imageUrl && !images[event.imageUrl]) {
-          images[event.imageUrl] = await canva.uploadImage(event.imageUrl)
+          images[event.imageUrl] = await instance.uploadImage(event.imageUrl)
           await save({
             images: Object.entries(images).map(([url, assetId]) => ({
               url,
@@ -215,7 +233,7 @@ export async function runWeekly(
         let part = parts[i] ?? {}
         if (!part.jobId && !part.design) {
           part = {
-            jobId: await canva.autofill(
+            jobId: await instance.autofill(
               receipt.template,
               `${title} – del ${i + 1}`,
               pageData(week, pages[i], images, cover),
@@ -227,12 +245,15 @@ export async function runWeekly(
         if (!part.design && part.jobId) {
           part = {
             ...part,
-            design: jobDesign(await canva.poll("autofills", part.jobId)),
+            design: jobDesign(await instance.poll("autofills", part.jobId)),
           }
           parts[i] = part
           await save({ parts })
         }
-        if (part.design) await canva.moveToFolder(part.design.id, folder)
+        if (part.design) {
+          await instance.moveToFolder(part.design.id, workFolder)
+          filedPartIndexes.add(i)
+        }
       }
       for (let i = receipt.mergedParts ?? 0; i < parts.length; i++) {
         const source = parts[i].design
@@ -240,7 +261,7 @@ export async function runWeekly(
         if (!receipt.mergeJob) {
           const page = i === 0 ? 1 : i === parts.length - 1 ? 7 : 2
           await save({
-            mergeJob: await canva.merge(
+            mergeJob: await instance.merge(
               source.id,
               [page],
               title,
@@ -249,17 +270,21 @@ export async function runWeekly(
           })
         }
         const design = jobDesign(
-          await canva.poll("merges", receipt.mergeJob as string),
+          await instance.poll("merges", receipt.mergeJob as string),
         )
         await save({ design, mergedParts: i + 1, mergeJob: "" })
-        await canva.moveToFolder(design.id, folder)
       }
     }
-    // Ensure saved final designs are filed before retrying Slack delivery.
-    if (receipt.design) {
-      const canva = await deps.canva(client)
-      await canva.moveToFolder(receipt.design.id, folder)
+    // Keep resumable source parts out of the shared output folder. This also
+    // repairs folder placement for receipts created before the split.
+    const instance = await ensureFolders()
+    for (const [index, part] of (receipt.parts ?? []).entries()) {
+      if (part.design && !filedPartIndexes.has(index))
+        await instance.moveToFolder(part.design.id, workFolder)
     }
+    // Ensure the saved final design is filed before retrying Slack delivery.
+    if (receipt.design)
+      await instance.moveToFolder(receipt.design.id, outputFolder)
     await deps.notify(week, receipt.design)
     await save({ deliveredAt: new Date().toISOString() })
     return {

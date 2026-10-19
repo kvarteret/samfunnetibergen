@@ -2,6 +2,8 @@
 
 Skonk reads next week's approved public events from `/api/v1/events` and prepares them as a Canva review draft and sends its edit link to `#nettside`. Luna shortens event titles and descriptions; code preserves the source dates, rooms and times. Editors still review the design before publishing it.
 
+The GitHub Actions workflow is enabled again. Manual runs are available from GitHub Actions; scheduled runs require the repository variable `WEEKLY_CANVA_ENABLED=true`.
+
 ## Schedule and activation
 
 TicketCo imports run Wednesday at 06:00 and Saturday at 18:00 Europe/Oslo. These are 3½ calendar days apart; daylight-saving transitions change the elapsed hours between them. Imported events remain pending until approved by editors. Sunday's Canva run therefore includes only approved events, including approved TicketCo imports.
@@ -28,6 +30,8 @@ The template requires these exact data fields:
 | `cover_image_1`, `cover_image_2`, `cover_image_3` | image |
 
 Titles are limited to 22 characters and summaries to 95 characters. These bounds reduce overflow but do not replace visual review: font metrics, long words and image framing can still require edits. Source images must be hosted on Sanity CDN. Missing images and unused event slots use the template's background image (`MAHTehiy2v4`), replacing historical event images. All event slots are filled or cleared. If no approved public events exist, Slack receives an empty-week notice and no design is created.
+
+The current default template exposes two event slots per autofilled page. The Canva brand template `MAL insta arrangementer` was checked as a possible four-event layout, but it currently exposes no autofill fields, so the workflow cannot use it automatically. It can become a future four-event template after its text and image elements are labeled and the dataset is verified.
 
 ## Connect an individual Canva account
 
@@ -72,6 +76,8 @@ Local checks:
 
 The approved week 42 draft covers 12–18 October 2026. Editors review future generated posts before publishing them to Instagram.
 
-## Shared output folder
+## Canva work and output folders
 
-All autofilled part copies and final merged carousels are moved into the configured shared folder before Slack notification. Set repository Actions variable `CANVA_WEEKLY_OUTPUT_FOLDER_ID` to that folder's ID and supply the same name to local live runs. A live run refuses to generate without this value and checks folder access before creating copies. The API cannot grant folder membership by email: share the folder in Canva with edit access to the OAuth account and `kommunikasjon@samfunnetibergen.no`. Verify the communication account can open an item in that folder. Enable `folder:read` and `folder:write` in the Developer app, then reconnect OAuth to consent to the new scopes. Existing generated copies must be moved into this folder once. The original source and labeled template remain in their current locations.
+The job uses a work folder for the autofilled `Ukas post … – del N` source designs and an output folder for the final merged carousel. For Skonk, both `CANVA_WEEKLY_WORK_FOLDER_ID` and `CANVA_WEEKLY_OUTPUT_FOLDER_ID` point to the dedicated `Ukas post – Skonk (arbeid)` folder, so every design created by Skonk stays together and nothing new is placed in the shared `Ukens post` folder. Separate IDs remain supported if the work and review outputs should be isolated later.
+
+A live run refuses to generate without both values and checks access to both folders before creating or filing designs. The API cannot grant folder membership by email: share both folders in Canva with edit access to the OAuth account. Share the output folder with `kommunikasjon@samfunnetibergen.no` so the communication account can review the final design. Verify that the communication account can open an item in the output folder. Enable `folder:read` and `folder:write` in the Developer app, then reconnect OAuth to consent to the folder scopes if necessary. Existing generated `del N` copies can be left in the old output folder or moved to the work folder manually; new runs will keep the output folder clean.

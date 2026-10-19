@@ -100,6 +100,7 @@ function fixture() {
     "https://hooks.slack.com/services/test/test/test",
   )
   vi.stubEnv("CANVA_WEEKLY_OUTPUT_FOLDER_ID", "Fshared")
+  vi.stubEnv("CANVA_WEEKLY_WORK_FOLDER_ID", "Fwork")
   return { client, docs, deps, canva }
 }
 
@@ -342,6 +343,29 @@ test("dry run writes no state, rotates no tokens and sends no Slack", async () =
   expect(client.createIfNotExists).not.toHaveBeenCalled()
   expect(deps.canva).not.toHaveBeenCalled()
   expect(deps.notify).not.toHaveBeenCalled()
+})
+
+test("allows the work and output folders to be the same", async () => {
+  const { client, deps } = fixture()
+  vi.stubEnv("CANVA_WEEKLY_WORK_FOLDER_ID", "Fshared")
+  expect(
+    (await runWeekly(client, { monday: "2026-10-12" }, deps)).status,
+  ).toBe("complete")
+  expect(deps.canva).toHaveBeenCalledOnce()
+})
+
+test("files intermediate parts in the work folder and the final carousel in output", async () => {
+  const { client, deps, canva } = fixture()
+  await runWeekly(client, { monday: "2026-10-12" }, deps)
+  expect(canva.folder).toHaveBeenCalledWith("Fwork")
+  expect(canva.folder).toHaveBeenCalledWith("Fshared")
+  expect(canva.moveToFolder).toHaveBeenCalledTimes(4)
+  expect(canva.moveToFolder.mock.calls.slice(0, 3)).toEqual([
+    [design.id, "Fwork"],
+    [design.id, "Fwork"],
+    [design.id, "Fwork"],
+  ])
+  expect(canva.moveToFolder).toHaveBeenLastCalledWith(design.id, "Fshared")
 })
 
 test("generation resumes after Slack failure without creating more designs", async () => {
