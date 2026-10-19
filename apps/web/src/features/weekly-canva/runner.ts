@@ -26,6 +26,7 @@ type Receipt = {
   mergedParts?: number
   design?: Design
   deliveredAt?: string
+  cleanedAt?: string
   empty?: boolean
 }
 export type Dependencies = {
@@ -165,8 +166,6 @@ export async function runWeekly(
     let receipt: Receipt | undefined =
       (await client.getDocument<Receipt>(id)) ?? undefined
     if (!receipt) throw new Error("Weekly Canva receipt unavailable")
-    if (receipt.deliveredAt)
-      return { status: "already-delivered", week, design: receipt.design }
     async function save(values: Partial<Receipt>) {
       if (!receipt) throw new Error("Weekly Canva receipt unavailable")
       receipt = (await client
@@ -175,6 +174,15 @@ export async function runWeekly(
         .set(values)
         .commit()) as Receipt
     }
+    if (receipt.deliveredAt && !receipt.cleanedAt) {
+      const instance = await deps.canva(client)
+      for (const image of receipt.images ?? [])
+        await instance.deleteAsset(image.assetId)
+      await save({ cleanedAt: new Date().toISOString() })
+      return { status: "cleaned", week, design: receipt.design }
+    }
+    if (receipt.deliveredAt)
+      return { status: "already-delivered", week, design: receipt.design }
     if (!receipt.pages) {
       const events = await deps.copy(await deps.read(week))
       await save({
@@ -187,7 +195,10 @@ export async function runWeekly(
     }
     if (receipt.empty) {
       await deps.notify(week)
-      await save({ deliveredAt: new Date().toISOString() })
+      await save({
+        deliveredAt: new Date().toISOString(),
+        cleanedAt: new Date().toISOString(),
+      })
       return { status: "empty", week }
     }
     let canvaClient: Canva | undefined
@@ -292,6 +303,9 @@ export async function runWeekly(
       await instance.moveToFolder(receipt.design.id, outputFolder)
     await deps.notify(week, receipt.design)
     await save({ deliveredAt: new Date().toISOString() })
+    for (const image of receipt.images ?? [])
+      await instance.deleteAsset(image.assetId)
+    await save({ cleanedAt: new Date().toISOString() })
     return {
       status: "complete",
       week,

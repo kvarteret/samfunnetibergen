@@ -20,17 +20,28 @@ export type CanvaJob = {
   asset?: { id: string }
 }
 
+export class CanvaHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`Canva HTTP ${status}`)
+    this.name = "CanvaHttpError"
+  }
+}
+
 export class Canva {
   constructor(
     private readonly token: string,
     private readonly requestFetch: typeof fetch = fetch,
   ) {}
 
-  async request<T>(path: string, body?: unknown): Promise<T> {
+  async request<T>(
+    path: string,
+    body?: unknown,
+    method?: "GET" | "POST" | "DELETE",
+  ): Promise<T> {
     const response = await this.requestFetch(
       `https://api.canva.com/rest/v1/${path}`,
       {
-        method: body === undefined ? "GET" : "POST",
+        method: method ?? (body === undefined ? "GET" : "POST"),
         signal: AbortSignal.timeout(30000),
         headers: {
           authorization: `Bearer ${this.token}`,
@@ -39,7 +50,7 @@ export class Canva {
         body: body === undefined ? undefined : JSON.stringify(body),
       },
     )
-    if (!response.ok) throw new Error(`Canva HTTP ${response.status}`)
+    if (!response.ok) throw new CanvaHttpError(response.status)
     const text = await response.text()
     return (text ? JSON.parse(text) : undefined) as T
   }
@@ -57,6 +68,21 @@ export class Canva {
       item_id: design,
       to_folder_id: folder,
     })
+  }
+
+  async deleteAsset(asset: string): Promise<void> {
+    try {
+      await this.request(
+        `assets/${encodeURIComponent(asset)}`,
+        undefined,
+        "DELETE",
+      )
+    } catch (error) {
+      // Cleanup is idempotent: an asset already removed by a previous retry is
+      // already in the desired state.
+      if (error instanceof CanvaHttpError && error.status === 404) return
+      throw error
+    }
   }
 
   async dataset(template: string): Promise<void> {

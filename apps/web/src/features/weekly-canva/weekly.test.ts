@@ -79,6 +79,7 @@ function fixture() {
   const canva = {
     folder: vi.fn(async () => {}),
     moveToFolder: vi.fn(async () => {}),
+    deleteAsset: vi.fn(async () => {}),
     dataset: vi.fn(async () => {}),
     uploadImage: vi.fn(async () => "Mimage"),
     autofill: vi.fn(async () => "autofill-job"),
@@ -348,9 +349,9 @@ test("dry run writes no state, rotates no tokens and sends no Slack", async () =
 test("allows the work and output folders to be the same", async () => {
   const { client, deps } = fixture()
   vi.stubEnv("CANVA_WEEKLY_WORK_FOLDER_ID", "Fshared")
-  expect(
-    (await runWeekly(client, { monday: "2026-10-12" }, deps)).status,
-  ).toBe("complete")
+  expect((await runWeekly(client, { monday: "2026-10-12" }, deps)).status).toBe(
+    "complete",
+  )
   expect(deps.canva).toHaveBeenCalledOnce()
 })
 
@@ -378,6 +379,19 @@ test("files uploaded event images in the work folder", async () => {
     "https://cdn.sanity.io/images/p/d/event.jpg",
   )
   expect(canva.moveToFolder).toHaveBeenCalledWith("Mimage", "Fwork")
+  expect(canva.deleteAsset).toHaveBeenCalledWith("Mimage")
+})
+
+test("cleans uploaded assets on a retry after delivery", async () => {
+  const { client, deps, canva } = fixture()
+  vi.mocked(deps.read).mockResolvedValue([
+    { ...event(), imageUrl: "https://cdn.sanity.io/images/p/d/event.jpg" },
+  ])
+  vi.mocked(canva.deleteAsset).mockRejectedValueOnce(new Error("Canva failed"))
+  const options = { monday: "2026-10-12" }
+  await expect(runWeekly(client, options, deps)).rejects.toThrow("Canva failed")
+  expect((await runWeekly(client, options, deps)).status).toBe("cleaned")
+  expect(canva.deleteAsset).toHaveBeenCalledTimes(2)
 })
 
 test("generation resumes after Slack failure without creating more designs", async () => {
@@ -421,6 +435,18 @@ test("folder move accepts Canva's empty success response", async () => {
     item_id: "Ddesign",
     to_folder_id: "Fshared",
   })
+})
+
+test("deletes Canva assets with an idempotent trash request", async () => {
+  const request = vi.fn(async () => new Response(null, { status: 204 }))
+  await new Canva("token", request).deleteAsset("Mimage")
+  const [url, options] = request.mock.calls[0] as unknown as [
+    string,
+    RequestInit,
+  ]
+  expect(url).toBe("https://api.canva.com/rest/v1/assets/Mimage")
+  expect(options.method).toBe("DELETE")
+  expect(options.body).toBeUndefined()
 })
 
 test("resumes a saved autofill job after a polling failure", async () => {
