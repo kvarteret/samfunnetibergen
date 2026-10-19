@@ -12,7 +12,8 @@
       "!dist",
       "!node_modules",
       "!**/*.css",
-      "!**/*.svg"
+      "!**/*.svg",
+      "!apps/web/public/mediapipe"
     ],
     "ignoreUnknown": true
   },

@@ -124,6 +124,31 @@ describe("central infoskjerm messages", () => {
         JSON.stringify({ type: "join", name: "Anna", mascot: "pingvin" }),
       ),
     ).toEqual({ type: "join", name: "Anna", mascot: "pingvin" })
+    expect(
+      parseScreenClientMessage(
+        JSON.stringify({
+          type: "join",
+          name: "Anna",
+          mascot: "pingvin",
+          game: "subwaysurfers",
+        }),
+      ),
+    ).toEqual({
+      type: "join",
+      name: "Anna",
+      mascot: "pingvin",
+      game: "subwaysurfers",
+    })
+    expect(
+      parseScreenClientMessage(
+        JSON.stringify({
+          type: "join",
+          name: "Anna",
+          mascot: "pingvin",
+          game: "nope",
+        }),
+      ),
+    ).toBeNull()
     expect(parseScreenClientMessage('{"type":"screen"}')).toEqual({
       type: "screen",
     })

@@ -6,6 +6,12 @@
 export const mascots = ["pingvin", "pinnsvin"] as const
 export type Mascot = (typeof mascots)[number]
 
+// Games a controller can ask the infoscreen to run.
+export const games = ["subwaysurfers"] as const
+export type Game = (typeof games)[number]
+const isGame = (value: unknown): value is Game =>
+  games.some(game => game === value)
+
 export const poses = ["idle", "walk", "air"] as const
 export type Pose = (typeof poses)[number]
 
@@ -192,11 +198,12 @@ export interface ScreenInput {
 export interface ScreenPlayer {
   id: string
   mascot: Mascot
+  game?: Game
   input: ScreenInput
 }
 export type ScreenClientMessage =
   | { type: "screen" }
-  | { type: "join"; name: string; mascot: Mascot }
+  | { type: "join"; name: string; mascot: Mascot; game?: Game }
   | { type: "input"; input: ScreenInput }
 export type ScreenServerMessage =
   | { type: "players"; players: ScreenPlayer[] }
@@ -234,7 +241,7 @@ export function parseScreenClientMessage(
   if (!isObject(value)) return null
   if (value.type === "screen") return { type: "screen" }
   if (value.type === "join") {
-    const { name, mascot } = value
+    const { name, mascot, game } = value
     if (
       typeof name !== "string" ||
       !name.trim() ||
@@ -242,10 +249,16 @@ export function parseScreenClientMessage(
       Array.from(name).some(
         char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
       ) ||
-      !mascots.some(m => m === mascot)
+      !mascots.some(m => m === mascot) ||
+      (game !== undefined && !isGame(game))
     )
       return null
-    return { type: "join", name: name.trim(), mascot: mascot as Mascot }
+    return {
+      type: "join",
+      name: name.trim(),
+      mascot: mascot as Mascot,
+      ...(isGame(game) ? { game } : {}),
+    }
   }
   if (value.type === "input") {
     const input = parseScreenInput(value.input)
@@ -280,7 +293,14 @@ export function parseScreenServerMessage(
         return []
       const input = parseScreenInput(player.input)
       return input
-        ? [{ id: player.id, mascot: player.mascot as Mascot, input }]
+        ? [
+            {
+              id: player.id,
+              mascot: player.mascot as Mascot,
+              ...(isGame(player.game) ? { game: player.game } : {}),
+              input,
+            },
+          ]
         : []
     })
     return { type: "players", players }
