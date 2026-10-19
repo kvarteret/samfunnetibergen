@@ -9,6 +9,7 @@ export interface NamedPlayer {
   name: string
   mascot: PartyMascot
   game?: Game
+  low?: true
 }
 
 export function playerFromSearch(search: string): NamedPlayer | null {
@@ -26,5 +27,6 @@ export function playerFromSearch(search: string): NamedPlayer | null {
     name,
     mascot: partyMascots[Math.floor(Math.random() * partyMascots.length)],
     ...(game ? { game } : {}),
+    ...(params.get("quality") === "low" ? { low: true as const } : {}),
   }
 }

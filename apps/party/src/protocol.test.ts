@@ -145,6 +145,26 @@ describe("central infoskjerm messages", () => {
           type: "join",
           name: "Anna",
           mascot: "pingvin",
+          low: true,
+        }),
+      ),
+    ).toEqual({ type: "join", name: "Anna", mascot: "pingvin", low: true })
+    expect(
+      parseScreenClientMessage(
+        JSON.stringify({
+          type: "join",
+          name: "Anna",
+          mascot: "pingvin",
+          low: 1,
+        }),
+      ),
+    ).toBeNull()
+    expect(
+      parseScreenClientMessage(
+        JSON.stringify({
+          type: "join",
+          name: "Anna",
+          mascot: "pingvin",
           game: "nope",
         }),
       ),

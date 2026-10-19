@@ -46,15 +46,13 @@ function disposeTree(root: THREE.Object3D, shared: Set<unknown>) {
 }
 
 // Builds the 3D scene and returns controls for the React wrapper.
-export function createWorld(canvas: HTMLCanvasElement) {
+export function createWorld(canvas: HTMLCanvasElement, low = false) {
   // No MSAA and a capped pixel ratio: fill-rate is the bottleneck on weak GPUs.
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: false,
     powerPreference: "high-performance",
   })
-  const low =
-    new URLSearchParams(window.location.search).get("quality") === "low"
   const maxRatio = low ? 0.5 : Math.min(window.devicePixelRatio, 1)
   let ratio = maxRatio
   renderer.setPixelRatio(ratio)

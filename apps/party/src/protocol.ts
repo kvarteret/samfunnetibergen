@@ -199,11 +199,13 @@ export interface ScreenPlayer {
   id: string
   mascot: Mascot
   game?: Game
+  // Phone asked for the low-end renderer on the screen.
+  low?: true
   input: ScreenInput
 }
 export type ScreenClientMessage =
   | { type: "screen" }
-  | { type: "join"; name: string; mascot: Mascot; game?: Game }
+  | { type: "join"; name: string; mascot: Mascot; game?: Game; low?: true }
   | { type: "input"; input: ScreenInput }
 export type ScreenServerMessage =
   | { type: "players"; players: ScreenPlayer[] }
@@ -241,7 +243,7 @@ export function parseScreenClientMessage(
   if (!isObject(value)) return null
   if (value.type === "screen") return { type: "screen" }
   if (value.type === "join") {
-    const { name, mascot, game } = value
+    const { name, mascot, game, low } = value
     if (
       typeof name !== "string" ||
       !name.trim() ||
@@ -250,7 +252,8 @@ export function parseScreenClientMessage(
         char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
       ) ||
       !mascots.some(m => m === mascot) ||
-      (game !== undefined && !isGame(game))
+      (game !== undefined && !isGame(game)) ||
+      (low !== undefined && low !== true)
     )
       return null
     return {
@@ -258,6 +261,7 @@ export function parseScreenClientMessage(
       name: name.trim(),
       mascot: mascot as Mascot,
       ...(isGame(game) ? { game } : {}),
+      ...(low === true ? { low } : {}),
     }
   }
   if (value.type === "input") {
@@ -298,6 +302,7 @@ export function parseScreenServerMessage(
               id: player.id,
               mascot: player.mascot as Mascot,
               ...(isGame(player.game) ? { game: player.game } : {}),
+              ...(player.low === true ? { low: true as const } : {}),
               input,
             },
           ]
