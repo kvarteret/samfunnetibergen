@@ -1085,7 +1085,7 @@ export function PartyAnimal({ mascot }: { mascot: PartyMascot }) {
 
 // Fluesopp: red cap with white spots on a white stem. Static markup, so it is
 // set as a string on the imperatively created mushroom nodes.
-const MUSHROOM_SVG = `<svg aria-hidden="true" viewBox="0 0 20 22" width="100%" height="100%">
+export const MUSHROOM_SVG = `<svg aria-hidden="true" viewBox="0 0 20 22" width="100%" height="100%">
 <path d="M7.5 10 L7 20 Q7 21.5 10 21.5 Q13 21.5 13 20 L12.5 10 Z" fill="#fdfaf3" stroke="#3d2614" stroke-width="0.8"/>
 <path d="M7.6 14.5 Q10 16 12.4 14.5" fill="none" stroke="#3d2614" stroke-width="0.6"/>
 <path d="M1 11.5 Q1 2 10 1.5 Q19 2 19 11.5 Q10 13.5 1 11.5 Z" fill="#e2231a" stroke="#3d2614" stroke-width="0.8"/>
@@ -1236,5 +1236,5 @@ const CRITTERS: CritterSpec[] = [
   },
 ]
 
-const specFor = (mascot: PartyMascot) =>
+export const specFor = (mascot: PartyMascot) =>
   CRITTERS.find(spec => spec.name === mascot) ?? CRITTERS[0]

@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 
 import type { PartySettings } from "@/lib/party-mode"
-import { createPartyInput, type PartyAction } from "./input"
+import { CameraControls } from "./CameraControls"
+import { createPartyInput, type PartyAction, type ReceivedInput } from "./input"
 import { PartyAnimal, PartyCritters } from "./PartyMode"
 import { type NamedPlayer, playerFromSearch } from "./player"
+import { SubwaySurfers } from "./SubwaySurfers"
 import { useScreenRoom } from "./screen-playground"
 import { TouchControls } from "./TouchControls"
 
@@ -38,15 +40,17 @@ export function isScreenMushroomShow(now: Date) {
 // Whether the mascots are switched on in PostHog. Anything other than a
 // clear yes, including a failed request, counts as off.
 function useInfoScreenPartyFlag() {
-  const [flags, setFlags] = useState({ enabled: false, multiplayer: false })
+  const [flags, setFlags] = useState({
+    enabled: false,
+    multiplayer: false,
+    subwaysurfers: false,
+  })
 
   useEffect(() => {
     let cancelled = false
     const check = async () => {
-      let next = {
-        enabled: false,
-        multiplayer: process.env.NODE_ENV === "development",
-      }
+      const dev = process.env.NODE_ENV === "development"
+      let next = { enabled: false, multiplayer: dev, subwaysurfers: dev }
       try {
         const response = await fetch(FLAG_URL, {
           cache: "no-store",
@@ -55,12 +59,15 @@ function useInfoScreenPartyFlag() {
         if (response.ok) {
           const body: unknown = await response.json()
           if (typeof body === "object" && body !== null) {
-            const values = body as { enabled?: unknown; multiplayer?: unknown }
+            const values = body as {
+              enabled?: unknown
+              multiplayer?: unknown
+              subwaysurfers?: unknown
+            }
             next = {
               enabled: values.enabled === true,
-              multiplayer:
-                process.env.NODE_ENV === "development" ||
-                values.multiplayer === true,
+              multiplayer: dev || values.multiplayer === true,
+              subwaysurfers: dev || values.subwaysurfers === true,
             }
           }
         }
@@ -85,7 +92,7 @@ export function InfoScreenParty({ stage }: { stage: string }) {
   const input = useRef(createPartyInput()).current
   const { players, inputs, status } = useScreenRoom(
     player,
-    queryRead && flags.multiplayer,
+    queryRead && (flags.multiplayer || flags.subwaysurfers),
     input,
   )
   const [show, setShow] = useState<{
@@ -116,34 +123,80 @@ export function InfoScreenParty({ stage }: { stage: string }) {
     return () => window.clearInterval(interval)
   }, [])
 
+  // Whenever a phone has joined with ?player=…&game=subwaysurfers, the screen
+  // runs the game, whatever its own URL, while the PostHog flag is on.
+  const gamer = flags.subwaysurfers
+    ? players.find(p => p.game === "subwaysurfers")
+    : undefined
+  const gamerId = gamer?.id
+
+  // While the game runs, the screen's own keyboard also steers, merged with
+  // the phone's input.
+  const merged = useRef(new Map<string, ReceivedInput>())
+  usePartyKeys(input, Boolean(gamerId) && !player)
+  useEffect(() => {
+    if (!gamerId || player) return
+    const tick = () => {
+      const phone = inputs.current.get(gamerId)
+      const keys = input.snapshot()
+      const typing =
+        keys.left || keys.right || keys.heldJump || keys.jump + keys.drop > 0
+      const base = phone?.input
+      merged.current.set(gamerId, {
+        input: {
+          left: Boolean(base?.left) || keys.left,
+          right: Boolean(base?.right) || keys.right,
+          heldJump: Boolean(base?.heldJump) || keys.heldJump,
+          // Counters only ever grow, so their sum does too.
+          jump: (base?.jump ?? 0) + keys.jump,
+          drop: (base?.drop ?? 0) + keys.drop,
+        },
+        receivedAt: typing ? performance.now() : (phone?.receivedAt ?? 0),
+      })
+    }
+    tick()
+    const interval = window.setInterval(tick, 16)
+    return () => {
+      window.clearInterval(interval)
+      merged.current.clear()
+    }
+  }, [gamerId, player, inputs, input])
+
   if (player)
     return (
       <InfoScreenController player={player} input={input} status={status} />
     )
+  // Without the multiplayer flag, only game players are expected in the room.
+  const critterPlayers = flags.multiplayer ? players : []
+  if (gamer)
+    return (
+      <SubwaySurfers
+        playerId={gamer.id}
+        mascot={gamer.mascot}
+        inputs={merged}
+      />
+    )
   const ambient = Boolean(show && (flags.enabled || show.forced))
-  if (!ambient && players.length === 0) return null
+  if (!ambient && critterPlayers.length === 0) return null
   return (
     <PartyCritters
       mushrooms={ambient && show?.mushroom ? "once" : "off"}
       settings={SCREEN_PARTY}
       stage={stage}
       ambient={ambient}
-      screenPlayers={players}
+      screenPlayers={critterPlayers}
       screenInputs={inputs}
     />
   )
 }
 
-function InfoScreenController({
-  player,
-  input,
-  status,
-}: {
-  player: NamedPlayer
-  input: ReturnType<typeof createPartyInput>
-  status: "connecting" | "ready" | "unavailable"
-}) {
+// Arrow keys, WASD and space feed the shared party input.
+function usePartyKeys(
+  input: ReturnType<typeof createPartyInput>,
+  enabled: boolean,
+) {
   useEffect(() => {
+    if (!enabled) return
     const actions: Record<string, PartyAction> = {
       ArrowLeft: "left",
       a: "left",
@@ -186,7 +239,19 @@ function InfoScreenController({
       window.removeEventListener("blur", reset)
       document.removeEventListener("visibilitychange", visibility)
     }
-  }, [input])
+  }, [input, enabled])
+}
+
+function InfoScreenController({
+  player,
+  input,
+  status,
+}: {
+  player: NamedPlayer
+  input: ReturnType<typeof createPartyInput>
+  status: "connecting" | "ready" | "unavailable"
+}) {
+  usePartyKeys(input, true)
   return (
     <div className="party-screen-controller">
       <PartyAnimal mascot={player.mascot} />
@@ -204,6 +269,7 @@ function InfoScreenController({
         Hold pilene for å bevege deg. Trykk ↑ igjen for dobbelthopp.
       </p>
       <TouchControls input={input} />
+      <CameraControls input={input} />
     </div>
   )
 }

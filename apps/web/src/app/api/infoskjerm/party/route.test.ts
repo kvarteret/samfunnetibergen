@@ -12,6 +12,7 @@ import {
   GET,
   INFOSCREEN_MULTIPLAYER_FLAG,
   INFOSCREEN_PARTY_FLAG,
+  INFOSCREEN_SUBWAY_FLAG,
   resetInfoscreenPartyFlagCache,
 } from "./route"
 
@@ -67,8 +68,29 @@ it("evaluates central multiplayer separately from the ambient mascot flag", asyn
     isEnabled: (key: string) => key === INFOSCREEN_MULTIPLAYER_FLAG,
   })
   const response = await GET()
-  expect(await response.json()).toEqual({ enabled: false, multiplayer: true })
+  expect(await response.json()).toEqual({
+    enabled: false,
+    multiplayer: true,
+    subwaysurfers: false,
+  })
   expect(evaluateFlagsMock).toHaveBeenCalledWith("infoskjerm", {
-    flagKeys: [INFOSCREEN_PARTY_FLAG, INFOSCREEN_MULTIPLAYER_FLAG],
+    flagKeys: [
+      INFOSCREEN_PARTY_FLAG,
+      INFOSCREEN_MULTIPLAYER_FLAG,
+      INFOSCREEN_SUBWAY_FLAG,
+    ],
+  })
+})
+
+it("evaluates the Subway Surfers flag on its own", async () => {
+  resetInfoscreenPartyFlagCache()
+  evaluateFlagsMock.mockResolvedValue({
+    isEnabled: (key: string) => key === INFOSCREEN_SUBWAY_FLAG,
+  })
+  const response = await GET()
+  expect(await response.json()).toEqual({
+    enabled: false,
+    multiplayer: false,
+    subwaysurfers: true,
   })
 })
