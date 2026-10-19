@@ -12,7 +12,7 @@ function canvas(w: number, h: number) {
 function texture(el: HTMLCanvasElement, repeat = false) {
   const t = new THREE.CanvasTexture(el)
   t.colorSpace = THREE.SRGBColorSpace
-  t.anisotropy = 8
+  t.anisotropy = 1
   if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping
   return t
 }
