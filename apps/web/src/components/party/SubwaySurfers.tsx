@@ -24,10 +24,12 @@ export function SubwaySurfers({
   playerId,
   mascot,
   inputs,
+  low = false,
 }: {
   playerId: string
   mascot: PartyMascot
   inputs: RefObject<Map<string, ReceivedInput>>
+  low?: boolean
 }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const runner = useRef<HTMLDivElement>(null)
@@ -44,7 +46,7 @@ export function SubwaySurfers({
     const el = canvas.current
     const sprite = runner.current
     if (!el || !sprite) return
-    const world = createWorld(el)
+    const world = createWorld(el, low)
     let state = newGame()
     let best = 0
     let diedAt = 0
@@ -126,7 +128,7 @@ export function SubwaySurfers({
       window.removeEventListener("resize", world.resize)
       world.dispose()
     }
-  }, [playerId, mascot, inputs])
+  }, [playerId, mascot, inputs, low])
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-black">

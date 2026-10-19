@@ -173,6 +173,7 @@ export function InfoScreenParty({ stage }: { stage: string }) {
       <SubwaySurfers
         playerId={gamer.id}
         mascot={gamer.mascot}
+        low={gamer.low}
         inputs={merged}
       />
     )
