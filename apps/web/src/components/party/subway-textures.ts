@@ -416,6 +416,27 @@ export function cobbles() {
   return t
 }
 
+// Harbour water: dark teal with pale ripple strokes; tiles seamlessly.
+export function water() {
+  const { el, ctx } = canvas(128, 128)
+  ctx.fillStyle = "#3f7f99"
+  ctx.fillRect(0, 0, 128, 128)
+  ctx.strokeStyle = "rgba(220,240,250,0.35)"
+  ctx.lineWidth = 2
+  ctx.lineCap = "round"
+  for (let i = 0; i < 14; i++) {
+    const x = (i * 53) % 128
+    const y = (i * 37) % 128
+    for (const dx of [-128, 0, 128]) {
+      ctx.beginPath()
+      ctx.moveTo(x + dx, y)
+      ctx.quadraticCurveTo(x + dx + 10, y - 4, x + dx + 22, y)
+      ctx.stroke()
+    }
+  }
+  return texture(el, true)
+}
+
 // Three lanes of ballast, sleepers and rails; one tile is `TRACK_TILE` long.
 export const TRACK_TILE = 4
 export function track() {
