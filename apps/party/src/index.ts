@@ -141,6 +141,7 @@ export class Lekeplass extends Server<Env> {
         player: {
           id: connection.id,
           mascot: message.mascot,
+          ...(message.game ? { game: message.game } : {}),
           input: { ...NEUTRAL_INPUT },
         },
       })

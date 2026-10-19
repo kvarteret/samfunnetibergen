@@ -73,3 +73,13 @@ ID. The existing `/api/infoskjerm/party` endpoint evaluates this flag separately
 from `infoskjerm-maskoter`, without initializing browser analytics. Local
 development skips the multiplayer flag. Deploy both the Worker and website
 for this protocol extension.
+
+## Subway Surfers on the infoscreen
+
+A controller may join with an optional `game` (currently only `subwaysurfers`),
+taken from `?player=…&game=subwaysurfers`. While the `infoskjerm-subway-surfers`
+PostHog flag is on, the infoscreen runs the game for the first connected
+controller that asked for it, whatever the screen's own URL, and the room is
+joined even without the multiplayer flag. The game never starts for a plain
+`?player=…` controller. Deploy the Worker with the website: an older Worker drops
+`game` and the game would never start.
