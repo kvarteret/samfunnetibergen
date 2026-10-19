@@ -319,6 +319,10 @@ jobs:
       - name: Deploy lekeplass Worker
         if: ${{ steps.worker.outputs.changed == 'true' && (github.event_name == 'push' || inputs.promote) }}
         shell: bash
+        env:
+          # The Worker only answers allowed origins; NEXT_PUBLIC_SITE_URL is no
+          # longer in the loaded environment, so use the fixed canonical origin.
+          SITE_URL: https://www.samfunnetibergen.no
         run: |
           set -euo pipefail
 
@@ -332,7 +336,7 @@ jobs:
           fi
           for attempt in 1 2 3 4 5; do
             status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
-              --header "Origin: ${NEXT_PUBLIC_SITE_URL%/}" "https://${host}/health" || true)"
+              --header "Origin: ${SITE_URL%/}" "https://${host}/health" || true)"
             echo "Worker health attempt ${attempt}: HTTP ${status}"
             [[ "$status" == "200" ]] && exit 0
             sleep 5
