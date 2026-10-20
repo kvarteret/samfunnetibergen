@@ -8,6 +8,8 @@ export type LocalizedArrayValidationContext = {
 export type LocalizedArrayFieldOptions = Record<string, unknown> & {
   /** Require meaningful canonical values in both the base and English locale. */
   required?: boolean
+  /** Drop the English requirement when the document is info-screen-only. */
+  norwegianOnlyWhenInfoScreen?: boolean
 }
 
 function isMeaningful(value: unknown): boolean {
@@ -28,6 +30,8 @@ export function validateLocalizedArray(
   value: unknown,
   options: {
     required?: boolean
+    /** Only `nb` is needed (info-screen-only arrangements). */
+    norwegianOnly?: boolean
   } = {},
 ): true | string {
   const values = Array.isArray(value) ? value : []
@@ -49,6 +53,9 @@ export function validateLocalizedArray(
     if (language === "en" && isMeaningful(translated)) hasEn = true
   }
 
+  if (options.norwegianOnly) {
+    return !options.required || hasNb || "Skriv inn en norsk verdi (nb)"
+  }
   if (options.required) {
     if (!hasNb) return "Skriv inn en norsk verdi (nb)"
     if (!hasEn) return "Skriv inn en engelsk verdi (en)"
@@ -75,7 +82,11 @@ export function localizedArrayField(
     | "internationalizedArrayStudentGroupLabelValue",
   options: LocalizedArrayFieldOptions = {},
 ) {
-  const { required = false, ...fieldOptions } = options
+  const {
+    required = false,
+    norwegianOnlyWhenInfoScreen = false,
+    ...fieldOptions
+  } = options
   return defineField({
     ...fieldOptions,
     name,
@@ -83,9 +94,13 @@ export function localizedArrayField(
     type,
     validation: rule => {
       const chain = required ? rule.required() : rule
-      return chain.custom((value: unknown) =>
+      return chain.custom((value: unknown, context) =>
         validateLocalizedArray(value, {
           required,
+          norwegianOnly:
+            norwegianOnlyWhenInfoScreen &&
+            (context.document as { infoScreenOnly?: boolean } | undefined)
+              ?.infoScreenOnly === true,
         }),
       )
     },

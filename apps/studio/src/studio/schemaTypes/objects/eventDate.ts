@@ -1,5 +1,11 @@
 import { defineField, defineType } from "sanity"
 
+// "Kun infoskjerm" arrangements are always today and need only a start time;
+// ArrangementDatesInput fills in the date.
+const isInfoScreenOnly = ({ document }: { document?: unknown }) =>
+  (document as { infoScreenOnly?: boolean } | undefined)?.infoScreenOnly ===
+  true
+
 export const arrangementDate = defineType({
   name: "arrangementDate",
   title: "Dato",
@@ -11,6 +17,7 @@ export const arrangementDate = defineType({
       description: "Hvilken dato arrangementet starter",
       type: "date",
       options: { dateFormat: "YYYY-MM-DD" },
+      hidden: isInfoScreenOnly,
       validation: rule => rule.required(),
     }),
     defineField({
@@ -32,6 +39,7 @@ export const arrangementDate = defineType({
       title: "Dørene stenger",
       description: "Påkrevd. Format: HH:MM. Tid før åpning betyr neste dag.",
       type: "string",
+      hidden: isInfoScreenOnly,
       validation: rule =>
         rule
           .required()

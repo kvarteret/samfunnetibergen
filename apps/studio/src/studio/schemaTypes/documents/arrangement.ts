@@ -215,12 +215,15 @@ export const arrangement = defineType({
       ),
       validation: rule =>
         rule.custom((value, context) => {
-          const base = validateLocalizedArray(value)
+          const norwegianOnly =
+            (context.document as Doc | undefined)?.infoScreenOnly === true
+          const base = validateLocalizedArray(value, { norwegianOnly })
           if (base !== true) return base
           const kind = eventKindOf(context.document)
           if (CHILD_KINDS.includes(kind)) return true
           return validateLocalizedArray(value, {
             required: true,
+            norwegianOnly,
           })
         }),
     },
@@ -407,7 +410,11 @@ export const arrangement = defineType({
       "localizedRoomText",
       "Sted (fritekst)",
       "internationalizedArrayString",
-      { options: TRANSLATE_ACTION, group: "schedule" },
+      {
+        options: TRANSLATE_ACTION,
+        group: "schedule",
+        norwegianOnlyWhenInfoScreen: true,
+      },
     ),
 
     // ─── Organizer ─────────────────────────────────────────────
