@@ -5,9 +5,11 @@ import {
 } from "@sanity/orderable-document-list"
 import {
   ALL_FIELDS_GROUP,
+  type ConditionalPropertyCallbackContext,
   defineArrayMember,
   defineField,
   defineType,
+  type FieldDefinition,
 } from "sanity"
 
 import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
@@ -89,6 +91,36 @@ function requiredForSingle(
   }
 }
 
+/** Fields an info-only arrangement still shows; everything else is hidden. */
+const INFO_SCREEN_ONLY_FIELDS = new Set([
+  "infoScreenOnly",
+  "localizedTitle",
+  "room",
+  "localizedRoomText",
+  "dates",
+  "eventKind",
+  "parentEvent",
+  "initialSlug",
+  "approvalStatus",
+  "eventStatus",
+])
+
+function withInfoScreenOnlyHiding(fields: FieldDefinition[]) {
+  return fields.map(field => {
+    if (INFO_SCREEN_ONLY_FIELDS.has(field.name) || field.hidden === true)
+      return field
+    const hidden = field.hidden
+    return {
+      ...field,
+      hidden: (context: ConditionalPropertyCallbackContext) =>
+        (context.document as Doc | undefined)?.infoScreenOnly === true ||
+        (typeof hidden === "function"
+          ? Boolean(hidden(context))
+          : Boolean(hidden)),
+    }
+  })
+}
+
 export const arrangement = defineType({
   name: "arrangement",
   title: "Arrangement",
@@ -109,7 +141,17 @@ export const arrangement = defineType({
     { name: "media", title: "Bilde" },
     { name: "admin", title: "Administrasjon" },
   ],
-  fields: [
+  fields: withInfoScreenOnlyHiding([
+    defineField({
+      name: "infoScreenOnly",
+      title: "Kun infoskjerm",
+      description:
+        "Vises bare på infoskjermen, fra 30 minutter før start til 15 minutter etter. Trenger bare tittel, rom og tid. Vises ikke på nettsiden, i API-et eller i appen.",
+      type: "boolean",
+      group: "core",
+      initialValue: false,
+      hidden: ({ document }) => eventKindOf(document) !== "single",
+    }),
     defineField({
       name: "initialSlug",
       title: "Opprinnelig arrangementsidentitet",
@@ -512,16 +554,6 @@ export const arrangement = defineType({
     }),
 
     defineField({
-      name: "infoScreenOnly",
-      title: "Kun infoskjerm",
-      description:
-        "Vises bare på infoskjermen, fra 30 minutter før start til 15 minutter etter. Trenger bare tittel, rom og tid. Vises ikke på nettsiden, i API-et eller i appen.",
-      type: "boolean",
-      group: "core",
-      initialValue: false,
-      hidden: ({ document }) => eventKindOf(document) !== "single",
-    }),
-    defineField({
       name: "isInternalEvent",
       title: "Internarrangement",
       description: "Arrangementet er kun tilgjengelig for frivillige.",
@@ -615,7 +647,7 @@ export const arrangement = defineType({
       type: "string",
       group: "admin",
     }),
-  ],
+  ]),
   preview: {
     select: {
       localizedTitle: "localizedTitle",
