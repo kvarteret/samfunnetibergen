@@ -80,7 +80,7 @@ export const siteMetadata = defineType({
       name: "bookableHours",
       title: "Huset kan bookes",
       description:
-        "Tidsrom hvor huset kan bookes (bookingkontroll). Bookingskjemaet for rom og karaoke lar kun tider innenfor disse vinduene velges. Er feltet tomt brukes Ordinære åpningstider som fallback.",
+        "Tidsrom hvor huset kan bookes (bookingkontroll). Bookingskjemaet for rom og karaoke lar kun tider innenfor disse vinduene velges, minus datoer der huset er stengt. Rommenes egne åpningstider og Ordinære åpningstider påvirker ikke booking. Er feltet tomt er det ingen tidsbegrensning.",
       type: "openingHours",
       initialValue: {
         rows: [

@@ -3,7 +3,6 @@
 import { z } from "zod"
 import {
   bookingRangeMs,
-  durationHoursBetween,
   overlaps,
 } from "@/features/booking/domain/availability"
 import {
@@ -40,12 +39,12 @@ import {
 } from "@/lib/observability"
 import {
   hasOpeningHoursRows,
-  isSlotAllowedForCombinedHours,
+  isBookingWindowAllowed,
 } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { err, ok, type Result } from "@/lib/result"
-import { fetchBookableRooms, fetchHouseHours } from "@/lib/sanity/fetch"
+import { fetchHouseHours } from "@/lib/sanity/fetch"
 import {
   captureSubmitFailure,
   GENERIC_SUBMIT_ERROR,
@@ -175,31 +174,22 @@ async function hasVenueCalendarConflict(
   })
 }
 
+// Rooms are bookable whenever the house is: only the house's bookable hours,
+// closed dates and vacation mode constrain the window. Room-level opening
+// hours (and the public opening hours) don't apply to bookings.
 async function isAllowedByOpeningHours(
   payload: z.output<typeof payloadSchema>,
 ): Promise<boolean> {
-  const [houseHours, rooms] = await Promise.all([
-    fetchHouseHours(),
-    fetchBookableRooms(),
-  ])
-  // A Crescat-only room (not in Sanity) has no room-specific hours; validate it
-  // against the house hours alone rather than rejecting it.
-  const room = rooms.find(candidate =>
-    payload.roomIds.includes(candidate.crescatRoomId),
-  )
+  const houseHours = await fetchHouseHours()
+  const bookableHours = houseHours?.bookableHours ?? null
+  if (!hasOpeningHoursRows(bookableHours)) return true
 
-  const baseHours = houseHours?.bookableHours ?? null
-  const roomHours = room?.openingHours ?? null
-  const hasConfiguredHours =
-    hasOpeningHoursRows(baseHours) || hasOpeningHoursRows(roomHours)
-  if (!hasConfiguredHours) return true
-
-  return isSlotAllowedForCombinedHours(
+  return isBookingWindowAllowed(
     payload.startDate,
     payload.startTime,
-    durationHoursBetween(payload.startTime, payload.endTime),
-    baseHours,
-    roomHours,
+    payload.endDate,
+    payload.endTime,
+    bookableHours,
     houseHours?.houseClosedDates ?? [],
     houseHours?.vacationMode,
   )

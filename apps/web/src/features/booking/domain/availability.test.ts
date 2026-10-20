@@ -6,6 +6,7 @@ import {
   canFitBookingSpan,
   isRoomOccupied,
   occupiedMinuteRanges,
+  snapSlotToRanges,
 } from "./availability"
 
 const booking: CresatBooking = {
@@ -201,4 +202,33 @@ test("slider occupancy only includes the selected room", () => {
       "2026-10-28",
     ),
   ).toEqual([{ startMin: 960, endMin: 1320 }])
+})
+
+describe("snapSlotToRanges", () => {
+  // Saturday: house bookable 14:00–03:00 (03:00 = 1620 minutes).
+  const saturday = [{ startMin: 14 * 60, endMin: 27 * 60 }]
+
+  test("slides an early get-in forward, keeping the duration", () => {
+    expect(snapSlotToRanges("12:00", "13:00", saturday)).toEqual({
+      startTime: "14:00",
+      endTime: "15:00",
+    })
+  })
+
+  test("pulls a late get-out back to closing time", () => {
+    expect(snapSlotToRanges("23:00", "04:00", saturday)).toEqual({
+      startTime: "22:00",
+      endTime: "03:00",
+    })
+  })
+
+  test("shrinks a booking longer than the window", () => {
+    expect(
+      snapSlotToRanges("10:00", "09:00", [{ startMin: 990, endMin: 1320 }]),
+    ).toEqual({ startTime: "16:30", endTime: "22:00" })
+  })
+
+  test("returns null when the house can't be booked", () => {
+    expect(snapSlotToRanges("12:00", "13:00", [])).toBeNull()
+  })
 })

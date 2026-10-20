@@ -65,7 +65,7 @@ describe("computePriceSummary", () => {
     expect(result.totalIncVat).toBe(9000)
   })
 
-  it("charges the full elapsed duration for a multi-day booking", () => {
+  it("charges the full elapsed duration when no bookable hours are configured", () => {
     const result = computePriceSummary(
       {
         ...booking,
@@ -81,6 +81,80 @@ describe("computePriceSummary", () => {
       { label: "Maos Lille Røde (73 t × 500 kr)", amount: 36_500 },
     ])
     expect(result.totalIncVat).toBe(45_625)
+  })
+
+  it("bills every booked hour, regardless of the room's opening hours", () => {
+    // Grøndahls-style room open 20:00–01:00; a 14:00–23:00 booking is 9 hours
+    // of exclusive access, not just the 3 that overlap public opening hours.
+    const result = computePriceSummary(
+      {
+        ...booking,
+        startDate: "2026-10-12",
+        startTime: "14:00",
+        endTime: "23:00",
+      },
+      [
+        room({
+          title: "Grøndahls",
+          pricePerHour: 1000,
+          openingHours: {
+            rows: [
+              {
+                weekdays: [1, 2, 3, 4],
+                status: "open",
+                duration: { start: "20:00", end: "01:00" },
+              },
+            ],
+          },
+        }),
+      ],
+    )
+
+    expect(result.lines).toEqual([
+      { label: "Grøndahls (9 t × 1000 kr)", amount: 9000 },
+    ])
+  })
+
+  it("does not charge for nights or closed days inside a multi-day booking", () => {
+    // House bookable Fri 12–03, Sat 14–03, Sun 16:30–22.
+    const bookableHours = {
+      rows: [
+        {
+          weekdays: [5],
+          status: "open",
+          duration: { start: "12:00", end: "03:00" },
+        },
+        {
+          weekdays: [6],
+          status: "open",
+          duration: { start: "14:00", end: "03:00" },
+        },
+        {
+          weekdays: [7],
+          status: "open",
+          duration: { start: "16:30", end: "22:00" },
+        },
+      ],
+    }
+    const multiDay = {
+      ...booking,
+      startDate: "2026-10-16",
+      startTime: "19:00",
+      endDate: "2026-10-18",
+      endTime: "20:00",
+    }
+    const rooms = [room({ title: "Rom", pricePerHour: 1000 })]
+
+    // Fri 19–03 (8) + Sat 14–03 (13) + Sun 16:30–20 (3.5) = 24.5, not 49.
+    expect(computePriceSummary(multiDay, rooms, bookableHours).lines).toEqual([
+      { label: "Rom (24.5 t × 1000 kr)", amount: 24_500 },
+    ])
+    // A closed Saturday is free as well: Fri 8 + Sun 3.5.
+    expect(
+      computePriceSummary(multiDay, rooms, bookableHours, [
+        { date: "2026-10-17" },
+      ]).lines,
+    ).toEqual([{ label: "Rom (11.5 t × 1000 kr)", amount: 11_500 }])
   })
 
   it("does not charge room rent for internal bookers", () => {

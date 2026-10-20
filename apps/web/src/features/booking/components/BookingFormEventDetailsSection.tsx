@@ -34,7 +34,6 @@ interface BookingFormEventDetailsSectionProps {
   eventNameError?: string
   eventNameId: string
   openingHours: OpeningHours | null
-  roomOpeningHours: OpeningHours | null
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
 }
@@ -49,7 +48,6 @@ export function BookingFormEventDetailsSection({
   eventNameError,
   eventNameId,
   openingHours,
-  roomOpeningHours,
   closedDates,
   vacationMode,
 }: BookingFormEventDetailsSectionProps) {
@@ -183,7 +181,6 @@ export function BookingFormEventDetailsSection({
               form.setFieldValue("estimatedEndTimes", next)
             }}
             openingHours={openingHours}
-            roomOpeningHours={roomOpeningHours}
             startDate={startDate}
             startTime={startTime}
             uid={uid}

@@ -7,11 +7,12 @@ import {
   Building2,
   CalendarClock,
   Check,
+  Clock,
   Info,
   Plus,
   X,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   type KeyboardEvent,
   type MouseEvent,
@@ -31,12 +32,16 @@ import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
-import type {
-  ClosedDate,
-  OpeningHours,
-  VacationMode,
+import {
+  type ClosedDate,
+  formatOpeningDate,
+  minutesToTime,
+  type OpeningHours,
+  openingRangesForDate,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
+import { snapSlotToRanges } from "../domain/availability"
 import type { BookerType } from "../domain/formState"
 import { isExternalBooker } from "../domain/formState"
 import type { BookingRoom } from "../types"
@@ -51,6 +56,7 @@ interface BookingFormScheduleSectionProps {
   calendarBookings?: Pick<CresatBooking, "start" | "end">[]
   onVisibleMonthChange?: (month: string) => void
   openingHours: OpeningHours | null
+  slotWithinHours: boolean
   closedDates: ClosedDate[]
   vacationMode?: VacationMode | null
   startDateError?: string
@@ -66,6 +72,7 @@ export function BookingFormScheduleSection({
   calendarBookings,
   onVisibleMonthChange,
   openingHours,
+  slotWithinHours,
   closedDates,
   vacationMode,
   startDateError,
@@ -74,6 +81,7 @@ export function BookingFormScheduleSection({
 }: BookingFormScheduleSectionProps) {
   const form = useBookingForm()
   const t = useTranslations("RoomBooking")
+  const locale = useLocale() === "en" ? "en" : "nb"
   const startDateErrorId = `${startDateId}-error`
   const focusedRoom = rooms.find(room => room.crescatRoomId === initialRoomId)
 
@@ -109,9 +117,6 @@ export function BookingFormScheduleSection({
           bookerType: BookerType
         }) => {
           const selectedRoomIdSet = new Set(selectedRoomIds)
-          const firstRoom = rooms.find(room =>
-            selectedRoomIdSet.has(room.crescatRoomId),
-          )
           const toggleRoom = (roomId: number) => {
             const next = selectedRoomIds.includes(roomId)
               ? selectedRoomIds.filter(id => id !== roomId)
@@ -123,6 +128,21 @@ export function BookingFormScheduleSection({
               selectedRoomIdSet.has(room.crescatRoomId) &&
               roomOccupancy.has(room.crescatRoomId),
           )
+          // Single-day bookings get a one-click fix that slides get-in/get-out
+          // into the house's bookable window; multi-day spans just list it.
+          const showOutsideHours = !slotWithinHours && Boolean(startDate)
+          const bookableRanges = showOutsideHours
+            ? openingRangesForDate(
+                startDate,
+                openingHours,
+                closedDates,
+                vacationMode,
+              )
+            : []
+          const snappedSlot =
+            showOutsideHours && !endDate && startTime && endTime
+              ? snapSlotToRanges(startTime, endTime, bookableRanges)
+              : null
           const renderRoom = (room: BookingRoom) => (
             <RoomCard
               conflicts={roomOccupancy.get(room.crescatRoomId) ?? []}
@@ -159,39 +179,55 @@ export function BookingFormScheduleSection({
                     form.setFieldValue("estimatedEndTimes", [])
                   }}
                   openingHours={openingHours}
-                  roomOpeningHours={firstRoom?.openingHours ?? null}
                   startDate={startDate}
                   startTime={startTime}
                   timingWarning={
-                    selectedConflictRooms.length > 0 ? (
-                      <Alert id={`${startDateId}-time`} variant="destructive">
-                        <CalendarClock aria-hidden />
-                        <AlertTitle>
-                          {t("schedule.roomBusyTitle", {
-                            rooms: selectedConflictRooms
-                              .map(room => room.title ?? room.crescatRoomId)
-                              .join(", "),
-                          })}
-                        </AlertTitle>
-                        <AlertDescription className="gap-3">
-                          <p>{t("schedule.roomBusyDescription")}</p>
-                          {selectedConflictRooms.map(room => (
-                            <Button
-                              key={room.crescatRoomId}
-                              onClick={() => toggleRoom(room.crescatRoomId)}
-                              size="sm"
-                              type="button"
-                              variant="neutral"
-                            >
-                              <X aria-hidden />
-                              {t("schedule.removeRoom", {
-                                room: room.title ?? room.crescatRoomId,
+                    (selectedConflictRooms.length > 0 || showOutsideHours) && (
+                      <div className="space-y-4" id={`${startDateId}-time`}>
+                        {showOutsideHours && (
+                          <OutsideHoursAlert
+                            locale={locale}
+                            onSnap={snapped => {
+                              form.setFieldValue("startTime", snapped.startTime)
+                              form.setFieldValue("endTime", snapped.endTime)
+                            }}
+                            ranges={bookableRanges}
+                            snapped={snappedSlot}
+                            startDate={startDate}
+                            t={t}
+                          />
+                        )}
+                        {selectedConflictRooms.length > 0 && (
+                          <Alert variant="destructive">
+                            <CalendarClock aria-hidden />
+                            <AlertTitle>
+                              {t("schedule.roomBusyTitle", {
+                                rooms: selectedConflictRooms
+                                  .map(room => room.title ?? room.crescatRoomId)
+                                  .join(", "),
                               })}
-                            </Button>
-                          ))}
-                        </AlertDescription>
-                      </Alert>
-                    ) : undefined
+                            </AlertTitle>
+                            <AlertDescription className="gap-3">
+                              <p>{t("schedule.roomBusyDescription")}</p>
+                              {selectedConflictRooms.map(room => (
+                                <Button
+                                  key={room.crescatRoomId}
+                                  onClick={() => toggleRoom(room.crescatRoomId)}
+                                  size="sm"
+                                  type="button"
+                                  variant="neutral"
+                                >
+                                  <X aria-hidden />
+                                  {t("schedule.removeRoom", {
+                                    room: room.title ?? room.crescatRoomId,
+                                  })}
+                                </Button>
+                              ))}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    )
                   }
                   today={today}
                   vacationMode={vacationMode}
@@ -619,5 +655,57 @@ function TechSpecValue({
       )}
       {value ? details || t("schedule.yes") : t("schedule.no")}
     </span>
+  )
+}
+
+function OutsideHoursAlert({
+  startDate,
+  ranges,
+  snapped,
+  onSnap,
+  locale,
+  t,
+}: {
+  startDate: string
+  ranges: { startMin: number; endMin: number }[]
+  snapped: { startTime: string; endTime: string } | null
+  onSnap: (slot: { startTime: string; endTime: string }) => void
+  locale: "nb" | "en"
+  t: BookingTranslations
+}) {
+  const date = formatOpeningDate(startDate, locale)
+  const hours = ranges
+    .map(
+      range =>
+        `${minutesToTime(range.startMin)}–${minutesToTime(range.endMin)}`,
+    )
+    .join(", ")
+
+  return (
+    <Alert variant="destructive">
+      <Clock aria-hidden />
+      <AlertTitle>{t("schedule.outsideHoursTitle")}</AlertTitle>
+      <AlertDescription className="gap-3">
+        <p>
+          {ranges.length > 0
+            ? t("schedule.outsideHoursDescription", { date, hours })
+            : t("schedule.outsideHoursClosed", { date })}
+        </p>
+        {snapped && (
+          <Button
+            onClick={() => onSnap(snapped)}
+            size="sm"
+            type="button"
+            variant="neutral"
+          >
+            <Clock aria-hidden />
+            {t("schedule.outsideHoursSnap", {
+              start: snapped.startTime,
+              end: snapped.endTime,
+            })}
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
   )
 }

@@ -1,5 +1,6 @@
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { crescatLocalDateTimeMs } from "@/lib/integrations/crescat/datetime"
+import { minutesToTime } from "@/lib/opening-hours"
 import { rangesOverlap, timeToMinutes } from "@/lib/time"
 
 const MINUTES_IN_DAY = 1440
@@ -138,6 +139,37 @@ export function durationHoursBetween(
 ): number {
   const diff = timeToMinutes(endTime) - timeToMinutes(startTime)
   return (diff <= 0 ? diff + MINUTES_IN_DAY : diff) / 60
+}
+
+/** Nearest get-in/get-out inside one of the day's bookable ranges, keeping
+ * the chosen duration when it fits. Picks the range closest to the current
+ * get-in so a slightly-too-early booking slides forward rather than jumping
+ * to an unrelated window. Times are minutes from the start date's midnight
+ * and may exceed 1440 when the house closes after midnight. */
+export function snapSlotToRanges(
+  startTime: string,
+  endTime: string,
+  ranges: { startMin: number; endMin: number }[],
+): { startTime: string; endTime: string } | null {
+  const start = timeToMinutes(startTime)
+  if (ranges.length === 0 || Number.isNaN(start)) return null
+  const duration = durationHoursBetween(startTime, endTime) * 60
+  const distance = (range: { startMin: number; endMin: number }) =>
+    start < range.startMin
+      ? range.startMin - start
+      : Math.max(0, start - range.endMin)
+  const range = ranges.reduce((best, candidate) =>
+    distance(candidate) < distance(best) ? candidate : best,
+  )
+  const length = Math.min(duration, range.endMin - range.startMin)
+  const snappedStart = Math.min(
+    Math.max(start, range.startMin),
+    range.endMin - length,
+  )
+  return {
+    startTime: minutesToTime(snappedStart),
+    endTime: minutesToTime(snappedStart + length),
+  }
 }
 
 // Elapsed booking hours across calendar dates. Date-only values are converted
