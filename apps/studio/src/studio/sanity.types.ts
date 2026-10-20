@@ -540,10 +540,11 @@ export type Arrangement = {
   ticketUrl?: string
   sourceTicketUrls?: Array<string>
   facebookUrl?: string
+  infoScreenOnly?: boolean
   isInternalEvent?: boolean
   eventStatus: "scheduled" | "cancelled"
   approvalStatus: string
-  slug: Slug
+  slug?: Slug
   isPromoted?: boolean
   submittedBy?: string
   submittedByEmail?: string

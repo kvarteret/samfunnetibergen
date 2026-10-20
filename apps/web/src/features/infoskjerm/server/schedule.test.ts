@@ -4,12 +4,14 @@ import {
   resolvePublicEvent,
 } from "@/features/events/domain/events"
 import {
+  fetchInfoScreenOnlyOccurrences,
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
 import { fetchScreenEvents } from "./schedule"
 
 vi.mock("@/features/events/server/public-events", () => ({
+  fetchInfoScreenOnlyOccurrences: vi.fn().mockResolvedValue([]),
   fetchPublicEventSet: vi.fn(),
   fetchPublicPromotedParentEvents: vi.fn().mockResolvedValue([]),
 }))
@@ -28,7 +30,7 @@ it("requests only today's Norwegian public occurrences and preserves cancellatio
     occurrences: flattenPublicOccurrences([event]),
   })
 
-  const result = await fetchScreenEvents(new Date("2026-09-30T22:30:00Z"))
+  const result = await fetchScreenEvents(new Date("2026-10-01T10:30:00Z"))
 
   expect(fetchPublicEventSet).toHaveBeenCalledWith({
     locale: "nb",
@@ -45,6 +47,41 @@ it("requests only today's Norwegian public occurrences and preserves cancellatio
       floor: null,
       organizer: "Studentersamfunnet",
       cancelled: true,
+    }),
+  ])
+})
+
+it("maps info-only occurrences to title, room, floor and start", async () => {
+  const event = resolvePublicEvent({
+    _id: "info",
+    title: "Lydprøve",
+    room: {
+      _id: "r",
+      title: "Teglverket",
+      slug: "teglverket",
+      imageUrl: null,
+      floor: 2,
+    },
+    dates: [{ _key: "d", startDate: "2026-10-01", startTime: "19:00:00" }],
+  })
+  vi.mocked(fetchPublicEventSet).mockResolvedValue({
+    events: [],
+    occurrences: [],
+  })
+  vi.mocked(fetchInfoScreenOnlyOccurrences).mockResolvedValueOnce(
+    flattenPublicOccurrences([event]),
+  )
+  const result = await fetchScreenEvents(new Date("2026-10-01T12:00:00Z"))
+  expect(fetchInfoScreenOnlyOccurrences).toHaveBeenCalledWith({
+    from: "2026-10-01",
+    to: "2026-10-02",
+  })
+  expect(result.infoOnlyEvents).toEqual([
+    expect.objectContaining({
+      title: "Lydprøve",
+      startTime: "19:00",
+      room: "Teglverket",
+      floor: 2,
     }),
   ])
 })
