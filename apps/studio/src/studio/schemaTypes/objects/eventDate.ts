@@ -6,6 +6,11 @@ const isInfoScreenOnly = ({ document }: { document?: unknown }) =>
   (document as { infoScreenOnly?: boolean } | undefined)?.infoScreenOnly ===
   true
 
+const requiredUnlessInfoScreenOnly = (
+  value: unknown,
+  context: { document?: unknown },
+) => (value ? true : isInfoScreenOnly(context) || "Påkrevd")
+
 export const arrangementDate = defineType({
   name: "arrangementDate",
   title: "Dato",
@@ -18,7 +23,7 @@ export const arrangementDate = defineType({
       type: "date",
       options: { dateFormat: "YYYY-MM-DD" },
       hidden: isInfoScreenOnly,
-      validation: rule => rule.required(),
+      validation: rule => rule.custom(requiredUnlessInfoScreenOnly),
     }),
     defineField({
       name: "startTime",
@@ -42,7 +47,7 @@ export const arrangementDate = defineType({
       hidden: isInfoScreenOnly,
       validation: rule =>
         rule
-          .required()
+          .custom(requiredUnlessInfoScreenOnly)
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
             name: "tid",
             invert: false,

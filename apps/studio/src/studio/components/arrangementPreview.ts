@@ -7,6 +7,7 @@ export type PreviewDocument = {
   _id?: string
   eventKind?: string | null
   eventStatus?: string | null
+  infoScreenOnly?: boolean | null
   approvalStatus?: string | null
   localizedTitle?: LocalizedValue[] | null
   localizedDescription?: LocalizedValue[] | null
@@ -172,13 +173,18 @@ export function buildArrangementPreview(
     child && refs.parent ? content(refs.parent, "en") : null,
   )
   const festival = doc.eventKind === "festivalParent"
+  const infoOnly = doc.infoScreenOnly === true
   const dates = festival ? refs.childDates : (doc.dates ?? [])
   const room = refs.room
     ? text(refs.room.localizedTitle, locale) ||
       text(refs.room.localizedTitle, "nb")
     : ""
   const roomText = text(doc.localizedRoomText, locale)
-  const dateLabels = dates.map(d => previewDateLabel(d, locale))
+  const dateLabels = dates.map(d =>
+    infoOnly
+      ? previewDateLabel(d, locale).replace(/–\?$/, "")
+      : previewDateLabel(d, locale),
+  )
   const excerpt = (value: string | undefined) =>
     value && value.length > 140 ? `${value.slice(0, 140).trimEnd()} …` : value
   const languageValues = (nbValue?: string, enValue?: string) => [
@@ -219,14 +225,16 @@ export function buildArrangementPreview(
           )
           .map(([label, price]) => `${label}: ${price} kr`)
           .join(" · ")
-  const checks: PreviewCheck[] = [
+  const allChecks: PreviewCheck[] = [
     {
       id: "title",
       label: "Tittel",
-      done: Boolean(nb.title && en.title),
+      done: Boolean(infoOnly ? nb.title : nb.title && en.title),
       required: true,
       path: "localizedTitle",
-      values: languageValues(nb.title, en.title),
+      values: infoOnly
+        ? [`Norsk: ${nb.title || "mangler"}`]
+        : languageValues(nb.title, en.title),
     },
     {
       id: "description",
@@ -245,7 +253,7 @@ export function buildArrangementPreview(
           d =>
             validPreviewDate(d.startDate) &&
             timePattern.test(d.startTime ?? "") &&
-            timePattern.test(d.endTime ?? ""),
+            (infoOnly || timePattern.test(d.endTime ?? "")),
         ),
       required: true,
       path: "dates",
@@ -257,7 +265,7 @@ export function buildArrangementPreview(
           {
             id: "room",
             label: "Rom",
-            done: Boolean(room),
+            done: Boolean(room || (infoOnly && roomText)),
             required: true,
             path: "room",
             values: room
@@ -327,6 +335,10 @@ export function buildArrangementPreview(
       values: doc.slug?.current ? [`/arrangementer/${doc.slug.current}`] : [],
     },
   ]
+  // Info-only arrangements only need title, date/time and room.
+  const checks = infoOnly
+    ? allChecks.filter(c => ["title", "dates", "room"].includes(c.id))
+    : allChecks
   return {
     title:
       resolved.title ?? (locale === "nb" ? "Tittel mangler" : "Title missing"),
