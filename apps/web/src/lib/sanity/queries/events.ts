@@ -38,6 +38,9 @@ export const eventGroupsQuery = defineQuery(`
 // ADR 005 query contract: a missing eventKind always reads as "single";
 // public listings and the events API show concrete events only (never parents).
 const CONCRETE_EVENT_KINDS = `coalesce(eventKind, "single") in ["single", "seriesInstance", "festivalSession"]`
+// "Kun infoskjerm" arrangements are shown on the info screen only: never on the
+// website, in the public API or in the app.
+const NOT_INFO_SCREEN_ONLY = `coalesce(infoScreenOnly, false) != true`
 const PARENT_EVENT_KINDS = `coalesce(eventKind, "single") in ["seriesParent", "festivalParent"]`
 
 // Inheritable fields are projected raw (no coalesce): a null child value
@@ -73,6 +76,7 @@ export const publishedEventSlugsQuery = defineQuery(`
         && approvalStatus == "approved"
         && defined(slug.current)
         && ${CONCRETE_EVENT_KINDS}
+        && ${NOT_INFO_SCREEN_ONLY}
         && coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true
         && (
             count(dates[startDate >= $today]) > 0
@@ -148,9 +152,20 @@ export const publicEventsQuery = defineQuery(`
         _type == "arrangement"
         && approvalStatus == "approved"
         && ${CONCRETE_EVENT_KINDS}
+        && ${NOT_INFO_SCREEN_ONLY}
         && defined(slug.current)
         && count(dates[${PUBLIC_DATE_FILTER}]) > 0
         && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
+    ] | order(dates[${PUBLIC_DATE_FILTER}][0].startDate asc, dates[${PUBLIC_DATE_FILTER}][0].startTime asc, _id asc) ${publicEventProjection}`)
+
+/** Approved "Kun infoskjerm" arrangements in the inclusive date range. */
+export const infoScreenOnlyEventsQuery = defineQuery(`
+    *[
+        _type == "arrangement"
+        && approvalStatus == "approved"
+        && infoScreenOnly == true
+        && ${CONCRETE_EVENT_KINDS}
+        && count(dates[${PUBLIC_DATE_FILTER}]) > 0
     ] | order(dates[${PUBLIC_DATE_FILTER}][0].startDate asc, dates[${PUBLIC_DATE_FILTER}][0].startTime asc, _id asc) ${publicEventProjection}`)
 
 /**
@@ -181,6 +196,7 @@ export const publicEventBySlugQuery = defineQuery(`
         _type == "arrangement"
         && slug.current == $slug
         && approvalStatus == "approved"
+        && ${NOT_INFO_SCREEN_ONLY}
         && ($includeInternal == true || coalesce(isInternalEvent, parentEvent->isInternalEvent, false) != true)
     ][0] ${publicEventProjection}`)
 

@@ -1,6 +1,7 @@
 import "server-only"
 
 import {
+  fetchInfoScreenOnlyOccurrences,
   fetchPublicEventSet,
   fetchPublicPromotedParentEvents,
 } from "@/features/events/server/public-events"
@@ -8,29 +9,35 @@ import { selectScreenPromotions } from "../domain/promotions"
 import {
   getScreenDate,
   type ScreenEvent,
+  type ScreenInfoOnlyEvent,
   type ScreenPromotion,
+  shiftDate,
 } from "../domain/schedule"
 
 export async function fetchScreenEvents(now: Date): Promise<{
   date: string
   events: ScreenEvent[]
+  infoOnlyEvents: ScreenInfoOnlyEvent[]
   promotions: ScreenPromotion[]
 }> {
   const date = getScreenDate(now)
-  const [{ events, occurrences }, parents] = await Promise.all([
-    fetchPublicEventSet({
-      locale: "nb",
-      from: date,
-      to: null,
-      live: true,
-    }),
-    fetchPublicPromotedParentEvents({
-      locale: "nb",
-      from: date,
-      to: null,
-      live: true,
-    }),
-  ])
+  const [{ events, occurrences }, parents, infoOnlyOccurrences] =
+    await Promise.all([
+      fetchPublicEventSet({
+        locale: "nb",
+        from: date,
+        to: null,
+        live: true,
+      }),
+      fetchPublicPromotedParentEvents({
+        locale: "nb",
+        from: date,
+        to: null,
+        live: true,
+      }),
+      // Through the next calendar day, for events just after midnight.
+      fetchInfoScreenOnlyOccurrences({ from: date, to: shiftDate(date, 1) }),
+    ])
   const todayOccurrences = occurrences.filter(
     occurrence => occurrence.schedule.startDate === date,
   )
@@ -43,6 +50,20 @@ export async function fetchScreenEvents(now: Date): Promise<{
 
   return {
     date,
+    infoOnlyEvents: infoOnlyOccurrences.flatMap(({ id, event, schedule }) =>
+      schedule.startsAt && schedule.startTime
+        ? [
+            {
+              id,
+              title: event.title,
+              startTime: schedule.startTime.slice(0, 5),
+              startsAt: schedule.startsAt,
+              room: event.room?.title || event.roomText || null,
+              floor: event.room?.floor ?? null,
+            },
+          ]
+        : [],
+    ),
     promotions: selectScreenPromotions([...events, ...parents], date, todayIds),
     events: todayOccurrences.map(({ id, event, schedule }) => ({
       id,

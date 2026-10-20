@@ -6,17 +6,21 @@ import {
   getScreenDate,
   REFRESH_INTERVAL_MS,
   type ScreenEvent,
+  type ScreenInfoOnlyEvent,
+  selectInfoOnlyEvents,
   selectScreenWindow,
 } from "./schedule"
 
 export function useInfoScreen({
   date,
   events,
+  infoOnlyEvents,
   initialNow,
   hasPromotions,
 }: {
   date: string
   events: ScreenEvent[]
+  infoOnlyEvents: ScreenInfoOnlyEvent[]
   initialNow: string
   hasPromotions: boolean
 }) {
@@ -27,6 +31,8 @@ export function useInfoScreen({
     now,
     hasPromotions ? 3 : EVENTS_PER_SCREEN,
   )
+
+  const currentInfoOnlyEvents = selectInfoOnlyEvents(infoOnlyEvents, now)
 
   useEffect(
     () =>
@@ -65,5 +71,5 @@ export function useInfoScreen({
     }
   }, [date, initialNow, router])
 
-  return { now, visibleEvents, laterCount }
+  return { now, visibleEvents, laterCount, currentInfoOnlyEvents }
 }

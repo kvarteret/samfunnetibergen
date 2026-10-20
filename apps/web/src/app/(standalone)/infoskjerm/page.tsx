@@ -18,7 +18,7 @@ export default async function InfoScreenPage({
   const { message } = await searchParams
   const footerMessage = getScreenMessage(message)
   const now = new Date()
-  const [{ date, events, promotions }, logo, weather, footer] =
+  const [{ date, events, infoOnlyEvents, promotions }, logo, weather, footer] =
     await Promise.all([
       fetchScreenEvents(now),
       fetchSiteLogo({ stega: false }),
@@ -31,6 +31,7 @@ export default async function InfoScreenPage({
       key={date}
       date={date}
       events={events}
+      infoOnlyEvents={infoOnlyEvents}
       promotions={promotions}
       initialNow={now.toISOString()}
       logo={logo}

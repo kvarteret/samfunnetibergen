@@ -3,19 +3,47 @@ import {
   getScreenDate,
   isScreenEventExpired,
   type ScreenEvent,
+  selectInfoOnlyEvents,
   selectScreenWindow,
 } from "./schedule"
 
 describe("the information screen's Oslo calendar date", () => {
   it.each([
     ["2026-09-30T21:59:59Z", "2026-09-30"],
-    ["2026-09-30T22:00:00Z", "2026-10-01"],
+    ["2026-09-30T22:00:00Z", "2026-09-30"],
+    ["2026-10-01T02:59:59Z", "2026-09-30"],
+    ["2026-10-01T03:00:00Z", "2026-10-01"],
     ["2026-12-31T22:59:59Z", "2026-12-31"],
-    ["2026-12-31T23:00:00Z", "2027-01-01"],
-    ["2026-03-29T00:59:59Z", "2026-03-29"],
-    ["2026-03-29T01:00:00Z", "2026-03-29"],
-  ])("maps %s to %s independently of the server timezone", (instant, date) => {
-    expect(getScreenDate(new Date(instant))).toBe(date)
+    ["2026-12-31T23:00:00Z", "2026-12-31"],
+    ["2027-01-01T03:59:59Z", "2026-12-31"],
+    ["2027-01-01T04:00:00Z", "2027-01-01"],
+    ["2026-03-29T04:00:00Z", "2026-03-29"],
+  ])(
+    "keeps the day until 05:00 local: %s is %s, independently of the server timezone",
+    (instant, date) => {
+      expect(getScreenDate(new Date(instant))).toBe(date)
+    },
+  )
+})
+
+describe("info-only events", () => {
+  const event = {
+    id: "a",
+    title: "Lydprøve",
+    startTime: "19:00",
+    startsAt: "2026-10-01T17:00:00Z",
+    room: "Teglverket",
+    floor: 2,
+  }
+  it.each([
+    ["2026-10-01T16:29:59Z", false],
+    ["2026-10-01T16:30:00Z", true],
+    ["2026-10-01T17:15:00Z", true],
+    ["2026-10-01T17:15:01Z", false],
+  ])("at %s shows: %s", (instant, shown) => {
+    expect(selectInfoOnlyEvents([event], new Date(instant))).toEqual(
+      shown ? [event] : [],
+    )
   })
 })
 

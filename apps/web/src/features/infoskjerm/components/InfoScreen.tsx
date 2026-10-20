@@ -12,16 +12,19 @@ import type { ScreenRoomHours } from "../domain/opening-hours"
 import {
   SCREEN_TIME_ZONE,
   type ScreenEvent,
+  type ScreenInfoOnlyEvent,
   type ScreenPromotion,
 } from "../domain/schedule"
 import { useInfoScreen } from "../domain/useInfoScreen"
 import type { ScreenWeather } from "../domain/weather"
+import { InfoOnlyEvents } from "./InfoOnlyEvents"
 import { PromotedEvents } from "./PromotedEvents"
 import { ScreenEventCard } from "./ScreenEventCard"
 import { ScreenOpeningHours } from "./ScreenOpeningHours"
 import { WeatherDisplay } from "./WeatherDisplay"
 
 const EMPTY_PROMOTIONS: ScreenPromotion[] = []
+const EMPTY_INFO_ONLY: ScreenInfoOnlyEvent[] = []
 
 const dayFormatter = new Intl.DateTimeFormat("nb-NO", {
   timeZone: SCREEN_TIME_ZONE,
@@ -38,6 +41,7 @@ const timeFormatter = new Intl.DateTimeFormat("nb-NO", {
 type InfoScreenProps = {
   date: string
   events: ScreenEvent[]
+  infoOnlyEvents?: ScreenInfoOnlyEvent[]
   initialNow: string
   logo?: SiteLogoContent | null
   weather?: ScreenWeather | null
@@ -49,6 +53,7 @@ type InfoScreenProps = {
 export function InfoScreen({
   date,
   events,
+  infoOnlyEvents = EMPTY_INFO_ONLY,
   initialNow,
   logo,
   weather,
@@ -56,12 +61,14 @@ export function InfoScreen({
   roomHours,
   promotions = EMPTY_PROMOTIONS,
 }: InfoScreenProps) {
-  const { now, visibleEvents, laterCount } = useInfoScreen({
-    date,
-    events,
-    initialNow,
-    hasPromotions: promotions.length > 0,
-  })
+  const { now, visibleEvents, laterCount, currentInfoOnlyEvents } =
+    useInfoScreen({
+      date,
+      events,
+      infoOnlyEvents,
+      initialNow,
+      hasPromotions: promotions.length > 0,
+    })
 
   return (
     <main className="fixed inset-0 grid place-items-center overflow-hidden bg-foreground">
@@ -101,6 +108,8 @@ export function InfoScreen({
           </p>
           {roomHours && <ScreenOpeningHours roomHours={roomHours} now={now} />}
         </header>
+
+        <InfoOnlyEvents events={currentInfoOnlyEvents} />
 
         <section
           className="flex min-h-0 flex-1 flex-col px-[6cqw]"

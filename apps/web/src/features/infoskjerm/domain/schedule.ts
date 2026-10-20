@@ -3,17 +3,35 @@ export const EVENTS_PER_SCREEN = 4
 export const REFRESH_INTERVAL_MS = 60 * 60 * 1_000
 export const SCREEN_TIME_ZONE = "Europe/Oslo"
 
+/** The screen keeps showing the previous day until this local hour. */
+export const SCREEN_DAY_STARTS_AT_HOUR = 5
+/** "Kun infoskjerm" arrangements show from this long before start... */
+export const INFO_ONLY_LEAD_MS = 30 * 60 * 1_000
+/** ...until this long after start. */
+export const INFO_ONLY_TAIL_MS = 15 * 60 * 1_000
+
 const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: SCREEN_TIME_ZONE,
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
+  hour: "2-digit",
+  hourCycle: "h23",
 })
+
+export function shiftDate(date: string, days: number): string {
+  const shifted = new Date(`${date}T12:00:00Z`)
+  shifted.setUTCDate(shifted.getUTCDate() + days)
+  return shifted.toISOString().slice(0, 10)
+}
 
 export function getScreenDate(now: Date): string {
   const parts = dateFormatter.formatToParts(now)
   const part = (type: string) => parts.find(part => part.type === type)?.value
-  return `${part("year")}-${part("month")}-${part("day")}`
+  const date = `${part("year")}-${part("month")}-${part("day")}`
+  return Number(part("hour")) < SCREEN_DAY_STARTS_AT_HOUR
+    ? shiftDate(date, -1)
+    : date
 }
 
 export type ScreenEvent = {
@@ -31,6 +49,16 @@ export type ScreenEvent = {
   imageFrame?: ImageFrame | null
   cancelled: boolean
   isFree: boolean
+}
+
+/** A "Kun infoskjerm" arrangement: only title, room and start time. */
+export type ScreenInfoOnlyEvent = {
+  id: string
+  title: string
+  startTime: string
+  startsAt: string
+  room: string | null
+  floor: number | null
 }
 
 export type ScreenPromotion = {
@@ -70,4 +98,19 @@ export function selectScreenWindow(
     visibleEvents,
     laterCount: events.length - start - visibleEvents.length,
   }
+}
+
+/** Info-only arrangements from 30 minutes before start until 15 minutes after. */
+export function selectInfoOnlyEvents(
+  events: readonly ScreenInfoOnlyEvent[],
+  now: Date,
+): ScreenInfoOnlyEvent[] {
+  const time = now.getTime()
+  return events.filter(event => {
+    const startsAt = Date.parse(event.startsAt)
+    return (
+      time >= startsAt - INFO_ONLY_LEAD_MS &&
+      time <= startsAt + INFO_ONLY_TAIL_MS
+    )
+  })
 }

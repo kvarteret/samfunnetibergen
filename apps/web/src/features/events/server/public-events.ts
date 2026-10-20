@@ -1,6 +1,7 @@
 import type { AppLocale } from "@/i18n/routing"
 import { sanityClient } from "@/lib/sanity/client"
 import {
+  infoScreenOnlyEventsQuery,
   publicEventBySlugQuery,
   publicEventChildrenQuery,
   publicEventsQuery,
@@ -64,6 +65,23 @@ export async function fetchPublicEventSet({
     events,
     occurrences: flattenPublicOccurrences(events, { from, to }),
   }
+}
+
+/** "Kun infoskjerm" occurrences; only the info screen may call this. */
+export async function fetchInfoScreenOnlyOccurrences({
+  from,
+  to,
+}: {
+  from: string
+  to: string
+}): Promise<PublicOccurrence[]> {
+  const { sanityFetch } = await import("@/lib/sanity/fetcher")
+  const { data } = await sanityFetch({
+    query: infoScreenOnlyEventsQuery,
+    params: { locale: "nb", from, to, includeInternal: true },
+    stega: false,
+  })
+  return flattenPublicOccurrences(resolveRows(data), { from, to })
 }
 
 export async function fetchPublicPromotedParentEvents({

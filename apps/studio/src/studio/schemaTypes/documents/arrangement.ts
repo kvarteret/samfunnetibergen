@@ -71,7 +71,8 @@ function localizedText(value: unknown, language: string): string {
 /**
  * Single arrangements ("Nytt arrangement") must be complete before they can be
  * published or approved; drafts may be saved incomplete. Series and festivals
- * keep their own rules.
+ * keep their own rules. "Kun infoskjerm" arrangements only need a title, room
+ * and time.
  */
 function requiredForSingle(
   isComplete: (document: Doc) => boolean,
@@ -79,7 +80,12 @@ function requiredForSingle(
 ) {
   return (_value: unknown, context: { document?: unknown }) => {
     const document = (context.document ?? {}) as Doc
-    return eventKindOf(document) !== "single" || isComplete(document) || message
+    return (
+      eventKindOf(document) !== "single" ||
+      document.infoScreenOnly === true ||
+      isComplete(document) ||
+      message
+    )
   }
 }
 
@@ -305,7 +311,12 @@ export const arrangement = defineType({
           const kind = eventKindOf(context.document)
           if (kind === "festivalParent" && !value)
             return "Festivalen må ha et bilde"
-          if (kind === "single" && !value) return "Last opp et bilde"
+          if (
+            kind === "single" &&
+            !value &&
+            context.document?.infoScreenOnly !== true
+          )
+            return "Last opp et bilde"
           if (
             kind === "festivalSession" &&
             context.document?.useFestivalImage === false &&
@@ -501,6 +512,16 @@ export const arrangement = defineType({
     }),
 
     defineField({
+      name: "infoScreenOnly",
+      title: "Kun infoskjerm",
+      description:
+        "Vises bare på infoskjermen, fra 30 minutter før start til 15 minutter etter. Trenger bare tittel, rom og tid. Vises ikke på nettsiden, i API-et eller i appen.",
+      type: "boolean",
+      group: "core",
+      initialValue: false,
+      hidden: ({ document }) => eventKindOf(document) !== "single",
+    }),
+    defineField({
       name: "isInternalEvent",
       title: "Internarrangement",
       description: "Arrangementet er kun tilgjengelig for frivillige.",
@@ -545,7 +566,13 @@ export const arrangement = defineType({
           )
         },
       },
-      validation: rule => rule.required(),
+      validation: rule =>
+        rule.custom((value, context) =>
+          (value as { current?: string } | undefined)?.current ||
+          (context.document as Doc | undefined)?.infoScreenOnly === true
+            ? true
+            : "Påkrevd",
+        ),
     }),
     defineField({
       name: "isPromoted",
