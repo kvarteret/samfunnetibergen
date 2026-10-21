@@ -7,7 +7,8 @@
     ".": "./index.ts",
     "./instances": "./instances.ts",
     "./resolve-event": "./resolve-event.ts",
-    "./image-frame": "./image-frame.ts"
+    "./image-frame": "./image-frame.ts",
+    "./faq-icons": "./faq-icons.ts"
   },
   "scripts": {
     "test": "vitest run --coverage",

@@ -5,9 +5,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 export async function BookingNotice({
   karaoke,
   locale,
+  title,
+  karaokeTitle,
+  description,
 }: {
   karaoke: boolean
   locale: string
+  title?: string | null
+  karaokeTitle?: string | null
+  description?: string | null
 }) {
   const t = await getTranslations({ locale, namespace: "RoomBooking" })
   return (
@@ -15,10 +21,14 @@ export async function BookingNotice({
       <Check aria-hidden />
       <AlertTitle>
         <h1 className="text-2xl">
-          {karaoke ? t("form.karaokeSuccessTitle") : t("form.successTitle")}
+          {karaoke
+            ? (karaokeTitle ?? t("form.karaokeSuccessTitle"))
+            : (title ?? t("form.successTitle"))}
         </h1>
       </AlertTitle>
-      <AlertDescription>{t("form.successDescription")}</AlertDescription>
+      <AlertDescription>
+        {description ?? t("form.successDescription")}
+      </AlertDescription>
     </Alert>
   )
 }

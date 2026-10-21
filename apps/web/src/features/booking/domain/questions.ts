@@ -1,5 +1,6 @@
 export interface BookingQuestion {
   _key: string
+  icon?: string | null
   question: string
   answer: string
   category?: string

@@ -67,7 +67,13 @@ export default async function BookingSubmittedPage({
       />
       {(submitted === "1" || submitted === "karaoke") && (
         <>
-          <BookingNotice karaoke={submitted === "karaoke"} locale={locale} />
+          <BookingNotice
+            karaoke={submitted === "karaoke"}
+            locale={locale}
+            title={page.submittedTitle}
+            karaokeTitle={page.submittedKaraokeTitle}
+            description={page.submittedDescription}
+          />
           <section className="max-w-2xl space-y-5">
             <p className="text-lg">{t("form.promotionReminder")}</p>
             <Button
