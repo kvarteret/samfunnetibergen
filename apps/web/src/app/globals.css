@@ -145,6 +145,12 @@
     --booking-night: #c9d4e2;
     --booking-booked: #e8930c;
     --booking-closed: #a3a3a3;
+    /* Day availability: free / partly booked / unavailable. */
+    --booking-free: color-mix(in srgb, #38bdf8 22%, transparent);
+    --booking-partial: color-mix(in srgb, #facc15 38%, transparent);
+    --booking-partial-ring: #ca8a04;
+    --booking-full: color-mix(in srgb, #ef4444 18%, transparent);
+    --booking-full-stripe: #dc2626;
     --booking-today: #1f9d55;
     /* Neutral selection/state color. Skyss keeps the existing amber treatment;
        themes where primary and destructive are both red can override it. */
@@ -349,6 +355,11 @@
   --color-booking-night:        var(--booking-night);
   --color-booking-booked:       var(--booking-booked);
   --color-booking-closed:       var(--booking-closed);
+  --color-booking-free:         var(--booking-free);
+  --color-booking-partial:      var(--booking-partial);
+  --color-booking-partial-ring: var(--booking-partial-ring);
+  --color-booking-full:         var(--booking-full);
+  --color-booking-full-stripe:  var(--booking-full-stripe);
   --color-booking-today:        var(--booking-today);
   --color-state-foreground:     var(--state-foreground);
   --color-muted:                var(--muted);

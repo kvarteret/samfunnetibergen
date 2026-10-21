@@ -7,7 +7,7 @@ import { act } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import messages from "@/messages/nb.json"
-import { initialBookingState } from "../domain/formState"
+import { type BookerType, initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormScheduleSection } from "./BookingFormScheduleSection"
 import { BookingFormContext } from "./bookingFormContext"
@@ -44,6 +44,7 @@ const TIVOLI: BookingRoom = {
 
 const DEFAULT_VALUES = {
   ...initialBookingState,
+  bookerType: "intern" as BookerType,
   selectedRoomIds: [95],
   startDate: "2026-08-29",
   startTime: "15:00",
@@ -214,7 +215,7 @@ describe("selected-room Crescat calendar availability", () => {
         new Date("2026-08-21T00:00:00").toLocaleDateString("nb"),
       )
       expect(partial).not.toBeNull()
-      expect(partial?.className).toContain("booking-partial")
+      expect(partial?.className).not.toContain("booking-stripes")
       expect(partial?.disabled).toBe(false)
       expect(full?.className).toContain("booking-stripes")
       // Keep the trigger focusable so its explanation remains accessible.

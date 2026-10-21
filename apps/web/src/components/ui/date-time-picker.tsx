@@ -204,6 +204,10 @@ function toDateString(d: Date): string {
 }
 
 interface DateTimePickerProps {
+  allowMultiDay: boolean
+  /** Free-day tint and the free/selected legend only mean something once a
+   * room is chosen, since availability is per room. */
+  showRoomAvailability: boolean
   startDate: string
   endDate: string
   today: string
@@ -224,6 +228,8 @@ interface DateTimePickerProps {
 }
 
 export function DateTimePicker({
+  allowMultiDay,
+  showRoomAvailability,
   startDate,
   endDate,
   today,
@@ -251,6 +257,10 @@ export function DateTimePicker({
   const calendarLocale = locale === "en" ? enUS : nb
   const todayDate = new Date(`${today}T00:00:00`)
 
+  const [visibleMonth, setVisibleMonth] = useState(
+    () => new Date(todayDate.getFullYear(), todayDate.getMonth(), 1),
+  )
+
   const closedDateSet = new Set(closedDates.map(d => d.date))
   const hasHours =
     hasOpeningHoursRows(openingHours) || hasOpeningHoursRows(roomOpeningHours)
@@ -261,7 +271,7 @@ export function DateTimePicker({
   }
 
   // Derived phase: if we have a start but no end, we're waiting for the end click
-  const isSelectingEnd = Boolean(startDate && !endDate)
+  const isSelectingEnd = allowMultiDay && Boolean(startDate && !endDate)
 
   const resetDates = () => {
     onStartDateChange("")
@@ -428,6 +438,33 @@ export function DateTimePicker({
     return fitCache.get(key) ?? false
   }
 
+  // Legend lists only the states the two visible months actually show.
+  const visibleStates = new Set<"free" | "partial" | "full">()
+  for (let offset = 0; offset < 2; offset++) {
+    const first = new Date(
+      visibleMonth.getFullYear(),
+      visibleMonth.getMonth() + offset,
+      1,
+    )
+    const dayCount = new Date(
+      first.getFullYear(),
+      first.getMonth() + 1,
+      0,
+    ).getDate()
+    for (let day = 1; day <= dayCount; day++) {
+      const date = new Date(first.getFullYear(), first.getMonth(), day)
+      if (date < todayDate) continue
+      const status = bookingStatus(date)
+      const state =
+        isClosed(date) || status.fullyOccupied
+          ? "full"
+          : status.occupied
+            ? "partial"
+            : "free"
+      if (state !== "free" || showRoomAvailability) visibleStates.add(state)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <BookingCalendarContext.Provider
@@ -447,6 +484,7 @@ export function DateTimePicker({
           calendarLocale,
           handleDayClick,
           locale,
+          showRoomAvailability,
         }}
       >
         <Tooltip.Provider delay={0} closeDelay={120}>
@@ -502,9 +540,10 @@ export function DateTimePicker({
                 preview: "bg-booking-range",
               }}
               numberOfMonths={2}
-              onMonthChange={month =>
+              onMonthChange={month => {
+                setVisibleMonth(month)
                 onVisibleMonthChange?.(toDateString(month))
-              }
+              }}
               onSelect={() => {}}
               selected={selectedRange}
               showOutsideDays={false}
@@ -574,7 +613,11 @@ export function DateTimePicker({
                                 ×
                               </span>
                             )}
-                            <span>{range}</span>
+                            <span>
+                              {/^\d{2}:\d{2}/.test(range) &&
+                                `${t("dateTime.legendOccupied")} `}
+                              {range}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -587,7 +630,7 @@ export function DateTimePicker({
         </Tooltip.Provider>
       </BookingCalendarContext.Provider>
 
-      {startDate && (
+      {allowMultiDay && startDate && (
         <div className="flex flex-col items-start gap-2 text-xs text-foreground-muted">
           <div className="flex items-center gap-2">
             {endDate && (
@@ -634,24 +677,48 @@ export function DateTimePicker({
 
       <CalendarLegend
         items={[
-          {
-            swatch: "bg-booking-selected",
-            label: t("dateTime.legendSelected"),
-          },
-          { swatch: "bg-booking-range", label: t("dateTime.legendInRange") },
-          {
-            swatch:
-              "booking-stripes border border-booking-closed [--stripe:var(--booking-closed)]",
-            label: t("dateTime.legendUnavailable"),
-          },
-          {
-            swatch: "booking-partial",
-            label: t("dateTime.legendPartlyBooked"),
-          },
-          {
-            swatch: "bg-booking-today !size-1.5 !rounded-full mx-1.25",
-            label: t("dateTime.legendToday"),
-          },
+          ...(showRoomAvailability
+            ? [
+                {
+                  swatch: "bg-booking-selected",
+                  label: t("dateTime.legendSelected"),
+                },
+              ]
+            : []),
+          ...(allowMultiDay
+            ? [
+                {
+                  swatch: "bg-booking-range",
+                  label: t("dateTime.legendInRange"),
+                },
+              ]
+            : []),
+          ...(visibleStates.has("free")
+            ? [
+                {
+                  swatch: "bg-booking-free",
+                  label: t("dateTime.legendAvailable"),
+                },
+              ]
+            : []),
+          ...(visibleStates.has("partial")
+            ? [
+                {
+                  swatch:
+                    "bg-booking-partial border-2 border-dashed border-booking-partial-ring",
+                  label: t("dateTime.legendPartlyBooked"),
+                },
+              ]
+            : []),
+          ...(visibleStates.has("full")
+            ? [
+                {
+                  swatch:
+                    "booking-stripes bg-booking-full border border-booking-full-stripe [--stripe:var(--booking-full-stripe)]",
+                  label: t("dateTime.legendUnavailable"),
+                },
+              ]
+            : []),
         ]}
       />
 
@@ -718,6 +785,7 @@ interface BookingCalendarContextValue {
   calendarLocale: typeof nb
   handleDayClick: (date: Date, disabled: boolean) => void
   locale: string
+  showRoomAvailability: boolean
 }
 
 const BookingCalendarContext =
@@ -748,6 +816,7 @@ function BookingCalendarDayButton({
     vacationMode,
     calendarLocale,
     handleDayClick,
+    showRoomAvailability,
   } = context
   const mods = modifiers as Record<string, boolean>
   const past = day.date < todayDate
@@ -797,13 +866,23 @@ function BookingCalendarDayButton({
       className={cn(
         dayButtonClassName,
         "aspect-auto h-11 w-full rounded-lg text-sm font-normal tabular-nums transition-colors hover:bg-secondary-100 data-[range-middle=true]:bg-transparent [&:not(:focus-visible)]:ring-0 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] aria-disabled:cursor-not-allowed",
+        showRoomAvailability &&
+          !past &&
+          !closed &&
+          !status.occupied &&
+          "bg-booking-free",
+        !past &&
+          !closed &&
+          status.occupied &&
+          !status.fullyOccupied &&
+          "bg-booking-partial",
         (closed || status.fullyOccupied) &&
-          "booking-stripes text-[var(--unavailable-foreground)] !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-closed)_45%,transparent)]",
+          "booking-stripes bg-booking-full text-foreground !opacity-100 [--stripe:color-mix(in_srgb,var(--booking-full-stripe)_55%,transparent)]",
         "data-[selected-single=true]:bg-booking-selected data-[selected-single=true]:text-booking-selected-foreground data-[range-start=true]:bg-booking-selected data-[range-start=true]:text-booking-selected-foreground data-[range-end=true]:bg-booking-selected data-[range-end=true]:text-booking-selected-foreground",
         !closed &&
           status.occupied &&
           !status.fullyOccupied &&
-          "booking-partial",
+          "outline-2 -outline-offset-4 outline-dashed outline-booking-partial-ring",
         closed && "line-through",
         mods.beyond_range && "!opacity-25",
       )}

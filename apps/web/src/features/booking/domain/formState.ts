@@ -16,8 +16,8 @@ export const initialBookingState: BookingFormState = {
   eventName: "",
   startDate: "",
   endDate: "",
-  startTime: "19:00",
-  endTime: "23:00",
+  startTime: "",
+  endTime: "",
   doorsTimes: [],
   estimatedEndTimes: [],
   audienceCount: "1",
@@ -49,6 +49,10 @@ export const initialBookingState: BookingFormState = {
   contactPhone: "",
   promote: "ja",
 }
+
+// Only internal bookers may span several days.
+export const allowsMultiDay = (bookerType: BookerType): boolean =>
+  bookerType === "intern"
 
 export const isExternalBooker = (bookerType: BookerType): boolean =>
   bookerType !== "intern"
@@ -85,7 +89,10 @@ export function buildBookingPayload(
     eventName: state.eventName,
     roomIds,
     startDate: state.startDate,
-    endDate: state.endDate || undefined,
+    endDate:
+      allowsMultiDay(state.bookerType) && state.endDate
+        ? state.endDate
+        : undefined,
     startTime: state.startTime,
     endTime: state.endTime,
     doorsTimes: state.doorsTimes.some(Boolean) ? state.doorsTimes : undefined,

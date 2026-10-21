@@ -7,6 +7,8 @@ const validBooking = {
   selectedRoomIds: [95],
   eventName: "Testarrangement",
   startDate: "2026-08-20",
+  startTime: "15:00",
+  endTime: "23:00",
   doorsTimes: ["18:00"],
   estimatedEndTimes: ["22:00"],
   furniture: "Bord og stoler",

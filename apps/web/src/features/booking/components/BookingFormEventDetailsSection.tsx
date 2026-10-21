@@ -60,7 +60,12 @@ export function BookingFormEventDetailsSection({
   const eventNameErrorId = `${eventNameId}-error`
 
   return (
-    <FormSection number="03" title={t("event.sectionTitle")}>
+    <FormSection
+      card
+      id="booking-event"
+      number="03"
+      title={t("event.sectionTitle")}
+    >
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
         <FieldGroup
           className="sm:col-span-2"

@@ -7,6 +7,8 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ContentPageViewTracking } from "@/components/content-page-view-tracking"
 import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
+import { RoomAvailabilityPicker } from "@/features/booking/components/RoomAvailabilityPicker"
+import { hasAvailabilityCalendar } from "@/features/booking/domain/availability"
 import { BoolSpec } from "@/features/rooms"
 import {
   type CarouselSlide,
@@ -171,15 +173,27 @@ export default async function RoomPage({ params }: RoomPageProps) {
           room={room}
           vacationMode={houseHours?.vacationMode}
         />
-        <Button
-          className="w-fit"
-          render={
-            <Link href={`/${locale}/rom/book?room=${room.crescatRoomId}`} />
-          }
-          size="lg"
-        >
-          {t("book", { room: room.title ?? slug })}
-        </Button>
+        {room.crescatRoomId != null &&
+        hasAvailabilityCalendar(room.crescatRoomId) ? (
+          <RoomAvailabilityPicker
+            bookableHours={houseHours?.bookableHours ?? null}
+            closedDates={houseHours?.houseClosedDates ?? []}
+            crescatRoomId={room.crescatRoomId}
+            initialNow={new Date().toISOString()}
+            roomOpeningHours={room.openingHours ?? null}
+            vacationMode={houseHours?.vacationMode}
+          />
+        ) : (
+          <Button
+            className="w-fit"
+            render={
+              <Link href={`/${locale}/rom/book?room=${room.crescatRoomId}`} />
+            }
+            size="lg"
+          >
+            {t("book")}
+          </Button>
+        )}
       </div>
     </article>
   )

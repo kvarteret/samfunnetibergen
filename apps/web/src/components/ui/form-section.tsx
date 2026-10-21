@@ -9,6 +9,8 @@ interface FormSectionProps {
   children: ReactNode
   className?: string
   id?: string
+  /** Lift the section onto a card surface. */
+  card?: boolean
 }
 
 export function FormSection({
@@ -17,9 +19,17 @@ export function FormSection({
   children,
   className,
   id,
+  card = false,
 }: FormSectionProps) {
   return (
-    <section className={cn("scroll-mt-24 space-y-6", className)} id={id}>
+    <section
+      className={cn(
+        "scroll-mt-24 space-y-6",
+        card && "rounded-base bg-card p-4 text-foreground shadow-sm sm:p-6",
+        className,
+      )}
+      id={id}
+    >
       <SectionHeader number={number} title={title} />
       {children}
     </section>
