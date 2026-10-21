@@ -1,3 +1,4 @@
+import { FAQ_ICONS } from "@samfunnet/content-domain/faq-icons"
 import { icons } from "@sanity/icons"
 import { defineArrayMember, defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
@@ -56,6 +57,36 @@ export const page = defineType({
         group: "content",
       },
     ),
+    localizedArrayField(
+      "localizedSubmittedTitle",
+      "Innsendt: tittel",
+      "internationalizedArrayString",
+      {
+        description:
+          "Overskrift etter innsendt booking. Tom bruker standardteksten.",
+        group: "content",
+      },
+    ),
+    localizedArrayField(
+      "localizedSubmittedKaraokeTitle",
+      "Innsendt: tittel for karaoke",
+      "internationalizedArrayString",
+      {
+        description:
+          "Overskrift etter innsendt karaokebooking. Tom bruker standardteksten.",
+        group: "content",
+      },
+    ),
+    localizedArrayField(
+      "localizedSubmittedDescription",
+      "Innsendt: tekst",
+      "internationalizedArrayText",
+      {
+        description:
+          "Tekst under overskriften etter innsendt booking. Tom bruker standardteksten.",
+        group: "content",
+      },
+    ),
     defineField({
       name: "faq",
       title: "Spørsmål og svar",
@@ -68,6 +99,18 @@ export const page = defineType({
           name: "faqItem",
           type: "object",
           fields: [
+            defineField({
+              name: "icon",
+              title: "Ikon",
+              description: "Vises foran spørsmålet. Valgfritt.",
+              type: "string",
+              options: {
+                list: FAQ_ICONS.map(({ name, title }) => ({
+                  title,
+                  value: name,
+                })),
+              },
+            }),
             localizedArrayField(
               "localizedQuestion",
               "Spørsmål",

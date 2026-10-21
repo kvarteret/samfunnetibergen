@@ -246,9 +246,9 @@ export type Navbar = {
 
 export type ArrangementDate = {
   _type: "arrangementDate"
-  startDate: string
+  startDate?: string
   startTime: string
-  endTime: string
+  endTime?: string
 }
 
 export type FooterSocialLink = {
@@ -492,6 +492,7 @@ export type Arrangement = {
   _createdAt: string
   _updatedAt: string
   _rev: string
+  infoScreenOnly?: boolean
   initialSlug?: string
   eventKind?:
     | "single"
@@ -540,7 +541,6 @@ export type Arrangement = {
   ticketUrl?: string
   sourceTicketUrls?: Array<string>
   facebookUrl?: string
-  infoScreenOnly?: boolean
   isInternalEvent?: boolean
   eventStatus: "scheduled" | "cancelled"
   approvalStatus: string
@@ -693,7 +693,22 @@ export type Page = {
   localizedTitle: InternationalizedArrayString
   slug: Slug
   localizedContent?: InternationalizedArrayText
+  localizedSubmittedTitle?: InternationalizedArrayString
+  localizedSubmittedKaraokeTitle?: InternationalizedArrayString
+  localizedSubmittedDescription?: InternationalizedArrayText
   faq?: Array<{
+    icon?:
+      | "age"
+      | "room"
+      | "bar"
+      | "equipment"
+      | "safety"
+      | "ticket"
+      | "cleaning"
+      | "clock"
+      | "money"
+      | "contact"
+      | "info"
     localizedQuestion: InternationalizedArrayString
     localizedAnswer: InternationalizedArrayText
     _type: "faqItem"
