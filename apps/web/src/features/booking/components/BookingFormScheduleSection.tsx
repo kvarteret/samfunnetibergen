@@ -1,26 +1,28 @@
 "use client"
 
 import { Popover } from "@base-ui/react/popover"
-import type { AnyFieldApi } from "@tanstack/react-form"
 import {
   ArrowRight,
   Building2,
   CalendarClock,
+  CalendarDays,
   Check,
   Info,
   Plus,
   X,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  useEffect,
   useState,
 } from "react"
+import { enUS, nb } from "react-day-picker/locale"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { CheckboxField } from "@/components/ui/checkbox-field"
+import { Calendar } from "@/components/ui/calendar"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { Disclosure } from "@/components/ui/disclosure"
 import { FieldGroup } from "@/components/ui/field-group"
@@ -31,14 +33,18 @@ import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
-import type {
-  ClosedDate,
-  OpeningHours,
-  VacationMode,
+import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import {
+  type ClosedDate,
+  isoDate,
+  type OpeningHours,
+  type VacationMode,
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
+import { fetchRoomAvailability } from "../actions/room-availability"
+import { calendarBookingStatus } from "../domain/availability"
 import type { BookerType } from "../domain/formState"
-import { isExternalBooker } from "../domain/formState"
+import { allowsMultiDay } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import type { BookingFormValues } from "./BookingForm"
 import { useBookingForm } from "./bookingFormContext"
@@ -79,6 +85,7 @@ export function BookingFormScheduleSection({
 
   return (
     <FormSection
+      card
       id="booking-schedule"
       number="02"
       title={t("schedule.sectionTitle")}
@@ -140,6 +147,8 @@ export function BookingFormScheduleSection({
               <FieldGroup error={startDateError} errorId={startDateErrorId}>
                 <Label>{t("schedule.dateTimeRequired")}</Label>
                 <DateTimePicker
+                  allowMultiDay={allowsMultiDay(bookerType)}
+                  showRoomAvailability={selectedRoomIds.length > 0}
                   closedDates={closedDates}
                   endDate={endDate}
                   endTime={endTime}
@@ -155,6 +164,8 @@ export function BookingFormScheduleSection({
                   onStartChange={v => form.setFieldValue("startTime", v)}
                   onStartDateChange={v => {
                     form.setFieldValue("startDate", v)
+                    form.setFieldValue("startTime", "")
+                    form.setFieldValue("endTime", "")
                     form.setFieldValue("doorsTimes", [])
                     form.setFieldValue("estimatedEndTimes", [])
                   }}
@@ -233,20 +244,6 @@ export function BookingFormScheduleSection({
                   {t("schedule.selectDateTime")}
                 </p>
               )}
-
-              {isExternalBooker(bookerType) && (
-                <form.Field name="flexibleDates">
-                  {(field: AnyFieldApi) => (
-                    <CheckboxField
-                      checked={field.state.value as boolean}
-                      className="max-w-3xl"
-                      label={t("schedule.flexibleDates")}
-                      labelClassName="font-sans font-base text-foreground-muted"
-                      onChange={field.handleChange}
-                    />
-                  )}
-                </form.Field>
-              )}
             </>
           )
         }}
@@ -311,8 +308,8 @@ function RoomCard({
             <div className="absolute inset-0 flex flex-col bg-black/55">
               <div className="flex items-center gap-1.5 bg-destructive px-3 py-1.5 text-destructive-foreground">
                 <CalendarClock aria-hidden className="size-4 shrink-0" />
-                <span className="font-heading text-sm uppercase tracking-widest">
-                  {t("schedule.occupied")}
+                <span className="font-heading text-sm">
+                  {t("schedule.occupiedLabel")}
                 </span>
               </div>
               <div className="mt-auto p-3">
@@ -339,8 +336,8 @@ function RoomCard({
           {isCrescatOnly && occupied && (
             <div className="flex items-center gap-1 text-destructive">
               <CalendarClock aria-hidden className="size-3.5 shrink-0" />
-              <span className="font-heading text-xs uppercase tracking-widest">
-                {t("schedule.occupied")}
+              <span className="font-heading text-xs">
+                {t("schedule.occupiedLabel")}
               </span>
             </div>
           )}
@@ -388,7 +385,7 @@ function RoomConflictList({
   return (
     <ul
       className={cn(
-        "space-y-0.5 text-sm",
+        "list-disc space-y-0.5 pl-5 text-sm",
         tone === "onImage" ? "text-white" : "text-destructive",
       )}
     >
@@ -396,7 +393,7 @@ function RoomConflictList({
         <li key={conflict}>{conflict}</li>
       ))}
       {hiddenCount > 0 && (
-        <li>
+        <li className="list-none -ml-5">
           <button
             className="font-heading underline underline-offset-4"
             onClick={e => {

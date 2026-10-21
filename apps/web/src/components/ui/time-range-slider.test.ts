@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest"
 import {
   computeTickMarks,
   formatDurationLabel,
+  freeSegments,
   isBookingTimeAvailable,
   occupiedStripeSegments,
   timeIndexWithin,
@@ -100,5 +101,30 @@ describe("occupiedStripeSegments", () => {
       { left: 0, width: 25 },
       { left: 50, width: 25 },
     ])
+  })
+})
+
+describe("freeSegments", () => {
+  const hourly = Array.from({ length: 13 }, (_, i) => (10 + i) * 60) // 10:00–22:00
+
+  test("returns the whole day as one segment when nothing is booked", () => {
+    expect(freeSegments(hourly, [])).toEqual([{ startIdx: 0, endIdx: 12 }])
+  })
+  test("splits around a booking, ending exactly where it starts", () => {
+    const booked = [{ startMin: 14 * 60, endMin: 16 * 60 }]
+    expect(freeSegments(hourly, booked)).toEqual([
+      { startIdx: 0, endIdx: 4 },
+      { startIdx: 6, endIdx: 12 },
+    ])
+  })
+  test("splits at opening-hour gaps and drops stretches under an hour", () => {
+    const withGap = [10 * 60, 11 * 60, 12 * 60, 15 * 60, 16 * 60, 17 * 60]
+    expect(freeSegments(withGap, [])).toEqual([
+      { startIdx: 0, endIdx: 2 },
+      { startIdx: 3, endIdx: 5 },
+    ])
+    expect(
+      freeSegments(hourly, [{ startMin: 10 * 60 + 30, endMin: 22 * 60 }]),
+    ).toEqual([])
   })
 })

@@ -314,3 +314,10 @@ export function availabilityWindow(
     end: bookingEnd > visibleEnd ? bookingEnd : visibleEnd,
   }
 }
+
+// Stjernesalen, Grøndahls and Halvtimen are not booked through Crescat's room
+// calendar, so a per-room availability view would be misleading.
+const ROOMS_WITHOUT_AVAILABILITY_CALENDAR = new Set([119, 120, 121])
+
+export const hasAvailabilityCalendar = (crescatRoomId: number): boolean =>
+  !ROOMS_WITHOUT_AVAILABILITY_CALENDAR.has(crescatRoomId)

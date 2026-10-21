@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { menuPopupClassName } from "@/components/ui/menu-surface"
 import { minutesToTime } from "@/lib/opening-hours"
+import { cn } from "@/lib/utils"
 import { CalendarLegend } from "./legend"
 import { TimeSlotBox, type TimeSlotBoxOption } from "./time-slot-box"
 
@@ -178,6 +179,42 @@ export function computeTickMarks(
   return ticks
 }
 
+export interface FreeSegment {
+  startIdx: number
+  endIdx: number
+}
+
+/** Maximal stretches of the mark grid with no booking and no opening-hour
+ * gap, as index pairs. Each is a one-click "book the whole slot" choice.
+ * Stretches shorter than the one-hour minimum booking are dropped. */
+export function freeSegments(
+  marks: number[],
+  occupiedRanges: { startMin: number; endMin: number }[],
+  minStartIdx = 0,
+): FreeSegment[] {
+  if (marks.length < 2) return []
+  const step = marks[1] - marks[0]
+  const segments: FreeSegment[] = []
+  let startIdx: number | null = null
+  const close = (endIdx: number) => {
+    if (startIdx !== null && marks[endIdx] - marks[startIdx] >= 60) {
+      segments.push({ startIdx, endIdx })
+    }
+    startIdx = null
+  }
+  for (let i = minStartIdx; i < marks.length - 1; i++) {
+    const stepFree =
+      marks[i + 1] - marks[i] === step &&
+      !occupiedRanges.some(
+        r => r.startMin < marks[i + 1] && r.endMin > marks[i],
+      )
+    if (stepFree) startIdx ??= i
+    else close(i)
+  }
+  close(marks.length - 1)
+  return segments
+}
+
 /** Occupied minute ranges as percentage stripes on the visible track. */
 export function occupiedStripeSegments(
   occupiedRanges: { startMin: number; endMin: number }[],
@@ -258,10 +295,10 @@ export function TimeRangeSlider({
   // valid marks. Persist those same values so validation never reads stale
   // times that differ from what the user sees.
   useEffect(() => {
-    if (resolvedStartTime && resolvedStartTime !== startTime) {
+    if (startTime && resolvedStartTime && resolvedStartTime !== startTime) {
       onStartChange(resolvedStartTime)
     }
-    if (resolvedEndTime && resolvedEndTime !== endTime) {
+    if (endTime && resolvedEndTime && resolvedEndTime !== endTime) {
       onEndChange(resolvedEndTime)
     }
   }, [
@@ -384,9 +421,22 @@ export function TimeRangeSlider({
         maxStartIdx + 1,
       )
       if (idx === -1) return
-      handleValueCommit([idx, endIndex])
+      // With no get-out yet, default to the one-hour minimum booking.
+      const nextEnd = endTime
+        ? endIndex
+        : Math.min(idx + minGapIndices, maxEndIdx)
+      handleValueCommit([idx, nextEnd])
     },
-    [marks, minStartIdx, maxStartIdx, endIndex, handleValueCommit],
+    [
+      marks,
+      minStartIdx,
+      maxStartIdx,
+      endTime,
+      endIndex,
+      minGapIndices,
+      maxEndIdx,
+      handleValueCommit,
+    ],
   )
 
   const selectEnd = useCallback(
@@ -419,12 +469,14 @@ export function TimeRangeSlider({
 
   const durationLabel = useMemo(
     () =>
+      startTime &&
+      endTime &&
       formatDurationLabel(marks[endIndex] - marks[startIndex], dayCount > 1, {
         days: t("dateTime.durationDays"),
         hours: t("dateTime.durationHours"),
         minutes: t("dateTime.durationMinutes"),
       }),
-    [marks, startIndex, endIndex, dayCount, t],
+    [marks, startIndex, endIndex, dayCount, startTime, endTime, t],
   )
 
   const tickMarks = useMemo(
@@ -445,6 +497,59 @@ export function TimeRangeSlider({
       occupiedStripeSegments(occupiedRanges, minMinute, maxMinute, totalSpan),
     [occupiedRanges, minMinute, maxMinute, totalSpan],
   )
+
+  // Single-day bookings start with nothing chosen: the free segments of the
+  // day are the choices, and picking one selects its full span.
+  const segments = useMemo(
+    () =>
+      dayCount === 1 ? freeSegments(marks, occupiedRanges, minStartIdx) : [],
+    [dayCount, marks, occupiedRanges, minStartIdx],
+  )
+  const hasSelection = Boolean(startTime && endTime)
+  const showSlider = dayCount > 1 || hasSelection
+
+  // Free stretches of the track are the click targets. Each button is a tall
+  // transparent hit area over the thin track; its visible bar thickens and
+  // darkens on hover. Stopping pointerdown keeps the slider from also treating
+  // the click as a drag/jump of the nearest thumb.
+  const segmentButtons = segments.map(segment => {
+    const start = minutesToTime(marks[segment.startIdx] % MINUTES_IN_DAY)
+    const end = minutesToTime(marks[segment.endIdx] % MINUTES_IN_DAY)
+    const active =
+      hasSelection &&
+      startIndex >= segment.startIdx &&
+      endIndex <= segment.endIdx
+    return (
+      <button
+        aria-disabled={active}
+        aria-label={t("dateTime.selectSegment", { start, end })}
+        className={cn(
+          "group/segment absolute top-1/2 z-10 flex h-9 -translate-y-1/2 items-center focus-brutal",
+          active ? "pointer-events-none" : "cursor-pointer",
+        )}
+        key={segment.startIdx}
+        onClick={() => {
+          if (active) return
+          handleValueCommit([segment.startIdx, segment.endIdx])
+        }}
+        onPointerDown={event => event.stopPropagation()}
+        style={{
+          left: `${((marks[segment.startIdx] - minMinute) / totalSpan) * 100}%`,
+          width: `${((marks[segment.endIdx] - marks[segment.startIdx]) / totalSpan) * 100}%`,
+        }}
+        title={active ? undefined : `${start}–${end}`}
+        type="button"
+      >
+        <span
+          className={cn(
+            "h-1.5 w-full rounded-full bg-booking-selected/30 transition-all",
+            !active &&
+              "group-hover/segment:h-3 group-hover/segment:bg-booking-selected/60",
+          )}
+        />
+      </button>
+    )
+  })
 
   // If there are fewer than 2 marks, we can't render a meaningful range.
   if (marks.length < 2) {
@@ -478,51 +583,24 @@ export function TimeRangeSlider({
           label={t("dateTime.getIn")}
           onChange={selectStart}
           options={startOptions}
-          value={formatLabel(startIndex)}
+          value={startTime ? formatLabel(startIndex) : ""}
         />
         <TimeSlotBox
           className="min-w-28"
           label={t("dateTime.getOut")}
           onChange={selectEnd}
           options={endOptions}
-          value={formatLabel(endIndex)}
+          value={endTime ? formatLabel(endIndex) : ""}
         />
       </div>
 
-      <Slider.Root
-        max={maxIndex}
-        min={minStartIdx}
-        minStepsBetweenValues={1}
-        onValueChange={handleValueChange}
-        onValueCommitted={handleValueCommit}
-        step={1}
-        value={sliderValue}
-      >
-        <Slider.Control className="relative flex w-full touch-none items-center py-3 select-none">
-          <Slider.Track className="relative h-1.5 w-full rounded-full bg-muted cursor-pointer">
-            <Slider.Indicator
-              className="rounded-full"
-              style={{ backgroundColor: trackColor }}
-            />
-
-            {/* Tick marks on the track */}
-            {tickMarks.map(tick => (
-              <div
-                key={tick.index}
-                className="pointer-events-none absolute inset-y-0 w-px"
-                style={{
-                  left: `${tick.pct}%`,
-                  background: "var(--foreground-muted)",
-                  opacity: 0.5,
-                }}
-              />
-            ))}
-
-            {/* Occupied range stripe overlays */}
+      {!showSlider && (
+        <div className="relative flex w-full items-center py-3">
+          <div className="relative h-1.5 w-full rounded-full bg-muted">
             {stripeSegments.map((seg, i) => (
               <div
                 key={i}
-                className="pointer-events-none absolute inset-y-0 rounded-full cursor-not-allowed z-20"
+                className="pointer-events-none absolute inset-y-0 rounded-full"
                 style={{
                   left: `${seg.left}%`,
                   width: `${seg.width}%`,
@@ -530,52 +608,107 @@ export function TimeRangeSlider({
                 }}
               />
             ))}
+            {segmentButtons}
+          </div>
+        </div>
+      )}
 
-            {/* Stapled overlays — non-selectable night gaps between days */}
-            {(stapledSegments ?? []).map((seg, i) => {
-              const left = ((marks[seg.startIdx] - minMinute) / totalSpan) * 100
-              const width =
-                ((marks[seg.endIdx] - marks[seg.startIdx] + 60) / totalSpan) *
-                100
-              return (
+      {showSlider && (
+        <Slider.Root
+          max={maxIndex}
+          min={minStartIdx}
+          minStepsBetweenValues={1}
+          onValueChange={handleValueChange}
+          onValueCommitted={handleValueCommit}
+          step={1}
+          value={sliderValue}
+        >
+          <Slider.Control className="relative flex w-full touch-none items-center py-3 select-none">
+            <Slider.Track className="relative h-1.5 w-full rounded-full bg-muted cursor-default">
+              <Slider.Indicator
+                className="rounded-full"
+                style={{ backgroundColor: trackColor }}
+              />
+
+              {/* Tick marks on the track */}
+              {tickMarks.map(tick => (
                 <div
-                  key={`staple-${i}`}
-                  className="pointer-events-none absolute inset-y-0 cursor-not-allowed z-10"
+                  key={tick.index}
+                  className="pointer-events-none absolute inset-y-0 w-px"
                   style={{
-                    left: `${left}%`,
-                    width: `${width}%`,
-                    backgroundColor: "var(--booking-night)",
+                    left: `${tick.pct}%`,
+                    background: "var(--foreground-muted)",
+                    opacity: 0.5,
                   }}
                 />
-              )
-            })}
+              ))}
 
-            {/* Start thumb */}
-            <Slider.Thumb
-              aria-label={t("dateTime.startTime")}
-              className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
-              index={0}
-              style={{ borderColor: trackColor }}
-            >
-              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
-                {t("dateTime.getIn")}
-              </span>
-            </Slider.Thumb>
+              {/* Occupied range stripe overlays */}
+              {stripeSegments.map((seg, i) => (
+                <div
+                  key={i}
+                  className="pointer-events-none absolute inset-y-0 rounded-full cursor-not-allowed z-20"
+                  style={{
+                    left: `${seg.left}%`,
+                    width: `${seg.width}%`,
+                    background: `repeating-linear-gradient(-45deg, var(--booking-booked), var(--booking-booked) 2px, transparent 2px, transparent 5px)`,
+                  }}
+                />
+              ))}
 
-            {/* End thumb */}
-            <Slider.Thumb
-              aria-label={t("dateTime.endTime")}
-              className="relative size-5 cursor-pointer rounded-full border-2 bg-white shadow-sm transition-colors select-none"
-              index={1}
-              style={{ borderColor: trackColor }}
-            >
-              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
-                {t("dateTime.getOut")}
-              </span>
-            </Slider.Thumb>
-          </Slider.Track>
-        </Slider.Control>
-      </Slider.Root>
+              {segmentButtons}
+
+              {/* Stapled overlays — non-selectable night gaps between days */}
+              {(stapledSegments ?? []).map((seg, i) => {
+                const left =
+                  ((marks[seg.startIdx] - minMinute) / totalSpan) * 100
+                const width =
+                  ((marks[seg.endIdx] - marks[seg.startIdx] + 60) / totalSpan) *
+                  100
+                return (
+                  <div
+                    key={`staple-${i}`}
+                    className="pointer-events-none absolute inset-y-0 cursor-not-allowed z-10"
+                    style={{
+                      left: `${left}%`,
+                      width: `${width}%`,
+                      backgroundColor: "var(--booking-night)",
+                    }}
+                  />
+                )
+              })}
+
+              {/* Start thumb */}
+              <Slider.Thumb
+                aria-label={t("dateTime.startTime")}
+                className={cn(
+                  "relative z-30 size-5 cursor-grab rounded-full border-2 bg-white shadow-sm transition-[opacity,background-color] duration-200 select-none before:absolute before:-inset-4 before:content-[''] hover:bg-booking-selected/10 active:cursor-grabbing starting:opacity-0",
+                )}
+                index={0}
+                style={{ borderColor: trackColor }}
+              >
+                <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
+                  {t("dateTime.getIn")}
+                </span>
+              </Slider.Thumb>
+
+              {/* End thumb */}
+              <Slider.Thumb
+                aria-label={t("dateTime.endTime")}
+                className={cn(
+                  "relative z-30 size-5 cursor-grab rounded-full border-2 bg-white shadow-sm transition-[opacity,background-color] duration-200 select-none before:absolute before:-inset-4 before:content-[''] hover:bg-booking-selected/10 active:cursor-grabbing starting:opacity-0",
+                )}
+                index={1}
+                style={{ borderColor: trackColor }}
+              >
+                <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-heading text-xs text-foreground-muted">
+                  {t("dateTime.getOut")}
+                </span>
+              </Slider.Thumb>
+            </Slider.Track>
+          </Slider.Control>
+        </Slider.Root>
+      )}
 
       {/* Time labels under the track */}
       <div className="relative h-5">

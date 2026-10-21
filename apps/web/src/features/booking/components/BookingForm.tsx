@@ -52,7 +52,7 @@ import {
   type BookingFormState,
   bookingFormSchema,
 } from "../domain/bookingFormSchema"
-import { initialBookingState } from "../domain/formState"
+import { allowsMultiDay, initialBookingState } from "../domain/formState"
 import type { BookingRoom } from "../types"
 import { BookingFormBookerTypeSection } from "./BookingFormBookerTypeSection"
 import { BookingFormCateringBarSection } from "./BookingFormCateringBarSection"
@@ -80,6 +80,8 @@ function saveBookingDraft(values: BookingFormValues) {
 interface BookingFormProps {
   initialRooms: BookingRoom[]
   initialRoomId?: number
+  /** Date and times chosen on the room page's availability picker. */
+  initialSchedule?: { startDate: string; startTime: string; endTime: string }
   /** House-level booking window (Sanity "Huset kan bookes"). Bookable slots
    * are the intersection of this window and each selected room's own hours. */
   bookableHours: OpeningHours | null
@@ -93,6 +95,7 @@ interface BookingFormProps {
 export function BookingForm({
   initialRooms,
   initialRoomId,
+  initialSchedule,
   bookableHours,
   closedDates,
   vacationMode,
@@ -106,6 +109,7 @@ export function BookingForm({
   const [rooms, setRooms] = useState<BookingRoom[]>(initialRooms)
   const [honeypot, setHoneypot] = useState("")
   const [isClearing, setIsClearing] = useState(false)
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false)
   const bookingSubmissionIdRef = useRef<string | null>(null)
   const submissionAttemptRef = useRef(0)
   const hasHydratedDraftRef = useRef(false)
@@ -125,8 +129,9 @@ export function BookingForm({
           initialRooms.some(r => r.crescatRoomId === initialRoomId)
             ? [initialRoomId]
             : [],
+        ...initialSchedule,
       }) as BookingFormValues,
-    [initialRoomId, initialRooms, t],
+    [initialRoomId, initialRooms, initialSchedule, t],
   )
   const fieldIds = {
     studentOrgName: `${uid}-studentOrg`,
@@ -219,6 +224,10 @@ export function BookingForm({
       const restoredValues = {
         ...defaultValues,
         ...parsedDraft,
+        ...(initialSchedule && {
+          ...initialSchedule,
+          selectedRoomIds: defaultValues.selectedRoomIds,
+        }),
         acceptTerms: false,
       }
 
@@ -259,6 +268,11 @@ export function BookingForm({
         stillOffered.length ? stillOffered : [],
       )
     })
+    if (!allowsMultiDay(bookerType) && form.state.values.endDate) {
+      form.setFieldValue("endDate", "")
+      form.setFieldValue("doorsTimes", [])
+      form.setFieldValue("estimatedEndTimes", [])
+    }
     return () => {
       active = false
     }
@@ -305,9 +319,18 @@ export function BookingForm({
     !!values.startDate &&
     selectedRoomIds.some((id: number) => roomOccupancy.has(id))
 
+  // A room the visitor arrived for (room page link) stays the reference for
+  // free/busy stretches even while it is deselected because it is occupied.
+  const availabilityRoomIds =
+    selectedRoomIds.length === 0 &&
+    initialRoomId != null &&
+    rooms.some(room => room.crescatRoomId === initialRoomId)
+      ? [initialRoomId]
+      : selectedRoomIds
+
   const occupiedRanges = occupiedMinuteRanges(
     bookings,
-    selectedRoomIds,
+    availabilityRoomIds,
     values.startDate,
     values.endDate,
   )
@@ -439,7 +462,7 @@ export function BookingForm({
             roomOccupancy={roomOccupancy}
             occupiedRanges={occupiedRanges}
             calendarBookings={bookings.filter(booking =>
-              selectedRoomIds.includes(booking.resourceId),
+              availabilityRoomIds.includes(booking.resourceId),
             )}
             onVisibleMonthChange={setVisibleMonth}
             openingHours={bookableHours}
@@ -543,22 +566,6 @@ export function BookingForm({
                     </>
                   )}
                 </Button>
-                <Button
-                  className="w-full sm:float-right sm:ml-4 sm:w-auto"
-                  disabled={isClearing}
-                  onClick={() => {
-                    setIsClearing(true)
-                    window.setTimeout(() => {
-                      localStorage.removeItem("bookingData")
-                      form.reset()
-                      setIsClearing(false)
-                    }, 500)
-                  }}
-                  size="sm"
-                  type="button"
-                >
-                  {isClearing ? t("form.cleared") : t("form.clear")}
-                </Button>
                 {visibleErrors.length > 0 && (
                   <ErrorSummary
                     className="max-w-3xl"
@@ -594,6 +601,48 @@ export function BookingForm({
               />
             )}
           </form.Subscribe>
+          {isConfirmingClear && !isClearing ? (
+            <div className="space-y-3" role="alertdialog">
+              <p className="text-sm text-foreground">
+                {t("form.clearConfirm")}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setIsConfirmingClear(false)
+                    setIsClearing(true)
+                    window.setTimeout(() => {
+                      localStorage.removeItem("bookingData")
+                      form.reset()
+                      setIsClearing(false)
+                    }, 500)
+                  }}
+                  size="sm"
+                  type="button"
+                >
+                  {t("form.clearYes")}
+                </Button>
+                <Button
+                  onClick={() => setIsConfirmingClear(false)}
+                  size="sm"
+                  type="button"
+                  variant="neutral"
+                >
+                  {t("form.clearNo")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              className="w-full"
+              disabled={isClearing}
+              onClick={() => setIsConfirmingClear(true)}
+              size="sm"
+              type="button"
+            >
+              {isClearing ? t("form.cleared") : t("form.clear")}
+            </Button>
+          )}
         </div>
       </div>
     </BookingFormContext.Provider>

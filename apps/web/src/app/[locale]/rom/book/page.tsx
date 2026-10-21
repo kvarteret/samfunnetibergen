@@ -119,10 +119,29 @@ export default async function BookRoomPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ room?: string }>
+  searchParams: Promise<{
+    room?: string
+    date?: string
+    start?: string
+    end?: string
+  }>
 }) {
   const locale = await resolvePageLocale(params)
-  const { room: roomParam } = await searchParams
+  const {
+    room: roomParam,
+    date: dateParam,
+    start: startParam,
+    end: endParam,
+  } = await searchParams
+  const initialSchedule =
+    dateParam &&
+    startParam &&
+    endParam &&
+    /^\d{4}-\d{2}-\d{2}$/.test(dateParam) &&
+    /^\d{2}:\d{2}$/.test(startParam) &&
+    /^\d{2}:\d{2}$/.test(endParam)
+      ? { startDate: dateParam, startTime: startParam, endTime: endParam }
+      : undefined
   const preselectedRoomId = roomParam ? Number(roomParam) : undefined
   activateRequestLocale(locale)
 
@@ -156,22 +175,19 @@ export default async function BookRoomPage({
     <article className="flex w-full flex-col gap-10">
       <Breadcrumbs path="/rom/book" />
       <header className="space-y-4">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="size-10 bg-primary flex items-center justify-center shrink-0">
+              <div className="size-12 bg-primary flex items-center justify-center shrink-0 lg:size-14">
                 <CalendarCheck
-                  className="size-5 text-primary-foreground"
+                  className="size-6 text-primary-foreground lg:size-7"
                   aria-hidden
                 />
               </div>
-              <p className="font-heading uppercase tracking-widest">
+              <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
                 {t("page.booking")}
-              </p>
+              </h1>
             </div>
-            <h1 className="font-heading text-4xl leading-tight text-foreground lg:text-5xl">
-              {t("page.title")}
-            </h1>
             <p className="max-w-xl text-lg leading-7 text-foreground-muted">
               {t("page.description")}
             </p>
@@ -184,7 +200,7 @@ export default async function BookRoomPage({
             </Link>
           </div>
           <LeietiderSection
-            className="lg:max-w-xs lg:justify-self-end"
+            className="lg:max-w-sm lg:justify-self-end"
             section={leietiderSection}
           />
         </div>
@@ -198,6 +214,7 @@ export default async function BookRoomPage({
         closedDates={houseHours?.houseClosedDates ?? []}
         initialNow={new Date().toISOString()}
         initialRoomId={preselectedRoomId}
+        initialSchedule={initialSchedule}
         initialRooms={initialRooms}
         vacationMode={houseHours?.vacationMode}
         rentalTermsContent={termsPage?.content ?? null}
