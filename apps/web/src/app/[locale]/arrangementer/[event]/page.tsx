@@ -233,7 +233,11 @@ function EventDetailPage({
 }) {
   const nextDate = dateRows[0]?.date ?? event.dates[0] ?? null
   const showDateTickets =
-    event.eventKind === "seriesParent" && dateRows.length > 1
+    dateRows.length > 1 &&
+    (event.eventKind === "seriesParent" ||
+      event.dates.some(
+        date => date.ticketUrl && date.ticketUrl !== event.ticketUrl,
+      ))
 
   return (
     <>
@@ -367,7 +371,13 @@ function EventDetailHero({
           )}
           <EventPlaceFact event={event} t={t} />
           <EventFact icon={Ticket} label={t("price")}>
-            {event.isSoldOut ? t("soldOut") : (formatPrices(event, t) ?? "-")}
+            {event.isSoldOut &&
+            !dateRows.some(
+              row =>
+                row.date.ticketUrl && row.date.ticketUrl !== event.ticketUrl,
+            )
+              ? t("soldOut")
+              : (formatPrices(event, t) ?? "-")}
           </EventFact>
         </dl>
 
@@ -552,10 +562,11 @@ function EventDateList({
         {rows.map(row => {
           const roomTitle = row.event.room?.title ?? row.event.roomText
           const cancelled = row.event.eventStatus !== "scheduled"
-          const soldOut =
-            row.event.eventStatus === "scheduled" &&
-            row.event.isSoldOut &&
-            !row.event.ticketUrl
+          const ticketUrl =
+            row.date.ticketUrl ?? (row.href ? row.event.ticketUrl : null)
+          const dateIsSoldOut =
+            row.date.isSoldOut ?? row.event.isSoldOut ?? false
+          const soldOut = row.event.eventStatus === "scheduled" && dateIsSoldOut
           const content = (
             <>
               <span className="flex flex-wrap items-center gap-2 font-heading text-lg">
@@ -606,9 +617,13 @@ function EventDateList({
                     {content}
                   </div>
                 )}
-                {showTickets && row.href && row.event.ticketUrl && (
+                {showTickets && ticketUrl && (
                   <EventTicketAction
-                    event={row.event}
+                    event={{
+                      ...row.event,
+                      ticketUrl,
+                      isSoldOut: dateIsSoldOut,
+                    }}
                     eventSlug={row.event.slug}
                     size="default"
                     t={t}

@@ -113,6 +113,7 @@ const publicEventProjection = `{
     rrule,
     "useFestivalImage": coalesce(useFestivalImage, true),
     "parent": ${publicParentProjection},
+    sourceTicketUrls,
     "slug": coalesce(slug.current, ""),
     "dates": coalesce(select(
       eventKind in ["seriesParent", "festivalParent"] => *[
