@@ -60,8 +60,9 @@ export async function runHogQL<Row extends Record<string, unknown>>(
         name: `arrangement-statistikk:${name}`,
         query: { kind: "HogQLQuery", query },
       }),
-      // Statistics change slowly; cache shared results for five minutes.
-      next: { revalidate: 300 },
+      // These reports are explicitly refreshed by their viewers. Do not let
+      // the Next.js Data Cache keep an old PostHog response across reloads.
+      cache: "no-store",
       signal: AbortSignal.timeout(20_000),
     },
   )
