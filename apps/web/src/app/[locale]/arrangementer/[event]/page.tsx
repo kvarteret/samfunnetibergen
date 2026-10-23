@@ -14,6 +14,7 @@ import {
   type FestivalLabels,
   FestivalProgramme,
 } from "@/features/events/components/FestivalProgramme"
+import { eventDateAnchor } from "@/features/events/domain/calendar"
 import { buildCardDateLabels } from "@/features/events/domain/dates"
 import {
   flattenPublicOccurrences,
@@ -629,7 +630,11 @@ function EventDateList({
             .join(" ")
 
           return (
-            <li key={row.key}>
+            <li
+              className="scroll-mt-24 rounded-base target:ring-2 target:ring-primary"
+              id={eventDateAnchor(row.event._id, row.date._key)}
+              key={row.key}
+            >
               <div className={className}>
                 {row.href ? (
                   <Link

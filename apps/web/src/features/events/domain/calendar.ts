@@ -4,6 +4,12 @@ import { comparePublicOccurrences, type PublicOccurrence } from "./events"
 
 export type CalendarOccurrence = PublicOccurrence
 
+/** Stable in-page target shared by calendar occurrences and event date rows. */
+export function eventDateAnchor(eventId: string, dateKey: string): string {
+  const safeId = `${eventId}-${dateKey}`.replace(/[^a-zA-Z0-9_-]/g, "-")
+  return `event-date-${safeId}`
+}
+
 export type CalendarDay = {
   date: string
   occurrences: CalendarOccurrence[]

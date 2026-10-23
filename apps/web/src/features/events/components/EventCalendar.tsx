@@ -15,6 +15,7 @@ import {
   type CalendarDay,
   type CalendarMonth,
   type CalendarOccurrence,
+  eventDateAnchor,
 } from "../domain/calendar"
 
 const OSLO_TIME_ZONE = "Europe/Oslo"
@@ -60,6 +61,11 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
   const { event } = occurrence
   const imageUrl = event.imageUrl
   const time = formatTime(occurrence, t("timePrefix"))
+  const destinationSlug =
+    event.parentEvent?.eventKind === "seriesParent"
+      ? event.parentEvent.slug
+      : event.slug
+  const destination = `/arrangementer/${destinationSlug}#${eventDateAnchor(event._id, occurrence.dateKey)}`
 
   return (
     <Link
@@ -70,7 +76,7 @@ function CalendarEvent({ occurrence }: { occurrence: CalendarOccurrence }) {
         undefined,
         occurrence.schedule.startDate,
       )}
-      href={`/arrangementer/${event.slug}`}
+      href={destination}
     >
       {imageUrl ? (
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
