@@ -1,4 +1,4 @@
-import "core-js/stable/array/to-sorted"
+import "./polyfills"
 import posthog from "posthog-js"
 import { prepareBrowserLog } from "@/lib/posthog/log-policy"
 import {
