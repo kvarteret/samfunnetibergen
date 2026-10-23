@@ -594,7 +594,6 @@ function EventDateList({
             row.date.ticketUrl ?? (row.href ? row.event.ticketUrl : null)
           const dateIsSoldOut =
             row.date.isSoldOut ?? row.event.isSoldOut ?? false
-          const soldOut = row.event.eventStatus === "scheduled" && dateIsSoldOut
           const content = (
             <>
               <span className="flex flex-wrap items-center gap-2 font-heading text-lg">
@@ -604,11 +603,6 @@ function EventDateList({
                 {cancelled && (
                   <Tag variant="destructive" className="text-xs">
                     {t("statusCancelled")}
-                  </Tag>
-                )}
-                {soldOut && (
-                  <Tag variant="accent" className="text-xs">
-                    {t("soldOut")}
                   </Tag>
                 )}
               </span>
@@ -623,8 +617,9 @@ function EventDateList({
             </>
           )
           const className = [
-            "flex h-full flex-col gap-3 rounded-base bg-card px-4 py-3 transition-colors hover:bg-muted",
-            showTickets && "sm:flex-row sm:items-center sm:justify-between",
+            "flex h-full flex-col gap-3 rounded-base bg-card px-4 py-3",
+            showTickets &&
+              "sm:grid sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center sm:gap-4 lg:flex lg:flex-col lg:items-stretch 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_12rem] 2xl:items-center",
           ]
             .filter(Boolean)
             .join(" ")
@@ -659,6 +654,7 @@ function EventDateList({
                     eventSlug={row.event.slug}
                     size="default"
                     t={t}
+                    className="sm:w-full lg:w-48 lg:self-end 2xl:w-full 2xl:self-auto"
                   />
                 )}
               </div>
@@ -798,17 +794,19 @@ function EventTicketAction({
   event,
   eventSlug,
   size = "lg",
+  className,
   t,
 }: {
   event: EventDetail
   eventSlug: string
   size?: "default" | "sm" | "lg"
+  className?: string
   t: Translator
 }) {
   if (!event.ticketUrl) return null
   if (event.eventStatus !== "scheduled" || event.isSoldOut) {
     return (
-      <Button disabled size={size}>
+      <Button className={className} disabled size={size}>
         {event.isSoldOut ? t("soldOut") : t("statusCancelled")}
       </Button>
     )
@@ -824,6 +822,7 @@ function EventTicketAction({
       eventId={event._id}
       eventTitle={event.title}
       eventSlug={eventSlug}
+      className={className}
     />
   )
 }

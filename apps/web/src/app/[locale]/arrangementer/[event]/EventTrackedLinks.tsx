@@ -4,6 +4,7 @@ import { ExternalLink, Ticket } from "lucide-react"
 import posthog from "posthog-js"
 import { Button } from "@/components/ui/button"
 import { entrySurface } from "@/lib/posthog/placement-entry"
+import { cn } from "@/lib/utils"
 
 interface EventTicketButtonProps {
   ticketUrl: string
@@ -11,6 +12,7 @@ interface EventTicketButtonProps {
   /** Screen-reader hint that the shop opens in a new tab. */
   newTabLabel?: string
   size?: "default" | "sm" | "lg"
+  className?: string
   eventId: string
   eventTitle: string
   eventSlug: string
@@ -21,13 +23,14 @@ export function EventTicketButton({
   label,
   newTabLabel,
   size = "lg",
+  className,
   eventId,
   eventTitle,
   eventSlug,
 }: EventTicketButtonProps) {
   return (
     <Button
-      className="w-fit"
+      className={cn("w-fit", className)}
       render={<a href={ticketUrl} rel="noreferrer" target="_blank" />}
       size={size}
       onClick={() => {
