@@ -238,6 +238,7 @@ function EventDetailPage({
       event.dates.some(
         date => date.ticketUrl && date.ticketUrl !== event.ticketUrl,
       ))
+  const showInlineDateTickets = showDateTickets && dateRows.length <= 3
 
   return (
     <>
@@ -245,12 +246,14 @@ function EventDetailPage({
         event={event}
         eventSlug={eventSlug}
         nextDate={nextDate}
+        dateRows={dateRows}
         showDateTickets={showDateTickets}
+        showInlineDateTickets={showInlineDateTickets}
         recurringLabel={recurringLabel}
         locale={locale}
         t={t}
       />
-      {showDateTickets && (
+      {showDateTickets && !showInlineDateTickets && (
         <EventDateList rows={dateRows} locale={locale} showTickets t={t} />
       )}
       <EventDetailBody event={event} eventSlug={eventSlug} t={t} />
@@ -308,7 +311,9 @@ function EventDetailHero({
   event,
   eventSlug,
   nextDate,
+  dateRows,
   showDateTickets,
+  showInlineDateTickets,
   recurringLabel,
   locale,
   t,
@@ -316,7 +321,9 @@ function EventDetailHero({
   event: EventDetail
   eventSlug: string
   nextDate: EventDetailDate | null
+  dateRows: EventDateRow[]
   showDateTickets: boolean
+  showInlineDateTickets: boolean
   recurringLabel: string | null
   locale: AppLocale
   t: Translator
@@ -381,8 +388,19 @@ function EventDetailHero({
           </EventFact>
         </dl>
 
-        <div id="event-ticket" className="w-fit empty:hidden">
-          {showDateTickets ? (
+        <div
+          id="event-ticket"
+          className={showInlineDateTickets ? "w-full" : "w-fit empty:hidden"}
+        >
+          {showInlineDateTickets ? (
+            <EventDateList
+              rows={dateRows}
+              locale={locale}
+              showTickets
+              inline
+              t={t}
+            />
+          ) : showDateTickets ? (
             <Button render={<a href="#event-dates-heading" />} size="lg">
               <Ticket aria-hidden="true" />
               {t("allDateTickets")}
@@ -546,19 +564,28 @@ function EventDateList({
   rows,
   locale,
   showTickets = false,
+  inline = false,
   t,
 }: {
   rows: EventDateRow[]
   locale: AppLocale
   showTickets?: boolean
+  inline?: boolean
   t: Translator
 }) {
   return (
-    <section aria-labelledby="event-dates-heading" className="space-y-4">
+    <section
+      aria-labelledby="event-dates-heading"
+      className={inline ? "w-full space-y-3" : "space-y-4"}
+    >
       <h2 id="event-dates-heading" className="text-section-title">
         {t("upcomingDates")}
       </h2>
-      <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      <ul
+        className={
+          inline ? "grid gap-2" : "grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
+        }
+      >
         {rows.map(row => {
           const roomTitle = row.event.room?.title ?? row.event.roomText
           const cancelled = row.event.eventStatus !== "scheduled"
