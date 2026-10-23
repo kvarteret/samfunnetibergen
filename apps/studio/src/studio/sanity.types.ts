@@ -249,6 +249,7 @@ export type ArrangementDate = {
   startDate?: string
   startTime: string
   endTime?: string
+  isSoldOut?: boolean
 }
 
 export type FooterSocialLink = {

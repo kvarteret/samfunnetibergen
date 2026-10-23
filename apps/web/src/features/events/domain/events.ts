@@ -133,6 +133,7 @@ export type RawPublicEventDate = {
   startDate?: string | null
   startTime?: string | null
   endTime?: string | null
+  isSoldOut?: boolean | null
 }
 
 export type RawPublicParent = {
@@ -350,6 +351,9 @@ function normalizeDate(
     startDate: cleaned.startDate,
     startTime: cleaned.startTime,
     endTime: cleaned.endTime,
+    ...(typeof date.isSoldOut === "boolean"
+      ? { isSoldOut: date.isSoldOut }
+      : {}),
   }
 }
 
@@ -395,7 +399,8 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       ? dates.map((date, index) => ({
           ...date,
           ticketUrl: dateTicketUrls[index],
-          isSoldOut: index === 0 && (content.isSoldOut ?? false),
+          isSoldOut:
+            date.isSoldOut ?? (index === 0 && (content.isSoldOut ?? false)),
         }))
       : dates
 

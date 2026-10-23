@@ -126,13 +126,15 @@ const publicEventProjection = `{
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
-        endTime
+        endTime,
+        isSoldOut
       },
       dates[${PUBLIC_DATE_FILTER}][] | order(startDate asc, startTime asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
-        endTime
+        endTime,
+        isSoldOut
       }
     ), []),
     "room": room-> {
