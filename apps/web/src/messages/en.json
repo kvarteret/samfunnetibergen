@@ -424,6 +424,7 @@
     "organizer": "Organised by",
     "description": "About the event",
     "tickets": "Buy tickets",
+    "allDateTickets": "See tickets for all dates",
     "facebook": "Facebook event",
     "cancelledNotice": "This event has been cancelled.",
     "postponedNotice": "This event has been postponed. A new date will be announced.",

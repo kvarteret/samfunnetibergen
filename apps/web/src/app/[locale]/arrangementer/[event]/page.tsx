@@ -232,6 +232,8 @@ function EventDetailPage({
   t: Translator
 }) {
   const nextDate = dateRows[0]?.date ?? event.dates[0] ?? null
+  const showDateTickets =
+    event.eventKind === "seriesParent" && dateRows.length > 1
 
   return (
     <>
@@ -239,12 +241,16 @@ function EventDetailPage({
         event={event}
         eventSlug={eventSlug}
         nextDate={nextDate}
+        showDateTickets={showDateTickets}
         recurringLabel={recurringLabel}
         locale={locale}
         t={t}
       />
+      {showDateTickets && (
+        <EventDateList rows={dateRows} locale={locale} showTickets t={t} />
+      )}
       <EventDetailBody event={event} eventSlug={eventSlug} t={t} />
-      {dateRows.length > 1 && (
+      {dateRows.length > 1 && !showDateTickets && (
         <EventDateList rows={dateRows} locale={locale} t={t} />
       )}
     </>
@@ -298,6 +304,7 @@ function EventDetailHero({
   event,
   eventSlug,
   nextDate,
+  showDateTickets,
   recurringLabel,
   locale,
   t,
@@ -305,6 +312,7 @@ function EventDetailHero({
   event: EventDetail
   eventSlug: string
   nextDate: EventDetailDate | null
+  showDateTickets: boolean
   recurringLabel: string | null
   locale: AppLocale
   t: Translator
@@ -364,9 +372,17 @@ function EventDetailHero({
         </dl>
 
         <div id="event-ticket" className="w-fit empty:hidden">
-          <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+          {showDateTickets ? (
+            <Button render={<a href="#event-dates-heading" />} size="lg">
+              <Ticket aria-hidden="true" />
+              {t("allDateTickets")}
+            </Button>
+          ) : (
+            <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+          )}
         </div>
-        {event.ticketUrl &&
+        {!showDateTickets &&
+          event.ticketUrl &&
           event.eventStatus === "scheduled" &&
           !event.isSoldOut &&
           nextDate && (
@@ -519,10 +535,12 @@ function EventDetailBody({
 function EventDateList({
   rows,
   locale,
+  showTickets = false,
   t,
 }: {
   rows: EventDateRow[]
   locale: AppLocale
+  showTickets?: boolean
   t: Translator
 }) {
   return (
@@ -534,6 +552,10 @@ function EventDateList({
         {rows.map(row => {
           const roomTitle = row.event.room?.title ?? row.event.roomText
           const cancelled = row.event.eventStatus !== "scheduled"
+          const soldOut =
+            row.event.eventStatus === "scheduled" &&
+            row.event.isSoldOut &&
+            !row.event.ticketUrl
           const content = (
             <>
               <span className="flex flex-wrap items-center gap-2 font-heading text-lg">
@@ -543,6 +565,11 @@ function EventDateList({
                 {cancelled && (
                   <Tag variant="destructive" className="text-xs">
                     {t("statusCancelled")}
+                  </Tag>
+                )}
+                {soldOut && (
+                  <Tag variant="accent" className="text-xs">
+                    {t("soldOut")}
                   </Tag>
                 )}
               </span>
@@ -556,22 +583,38 @@ function EventDateList({
               </span>
             </>
           )
-          const className =
-            "flex h-full flex-col gap-1 rounded-base bg-card px-4 py-3"
+          const className = [
+            "flex h-full flex-col gap-3 rounded-base bg-card px-4 py-3 transition-colors hover:bg-muted",
+            showTickets && "sm:flex-row sm:items-center sm:justify-between",
+          ]
+            .filter(Boolean)
+            .join(" ")
 
           return (
             <li key={row.key}>
-              {row.href ? (
-                <Link
-                  href={row.href}
-                  className={`${className} transition-colors hover:bg-muted focus-brutal`}
-                  {...eventTrackingAttributes(row.event, "detail-child")}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <div className={className}>{content}</div>
-              )}
+              <div className={className}>
+                {row.href ? (
+                  <Link
+                    href={row.href}
+                    className="flex min-w-0 flex-1 flex-col gap-1 focus-brutal"
+                    {...eventTrackingAttributes(row.event, "detail-child")}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    {content}
+                  </div>
+                )}
+                {showTickets && row.href && row.event.ticketUrl && (
+                  <EventTicketAction
+                    event={row.event}
+                    eventSlug={row.event.slug}
+                    size="default"
+                    t={t}
+                  />
+                )}
+              </div>
             </li>
           )
         })}
@@ -703,23 +746,22 @@ function formatShortDate(dateStr: string, locale: AppLocale): string {
   }).format(new Date(`${dateStr}T12:00:00Z`))
 }
 
-/**
- * The one filled button on the page. Sold-out and cancelled events keep the
- * button in place, disabled, so the state reads at a glance.
- */
+/** Sold-out and cancelled events keep a disabled ticket action for clear status. */
 function EventTicketAction({
   event,
   eventSlug,
+  size = "lg",
   t,
 }: {
   event: EventDetail
   eventSlug: string
+  size?: "default" | "sm" | "lg"
   t: Translator
 }) {
   if (!event.ticketUrl) return null
   if (event.eventStatus !== "scheduled" || event.isSoldOut) {
     return (
-      <Button disabled>
+      <Button disabled size={size}>
         {event.isSoldOut ? t("soldOut") : t("statusCancelled")}
       </Button>
     )
@@ -731,6 +773,7 @@ function EventTicketAction({
       ticketUrl={event.ticketUrl}
       label={from == null ? t("tickets") : t("ticketsFrom", { price: from })}
       newTabLabel={t("opensInNewTab")}
+      size={size}
       eventId={event._id}
       eventTitle={event.title}
       eventSlug={eventSlug}

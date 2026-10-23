@@ -10,6 +10,7 @@ interface EventTicketButtonProps {
   label: string
   /** Screen-reader hint that the shop opens in a new tab. */
   newTabLabel?: string
+  size?: "default" | "sm" | "lg"
   eventId: string
   eventTitle: string
   eventSlug: string
@@ -19,6 +20,7 @@ export function EventTicketButton({
   ticketUrl,
   label,
   newTabLabel,
+  size = "lg",
   eventId,
   eventTitle,
   eventSlug,
@@ -27,7 +29,7 @@ export function EventTicketButton({
     <Button
       className="w-fit"
       render={<a href={ticketUrl} rel="noreferrer" target="_blank" />}
-      size="lg"
+      size={size}
       onClick={() => {
         posthog.capture("ticket_link_clicked", {
           event_id: eventId,
