@@ -113,6 +113,7 @@ const publicEventProjection = `{
     rrule,
     "useFestivalImage": coalesce(useFestivalImage, true),
     "parent": ${publicParentProjection},
+    sourceTicketUrls,
     "slug": coalesce(slug.current, ""),
     "dates": coalesce(select(
       eventKind in ["seriesParent", "festivalParent"] => *[
@@ -125,13 +126,15 @@ const publicEventProjection = `{
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
-        endTime
+        endTime,
+        isSoldOut
       },
       dates[${PUBLIC_DATE_FILTER}][] | order(startDate asc, startTime asc) {
         _key,
         "startDate": coalesce(startDate, ""),
         startTime,
-        endTime
+        endTime,
+        isSoldOut
       }
     ), []),
     "room": room-> {

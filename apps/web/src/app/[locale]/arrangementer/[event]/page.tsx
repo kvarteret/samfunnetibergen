@@ -14,6 +14,7 @@ import {
   type FestivalLabels,
   FestivalProgramme,
 } from "@/features/events/components/FestivalProgramme"
+import { eventDateAnchor } from "@/features/events/domain/calendar"
 import { buildCardDateLabels } from "@/features/events/domain/dates"
 import {
   flattenPublicOccurrences,
@@ -232,6 +233,13 @@ function EventDetailPage({
   t: Translator
 }) {
   const nextDate = dateRows[0]?.date ?? event.dates[0] ?? null
+  const showDateTickets =
+    dateRows.length > 1 &&
+    (event.eventKind === "seriesParent" ||
+      event.dates.some(
+        date => date.ticketUrl && date.ticketUrl !== event.ticketUrl,
+      ))
+  const showInlineDateTickets = showDateTickets && dateRows.length <= 3
 
   return (
     <>
@@ -239,12 +247,18 @@ function EventDetailPage({
         event={event}
         eventSlug={eventSlug}
         nextDate={nextDate}
+        dateRows={dateRows}
+        showDateTickets={showDateTickets}
+        showInlineDateTickets={showInlineDateTickets}
         recurringLabel={recurringLabel}
         locale={locale}
         t={t}
       />
+      {showDateTickets && !showInlineDateTickets && (
+        <EventDateList rows={dateRows} locale={locale} showTickets t={t} />
+      )}
       <EventDetailBody event={event} eventSlug={eventSlug} t={t} />
-      {dateRows.length > 1 && (
+      {dateRows.length > 1 && !showDateTickets && (
         <EventDateList rows={dateRows} locale={locale} t={t} />
       )}
     </>
@@ -298,6 +312,9 @@ function EventDetailHero({
   event,
   eventSlug,
   nextDate,
+  dateRows,
+  showDateTickets,
+  showInlineDateTickets,
   recurringLabel,
   locale,
   t,
@@ -305,6 +322,9 @@ function EventDetailHero({
   event: EventDetail
   eventSlug: string
   nextDate: EventDetailDate | null
+  dateRows: EventDateRow[]
+  showDateTickets: boolean
+  showInlineDateTickets: boolean
   recurringLabel: string | null
   locale: AppLocale
   t: Translator
@@ -359,14 +379,39 @@ function EventDetailHero({
           )}
           <EventPlaceFact event={event} t={t} />
           <EventFact icon={Ticket} label={t("price")}>
-            {event.isSoldOut ? t("soldOut") : (formatPrices(event, t) ?? "-")}
+            {event.isSoldOut &&
+            !dateRows.some(
+              row =>
+                row.date.ticketUrl && row.date.ticketUrl !== event.ticketUrl,
+            )
+              ? t("soldOut")
+              : (formatPrices(event, t) ?? "-")}
           </EventFact>
         </dl>
 
-        <div id="event-ticket" className="w-fit empty:hidden">
-          <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+        <div
+          id="event-ticket"
+          className={showInlineDateTickets ? "w-full" : "w-fit empty:hidden"}
+        >
+          {showInlineDateTickets ? (
+            <EventDateList
+              rows={dateRows}
+              locale={locale}
+              showTickets
+              inline
+              t={t}
+            />
+          ) : showDateTickets ? (
+            <Button render={<a href="#event-dates-heading" />} size="lg">
+              <Ticket aria-hidden="true" />
+              {t("allDateTickets")}
+            </Button>
+          ) : (
+            <EventTicketAction event={event} eventSlug={eventSlug} t={t} />
+          )}
         </div>
-        {event.ticketUrl &&
+        {!showDateTickets &&
+          event.ticketUrl &&
           event.eventStatus === "scheduled" &&
           !event.isSoldOut &&
           nextDate && (
@@ -519,21 +564,36 @@ function EventDetailBody({
 function EventDateList({
   rows,
   locale,
+  showTickets = false,
+  inline = false,
   t,
 }: {
   rows: EventDateRow[]
   locale: AppLocale
+  showTickets?: boolean
+  inline?: boolean
   t: Translator
 }) {
   return (
-    <section aria-labelledby="event-dates-heading" className="space-y-4">
+    <section
+      aria-labelledby="event-dates-heading"
+      className={inline ? "w-full space-y-3" : "space-y-4"}
+    >
       <h2 id="event-dates-heading" className="text-section-title">
         {t("upcomingDates")}
       </h2>
-      <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      <ul
+        className={
+          inline ? "grid gap-2" : "grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
+        }
+      >
         {rows.map(row => {
           const roomTitle = row.event.room?.title ?? row.event.roomText
           const cancelled = row.event.eventStatus !== "scheduled"
+          const ticketUrl =
+            row.date.ticketUrl ?? (row.href ? row.event.ticketUrl : null)
+          const dateIsSoldOut =
+            row.date.isSoldOut ?? row.event.isSoldOut ?? false
           const content = (
             <>
               <span className="flex flex-wrap items-center gap-2 font-heading text-lg">
@@ -556,22 +616,48 @@ function EventDateList({
               </span>
             </>
           )
-          const className =
-            "flex h-full flex-col gap-1 rounded-base bg-card px-4 py-3"
+          const className = [
+            "flex h-full flex-col gap-3 rounded-base bg-card px-4 py-3",
+            showTickets &&
+              "sm:grid sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center sm:gap-4 lg:flex lg:flex-col lg:items-stretch 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_12rem] 2xl:items-center",
+          ]
+            .filter(Boolean)
+            .join(" ")
 
           return (
-            <li key={row.key}>
-              {row.href ? (
-                <Link
-                  href={row.href}
-                  className={`${className} transition-colors hover:bg-muted focus-brutal`}
-                  {...eventTrackingAttributes(row.event, "detail-child")}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <div className={className}>{content}</div>
-              )}
+            <li
+              className="scroll-mt-24 rounded-base target:ring-2 target:ring-primary"
+              id={eventDateAnchor(row.event._id, row.date._key)}
+              key={row.key}
+            >
+              <div className={className}>
+                {row.href ? (
+                  <Link
+                    href={row.href}
+                    className="flex min-w-0 flex-1 flex-col gap-1 focus-brutal"
+                    {...eventTrackingAttributes(row.event, "detail-child")}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    {content}
+                  </div>
+                )}
+                {showTickets && ticketUrl && (
+                  <EventTicketAction
+                    event={{
+                      ...row.event,
+                      ticketUrl,
+                      isSoldOut: dateIsSoldOut,
+                    }}
+                    eventSlug={row.event.slug}
+                    size="default"
+                    t={t}
+                    className="sm:w-full lg:w-48 lg:self-end 2xl:w-full 2xl:self-auto"
+                  />
+                )}
+              </div>
             </li>
           )
         })}
@@ -703,23 +789,24 @@ function formatShortDate(dateStr: string, locale: AppLocale): string {
   }).format(new Date(`${dateStr}T12:00:00Z`))
 }
 
-/**
- * The one filled button on the page. Sold-out and cancelled events keep the
- * button in place, disabled, so the state reads at a glance.
- */
+/** Sold-out and cancelled events keep a disabled ticket action for clear status. */
 function EventTicketAction({
   event,
   eventSlug,
+  size = "lg",
+  className,
   t,
 }: {
   event: EventDetail
   eventSlug: string
+  size?: "default" | "sm" | "lg"
+  className?: string
   t: Translator
 }) {
   if (!event.ticketUrl) return null
   if (event.eventStatus !== "scheduled" || event.isSoldOut) {
     return (
-      <Button disabled>
+      <Button className={className} disabled size={size}>
         {event.isSoldOut ? t("soldOut") : t("statusCancelled")}
       </Button>
     )
@@ -731,9 +818,11 @@ function EventTicketAction({
       ticketUrl={event.ticketUrl}
       label={from == null ? t("tickets") : t("ticketsFrom", { price: from })}
       newTabLabel={t("opensInNewTab")}
+      size={size}
       eventId={event._id}
       eventTitle={event.title}
       eventSlug={eventSlug}
+      className={className}
     />
   )
 }

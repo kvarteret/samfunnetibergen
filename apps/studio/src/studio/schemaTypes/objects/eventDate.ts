@@ -54,6 +54,12 @@ export const arrangementDate = defineType({
           })
           .error("Dørstenging må angis i format HH:MM (f.eks. 23:00)"),
     }),
+    defineField({
+      name: "isSoldOut",
+      title: "Utsolgt",
+      description: "Marker denne datoen som utsolgt.",
+      type: "boolean",
+    }),
   ],
   preview: {
     select: {

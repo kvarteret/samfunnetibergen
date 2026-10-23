@@ -29,6 +29,8 @@ export type PublicEventDate = {
   startDate: string
   startTime: string | null
   endTime: string | null
+  ticketUrl?: string | null
+  isSoldOut?: boolean
 }
 
 export type PublicParentSummary = {
@@ -131,6 +133,7 @@ export type RawPublicEventDate = {
   startDate?: string | null
   startTime?: string | null
   endTime?: string | null
+  isSoldOut?: boolean | null
 }
 
 export type RawPublicParent = {
@@ -197,6 +200,7 @@ export type RawPublicEvent = {
   roomText?: string | null
   isInternalEvent?: boolean | null
   useFestivalImage?: boolean | null
+  sourceTicketUrls?: readonly (string | null)[] | null
   dates?: readonly (RawPublicEventDate | null)[] | null
 }
 
@@ -347,6 +351,9 @@ function normalizeDate(
     startDate: cleaned.startDate,
     startTime: cleaned.startTime,
     endTime: cleaned.endTime,
+    ...(typeof date.isSoldOut === "boolean"
+      ? { isSoldOut: date.isSoldOut }
+      : {}),
   }
 }
 
@@ -376,6 +383,26 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
       return normalized ? [normalized] : []
     },
   )
+  const dateTicketUrls = [
+    row.ticketUrl,
+    ...(row.sourceTicketUrls ?? []),
+  ].flatMap(value => {
+    const url = normalizeString(value)
+    return url ? [url] : []
+  })
+  // TicketCo's merge importer stores the original listing URL first and then
+  // appends one URL for each merged performance. Only associate links by
+  // position when the full URL and date counts agree; otherwise guessing could
+  // send someone to the wrong performance.
+  const datesWithTicketUrls =
+    dates.length > 0 && dateTicketUrls.length === dates.length
+      ? dates.map((date, index) => ({
+          ...date,
+          ticketUrl: dateTicketUrls[index],
+          isSoldOut:
+            date.isSoldOut ?? (index === 0 && (content.isSoldOut ?? false)),
+        }))
+      : dates
 
   return {
     _id: content._id,
@@ -431,7 +458,7 @@ export function resolvePublicEvent(row: RawPublicEvent): PublicEvent {
           title: normalizeString(cleanParent.title) ?? MISSING_TITLE,
         }
       : null,
-    dates,
+    dates: datesWithTicketUrls,
   }
 }
 
