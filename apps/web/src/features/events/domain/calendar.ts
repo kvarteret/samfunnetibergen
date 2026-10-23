@@ -83,7 +83,7 @@ export function buildCalendarMonths(
         occurrence.schedule.startDate >= visibleFrom &&
         occurrence.schedule.startDate <= visibleTo,
     )
-    .toSorted(comparePublicOccurrences)
+    .sort(comparePublicOccurrences)
 
   for (const occurrence of occurrences) {
     const date = occurrence.schedule.startDate
