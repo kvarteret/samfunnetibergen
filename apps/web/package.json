@@ -49,6 +49,7 @@
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "core-js": "^3.50.0",
     "date-fns": "^4.4.0",
     "echarts": "^6.1.0",
     "embla-carousel-react": "^8.6.0",
@@ -118,5 +119,12 @@
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
     "workerd@1.20260926.1": true
-  }
+  },
+  "browserslist": [
+    "chrome >= 108",
+    "edge >= 108",
+    "firefox >= 107",
+    "safari >= 16",
+    "ios_saf >= 16"
+  ]
 }
