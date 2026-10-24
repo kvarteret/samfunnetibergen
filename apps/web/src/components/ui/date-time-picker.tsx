@@ -64,7 +64,7 @@ function slotMarks(
   )) {
     for (let m = range.startMin; m <= range.endMin; m += stepMin) marks.add(m)
   }
-  return Array.from(marks).toSorted((a, b) => a - b)
+  return Array.from(marks).sort((a, b) => a - b)
 }
 
 /** Latest closing minute (from its own midnight) across a day's combined
