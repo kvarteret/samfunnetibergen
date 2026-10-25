@@ -91,7 +91,7 @@ describe("GET /api/v1/events", () => {
       },
       description: { html: "", text: "" },
       links: {
-        ticket: "https://tickets.example.test/event-0",
+        ticket: "https://api.example.test/api/tickets/event-0?locale=nb",
         facebook: "https://facebook.example.test/event-0",
       },
     })

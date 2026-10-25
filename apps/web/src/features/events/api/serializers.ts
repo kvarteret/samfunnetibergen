@@ -22,6 +22,29 @@ function websiteEventUrl(event: PublicEvent, options: PublicApiLinkOptions) {
   return `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/${options.locale}/arrangementer/${encodeURIComponent(event.slug)}`
 }
 
+/**
+ * Ticket links go through our own redirect so clicks from external consumers
+ * (and their UTM parameters) reach our analytics before the ticket shop.
+ */
+function ticketProxyUrl(
+  event: PublicEvent,
+  options: PublicApiLinkOptions,
+  dateKey?: string,
+) {
+  const date = dateKey
+    ? event.dates.find(candidate => candidate._key === dateKey)
+    : undefined
+  const ticketUrl = date?.ticketUrl ?? event.ticketUrl
+  if (!ticketUrl) return null
+  // Only name the date when it has its own ticket page; the plain link stays
+  // stable for everything that shares the event-level URL.
+  const dateParam =
+    date?.ticketUrl && date.ticketUrl !== event.ticketUrl
+      ? `&date=${encodeURIComponent(date._key)}`
+      : ""
+  return `${normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())}/api/tickets/${encodeURIComponent(event.slug)}?locale=${options.locale}${dateParam}`
+}
+
 function serializeImage(event: PublicEvent) {
   return event.imageUrl
     ? { url: event.imageUrl, caption: event.imageCaption }
@@ -92,6 +115,7 @@ function serializePublicSchedule(
 function serializePublicEvent(
   event: PublicEvent,
   options: PublicApiLinkOptions,
+  dateKey?: string,
 ): PublicApiEvent {
   const siteUrl = normalizedSiteUrl(options.siteUrl ?? resolveSiteUrl())
 
@@ -128,7 +152,7 @@ function serializePublicEvent(
       : null,
     links: {
       website: websiteEventUrl(event, options),
-      ticket: event.ticketUrl,
+      ticket: ticketProxyUrl(event, options, dateKey),
       facebook: event.facebookUrl,
     },
   }
@@ -142,6 +166,6 @@ export function serializePublicOccurrence(
   return {
     id: occurrence.id,
     schedule: serializePublicSchedule(occurrence.schedule),
-    event: serializePublicEvent(occurrence.event, options),
+    event: serializePublicEvent(occurrence.event, options, occurrence.dateKey),
   }
 }
