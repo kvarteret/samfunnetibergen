@@ -436,7 +436,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
                       <ChildLink childId={id}>
                         <Flex align="center" gap={3}>
                           {renderThumbnail(document)}
-                          <Stack gap={2} style={{ minWidth: 0 }}>
+                          <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                             <Text
                               size={1}
                               textOverflow="ellipsis"
@@ -447,14 +447,19 @@ export function PromotedArrangementList({ today }: { today: string }) {
                             <Text muted size={1} textOverflow="ellipsis">
                               {nextDateLabel(document)}
                             </Text>
+                            <Box>
+                              <Badge
+                                style={{ whiteSpace: "nowrap" }}
+                                tone={status.tone}
+                              >
+                                {status.text}
+                              </Badge>
+                            </Box>
                           </Stack>
                         </Flex>
                       </ChildLink>
                     </RowLink>
-                    <Box display={["none", "block"]}>
-                      <Badge tone={status.tone}>{status.text}</Badge>
-                    </Box>
-                    <Flex gap={1}>
+                    <Flex gap={1} style={{ flex: "none" }}>
                       <Button
                         aria-label={`Flytt ${document.title} opp`}
                         disabled={saving || index === 0}
@@ -518,7 +523,7 @@ export function PromotedArrangementList({ today }: { today: string }) {
                       <ChildLink childId={id}>
                         <Flex align="center" gap={3}>
                           {renderThumbnail(document)}
-                          <Stack gap={2} style={{ minWidth: 0 }}>
+                          <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                             <Text
                               size={1}
                               textOverflow="ellipsis"
@@ -534,15 +539,15 @@ export function PromotedArrangementList({ today }: { today: string }) {
                                 .filter(Boolean)
                                 .join(" · ")}
                             </Text>
+                            {automaticIds.has(document._id) ? (
+                              <Box>
+                                <Badge>Vises automatisk</Badge>
+                              </Box>
+                            ) : null}
                           </Stack>
                         </Flex>
                       </ChildLink>
                     </RowLink>
-                    {automaticIds.has(document._id) ? (
-                      <Box display={["none", "block"]}>
-                        <Badge>Vises automatisk</Badge>
-                      </Box>
-                    ) : null}
                     <Button
                       disabled={saving}
                       fontSize={1}
