@@ -11,6 +11,7 @@ import {
 import type { PublicEvent } from "@/features/events/domain/events"
 import { filterToFirstInstances } from "@/features/events/domain/eventUtils"
 import {
+  fillPromotedSlots,
   isPromotableEventKind,
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
@@ -154,10 +155,17 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       getTranslations({ locale, namespace: "HomePage" }),
     ])
   const initialNow = new Date().toISOString()
-  const promotedCandidates = [...parentEvents, ...(events ?? [])]
-    .filter(event => isPromotableEventKind(event.eventKind))
-    .filter(event => event.isPromoted)
-  const promotedEvents = selectHomepagePromotedEvents(promotedCandidates, today)
+  const promotableEvents = [...parentEvents, ...(events ?? [])].filter(event =>
+    isPromotableEventKind(event.eventKind),
+  )
+  const promotedEvents = fillPromotedSlots(
+    selectHomepagePromotedEvents(
+      promotableEvents.filter(event => event.isPromoted),
+      today,
+    ),
+    promotableEvents,
+    today,
+  )
   const promotedEventIds = new Set(promotedEvents.map(event => event._id))
   const featuredFestivalIds = new Set(
     promotedEvents

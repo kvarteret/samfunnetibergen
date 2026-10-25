@@ -29,11 +29,13 @@ export async function fetchScreenEvents(now: Date): Promise<{
         to: null,
         live: true,
       }),
+      // All parents, so open featured slots can be filled automatically.
       fetchPublicPromotedParentEvents({
         locale: "nb",
         from: date,
         to: null,
         live: true,
+        promotedOnly: false,
       }),
       // Through the next calendar day, for events just after midnight.
       fetchInfoScreenOnlyOccurrences({ from: date, to: shiftDate(date, 1) }),

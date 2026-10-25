@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  applyFeaturedSelection,
-  getFeaturedVisibleCount,
-  moveFeaturedDocumentBetweenSections,
+  changedPromotions,
+  promotionState,
   reorderFeaturedDocuments,
   selectFeaturedDocuments,
-  selectionNeedsNormalization,
 } from "./featuredArrangementSelection"
 
 describe("featured arrangement selection", () => {
@@ -65,172 +63,51 @@ describe("featured arrangement selection", () => {
     expect(reorderFeaturedDocuments(["a", "b"], 0, 0)).toEqual(["a", "b"])
   })
 
-  it("moves a visible event into the queue when dropped across the divider", () => {
-    expect(
-      moveFeaturedDocumentBetweenSections(
-        ["a", "b", "c", "d"],
-        3,
-        "visible",
-        2,
-        "queue",
-        0,
-      ),
-    ).toEqual({ documents: ["a", "b", "c", "d"], visibleCount: 2 })
-    expect(
-      moveFeaturedDocumentBetweenSections(
-        ["a", "b", "c", "d", "e"],
-        3,
-        "visible",
-        0,
-        "queue",
-        1,
-      ),
-    ).toEqual({
-      documents: ["b", "c", "d", "a", "e"],
-      visibleCount: 2,
+  it("stores the first three picks as top and the rest as waiting", () => {
+    const ids = ["a", "b", "c", "d"]
+    expect(promotionState(ids, "drafts.a")).toEqual({
+      isPromoted: true,
+      promotedOrder: 0,
+      promotedPlacement: "top",
+    })
+    expect(promotionState(ids, "d")).toEqual({
+      isPromoted: true,
+      promotedOrder: 3,
+      promotedPlacement: "pool",
+    })
+    expect(promotionState(ids, "x")).toEqual({
+      isPromoted: false,
+      promotedPlacement: "pool",
     })
   })
 
-  it("keeps the visible group capped when a queued event is dragged up", () => {
-    const documents = ["a", "b", "c", "d"]
-    expect(
-      moveFeaturedDocumentBetweenSections(
-        documents,
-        3,
-        "queue",
-        0,
-        "visible",
-        2,
-      ),
-    ).toEqual({ documents, visibleCount: 3 })
-  })
-
-  it("preserves an explicit visible count between one and three", () => {
-    expect(
-      getFeaturedVisibleCount([
-        { _id: "a", promotedPlacement: "top" },
-        { _id: "b", promotedPlacement: "pool" },
-      ]),
-    ).toBe(1)
-    expect(
-      getFeaturedVisibleCount([
-        { _id: "a", promotedPlacement: "pool" },
-        { _id: "b", promotedPlacement: "pool" },
-      ]),
-    ).toBe(1)
-  })
-
-  it("detects legacy and inconsistent selection fields", () => {
-    const selected = [{ _id: "a", isPromoted: true }]
-    expect(selectionNeedsNormalization(selected, selected)).toBe(true)
-    expect(
-      selectionNeedsNormalization(
-        [
-          {
-            _id: "a",
-            isPromoted: true,
-            promotedPlacement: "top",
-            promotedOrder: 0,
-          },
-        ],
-        [
-          {
-            _id: "a",
-            isPromoted: true,
-            promotedPlacement: "top",
-            promotedOrder: 0,
-          },
-        ],
-      ),
-    ).toBe(false)
-  })
-
-  it("requires queued selections after the first three to use pool placement", () => {
-    const documents = ["a", "b", "c", "d"].map((_id, promotedOrder) => ({
-      _id,
-      isPromoted: true,
-      promotedOrder,
-      promotedPlacement: (promotedOrder < 3 ? "top" : "pool") as "top" | "pool",
-    }))
-
-    expect(selectionNeedsNormalization(documents, documents)).toBe(false)
-    expect(
-      selectionNeedsNormalization(
-        documents.map(document =>
-          document._id === "d"
-            ? { ...document, promotedPlacement: "top" as const }
-            : document,
-        ),
-        documents,
-      ),
-    ).toBe(true)
-  })
-
-  it("applies visible and queued positions without waiting for a refetch", () => {
-    const documents = ["a", "b", "c", "d", "e"].map(_id => ({
-      _id,
-      isPromoted: false,
-    }))
-    const selected = [documents[2], documents[0], documents[4], documents[3]]
-
-    expect(applyFeaturedSelection(documents, selected)).toEqual([
-      {
-        _id: "a",
-        isPromoted: true,
-        promotedOrder: 1,
-        promotedPlacement: "top",
-      },
-      {
-        _id: "b",
-        isPromoted: false,
-        promotedOrder: undefined,
-        promotedPlacement: "pool",
-      },
-      {
-        _id: "c",
-        isPromoted: true,
-        promotedOrder: 0,
-        promotedPlacement: "top",
-      },
-      {
-        _id: "d",
-        isPromoted: true,
-        promotedOrder: 3,
-        promotedPlacement: "pool",
-      },
-      {
-        _id: "e",
-        isPromoted: true,
-        promotedOrder: 2,
-        promotedPlacement: "top",
-      },
-    ])
-  })
-
-  it("keeps manually queued events below a two-item visible group", () => {
-    const documents = ["a", "b", "c"].map(_id => ({
-      _id,
-      isPromoted: false,
-    }))
-    expect(applyFeaturedSelection(documents, documents, 2)).toEqual([
+  it("patches only arrangements whose promotion fields change", () => {
+    const documents = [
       {
         _id: "a",
         isPromoted: true,
         promotedOrder: 0,
-        promotedPlacement: "top",
+        promotedPlacement: "top" as const,
       },
       {
         _id: "b",
         isPromoted: true,
         promotedOrder: 1,
-        promotedPlacement: "top",
+        promotedPlacement: "top" as const,
       },
-      {
-        _id: "c",
-        isPromoted: true,
-        promotedOrder: 2,
-        promotedPlacement: "pool",
-      },
+      { _id: "c", isPromoted: false, promotedPlacement: "pool" as const },
+      { _id: "legacy", isPromoted: false, promotedPlacement: "top" as const },
+    ]
+    expect(
+      changedPromotions(documents, ["b", "a"]).map(({ document, state }) => [
+        document._id,
+        state.promotedOrder ?? null,
+      ]),
+    ).toEqual([
+      ["a", 1],
+      ["b", 0],
+      ["legacy", null],
     ])
+    expect(changedPromotions(documents.slice(0, 3), ["a", "b"])).toEqual([])
   })
 })

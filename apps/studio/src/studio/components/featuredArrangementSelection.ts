@@ -1,9 +1,17 @@
+import { FEATURED_SLOT_COUNT } from "@samfunnet/content-domain/promotion"
+
 export type FeaturedSelectionDocument = {
   _id: string
   isPromoted?: boolean
   orderRank?: string
   promotedOrder?: number
   promotedPlacement?: "top" | "pool"
+}
+
+export type PromotionState = {
+  isPromoted: boolean
+  promotedOrder?: number
+  promotedPlacement: "top" | "pool"
 }
 
 export function normalizedArrangementId(id: string) {
@@ -55,141 +63,50 @@ export function reorderFeaturedDocuments<T>(
   return reordered
 }
 
-export function moveFeaturedDocumentBetweenSections<T>(
-  documents: T[],
-  visibleCount: number,
-  sourceSection: "visible" | "queue",
-  sourceIndex: number,
-  destinationSection: "visible" | "queue",
-  destinationIndex: number,
-  visibleLimit = 3,
-): { documents: T[]; visibleCount: number } {
-  const visibleDocuments = documents.slice(0, visibleCount)
-  const queuedDocuments = documents.slice(visibleCount)
-
-  if (sourceSection === destinationSection) {
-    const sectionDocuments =
-      sourceSection === "visible" ? visibleDocuments : queuedDocuments
-    const reordered = reorderFeaturedDocuments(
-      sectionDocuments,
-      sourceIndex,
-      destinationIndex,
-    )
-    if (reordered === sectionDocuments) return { documents, visibleCount }
-    return {
-      documents:
-        sourceSection === "visible"
-          ? [...reordered, ...queuedDocuments]
-          : [...visibleDocuments, ...reordered],
-      visibleCount,
-    }
-  }
-
-  if (sourceSection === "visible") {
-    if (visibleCount <= 1) return { documents, visibleCount }
-    const nextVisible = [...visibleDocuments]
-    const [moved] = nextVisible.splice(sourceIndex, 1)
-    if (!moved) return { documents, visibleCount }
-    const nextQueue = [...queuedDocuments]
-    nextQueue.splice(
-      Math.min(Math.max(destinationIndex, 0), nextQueue.length),
-      0,
-      moved,
-    )
-    return {
-      documents: [...nextVisible, ...nextQueue],
-      visibleCount: visibleCount - 1,
-    }
-  }
-
-  if (visibleCount >= visibleLimit) return { documents, visibleCount }
-  const nextQueue = [...queuedDocuments]
-  const [moved] = nextQueue.splice(sourceIndex, 1)
-  if (!moved) return { documents, visibleCount }
-  visibleDocuments.splice(
-    Math.min(Math.max(destinationIndex, 0), visibleDocuments.length),
-    0,
-    moved,
-  )
+/**
+ * The stored fields for an arrangement given the editors' ordered picks. The
+ * first picks are "top", the rest wait in the "pool" and move up as earlier
+ * picks end.
+ */
+export function promotionState(
+  selectedIds: string[],
+  id: string,
+): PromotionState {
+  const index = selectedIds.indexOf(normalizedArrangementId(id))
+  if (index === -1) return { isPromoted: false, promotedPlacement: "pool" }
   return {
-    documents: [...visibleDocuments, ...nextQueue],
-    visibleCount: visibleCount + 1,
+    isPromoted: true,
+    promotedOrder: index,
+    promotedPlacement: index < FEATURED_SLOT_COUNT ? "top" : "pool",
   }
 }
 
-export function applyFeaturedSelection<T extends FeaturedSelectionDocument>(
+/** Arrangements whose stored promotion fields differ from the new picks. */
+export function changedPromotions<T extends FeaturedSelectionDocument>(
   documents: T[],
-  selectedDocuments: T[],
-  visibleCount = Math.min(selectedDocuments.length, 3),
-): T[] {
-  const selectedIndexById = new Map(
-    selectedDocuments.map((document, index) => [
-      normalizedArrangementId(document._id),
-      index,
-    ]),
-  )
-
-  return documents.map(document => {
-    const selectedIndex = selectedIndexById.get(
-      normalizedArrangementId(document._id),
-    )
-    if (selectedIndex === undefined) {
-      return {
-        ...document,
-        isPromoted: false,
-        promotedOrder: undefined,
-        promotedPlacement: "pool",
-      }
-    }
-    return {
-      ...document,
-      isPromoted: true,
-      promotedOrder: selectedIndex,
-      promotedPlacement: selectedIndex < visibleCount ? "top" : "pool",
-    }
+  selectedIds: string[],
+): Array<{ document: T; state: PromotionState }> {
+  return documents.flatMap(document => {
+    const state = promotionState(selectedIds, document._id)
+    const changed = state.isPromoted
+      ? document.isPromoted !== true ||
+        document.promotedOrder !== state.promotedOrder ||
+        document.promotedPlacement !== state.promotedPlacement
+      : document.isPromoted === true ||
+        document.promotedPlacement === "top" ||
+        typeof document.promotedOrder === "number"
+    return changed ? [{ document, state }] : []
   })
 }
 
-export function getFeaturedVisibleCount(
-  selectedDocuments: FeaturedSelectionDocument[],
-): number {
-  if (selectedDocuments.length === 0) return 0
-  const explicitTopCount = selectedDocuments.filter(
-    document => document.promotedPlacement === "top",
-  ).length
-  const hasExplicitPlacement = selectedDocuments.some(
-    document => document.promotedPlacement !== undefined,
-  )
-  return hasExplicitPlacement
-    ? Math.min(Math.max(explicitTopCount, 1), 3)
-    : Math.min(selectedDocuments.length, 3)
-}
-
-export function selectionNeedsNormalization(
-  documents: FeaturedSelectionDocument[],
-  selectedDocuments: FeaturedSelectionDocument[],
-  visibleCount = Math.min(selectedDocuments.length, 3),
-) {
-  const selectedIds = new Set(
-    selectedDocuments.map(document => normalizedArrangementId(document._id)),
-  )
-  return documents.some(document => {
-    const id = normalizedArrangementId(document._id)
-    const selectedIndex = selectedDocuments.findIndex(
-      selected => normalizedArrangementId(selected._id) === id,
-    )
-    if (selectedIds.has(id)) {
-      const expectedPlacement = selectedIndex < visibleCount ? "top" : "pool"
-      return (
-        document.isPromoted !== true ||
-        document.promotedPlacement !== expectedPlacement ||
-        document.promotedOrder !== selectedIndex
-      )
-    }
-    return (
-      document.isPromoted === true ||
-      document.promotedPlacement === "top" ||
-      typeof document.promotedOrder === "number"
-    )
-  })
+export function applyPromotionState<T extends FeaturedSelectionDocument>(
+  document: T,
+  state: PromotionState,
+): T {
+  return {
+    ...document,
+    isPromoted: state.isPromoted,
+    promotedOrder: state.promotedOrder,
+    promotedPlacement: state.promotedPlacement,
+  }
 }

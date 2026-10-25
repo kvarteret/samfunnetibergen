@@ -1,48 +1,60 @@
 import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  type DropResult,
-} from "@hello-pangea/dnd"
-import { DragHandleIcon } from "@sanity/icons/DragHandle"
+  type AutoPromotionCandidate,
+  FEATURED_SLOT_COUNT,
+  pickAutoPromotions,
+} from "@samfunnet/content-domain/promotion"
+import { ArrowDownIcon } from "@sanity/icons/ArrowDown"
+import { ArrowUpIcon } from "@sanity/icons/ArrowUp"
+import { CloseIcon } from "@sanity/icons/Close"
 import { ImageIcon } from "@sanity/icons/Image"
-import { TrashIcon } from "@sanity/icons/Trash"
+import { PinIcon } from "@sanity/icons/Pin"
+import { SearchIcon } from "@sanity/icons/Search"
 import { createImageUrlBuilder } from "@sanity/image-url"
 import {
+  Badge,
   Box,
   Button,
   Card,
   Flex,
+  Grid,
   Heading,
   Spinner,
   Stack,
   Text,
+  TextInput,
 } from "@sanity/ui"
 import { useToast } from "@sanity/ui/toast"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { useClient } from "sanity"
 import { usePaneRouter } from "sanity/structure"
 import styled from "styled-components"
 
 import { formatStudioDate } from "./arrangementFilters"
-import { createCoalescedAsyncRunner } from "./coalescedAsyncRunner"
 import {
-  applyFeaturedSelection,
+  applyPromotionState,
+  changedPromotions,
   type FeaturedSelectionDocument,
-  getFeaturedVisibleCount,
-  moveFeaturedDocumentBetweenSections,
   normalizedArrangementId,
+  promotionState,
+  reorderFeaturedDocuments,
   selectFeaturedDocuments,
-  selectionNeedsNormalization,
 } from "./featuredArrangementSelection"
 import { featuredSchedule } from "./featuredSchedule"
-import { PromotedArrangementPicker } from "./PromotedArrangementPicker"
 import { PROMOTABLE_ARRANGEMENTS_FILTER } from "./promotedArrangementFilter"
 
 const API_VERSION = "2026-07-29"
-const FEATURED_DOCUMENTS_QUERY = `*[
+// Published documents only: the website never shows drafts.
+const PROMOTABLE_DOCUMENTS_QUERY = `*[
   _type == "arrangement" &&
-  (${PROMOTABLE_ARRANGEMENTS_FILTER})
+  (${PROMOTABLE_ARRANGEMENTS_FILTER}) &&
+  coalesce(isInternalEvent, false) != true &&
+  coalesce(infoScreenOnly, false) != true
 ] {
   _id,
   "title": coalesce(
@@ -51,46 +63,40 @@ const FEATURED_DOCUMENTS_QUERY = `*[
     "Arrangement uten tittel"
   ),
   "eventKind": coalesce(eventKind, "single"),
-  "approvalStatus": coalesce(approvalStatus, "pending"),
+  eventStatus,
+  isSoldOut,
+  image,
+  "hasImage": defined(image.asset),
+  "organizerId": organizerGroup._ref,
   isPromoted,
   promotedPlacement,
   promotedOrder,
   orderRank,
-  _createdAt,
-  image,
-  dates[]{startDate, startTime},
-  "childDates": *[
-    _type == "arrangement" &&
-    parentEvent._ref == string::split(^._id, "drafts.")[-1] &&
-    approvalStatus == "approved"
-  ].dates[].startDate
+  "dates": select(
+    coalesce(eventKind, "single") in ["seriesParent", "festivalParent"] => *[
+      _type == "arrangement" &&
+      parentEvent._ref == ^._id &&
+      approvalStatus == "approved"
+    ].dates[startDate >= $today][]{startDate, startTime, isSoldOut},
+    dates[startDate >= $today]{startDate, startTime, isSoldOut}
+  )
 }`
 const ARRANGEMENT_DRAFT_IDS_QUERY =
   '*[_type == "arrangement" && _id in path("drafts.**")]._id'
-const VISIBLE_DROPPABLE_ID = "featured-visible"
-const QUEUE_ENTRY_DROPPABLE_ID = "featured-queue-entry"
-const QUEUE_DROPPABLE_ID = "featured-queue"
+const PICKER_PAGE_SIZE = 8
 
-type FeaturedDocument = FeaturedSelectionDocument & {
-  approvalStatus: string
-  documentIds: string[]
-  eventKind: "single" | "seriesParent" | "festivalParent"
-  nextDate?: string
-  nextTime?: string
-  lastDate?: string
-  createdAt?: string
-  image?: { asset?: { _ref?: string } } | null
-  title?: string
+const KIND_LABELS: Record<string, string> = {
+  single: "Arrangement",
+  seriesParent: "Serie",
+  festivalParent: "Festival",
 }
 
-type RawFeaturedDocument = Omit<
-  FeaturedDocument,
-  "documentIds" | "nextDate" | "nextTime" | "lastDate" | "createdAt"
-> & {
-  _createdAt?: string
-  childDates?: string[]
-  dates?: Array<{ startDate?: string; startTime?: string }>
-}
+type PromotableDocument = FeaturedSelectionDocument &
+  AutoPromotionCandidate & {
+    title: string
+    image?: { asset?: { _ref?: string } } | null
+    dates: Array<{ startDate: string; startTime?: string | null }>
+  }
 
 const RowLink = styled.div`
   flex: 1;
@@ -99,11 +105,11 @@ const RowLink = styled.div`
   a:focus-visible { outline: 2px solid var(--card-focus-ring-color, currentColor); outline-offset: 2px; }
 `
 
-const Thumbnail = styled.span`
+const Thumbnail = styled.span<{ $wide?: boolean }>`
   display: grid;
   place-items: center;
   flex: none;
-  width: 64px;
+  width: ${props => (props.$wide ? "100%" : "56px")};
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 3px;
@@ -111,26 +117,84 @@ const Thumbnail = styled.span`
   img { width: 100%; height: 100%; object-fit: cover; display: block; }
 `
 
+const SlotNumber = styled.span`
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--card-badge-default-bg-color, rgb(127 127 127 / 0.2));
+`
+
+function nextDateLabel(document: PromotableDocument) {
+  const next = [...document.dates].sort((first, second) =>
+    `${first.startDate}${first.startTime ?? ""}`.localeCompare(
+      `${second.startDate}${second.startTime ?? ""}`,
+    ),
+  )[0]
+  if (!next) return "Ingen kommende datoer"
+  const label = [formatStudioDate(next.startDate), next.startTime]
+    .filter(Boolean)
+    .join(" kl. ")
+  return document.dates.length > 1
+    ? `${label} (+${document.dates.length - 1} datoer)`
+    : label
+}
+
+function lastDate(document: PromotableDocument) {
+  return document.dates
+    .map(date => date.startDate)
+    .sort()
+    .at(-1)
+}
+
+function Section({
+  children,
+  description,
+  title,
+}: {
+  children: ReactNode
+  description?: ReactNode
+  title: string
+}) {
+  return (
+    <Stack gap={3}>
+      <Stack gap={2}>
+        <Text size={1} weight="semibold">
+          {title}
+        </Text>
+        {description ? (
+          <Text muted size={1}>
+            {description}
+          </Text>
+        ) : null}
+      </Stack>
+      {children}
+    </Stack>
+  )
+}
+
 export function PromotedArrangementList({ today }: { today: string }) {
   const client = useClient({ apiVersion: API_VERSION })
   const imageBuilder = useMemo(() => createImageUrlBuilder(client), [client])
   const { ChildLink } = usePaneRouter()
   const toast = useToast()
-  const [documents, setDocuments] = useState<FeaturedDocument[]>([])
-  const [selectedDocuments, setSelectedDocuments] = useState<
-    FeaturedDocument[]
-  >([])
-  const [visibleCount, setVisibleCount] = useState(0)
+  const [documents, setDocuments] = useState<PromotableDocument[]>([])
+  const [draftIds, setDraftIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const refreshRunner = useRef(createCoalescedAsyncRunner())
+  const [query, setQuery] = useState("")
+  const [pickerLimit, setPickerLimit] = useState(PICKER_PAGE_SIZE)
 
-  const loadDocuments = useCallback(async () => {
-    const [rawDocuments, draftIds] = await Promise.all([
-      client.fetch<RawFeaturedDocument[]>(
-        FEATURED_DOCUMENTS_QUERY,
+  const refresh = useCallback(async () => {
+    const [nextDocuments, nextDraftIds] = await Promise.all([
+      client.fetch<PromotableDocument[]>(
+        PROMOTABLE_DOCUMENTS_QUERY,
         { today },
-        { perspective: "drafts" },
+        { perspective: "published" },
       ),
       client.fetch<string[]>(
         ARRANGEMENT_DRAFT_IDS_QUERY,
@@ -138,256 +202,124 @@ export function PromotedArrangementList({ today }: { today: string }) {
         { perspective: "raw" },
       ),
     ])
-    const draftIdSet = new Set(draftIds)
-    const byId = new Map<string, FeaturedDocument>()
-    for (const document of rawDocuments) {
-      const id = normalizedArrangementId(document._id)
-      const current = byId.get(id)
-      const draftId = `drafts.${id}`
-      const documentIds = [id, ...(draftIdSet.has(draftId) ? [draftId] : [])]
-      const allDates = [
-        ...(document.dates ?? []).map(date => date.startDate),
-        ...(document.childDates ?? []),
-      ]
-        .filter((date): date is string => Boolean(date))
-        .sort()
-      const nextDate = allDates.find(date => date >= today)
-      const nextTime = document.dates?.find(
-        date => date.startDate === nextDate,
-      )?.startTime
-      const lastDate = allDates.at(-1)
-      const documentFields = {
-        _id: document._id,
-        approvalStatus: document.approvalStatus,
-        eventKind: document.eventKind,
-        isPromoted: document.isPromoted,
-        orderRank: document.orderRank,
-        promotedOrder: document.promotedOrder,
-        promotedPlacement: document.promotedPlacement,
-        title: document.title,
-      }
-      if (!current || document._id.startsWith("drafts.")) {
-        byId.set(id, {
-          ...documentFields,
-          createdAt: document._createdAt,
-          documentIds,
-          image: document.image,
-          lastDate,
-          nextDate,
-          nextTime,
-        })
-      }
-    }
-    return [...byId.values()]
+    setDocuments(
+      nextDocuments.map(document => ({
+        ...document,
+        dates: document.dates ?? [],
+      })),
+    )
+    setDraftIds(new Set(nextDraftIds))
   }, [client, today])
 
-  const persistSelection = useCallback(
-    async (
-      allDocuments: FeaturedDocument[],
-      nextSelection: FeaturedDocument[],
-      nextVisibleCount: number,
-    ) => {
-      const selectedIds = new Set(
-        nextSelection.map(document => normalizedArrangementId(document._id)),
+  useEffect(() => {
+    void refresh()
+      .catch(() =>
+        toast.push({
+          status: "error",
+          title: "Kunne ikke hente arrangementer.",
+        }),
       )
+      .finally(() => setLoading(false))
+  }, [refresh, toast])
+
+  const selected = useMemo(
+    () => selectFeaturedDocuments(documents),
+    [documents],
+  )
+  const selectedIds = selected.map(document =>
+    normalizedArrangementId(document._id),
+  )
+  const automatic = useMemo(
+    () =>
+      pickAutoPromotions(documents, {
+        count: FEATURED_SLOT_COUNT - selected.length,
+        excludeIds: selected.map(document => document._id),
+        today,
+      }),
+    [documents, selected, today],
+  )
+  const slots = [
+    ...selected
+      .slice(0, FEATURED_SLOT_COUNT)
+      .map(document => ({ document, automatic: false })),
+    ...automatic.map(document => ({ document, automatic: true })),
+  ]
+  const schedule = featuredSchedule(
+    selected.map(document => ({ lastDate: lastDate(document) })),
+    FEATURED_SLOT_COUNT,
+    today,
+  )
+
+  const saveSelection = async (nextIds: string[]) => {
+    if (saving) return
+    const changes = changedPromotions(documents, nextIds)
+    if (changes.length === 0) return
+    setSaving(true)
+    setDocuments(current =>
+      current.map(document =>
+        applyPromotionState(document, promotionState(nextIds, document._id)),
+      ),
+    )
+    try {
       const transaction = client.transaction()
-      for (const document of allDocuments) {
+      for (const { document, state } of changes) {
         const id = normalizedArrangementId(document._id)
-        const selectedIndex = nextSelection.findIndex(
-          selected => normalizedArrangementId(selected._id) === id,
-        )
-        if (selectedIds.has(id)) {
-          for (const documentId of document.documentIds) {
-            transaction.patch(documentId, patch =>
-              patch.set({
-                isPromoted: true,
-                promotedOrder: selectedIndex,
-                promotedPlacement:
-                  selectedIndex < nextVisibleCount ? "top" : "pool",
-              }),
-            )
-          }
-          continue
-        }
-        if (
-          document.isPromoted === true ||
-          document.promotedPlacement === "top" ||
-          typeof document.promotedOrder === "number"
-        ) {
-          for (const documentId of document.documentIds) {
-            transaction.patch(documentId, patch =>
-              patch
-                .set({ isPromoted: false, promotedPlacement: "pool" })
-                .unset(["promotedOrder"]),
-            )
-          }
+        for (const documentId of [
+          id,
+          ...(draftIds.has(`drafts.${id}`) ? [`drafts.${id}`] : []),
+        ]) {
+          transaction.patch(documentId, patch =>
+            state.isPromoted
+              ? patch.set(state)
+              : patch
+                  .set({ isPromoted: false, promotedPlacement: "pool" })
+                  .unset(["promotedOrder"]),
+          )
         }
       }
       await transaction.commit({ visibility: "async" })
-    },
-    [client],
-  )
-
-  const performRefresh = useCallback(async () => {
-    const nextDocuments = await loadDocuments()
-    let nextSelection = selectFeaturedDocuments(nextDocuments)
-    let nextVisibleCount = getFeaturedVisibleCount(nextSelection)
-    if (nextSelection.length === 0 && nextDocuments[0]) {
-      nextSelection = [nextDocuments[0]]
-      nextVisibleCount = 1
-    }
-    if (
-      selectionNeedsNormalization(
-        nextDocuments,
-        nextSelection,
-        nextVisibleCount,
-      )
-    ) {
-      await persistSelection(nextDocuments, nextSelection, nextVisibleCount)
-      const normalizedDocuments = applyFeaturedSelection(
-        nextDocuments,
-        nextSelection,
-        nextVisibleCount,
-      )
-      setDocuments(normalizedDocuments)
-      setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
-    } else {
-      setDocuments(nextDocuments)
-      setSelectedDocuments(nextSelection)
-    }
-    setVisibleCount(nextVisibleCount)
-    setLoading(false)
-  }, [loadDocuments, persistSelection])
-
-  const refresh = useCallback(() => {
-    return refreshRunner.current(performRefresh)
-  }, [performRefresh])
-
-  useEffect(() => {
-    const initialRefresh = window.setTimeout(() => {
-      void refresh().catch(() => setLoading(false))
-    }, 0)
-    return () => {
-      window.clearTimeout(initialRefresh)
-    }
-  }, [refresh])
-
-  const saveSelection = async (
-    nextSelection: FeaturedDocument[],
-    nextVisibleCount = visibleCount,
-  ) => {
-    setSaving(true)
-    setSelectedDocuments(nextSelection)
-    setVisibleCount(nextVisibleCount)
-    try {
-      await persistSelection(documents, nextSelection, nextVisibleCount)
-      const normalizedDocuments = applyFeaturedSelection(
-        documents,
-        nextSelection,
-        nextVisibleCount,
-      )
-      setDocuments(normalizedDocuments)
-      setSelectedDocuments(selectFeaturedDocuments(normalizedDocuments))
     } catch {
-      await refresh()
       toast.push({
         status: "error",
         title: "Kunne ikke lagre fremhevede arrangementer.",
       })
+      await refresh().catch(() => undefined)
     } finally {
       setSaving(false)
     }
   }
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || saving) return
-    const sourceSection =
-      result.source.droppableId === VISIBLE_DROPPABLE_ID ? "visible" : "queue"
-    const destinationSection =
-      result.destination.droppableId === VISIBLE_DROPPABLE_ID
-        ? "visible"
-        : "queue"
-    const destinationIndex =
-      result.destination.droppableId === QUEUE_ENTRY_DROPPABLE_ID
-        ? 0
-        : result.destination.index
-    if (
-      sourceSection === "queue" &&
-      destinationSection === "visible" &&
-      visibleCount >= 3
-    ) {
-      toast.push({
-        status: "warning",
-        title:
-          "Du kan legge til maksimalt tre arrangementer som fremhevet. Flytt først et annet arrangement ned.",
-      })
-      return
-    }
-    const moved = moveFeaturedDocumentBetweenSections(
-      selectedDocuments,
-      visibleCount,
-      sourceSection,
-      result.source.index,
-      destinationSection,
-      destinationIndex,
+  const add = (id: string) =>
+    void saveSelection([...selectedIds, normalizedArrangementId(id)])
+  const remove = (id: string) =>
+    void saveSelection(
+      selectedIds.filter(
+        selectedId => selectedId !== normalizedArrangementId(id),
+      ),
     )
-    if (
-      moved.documents === selectedDocuments &&
-      moved.visibleCount === visibleCount
+  const move = (index: number, offset: -1 | 1) =>
+    void saveSelection(
+      reorderFeaturedDocuments(selectedIds, index, index + offset),
     )
-      return
-    void saveSelection(moved.documents, moved.visibleCount)
-  }
 
-  const move = (
-    section: "visible" | "queue",
-    index: number,
-    destinationSection: "visible" | "queue",
-    destinationIndex: number,
-  ) => {
-    if (saving) return
-    if (
-      section === "queue" &&
-      destinationSection === "visible" &&
-      visibleCount >= 3
-    ) {
-      toast.push({
-        status: "warning",
-        title:
-          "Forsiden har allerede tre arrangementer. Flytt først et av dem til køen.",
-      })
-      return
-    }
-    const moved = moveFeaturedDocumentBetweenSections(
-      selectedDocuments,
-      visibleCount,
-      section,
-      index,
-      destinationSection,
-      destinationIndex,
-    )
-    if (
-      moved.documents === selectedDocuments &&
-      moved.visibleCount === visibleCount
-    )
-      return
-    void saveSelection(moved.documents, moved.visibleCount)
-  }
+  const thumbnailUrl = (document: PromotableDocument, width: number) =>
+    document.image?.asset?._ref
+      ? imageBuilder
+          .image(document.image)
+          .width(width)
+          .height(Math.round((width * 3) / 4))
+          .fit("crop")
+          .auto("format")
+          .url()
+      : null
 
-  const remove = (document: FeaturedDocument) => {
-    if (selectedDocuments.length <= 1 || saving) return
-    const id = normalizedArrangementId(document._id)
-    const selectedIndex = selectedDocuments.findIndex(
-      selected => normalizedArrangementId(selected._id) === id,
+  const renderThumbnail = (document: PromotableDocument, wide = false) => {
+    const url = thumbnailUrl(document, wide ? 480 : 112)
+    return (
+      <Thumbnail $wide={wide}>
+        {url ? <img alt="" src={url} /> : <ImageIcon />}
+      </Thumbnail>
     )
-    const nextSelection = selectedDocuments.filter(
-      selected => normalizedArrangementId(selected._id) !== id,
-    )
-    const nextVisibleCount =
-      selectedIndex < visibleCount
-        ? Math.min(visibleCount, nextSelection.length)
-        : visibleCount
-    void saveSelection(nextSelection, nextVisibleCount)
   }
 
   if (loading) {
@@ -399,205 +331,247 @@ export function PromotedArrangementList({ today }: { today: string }) {
     )
   }
 
-  const selectedIds = selectedDocuments.map(document =>
-    normalizedArrangementId(document._id),
-  )
-  const visibleDocuments = selectedDocuments.slice(0, visibleCount)
-  const queuedDocuments = selectedDocuments.slice(visibleCount)
-  const schedule = featuredSchedule(selectedDocuments, visibleCount, today)
-
-  const renderDocument = (
-    document: FeaturedDocument,
-    index: number,
-    section: "visible" | "queue",
-  ) => {
-    const id = normalizedArrangementId(document._id)
-    const slot = schedule[section === "visible" ? index : visibleCount + index]
-    const until =
-      slot?.until && slot.until !== document.nextDate
-        ? `til ${formatStudioDate(slot.until, false)}`
-        : null
-    const queueLabel =
-      section === "queue"
-        ? slot?.from
-          ? `Fra ${formatStudioDate(slot.from)}`
-          : "Får ikke plass"
-        : null
-    const thumbnail = document.image?.asset?._ref
-      ? imageBuilder
-          .image(document.image)
-          .width(128)
-          .height(96)
-          .fit("crop")
-          .auto("format")
-          .url()
-      : null
-    return (
-      <Draggable draggableId={id} index={index} key={id}>
-        {(draggable, snapshot) => (
-          <Card
-            border
-            padding={3}
-            radius={2}
-            ref={draggable.innerRef}
-            shadow={snapshot.isDragging ? 2 : undefined}
-            tone={snapshot.isDragging ? "primary" : "default"}
-            {...draggable.draggableProps}
-            style={draggable.draggableProps.style}
-          >
-            <Flex align="center" gap={3}>
-              <Box
-                aria-label={`Dra ${document.title ?? "arrangement"}`}
-                padding={1}
-                style={{ cursor: saving ? "wait" : "grab" }}
-                {...draggable.dragHandleProps}
-              >
-                <DragHandleIcon />
-              </Box>
-              <RowLink>
-                <ChildLink childId={id}>
-                  <Flex align="center" gap={3}>
-                    <Thumbnail>
-                      {thumbnail ? (
-                        <img alt="" src={thumbnail} />
-                      ) : (
-                        <ImageIcon />
-                      )}
-                    </Thumbnail>
-                    <Stack gap={2} style={{ minWidth: 0 }}>
-                      <Text size={2} textOverflow="ellipsis" weight="semibold">
-                        {document.title ?? "Arrangement uten tittel"}
-                      </Text>
-                      <Text muted size={1} textOverflow="ellipsis">
-                        {[
-                          [
-                            formatStudioDate(document.nextDate),
-                            document.nextTime,
-                          ]
-                            .filter(Boolean)
-                            .join(" kl. "),
-                          until,
-                          document.createdAt
-                            ? `lagt ut ${formatStudioDate(document.createdAt, false)}`
-                            : null,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </Text>
-                      {queueLabel ? (
-                        <Text size={1} weight="medium">
-                          {queueLabel}
-                        </Text>
-                      ) : null}
-                    </Stack>
-                  </Flex>
-                </ChildLink>
-              </RowLink>
-              <Flex align="center" gap={1}>
-                <Button
-                  disabled={
-                    saving ||
-                    (section === "visible"
-                      ? visibleCount <= 1
-                      : visibleCount >= 3)
-                  }
-                  fontSize={1}
-                  mode="ghost"
-                  onClick={() =>
-                    section === "visible"
-                      ? move("visible", index, "queue", 0)
-                      : move("queue", index, "visible", visibleCount)
-                  }
-                  text={section === "visible" ? "Til kø" : "Vis nå"}
-                />
-                <Button
-                  aria-label={`Fjern ${document.title ?? "arrangement"} fra fremhevede`}
-                  disabled={selectedDocuments.length <= 1 || saving}
-                  icon={TrashIcon}
-                  mode="bleed"
-                  onClick={() => remove(document)}
-                  title="Fjern fra fremhevede"
-                  tone="critical"
-                />
-              </Flex>
-            </Flex>
-          </Card>
-        )}
-      </Draggable>
+  const automaticIds = new Set(automatic.map(document => document._id))
+  const normalizedQuery = query.trim().toLocaleLowerCase("nb")
+  const pickerDocuments = documents
+    .filter(
+      document => !selectedIds.includes(normalizedArrangementId(document._id)),
     )
-  }
+    .filter(document =>
+      normalizedQuery
+        ? document.title.toLocaleLowerCase("nb").includes(normalizedQuery)
+        : true,
+    )
+    .sort((first, second) =>
+      (first.dates.map(date => date.startDate).sort()[0] ?? "").localeCompare(
+        second.dates.map(date => date.startDate).sort()[0] ?? "",
+      ),
+    )
 
   return (
-    <Stack gap={4}>
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Flex align="center" gap={2}>
-          <Text size={1} weight="semibold">
-            På forsiden nå
-          </Text>
-          <Text muted size={1}>
-            {visibleCount}/3
-          </Text>
-        </Flex>
-        <Droppable droppableId={VISIBLE_DROPPABLE_ID}>
-          {provided => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              <Stack gap={2}>
-                {visibleDocuments.map((document, index) =>
-                  renderDocument(document, index, "visible"),
-                )}
-                {provided.placeholder}
-              </Stack>
-            </div>
-          )}
-        </Droppable>
-
-        <Droppable droppableId={QUEUE_ENTRY_DROPPABLE_ID}>
-          {(provided, snapshot) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              <Card
-                borderTop
-                paddingTop={4}
-                tone={snapshot.isDraggingOver ? "primary" : "default"}
-              >
-                <Flex align="center" gap={2}>
-                  <Text size={1} weight="semibold">
-                    Kø
-                  </Text>
-                  {queuedDocuments.length ? null : (
-                    <Text muted size={1}>
-                      Dra hit for å vise senere
-                    </Text>
-                  )}
-                </Flex>
-              </Card>
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-
-        <Droppable droppableId={QUEUE_DROPPABLE_ID}>
-          {provided => (
-            <div
-              ref={provided.innerRef}
-              style={{ minHeight: 52 }}
-              {...provided.droppableProps}
+    <Stack gap={5}>
+      <Section
+        description="Slik ser fremhevingen ut på forsiden akkurat nå. Infoskjermen hopper over arrangementer som er i dag."
+        title="Vises nå"
+      >
+        <Grid gap={3} gridTemplateColumns={[1, 1, 3]}>
+          {slots.map(({ document, automatic: isAutomatic }, index) => (
+            <Card
+              border
+              key={document._id}
+              padding={2}
+              radius={2}
+              tone={isAutomatic ? "transparent" : "default"}
             >
-              <Stack gap={2}>
-                {queuedDocuments.map((document, index) =>
-                  renderDocument(document, index, "queue"),
-                )}
-                {provided.placeholder}
+              <Stack gap={3}>
+                <ChildLink childId={normalizedArrangementId(document._id)}>
+                  {renderThumbnail(document, true)}
+                </ChildLink>
+                <Flex align="center" gap={2}>
+                  <SlotNumber>{index + 1}</SlotNumber>
+                  <Badge tone={isAutomatic ? "default" : "primary"}>
+                    {isAutomatic ? "Automatisk" : "Valgt"}
+                  </Badge>
+                </Flex>
+                <Stack gap={2}>
+                  <Text size={1} textOverflow="ellipsis" weight="semibold">
+                    {document.title}
+                  </Text>
+                  <Text muted size={1} textOverflow="ellipsis">
+                    {nextDateLabel(document)}
+                  </Text>
+                </Stack>
+                {isAutomatic ? (
+                  <Button
+                    disabled={saving}
+                    fontSize={1}
+                    icon={PinIcon}
+                    mode="ghost"
+                    onClick={() => add(document._id)}
+                    text="Behold fast"
+                    title="Velg dette arrangementet, så det ikke byttes ut automatisk"
+                  />
+                ) : null}
               </Stack>
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+            </Card>
+          ))}
+          {slots.length === 0 ? (
+            <Card border padding={4} radius={2} tone="caution">
+              <Text size={1}>Ingen kommende arrangementer kan fremheves.</Text>
+            </Card>
+          ) : null}
+        </Grid>
+      </Section>
 
-      <PromotedArrangementPicker
-        onAdded={refresh}
-        selectedIds={selectedIds}
-        today={today}
-      />
+      <Section
+        description={
+          selected.length === 0
+            ? "Ingen er valgt, så alle plassene fylles automatisk med de neste arrangementene som har bilde."
+            : "De tre øverste vises. Når et arrangement er over, rykker det neste opp. Tomme plasser fylles automatisk."
+        }
+        title={`Valgt av redaksjonen (${selected.length})`}
+      >
+        {selected.length > 0 ? (
+          <Stack gap={2}>
+            {selected.map((document, index) => {
+              const id = normalizedArrangementId(document._id)
+              const window = schedule[index]
+              const status =
+                index < FEATURED_SLOT_COUNT
+                  ? { tone: "positive" as const, text: "Vises nå" }
+                  : window?.from
+                    ? {
+                        tone: "caution" as const,
+                        text: `Venter, vises fra ${formatStudioDate(window.from, false)}`,
+                      }
+                    : {
+                        tone: "critical" as const,
+                        text: "Får ikke plass før det er over",
+                      }
+              return (
+                <Card border key={id} padding={2} radius={2}>
+                  <Flex align="center" gap={3}>
+                    <SlotNumber>{index + 1}</SlotNumber>
+                    <RowLink>
+                      <ChildLink childId={id}>
+                        <Flex align="center" gap={3}>
+                          {renderThumbnail(document)}
+                          <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                            <Text
+                              size={1}
+                              textOverflow="ellipsis"
+                              weight="semibold"
+                            >
+                              {document.title}
+                            </Text>
+                            <Text muted size={1} textOverflow="ellipsis">
+                              {nextDateLabel(document)}
+                            </Text>
+                            <Box>
+                              <Badge
+                                style={{ whiteSpace: "nowrap" }}
+                                tone={status.tone}
+                              >
+                                {status.text}
+                              </Badge>
+                            </Box>
+                          </Stack>
+                        </Flex>
+                      </ChildLink>
+                    </RowLink>
+                    <Flex gap={1} style={{ flex: "none" }}>
+                      <Button
+                        aria-label={`Flytt ${document.title} opp`}
+                        disabled={saving || index === 0}
+                        icon={ArrowUpIcon}
+                        mode="bleed"
+                        onClick={() => move(index, -1)}
+                        title="Flytt opp"
+                      />
+                      <Button
+                        aria-label={`Flytt ${document.title} ned`}
+                        disabled={saving || index === selected.length - 1}
+                        icon={ArrowDownIcon}
+                        mode="bleed"
+                        onClick={() => move(index, 1)}
+                        title="Flytt ned"
+                      />
+                      <Button
+                        aria-label={`Fjern ${document.title} fra fremhevede`}
+                        disabled={saving}
+                        icon={CloseIcon}
+                        mode="bleed"
+                        onClick={() => remove(document._id)}
+                        title="Fjern"
+                        tone="critical"
+                      />
+                    </Flex>
+                  </Flex>
+                </Card>
+              )
+            })}
+          </Stack>
+        ) : null}
+      </Section>
+
+      <Section
+        description="Kommende arrangementer, de nærmeste først."
+        title="Legg til"
+      >
+        <TextInput
+          aria-label="Søk etter arrangement"
+          icon={SearchIcon}
+          onChange={event => {
+            setQuery(event.currentTarget.value)
+            setPickerLimit(PICKER_PAGE_SIZE)
+          }}
+          placeholder="Søk etter arrangement"
+          value={query}
+        />
+        {pickerDocuments.length === 0 ? (
+          <Text muted size={1}>
+            Ingen kommende arrangementer passer søket.
+          </Text>
+        ) : (
+          <Stack gap={2}>
+            {pickerDocuments.slice(0, pickerLimit).map(document => {
+              const id = normalizedArrangementId(document._id)
+              return (
+                <Card border key={id} padding={2} radius={2}>
+                  <Flex align="center" gap={3}>
+                    <RowLink>
+                      <ChildLink childId={id}>
+                        <Flex align="center" gap={3}>
+                          {renderThumbnail(document)}
+                          <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                            <Text
+                              size={1}
+                              textOverflow="ellipsis"
+                              weight="semibold"
+                            >
+                              {document.title}
+                            </Text>
+                            <Text muted size={1} textOverflow="ellipsis">
+                              {[
+                                nextDateLabel(document),
+                                KIND_LABELS[document.eventKind ?? "single"],
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </Text>
+                            {automaticIds.has(document._id) ? (
+                              <Box>
+                                <Badge>Vises automatisk</Badge>
+                              </Box>
+                            ) : null}
+                          </Stack>
+                        </Flex>
+                      </ChildLink>
+                    </RowLink>
+                    <Button
+                      disabled={saving}
+                      fontSize={1}
+                      mode="ghost"
+                      onClick={() => add(document._id)}
+                      text="Velg"
+                    />
+                  </Flex>
+                </Card>
+              )
+            })}
+            {pickerDocuments.length > pickerLimit ? (
+              <Button
+                fontSize={1}
+                mode="bleed"
+                onClick={() =>
+                  setPickerLimit(limit => limit + PICKER_PAGE_SIZE)
+                }
+                text={`Vis flere (${pickerDocuments.length - pickerLimit})`}
+              />
+            ) : null}
+          </Stack>
+        )}
+      </Section>
     </Stack>
   )
 }
@@ -609,8 +583,14 @@ export function PromotedArrangementsPane() {
 
   return (
     <Card height="fill" overflow="auto" padding={4}>
-      <Stack gap={4}>
-        <Heading size={2}>Fremhevede arrangementer</Heading>
+      <Stack gap={5} style={{ maxWidth: 880 }}>
+        <Stack gap={3}>
+          <Heading size={2}>Fremhevede arrangementer</Heading>
+          <Text muted size={1}>
+            Forsiden og infoskjermen viser alltid tre arrangementer. Velg selv
+            hva som skal vises, eller la systemet fylle ledige plasser.
+          </Text>
+        </Stack>
         <PromotedArrangementList today={today} />
       </Stack>
     </Card>

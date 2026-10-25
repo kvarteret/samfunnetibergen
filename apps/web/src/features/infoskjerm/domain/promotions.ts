@@ -1,3 +1,4 @@
+import { FEATURED_SLOT_COUNT } from "@samfunnet/content-domain/promotion"
 import {
   formatPrimaryDate,
   formatWeekday,
@@ -5,6 +6,7 @@ import {
 import type { PublicEvent } from "@/features/events/domain/events"
 import {
   comparePromotedEvents,
+  fillPromotedSlots,
   isPromotableEventKind,
 } from "@/features/events/domain/promotedOrdering"
 import messages from "@/messages/nb.json"
@@ -16,16 +18,16 @@ export function selectScreenPromotions(
   todayIds: ReadonlySet<string>,
 ): ScreenPromotion[] {
   const unique = new Map(events.map(event => [event._id, event]))
-  return [...unique.values()]
-    .filter(
-      event =>
-        event.isPromoted &&
-        isPromotableEventKind(event.eventKind) &&
-        event.eventStatus !== "cancelled" &&
-        !todayIds.has(event._id) &&
-        !event.dates.some(date => date.startDate === today) &&
-        event.dates.some(date => date.startDate > today),
-    )
+  const eligible = [...unique.values()].filter(
+    event =>
+      isPromotableEventKind(event.eventKind) &&
+      event.eventStatus !== "cancelled" &&
+      !todayIds.has(event._id) &&
+      !event.dates.some(date => date.startDate === today) &&
+      event.dates.some(date => date.startDate > today),
+  )
+  const selected = eligible
+    .filter(event => event.isPromoted)
     .sort((first, second) => {
       const placement =
         Number(second.promotedPlacement === "top") -
@@ -36,33 +38,33 @@ export function selectScreenPromotions(
         first._id.localeCompare(second._id)
       )
     })
-    .slice(0, 3)
-    .map(event => {
-      const date = [...event.dates]
-        .filter(date => date.startDate > today)
-        .sort(
-          (first, second) =>
-            first.startDate.localeCompare(second.startDate) ||
-            (first.startTime ?? "99:99").localeCompare(
-              second.startTime ?? "99:99",
-            ),
-        )[0]
-      return {
-        id: event._id,
-        title: event.title,
-        date: date.startDate,
-        dateLabel: formatPrimaryDate(
-          date,
-          {
-            today: messages.EventCard.today,
-            tomorrow: messages.EventCard.tomorrow,
-            weekday: date => formatWeekday(date, "nb"),
-          },
-          new Date(`${today}T12:00:00+01:00`),
-        ),
-        room: event.room?.title || event.roomText || null,
-        imageUrl: event.imageUrl,
-        imageFrame: event.imageFrame,
-      }
-    })
+    .slice(0, FEATURED_SLOT_COUNT)
+  return fillPromotedSlots(selected, eligible, today).map(event => {
+    const date = [...event.dates]
+      .filter(date => date.startDate > today)
+      .sort(
+        (first, second) =>
+          first.startDate.localeCompare(second.startDate) ||
+          (first.startTime ?? "99:99").localeCompare(
+            second.startTime ?? "99:99",
+          ),
+      )[0]
+    return {
+      id: event._id,
+      title: event.title,
+      date: date.startDate,
+      dateLabel: formatPrimaryDate(
+        date,
+        {
+          today: messages.EventCard.today,
+          tomorrow: messages.EventCard.tomorrow,
+          weekday: date => formatWeekday(date, "nb"),
+        },
+        new Date(`${today}T12:00:00+01:00`),
+      ),
+      room: event.room?.title || event.roomText || null,
+      imageUrl: event.imageUrl,
+      imageFrame: event.imageFrame,
+    }
+  })
 }
