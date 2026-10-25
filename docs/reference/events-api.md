@@ -58,6 +58,10 @@ The response is a complete snapshot:
       "meta": { "locale": "nb", "from": "2026-09-10", "to": null }
     }
 
+`links.ticket` is a redirect on our own domain (`/api/tickets/<slug>`) that
+records the click, forwards `utm_*` parameters, and redirects to the ticket
+shop. It is `null` when the event has no ticket URL.
+
 Each stored date is one occurrence, so multi-date events appear once per date.
 Occurrence and event IDs are opaque. Every occurrence includes the complete
 public event fields, including sanitized HTML and plain-text descriptions and
