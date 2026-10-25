@@ -1,3 +1,11 @@
+import {
+  type AutoPromotionCandidate,
+  FEATURED_SLOT_COUNT,
+  pickAutoPromotions,
+} from "@samfunnet/content-domain/promotion"
+
+import type { PublicEvent } from "./events"
+
 type PromotedOrderableEvent = {
   orderRank?: string | null
   promotedOrder?: number | null
@@ -8,31 +16,46 @@ type PromotedOrderableEvent = {
   }> | null
 }
 
+/**
+ * The editors' picks in their chosen order. Picks that have ended are no
+ * longer fetched, so later picks move up into the free slots.
+ */
 export function selectHomepagePromotedEvents<T extends PromotedOrderableEvent>(
   events: T[],
   today: string,
 ): T[] {
-  const orderedEvents = [...events].sort((first, second) =>
-    comparePromotedEvents(first, second, today),
-  )
-  if (!orderedEvents.some(event => event.promotedPlacement)) {
-    return orderedEvents.slice(0, 3)
+  return [...events]
+    .sort((first, second) => comparePromotedEvents(first, second, today))
+    .slice(0, FEATURED_SLOT_COUNT)
+}
+
+export function autoPromotionCandidate(
+  event: PublicEvent,
+): AutoPromotionCandidate {
+  return {
+    _id: event._id,
+    eventKind: event.eventKind,
+    eventStatus: event.eventStatus,
+    hasImage: Boolean(event.imageUrl),
+    isSoldOut: event.isSoldOut,
+    organizerId: event.organizerGroup?._id ?? null,
+    dates: event.dates,
   }
-  const visibleEvents = orderedEvents.filter(
-    event => event.promotedPlacement === "top",
-  )
-  const queuedEvents = orderedEvents.filter(
-    event => event.promotedPlacement === "pool",
-  )
-  const configuredVisibleCount = Math.min(
-    3,
-    Math.max(
-      1,
-      queuedEvents.find(event => typeof event.promotedOrder === "number")
-        ?.promotedOrder ?? visibleEvents.length,
-    ),
-  )
-  return [...visibleEvents, ...queuedEvents].slice(0, configuredVisibleCount)
+}
+
+/** Fills the featured slots the editors left open with automatic picks. */
+export function fillPromotedSlots<T extends PublicEvent>(
+  selected: T[],
+  candidates: T[],
+  today: string,
+): T[] {
+  const byId = new Map(candidates.map(event => [event._id, event]))
+  const automatic = pickAutoPromotions(candidates.map(autoPromotionCandidate), {
+    count: FEATURED_SLOT_COUNT - selected.length,
+    excludeIds: selected.map(event => event._id),
+    today,
+  }).flatMap(candidate => byId.get(candidate._id) ?? [])
+  return [...selected, ...automatic]
 }
 
 export function isPromotableEventKind(kind: string | null | undefined) {

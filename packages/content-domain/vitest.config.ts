@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     coverage: {
-      include: ["instances.ts", "resolve-event.ts"],
+      include: ["instances.ts", "promotion.ts", "resolve-event.ts"],
       provider: "v8",
       reporter: ["text"],
       thresholds: {

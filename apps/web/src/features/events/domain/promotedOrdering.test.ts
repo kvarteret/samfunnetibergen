@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
+import { type PublicEvent, resolvePublicEvent } from "./events"
 import {
   comparePromotedEvents,
+  fillPromotedSlots,
   isPromotableEventKind,
   promotedCardGridStartClass,
   selectHomepagePromotedEvents,
@@ -44,7 +46,7 @@ describe("promoted event ordering", () => {
     ).toEqual(remainingEligibleEvents.slice(0, 3))
   })
 
-  it("does not fill a manually reduced visible group until a top event expires", () => {
+  it("always uses three slots, whatever placement legacy picks have", () => {
     const configuredEvents = [
       { promotedOrder: 0, promotedPlacement: "top" as const },
       { promotedOrder: 1, promotedPlacement: "top" as const },
@@ -53,11 +55,40 @@ describe("promoted event ordering", () => {
     ]
     expect(
       selectHomepagePromotedEvents(configuredEvents, "2026-07-29"),
-    ).toEqual(configuredEvents.slice(0, 2))
+    ).toEqual(configuredEvents.slice(0, 3))
+  })
+
+  it("fills open slots automatically after the editors' picks", () => {
+    const event = (
+      _id: string,
+      startDate: string,
+      isPromoted = false,
+    ): PublicEvent =>
+      resolvePublicEvent({
+        _id,
+        title: _id,
+        isPromoted,
+        imageUrl: "https://cdn.sanity.io/a.jpg",
+        dates: [{ _key: startDate, startDate, startTime: "20:00" }],
+      })
+    const manual = event("manual", "2026-08-20", true)
+    const candidates = [
+      manual,
+      event("soon", "2026-07-30"),
+      event("next", "2026-08-01"),
+      event("later", "2026-09-01"),
+    ]
 
     expect(
-      selectHomepagePromotedEvents(configuredEvents.slice(1), "2026-07-29"),
-    ).toEqual(configuredEvents.slice(1, 3))
+      fillPromotedSlots([manual], candidates, "2026-07-29").map(
+        promoted => promoted._id,
+      ),
+    ).toEqual(["manual", "soon", "next"])
+    expect(
+      fillPromotedSlots([], candidates, "2026-07-29").map(
+        promoted => promoted._id,
+      ),
+    ).toEqual(["soon", "next", "manual"])
   })
 
   it("centers one or two cards in the six-column homepage grid", () => {
