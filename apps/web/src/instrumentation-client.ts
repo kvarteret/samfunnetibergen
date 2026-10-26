@@ -1,3 +1,4 @@
+import "./polyfills"
 import posthog from "posthog-js"
 import { prepareBrowserLog } from "@/lib/posthog/log-policy"
 import {
