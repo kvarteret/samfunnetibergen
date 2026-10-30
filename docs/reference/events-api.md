@@ -62,6 +62,13 @@ The response is a complete snapshot:
 records the click, forwards `utm_*` parameters, and redirects to the ticket
 shop. It is `null` when the event has no ticket URL.
 
+Successful redirects record `ticket_link_clicked` in PostHog with
+`source: ticket_proxy`, the request's `referrer`, and `referrer_domain` when
+the Referer header contains a valid HTTP(S) URL. Filter `referrer_domain` for
+`www.broadcast.events` to count clicks with that reported origin. Browsers and
+other clients may omit or alter the header, so a missing referrer is unknown,
+and a reported referrer is not proof of the caller's identity.
+
 Each stored date is one occurrence, so multi-date events appear once per date.
 Occurrence and event IDs are opaque. Every occurrence includes the complete
 public event fields, including sanitized HTML and plain-text descriptions and

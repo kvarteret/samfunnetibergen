@@ -67,6 +67,9 @@ export async function GET(request: NextRequest, context: Context) {
     if (!target.searchParams.has(name)) target.searchParams.set(name, value)
   }
 
+  const referrer = request.headers.get("referer")
+  const referrerDomain = httpUrl(referrer)?.hostname ?? null
+
   after(() => {
     const client = getPostHogClient()
     client.capture({
@@ -80,7 +83,8 @@ export async function GET(request: NextRequest, context: Context) {
         ticket_url: ticketUrl,
         date_key: dateKey,
         source: "ticket_proxy",
-        referrer: request.headers.get("referer"),
+        referrer,
+        referrer_domain: referrerDomain,
         ...utm,
       },
     })
