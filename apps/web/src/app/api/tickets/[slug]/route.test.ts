@@ -20,10 +20,11 @@ vi.mock("next/server", async importOriginal => ({
 
 import { GET } from "./route"
 
-function call(slug: string, query = "") {
+function call(slug: string, query = "", referer?: string) {
   return GET(
     new NextRequest(
       `https://www.samfunnetibergen.no/api/tickets/${slug}${query}`,
+      referer ? { headers: { referer } } : undefined,
     ),
     { params: Promise.resolve({ slug }) },
   )
@@ -69,6 +70,26 @@ describe("GET /api/tickets/[slug]", () => {
 
     expect(response.headers.get("location")).toBe(
       "https://hoopla.example.test/pubhd-2",
+    )
+  })
+
+  it.each([
+    [
+      "https://www.broadcast.events/events/example?private=value",
+      "www.broadcast.events",
+    ],
+    ["not a URL", null],
+    [undefined, null],
+  ])("records the referring domain for %s", async (referer, domain) => {
+    await call("pubhd", "", referer)
+
+    expect(captureMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          referrer: referer ?? null,
+          referrer_domain: domain,
+        }),
+      }),
     )
   })
 
