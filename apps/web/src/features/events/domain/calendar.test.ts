@@ -10,11 +10,16 @@ function event(
     startDate: string
     startTime?: string | null
   }>,
+  extra: {
+    eventKind?: string
+    parent?: { _id: string; eventKind: string; title: string; slug: string }
+  } = {},
 ) {
   return resolvePublicEvent({
     _id: id,
     title: id,
     eventStatus: "scheduled",
+    ...extra,
     dates: dates.map(date => ({ ...date, endTime: null })),
   })
 }
@@ -106,6 +111,55 @@ describe("calendar event grouping", () => {
     expect(
       months[1]?.days[0]?.occurrences.map(occurrence => occurrence.event._id),
     ).toEqual(["early", "late"])
+  })
+})
+
+describe("calendar festivals", () => {
+  const parent = {
+    _id: "festival",
+    eventKind: "festivalParent",
+    title: "festival",
+    slug: "festival",
+  }
+  const festival = () =>
+    event(
+      "festival",
+      [
+        { _key: "a", startDate: "2026-09-03", startTime: "19:00" },
+        { _key: "b", startDate: "2026-09-04", startTime: "19:00" },
+        { _key: "c", startDate: "2026-09-04", startTime: "21:00" },
+      ],
+      { eventKind: "festivalParent" },
+    )
+  const session = (id: string, startDate: string) =>
+    event(id, [{ _key: "d", startDate, startTime: "19:00" }], {
+      eventKind: "festivalSession",
+      parent,
+    })
+
+  it("shows a festival once, on its first day, without its sessions", () => {
+    const months = buildCalendarMonths(
+      [festival(), session("one", "2026-09-03"), session("two", "2026-09-04")],
+      "2026-09-01",
+    )
+    const days = months.flatMap(month => month.days)
+    const shown = days.flatMap(day =>
+      day.occurrences.map(occurrence => [day.date, occurrence.event._id]),
+    )
+
+    expect(shown).toEqual([["2026-09-03", "festival"]])
+  })
+
+  it("keeps sessions whose festival is not in the stream", () => {
+    const months = buildCalendarMonths(
+      [session("one", "2026-09-03")],
+      "2026-09-01",
+    )
+    const ids = months.flatMap(month =>
+      month.days.flatMap(day => day.occurrences.map(o => o.event._id)),
+    )
+
+    expect(ids).toEqual(["one"])
   })
 })
 

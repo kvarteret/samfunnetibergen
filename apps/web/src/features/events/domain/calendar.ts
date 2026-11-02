@@ -83,6 +83,16 @@ export function buildCalendarMonths(
   const occurrencesByDate = new Map<string, CalendarOccurrence[]>()
   let lastFutureDate: string | null = null
 
+  const festivalIds = new Set(
+    sourceOccurrences
+      .filter(occurrence => occurrence.event.eventKind === "festivalParent")
+      .map(occurrence => occurrence.event._id),
+  )
+  const shownFestivalIds = new Set<string>()
+
+  // A festival is one calendar entry, on its first visible day. Its sessions
+  // stay on the festival page, and are only hidden when the festival itself is
+  // in the stream so a session never disappears without its parent.
   const occurrences = sourceOccurrences
     .filter(
       occurrence =>
@@ -90,6 +100,19 @@ export function buildCalendarMonths(
         occurrence.schedule.startDate <= visibleTo,
     )
     .toSorted(comparePublicOccurrences)
+    .filter(({ event }) => {
+      if (
+        event.eventKind === "festivalSession" &&
+        event.parentEvent &&
+        festivalIds.has(event.parentEvent._id)
+      ) {
+        return false
+      }
+      if (event.eventKind !== "festivalParent") return true
+      if (shownFestivalIds.has(event._id)) return false
+      shownFestivalIds.add(event._id)
+      return true
+    })
 
   for (const occurrence of occurrences) {
     const date = occurrence.schedule.startDate
