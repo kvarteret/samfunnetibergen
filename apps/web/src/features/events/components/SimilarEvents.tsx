@@ -12,9 +12,9 @@ import { getOsloDateString } from "@/lib/sanity/fetch/shared"
 import { EventCard } from "./EventCard"
 
 /**
- * "Lignende arrangementer" under an event page: up to three upcoming events
- * that share its type, category, organizers or room. Renders nothing when
- * fewer than two match.
+ * "Du er kanskje også interessert i" under an event page: up to three
+ * upcoming events that share its type, category, organizers or room, filled
+ * up with other upcoming events. Renders nothing when there are none.
  */
 export async function SimilarEvents({
   event,

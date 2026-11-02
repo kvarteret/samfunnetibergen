@@ -2,9 +2,9 @@ import type { PublicEvent } from "./events"
 import { organizerGroupsOf } from "./eventUtils"
 
 export const SIMILAR_EVENT_COUNT = 3
-/** Below this many matches the section is hidden. */
-export const SIMILAR_EVENT_MIN_COUNT = 2
 export const SIMILAR_EVENT_WINDOW_DAYS = 60
+/** Chance that the last slot goes to a random upcoming event, for exploration. */
+export const EXPLORATION_CHANCE = 0.3
 
 /** Points per shared signal; tune these after measuring clicks. */
 export const SIMILARITY_WEIGHTS = {
@@ -27,14 +27,17 @@ type ScoredCandidate = {
 }
 
 /**
- * Upcoming events most like `event`, best first. Siblings in the same series
- * never show, festival siblings take at most one slot, and each organizer
- * group appears at most once.
+ * Upcoming events most like `event`, best first. Slots no strong match fills
+ * go to the soonest events in the same category, then to any upcoming event.
+ * Sometimes the last slot is a random upcoming event instead. Siblings in the
+ * same series never show, festival siblings take at most one slot, and each
+ * organizer group appears at most once.
  */
 export function rankSimilarEvents(
   event: PublicEvent,
   candidates: readonly PublicEvent[],
   today: string,
+  { random = Math.random }: { random?: () => number } = {},
 ): PublicEvent[] {
   if (event.eventKind === "festivalParent") return []
 
@@ -61,37 +64,60 @@ export function rankSimilarEvents(
     ]
   })
 
-  const strong = scored
-    .filter(candidate => candidate.score > STRONG_MATCH_SCORE)
-    .sort(
-      (left, right) =>
-        right.score - left.score || left.nextDate.localeCompare(right.nextDate),
-    )
   const taxonomyGroupId = event.eventType?.taxonomyGroup?._id
-  const fill = taxonomyGroupId
-    ? scored
-        .filter(
-          candidate =>
-            candidate.score <= STRONG_MATCH_SCORE &&
-            candidate.event.eventType?.taxonomyGroup?._id === taxonomyGroupId,
-        )
-        .sort((left, right) => left.nextDate.localeCompare(right.nextDate))
-    : []
+  const isStrong = (candidate: ScoredCandidate) =>
+    candidate.score > STRONG_MATCH_SCORE
+  const inCategory = (candidate: ScoredCandidate) =>
+    Boolean(taxonomyGroupId) &&
+    candidate.event.eventType?.taxonomyGroup?._id === taxonomyGroupId
+  const bySoonest = (left: ScoredCandidate, right: ScoredCandidate) =>
+    left.nextDate.localeCompare(right.nextDate)
+  const ranked = [
+    ...scored
+      .filter(isStrong)
+      .sort(
+        (left, right) => right.score - left.score || bySoonest(left, right),
+      ),
+    ...scored
+      .filter(candidate => !isStrong(candidate) && inCategory(candidate))
+      .sort(bySoonest),
+    ...scored
+      .filter(candidate => !isStrong(candidate) && !inCategory(candidate))
+      .sort(bySoonest),
+  ].map(candidate => candidate.event)
 
   const picked: PublicEvent[] = []
   const seenParents = new Set<string>()
   const seenOrganizers = new Set<string>()
-  for (const { event: candidate } of [...strong, ...fill]) {
-    if (picked.length === SIMILAR_EVENT_COUNT) break
+  const fits = (candidate: PublicEvent) => {
     const parentId = candidate.parentEvent?._id
     const organizerId = candidate.organizerGroup?._id
-    if (parentId && seenParents.has(parentId)) continue
-    if (organizerId && seenOrganizers.has(organizerId)) continue
+    return (
+      !picked.includes(candidate) &&
+      !(parentId && seenParents.has(parentId)) &&
+      !(organizerId && seenOrganizers.has(organizerId))
+    )
+  }
+  const pick = (candidate: PublicEvent) => {
+    const parentId = candidate.parentEvent?._id
+    const organizerId = candidate.organizerGroup?._id
     if (parentId) seenParents.add(parentId)
     if (organizerId) seenOrganizers.add(organizerId)
     picked.push(candidate)
   }
-  return picked.length >= SIMILAR_EVENT_MIN_COUNT ? picked : []
+
+  const explore = random() < EXPLORATION_CHANCE
+  const rankedSlots = explore ? SIMILAR_EVENT_COUNT - 1 : SIMILAR_EVENT_COUNT
+  for (const candidate of ranked) {
+    if (picked.length === rankedSlots) break
+    if (fits(candidate)) pick(candidate)
+  }
+  if (explore) {
+    const open = ranked.filter(fits)
+    const wildcard = open[Math.floor(random() * open.length)]
+    if (wildcard) pick(wildcard)
+  }
+  return picked
 }
 
 export function similarityScore(

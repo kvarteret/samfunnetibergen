@@ -33,6 +33,10 @@ function event(
 
 const ids = (events: PublicEvent[]) => events.map(candidate => candidate._id)
 
+/** Ranks without the random exploration slot. */
+const rank = (shown: PublicEvent, candidates: PublicEvent[]) =>
+  rankSimilarEvents(shown, candidates, TODAY, { random: () => 0.99 })
+
 describe("similarityScore", () => {
   it("adds points for every shared signal", () => {
     const shown = event("shown", "2026-11-10", {
@@ -71,7 +75,7 @@ describe("rankSimilarEvents", () => {
       event("lecture", "2026-11-03", { eventType: lecture }),
     ]
 
-    expect(ids(rankSimilarEvents(shown, candidates, TODAY))).toEqual([
+    expect(ids(rank(shown, candidates))).toEqual([
       "concert-soon",
       "concert-later",
       "club-soon",
@@ -93,10 +97,7 @@ describe("rankSimilarEvents", () => {
       event("ok-2", "2026-11-07", { eventType: concert }),
     ]
 
-    expect(ids(rankSimilarEvents(shown, candidates, TODAY))).toEqual([
-      "ok-1",
-      "ok-2",
-    ])
+    expect(ids(rank(shown, candidates))).toEqual(["ok-1", "ok-2"])
   })
 
   it("never shows other dates of the same series", () => {
@@ -116,7 +117,7 @@ describe("rankSimilarEvents", () => {
       event("b", "2026-11-07", { eventType: concert }),
     ]
 
-    expect(ids(rankSimilarEvents(shown, candidates, TODAY))).toEqual(["a", "b"])
+    expect(ids(rank(shown, candidates))).toEqual(["a", "b"])
   })
 
   it("gives one slot per series, festival and organizer group", () => {
@@ -144,11 +145,7 @@ describe("rankSimilarEvents", () => {
       event("other", "2026-11-08", { eventType: concert }),
     ]
 
-    expect(ids(rankSimilarEvents(shown, candidates, TODAY))).toEqual([
-      "fest-1",
-      "band-1",
-      "other",
-    ])
+    expect(ids(rank(shown, candidates))).toEqual(["fest-1", "band-1", "other"])
   })
 
   it("fills open slots with the soonest events in the same category", () => {
@@ -160,29 +157,57 @@ describe("rankSimilarEvents", () => {
       event("unrelated", "2026-11-03", { eventType: lecture }),
     ]
 
-    expect(ids(rankSimilarEvents(shown, candidates, TODAY))).toEqual([
+    expect(ids(rank(shown, candidates))).toEqual([
       "strong",
       "same-category-sooner",
       "same-category-later",
     ])
   })
 
-  it("returns nothing below two matches, and nothing for festivals", () => {
+  it("fills open slots with any upcoming event when nothing matches", () => {
     const shown = event("shown", "2026-11-10", { eventType: concert })
     const candidates = [
-      event("only", "2026-11-05", { eventType: concert }),
-      event("unrelated", "2026-11-04", { eventType: lecture }),
+      event("only-match", "2026-11-25", { eventType: concert }),
+      event("unrelated-later", "2026-11-20", { eventType: lecture }),
+      event("unrelated-sooner", "2026-11-04", { eventType: lecture }),
     ]
+
+    expect(ids(rank(shown, candidates))).toEqual([
+      "only-match",
+      "unrelated-sooner",
+      "unrelated-later",
+    ])
+  })
+
+  it("shows nothing on festival pages", () => {
     const festival = event("fest", "2026-11-10", {
       eventKind: "festivalParent",
       eventType: concert,
     })
-    const many = [
+    const candidates = [
       event("a", "2026-11-05", { eventType: concert }),
       event("b", "2026-11-06", { eventType: concert }),
     ]
 
-    expect(rankSimilarEvents(shown, candidates, TODAY)).toEqual([])
-    expect(rankSimilarEvents(festival, many, TODAY)).toEqual([])
+    expect(rank(festival, candidates)).toEqual([])
+  })
+
+  it("sometimes gives the last slot to a random upcoming event", () => {
+    const shown = event("shown", "2026-11-10", { eventType: concert })
+    const candidates = [
+      event("best", "2026-11-05", { eventType: concert }),
+      event("second", "2026-11-06", { eventType: concert }),
+      event("third", "2026-11-07", { eventType: concert }),
+      event("random-a", "2026-11-20", { eventType: lecture }),
+      event("random-b", "2026-12-20", { eventType: lecture }),
+    ]
+    // First draw decides to explore, second picks from the open candidates
+    // (third, random-a, random-b): 0.99 lands on the last one.
+    const draws = [0.1, 0.99]
+    const random = () => draws.shift() ?? 0
+
+    expect(
+      ids(rankSimilarEvents(shown, candidates, TODAY, { random })),
+    ).toEqual(["best", "second", "random-b"])
   })
 })

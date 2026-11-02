@@ -14,8 +14,10 @@ describe("surfaceFunnels", () => {
       [{ surface: "detail-similar", tickets: 1 }],
     )
 
-    expect(funnels.find(row => row.name === "Lignende arrangementer")).toEqual({
-      name: "Lignende arrangementer",
+    expect(
+      funnels.find(row => row.name === "Du er kanskje også interessert i"),
+    ).toEqual({
+      name: "Du er kanskje også interessert i",
       seen: 40,
       clicks: 4,
       views: 3,

@@ -512,7 +512,7 @@ const SURFACE_NAMES: Record<string, string> = {
   calendar: "Arrangementkalenderen",
   "detail-parent": "Serie- og festivalsider",
   "detail-child": "Datoer på seriesider",
-  "detail-similar": "Lignende arrangementer",
+  "detail-similar": "Du er kanskje også interessert i",
 }
 
 const LISTING_SURFACES = [
