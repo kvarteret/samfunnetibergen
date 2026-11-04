@@ -1,9 +1,11 @@
 import { describe, expect, test } from "vitest"
 import { allowedDefinitions, READ_TOOLS, WRITE_TOOLS } from "./sanity"
 import {
+  buttonDecision,
   isApproval,
   isRejection,
   MAX_OPS,
+  planBlocks,
   proposeTool,
   renderPlan,
   validateOps,
@@ -108,17 +110,26 @@ describe("validateOps", () => {
 })
 
 describe("renderPlan", () => {
-  test("shows the stored operations and who must approve", () => {
-    const text = renderPlan({
+  test("presents the summary, actions and approval without raw input", () => {
+    const plan = {
       id: "ab12cd34",
       requester: "U1",
-      summary: "ignored in the rendering",
-      ops: [{ tool: "discard_drafts", input: { ids: ["drafts.a"] } }],
-    })
-    expect(text).toContain("`discard_drafts`")
-    expect(text).toContain('"drafts.a"')
-    expect(text).toContain("<@U1>")
-    expect(text).not.toContain("ignored in the rendering")
+      summary: "Rydd opp i arrangementene",
+      ops: [
+        {
+          tool: "discard_drafts",
+          input: { intent: "Fjern duplikat", ids: ["drafts.a"] },
+        },
+      ],
+    }
+    const text = renderPlan(plan)
+    expect(text).toContain("Rydd opp i arrangementene")
+    expect(text).toContain("Forkast utkast")
+    expect(text).toContain("Fjern duplikat")
+    expect(text).not.toContain("drafts.a")
+    expect(JSON.stringify(planBlocks("Her er forslaget", plan))).toContain(
+      '"type":"header"',
+    )
   })
 })
 
@@ -158,4 +169,85 @@ describe("propose_write_plan", () => {
     expect(result).toHaveProperty("error")
     expect(saved).toHaveLength(0)
   })
+})
+
+test("button decisions require the requester and the exact pending plan", () => {
+  const plan = { id: "ab12cd34", status: "pending", requester: "U1" }
+  expect(buttonDecision(plan, "ab12cd34", "U1")).toBe("allowed")
+  expect(buttonDecision(plan, "ab12cd34", "U2")).toBe("forbidden")
+  expect(buttonDecision(plan, "deadbeef", "U1")).toBe("stale")
+  for (const status of ["expired", "running", "done", "cancelled", "failed"]) {
+    expect(buttonDecision({ ...plan, status }, "ab12cd34", "U1")).toBe("stale")
+  }
+  expect(buttonDecision(undefined, "ab12cd34", "U1")).toBe("stale")
+})
+
+test("approval card includes plan-specific Slack buttons", () => {
+  const blocks = planBlocks("Forslag", {
+    id: "ab12cd34",
+    requester: "U1",
+    summary: "Oppdater",
+    ops: [],
+  })
+  const actions = blocks.find(block => block.type === "actions")
+  expect(actions).toMatchObject({
+    elements: [
+      { action_id: "mime_plan_approve", value: "ab12cd34", style: "primary" },
+      { action_id: "mime_plan_cancel", value: "ab12cd34" },
+    ],
+  })
+})
+
+test("more information starts collapsed and accommodates the maximum plan", () => {
+  const ops = Array.from({ length: MAX_OPS }, (_, i) => ({
+    tool: "patch_documents",
+    input: { intent: `Endring ${i + 1}` },
+  }))
+  const blocks = planBlocks("Hei!", {
+    id: "ab12cd34",
+    requester: "U1",
+    summary: "Forslag",
+    ops,
+  })
+  const details = blocks.find(block => block.type === "container")
+  expect(details).toMatchObject({
+    title: { text: "Mer info" },
+    is_collapsible: true,
+    default_collapsed: true,
+  })
+  expect(details?.child_blocks).toHaveLength(9)
+  expect(JSON.stringify(details)).toContain("Endring 25")
+})
+
+test.each(["running", "done", "cancelled", "expired", "failed"] as const)(
+  "%s cards replace decision buttons with a status",
+  status => {
+    const blocks = planBlocks(
+      "Her er forslaget",
+      { id: "ab12cd34", requester: "U1", summary: "Oppdater", ops: [] },
+      status,
+    )
+    expect(blocks.some(block => block.type === "actions")).toBe(false)
+    expect(blocks.some(block => block.type === "context")).toBe(true)
+  },
+)
+
+test("escaped long text stays within Slack section limits", () => {
+  const ops = Array.from({ length: MAX_OPS }, () => ({
+    tool: "patch_documents",
+    input: { intent: "&".repeat(500) },
+  }))
+  const blocks = planBlocks("a".repeat(4000), {
+    id: "ab12cd34",
+    requester: "U1",
+    summary: "&".repeat(1000),
+    ops,
+  })
+  for (const block of blocks) {
+    if (block.type === "section")
+      expect(block.text?.text.length).toBeLessThanOrEqual(3000)
+    if (block.type === "container")
+      for (const child of block.child_blocks ?? [])
+        expect(child.text?.text.length).toBeLessThanOrEqual(3000)
+  }
 })

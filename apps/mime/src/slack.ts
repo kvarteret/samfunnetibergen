@@ -85,8 +85,9 @@ export type ThreadInput = {
   ts: string
   user: string
   text: string
-  /** True when the message tagged Mime; untagged messages only count once Mime joined the thread. */
+  /** True when the message tagged Mime; button actions use actionPlanId instead. */
   mentioned: boolean
+  actionPlanId?: string
 }
 
 /** A thread is identified by its root message; a top-level mention starts one. */
@@ -103,12 +104,7 @@ export function stripMention(text: string, botUserId?: string) {
   return text.replace(mention, "").trim()
 }
 
-/**
- * Decides whether an event reaches an agent. Mentions are delivered twice by
- * Slack (`app_mention` and `message`); only `app_mention` counts for those.
- * Untagged messages are forwarded only inside threads, and the agent ignores
- * them unless it already joined that thread.
- */
+/** Only explicit mentions reach the agent. Slack may also send a message copy. */
 export function routeEvent(
   envelope: Extract<SlackEnvelope, { type: "event_callback" }>,
   allowedChannels: ReadonlySet<string>,
@@ -119,11 +115,7 @@ export function routeEvent(
   if (event.bot_id || !event.user || event.user === botUserId) return null
   if (event.subtype) return null // edits, joins, file shares, bot posts
   const text = event.text ?? ""
-  const mentioned = event.type === "app_mention"
-  if (!mentioned) {
-    if (!event.thread_ts) return null
-    if (botUserId && text.includes(`<@${botUserId}>`)) return null
-  }
+  if (event.type !== "app_mention") return null
   return {
     eventId: envelope.event_id,
     channel: event.channel,
@@ -131,7 +123,46 @@ export function routeEvent(
     ts: event.ts,
     user: event.user,
     text: stripMention(text, botUserId),
-    mentioned,
+    mentioned: true,
+  }
+}
+
+/** Validate a signed Block Kit click and bind it to its original thread and plan. */
+export function routeInteraction(
+  body: string,
+  allowedChannels: ReadonlySet<string>,
+): ThreadInput | null {
+  try {
+    const payload = JSON.parse(new URLSearchParams(body).get("payload") ?? "")
+    const action = payload.actions?.[0]
+    const channel = payload.channel?.id
+    const user = payload.user?.id
+    const threadTs = payload.message?.thread_ts
+    const actionTs = action?.action_ts
+    const planId = action?.value
+    if (
+      payload.type !== "block_actions" ||
+      payload.actions.length !== 1 ||
+      !allowedChannels.has(channel) ||
+      !/^[UW][A-Z0-9]+$/.test(user ?? "") ||
+      !/^\d+\.\d+$/.test(threadTs ?? "") ||
+      !/^\d+\.\d+$/.test(actionTs ?? "") ||
+      !/^[a-f0-9]{8}$/.test(planId ?? "") ||
+      !["mime_plan_approve", "mime_plan_cancel"].includes(action?.action_id)
+    )
+      return null
+    return {
+      eventId: `action:${actionTs}:${user}:${action.action_id}`,
+      channel,
+      threadTs,
+      ts: actionTs,
+      user,
+      text: action.action_id === "mime_plan_approve" ? "ja" : "nei",
+      mentioned: false,
+      actionPlanId: planId,
+    }
+  } catch {
+    return null
   }
 }
 
@@ -219,8 +250,13 @@ export class SlackClient {
     return ts
   }
 
-  async update(channel: string, ts: string, text: string) {
-    await this.call("chat.update", { channel, ts, text })
+  async update(channel: string, ts: string, text: string, blocks?: unknown[]) {
+    await this.call("chat.update", {
+      channel,
+      ts,
+      text,
+      ...(blocks ? { blocks: JSON.stringify(blocks) } : {}),
+    })
   }
 
   /** Earlier messages in the thread, oldest first, for the first turn's context. */

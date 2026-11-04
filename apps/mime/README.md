@@ -1,8 +1,8 @@
 # Mime
 
 Tag `@mime` in a Slack thread and work the problem out there. Mime answers
-in the thread, remembers the thread, and replies to later messages in it
-without being tagged again. It reads Sanity freely. It can also edit content, but only through a plan:
+in the thread and remembers the conversation. Tag Mime again for each new
+message, including replies in an existing thread. It reads Sanity freely. It can also edit content, but only through a plan:
 see *Writing* below.
 
 It is a Cloudflare Worker built with the [Agents SDK](https://developers.cloudflare.com/agents/),
@@ -34,10 +34,11 @@ Writes need `SANITY_MIME_WRITE_TOKEN`, a Sanity **Editor** token for project
 The model never gets write tools. It can call `propose_write_plan`, which
 stores a list of operations (`create_documents`, `patch_documents`,
 `publish_documents`, `unpublish_documents`, `discard_drafts`; schema, dataset
-and project tools are never offered, 25 operations at most). Mime then posts
-the stored operations exactly as they will run, written by code and not by the
-model, and waits. Only the person who asked can approve, by replying *ja* (or
-cancel with *nei*). Code then runs the stored plan at most once, with the
+and project tools are never offered, 25 operations at most). Mime then posts a summary of the stored plan and its operations, with approval
+buttons. Individual field values are not all shown; ask Mime for details before
+deciding. Only the person who asked can approve or cancel with the buttons, or
+tag Mime and reply *ja* or *nei* in the thread. The card changes to show its current status
+after a decision; expired or superseded buttons cannot approve a newer plan. Code then runs the stored plan at most once, with the
 project and dataset fixed. A new plan replaces a waiting one, and a plan
 expires after an hour. If a run fails or is cut off, nothing is retried or
 rolled back; the thread says what ran and Studio shows the rest.
@@ -54,7 +55,10 @@ npm run dev:mime
 npx cloudflared tunnel --url http://localhost:1998
 ```
 
-Set the test app's Event Subscriptions request URL to the tunnel's
+Enable Interactivity for the Slack app and set its Request URL to the tunnel's
+`https://…/slack/interactions`. For the installed production app, set the same
+path on its Worker URL; deploying the Worker alone does not update Slack settings.
+Then set the test app's Event Subscriptions request URL to the tunnel's
 `https://…/slack/events`, invite the app to the channel, and tag it.
 
 The Sanity token is a robot token with the **Viewer** role, created at
