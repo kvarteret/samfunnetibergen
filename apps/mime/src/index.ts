@@ -2,6 +2,7 @@ import { getAgentByName } from "agents"
 import type { Env } from "./agent"
 import {
   routeEvent,
+  routeInteraction,
   type SlackEnvelope,
   SlackSignatureError,
   threadKey,
@@ -54,10 +55,38 @@ async function slackEvents(
   return new Response(null)
 }
 
+async function slackInteractions(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  let body: string
+  try {
+    body = await verifySlackRequest(request, env.SLACK_SIGNING_SECRET)
+  } catch (error) {
+    if (error instanceof SlackSignatureError)
+      return new Response("Unauthorized", { status: 401 })
+    throw error
+  }
+  const input = routeInteraction(body, allowedChannels(env.ALLOWED_CHANNELS))
+  if (!input) return new Response(null, { status: 400 })
+  try {
+    const thread = await getAgentByName(
+      env.MimeThread,
+      threadKey({ channel: input.channel, ts: input.threadTs }),
+    )
+    await thread.receive(input)
+    return new Response(null)
+  } catch {
+    return new Response("Could not queue interaction", { status: 500 })
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
     if (pathname === "/health") return new Response("ok")
+    if (pathname === "/slack/interactions" && request.method === "POST")
+      return slackInteractions(request, env)
     if (pathname === "/slack/events" && request.method === "POST")
       return slackEvents(request, env, ctx)
     return new Response("Not found", { status: 404 })

@@ -7,11 +7,15 @@ import { connectSanity, WRITE_TOOLS } from "./sanity"
 import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
 import { webTools } from "./web"
 import {
+  buttonDecision,
   isApproval,
   isRejection,
+  operationLabel,
   PLAN_TTL_MS,
   type Plan,
+  type PlanStatus,
   parsePlan,
+  planBlocks,
   proposeTool,
   renderPlan,
 } from "./writes"
@@ -41,6 +45,7 @@ type InboxRow = {
   text: string
   channel: string
   thread_ts: string
+  action_plan_id: string | null
 }
 
 const MAX_STEPS = 15
@@ -79,12 +84,13 @@ export class MimeThread extends Agent<Env> {
       answered INTEGER NOT NULL DEFAULT 0,
       received_at INTEGER NOT NULL
     )`
+    const columns = this.sql<{ name: string }>`PRAGMA table_info(inbox)`
+    if (!columns.some(column => column.name === "action_plan_id"))
+      this.sql`ALTER TABLE inbox ADD COLUMN action_plan_id TEXT`
     this.sql`CREATE TABLE IF NOT EXISTS history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       message TEXT NOT NULL
     )`
-    this
-      .sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`
     this.sql`CREATE TABLE IF NOT EXISTS plans (
       id TEXT PRIMARY KEY,
       requester TEXT NOT NULL,
@@ -93,6 +99,11 @@ export class MimeThread extends Agent<Env> {
       status TEXT NOT NULL,
       created_at INTEGER NOT NULL
     )`
+    const planColumns = this.sql<{ name: string }>`PRAGMA table_info(plans)`
+    if (!planColumns.some(column => column.name === "message_ts"))
+      this.sql`ALTER TABLE plans ADD COLUMN message_ts TEXT`
+    if (!planColumns.some(column => column.name === "answer"))
+      this.sql`ALTER TABLE plans ADD COLUMN answer TEXT`
     const [pending] = this.sql<{ n: number }>`
       SELECT count(*) AS n FROM inbox WHERE answered = 0`
     if (pending?.n) await this.schedule(0, "drain")
@@ -100,16 +111,11 @@ export class MimeThread extends Agent<Env> {
 
   /** Called by the Worker over RPC. Returns as soon as the message is stored. */
   async receive(input: ThreadInput) {
-    const [joined] = this.sql<{ value: string }>`
-      SELECT value FROM meta WHERE key = 'joined'`
-    if (!input.mentioned && !joined) return { accepted: false }
-    if (input.mentioned)
-      this
-        .sql`INSERT OR IGNORE INTO meta (key, value) VALUES ('joined', ${input.ts})`
+    if (!input.mentioned && !input.actionPlanId) return { accepted: false }
     // Slack retries deliver the same event_id; the primary key drops them.
     this
-      .sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at)
-      VALUES (${input.eventId}, ${input.ts}, ${input.user}, ${input.text}, ${input.channel}, ${input.threadTs}, ${Date.now()})`
+      .sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at, action_plan_id)
+      VALUES (${input.eventId}, ${input.ts}, ${input.user}, ${input.text}, ${input.channel}, ${input.threadTs}, ${Date.now()}, ${input.actionPlanId ?? null})`
     await this.schedule(0, "drain")
     return { accepted: true }
   }
@@ -120,10 +126,17 @@ export class MimeThread extends Agent<Env> {
     try {
       await this.keepAliveWhile(async () => {
         for (;;) {
-          const rows = this.sql<InboxRow>`
-            SELECT event_id, ts, user, text, channel, thread_ts FROM inbox
-            WHERE answered = 0 ORDER BY received_at`
-          if (!rows.length) return
+          const pending = this.sql<InboxRow>`
+            SELECT event_id, ts, user, text, channel, thread_ts, action_plan_id FROM inbox
+            WHERE answered = 0 ORDER BY received_at, rowid`
+          if (!pending.length) return
+          const actionIndex = pending.findIndex(row => row.action_plan_id)
+          const rows =
+            actionIndex === 0
+              ? pending.slice(0, 1)
+              : actionIndex > 0
+                ? pending.slice(0, actionIndex)
+                : pending
           await this.answer(rows)
           for (const row of rows)
             this
@@ -208,10 +221,22 @@ export class MimeThread extends Agent<Env> {
               .catch(() => undefined)
         },
       })
-      const answer = result.text.trim() || "Jeg fant ikke noe svar på det."
+      const answer =
+        result.text.trim() ||
+        (proposed ? "Her er forslaget mitt." : "Jeg fant ikke noe svar på det.")
       // The plan is rendered by code from what was stored, not by the model.
-      const text = proposed ? `${answer}\n\n${renderPlan(proposed)}` : answer
-      await slack.update(channel, placeholder, slackText(text))
+      const text = proposed
+        ? `${slackText(answer, 2900)}\n\n${renderPlan(proposed)}\n\nKnappene Godkjenn og Avbryt. Bare den som ba om forslaget kan bestemme.`
+        : answer
+      if (proposed)
+        this
+          .sql`UPDATE plans SET message_ts = ${placeholder}, answer = ${answer} WHERE id = ${proposed.id}`
+      await slack.update(
+        channel,
+        placeholder,
+        proposed ? text : slackText(text),
+        proposed ? planBlocks(answer, proposed) : undefined,
+      )
       this.replaceHistory(
         trimHistory([...history, user, ...result.responseMessages]),
       )
@@ -252,6 +277,8 @@ export class MimeThread extends Agent<Env> {
       ops: string
       status: string
       created_at: number
+      message_ts: string | null
+      answer: string | null
     }>`SELECT * FROM plans ORDER BY created_at DESC LIMIT 1`
     if (!row) return undefined
     if (row.status === "pending" && Date.now() - row.created_at > PLAN_TTL_MS) {
@@ -259,6 +286,34 @@ export class MimeThread extends Agent<Env> {
       row.status = "expired"
     }
     return { ...row, ops: parsePlan(row.ops) }
+  }
+
+  private async refreshPlanCard(
+    slack: SlackClient,
+    channel: string,
+    plan: Plan & { message_ts: string | null; answer: string | null },
+    status: PlanStatus,
+  ) {
+    if (!plan.message_ts) return
+    const answer = plan.answer || "Her er forslaget mitt."
+    const statusText =
+      status === "done"
+        ? "Ferdig! Endringene er gjennomført."
+        : status === "cancelled"
+          ? "Avbrutt. Ingen endringer ble gjort."
+          : status === "running"
+            ? "Jeg gjør endringene nå …"
+            : status === "expired"
+              ? "Dette forslaget har utløpt."
+              : "Jeg måtte stoppe. Se meldingen under."
+    await slack
+      .update(
+        channel,
+        plan.message_ts,
+        `${slackText(answer, 2900)}\n\n${renderPlan(plan)}\n\n${statusText}`,
+        planBlocks(answer, plan, status),
+      )
+      .catch(() => undefined)
   }
 
   /**
@@ -272,7 +327,36 @@ export class MimeThread extends Agent<Env> {
   ) {
     const plan = this.latestPlan()
     const last = rows[rows.length - 1]
-    if (!plan || !this.env.SANITY_MIME_WRITE_TOKEN) return false
+    if (
+      last.action_plan_id &&
+      buttonDecision(plan, last.action_plan_id, last.user) === "stale"
+    ) {
+      await slack
+        .post(
+          last.channel,
+          last.thread_ts,
+          "Denne knappen er ikke lenger aktiv. Se siste oppdatering i tråden.",
+        )
+        .catch(() => undefined)
+      const [previous] = this.sql<{
+        id: string
+        requester: string
+        summary: string
+        ops: string
+        status: PlanStatus
+        message_ts: string | null
+        answer: string | null
+      }>`SELECT id, requester, summary, ops, status, message_ts, answer FROM plans WHERE id = ${last.action_plan_id}`
+      if (previous && previous.status !== "pending")
+        await this.refreshPlanCard(
+          slack,
+          last.channel,
+          { ...previous, ops: parsePlan(previous.ops) },
+          previous.status,
+        )
+      return true
+    }
+    if (!plan) return false
     const approve = isApproval(last.text)
     const reject = isRejection(last.text)
     if (!approve && !reject) return false
@@ -288,13 +372,20 @@ export class MimeThread extends Agent<Env> {
     if (plan.status !== "pending") return false
     if (last.user !== plan.requester) {
       await say(
-        `Bare <@${plan.requester}> kan svare på plan ${plan.id}. Den venter fortsatt.`,
+        `Bare <@${plan.requester}> kan godkjenne eller avbryte dette forslaget.`,
       )
       return true
     }
     if (reject) {
       this.sql`UPDATE plans SET status = 'cancelled' WHERE id = ${plan.id}`
-      await say(`Plan ${plan.id} er avbrutt. Ingenting er endret.`)
+      await this.refreshPlanCard(slack, channel, plan, "cancelled")
+      await say("Avbrutt. Ingen endringer ble gjort.")
+      return true
+    }
+    if (!this.env.SANITY_MIME_WRITE_TOKEN) {
+      await say(
+        "Jeg kan ikke gjøre endringer akkurat nå. Ingen endringer ble gjort.",
+      )
       return true
     }
     await this.runPlan(plan, last, slack, history)
@@ -302,7 +393,11 @@ export class MimeThread extends Agent<Env> {
   }
 
   private async runPlan(
-    plan: Plan & { status: string },
+    plan: Plan & {
+      status: string
+      message_ts: string | null
+      answer: string | null
+    },
     row: InboxRow,
     slack: SlackClient,
     history: ModelMessage[],
@@ -313,10 +408,11 @@ export class MimeThread extends Agent<Env> {
     if (current?.status !== "pending") return
     this.sql`UPDATE plans SET status = 'running' WHERE id = ${plan.id}`
     const { channel, thread_ts: threadTs } = row
+    await this.refreshPlanCard(slack, channel, plan, "running")
     const placeholder = await slack.post(
       channel,
       threadTs,
-      `_Mime kjører plan ${plan.id}…_`,
+      "_Jeg gjør endringene nå …_",
     )
     const lines: string[] = []
     let failed = false
@@ -338,12 +434,14 @@ export class MimeThread extends Agent<Env> {
           messages: [],
         })) as { isError?: boolean } | undefined
         if (out?.isError) throw new Error("tool error")
-        lines.push(`${index + 1}. ✅ \`${op.tool}\``)
+        lines.push(`${index + 1}. ✅ ${operationLabel(op.tool)}`)
       }
     } catch (error) {
       failed = true
       lines.push(
-        `${lines.length + 1}. ❌ \`${plan.ops[lines.length]?.tool ?? "tilkobling"}\` feilet. Resten ble ikke kjørt.`,
+        writer
+          ? `${lines.length + 1}. ❌ ${operationLabel(plan.ops[lines.length]?.tool ?? "")} gikk ikke gjennom. Resten ble ikke gjort.`
+          : "❌ Jeg fikk ikke koblet til. Ingen endringer ble gjort.",
       )
       console.error(
         "mime plan failed",
@@ -354,10 +452,11 @@ export class MimeThread extends Agent<Env> {
     }
     this
       .sql`UPDATE plans SET status = ${failed ? "failed" : "done"} WHERE id = ${plan.id}`
+    await this.refreshPlanCard(slack, channel, plan, failed ? "failed" : "done")
     const text = [
       failed
-        ? `*Plan ${plan.id} stoppet.* Det som er gjort står under, og ingenting er rullet tilbake; sjekk i Studio.`
-        : `*Plan ${plan.id} er kjørt.*`,
+        ? "*Jeg måtte stoppe.* Det som er gjort, er ikke angret. Sjekk resultatet i Studio før du prøver igjen."
+        : "*Ferdig!* Endringene er gjennomført.",
       ...lines,
     ].join("\n")
     await slack.update(channel, placeholder, slackText(text))

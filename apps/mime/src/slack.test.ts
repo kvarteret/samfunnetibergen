@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest"
 import {
   routeEvent,
+  routeInteraction,
   SlackClient,
   type SlackEnvelope,
   SlackSignatureError,
@@ -116,12 +117,12 @@ describe("routeEvent", () => {
     ).toBeNull()
   })
 
-  test("an untagged thread reply is forwarded as not mentioned", () => {
+  test("an untagged thread reply is ignored", () => {
     const input = routeEvent(
       envelope({ type: "message", text: "bare de to første" }),
       ALLOWED,
     )
-    expect(input).toMatchObject({ mentioned: false, text: "bare de to første" })
+    expect(input).toBeNull()
   })
 
   test("the message copy of a mention is dropped; app_mention covers it", () => {
@@ -164,4 +165,90 @@ test("SlackClient form-encodes calls and surfaces Slack errors", async () => {
   await expect(slack.post("CBAD", "1.1", "hei")).rejects.toThrow(
     "channel_not_found",
   )
+})
+
+test("SlackClient sends Block Kit blocks as JSON when updating a message", async () => {
+  const fetcher = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) =>
+    Response.json({ ok: true }),
+  )
+  const slack = new SlackClient("token", fetcher as typeof fetch)
+  const blocks = [
+    { type: "header", text: { type: "plain_text", text: "Forslag" } },
+  ]
+  await slack.update("C1", "9.9", "Forslag", blocks)
+  const body = new URLSearchParams(String(fetcher.mock.calls[0][1]?.body))
+  expect(JSON.parse(body.get("blocks") ?? "null")).toEqual(blocks)
+  expect(body.get("text")).toBe("Forslag")
+})
+
+describe("routeInteraction", () => {
+  const payload = {
+    type: "block_actions",
+    user: { id: "U123" },
+    channel: { id: "CNETTSIDE" },
+    message: { thread_ts: "123.456" },
+    actions: [
+      {
+        action_id: "mime_plan_approve",
+        value: "ab12cd34",
+        action_ts: "124.567",
+      },
+    ],
+  }
+  const body = (value: unknown) =>
+    new URLSearchParams({ payload: JSON.stringify(value) }).toString()
+  test("binds a click and its retry to the original plan and thread", () => {
+    expect(routeInteraction(body(payload), ALLOWED)).toEqual({
+      eventId: "action:124.567:U123:mime_plan_approve",
+      channel: "CNETTSIDE",
+      threadTs: "123.456",
+      ts: "124.567",
+      user: "U123",
+      text: "ja",
+      mentioned: false,
+      actionPlanId: "ab12cd34",
+    })
+    expect(routeInteraction(body(payload), ALLOWED)).toEqual(
+      routeInteraction(body(payload), ALLOWED),
+    )
+    expect(
+      routeInteraction(
+        body({
+          ...payload,
+          actions: [{ ...payload.actions[0], action_id: "mime_plan_cancel" }],
+        }),
+        ALLOWED,
+      )?.text,
+    ).toBe("nei")
+  })
+  test("rejects malformed, unrelated and disallowed interactions", () => {
+    expect(routeInteraction("broken", ALLOWED)).toBeNull()
+    expect(
+      routeInteraction(
+        body({ ...payload, channel: { id: "COTHER" } }),
+        ALLOWED,
+      ),
+    ).toBeNull()
+    expect(
+      routeInteraction(body({ ...payload, message: {} }), ALLOWED),
+    ).toBeNull()
+    expect(
+      routeInteraction(
+        body({
+          ...payload,
+          actions: [{ ...payload.actions[0], value: "bad" }],
+        }),
+        ALLOWED,
+      ),
+    ).toBeNull()
+    expect(
+      routeInteraction(
+        body({
+          ...payload,
+          actions: [{ ...payload.actions[0], action_id: "other" }],
+        }),
+        ALLOWED,
+      ),
+    ).toBeNull()
+  })
 })
