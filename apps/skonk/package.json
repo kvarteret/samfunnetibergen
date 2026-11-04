@@ -1,0 +1,24 @@
+{
+  "name": "@samfunnet/skonk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 1998",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/azure": "4.0.116",
+    "@ai-sdk/mcp": "2.0.90",
+    "agents": "0.33.0",
+    "ai": "7.0.162",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260927.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1",
+    "wrangler": "4.142.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "skonk",
+  // it.leder@kvarteret.no's account, as for apps/party. Not secret.
+  "account_id": "bbeebbdd2cbe3f6a5b64ddbb9cd12e64",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    // Slack channel IDs (not names), comma separated. Empty answers nowhere.
+    "ALLOWED_CHANNELS": "",
+    "SANITY_PROJECT_ID": "mkjoahvv",
+    "SANITY_DATASET": "production",
+    "STUDIO_URL": "https://studio.samfunnetibergen.no",
+    "AZURE_OPENAI_LUNA_DEPLOYMENT": "skonk"
+  },
+  // Secrets: SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SANITY_SKONK_READ_TOKEN,
+  // AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY (see README).
+  "durable_objects": {
+    "bindings": [{ "name": "SkonkThread", "class_name": "SkonkThread" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SkonkThread"] }],
+  "observability": { "enabled": true }
+}
