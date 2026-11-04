@@ -19,11 +19,15 @@ export function checkUrl(raw: string): URL {
   } catch {
     throw new Error("Ugyldig URL.")
   }
-  if (url.protocol !== "https:") throw new Error("Bare https-lenker er tillatt.")
-  if (url.username || url.password) throw new Error("URL med innlogging er ikke tillatt.")
-  if (url.port && url.port !== "443") throw new Error("Bare standardport er tillatt.")
+  if (url.protocol !== "https:")
+    throw new Error("Bare https-lenker er tillatt.")
+  if (url.username || url.password)
+    throw new Error("URL med innlogging er ikke tillatt.")
+  if (url.port && url.port !== "443")
+    throw new Error("Bare standardport er tillatt.")
   const host = url.hostname.toLowerCase()
-  const isIp = /^[\d.]+$/.test(host) || host.includes(":") || host.startsWith("[")
+  const isIp =
+    /^[\d.]+$/.test(host) || host.includes(":") || host.startsWith("[")
   if (
     isIp ||
     host === "localhost" ||
@@ -100,7 +104,8 @@ async function fetchRaw(
     }
     const type = response.headers.get("content-type") ?? ""
     const body = TEXTUAL.test(type) ? await readCapped(response) : ""
-    if (!TEXTUAL.test(type)) await response.body?.cancel().catch(() => undefined)
+    if (!TEXTUAL.test(type))
+      await response.body?.cancel().catch(() => undefined)
     return { url: url.toString(), status: response.status, type, body }
   }
   throw new Error("For mange omdirigeringer.")
@@ -200,7 +205,10 @@ export const webTools = {
       try {
         return await fetchPage(url)
       } catch (error) {
-        return { error: error instanceof Error ? error.message : "Kunne ikke hente siden." }
+        return {
+          error:
+            error instanceof Error ? error.message : "Kunne ikke hente siden.",
+        }
       }
     },
   }),

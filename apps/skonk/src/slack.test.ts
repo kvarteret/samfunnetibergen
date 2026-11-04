@@ -1,8 +1,8 @@
 import { describe, expect, test, vi } from "vitest"
 import {
   routeEvent,
-  type SlackEnvelope,
   SlackClient,
+  type SlackEnvelope,
   SlackSignatureError,
   stripMention,
   threadKey,

@@ -69,7 +69,8 @@ export class SkonkThread extends Agent<Env> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       message TEXT NOT NULL
     )`
-    this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`
+    this
+      .sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`
     const [pending] = this.sql<{ n: number }>`
       SELECT count(*) AS n FROM inbox WHERE answered = 0`
     if (pending?.n) await this.schedule(0, "drain")
@@ -81,9 +82,11 @@ export class SkonkThread extends Agent<Env> {
       SELECT value FROM meta WHERE key = 'joined'`
     if (!input.mentioned && !joined) return { accepted: false }
     if (input.mentioned)
-      this.sql`INSERT OR IGNORE INTO meta (key, value) VALUES ('joined', ${input.ts})`
+      this
+        .sql`INSERT OR IGNORE INTO meta (key, value) VALUES ('joined', ${input.ts})`
     // Slack retries deliver the same event_id; the primary key drops them.
-    this.sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at)
+    this
+      .sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at)
       VALUES (${input.eventId}, ${input.ts}, ${input.user}, ${input.text}, ${input.channel}, ${input.threadTs}, ${Date.now()})`
     await this.schedule(0, "drain")
     return { accepted: true }
@@ -101,7 +104,8 @@ export class SkonkThread extends Agent<Env> {
           if (!rows.length) return
           await this.answer(rows)
           for (const row of rows)
-            this.sql`UPDATE inbox SET answered = 1 WHERE event_id = ${row.event_id}`
+            this
+              .sql`UPDATE inbox SET answered = 1 WHERE event_id = ${row.event_id}`
         }
       })
     } finally {
@@ -210,6 +214,7 @@ export class SkonkThread extends Agent<Env> {
   private replaceHistory(messages: ModelMessage[]) {
     this.sql`DELETE FROM history`
     for (const message of messages)
-      this.sql`INSERT INTO history (message) VALUES (${JSON.stringify(message)})`
+      this
+        .sql`INSERT INTO history (message) VALUES (${JSON.stringify(message)})`
   }
 }

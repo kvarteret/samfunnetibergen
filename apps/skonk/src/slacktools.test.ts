@@ -21,7 +21,7 @@ describe("read_thread", () => {
       "C1",
       "9.9",
     )
-    const result = await tools.read_thread.execute!({}, {} as never)
+    const result = await tools.read_thread.execute?.({}, {} as never)
     const body = (fetcher.mock.calls[0] as unknown as [string, RequestInit])[1]
       .body as URLSearchParams
     expect(body.get("channel")).toBe("C1")

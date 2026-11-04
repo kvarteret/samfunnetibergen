@@ -101,7 +101,13 @@ describe("eventsFromHtml", () => {
             name: "Don Juan",
             startDate: "2026-11-14T18:40",
             location: { name: "Kvarteret" },
-            subEvent: [{ "@type": "Event", name: "Don Juan 2", startDate: "2026-11-16T18:40" }],
+            subEvent: [
+              {
+                "@type": "Event",
+                name: "Don Juan 2",
+                startDate: "2026-11-16T18:40",
+              },
+            ],
           },
         ],
       }),

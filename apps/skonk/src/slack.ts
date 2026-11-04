@@ -138,7 +138,11 @@ export function routeEvent(
 type SlackResponse = { ok: boolean; error?: string; ts?: string }
 
 /** Reads Slack on the model's behalf, locked to the channel the turn runs in. */
-export function slackTools(slack: SlackClient, channel: string, threadTs: string) {
+export function slackTools(
+  slack: SlackClient,
+  channel: string,
+  threadTs: string,
+) {
   return {
     read_thread: tool({
       description:
@@ -148,16 +152,24 @@ export function slackTools(slack: SlackClient, channel: string, threadTs: string
           .string()
           .regex(/^\d+\.\d+$/)
           .optional()
-          .describe("Trådens ts, f.eks. 1730000000.000100. Utelat for denne tråden."),
+          .describe(
+            "Trådens ts, f.eks. 1730000000.000100. Utelat for denne tråden.",
+          ),
         limit: z.number().int().min(1).max(100).optional(),
       }),
       execute: async ({ thread_ts, limit }) => {
         try {
-          const messages = await slack.replies(channel, thread_ts ?? threadTs, limit ?? 50)
+          const messages = await slack.replies(
+            channel,
+            thread_ts ?? threadTs,
+            limit ?? 50,
+          )
           return {
             messages: messages.map(message => ({
               ts: message.ts,
-              from: message.bot_id ? (message.username ?? "bot") : `<@${message.user}>`,
+              from: message.bot_id
+                ? (message.username ?? "bot")
+                : `<@${message.user}>`,
               text: (message.text ?? "").slice(0, 2000),
             })),
           }
