@@ -4,9 +4,9 @@ import type { ToolSet } from "ai"
 export const SANITY_MCP_URL = "https://mcp.sanity.io"
 
 /**
- * The only Sanity MCP tools Skonk may call. Everything else the server offers
+ * The only Sanity MCP tools Mime may call. Everything else the server offers
  * (schema deploys, publishing, datasets, projects) is never shown to the
- * model. Writes go through Skonk's own tools, which call Nettside.
+ * model. Writes go through Mime's own tools, which call Nettside.
  */
 export const READ_TOOLS = new Set([
   "query_documents",

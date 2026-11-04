@@ -1,6 +1,6 @@
-name: Deploy Skonk
+name: Deploy Mime
 
-# Skonk is a standalone Cloudflare Worker, so it deploys on its own and never
+# Mime is a standalone Cloudflare Worker, so it deploys on its own and never
 # holds up the website release. Credentials and secrets come from Infisical
 # /skonk and are piped from environment variables, never written to disk.
 
@@ -9,9 +9,9 @@ on:
     branches:
       - develop
     paths:
-      - apps/skonk/**
+      - apps/mime/**
       - package-lock.json
-      - .github/workflows/deploy-skonk.yml
+      - .github/workflows/deploy-mime.yml
   workflow_dispatch:
     inputs:
       ref:
@@ -24,12 +24,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-skonk
+  group: deploy-mime
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Test and deploy Skonk Worker
+    name: Test and deploy Mime Worker
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
@@ -50,21 +50,21 @@ jobs:
         run: npm ci
 
       - name: Typecheck
-        run: npm run typecheck:skonk
+        run: npm run typecheck:mime
 
       - name: Tests
-        run: npm run test:skonk
+        run: npm run test:mime
 
-      # The identity is Skonk's own (github-skonk-deploy), bound to this
+      # The identity is Mime's own (github-mime-deploy), bound to this
       # workflow file, so the website release identity never reads /skonk.
-      # Its ID is the repository variable INFISICAL_SKONK_IDENTITY_ID.
+      # Its ID is the repository variable INFISICAL_MIME_IDENTITY_ID.
       # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
       # SANITY_SKONK_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
-      - name: Load Skonk secrets
+      - name: Load Mime secrets
         uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
           method: oidc
-          identity-id: ${{ vars.INFISICAL_SKONK_IDENTITY_ID }}
+          identity-id: ${{ vars.INFISICAL_MIME_IDENTITY_ID }}
           oidc-audience: https://secrets.samfunnetibergen.no
           domain: https://secrets.samfunnetibergen.no
           project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
@@ -93,12 +93,12 @@ jobs:
       - name: Deploy Worker
         id: deploy
         shell: bash
-        working-directory: apps/skonk
+        working-directory: apps/mime
         run: |
           set -euo pipefail
           sha="$(git rev-parse --short HEAD)"
-          npx --no-install wrangler deploy --message "skonk ${sha}" | tee "$RUNNER_TEMP/deploy.log"
-          url="$(grep -Eo 'https://skonk\.[a-z0-9-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1 || true)"
+          npx --no-install wrangler deploy --message "mime ${sha}" | tee "$RUNNER_TEMP/deploy.log"
+          url="$(grep -Eo 'https://mime\.[a-z0-9-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1 || true)"
           echo "url=${url}" >> "$GITHUB_OUTPUT"
 
       # Piped from the environment into wrangler's stdin; nothing is written
@@ -106,7 +106,7 @@ jobs:
       # belong to the Worker, which must exist.
       - name: Set Worker secrets
         shell: bash
-        working-directory: apps/skonk
+        working-directory: apps/mime
         run: |
           set -euo pipefail
           jq -n \
@@ -129,18 +129,18 @@ jobs:
           fi
           for attempt in 1 2 3 4 5; do
             status="$(curl --silent --output /dev/null --write-out '%{http_code}' "${url}/health" || true)"
-            echo "Skonk health attempt ${attempt}: HTTP ${status}"
+            echo "Mime health attempt ${attempt}: HTTP ${status}"
             [[ "$status" == "200" ]] && exit 0
             sleep 5
           done
-          echo "Skonk failed its health check after deploy" >&2
+          echo "Mime failed its health check after deploy" >&2
           exit 1
 
       - name: Summary
         if: always()
         run: |
           {
-            echo "## Skonk deploy"
+            echo "## Mime deploy"
             echo ""
             echo "- Source: \`$(git rev-parse --short HEAD)\`"
             echo "- URL: ${{ steps.deploy.outputs.url }}"
