@@ -38,23 +38,47 @@ export function checkUrl(raw: string): URL {
   return url
 }
 
+/** Removes tags until none are left, so nested fragments like `<<b>script>` cannot survive. */
+function stripTags(text: string): string {
+  let previous: string
+  let current = text
+  do {
+    previous = current
+    current = current.replace(/<[^>]*>/g, " ")
+  } while (current !== previous)
+  // A lone "<" can no longer open a tag in plain text for the model.
+  return current.replace(/</g, " ")
+}
+
+// One pass, so "&amp;lt;" becomes "&lt;" and is not decoded twice. "&lt;" and
+// "&gt;" stay encoded: decoding them would put tag-like text back.
+const ENTITIES: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&apos;": "'",
+}
+
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<(script|style|noscript|svg|head)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<!--[\s\S]*?-->/g, " ")
+  const stripped = stripTags(
+    html
+      .replace(/<(script|style|noscript|svg|head)[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(
+        /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+        (_m, href: string, inner: string) => `${stripTags(inner)} (${href})`,
+      )
+      .replace(
+        /<\/(p|div|li|tr|h[1-6]|section|article|br)>|<br\s*\/?>/gi,
+        "\n",
+      ),
+  )
+  return stripped
     .replace(
-      /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
-      (_m, href: string, inner: string) =>
-        `${inner.replace(/<[^>]+>/g, "")} (${href})`,
+      /&(nbsp|amp|quot|apos|#39);/g,
+      entity => ENTITIES[entity] ?? entity,
     )
-    .replace(/<\/(p|div|li|tr|h[1-6]|section|article|br)>|<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
     .replace(/[ \t]+/g, " ")
     .replace(/ ?\n ?/g, "\n")
     .replace(/\n{3,}/g, "\n\n")

@@ -123,3 +123,21 @@ describe("eventsFromHtml", () => {
     ).toEqual([])
   })
 })
+
+describe("htmlToText safety", () => {
+  test("does not decode entities twice", () => {
+    expect(htmlToText("<p>&amp;lt;b&amp;gt;</p>")).toBe("&lt;b&gt;")
+  })
+
+  test("never leaves a tag-like fragment behind", () => {
+    const text = htmlToText("<p><<b>script>alert(1)</p><scr<script>ipt>")
+    expect(text).not.toMatch(/<\s*\/?\s*script/i)
+    expect(text).not.toContain("<")
+  })
+
+  test("keeps encoded angle brackets encoded", () => {
+    expect(htmlToText("<p>1 &lt; 2 &amp; 3 &gt; 2</p>")).toBe(
+      "1 &lt; 2 & 3 &gt; 2",
+    )
+  })
+})
