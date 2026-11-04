@@ -1,0 +1,145 @@
+name: Deploy Skonk
+
+# Skonk is a standalone Cloudflare Worker, so it deploys on its own and never
+# holds up the website release. Credentials and secrets come from Infisical
+# /skonk and are piped from environment variables, never written to disk.
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - apps/skonk/**
+      - package-lock.json
+      - .github/workflows/deploy-skonk.yml
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to deploy"
+        required: true
+        default: "develop"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-skonk
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Test and deploy Skonk Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck:skonk
+
+      - name: Tests
+        run: npm run test:skonk
+
+      # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
+      # SANITY_SKONK_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
+      - name: Load Skonk secrets
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: 242f2c14-008b-4e8a-a78c-820300ee0c5f
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
+          env-slug: prod
+          secret-path: /skonk
+          export-type: env
+
+      - name: Verify secrets are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in CLOUDFLARE_API_TOKEN SLACK_BOT_TOKEN SLACK_SIGNING_SECRET \
+            SANITY_SKONK_READ_TOKEN AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY; do
+            [[ -n "${!name:-}" ]] || missing+=("$name")
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "Missing from Infisical /skonk: ${missing[*]}" >&2
+            exit 1
+          fi
+          if [[ ! "$SLACK_BOT_TOKEN" =~ ^xoxb- ]]; then
+            echo "SLACK_BOT_TOKEN is not a bot token" >&2
+            exit 1
+          fi
+
+      - name: Deploy Worker
+        id: deploy
+        shell: bash
+        working-directory: apps/skonk
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse --short HEAD)"
+          npx --no-install wrangler deploy --message "skonk ${sha}" | tee "$RUNNER_TEMP/deploy.log"
+          url="$(grep -Eo 'https://skonk\.[a-z0-9-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1 || true)"
+          echo "url=${url}" >> "$GITHUB_OUTPUT"
+
+      # Piped from the environment into wrangler's stdin; nothing is written
+      # to disk or echoed. Secrets are set after the first deploy because they
+      # belong to the Worker, which must exist.
+      - name: Set Worker secrets
+        shell: bash
+        working-directory: apps/skonk
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg SLACK_BOT_TOKEN "$SLACK_BOT_TOKEN" \
+            --arg SLACK_SIGNING_SECRET "$SLACK_SIGNING_SECRET" \
+            --arg SANITY_SKONK_READ_TOKEN "$SANITY_SKONK_READ_TOKEN" \
+            --arg AZURE_OPENAI_ENDPOINT "$AZURE_OPENAI_ENDPOINT" \
+            --arg AZURE_OPENAI_API_KEY "$AZURE_OPENAI_API_KEY" \
+            '$ARGS.named' |
+            npx --no-install wrangler secret bulk
+
+      - name: Health check
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${{ steps.deploy.outputs.url }}"
+          if [[ -z "$url" ]]; then
+            echo "Could not read the Worker URL from the deploy output; skipping health check" >&2
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5; do
+            status="$(curl --silent --output /dev/null --write-out '%{http_code}' "${url}/health" || true)"
+            echo "Skonk health attempt ${attempt}: HTTP ${status}"
+            [[ "$status" == "200" ]] && exit 0
+            sleep 5
+          done
+          echo "Skonk failed its health check after deploy" >&2
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Skonk deploy"
+            echo ""
+            echo "- Source: \`$(git rev-parse --short HEAD)\`"
+            echo "- URL: ${{ steps.deploy.outputs.url }}"
+            echo "- Slack request URL: \`${{ steps.deploy.outputs.url }}/slack/events\`"
+          } >> "$GITHUB_STEP_SUMMARY"
