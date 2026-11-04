@@ -4,7 +4,8 @@ import { generateText, type ModelMessage, stepCountIs } from "ai"
 import { trimHistory } from "./history"
 import { systemPrompt } from "./prompt"
 import { connectSanity } from "./sanity"
-import { SlackClient, slackText, type ThreadInput } from "./slack"
+import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
+import { webTools } from "./web"
 
 export interface Env {
   SkonkThread: DurableObjectNamespace<SkonkThread>
@@ -143,12 +144,16 @@ export class SkonkThread extends Agent<Env> {
           studioUrl: this.env.STUDIO_URL,
         }),
         messages: [...history, user],
-        tools: sanity.tools,
+        tools: {
+          ...sanity.tools,
+          ...webTools,
+          ...slackTools(slack, channel, threadTs),
+        },
         stopWhen: stepCountIs(MAX_STEPS),
         onStepFinish: async step => {
           if (step.toolCalls.length && placeholder)
             await slack
-              .update(channel, placeholder, "_Skonk slår opp i Sanity…_")
+              .update(channel, placeholder, "_Skonk slår opp…_")
               .catch(() => undefined)
         },
       })

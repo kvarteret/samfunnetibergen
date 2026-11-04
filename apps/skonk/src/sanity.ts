@@ -71,9 +71,13 @@ export async function connectSanity(options: {
   dataset: string
 }) {
   const client = await createMCPClient({
+    // mcp.sanity.io only speaks up to 2025-11-25 and rejects the discovery probe.
+    protocolVersionDiscovery: false,
     transport: {
       type: "http",
       url: SANITY_MCP_URL,
+      // workerd rejects fetch's redirect: "error", which is this transport's default.
+      redirect: "follow",
       headers: { Authorization: `Bearer ${options.token}` },
     },
   })
