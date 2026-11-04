@@ -4,14 +4,26 @@ import type { ToolSet } from "ai"
 export const SANITY_MCP_URL = "https://mcp.sanity.io"
 
 /**
- * The only Sanity MCP tools Mime may call. Everything else the server offers
- * (schema deploys, publishing, datasets, projects) is never shown to the
- * model. Writes go through Mime's own tools, which call Nettside.
+ * The Sanity MCP tools the model may call: reads only. Everything else the
+ * server offers is never shown to the model.
  */
 export const READ_TOOLS = new Set([
   "query_documents",
   "get_document",
   "get_schema",
+])
+
+/**
+ * Content editing only. Schema deploys, datasets, projects, CORS and media
+ * library tools are never offered. The model never receives these tools: a
+ * human-approved plan is executed by code (see writes.ts).
+ */
+export const WRITE_TOOLS = new Set([
+  "create_documents",
+  "patch_documents",
+  "publish_documents",
+  "unpublish_documents",
+  "discard_drafts",
 ])
 
 // The project and dataset are fixed; the model is never asked for them.
@@ -36,11 +48,14 @@ export function withoutScopeParams(tool: ListedTool): ListedTool {
   }
 }
 
-export function allowedDefinitions(listed: ListedTools): ListedTools {
+export function allowedDefinitions(
+  listed: ListedTools,
+  allowed: ReadonlySet<string> = READ_TOOLS,
+): ListedTools {
   return {
     ...listed,
     tools: listed.tools
-      .filter(tool => READ_TOOLS.has(tool.name))
+      .filter(tool => allowed.has(tool.name))
       .map(withoutScopeParams),
   }
 }
@@ -69,6 +84,7 @@ export async function connectSanity(options: {
   token: string
   projectId: string
   dataset: string
+  allowed?: ReadonlySet<string>
 }) {
   const client = await createMCPClient({
     // mcp.sanity.io only speaks up to 2025-11-25 and rejects the discovery probe.
@@ -81,7 +97,10 @@ export async function connectSanity(options: {
       headers: { Authorization: `Bearer ${options.token}` },
     },
   })
-  const definitions = allowedDefinitions(await client.listTools())
+  const definitions = allowedDefinitions(
+    await client.listTools(),
+    options.allowed,
+  )
   const tools = scopeTools(client.toolsFromDefinitions(definitions), options)
-  return { tools, close: () => client.close() }
+  return { tools, definitions, close: () => client.close() }
 }

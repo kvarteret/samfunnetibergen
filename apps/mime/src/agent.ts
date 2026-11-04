@@ -3,9 +3,18 @@ import { Agent } from "agents"
 import { generateText, type ModelMessage, stepCountIs } from "ai"
 import { trimHistory } from "./history"
 import { systemPrompt } from "./prompt"
-import { connectSanity } from "./sanity"
+import { connectSanity, WRITE_TOOLS } from "./sanity"
 import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
 import { webTools } from "./web"
+import {
+  isApproval,
+  isRejection,
+  PLAN_TTL_MS,
+  type Plan,
+  parsePlan,
+  proposeTool,
+  renderPlan,
+} from "./writes"
 
 export interface Env {
   MimeThread: DurableObjectNamespace<MimeThread>
@@ -19,6 +28,8 @@ export interface Env {
   SLACK_BOT_TOKEN: string
   SLACK_SIGNING_SECRET: string
   SANITY_MIME_READ_TOKEN: string
+  /** Editor token. Without it Mime cannot propose or run write plans. */
+  SANITY_MIME_WRITE_TOKEN?: string
   AZURE_OPENAI_ENDPOINT: string
   AZURE_OPENAI_API_KEY: string
 }
@@ -48,8 +59,11 @@ function osloToday() {
  *
  * Incoming messages are written to `inbox` before anything else, so a crash or
  * eviction never loses one: on restart, unanswered rows are answered again.
- * That is safe while every tool only reads. Messages that arrive during a turn
- * wait in the inbox and are answered together in the next turn.
+ * Reads are safe to repeat. Writes are not, so a write plan is claimed
+ * (`pending` to `running`) before anything runs and is never re-run: after a
+ * crash it stays `running` and a person checks the result in Studio. Messages
+ * that arrive during a turn wait in the inbox and are answered together in the
+ * next turn.
  */
 export class MimeThread extends Agent<Env> {
   #draining = false
@@ -71,6 +85,14 @@ export class MimeThread extends Agent<Env> {
     )`
     this
       .sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`
+    this.sql`CREATE TABLE IF NOT EXISTS plans (
+      id TEXT PRIMARY KEY,
+      requester TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      ops TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    )`
     const [pending] = this.sql<{ n: number }>`
       SELECT count(*) AS n FROM inbox WHERE answered = 0`
     if (pending?.n) await this.schedule(0, "drain")
@@ -120,8 +142,11 @@ export class MimeThread extends Agent<Env> {
       SELECT message FROM history ORDER BY id`.map(
       row => JSON.parse(row.message) as ModelMessage,
     )
+    if (await this.handleApproval(rows, slack, history)) return
     let placeholder: string | undefined
     let sanity: Awaited<ReturnType<typeof connectSanity>> | undefined
+    let writer: Awaited<ReturnType<typeof connectSanity>> | undefined
+    let proposed: Plan | undefined
     // Any failure ends the turn: the rows are marked answered by the caller,
     // so a broken token or model never retries forever.
     try {
@@ -135,6 +160,14 @@ export class MimeThread extends Agent<Env> {
         projectId: this.env.SANITY_PROJECT_ID,
         dataset: this.env.SANITY_DATASET,
       })
+      const writeToken = this.env.SANITY_MIME_WRITE_TOKEN
+      if (writeToken)
+        writer = await connectSanity({
+          token: writeToken,
+          projectId: this.env.SANITY_PROJECT_ID,
+          dataset: this.env.SANITY_DATASET,
+          allowed: WRITE_TOOLS,
+        })
       const azure = createAzure({
         baseURL: `${this.env.AZURE_OPENAI_ENDPOINT.replace(/\/$/, "").replace(/\/openai(\/v1)?$/, "")}/openai`,
         apiKey: this.env.AZURE_OPENAI_API_KEY,
@@ -146,12 +179,26 @@ export class MimeThread extends Agent<Env> {
           dataset: this.env.SANITY_DATASET,
           today: osloToday(),
           studioUrl: this.env.STUDIO_URL,
+          writes: Boolean(writer),
         }),
         messages: [...history, user],
         tools: {
           ...sanity.tools,
           ...webTools,
           ...slackTools(slack, channel, threadTs),
+          ...(writer
+            ? {
+                propose_write_plan: proposeTool({
+                  requester: rows[rows.length - 1].user,
+                  definitions: writer.definitions.tools,
+                  save: plan => {
+                    const id = this.savePlan(plan)
+                    proposed = { ...plan, id }
+                    return id
+                  },
+                }),
+              }
+            : {}),
         },
         stopWhen: stepCountIs(MAX_STEPS),
         onStepFinish: async step => {
@@ -161,7 +208,9 @@ export class MimeThread extends Agent<Env> {
               .catch(() => undefined)
         },
       })
-      const text = result.text.trim() || "Jeg fant ikke noe svar på det."
+      const answer = result.text.trim() || "Jeg fant ikke noe svar på det."
+      // The plan is rendered by code from what was stored, not by the model.
+      const text = proposed ? `${answer}\n\n${renderPlan(proposed)}` : answer
       await slack.update(channel, placeholder, slackText(text))
       this.replaceHistory(
         trimHistory([...history, user, ...result.responseMessages]),
@@ -182,7 +231,143 @@ export class MimeThread extends Agent<Env> {
           .catch(() => undefined)
     } finally {
       await sanity?.close().catch(() => undefined)
+      await writer?.close().catch(() => undefined)
     }
+  }
+
+  private savePlan(plan: Omit<Plan, "id">) {
+    // A new plan replaces any plan still waiting for approval.
+    this.sql`UPDATE plans SET status = 'cancelled' WHERE status = 'pending'`
+    const id = crypto.randomUUID().slice(0, 8)
+    this.sql`INSERT INTO plans (id, requester, summary, ops, status, created_at)
+      VALUES (${id}, ${plan.requester}, ${plan.summary}, ${JSON.stringify(plan.ops)}, 'pending', ${Date.now()})`
+    return id
+  }
+
+  private latestPlan() {
+    const [row] = this.sql<{
+      id: string
+      requester: string
+      summary: string
+      ops: string
+      status: string
+      created_at: number
+    }>`SELECT * FROM plans ORDER BY created_at DESC LIMIT 1`
+    if (!row) return undefined
+    if (row.status === "pending" && Date.now() - row.created_at > PLAN_TTL_MS) {
+      this.sql`UPDATE plans SET status = 'expired' WHERE id = ${row.id}`
+      row.status = "expired"
+    }
+    return { ...row, ops: parsePlan(row.ops) }
+  }
+
+  /**
+   * "ja" and "nei" are decided here, by code, never by the model. Returns true
+   * when the message was an answer to a plan and needs no model turn.
+   */
+  private async handleApproval(
+    rows: InboxRow[],
+    slack: SlackClient,
+    history: ModelMessage[],
+  ) {
+    const plan = this.latestPlan()
+    const last = rows[rows.length - 1]
+    if (!plan || !this.env.SANITY_MIME_WRITE_TOKEN) return false
+    const approve = isApproval(last.text)
+    const reject = isRejection(last.text)
+    if (!approve && !reject) return false
+    const { channel, thread_ts: threadTs } = last
+    const say = (text: string) =>
+      slack.post(channel, threadTs, text).catch(() => undefined)
+    if (plan.status === "running" && approve) {
+      await say(
+        `Plan ${plan.id} er allerede startet (kanskje avbrutt midt i). Jeg kjører den ikke på nytt; sjekk resultatet i Studio.`,
+      )
+      return true
+    }
+    if (plan.status !== "pending") return false
+    if (last.user !== plan.requester) {
+      await say(
+        `Bare <@${plan.requester}> kan svare på plan ${plan.id}. Den venter fortsatt.`,
+      )
+      return true
+    }
+    if (reject) {
+      this.sql`UPDATE plans SET status = 'cancelled' WHERE id = ${plan.id}`
+      await say(`Plan ${plan.id} er avbrutt. Ingenting er endret.`)
+      return true
+    }
+    await this.runPlan(plan, last, slack, history)
+    return true
+  }
+
+  private async runPlan(
+    plan: Plan & { status: string },
+    row: InboxRow,
+    slack: SlackClient,
+    history: ModelMessage[],
+  ) {
+    // Claim before any await, so the plan runs at most once.
+    const [current] = this.sql<{ status: string }>`
+      SELECT status FROM plans WHERE id = ${plan.id}`
+    if (current?.status !== "pending") return
+    this.sql`UPDATE plans SET status = 'running' WHERE id = ${plan.id}`
+    const { channel, thread_ts: threadTs } = row
+    const placeholder = await slack.post(
+      channel,
+      threadTs,
+      `_Mime kjører plan ${plan.id}…_`,
+    )
+    const lines: string[] = []
+    let failed = false
+    let writer: Awaited<ReturnType<typeof connectSanity>> | undefined
+    try {
+      writer = await connectSanity({
+        token: this.env.SANITY_MIME_WRITE_TOKEN as string,
+        projectId: this.env.SANITY_PROJECT_ID,
+        dataset: this.env.SANITY_DATASET,
+        allowed: WRITE_TOOLS,
+      })
+      for (const [index, op] of plan.ops.entries()) {
+        const run = writer.tools[op.tool]?.execute as
+          | ((input: unknown, options: unknown) => Promise<unknown>)
+          | undefined
+        if (!run) throw new Error("unknown tool")
+        const out = (await run(op.input, {
+          toolCallId: `plan-${plan.id}-${index}`,
+          messages: [],
+        })) as { isError?: boolean } | undefined
+        if (out?.isError) throw new Error("tool error")
+        lines.push(`${index + 1}. ✅ \`${op.tool}\``)
+      }
+    } catch (error) {
+      failed = true
+      lines.push(
+        `${lines.length + 1}. ❌ \`${plan.ops[lines.length]?.tool ?? "tilkobling"}\` feilet. Resten ble ikke kjørt.`,
+      )
+      console.error(
+        "mime plan failed",
+        error instanceof Error ? error.name : "unknown",
+      )
+    } finally {
+      await writer?.close().catch(() => undefined)
+    }
+    this
+      .sql`UPDATE plans SET status = ${failed ? "failed" : "done"} WHERE id = ${plan.id}`
+    const text = [
+      failed
+        ? `*Plan ${plan.id} stoppet.* Det som er gjort står under, og ingenting er rullet tilbake; sjekk i Studio.`
+        : `*Plan ${plan.id} er kjørt.*`,
+      ...lines,
+    ].join("\n")
+    await slack.update(channel, placeholder, slackText(text))
+    this.replaceHistory(
+      trimHistory([
+        ...history,
+        { role: "user", content: `<@${row.user}>: ${row.text}` },
+        { role: "assistant", content: text },
+      ]),
+    )
   }
 
   /** The thread so far (first turn only) and the new messages, as one user turn. */

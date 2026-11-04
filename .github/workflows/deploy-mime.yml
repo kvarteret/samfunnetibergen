@@ -59,7 +59,8 @@ jobs:
       # workflow file, so the website release identity never reads /mime.
       # Its ID is the repository variable INFISICAL_MIME_IDENTITY_ID.
       # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
-      # SANITY_MIME_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
+      # SANITY_MIME_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY, plus the
+      # optional SANITY_MIME_WRITE_TOKEN.
       - name: Load Mime secrets
         uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
@@ -109,13 +110,17 @@ jobs:
         working-directory: apps/mime
         run: |
           set -euo pipefail
+          # SANITY_MIME_WRITE_TOKEN (an Editor token) is optional: without it
+          # Mime cannot propose or run write plans. It is only ever set here,
+          # so removing it from Infisical does not remove it from the Worker.
           jq -n \
             --arg SLACK_BOT_TOKEN "$SLACK_BOT_TOKEN" \
             --arg SLACK_SIGNING_SECRET "$SLACK_SIGNING_SECRET" \
             --arg SANITY_MIME_READ_TOKEN "$SANITY_MIME_READ_TOKEN" \
+            --arg SANITY_MIME_WRITE_TOKEN "${SANITY_MIME_WRITE_TOKEN:-}" \
             --arg AZURE_OPENAI_ENDPOINT "$AZURE_OPENAI_ENDPOINT" \
             --arg AZURE_OPENAI_API_KEY "$AZURE_OPENAI_API_KEY" \
-            '$ARGS.named' |
+            '$ARGS.named | with_entries(select(.value != ""))' |
             npx --no-install wrangler secret bulk
 
       - name: Health check
