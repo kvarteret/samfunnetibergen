@@ -124,7 +124,7 @@ function roomRentLines(
         BACKSTAGE_ROOM_IDS.has(r.crescatRoomId) &&
         selectedIds.has(r.crescatRoomId),
     )
-    const cheapest = backstageRooms.toSorted(
+    const cheapest = backstageRooms.sort(
       (a, b) => (a.pricePerHour ?? 0) - (b.pricePerHour ?? 0),
     )[0]
     if (cheapest) freeBackstageRoomId = cheapest.crescatRoomId

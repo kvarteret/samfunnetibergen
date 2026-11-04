@@ -243,7 +243,7 @@ export function findRoomConflicts(
   )
   return bookingsForRoom(bookings, crescatRoomId)
     .filter(booking => overlaps(startMs, endMs, booking))
-    .toSorted(
+    .sort(
       (a, b) =>
         crescatLocalDateTimeMs(a.start) - crescatLocalDateTimeMs(b.start),
     )
@@ -264,7 +264,7 @@ export function calendarBookingStatus(
       startMin: (crescatLocalDateTimeMs(booking.start) - midnight) / 60_000,
       endMin: (crescatLocalDateTimeMs(booking.end) - midnight) / 60_000,
     }))
-    .toSorted((a, b) => a.startMin - b.startMin)
+    .sort((a, b) => a.startMin - b.startMin)
   const occupied = openingRanges.some(range =>
     intervals.some(interval =>
       rangesOverlap(
