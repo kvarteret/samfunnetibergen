@@ -28,7 +28,7 @@ async function signed(body: string, timestamp = NOW, secret = SECRET) {
   const hex = [...new Uint8Array(mac)]
     .map(byte => byte.toString(16).padStart(2, "0"))
     .join("")
-  return new Request("https://skonk.test/slack/events", {
+  return new Request("https://mime.test/slack/events", {
     method: "POST",
     body,
     headers: {
@@ -57,7 +57,7 @@ describe("verifySlackRequest", () => {
   })
 
   test("rejects a request without signature headers", async () => {
-    const request = new Request("https://skonk.test", {
+    const request = new Request("https://mime.test", {
       method: "POST",
       body: "{}",
     })
@@ -107,7 +107,7 @@ describe("routeEvent", () => {
     expect(input?.threadTs).toBe("1730700000.000200")
   })
 
-  test("ignores other channels, bots, Skonk itself and edits", () => {
+  test("ignores other channels, bots, Mime itself and edits", () => {
     expect(routeEvent(envelope({ channel: "COTHER" }), ALLOWED)).toBeNull()
     expect(routeEvent(envelope({ bot_id: "B1" }), ALLOWED)).toBeNull()
     expect(routeEvent(envelope({ user: BOT }), ALLOWED)).toBeNull()

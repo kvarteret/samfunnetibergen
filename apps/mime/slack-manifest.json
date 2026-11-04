@@ -1,11 +1,11 @@
 {
   "display_information": {
-    "name": "Skonk",
+    "name": "Mime",
     "description": "E-tjenesten's lille hjelper.",
     "background_color": "#1d1c1d"
   },
   "features": {
-    "bot_user": { "display_name": "Skonk", "always_online": true }
+    "bot_user": { "display_name": "Mime", "always_online": true }
   },
   "oauth_config": {
     "scopes": {
@@ -19,7 +19,7 @@
   },
   "settings": {
     "event_subscriptions": {
-      "request_url": "https://skonk.WORKERS_SUBDOMAIN.workers.dev/slack/events",
+      "request_url": "https://mime.WORKERS_SUBDOMAIN.workers.dev/slack/events",
       "bot_events": ["app_mention", "message.channels", "message.groups"]
     },
     "org_deploy_enabled": false,

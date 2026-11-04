@@ -8,7 +8,7 @@ import {
   verifySlackRequest,
 } from "./slack"
 
-export { SkonkThread } from "./agent"
+export { MimeThread } from "./agent"
 
 export function allowedChannels(value: string | undefined) {
   return new Set(
@@ -42,11 +42,11 @@ async function slackEvents(
   // Slack wants an answer within three seconds. The agent only stores the
   // message here and answers from its own alarm.
   ctx.waitUntil(
-    getAgentByName(env.SkonkThread, threadKey({ ...envelope.event }))
+    getAgentByName(env.MimeThread, threadKey({ ...envelope.event }))
       .then(thread => thread.receive(input))
       .catch(error =>
         console.error(
-          "skonk delivery failed",
+          "mime delivery failed",
           error instanceof Error ? error.name : "unknown",
         ),
       ),

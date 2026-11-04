@@ -85,7 +85,7 @@ export type ThreadInput = {
   ts: string
   user: string
   text: string
-  /** True when the message tagged Skonk; untagged messages only count once Skonk joined the thread. */
+  /** True when the message tagged Mime; untagged messages only count once Mime joined the thread. */
   mentioned: boolean
 }
 

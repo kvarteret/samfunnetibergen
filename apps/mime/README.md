@@ -1,12 +1,12 @@
-# Skonk
+# Mime
 
-Tag `@skonk` in a Slack thread and work the problem out there. Skonk answers
+Tag `@mime` in a Slack thread and work the problem out there. Mime answers
 in the thread, remembers the thread, and replies to later messages in it
 without being tagged again. For now it can only **read** Sanity; writing
 (importing events, merging arrangements) comes next.
 
 It is a Cloudflare Worker built with the [Agents SDK](https://developers.cloudflare.com/agents/),
-with one Durable Object (`SkonkThread`) per Slack thread, named
+with one Durable Object (`MimeThread`) per Slack thread, named
 `<channel>:<thread_ts>`. The model is Luna, the `skonk` deployment on the
 existing Azure AI resource.
 
@@ -29,12 +29,12 @@ existing Azure AI resource.
 ## Local development
 
 Create a **test** Slack app from `slack-manifest.json` in a test workspace or
-channel, never the production Skonk app. Copy `.dev.vars.example` to
+channel, never the production Mime app. Copy `.dev.vars.example` to
 `.dev.vars` and fill it in. `ALLOWED_CHANNELS` takes channel IDs (right-click
 the channel → View channel details → bottom of the dialog).
 
 ```bash
-npm run dev:skonk
+npm run dev:mime
 npx cloudflared tunnel --url http://localhost:1998
 ```
 
@@ -46,26 +46,32 @@ sanity.io/manage for project `mkjoahvv`.
 
 ## Deploy
 
-`.github/workflows/deploy-skonk.yml` tests and deploys the Worker on every push
-to `develop` that touches `apps/skonk` (or by hand with *Run workflow*). It
-loads Infisical `/skonk` as environment variables, pipes the five secrets into
+`.github/workflows/deploy-mime.yml` tests and deploys the Worker on every push
+to `develop` that touches `apps/mime` (or by hand with *Run workflow*). It
+loads Infisical `/mime` as environment variables, pipes the five secrets into
 `wrangler secret bulk` and checks `/health`. Nothing is written to disk.
 
-Infisical `/skonk` (project and `prod` environment as for `/party`) needs:
+Infisical `/mime` (project and `prod` environment as for `/party`) needs:
 `CLOUDFLARE_API_TOKEN` (Workers edit on it.leder@kvarteret.no's account),
-`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_SKONK_READ_TOKEN` (Viewer),
+`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_MIME_READ_TOKEN` (Viewer),
 `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`. The CI identity must be
-allowed to read `/skonk`.
+allowed to read `/mime`.
 
-The production bot is the Slack app **Mime**, separate from the Skonk app that
+The production bot is the Slack app **Mime**, separate from the Mime app that
 posts to #nettside. After the first deploy, set Mime's Event Subscriptions
-request URL to `https://skonk.<subdomain>.workers.dev/slack/events` (the run
+request URL to `https://mime.<subdomain>.workers.dev/slack/events` (the run
 summary prints it) and invite Mime to the channel in `ALLOWED_CHANNELS`
 (`wrangler.jsonc`).
 
 ## Tests
 
 ```bash
-npm run test:skonk
-npm run typecheck:skonk
+npm run test:mime
+npm run typecheck:mime
 ```
+
+## Names that stay Skonk
+
+Two names still say Skonk because they are stored data or shared with the
+website: the Azure deployment `skonk` (the website's Luna importer uses it
+too) and the `E-tjenesten's Skonk` submitter on imported events.

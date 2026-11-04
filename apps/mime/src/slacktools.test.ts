@@ -9,7 +9,7 @@ describe("read_thread", () => {
           ok: true,
           messages: [
             { ts: "1.1", user: "U1", text: "hei" },
-            { ts: "1.2", bot_id: "B1", username: "Skonk", text: "svar" },
+            { ts: "1.2", bot_id: "B1", username: "Mime", text: "svar" },
           ],
         }),
       ),
@@ -27,7 +27,7 @@ describe("read_thread", () => {
     expect(body.get("channel")).toBe("C1")
     expect(body.get("ts")).toBe("9.9")
     expect(result).toMatchObject({
-      messages: [{ from: "<@U1>" }, { from: "Skonk" }],
+      messages: [{ from: "<@U1>" }, { from: "Mime" }],
     })
   })
 

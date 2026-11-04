@@ -1,4 +1,4 @@
-name: Generate Ukas post with Skonk
+name: Generate Ukas post with Mime
 
 on:
   schedule:

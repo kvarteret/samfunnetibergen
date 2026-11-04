@@ -8,8 +8,8 @@ import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
 import { webTools } from "./web"
 
 export interface Env {
-  SkonkThread: DurableObjectNamespace<SkonkThread>
-  /** Comma-separated Slack channel IDs where Skonk answers. */
+  MimeThread: DurableObjectNamespace<MimeThread>
+  /** Comma-separated Slack channel IDs where Mime answers. */
   ALLOWED_CHANNELS: string
   SANITY_PROJECT_ID: string
   SANITY_DATASET: string
@@ -18,7 +18,7 @@ export interface Env {
   // Secrets (wrangler secret put / .dev.vars)
   SLACK_BOT_TOKEN: string
   SLACK_SIGNING_SECRET: string
-  SANITY_SKONK_READ_TOKEN: string
+  SANITY_MIME_READ_TOKEN: string
   AZURE_OPENAI_ENDPOINT: string
   AZURE_OPENAI_API_KEY: string
 }
@@ -51,7 +51,7 @@ function osloToday() {
  * That is safe while every tool only reads. Messages that arrive during a turn
  * wait in the inbox and are answered together in the next turn.
  */
-export class SkonkThread extends Agent<Env> {
+export class MimeThread extends Agent<Env> {
   #draining = false
 
   async onStart() {
@@ -125,13 +125,13 @@ export class SkonkThread extends Agent<Env> {
     // Any failure ends the turn: the rows are marked answered by the caller,
     // so a broken token or model never retries forever.
     try {
-      placeholder = await slack.post(channel, threadTs, "_Skonk tenker…_")
+      placeholder = await slack.post(channel, threadTs, "_Mime tenker…_")
       const user: ModelMessage = {
         role: "user",
         content: await this.userContent(slack, rows, history.length === 0),
       }
       sanity = await connectSanity({
-        token: this.env.SANITY_SKONK_READ_TOKEN,
+        token: this.env.SANITY_MIME_READ_TOKEN,
         projectId: this.env.SANITY_PROJECT_ID,
         dataset: this.env.SANITY_DATASET,
       })
@@ -157,7 +157,7 @@ export class SkonkThread extends Agent<Env> {
         onStepFinish: async step => {
           if (step.toolCalls.length && placeholder)
             await slack
-              .update(channel, placeholder, "_Skonk slår opp…_")
+              .update(channel, placeholder, "_Mime slår opp…_")
               .catch(() => undefined)
         },
       })
@@ -169,7 +169,7 @@ export class SkonkThread extends Agent<Env> {
     } catch (error) {
       // Labels only: page text, tokens and model output stay out of logs.
       console.error(
-        "skonk turn failed",
+        "mime turn failed",
         error instanceof Error ? error.name : "unknown",
       )
       if (placeholder)

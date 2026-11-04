@@ -116,7 +116,7 @@ async function fetchRaw(
       redirect: "manual",
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
-        "user-agent": "Skonk/0.1 (+E-tjenesten, Det Akademiske Kvarter)",
+        "user-agent": "Mime/0.1 (+E-tjenesten, Det Akademiske Kvarter)",
         accept: "text/html,text/plain,application/json;q=0.9,*/*;q=0.1",
       },
     })

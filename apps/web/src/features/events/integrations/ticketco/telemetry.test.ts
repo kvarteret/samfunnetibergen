@@ -53,7 +53,7 @@ test("does nothing when PostHog is not configured", async () => {
   expect(capture).not.toHaveBeenCalled()
 })
 
-test("does not capture non-Skonk deployments", async () => {
+test("does not capture non-Mime deployments", async () => {
   vi.stubEnv("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN", "test")
   await captureLunaGeneration({ ...generation, deployment: "gpt-6.1-sol" })
   expect(capture).not.toHaveBeenCalled()

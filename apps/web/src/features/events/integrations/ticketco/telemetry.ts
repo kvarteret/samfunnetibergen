@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   configuredLunaDeployment,
-  shouldCaptureSkonkTelemetry,
+  shouldCaptureMimeTelemetry,
 } from "@/lib/posthog/ai-policy"
 import { getPostHogReleaseProperties } from "@/lib/posthog/error-context"
 import { getPostHogClient } from "@/lib/posthog-server"
@@ -43,7 +43,7 @@ export type LunaGeneration = {
 export async function captureLunaGeneration(generation: LunaGeneration) {
   if (
     !process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
-    !shouldCaptureSkonkTelemetry(generation.deployment)
+    !shouldCaptureMimeTelemetry(generation.deployment)
   )
     return
   const { evidence: _privateEvidence, ...output } = generation.output ?? {}
@@ -110,7 +110,7 @@ export async function captureRoomResolution(
 ) {
   if (
     !process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
-    !shouldCaptureSkonkTelemetry(configuredLunaDeployment())
+    !shouldCaptureMimeTelemetry(configuredLunaDeployment())
   )
     return
   const accepted = ["pending", "draft", "merged", "dry-run"].includes(
