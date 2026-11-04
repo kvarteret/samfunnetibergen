@@ -8,7 +8,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     // Slack channel IDs (not names), comma separated. Empty answers nowhere.
-    "ALLOWED_CHANNELS": "",
+    "ALLOWED_CHANNELS": "C0ABU09PYBA",
     "SANITY_PROJECT_ID": "mkjoahvv",
     "SANITY_DATASET": "production",
     "STUDIO_URL": "https://studio.samfunnetibergen.no",

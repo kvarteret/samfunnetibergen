@@ -46,9 +46,22 @@ sanity.io/manage for project `mkjoahvv`.
 
 ## Deploy
 
-Not wired into the release workflow yet. Secrets will live in Infisical
-`/skonk`: `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_SKONK_READ_TOKEN`,
-`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`.
+`.github/workflows/deploy-skonk.yml` tests and deploys the Worker on every push
+to `develop` that touches `apps/skonk` (or by hand with *Run workflow*). It
+loads Infisical `/skonk` as environment variables, pipes the five secrets into
+`wrangler secret bulk` and checks `/health`. Nothing is written to disk.
+
+Infisical `/skonk` (project and `prod` environment as for `/party`) needs:
+`CLOUDFLARE_API_TOKEN` (Workers edit on it.leder@kvarteret.no's account),
+`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_SKONK_READ_TOKEN` (Viewer),
+`AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`. The CI identity must be
+allowed to read `/skonk`.
+
+The production bot is the Slack app **Mime**, separate from the Skonk app that
+posts to #nettside. After the first deploy, set Mime's Event Subscriptions
+request URL to `https://skonk.<subdomain>.workers.dev/slack/events` (the run
+summary prints it) and invite Mime to the channel in `ALLOWED_CHANNELS`
+(`wrangler.jsonc`).
 
 ## Tests
 
