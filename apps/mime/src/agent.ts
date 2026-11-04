@@ -18,7 +18,7 @@ export interface Env {
   // Secrets (wrangler secret put / .dev.vars)
   SLACK_BOT_TOKEN: string
   SLACK_SIGNING_SECRET: string
-  SANITY_SKONK_READ_TOKEN: string
+  SANITY_MIME_READ_TOKEN: string
   AZURE_OPENAI_ENDPOINT: string
   AZURE_OPENAI_API_KEY: string
 }
@@ -131,7 +131,7 @@ export class MimeThread extends Agent<Env> {
         content: await this.userContent(slack, rows, history.length === 0),
       }
       sanity = await connectSanity({
-        token: this.env.SANITY_SKONK_READ_TOKEN,
+        token: this.env.SANITY_MIME_READ_TOKEN,
         projectId: this.env.SANITY_PROJECT_ID,
         dataset: this.env.SANITY_DATASET,
       })

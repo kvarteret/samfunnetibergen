@@ -1,6 +1,6 @@
-# Generate Ukas post with Skonk
+# Generate Ukas post with Mime
 
-Skonk reads next week's approved public events from `/api/v1/events` and prepares them as a Canva review draft and sends its edit link to `#nettside`. Luna shortens event titles and descriptions; code preserves the source dates, rooms and times. Editors still review the design before publishing it.
+Mime reads next week's approved public events from `/api/v1/events` and prepares them as a Canva review draft and sends its edit link to `#nettside`. Luna shortens event titles and descriptions; code preserves the source dates, rooms and times. Editors still review the design before publishing it.
 
 The GitHub Actions workflow is enabled again. Manual runs are available from GitHub Actions; scheduled runs require the repository variable `WEEKLY_CANVA_ENABLED=true`.
 
@@ -61,7 +61,7 @@ Or select an explicit Monday:
 
 A dry run reads the public events API and calls Luna. When the Azure deployment is `skonk`, it records the generation in PostHog as `$ai_generation`; other deployments are not tracked. It creates no designs, rotates no Canva tokens, writes no receipt and sends no Slack message. Timed API timestamps are converted to Europe/Oslo; date-only schedules explicitly show Tid ikke oppgitt; failed copy validation does not silently truncate or omit events.
 
-After connecting, run the **Generate Ukas post with Skonk** workflow manually with `dry_run: false`. Verify the final Canva design's date range, titles, images, chronological pages and Slack edit link. Repeating the same week returns `already-delivered`. Set `WEEKLY_CANVA_ENABLED=true` as a repository Actions variable only after this succeeds. An optional repository variable `CANVA_WEEKLY_TEMPLATE_DESIGN_ID` selects another compatible labeled design. Do not set an environment-only activation variable: the workflow gate is evaluated before entering the production environment.
+After connecting, run the **Generate Ukas post with Mime** workflow manually with `dry_run: false`. Verify the final Canva design's date range, titles, images, chronological pages and Slack edit link. Repeating the same week returns `already-delivered`. Set `WEEKLY_CANVA_ENABLED=true` as a repository Actions variable only after this succeeds. An optional repository variable `CANVA_WEEKLY_TEMPLATE_DESIGN_ID` selects another compatible labeled design. Do not set an environment-only activation variable: the workflow gate is evaluated before entering the production environment.
 
 ## Retry failures
 
@@ -80,6 +80,6 @@ The approved week 42 draft covers 12–18 October 2026. Editors review future ge
 
 The job uses a work folder for the autofilled `Ukas post … – del N` source designs and uploaded event images, and an output folder for the final merged carousel. For Skonk, both `CANVA_WEEKLY_WORK_FOLDER_ID` and `CANVA_WEEKLY_OUTPUT_FOLDER_ID` point to the dedicated `Ukas post – Skonk (arbeid)` folder, so every design and image asset created by Skonk stays together and nothing new is placed in the shared `Ukens post` folder. Separate IDs remain supported if the work and review outputs should be isolated later.
 
-After the final design has been delivered to Slack, Skonk moves its uploaded image assets to Canva's trash. This keeps repeated runs from accumulating `Weekly Kvarteret event` image assets in the Skonk folder. Canva's documented REST API does not provide a design-delete operation, so the intermediate `del N` source designs remain in the Skonk work folder for resumability and can be removed manually from Canva when no longer needed.
+After the final design has been delivered to Slack, Mime moves its uploaded image assets to Canva's trash. This keeps repeated runs from accumulating `Weekly Kvarteret event` image assets in the Skonk folder. Canva's documented REST API does not provide a design-delete operation, so the intermediate `del N` source designs remain in the Skonk work folder for resumability and can be removed manually from Canva when no longer needed.
 
 A live run refuses to generate without both values and checks access to both folders before creating or filing designs. The API cannot grant folder membership by email: share both folders in Canva with edit access to the OAuth account. Share the output folder with `kommunikasjon@samfunnetibergen.no` so the communication account can review the final design. Verify that the communication account can open an item in the output folder. Enable `folder:read` and `folder:write` in the Developer app, then reconnect OAuth to consent to the folder scopes if necessary. Existing generated `del N` copies can be left in the old output folder or moved to the work folder manually; new runs will keep the output folder clean.

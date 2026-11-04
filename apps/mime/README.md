@@ -48,12 +48,12 @@ sanity.io/manage for project `mkjoahvv`.
 
 `.github/workflows/deploy-mime.yml` tests and deploys the Worker on every push
 to `develop` that touches `apps/mime` (or by hand with *Run workflow*). It
-loads Infisical `/skonk` as environment variables, pipes the five secrets into
+loads Infisical `/mime` as environment variables, pipes the five secrets into
 `wrangler secret bulk` and checks `/health`. Nothing is written to disk.
 
-Infisical `/skonk` (project and `prod` environment as for `/party`) needs:
+Infisical `/mime` (project and `prod` environment as for `/party`) needs:
 `CLOUDFLARE_API_TOKEN` (Workers edit on it.leder@kvarteret.no's account),
-`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_SKONK_READ_TOKEN` (Viewer),
+`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SANITY_MIME_READ_TOKEN` (Viewer),
 `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`. The CI identity must be
 allowed to read `/mime`.
 
@@ -72,7 +72,6 @@ npm run typecheck:mime
 
 ## Names that stay Skonk
 
-Mime shares infrastructure with the existing Skonk pipeline, so these keep
-their names: the Azure deployment `skonk`, the Infisical folder `/skonk` and
-its secret `SANITY_SKONK_READ_TOKEN`, and the `E-tjenesten's Skonk` submitter
-on imported events.
+Two names still say Skonk because they are stored data or shared with the
+website: the Azure deployment `skonk` (the website's Luna importer uses it
+too) and the `E-tjenesten's Skonk` submitter on imported events.

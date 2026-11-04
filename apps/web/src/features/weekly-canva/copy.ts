@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import { z } from "zod"
 import {
   configuredLunaDeployment,
-  shouldCaptureSkonkTelemetry,
+  shouldCaptureMimeTelemetry,
 } from "@/lib/posthog/ai-policy"
 import { getPostHogClient } from "@/lib/posthog-server"
 import type { WeeklyEvent } from "./plan"
@@ -120,7 +120,7 @@ export async function writeCopy(events: WeeklyEvent[]): Promise<WeeklyEvent[]> {
     } finally {
       if (
         process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
-        shouldCaptureSkonkTelemetry(deployment)
+        shouldCaptureMimeTelemetry(deployment)
       ) {
         try {
           await getPostHogClient().captureImmediate({

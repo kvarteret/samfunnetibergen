@@ -14,7 +14,7 @@
     "STUDIO_URL": "https://studio.samfunnetibergen.no",
     "AZURE_OPENAI_LUNA_DEPLOYMENT": "skonk"
   },
-  // Secrets: SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SANITY_SKONK_READ_TOKEN,
+  // Secrets: SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SANITY_MIME_READ_TOKEN,
   // AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY (see README).
   "durable_objects": {
     "bindings": [{ "name": "MimeThread", "class_name": "MimeThread" }]

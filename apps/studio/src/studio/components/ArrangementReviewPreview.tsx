@@ -229,7 +229,7 @@ export function ArrangementReviewPreview({
       : []
   const ticket = safeLink(preview.ticketUrl)
   const facebook = safeLink(preview.facebookUrl)
-  const isSkonk = document.submittedBy === "E-tjenesten's Skonk"
+  const isImporterSubmission = document.submittedBy === "E-tjenesten's Skonk"
   const missingRequired = preview.missingRequired.length
   return (
     <Card border padding={4} radius={2}>
@@ -255,7 +255,7 @@ export function ArrangementReviewPreview({
             />
           </Flex>
         </Flex>
-        {isSkonk ? (
+        {isImporterSubmission ? (
           <Card padding={3} radius={2} tone="caution">
             <Text size={1} weight="semibold">
               Automatisk import — se nøye gjennom rom, dørtider, pris og

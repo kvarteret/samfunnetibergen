@@ -2,7 +2,7 @@ name: Deploy Mime
 
 # Mime is a standalone Cloudflare Worker, so it deploys on its own and never
 # holds up the website release. Credentials and secrets come from Infisical
-# /skonk and are piped from environment variables, never written to disk.
+# /mime and are piped from environment variables, never written to disk.
 
 on:
   push:
@@ -56,10 +56,10 @@ jobs:
         run: npm run test:mime
 
       # The identity is Mime's own (github-mime-deploy), bound to this
-      # workflow file, so the website release identity never reads /skonk.
+      # workflow file, so the website release identity never reads /mime.
       # Its ID is the repository variable INFISICAL_MIME_IDENTITY_ID.
       # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
-      # SANITY_SKONK_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
+      # SANITY_MIME_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
       - name: Load Mime secrets
         uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
@@ -69,7 +69,7 @@ jobs:
           domain: https://secrets.samfunnetibergen.no
           project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
           env-slug: prod
-          secret-path: /skonk
+          secret-path: /mime
           export-type: env
 
       - name: Verify secrets are present
@@ -78,11 +78,11 @@ jobs:
           set -euo pipefail
           missing=()
           for name in CLOUDFLARE_API_TOKEN SLACK_BOT_TOKEN SLACK_SIGNING_SECRET \
-            SANITY_SKONK_READ_TOKEN AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY; do
+            SANITY_MIME_READ_TOKEN AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_KEY; do
             [[ -n "${!name:-}" ]] || missing+=("$name")
           done
           if (( ${#missing[@]} > 0 )); then
-            echo "Missing from Infisical /skonk: ${missing[*]}" >&2
+            echo "Missing from Infisical /mime: ${missing[*]}" >&2
             exit 1
           fi
           if [[ ! "$SLACK_BOT_TOKEN" =~ ^xoxb- ]]; then
@@ -112,7 +112,7 @@ jobs:
           jq -n \
             --arg SLACK_BOT_TOKEN "$SLACK_BOT_TOKEN" \
             --arg SLACK_SIGNING_SECRET "$SLACK_SIGNING_SECRET" \
-            --arg SANITY_SKONK_READ_TOKEN "$SANITY_SKONK_READ_TOKEN" \
+            --arg SANITY_MIME_READ_TOKEN "$SANITY_MIME_READ_TOKEN" \
             --arg AZURE_OPENAI_ENDPOINT "$AZURE_OPENAI_ENDPOINT" \
             --arg AZURE_OPENAI_API_KEY "$AZURE_OPENAI_API_KEY" \
             '$ARGS.named' |
