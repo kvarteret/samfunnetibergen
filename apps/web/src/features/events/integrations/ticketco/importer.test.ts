@@ -512,7 +512,7 @@ test("a save failure remains a failure even after resolving the room", async () 
   )
 })
 
-test("a missing-room import with an image cannot merge into an existing show", async () => {
+test("a missing-room import without a matching show is still saved as a draft", async () => {
   const fixture = fixtureClient()
   const deps = dependencies()
   deps.extract.mockResolvedValue({ ...extraction, room: "" })
@@ -520,8 +520,10 @@ test("a missing-room import with an image cannot merge into an existing show", a
   deps.fetchPage.mockResolvedValue(
     '<meta property="og:image" content="https://tuploads.s3.amazonaws.com/image.png">',
   )
-  const upload = vi.fn(async () => ({ _id: "image-asset" }))
-  Object.assign(fixture.client, { assets: { upload } })
+  Object.assign(fixture.client, {
+    assets: { upload: vi.fn(async () => ({ _id: "image-asset" })) },
+  })
+  vi.mocked(mergeDuplicateListing).mockResolvedValueOnce(null)
   vi.stubGlobal(
     "fetch",
     vi.fn(
@@ -534,11 +536,43 @@ test("a missing-room import with an image cannot merge into an existing show", a
       imported: 1,
       merged: 0,
     })
-    expect(upload).toHaveBeenCalledOnce()
-    expect(mergeDuplicateListing).not.toHaveBeenCalled()
     expect(fixture.docs.get(`drafts.${ticketDocumentId(url)}`)).toMatchObject({
       image: { asset: { _ref: "image-asset" } },
     })
+  } finally {
+    vi.unstubAllGlobals()
+  }
+})
+
+test("a missing-room import with an image merges into an existing show", async () => {
+  const fixture = fixtureClient()
+  const deps = dependencies()
+  deps.extract.mockResolvedValue({ ...extraction, room: "" })
+  deps.calendar.mockResolvedValue([])
+  deps.fetchPage.mockResolvedValue(
+    '<meta property="og:image" content="https://tuploads.s3.amazonaws.com/image.png">',
+  )
+  const upload = vi.fn(async () => ({ _id: "image-asset" }))
+  Object.assign(fixture.client, { assets: { upload } })
+  vi.mocked(mergeDuplicateListing).mockResolvedValueOnce("ticketco-show")
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response("image", { headers: { "content-type": "image/png" } }),
+    ),
+  )
+  try {
+    expect(await importEvents(fixture.client, false, deps)).toMatchObject({
+      imported: 0,
+      merged: 1,
+    })
+    expect(upload).toHaveBeenCalledOnce()
+    expect(mergeDuplicateListing).toHaveBeenCalledWith(
+      fixture.client,
+      expect.objectContaining({ url, imageAssetId: "image-asset" }),
+    )
+    expect(fixture.docs.has(`drafts.${ticketDocumentId(url)}`)).toBe(false)
   } finally {
     vi.unstubAllGlobals()
   }

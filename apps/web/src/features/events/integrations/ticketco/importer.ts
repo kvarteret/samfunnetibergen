@@ -371,8 +371,9 @@ export async function importEvents(
         }
         // Another performance of a show already imported: same title and the
         // same poster (by perceptual hash) becomes an extra date, not a copy.
+        // This holds when this listing's room is unresolved: the show already
+        // has its own room, and a separate draft would duplicate it.
         const mergedInto =
-          form.room &&
           imageAssetId &&
           (await mergeDuplicateListing(client, {
             url,
