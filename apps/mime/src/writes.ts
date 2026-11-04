@@ -1,5 +1,6 @@
 import { tool } from "ai"
 import { z } from "zod"
+import { responseBlocks } from "./response"
 
 /**
  * Write access, with a human in the loop.
@@ -158,7 +159,7 @@ export function planBlocks(
     }),
   )
   return [
-    { type: "section", text: { type: "mrkdwn", text: clip(answer, 2900) } },
+    ...responseBlocks(answer),
     { type: "divider" },
     {
       type: "header",

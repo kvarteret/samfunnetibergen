@@ -3,6 +3,7 @@ import { Agent } from "agents"
 import { generateText, type ModelMessage, stepCountIs } from "ai"
 import { trimHistory } from "./history"
 import { systemPrompt } from "./prompt"
+import { responseBlocks } from "./response"
 import { connectSanity, WRITE_TOOLS } from "./sanity"
 import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
 import { webTools } from "./web"
@@ -226,7 +227,7 @@ export class MimeThread extends Agent<Env> {
         (proposed ? "Her er forslaget mitt." : "Jeg fant ikke noe svar på det.")
       // The plan is rendered by code from what was stored, not by the model.
       const text = proposed
-        ? `${slackText(answer, 2900)}\n\n${renderPlan(proposed)}\n\nKnappene Godkjenn og Avbryt. Bare den som ba om forslaget kan bestemme.`
+        ? `${slackText(answer, 36000)}\n\n${renderPlan(proposed)}\n\nKnappene Godkjenn og Avbryt. Bare den som ba om forslaget kan bestemme.`
         : answer
       if (proposed)
         this
@@ -234,8 +235,8 @@ export class MimeThread extends Agent<Env> {
       await slack.update(
         channel,
         placeholder,
-        proposed ? text : slackText(text),
-        proposed ? planBlocks(answer, proposed) : undefined,
+        proposed ? slackText(text, 39000) : slackText(text, 36000),
+        proposed ? planBlocks(answer, proposed) : responseBlocks(answer),
       )
       this.replaceHistory(
         trimHistory([...history, user, ...result.responseMessages]),
@@ -310,7 +311,10 @@ export class MimeThread extends Agent<Env> {
       .update(
         channel,
         plan.message_ts,
-        `${slackText(answer, 2900)}\n\n${renderPlan(plan)}\n\n${statusText}`,
+        slackText(
+          `${slackText(answer, 36000)}\n\n${renderPlan(plan)}\n\n${statusText}`,
+          39000,
+        ),
         planBlocks(answer, plan, status),
       )
       .catch(() => undefined)

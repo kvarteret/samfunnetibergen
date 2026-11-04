@@ -215,7 +215,9 @@ test("more information starts collapsed and accommodates the maximum plan", () =
     is_collapsible: true,
     default_collapsed: true,
   })
-  expect(details?.child_blocks).toHaveLength(9)
+  expect(
+    details && "child_blocks" in details ? details.child_blocks : undefined,
+  ).toHaveLength(9)
   expect(JSON.stringify(details)).toContain("Endring 25")
 })
 
@@ -244,10 +246,23 @@ test("escaped long text stays within Slack section limits", () => {
     ops,
   })
   for (const block of blocks) {
-    if (block.type === "section")
+    if (block.type === "section" && "text" in block)
       expect(block.text?.text.length).toBeLessThanOrEqual(3000)
-    if (block.type === "container")
+    if (block.type === "container" && "child_blocks" in block)
       for (const child of block.child_blocks ?? [])
         expect(child.text?.text.length).toBeLessThanOrEqual(3000)
+  }
+})
+
+test("approval cards retain the same useful links after a decision", () => {
+  const plan = { id: "ab12cd34", requester: "U1", summary: "Oppdater", ops: [] }
+  for (const status of ["pending", "done"] as const) {
+    const blocks = planBlocks(
+      "Se <https://studio.example.no/doc|arrangementet>.",
+      plan,
+      status,
+    )
+    expect(JSON.stringify(blocks)).toContain("Nyttige lenker")
+    expect(JSON.stringify(blocks)).toContain("https://studio.example.no/doc")
   }
 })
