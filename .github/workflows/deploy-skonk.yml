@@ -55,13 +55,16 @@ jobs:
       - name: Tests
         run: npm run test:skonk
 
+      # The identity is Skonk's own (github-skonk-deploy), bound to this
+      # workflow file, so the website release identity never reads /skonk.
+      # Its ID is the repository variable INFISICAL_SKONK_IDENTITY_ID.
       # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
       # SANITY_SKONK_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY.
       - name: Load Skonk secrets
         uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
           method: oidc
-          identity-id: 242f2c14-008b-4e8a-a78c-820300ee0c5f
+          identity-id: ${{ vars.INFISICAL_SKONK_IDENTITY_ID }}
           oidc-audience: https://secrets.samfunnetibergen.no
           domain: https://secrets.samfunnetibergen.no
           project-id: cb100288-29b5-44a8-9bde-86815cdbb63d
