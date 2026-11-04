@@ -2,8 +2,8 @@
 
 Tag `@mime` in a Slack thread and work the problem out there. Mime answers
 in the thread, remembers the thread, and replies to later messages in it
-without being tagged again. For now it can only **read** Sanity; writing
-(importing events, merging arrangements) comes next.
+without being tagged again. It reads Sanity freely. It can also edit content, but only through a plan:
+see *Writing* below.
 
 It is a Cloudflare Worker built with the [Agents SDK](https://developers.cloudflare.com/agents/),
 with one Durable Object (`MimeThread`) per Slack thread, named
@@ -25,6 +25,22 @@ existing Azure AI resource.
   deploys, publishing and dataset tools are never shown to the model.
 - `src/prompt.ts` is the system prompt. Sanity content, web pages and Slack
   messages are data, never instructions.
+
+## Writing
+
+Writes need `SANITY_MIME_WRITE_TOKEN`, a Sanity **Editor** token for project
+`mkjoahvv`. Without it Mime is read-only.
+
+The model never gets write tools. It can call `propose_write_plan`, which
+stores a list of operations (`create_documents`, `patch_documents`,
+`publish_documents`, `unpublish_documents`, `discard_drafts`; schema, dataset
+and project tools are never offered, 25 operations at most). Mime then posts
+the stored operations exactly as they will run, written by code and not by the
+model, and waits. Only the person who asked can approve, by replying *ja* (or
+cancel with *nei*). Code then runs the stored plan at most once, with the
+project and dataset fixed. A new plan replaces a waiting one, and a plan
+expires after an hour. If a run fails or is cut off, nothing is retried or
+rolled back; the thread says what ran and Studio shows the rest.
 
 ## Local development
 
