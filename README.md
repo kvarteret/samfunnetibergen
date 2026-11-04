@@ -1,8 +1,10 @@
 # Samfunnet i Bergen
 
-This repository contains a Next.js website and a Sanity Studio managed as npm
-workspaces. The runnable applications live in `apps/web` and `apps/studio`;
-the root package only orchestrates checks and builds.
+This repository contains a Next.js website, a Sanity Studio and internal tools
+managed as npm workspaces. The runnable applications live in `apps/web`,
+`apps/studio` and `apps/internal/*` (the skiftlista leader app, see
+`docs/how-to/skiftlista-leader-app.md`); the root package only orchestrates
+checks and builds.
 
 ## Getting Started
 

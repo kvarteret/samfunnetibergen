@@ -1,0 +1,23 @@
+{
+  "name": "Dev Admin",
+  "role": "Admin",
+  "csrf_token": "fixture",
+  "bars": [
+    {
+      "id": 9,
+      "name": "Grøndahls"
+    },
+    {
+      "id": 10,
+      "name": "Halvtimen"
+    },
+    {
+      "id": 8,
+      "name": "Kjøkken"
+    },
+    {
+      "id": 7,
+      "name": "Stjerne"
+    }
+  ]
+}

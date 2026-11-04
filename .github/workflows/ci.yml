@@ -151,6 +151,15 @@ jobs:
             echo "studio_changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+          if git diff --quiet "$BASE_SHA" HEAD -- \
+            apps/internal/skiftlista \
+            package.json \
+            package-lock.json; then
+            echo "skiftlista_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skiftlista_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Restore Next.js build cache
         if: steps.app_changes.outputs.web_changed == 'true'
         uses: actions/cache@v4
@@ -168,6 +177,10 @@ jobs:
       - name: Studio production build
         if: steps.app_changes.outputs.studio_changed == 'true'
         run: npm run build:studio
+
+      - name: Skiftlista production build
+        if: steps.app_changes.outputs.skiftlista_changed == 'true'
+        run: npm run build:skiftlista
 
   # Branch protection on `develop` requires the status check named exactly
   # "Format, Lint, Typecheck, Test, Build". This no-op aggregator keeps that

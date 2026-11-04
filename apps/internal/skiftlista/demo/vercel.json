@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/personal/:path*",
+      "destination": "https://skiftlista-demo.onrender.com/:path*"
+    },
+    {
+      "source": "/login",
+      "destination": "https://skiftlista-demo.onrender.com/login"
+    },
+    {
+      "source": "/login/:path*",
+      "destination": "https://skiftlista-demo.onrender.com/login/:path*"
+    },
+    {
+      "source": "/logout",
+      "destination": "https://skiftlista-demo.onrender.com/logout"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "https://skiftlista-demo.onrender.com/static/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

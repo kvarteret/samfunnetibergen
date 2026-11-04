@@ -1,0 +1,2586 @@
+{
+  "bar": {
+    "id": 7,
+    "name": "Stjerne"
+  },
+  "week_start": "2026-11-02",
+  "week_number": 45,
+  "version": "cd6954872208a0a2",
+  "status": "published",
+  "deadline": null,
+  "rows": [
+    {
+      "position": 1,
+      "label": "Dagskift",
+      "time_label": "11:30–17:00"
+    },
+    {
+      "position": 2,
+      "label": "Kveldsskift",
+      "time_label": "16:30–22:00"
+    }
+  ],
+  "shifts": [
+    {
+      "shift_id": 24,
+      "day": "2026-11-02",
+      "position": 1,
+      "title": "Dagskift",
+      "time_label": "11:30–17:00",
+      "starts_at": "2026-11-02T11:30:00+01:00",
+      "ends_at": "2026-11-02T17:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 66,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 39,
+            "volunteer_id": 44,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 67,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 40,
+            "volunteer_id": 54,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 28,
+      "day": "2026-11-03",
+      "position": 1,
+      "title": "Dagskift",
+      "time_label": "11:30–17:00",
+      "starts_at": "2026-11-03T11:30:00+01:00",
+      "ends_at": "2026-11-03T17:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 77,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 46,
+            "volunteer_id": 43,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 78,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 47,
+            "volunteer_id": 55,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 32,
+      "day": "2026-11-04",
+      "position": 1,
+      "title": "Dagskift",
+      "time_label": "11:30–17:00",
+      "starts_at": "2026-11-04T11:30:00+01:00",
+      "ends_at": "2026-11-04T17:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 88,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 55,
+            "volunteer_id": 41,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": [
+              {
+                "text": "2 skift denne uka",
+                "level": "yellow"
+              }
+            ]
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 89,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": null,
+          "suggestion": null,
+          "needed": true
+        },
+        {
+          "slot_id": 90,
+          "seat": 0,
+          "kind": "opplaering",
+          "assignment": null,
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 36,
+      "day": "2026-11-05",
+      "position": 1,
+      "title": "Dagskift",
+      "time_label": "11:30–17:00",
+      "starts_at": "2026-11-05T11:30:00+01:00",
+      "ends_at": "2026-11-05T17:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 99,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 222,
+            "volunteer_id": 41,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": [
+              {
+                "text": "2 skift denne uka",
+                "level": "yellow"
+              }
+            ]
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 100,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 62,
+            "volunteer_id": 47,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 40,
+      "day": "2026-11-06",
+      "position": 1,
+      "title": "Dagskift",
+      "time_label": "11:30–17:00",
+      "starts_at": "2026-11-06T11:30:00+01:00",
+      "ends_at": "2026-11-06T17:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 110,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": null,
+          "suggestion": null,
+          "needed": true
+        },
+        {
+          "slot_id": 111,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 66,
+            "volunteer_id": 52,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 25,
+      "day": "2026-11-02",
+      "position": 2,
+      "title": "Kveldsskift",
+      "time_label": "16:30–22:00",
+      "starts_at": "2026-11-02T16:30:00+01:00",
+      "ends_at": "2026-11-02T22:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 69,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 41,
+            "volunteer_id": 46,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 71,
+          "seat": 0,
+          "kind": "opplaering",
+          "assignment": {
+            "assignment_id": 42,
+            "volunteer_id": 56,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 29,
+      "day": "2026-11-03",
+      "position": 2,
+      "title": "Quizskift",
+      "time_label": "16:30–23:00",
+      "starts_at": "2026-11-03T16:30:00+01:00",
+      "ends_at": "2026-11-03T23:00:00+01:00",
+      "duration_minutes": 390,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 80,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 48,
+            "volunteer_id": 45,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 81,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 49,
+            "volunteer_id": 50,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 81,
+          "seat": 1,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 50,
+            "volunteer_id": 49,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 33,
+      "day": "2026-11-04",
+      "position": 2,
+      "title": "Kveldsskift",
+      "time_label": "16:30–22:00",
+      "starts_at": "2026-11-04T16:30:00+01:00",
+      "ends_at": "2026-11-04T22:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 91,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": {
+            "assignment_id": 56,
+            "volunteer_id": 42,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        },
+        {
+          "slot_id": 93,
+          "seat": 0,
+          "kind": "opplaering",
+          "assignment": {
+            "assignment_id": 57,
+            "volunteer_id": 57,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 37,
+      "day": "2026-11-05",
+      "position": 2,
+      "title": "Kveldsskift",
+      "time_label": "16:30–22:00",
+      "starts_at": "2026-11-05T16:30:00+01:00",
+      "ends_at": "2026-11-05T22:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 102,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": null,
+          "suggestion": null,
+          "needed": true
+        },
+        {
+          "slot_id": 103,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": {
+            "assignment_id": 63,
+            "volunteer_id": 48,
+            "cannot_attend": false,
+            "swap_requested": false,
+            "training": null,
+            "problems": []
+          },
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    },
+    {
+      "shift_id": 41,
+      "day": "2026-11-06",
+      "position": 2,
+      "title": "Kveldsskift",
+      "time_label": "16:30–22:00",
+      "starts_at": "2026-11-06T16:30:00+01:00",
+      "ends_at": "2026-11-06T22:00:00+01:00",
+      "duration_minutes": 330,
+      "closed": false,
+      "places": [
+        {
+          "slot_id": 113,
+          "seat": 0,
+          "kind": "skiftleder",
+          "assignment": null,
+          "suggestion": null,
+          "needed": true
+        },
+        {
+          "slot_id": 114,
+          "seat": 0,
+          "kind": "skjenker",
+          "assignment": null,
+          "suggestion": null,
+          "needed": true
+        },
+        {
+          "slot_id": 115,
+          "seat": 0,
+          "kind": "opplaering",
+          "assignment": null,
+          "suggestion": null,
+          "needed": false
+        }
+      ],
+      "answers": {}
+    }
+  ],
+  "people": [
+    {
+      "volunteer_id": 90,
+      "name": "Hedda Dahl",
+      "is_skiftleder": true,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 92,
+      "name": "Iver Berg",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 93,
+      "name": "Live Haugen",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 89,
+      "name": "Mats Solberg",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 58,
+      "name": "Nora Solberg",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 91,
+      "name": "Ylva Vik",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 0,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 53,
+      "name": "Didrik Moen",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 3,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 51,
+      "name": "Ulrik Lie",
+      "is_skiftleder": false,
+      "week_shifts": 0,
+      "month_shifts": 3,
+      "week_minutes": 0,
+      "answer_status": "ikke_svart",
+      "busy_days": [],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 52,
+      "name": "Tuva Rasmussen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 2,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-06"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 48,
+      "name": "Gustav Iversen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 3,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-05"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 55,
+      "name": "Ulrik Fjeld",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 3,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-03"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 50,
+      "name": "Eira Olsen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 390,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-03"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 43,
+      "name": "Live Moen",
+      "is_skiftleder": true,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-03"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 54,
+      "name": "Pernille Olsen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-02"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 56,
+      "name": "Quint Eriksen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-02"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 49,
+      "name": "Quint Iversen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 390,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-03"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 42,
+      "name": "Sander Olsen",
+      "is_skiftleder": true,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-04"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 45,
+      "name": "Sander Pedersen",
+      "is_skiftleder": true,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 390,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-03"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 47,
+      "name": "Ulrik Rasmussen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-05"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 44,
+      "name": "William Lie",
+      "is_skiftleder": true,
+      "week_shifts": 1,
+      "month_shifts": 4,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-02"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 57,
+      "name": "Nora Johansen",
+      "is_skiftleder": false,
+      "week_shifts": 1,
+      "month_shifts": 5,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-04"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 46,
+      "name": "Pernille Haugen",
+      "is_skiftleder": true,
+      "week_shifts": 1,
+      "month_shifts": 5,
+      "week_minutes": 330,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-02"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    },
+    {
+      "volunteer_id": 41,
+      "name": "Didrik Knutsen",
+      "is_skiftleder": true,
+      "week_shifts": 2,
+      "month_shifts": 5,
+      "week_minutes": 660,
+      "answer_status": "ikke_svart",
+      "busy_days": ["2026-11-04", "2026-11-05"],
+      "note": null,
+      "max_shifts": null,
+      "tags": []
+    }
+  ],
+  "fit": {
+    "41": {
+      "89": {
+        "ok": false,
+        "reason": "Står allerede på dette skiftet"
+      },
+      "90": {
+        "ok": false,
+        "reason": "Står allerede på dette skiftet"
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 3 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 3 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 3 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 3 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 3 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "53": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "50": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "48": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": false,
+        "reason": "Står allerede på dette skiftet"
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "90": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "92": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "93": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "43": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "89": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "57": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          },
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      }
+    },
+    "58": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "46": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "54": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "56": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      }
+    },
+    "49": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "42": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "45": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "52": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": false,
+        "reason": "Står allerede på dette skiftet"
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "55": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "51": {
+      "89": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "47": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "to skift samme dag",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "44": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "90": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": false
+      },
+      "115": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for de som er i opplæring i gruppen",
+            "level": "red"
+          },
+          {
+            "text": "skift nummer 2 denne uka",
+            "level": "yellow"
+          }
+        ],
+        "needs_confirmation": true
+      }
+    },
+    "91": {
+      "89": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "90": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      },
+      "102": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "110": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "113": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "Kun for godkjente skiftledere",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "114": {
+        "ok": true,
+        "warnings": [
+          {
+            "text": "I opplæring: bruk opplæringsplassen",
+            "level": "red"
+          }
+        ],
+        "needs_confirmation": true
+      },
+      "115": {
+        "ok": true,
+        "warnings": [],
+        "needs_confirmation": false
+      }
+    }
+  },
+  "strip": [
+    {
+      "week_start": "2026-11-02",
+      "number": 45,
+      "status": "published"
+    },
+    {
+      "week_start": "2026-11-09",
+      "number": 46,
+      "status": "published"
+    },
+    {
+      "week_start": "2026-11-16",
+      "number": 47,
+      "status": "open"
+    },
+    {
+      "week_start": "2026-11-23",
+      "number": 48,
+      "status": "open"
+    }
+  ],
+  "last_changed": null
+}
