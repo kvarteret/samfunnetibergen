@@ -20,6 +20,9 @@ describe("PostHog events", () => {
     const hidden = generationEvent(env, event).properties
     expect(hidden.$ai_input).toBeUndefined()
     expect(hidden.$ai_model).toBe("skonk")
+    expect(hidden.workflow).toBe("slackbot")
+    expect(hidden.$ai_span_name).toBe("slackbot")
+    expect(generationEvent(env, event).distinct_id).toBe("slackbot:U1")
     expect(hidden.context_redacted).toBe(true)
     const shown = generationEvent(
       { ...env, POSTHOG_CONTENT: "on" },

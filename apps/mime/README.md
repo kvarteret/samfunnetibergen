@@ -78,8 +78,8 @@ all threads). `GET /feedback` exports them, newest first, with
 `?format=cases` for draft eval cases. Without the token the endpoint is off.
 
 With `POSTHOG_PROJECT_TOKEN` (the website's `phc_…` project key), every
-answer is also an `$ai_generation` in PostHog (model `skonk`, tokens, latency,
-tools used) and every rating an `$ai_metric` named `feedback` on the same
+answer is also an `$ai_generation` in PostHog, labelled `slackbot` (workflow,
+trace name and distinct ID prefix; model `skonk`, tokens, latency, tools used) and every rating an `$ai_metric` named `feedback` on the same
 trace. No Slack text goes to PostHog unless `POSTHOG_CONTENT=on`; the full
 question and answer are only in `MimeFeedback`.
 

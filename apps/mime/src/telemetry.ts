@@ -31,8 +31,11 @@ export type GenerationEvent = {
   error?: string
 }
 
+/** How Mime's events are labelled in PostHog. */
+export const POSTHOG_WORKFLOW = "slackbot"
+
 function distinctId(user: string) {
-  return `mime:slack:${user}`
+  return `${POSTHOG_WORKFLOW}:${user}`
 }
 
 export function generationEvent(env: TelemetryEnv, event: GenerationEvent) {
@@ -42,9 +45,10 @@ export function generationEvent(env: TelemetryEnv, event: GenerationEvent) {
     distinct_id: distinctId(event.user),
     properties: {
       $process_person_profile: false,
-      workflow: "mime",
+      workflow: POSTHOG_WORKFLOW,
       $ai_trace_id: event.traceId,
-      $ai_span_name: "Mime Slack answer",
+      $ai_span_name: POSTHOG_WORKFLOW,
+      $ai_trace_name: POSTHOG_WORKFLOW,
       // The repository's PostHog policy: AI events name the `skonk` deployment.
       $ai_model: env.AZURE_OPENAI_LUNA_DEPLOYMENT,
       $ai_provider: "azure",
@@ -79,7 +83,7 @@ export function feedbackEvent(
     distinct_id: distinctId(user),
     properties: {
       $process_person_profile: false,
-      workflow: "mime",
+      workflow: POSTHOG_WORKFLOW,
       $ai_trace_id: traceId,
       $ai_metric_name: "feedback",
       $ai_metric_value: rating === "positive" ? "good" : "bad",
