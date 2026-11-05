@@ -7,8 +7,8 @@
 #   apps/mime/scripts/setup-sanity-context.sh token       # org token -> Infisical /mime (never printed)
 #   apps/mime/scripts/setup-sanity-context.sh check       # list the endpoint's tools with that token
 #
-# Needs: gh, npx (sanity CLI from apps/studio), jq, and the Infisical CLI
-# (brew install infisical/get-cli/infisical; infisical login --domain=https://secrets.samfunnetibergen.no).
+# Needs: gh, npx, jq, and the Infisical CLI pinned in mise.toml
+# (mise install; infisical login --domain=https://secrets.samfunnetibergen.no).
 
 set -euo pipefail
 
@@ -23,7 +23,8 @@ INFISICAL_PROJECT="cb100288-29b5-44a8-9bde-86815cdbb63d"
 INFISICAL_ENV="prod"
 INFISICAL_PATH="/mime"
 
-ROOT="$(git rev-parse --show-toplevel)"
+# Works from any directory: paths are relative to this script.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 MIME="$ROOT/apps/mime"
 STUDIO="$ROOT/apps/studio"
 
@@ -87,7 +88,7 @@ infisical_set() {
 
 step_token() {
   need jq "brew install jq"
-  need infisical "brew install infisical/get-cli/infisical, then: infisical login --domain=https://secrets.samfunnetibergen.no"
+  need infisical "Run mise install (mise.toml pins it), then: infisical login --domain=https://secrets.samfunnetibergen.no"
   local json token
   # Organization tokens with grants need @sanity/cli 8.27 or later; Studio's
   # bundled CLI is older.
@@ -106,7 +107,7 @@ step_token() {
 }
 
 step_check() {
-  need infisical "brew install infisical/get-cli/infisical"
+  need infisical "Run mise install (mise.toml pins it)."
   # Lists the endpoint's tools with the stored token; prints names only.
   infisical run --domain="$INFISICAL_DOMAIN" --projectId="$INFISICAL_PROJECT" \
     --env="$INFISICAL_ENV" --path="$INFISICAL_PATH" -- \
