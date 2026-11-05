@@ -48,6 +48,7 @@
     "test:party": "npm --workspace @samfunnet/party run test",
     "test:mime": "npm --workspace @samfunnet/mime run test",
     "eval:mime": "npm --workspace @samfunnet/mime run eval --",
+    "ask:mime": "npm --workspace @samfunnet/mime run ask --",
     "format:check": "npx --no-install biome format .",
     "format": "npx --no-install biome format --write .",
     "lint": "npx --no-install biome check .",

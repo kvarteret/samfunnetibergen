@@ -121,24 +121,23 @@ rolled back; the thread says what ran and Studio shows the rest.
 
 ## Local development
 
-Create a **test** Slack app from `slack-manifest.json` in a test workspace or
-channel, never the production Mime app. Copy `.dev.vars.example` to
-`.dev.vars` and fill it in. `ALLOWED_CHANNELS` takes channel IDs (right-click
-the channel → View channel details → bottom of the dialog).
+Copy `.dev.vars.example` to `.dev.vars` and fill it in, including
+`MIME_TEST_USER` (your Slack member ID). Then:
 
 ```bash
 npm run dev:mime
-npx cloudflared tunnel --url http://localhost:1998
+npm run ask:mime -- "arrangement i dag?"
+npm run ask:mime -- "og i morgen?" --thread 1793797242.903499
 ```
 
-Enable Interactivity for the Slack app and set its Request URL to the tunnel's
-`https://…/slack/interactions`. For the installed production app, set the same
-path on its Worker URL; deploying the Worker alone does not update Slack settings.
-Then set the test app's Event Subscriptions request URL to the tunnel's
-`https://…/slack/events`, invite the app to the channel, and tag it.
-
-The Sanity token is a robot token with the **Viewer** role, created at
-sanity.io/manage for project `mkjoahvv`.
+`ask:mime` signs an `app_mention` the way Slack does and sends it to the
+local Worker, so no tunnel or Slack app settings are needed. Without
+`--thread` it starts a new thread with a "🧪 Lokal test" message. The answer
+is posted to Slack with the bot token in `.dev.vars`, so set
+`MIME_TEST_CHANNEL` to a private test channel (and add it to
+`ALLOWED_CHANNELS`) to keep tests out of #nettside. Real mentions and button
+clicks still go to the deployed Worker; for answers alone, `npm run eval:mime`
+needs no Slack at all.
 
 ## Deploy
 

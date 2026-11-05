@@ -17,3 +17,7 @@ AZURE_OPENAI_API_KEY=...
 # Optional: PostHog LLM analytics (the website's phc_ key); content only with POSTHOG_CONTENT=on.
 # POSTHOG_PROJECT_TOKEN=phc_...
 # WEB_SEARCH=off
+# For npm run ask:mime: your Slack member ID, and optionally a private test channel
+# (add it to ALLOWED_CHANNELS too).
+# MIME_TEST_USER=U0123456789
+# MIME_TEST_CHANNEL=C0123456789
