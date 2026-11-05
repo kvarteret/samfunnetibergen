@@ -65,9 +65,10 @@ In the Context app (opening the Sanity dashboard now), create an MCP:
                 perspective published, semantic search on
 EOF
   open "https://www.sanity.io/@${ORG_ID}" 2>/dev/null || true
-  pbcopy < "$MIME/context-instructions.md"
+  # Without a UTF-8 locale pbcopy reads the file as Mac Roman (ø → √∏).
+  LC_ALL=en_US.UTF-8 pbcopy < "$MIME/context-instructions.md"
   read -r -p "Instructions are on the clipboard: paste them into Instructions, then press Enter. "
-  printf '%s' "$GROQ_FILTER" | pbcopy
+  printf '%s' "$GROQ_FILTER" | LC_ALL=en_US.UTF-8 pbcopy
   read -r -p "GROQ filter is on the clipboard: paste it into GROQ filter, save, then press Enter. "
   echo "Endpoint URL: $MCP_URL"
 }
