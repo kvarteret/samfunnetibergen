@@ -30,9 +30,9 @@ STUDIO="$ROOT/apps/studio"
 
 GROQ_FILTER='_type in ["arrangement", "room", "studentGroup", "eventType", "eventTaxonomyGroup", "page", "homePage", "roomsPage", "groupsPage", "usefulInfoPage", "kontaktPage", "sponsorsPage", "linkInBio", "navbar", "footer", "siteMetadata", "internbevisBenefit"]'
 
-# What gets embedded per document: titles, names and descriptions, plus the
-# series/room/organizer names an editor would search by.
-EMBEDDINGS_PROJECTION='{ _type, "title": coalesce(localizedTitle[language == "nb"][0].value, localizedName[language == "nb"][0].value, title, name), "titleEn": coalesce(localizedTitle[language == "en"][0].value, localizedName[language == "en"][0].value), "description": pt::text(coalesce(localizedDescription[language == "nb"][0].value, description)), "parent": parentEvent->localizedTitle[language == "nb"][0].value, "room": room->localizedTitle[language == "nb"][0].value, "organizer": organizerGroup->localizedName[language == "nb"][0].value }'
+# What gets embedded per document: titles, names and descriptions in both
+# languages. Sanity refuses dereferences (->) in this projection.
+EMBEDDINGS_PROJECTION='{ _type, "title": coalesce(localizedTitle[language == "nb"][0].value, localizedName[language == "nb"][0].value, title, name), "titleEn": coalesce(localizedTitle[language == "en"][0].value, localizedName[language == "en"][0].value), "description": pt::text(coalesce(localizedDescription[language == "nb"][0].value, description)), "descriptionEn": pt::text(localizedDescription[language == "en"][0].value) }'
 
 need() { command -v "$1" >/dev/null || { echo "Missing: $1. $2" >&2; exit 1; }; }
 
