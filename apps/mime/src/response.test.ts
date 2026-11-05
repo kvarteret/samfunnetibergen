@@ -30,15 +30,19 @@ describe("relevant links", () => {
     const blocks = responseBlocks(answer)
     expect(blocks.length).toBeLessThanOrEqual(45)
     for (const block of blocks)
-      expect(block.text.text.length).toBeLessThanOrEqual(3000)
+      if (block.type === "section")
+        expect(block.text.text.length).toBeLessThanOrEqual(3000)
+      else expect(block.text.length).toBeLessThanOrEqual(12000)
     expect(
-      blocks.some(block => block.text.text.includes("Nyttige lenker")),
+      blocks.some(
+        block =>
+          block.type === "section" &&
+          block.text.text.includes("Nyttige lenker"),
+      ),
     ).toBe(true)
     expect(JSON.stringify(blocks)).toContain("https://example.com/0")
   })
   test("does not append a links section when there are no links", () => {
-    expect(responseBlocks("Hei!")).toEqual([
-      { type: "section", text: { type: "mrkdwn", text: "Hei!" } },
-    ])
+    expect(responseBlocks("Hei!")).toEqual([{ type: "markdown", text: "Hei!" }])
   })
 })

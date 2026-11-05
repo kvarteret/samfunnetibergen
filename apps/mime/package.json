@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev --port 1998",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@ai-sdk/azure": "4.0.116",
