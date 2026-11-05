@@ -1,11 +1,11 @@
 {
   "display_information": {
-    "name": "Mime",
+    "name": "Ludvig",
     "description": "E-tjenesten's lille hjelper.",
     "background_color": "#1d1c1d"
   },
   "features": {
-    "bot_user": { "display_name": "Mime", "always_online": true }
+    "bot_user": { "display_name": "Ludvig", "always_online": true }
   },
   "oauth_config": {
     "scopes": {
