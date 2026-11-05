@@ -141,3 +141,87 @@ describe("htmlToText safety", () => {
     )
   })
 })
+
+describe("browsing helpers", () => {
+  test("links are absolute, deduplicated and keep their text", async () => {
+    const { pageLinks } = await import("./web")
+    const links = pageLinks(
+      `<nav><a href="/events">Arrangement</a></nav><a href="/article/x">X</a><a href="/article/x"></a><a href="mailto:a@b.no">mail</a><a href="#top">top</a>`,
+      "https://www.biff.no/events",
+    )
+    expect(links).toEqual([
+      { text: "Arrangement", url: "https://www.biff.no/events" },
+      { text: "X", url: "https://www.biff.no/article/x" },
+    ])
+  })
+
+  test("page text resolves relative links", () => {
+    expect(
+      htmlToText(`<a href="/f/film/1">Film</a>`, "https://www.biff.no/events"),
+    ).toBe("Film (https://www.biff.no/f/film/1)")
+  })
+
+  test("main content skips navigation", async () => {
+    const { mainHtml } = await import("./web")
+    expect(
+      htmlToText(mainHtml("<nav>Meny</nav><main><p>Innhold</p></main>")),
+    ).toBe("Innhold")
+    expect(htmlToText(mainHtml("<header>Topp</header><p>Innhold</p>"))).toBe(
+      "Innhold",
+    )
+  })
+
+  test("excerpts around a word", async () => {
+    const { excerpts } = await import("./web")
+    const found = excerpts(
+      `${"x ".repeat(500)}Kvarteret ${"y ".repeat(500)}`,
+      "kvarteret",
+    )
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("Kvarteret")
+  })
+
+  test("open_pages opens several pages and caps the count", async () => {
+    const { openPages } = await import("./web")
+    const fetchFn = vi.fn(async (url: string) =>
+      html(`<title>${url}</title><main><p>Side ${url}</p></main>`),
+    )
+    const urls = Array.from(
+      { length: 15 },
+      (_, i) => `https://example.com/${i}`,
+    )
+    const result = await openPages(urls, undefined, fetchFn as never)
+    expect(result.pages).toHaveLength(12)
+    expect(result.note).toContain("12")
+    expect(result.pages[0]).toMatchObject({
+      title: "https://example.com/0",
+      text: "Side https://example.com/0",
+    })
+  })
+
+  test("fetch_page pages through long text", async () => {
+    const fetchFn = vi.fn(async () => html(`<p>${"a".repeat(30_000)}</p>`))
+    const first = await fetchPage("https://example.com/", fetchFn as never)
+    expect(first.nextOffset).toBe(20_000)
+    const second = await fetchPage("https://example.com/", fetchFn as never, {
+      offset: first.nextOffset,
+    })
+    expect(second.nextOffset).toBeUndefined()
+    expect(second.text).toHaveLength(10_000)
+  })
+
+  test("near-empty pages are rendered when Browser Rendering is set up", async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce(html("<div id=app></div>"))
+      .mockResolvedValueOnce(
+        Response.json({ success: true, result: "# Program\n\nKonsert 20:00" }),
+      )
+    const page = await fetchPage("https://example.com/", fetchFn as never, {
+      browser: { accountId: "a", token: "t" },
+    })
+    expect(page.rendered).toBe(true)
+    expect(page.text).toContain("Konsert")
+    expect(fetchFn.mock.calls[1][0]).toContain("/browser-rendering/markdown")
+  })
+})

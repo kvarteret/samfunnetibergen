@@ -1,0 +1,89 @@
+[
+  {
+    "id": "today-events",
+    "note": "The Slack question that started this: the old prompt found nothing.",
+    "question": "arrangement i dag?",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["find_events"],
+      "mentions": ["Onsdagsimpro", "Lillelørdag"],
+      "notMentions": ["ingen arrangementer"]
+    }
+  },
+  {
+    "id": "weekday",
+    "question": "Hva skjer på fredag?",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["find_events"],
+      "mentions": ["Kristian Blinks", "Fuzzycat", "Kispah"]
+    }
+  },
+  {
+    "id": "weekend",
+    "question": "Hva skjer i helga?",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["find_events"],
+      "mentions": ["Silent Disco", "Brostein"]
+    }
+  },
+  {
+    "id": "title-search",
+    "question": "Når spilles Don Juan, og hvor?",
+    "today": "2026-11-04",
+    "expect": {
+      "mentions": ["Tivoli", "14"]
+    }
+  },
+  {
+    "id": "browse-programme",
+    "question": "Hvilke arrangementer står på https://www.biff.no/events for 2027?",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["fetch_page", "page_links", "open_pages"],
+      "anyTools": true,
+      "mentions": ["Cine Latino"]
+    }
+  },
+  {
+    "id": "browse-subpages",
+    "note": "Follow links from a programme into each event page.",
+    "question": "Gå gjennom arrangementene fra oktober 2026 på https://www.biff.no/events, åpne arrangementssidene, og si hvilke som var i Tivoli og hva de handlet om.",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["open_pages"],
+      "mentions": ["Kids Like Me"]
+    }
+  },
+  {
+    "id": "web-search",
+    "question": "Når er neste BIFF-festival? Søk på nettet.",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["web_search"],
+      "mentions": ["oktober 2027"]
+    }
+  },
+  {
+    "id": "closed-tomorrow",
+    "note": "Editorial: a closed day on the website.",
+    "question": "Vi er stengt i morgen pga. vedlikehold, kan du legge det inn?",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["plan_house_hours"],
+      "plan": ["2026-11-05", "stengt"]
+    }
+  },
+  {
+    "id": "group-weekend-concerts",
+    "note": "Editorial: three concerts under one name become a festival.",
+    "question": "Lag en festival «Teglverket-helg» av konsertene i Teglverket fredag 6. november (Kristian Blinks, Fuzzycat Organ Quartet, Kispah).",
+    "today": "2026-11-04",
+    "expect": {
+      "tools": ["plan_merge_events", "plan_create_festival"],
+      "plan": ["festivalen", "teglverket-helg", "3 festivaldager"],
+      "anyTools": true
+    }
+  }
+]

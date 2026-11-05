@@ -1,12 +1,34 @@
-import { createAzure } from "@ai-sdk/azure"
 import { Agent } from "agents"
-import { generateText, type ModelMessage, stepCountIs } from "ai"
+import { type ModelMessage, stepCountIs, streamText } from "ai"
+import { editorialTools } from "./editorial"
+import {
+  type FeedbackRecord,
+  feedbackBlock,
+  type ToolTrace,
+  traceInput,
+} from "./feedback"
+import type { MimeFeedback } from "./feedback-store"
 import { trimHistory } from "./history"
+import {
+  createModel,
+  type ModelEnv,
+  osloToday,
+  readTools,
+  sanityScope,
+  toolStatus,
+  webSearchEnabled,
+} from "./model"
 import { systemPrompt } from "./prompt"
 import { responseBlocks } from "./response"
 import { connectSanity, WRITE_TOOLS } from "./sanity"
 import { SlackClient, slackText, slackTools, type ThreadInput } from "./slack"
-import { webTools } from "./web"
+import { SlackReply } from "./stream"
+import {
+  capture,
+  feedbackEvent,
+  generationEvent,
+  type TelemetryEnv,
+} from "./telemetry"
 import {
   buttonDecision,
   isApproval,
@@ -21,22 +43,18 @@ import {
   renderPlan,
 } from "./writes"
 
-export interface Env {
+export interface Env extends ModelEnv, TelemetryEnv {
   MimeThread: DurableObjectNamespace<MimeThread>
+  MimeFeedback: DurableObjectNamespace<MimeFeedback>
   /** Comma-separated Slack channel IDs where Mime answers. */
   ALLOWED_CHANNELS: string
-  SANITY_PROJECT_ID: string
-  SANITY_DATASET: string
-  STUDIO_URL: string
-  AZURE_OPENAI_LUNA_DEPLOYMENT: string
   // Secrets (wrangler secret put / .dev.vars)
   SLACK_BOT_TOKEN: string
   SLACK_SIGNING_SECRET: string
-  SANITY_MIME_READ_TOKEN: string
   /** Editor token. Without it Mime cannot propose or run write plans. */
   SANITY_MIME_WRITE_TOKEN?: string
-  AZURE_OPENAI_ENDPOINT: string
-  AZURE_OPENAI_API_KEY: string
+  /** Bearer token for GET /feedback. Without it the export is off. */
+  FEEDBACK_EXPORT_TOKEN?: string
 }
 
 type InboxRow = {
@@ -47,18 +65,13 @@ type InboxRow = {
   channel: string
   thread_ts: string
   action_plan_id: string | null
+  team: string | null
 }
 
-const MAX_STEPS = 15
-
-function osloToday() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Oslo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date())
-}
+// Browsing a programme and opening its event pages takes several steps.
+const MAX_STEPS = 25
+// Turns kept per thread for feedback; older ones can no longer be rated.
+const MAX_TURNS = 200
 
 /**
  * One Slack thread. Durable Object name: `<channel>:<thread_ts>`.
@@ -88,6 +101,18 @@ export class MimeThread extends Agent<Env> {
     const columns = this.sql<{ name: string }>`PRAGMA table_info(inbox)`
     if (!columns.some(column => column.name === "action_plan_id"))
       this.sql`ALTER TABLE inbox ADD COLUMN action_plan_id TEXT`
+    if (!columns.some(column => column.name === "team"))
+      this.sql`ALTER TABLE inbox ADD COLUMN team TEXT`
+    this.sql`CREATE TABLE IF NOT EXISTS turns (
+      turn_id TEXT PRIMARY KEY,
+      message_ts TEXT NOT NULL,
+      user TEXT NOT NULL,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      tools TEXT NOT NULL,
+      today TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    )`
     this.sql`CREATE TABLE IF NOT EXISTS history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       message TEXT NOT NULL
@@ -112,11 +137,15 @@ export class MimeThread extends Agent<Env> {
 
   /** Called by the Worker over RPC. Returns as soon as the message is stored. */
   async receive(input: ThreadInput) {
+    if (input.feedback) {
+      await this.recordFeedback(input)
+      return { accepted: true }
+    }
     if (!input.mentioned && !input.actionPlanId) return { accepted: false }
     // Slack retries deliver the same event_id; the primary key drops them.
     this
-      .sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at, action_plan_id)
-      VALUES (${input.eventId}, ${input.ts}, ${input.user}, ${input.text}, ${input.channel}, ${input.threadTs}, ${Date.now()}, ${input.actionPlanId ?? null})`
+      .sql`INSERT OR IGNORE INTO inbox (event_id, ts, user, text, channel, thread_ts, received_at, action_plan_id, team)
+      VALUES (${input.eventId}, ${input.ts}, ${input.user}, ${input.text}, ${input.channel}, ${input.threadTs}, ${Date.now()}, ${input.actionPlanId ?? null}, ${input.team ?? null})`
     await this.schedule(0, "drain")
     return { accepted: true }
   }
@@ -128,7 +157,7 @@ export class MimeThread extends Agent<Env> {
       await this.keepAliveWhile(async () => {
         for (;;) {
           const pending = this.sql<InboxRow>`
-            SELECT event_id, ts, user, text, channel, thread_ts, action_plan_id FROM inbox
+            SELECT event_id, ts, user, text, channel, thread_ts, action_plan_id, team FROM inbox
             WHERE answered = 0 ORDER BY received_at, rowid`
           if (!pending.length) return
           const actionIndex = pending.findIndex(row => row.action_plan_id)
@@ -151,29 +180,40 @@ export class MimeThread extends Agent<Env> {
 
   private async answer(rows: InboxRow[]) {
     const { channel, thread_ts: threadTs } = rows[0]
+    const last = rows[rows.length - 1]
     const slack = new SlackClient(this.env.SLACK_BOT_TOKEN)
     const history = this.sql<{ message: string }>`
       SELECT message FROM history ORDER BY id`.map(
       row => JSON.parse(row.message) as ModelMessage,
     )
     if (await this.handleApproval(rows, slack, history)) return
-    let placeholder: string | undefined
-    let sanity: Awaited<ReturnType<typeof connectSanity>> | undefined
+    const reply = new SlackReply(slack, {
+      channel,
+      threadTs,
+      user: last.user,
+      team: rows.find(row => row.team)?.team ?? undefined,
+    })
+    const today = osloToday()
+    const traces: ToolTrace[] = []
+    const turnId = crypto.randomUUID().slice(0, 8)
+    const started = Date.now()
+    const question = rows.map(row => row.text).join("\n")
+    let read: Awaited<ReturnType<typeof readTools>> | undefined
     let writer: Awaited<ReturnType<typeof connectSanity>> | undefined
     let proposed: Plan | undefined
     // Any failure ends the turn: the rows are marked answered by the caller,
     // so a broken token or model never retries forever.
     try {
-      placeholder = await slack.post(channel, threadTs, "_Mime tenker…_")
+      await reply.status("Mime tenker…", [
+        "Mime tenker…",
+        "Leser spørsmålet…",
+        "Finner ut hvor svaret står…",
+      ])
       const user: ModelMessage = {
         role: "user",
         content: await this.userContent(slack, rows, history.length === 0),
       }
-      sanity = await connectSanity({
-        token: this.env.SANITY_MIME_READ_TOKEN,
-        projectId: this.env.SANITY_PROJECT_ID,
-        dataset: this.env.SANITY_DATASET,
-      })
+      read = await readTools(this.env, () => today)
       const writeToken = this.env.SANITY_MIME_WRITE_TOKEN
       if (writeToken)
         writer = await connectSanity({
@@ -182,83 +222,188 @@ export class MimeThread extends Agent<Env> {
           dataset: this.env.SANITY_DATASET,
           allowed: WRITE_TOOLS,
         })
-      const azure = createAzure({
-        baseURL: `${this.env.AZURE_OPENAI_ENDPOINT.replace(/\/$/, "").replace(/\/openai(\/v1)?$/, "")}/openai`,
-        apiKey: this.env.AZURE_OPENAI_API_KEY,
-      })
-      const result = await generateText({
-        model: azure.responses(this.env.AZURE_OPENAI_LUNA_DEPLOYMENT),
+      const savePlan = (plan: Omit<Plan, "id">) => {
+        const id = this.savePlan(plan)
+        proposed = { ...plan, id }
+        return id
+      }
+      const result = streamText({
+        model: createModel(this.env),
         system: systemPrompt({
           projectId: this.env.SANITY_PROJECT_ID,
           dataset: this.env.SANITY_DATASET,
-          today: osloToday(),
+          today,
           studioUrl: this.env.STUDIO_URL,
           writes: Boolean(writer),
+          webSearch: webSearchEnabled(this.env),
+          context: read.context,
         }),
         messages: [...history, user],
         tools: {
-          ...sanity.tools,
-          ...webTools,
+          ...read.tools,
           ...slackTools(slack, channel, threadTs),
           ...(writer
             ? {
+                ...editorialTools({
+                  scope: sanityScope(this.env),
+                  requester: last.user,
+                  save: savePlan,
+                }),
                 propose_write_plan: proposeTool({
-                  requester: rows[rows.length - 1].user,
+                  requester: last.user,
                   definitions: writer.definitions.tools,
-                  save: plan => {
-                    const id = this.savePlan(plan)
-                    proposed = { ...plan, id }
-                    return id
-                  },
+                  save: savePlan,
                 }),
               }
             : {}),
         },
         stopWhen: stepCountIs(MAX_STEPS),
-        onStepFinish: async step => {
-          if (step.toolCalls.length && placeholder)
-            await slack
-              .update(channel, placeholder, "_Mime slår opp…_")
-              .catch(() => undefined)
-        },
       })
+      for await (const part of result.fullStream) {
+        if (part.type === "text-delta") await reply.write(part.text)
+        else if (part.type === "tool-input-start")
+          await reply.status(toolStatus(part.toolName))
+        else if (part.type === "tool-call")
+          traces.push({ tool: part.toolName, input: traceInput(part.input) })
+        else if (part.type === "error") throw part.error
+      }
+      const responseMessages = await result.responseMessages
+      const usage = await result.totalUsage
+      const steps = (await result.steps).length
       const answer =
-        result.text.trim() ||
+        reply.text.trim() ||
         (proposed ? "Her er forslaget mitt." : "Jeg fant ikke noe svar på det.")
-      // The plan is rendered by code from what was stored, not by the model.
-      const text = proposed
-        ? `${slackText(answer, 36000)}\n\n${renderPlan(proposed)}\n\nKnappene Godkjenn og Avbryt. Bare den som ba om forslaget kan bestemme.`
-        : answer
-      if (proposed)
+      const messageTs = await reply.finish({
+        text: answer,
+        // Links stay inline in the answer; a separate list only repeated them.
+        blocks: [feedbackBlock(turnId)],
+        fallback: [
+          ...responseBlocks(answer, { links: false }),
+          feedbackBlock(turnId),
+        ],
+      })
+      this.saveTurn({
+        turnId,
+        messageTs,
+        user: last.user,
+        question,
+        answer,
+        tools: traces,
+        today,
+      })
+      // The plan is rendered by code from what was stored, not by the model,
+      // in a card of its own under the answer.
+      if (proposed) {
+        const intro = "Her er forslaget mitt."
+        const cardTs = await slack.post(
+          channel,
+          threadTs,
+          slackText(
+            `${intro}\n\n${renderPlan(proposed)}\n\nKnappene Godkjenn og Avbryt. Bare den som ba om forslaget kan bestemme.`,
+            39000,
+          ),
+          planBlocks(intro, proposed),
+        )
         this
-          .sql`UPDATE plans SET message_ts = ${placeholder}, answer = ${answer} WHERE id = ${proposed.id}`
-      await slack.update(
-        channel,
-        placeholder,
-        proposed ? slackText(text, 39000) : slackText(text, 36000),
-        proposed ? planBlocks(answer, proposed) : responseBlocks(answer),
-      )
-      this.replaceHistory(
-        trimHistory([...history, user, ...result.responseMessages]),
-      )
+          .sql`UPDATE plans SET message_ts = ${cardTs}, answer = ${intro} WHERE id = ${proposed.id}`
+      }
+      this.replaceHistory(trimHistory([...history, user, ...responseMessages]))
+      await capture(this.env, [
+        generationEvent(this.env, {
+          traceId: turnId,
+          user: last.user,
+          question,
+          answer,
+          tools: traces.map(trace => trace.tool),
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+          latencySeconds: (Date.now() - started) / 1000,
+          steps,
+        }),
+      ])
     } catch (error) {
+      await capture(this.env, [
+        generationEvent(this.env, {
+          traceId: turnId,
+          user: last.user,
+          question,
+          answer: "",
+          tools: traces.map(trace => trace.tool),
+          latencySeconds: (Date.now() - started) / 1000,
+          steps: 0,
+          error: error instanceof Error ? error.name : "unknown",
+        }),
+      ])
       // Labels only: page text, tokens and model output stay out of logs.
       console.error(
         "mime turn failed",
         error instanceof Error ? error.name : "unknown",
       )
-      if (placeholder)
-        await slack
-          .update(
-            channel,
-            placeholder,
-            "Beklager, noe gikk galt. Prøv igjen om litt, eller spør E-tjenesten.",
-          )
-          .catch(() => undefined)
+      await reply
+        .fail(
+          "Beklager, noe gikk galt. Prøv igjen om litt, eller spør E-tjenesten.",
+        )
+        .catch(() => undefined)
     } finally {
-      await sanity?.close().catch(() => undefined)
+      await read?.close()
       await writer?.close().catch(() => undefined)
     }
+  }
+
+  private saveTurn(turn: {
+    turnId: string
+    messageTs: string
+    user: string
+    question: string
+    answer: string
+    tools: ToolTrace[]
+    today: string
+  }) {
+    this
+      .sql`INSERT OR REPLACE INTO turns (turn_id, message_ts, user, question, answer, tools, today, created_at)
+      VALUES (${turn.turnId}, ${turn.messageTs}, ${turn.user}, ${turn.question}, ${turn.answer}, ${JSON.stringify(turn.tools)}, ${turn.today}, ${Date.now()})`
+    this.sql`DELETE FROM turns WHERE turn_id NOT IN (
+      SELECT turn_id FROM turns ORDER BY created_at DESC LIMIT ${MAX_TURNS})`
+  }
+
+  /** A 👍/👎 click: stored with its turn in the shared feedback store. */
+  private async recordFeedback(input: ThreadInput) {
+    if (!input.feedback) return
+    const [turn] = this.sql<{
+      turn_id: string
+      message_ts: string
+      user: string
+      question: string
+      answer: string
+      tools: string
+      today: string
+      created_at: number
+    }>`SELECT * FROM turns WHERE turn_id = ${input.feedback.turnId}`
+    // A forged or expired value names no turn in this thread.
+    if (!turn || turn.message_ts !== input.feedback.messageTs) return
+    const record: FeedbackRecord = {
+      turnId: turn.turn_id,
+      channel: input.channel,
+      threadTs: input.threadTs,
+      messageTs: turn.message_ts,
+      user: turn.user,
+      question: turn.question,
+      answer: turn.answer,
+      tools: JSON.parse(turn.tools) as ToolTrace[],
+      today: turn.today,
+      createdAt: turn.created_at,
+      rating: input.feedback.rating,
+      ratedBy: input.user,
+      ratedAt: Date.now(),
+    }
+    const store = this.env.MimeFeedback.get(
+      this.env.MimeFeedback.idFromName("all"),
+    )
+    await store.record(record)
+    await capture(this.env, [
+      feedbackEvent(record.turnId, input.user, record.rating),
+    ])
+    console.log("mime feedback", record.rating, record.tools.length)
   }
 
   private savePlan(plan: Omit<Plan, "id">) {

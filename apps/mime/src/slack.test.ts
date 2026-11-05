@@ -252,3 +252,49 @@ describe("routeInteraction", () => {
     ).toBeNull()
   })
 })
+
+describe("feedback clicks", () => {
+  const body = (action: Record<string, unknown>, extra = {}) =>
+    new URLSearchParams({
+      payload: JSON.stringify({
+        type: "block_actions",
+        user: { id: "U1", team_id: "T1" },
+        team: { id: "T1" },
+        channel: { id: "C1" },
+        message: { ts: "2.000", thread_ts: "1.000" },
+        actions: [{ action_ts: "3.000", ...action }],
+        ...extra,
+      }),
+    }).toString()
+
+  test("routes a rating to its thread", () => {
+    expect(
+      routeInteraction(
+        body({ action_id: "mime_feedback", value: "negative:ab12cd34" }),
+        new Set(["C1"]),
+      ),
+    ).toMatchObject({
+      channel: "C1",
+      threadTs: "1.000",
+      user: "U1",
+      team: "T1",
+      mentioned: false,
+      feedback: { rating: "negative", turnId: "ab12cd34", messageTs: "2.000" },
+    })
+  })
+
+  test("drops malformed values and other channels", () => {
+    expect(
+      routeInteraction(
+        body({ action_id: "mime_feedback", value: "meh:ab12cd34" }),
+        new Set(["C1"]),
+      ),
+    ).toBeNull()
+    expect(
+      routeInteraction(
+        body({ action_id: "mime_feedback", value: "positive:ab12cd34" }),
+        new Set(["C2"]),
+      ),
+    ).toBeNull()
+  })
+})

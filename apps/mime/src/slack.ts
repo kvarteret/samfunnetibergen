@@ -3,6 +3,7 @@
 
 import { tool } from "ai"
 import { z } from "zod"
+import { FEEDBACK_ACTION, parseFeedbackValue, type Rating } from "./feedback"
 
 const SLACK_API = "https://slack.com/api"
 // Slack signs every request; anything older is treated as a replay.
@@ -73,6 +74,7 @@ export type SlackEnvelope =
   | {
       type: "event_callback"
       event_id: string
+      team_id?: string
       event: SlackMessageEvent
       authorizations?: { user_id?: string; is_bot?: boolean }[]
     }
@@ -88,6 +90,10 @@ export type ThreadInput = {
   /** True when the message tagged Mime; button actions use actionPlanId instead. */
   mentioned: boolean
   actionPlanId?: string
+  /** Slack team of the person, needed to stream replies in channels. */
+  team?: string
+  /** A 👍/👎 click on an earlier answer; recorded, never answered. */
+  feedback?: { turnId: string; rating: Rating; messageTs: string }
 }
 
 /** A thread is identified by its root message; a top-level mention starts one. */
@@ -124,6 +130,7 @@ export function routeEvent(
     user: event.user,
     text: stripMention(text, botUserId),
     mentioned: true,
+    team: envelope.team_id,
   }
 }
 
@@ -139,6 +146,32 @@ export function routeInteraction(
     const user = payload.user?.id
     const threadTs = payload.message?.thread_ts
     const actionTs = action?.action_ts
+    if (action?.action_id === FEEDBACK_ACTION) {
+      const feedback = parseFeedbackValue(action.value)
+      const messageTs = payload.message?.ts
+      if (
+        payload.type !== "block_actions" ||
+        payload.actions.length !== 1 ||
+        !feedback ||
+        !allowedChannels.has(channel) ||
+        !/^[UW][A-Z0-9]+$/.test(user ?? "") ||
+        !/^\d+\.\d+$/.test(threadTs ?? "") ||
+        !/^\d+\.\d+$/.test(messageTs ?? "") ||
+        !/^\d+\.\d+$/.test(actionTs ?? "")
+      )
+        return null
+      return {
+        eventId: `feedback:${actionTs}:${user}`,
+        channel,
+        threadTs,
+        ts: actionTs,
+        user,
+        text: "",
+        mentioned: false,
+        team: payload.team?.id ?? payload.user?.team_id,
+        feedback: { ...feedback, messageTs },
+      }
+    }
     const planId = action?.value
     if (
       payload.type !== "block_actions" ||
@@ -238,16 +271,96 @@ export class SlackClient {
     return json
   }
 
-  async post(channel: string, threadTs: string, text: string) {
+  /** JSON body, for write methods that take arrays (streams, loading messages). */
+  private async callJson<T extends SlackResponse>(
+    method: string,
+    body: Record<string, unknown>,
+  ): Promise<T> {
+    const response = await this.fetcher(`${SLACK_API}/${method}`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.token}`,
+        "content-type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify(body),
+    })
+    const json = (await response.json()) as T
+    if (!json.ok) throw new Error(`Slack ${method} failed: ${json.error}`)
+    return json
+  }
+
+  async post(
+    channel: string,
+    threadTs: string,
+    text: string,
+    blocks?: unknown[],
+  ) {
     const { ts } = await this.call("chat.postMessage", {
       channel,
       thread_ts: threadTs,
       text,
       unfurl_links: false,
       unfurl_media: false,
+      ...(blocks ? { blocks: JSON.stringify(blocks) } : {}),
     })
     if (!ts) throw new Error("Slack chat.postMessage returned no ts")
     return ts
+  }
+
+  async delete(channel: string, ts: string) {
+    await this.call("chat.delete", { channel, ts })
+  }
+
+  /** Starts a streamed reply in a thread. Channels need the recipient. */
+  async startStream(options: {
+    channel: string
+    threadTs: string
+    markdown: string
+    recipientUserId: string
+    recipientTeamId?: string
+  }) {
+    const { ts } = await this.callJson("chat.startStream", {
+      channel: options.channel,
+      thread_ts: options.threadTs,
+      markdown_text: options.markdown,
+      recipient_user_id: options.recipientUserId,
+      ...(options.recipientTeamId
+        ? { recipient_team_id: options.recipientTeamId }
+        : {}),
+    })
+    if (!ts) throw new Error("Slack chat.startStream returned no ts")
+    return ts
+  }
+
+  async appendStream(channel: string, ts: string, markdown: string) {
+    await this.callJson("chat.appendStream", {
+      channel,
+      ts,
+      markdown_text: markdown,
+    })
+  }
+
+  async stopStream(channel: string, ts: string, blocks?: unknown[]) {
+    await this.callJson("chat.stopStream", {
+      channel,
+      ts,
+      ...(blocks?.length ? { blocks } : {}),
+    })
+  }
+
+  /** "Mime is looking up…" under the thread. Empty status clears it. */
+  async setStatus(
+    channel: string,
+    threadTs: string,
+    status: string,
+    loadingMessages?: string[],
+  ) {
+    await this.callJson("assistant.threads.setStatus", {
+      channel_id: channel,
+      thread_ts: threadTs,
+      status,
+      ...(loadingMessages?.length ? { loading_messages: loadingMessages } : {}),
+    })
   }
 
   async update(channel: string, ts: string, text: string, blocks?: unknown[]) {

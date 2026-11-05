@@ -1,6 +1,6 @@
 /** Format Mime's answer and its referenced URLs for Slack Block Kit. */
 const SECTION_LIMIT = 2900
-const ANSWER_LIMIT = 36000
+const ANSWER_LIMIT = 11500
 const LINK_LIMIT = 2000
 const MAX_LINKS = 30
 
@@ -68,28 +68,44 @@ function sections(text: string): string[] {
   return chunks
 }
 
-export function responseBlocks(answer: string) {
+export type SectionBlock = {
+  type: "section"
+  text: { type: "mrkdwn"; text: string }
+}
+export type MarkdownBlock = { type: "markdown"; text: string }
+
+/** The "Nyttige lenker" list for an answer, or nothing when it has no links. */
+export function linkBlocks(answer: string, maxBlocks = 40): SectionBlock[] {
+  const lines = relevantLinks(answer).map(
+    ({ url, label }) => `• <${escapeSlack(url)}|${escapeSlack(label)}>`,
+  )
+  const safeLines = lines.filter(line => line.length <= SECTION_LIMIT)
+  if (!safeLines.length) return []
+  const blocks: SectionBlock[] = [
+    { type: "section", text: { type: "mrkdwn", text: "*Nyttige lenker*" } },
+  ]
+  for (const group of sections(safeLines.join("\n"))) {
+    if (blocks.length >= maxBlocks) break
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: group } })
+  }
+  return blocks
+}
+
+/**
+ * The answer as Block Kit. Mime writes standard Markdown, which Slack's
+ * `markdown` block renders (12,000 characters per message at most).
+ */
+export function responseBlocks(
+  answer: string,
+  options: { links?: boolean } = {},
+): (SectionBlock | MarkdownBlock)[] {
   const bounded =
     answer.length > ANSWER_LIMIT
       ? `${answer.slice(0, ANSWER_LIMIT - 1)}…`
       : answer
-  const blocks = sections(bounded).map(text => ({
-    type: "section",
-    text: { type: "mrkdwn", text },
-  }))
-  const lines = relevantLinks(bounded).map(
-    ({ url, label }) => `• <${escapeSlack(url)}|${escapeSlack(label)}>`,
-  )
-  const safeLines = lines.filter(line => line.length <= SECTION_LIMIT)
-  if (safeLines.length) {
-    blocks.push({
-      type: "section",
-      text: { type: "mrkdwn", text: "*Nyttige lenker*" },
-    })
-    for (const group of sections(safeLines.join("\n"))) {
-      if (blocks.length >= 42) break
-      blocks.push({ type: "section", text: { type: "mrkdwn", text: group } })
-    }
-  }
-  return blocks
+  return [
+    ...(bounded.trim() ? [{ type: "markdown" as const, text: bounded }] : []),
+    // Links come from the whole answer, so a cut never hides a source.
+    ...(options.links === false ? [] : linkBlocks(answer, 40)),
+  ]
 }

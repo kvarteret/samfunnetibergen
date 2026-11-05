@@ -14,7 +14,12 @@ import { responseBlocks } from "./response"
 export const MAX_OPS = 25
 export const PLAN_TTL_MS = 60 * 60 * 1000
 
-export type WriteOp = { tool: string; input: Record<string, unknown> }
+export type WriteOp = {
+  tool: string
+  input: Record<string, unknown>
+  /** What the step does, written by code for the approval card. Never sent to Sanity. */
+  label?: string
+}
 
 export type Plan = {
   id: string
@@ -122,7 +127,8 @@ export function renderPlan(plan: Plan) {
   const lines = plan.ops.map((op, index) => {
     const label = operationLabel(op.tool)
     const intent =
-      typeof op.input.intent === "string" ? op.input.intent.trim() : ""
+      op.label?.trim() ||
+      (typeof op.input.intent === "string" ? op.input.intent.trim() : "")
     return `${index + 1}. *${escapeSlack(label)}*${intent ? `\n${escapeSlack(clip(intent, 160))}` : ""}`
   })
   return [
@@ -143,7 +149,8 @@ export function planBlocks(
   const operations = plan.ops.map((op, index) => {
     const label = escapeSlack(operationLabel(op.tool))
     const intent =
-      typeof op.input.intent === "string" ? op.input.intent.trim() : ""
+      op.label?.trim() ||
+      (typeof op.input.intent === "string" ? op.input.intent.trim() : "")
     return `${index + 1}. *${label}*${intent ? `\n${escapeSlack(clip(intent, 160))}` : ""}`
   })
   // Slack allows at most ten child blocks in a container. Three concise

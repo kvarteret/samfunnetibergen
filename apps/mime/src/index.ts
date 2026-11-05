@@ -1,5 +1,6 @@
 import { getAgentByName } from "agents"
 import type { Env } from "./agent"
+import { toEvalCase } from "./feedback"
 import {
   routeEvent,
   routeInteraction,
@@ -10,6 +11,7 @@ import {
 } from "./slack"
 
 export { MimeThread } from "./agent"
+export { MimeFeedback } from "./feedback-store"
 
 export function allowedChannels(value: string | undefined) {
   return new Set(
@@ -81,10 +83,42 @@ async function slackInteractions(
   }
 }
 
+function sameSecret(a: string, b: string) {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return diff === 0
+}
+
+/**
+ * Rated answers, newest first, as JSON. `?format=cases` gives draft eval
+ * cases. Needs `Authorization: Bearer <FEEDBACK_EXPORT_TOKEN>`.
+ */
+async function feedbackExport(request: Request, env: Env): Promise<Response> {
+  const token = env.FEEDBACK_EXPORT_TOKEN
+  const sent = request.headers.get("authorization")?.replace(/^Bearer /, "")
+  if (!token || !sent || !sameSecret(sent, token))
+    return new Response("Not found", { status: 404 })
+  const params = new URL(request.url).searchParams
+  const rating = params.get("rating") ?? undefined
+  if (rating && !["positive", "negative"].includes(rating))
+    return new Response("rating must be positive or negative", { status: 400 })
+  const store = env.MimeFeedback.get(env.MimeFeedback.idFromName("all"))
+  const records = await store.list({
+    rating,
+    limit: Number(params.get("limit") ?? 200) || 200,
+  })
+  return Response.json(
+    params.get("format") === "cases" ? records.map(toEvalCase) : records,
+  )
+}
+
 export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
     if (pathname === "/health") return new Response("ok")
+    if (pathname === "/feedback" && request.method === "GET")
+      return feedbackExport(request, env)
     if (pathname === "/slack/interactions" && request.method === "POST")
       return slackInteractions(request, env)
     if (pathname === "/slack/events" && request.method === "POST")

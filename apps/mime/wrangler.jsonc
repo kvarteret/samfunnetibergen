@@ -12,13 +12,27 @@
     "SANITY_PROJECT_ID": "mkjoahvv",
     "SANITY_DATASET": "production",
     "STUDIO_URL": "https://studio.samfunnetibergen.no",
-    "AZURE_OPENAI_LUNA_DEPLOYMENT": "skonk"
+    "AZURE_OPENAI_LUNA_DEPLOYMENT": "skonk",
+    "SITE_URL": "https://www.samfunnetibergen.no",
+    // Azure's built-in web search in the Responses API. "off" to turn it off.
+    "WEB_SEARCH": "on",
+    // Browser Rendering for JavaScript-drawn pages needs this and the secret
+    // BROWSER_RENDERING_TOKEN (API token with Browser Rendering: Edit).
+    "CLOUDFLARE_ACCOUNT_ID": "bbeebbdd2cbe3f6a5b64ddbb9cd12e64"
   },
   // Secrets: SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SANITY_MIME_READ_TOKEN,
-  // AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY (see README).
+  // AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY; optional
+  // SANITY_MIME_WRITE_TOKEN, BROWSER_RENDERING_TOKEN, FEEDBACK_EXPORT_TOKEN,
+  // SANITY_CONTEXT_MCP_URL and SANITY_CONTEXT_TOKEN (see README).
   "durable_objects": {
-    "bindings": [{ "name": "MimeThread", "class_name": "MimeThread" }]
+    "bindings": [
+      { "name": "MimeThread", "class_name": "MimeThread" },
+      { "name": "MimeFeedback", "class_name": "MimeFeedback" }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["MimeThread"] }],
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["MimeThread"] },
+    { "tag": "v2", "new_sqlite_classes": ["MimeFeedback"] }
+  ],
   "observability": { "enabled": true }
 }
