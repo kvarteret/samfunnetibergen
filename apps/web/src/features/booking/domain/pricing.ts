@@ -1,3 +1,4 @@
+import { durationHoursBetweenDates } from "@/lib/integrations/crescat/room-availability"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,
@@ -7,7 +8,6 @@ import {
   type VacationMode,
 } from "@/lib/opening-hours"
 import type { BookingRoom } from "../types"
-import { durationHoursBetweenDates } from "./availability"
 import type { BookingFormState } from "./formState"
 
 const VAT_RATE = 0.25

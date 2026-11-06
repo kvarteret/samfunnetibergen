@@ -2,11 +2,6 @@
 
 import { z } from "zod"
 import {
-  bookingRangeMs,
-  durationHoursBetween,
-  overlaps,
-} from "@/features/booking/domain/availability"
-import {
   type BookingFormState,
   bookingFormSchema,
 } from "@/features/booking/domain/bookingFormSchema"
@@ -28,6 +23,11 @@ import {
   addDaysDateOnly,
   resolveAssignmentDateTime,
 } from "@/lib/integrations/crescat/datetime"
+import {
+  bookingRangeMs,
+  durationHoursBetween,
+  overlaps,
+} from "@/lib/integrations/crescat/room-availability"
 import {
   buildRoomBooking,
   slugForBookerType,

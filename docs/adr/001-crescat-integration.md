@@ -16,6 +16,9 @@ programmatic path available without building on top of the venue management UI i
 We reverse-engineered the request format by capturing HAR traces of real Crescat form submissions.
 The integration started as a karaoke-only feature and has since been generalized to drive any of
 the venue's event-request forms. It lives in `apps/web/src/lib/integrations/crescat/`.
+All code that talks to Crescat or interprets its bookings belongs there; features
+(booking, karaoke, event imports) keep only their server actions, UI and form
+rules, and import from this folder.
 
 ## Decision
 
@@ -31,6 +34,10 @@ the venue's event-request forms. It lives in `apps/web/src/lib/integrations/cres
 | `karaoke.ts` | `buildKaraokeRequest` — karaoke booking payload. |
 | `room-booking.ts` | `buildExternalBooking` / `buildInternalBooking` + `ROOM_BOOKING_SLUGS`. |
 | `calendar.ts` | Public read-only calendar + resources endpoints, per-booker-type calendar mapping. |
+| `room-availability.ts` | Room booking availability and conflicts against calendar bookings. |
+| `karaoke-availability.ts` | Karaoke slot availability against calendar bookings. |
+| `matching.ts` | Match calendar bookings to an event (room candidates, title tokens); used by the TicketCo and URL imports. |
+| `request-check.ts` | Studio request check: classify and store whether a request has a booking. |
 
 ### Request flow (generic)
 
@@ -257,7 +264,7 @@ opening hours restriction applies.
 
 Pending Studio requests (`arrangement` with `submittedByEmail`, approval
 `pending`) are checked against the read-only calendars by
-`apps/web/src/features/events/server/crescat-check.ts`. Each request is
+`apps/web/src/lib/integrations/crescat/request-check.ts`. Each request is
 checked once: right after a website submission (`after()` in `submitEvent`),
 or otherwise by the daily run of `.github/workflows/check-requests-crescat.yml`
 (`npm run events:check:crescat`), which skips requests already checked. Each result

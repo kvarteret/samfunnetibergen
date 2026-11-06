@@ -7,17 +7,17 @@ import { Button } from "@/components/ui/button"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
+  availabilityWindow,
+  findRoomConflicts,
+  occupiedMinuteRanges,
+} from "@/lib/integrations/crescat/room-availability"
+import {
   type ClosedDate,
   isoDate,
   type OpeningHours,
   type VacationMode,
 } from "@/lib/opening-hours"
 import { fetchRoomAvailability } from "../actions/room-availability"
-import {
-  availabilityWindow,
-  findRoomConflicts,
-  occupiedMinuteRanges,
-} from "../domain/availability"
 
 interface RoomAvailabilityPickerProps {
   crescatRoomId: number

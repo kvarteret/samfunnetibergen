@@ -14,6 +14,7 @@ import {
   buildKaraokeRequest,
   KARAOKE_SLUG,
 } from "@/lib/integrations/crescat/karaoke"
+import { slotOverlapsKaraokeBookings } from "@/lib/integrations/crescat/karaoke-availability"
 import { storeBookingRequest } from "@/lib/integrations/kvarteret-personal/booking-requests"
 import { isSlotAllowed } from "@/lib/opening-hours"
 import { isOptionalE164PhoneNumber } from "@/lib/phone-number"
@@ -28,7 +29,6 @@ import {
   RATE_LIMIT_ERROR,
   TIME_PATTERN as timeRegex,
 } from "@/lib/submission"
-import { slotOverlapsKaraokeBookings } from "../domain/availability"
 import {
   buildKaraokePayload,
   calcKaraokePrice,

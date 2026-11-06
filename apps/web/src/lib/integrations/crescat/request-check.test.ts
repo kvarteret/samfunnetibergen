@@ -6,7 +6,7 @@ import {
   type CheckableRequest,
   latestRequests,
   scanPendingRequests,
-} from "./crescat-check"
+} from "./request-check"
 
 vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: () => ({ captureException: vi.fn() }),

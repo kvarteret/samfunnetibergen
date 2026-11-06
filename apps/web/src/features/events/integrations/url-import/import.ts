@@ -5,6 +5,11 @@ import {
   ROOM_CALENDAR_SLUGS,
 } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import {
+  bestEffortRoom,
+  matchBookingRoom,
+  overlappingRooms,
+} from "@/lib/integrations/crescat/matching"
 import { eventFormSchema } from "../../domain/eventFormSchema"
 import { type FormState, initialState } from "../../domain/formState"
 import {
@@ -14,11 +19,6 @@ import {
 import { buildEventDocument } from "../../server/event-document"
 import { taxonomyForImport } from "../ticketco/importer"
 import { type Extraction, extractWithLuna } from "../ticketco/luna"
-import {
-  bestEffortRoom,
-  matchBookingRoom,
-  overlappingRooms,
-} from "../ticketco/rooms"
 import { pageImage, pageText, type TicketCoEvent } from "../ticketco/source"
 import type { LunaWorkflow } from "../ticketco/telemetry"
 import { facebookEventUrl, ticketDetails } from "../ticketco/ticket-details"

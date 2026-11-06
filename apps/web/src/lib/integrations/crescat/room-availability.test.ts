@@ -6,7 +6,7 @@ import {
   canFitBookingSpan,
   isRoomOccupied,
   occupiedMinuteRanges,
-} from "./availability"
+} from "./room-availability"
 
 const booking: CresatBooking = {
   id: 394377,

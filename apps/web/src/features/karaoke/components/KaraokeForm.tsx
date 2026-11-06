@@ -10,6 +10,10 @@ import { useRouter } from "@/i18n/navigation"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
+  KARAOKE_DATE_COUNT,
+  slotOverlapsKaraokeBookings,
+} from "@/lib/integrations/crescat/karaoke-availability"
+import {
   type ClosedDate,
   isoDate,
   type OpeningHours,
@@ -27,10 +31,6 @@ import { useCurrentTime } from "@/lib/use-current-time"
 import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchKaraokeAvailability } from "../actions/karaoke-availability"
 import { submitKaraokeBooking } from "../actions/submit-karaoke-booking"
-import {
-  KARAOKE_DATE_COUNT,
-  slotOverlapsKaraokeBookings,
-} from "../domain/availability"
 import {
   deriveKaraokeState,
   initialKaraokeState,

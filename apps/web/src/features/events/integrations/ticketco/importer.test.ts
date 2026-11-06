@@ -1,6 +1,11 @@
 import type { SanityClient } from "@sanity/client"
 import { describe, expect, test, vi } from "vitest"
 import {
+  bestEffortRoom,
+  matchBookingRoom,
+  overlappingRooms,
+} from "@/lib/integrations/crescat/matching"
+import {
   formFromExtraction,
   INTERVAL_MS,
   importEvents,
@@ -10,7 +15,6 @@ import {
 } from "./importer"
 import type { Extraction, ImportTaxonomy } from "./luna"
 import { mergeDuplicateListing } from "./merge"
-import { bestEffortRoom, matchBookingRoom, overlappingRooms } from "./rooms"
 import {
   approvedImageUrl,
   canonicalTicketUrl,

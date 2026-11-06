@@ -19,7 +19,7 @@ import {
   crescatLocalDateTimeMs,
   toDateTime,
 } from "@/lib/integrations/crescat/datetime"
-import { titleTokens } from "../integrations/ticketco/rooms"
+import { titleTokens } from "./matching"
 
 /**
  * Studio "Requests" are arrangement documents submitted from the website (or
