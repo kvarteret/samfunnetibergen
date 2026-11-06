@@ -2,6 +2,7 @@
 
 import { createClient } from "@sanity/client"
 import { after } from "next/server"
+import { scanPendingRequests } from "@/lib/integrations/crescat/request-check"
 import { err, ok, type Result } from "@/lib/result"
 import { dataset, projectId } from "@/lib/sanity/env"
 import {
@@ -19,7 +20,6 @@ import {
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
-import { scanPendingRequests } from "../server/crescat-check"
 import { buildEventDocument } from "../server/event-document"
 import { notifyPendingRequest } from "../server/pending-slack"
 

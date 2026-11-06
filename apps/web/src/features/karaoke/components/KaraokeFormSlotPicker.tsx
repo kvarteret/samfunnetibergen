@@ -5,6 +5,11 @@ import { DateScroller } from "@/components/ui/date-scroller"
 import { SlotGrid, type SlotOption } from "@/components/ui/slot-grid"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
+  dateHasKaraokeSlot,
+  KARAOKE_DATE_COUNT,
+  slotOverlapsKaraokeBookings,
+} from "@/lib/integrations/crescat/karaoke-availability"
+import {
   buildDateSequence,
   type ClosedDate,
   minutesToTime,
@@ -12,11 +17,6 @@ import {
   slotRangesForDate,
   type VacationMode,
 } from "@/lib/opening-hours"
-import {
-  dateHasKaraokeSlot,
-  KARAOKE_DATE_COUNT,
-  slotOverlapsKaraokeBookings,
-} from "../domain/availability"
 
 interface KaraokeFormSlotPickerProps {
   bookings: CresatBooking[]

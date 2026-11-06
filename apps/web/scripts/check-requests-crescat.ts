@@ -1,5 +1,5 @@
 import { importClient } from "@/features/events/integrations/ticketco/importer"
-import { scanPendingRequests } from "@/features/events/server/crescat-check"
+import { scanPendingRequests } from "@/lib/integrations/crescat/request-check"
 
 const dryRun = process.argv.includes("--dry-run")
 const verbose = process.argv.includes("--verbose")

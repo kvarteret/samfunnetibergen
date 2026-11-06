@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto"
 import type { PromptResult } from "@posthog/ai"
 import { z } from "zod"
+import type {
+  ImportOption,
+  RoomCandidate,
+} from "@/lib/integrations/crescat/matching"
 import { configuredLunaDeployment } from "@/lib/posthog/ai-policy"
 import { getTicketCoPrompt } from "./prompt"
-import type { ImportOption, RoomCandidate } from "./rooms"
 import type { TicketCoEvent } from "./source"
 import {
   captureLunaGeneration,

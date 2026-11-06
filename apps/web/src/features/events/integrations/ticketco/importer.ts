@@ -6,6 +6,12 @@ import {
   ROOM_CALENDAR_SLUGS,
 } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import {
+  bestEffortRoom,
+  matchBookingRoom,
+  overlappingRooms,
+  type RoomCandidate,
+} from "@/lib/integrations/crescat/matching"
 import { dataset, projectId } from "@/lib/sanity/env"
 import { eventDraftSchema } from "../../domain/eventFormSchema"
 import { type FormState, initialState } from "../../domain/formState"
@@ -17,12 +23,6 @@ import { buildEventDocument } from "../../server/event-document"
 import { notifyPendingRequest } from "../../server/pending-slack"
 import { type Extraction, extractWithLuna, type ImportTaxonomy } from "./luna"
 import { mergeDuplicateListing } from "./merge"
-import {
-  bestEffortRoom,
-  matchBookingRoom,
-  overlappingRooms,
-  type RoomCandidate,
-} from "./rooms"
 import { ticketCoSlot } from "./schedule"
 import {
   approvedImageUrl,

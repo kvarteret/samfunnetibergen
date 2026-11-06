@@ -34,6 +34,7 @@ import { RoomCapacity } from "@/features/rooms"
 import { Link } from "@/i18n/navigation"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import { addDaysDateOnly } from "@/lib/integrations/crescat/datetime"
+import { calendarBookingStatus } from "@/lib/integrations/crescat/room-availability"
 import {
   type ClosedDate,
   isoDate,
@@ -42,7 +43,6 @@ import {
 } from "@/lib/opening-hours"
 import { cn } from "@/lib/utils"
 import { fetchRoomAvailability } from "../actions/room-availability"
-import { calendarBookingStatus } from "../domain/availability"
 import type { BookerType } from "../domain/formState"
 import { allowsMultiDay } from "../domain/formState"
 import type { BookingRoom } from "../types"

@@ -23,6 +23,12 @@ import { useRouter } from "@/i18n/navigation"
 import { getFormValidationIssues } from "@/lib/form-validation-errors"
 import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
+  availabilityWindow,
+  durationHoursBetween,
+  findRoomConflicts,
+  occupiedMinuteRanges,
+} from "@/lib/integrations/crescat/room-availability"
+import {
   type ClosedDate,
   hasOpeningHoursRows,
   isoDate,
@@ -42,12 +48,6 @@ import { useFormErrors } from "@/lib/use-form-errors"
 import { fetchBookableRoomsForBooker } from "../actions/bookable-rooms"
 import { fetchRoomAvailability } from "../actions/room-availability"
 import { submitRoomBooking } from "../actions/submit-room-booking"
-import {
-  availabilityWindow,
-  durationHoursBetween,
-  findRoomConflicts,
-  occupiedMinuteRanges,
-} from "../domain/availability"
 import {
   type BookingFormState,
   bookingFormSchema,

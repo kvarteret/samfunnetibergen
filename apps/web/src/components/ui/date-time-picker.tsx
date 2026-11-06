@@ -20,12 +20,12 @@ import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
 import { CalendarLegend } from "@/components/ui/legend"
 import { SelectField } from "@/components/ui/select-field"
 import { TimeRangeSlider } from "@/components/ui/time-range-slider"
+import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
 import {
   calendarBookingStatus,
   canFitBookingSpan,
   formatBookingTime,
-} from "@/features/booking/domain/availability"
-import type { CresatBooking } from "@/lib/integrations/crescat/calendar"
+} from "@/lib/integrations/crescat/room-availability"
 import {
   type ClosedDate,
   combineOpeningRangesForDate,

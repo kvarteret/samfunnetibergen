@@ -8,7 +8,6 @@ import { ContentPageViewTracking } from "@/components/content-page-view-tracking
 import { Button } from "@/components/ui/button"
 import { DetailRow } from "@/components/ui/detail-row"
 import { RoomAvailabilityPicker } from "@/features/booking/components/RoomAvailabilityPicker"
-import { hasAvailabilityCalendar } from "@/features/booking/domain/availability"
 import { BoolSpec } from "@/features/rooms"
 import {
   type CarouselSlide,
@@ -20,6 +19,7 @@ import {
   getLocaleStaticParams,
   resolvePageLocale,
 } from "@/lib/app-locale"
+import { hasAvailabilityCalendar } from "@/lib/integrations/crescat/room-availability"
 import {
   formatVacationModeNotice,
   formatWeekdays,
