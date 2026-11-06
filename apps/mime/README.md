@@ -180,9 +180,9 @@ too) and the `E-tjenesten's Skonk` submitter on imported events.
 `src/stats.ts` connects to the website's MCP endpoint
 `$SITE_URL/api/mcp/statistikk` and offers its `event_stats` and
 `event_stats_detail` tools: the numbers on `/arrangementer/statistikk`, from
-the same PostHog queries and the same 15-minute cache. Set
-`STATISTICS_MCP_TOKEN` in Infisical `/mime` to the same value as in
-`/nettside`. Without it, Ludvig says it cannot see statistics and links to the
+the same PostHog queries and the same 15-minute cache. `STATISTICS_MCP_TOKEN` in Infisical `/mime`
+is the only copy of the token; the website checks it against a committed
+SHA-256 hash. Without it, Ludvig says it cannot see statistics and links to the
 page. See `docs/how-to/arrangement-statistikk.md`.
 
 ## Sanity Context

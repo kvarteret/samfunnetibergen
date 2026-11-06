@@ -11,7 +11,7 @@ export const STATS_TOOLS = new Set(["event_stats", "event_stats_detail"])
 /**
  * Connection options, or undefined when statistics are not configured
  * (Ludvig then answers without them). STATISTICS_MCP_TOKEN is a secret in
- * Infisical /mime and must match the website's.
+ * Infisical /mime; the website only knows its SHA-256 (web mcp-auth.ts).
  */
 export function statsOptions(env: {
   SITE_URL?: string

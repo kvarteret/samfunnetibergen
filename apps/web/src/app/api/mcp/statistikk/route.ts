@@ -1,13 +1,12 @@
-import { timingSafeEqual } from "node:crypto"
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
 import { createStatisticsMcpServer } from "@/features/event-statistics/server/mcp"
+import { statisticsTokenAccepted } from "@/features/event-statistics/server/mcp-auth"
 import { isPostHogQueryConfigured } from "@/features/event-statistics/server/posthog-query"
 
 /*
  * Read-only MCP endpoint (Streamable HTTP, stateless) with the event
- * statistics tools. Internal agents only: requests need
- * `Authorization: Bearer $STATISTICS_MCP_TOKEN`. Without the token set, the
- * endpoint does not exist.
+ * statistics tools. Internal agents only: requests need the bearer token
+ * whose hash is committed in mcp-auth.ts.
  */
 
 export const runtime = "nodejs"
@@ -15,20 +14,8 @@ export const dynamic = "force-dynamic"
 // A cold report runs a dozen PostHog queries.
 export const maxDuration = 120
 
-function authorized(request: Request) {
-  const token = process.env.STATISTICS_MCP_TOKEN?.trim()
-  if (!token) return false
-  const sent = request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1]
-  if (!sent) return false
-  const a = Buffer.from(sent)
-  const b = Buffer.from(token)
-  return a.length === b.length && timingSafeEqual(a, b)
-}
-
 async function handle(request: Request) {
-  if (!process.env.STATISTICS_MCP_TOKEN?.trim())
-    return new Response("Not found", { status: 404 })
-  if (!authorized(request))
+  if (!statisticsTokenAccepted(request.headers.get("authorization")))
     return new Response("Unauthorized", {
       status: 401,
       headers: { "WWW-Authenticate": "Bearer" },

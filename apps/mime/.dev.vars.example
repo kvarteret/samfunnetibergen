@@ -14,7 +14,8 @@ AZURE_OPENAI_API_KEY=...
 # Optional: Sanity Context search (see README).
 # SANITY_CONTEXT_MCP_URL=https://api.sanity.io/v2026-11-03/context/organizations/ohrUT7FPF/mcp/mime
 # SANITY_CONTEXT_TOKEN=...
-# Optional: event statistics from the website (same value as the website's).
+# Optional: event statistics from the website. Locally, run the website with
+# STATISTICS_MCP_TOKEN_SHA256 set to this token's SHA-256.
 # STATISTICS_MCP_TOKEN=...
 # STATISTICS_MCP_URL=http://localhost:3000/api/mcp/statistikk
 # Optional: PostHog LLM analytics (the website's phc_ key); content only with POSTHOG_CONTENT=on.

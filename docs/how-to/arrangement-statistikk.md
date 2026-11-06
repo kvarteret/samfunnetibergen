@@ -30,8 +30,6 @@ Website (server-only):
   `POSTHOG_CLI_PROJECT_ID`).
 - `POSTHOG_QUERY_HOST`: defaults to `https://eu.posthog.com`.
 - `PERSONAL_APP_BASE_URL`: defaults to `https://personal.samfunnetibergen.no`.
-- `STATISTICS_MCP_TOKEN`: turns on the MCP endpoint below. Any long random
-  string; Ludvig (`apps/mime`) needs the same value.
 
 Personal:
 
@@ -74,6 +72,11 @@ the cache key. The page and the MCP endpoint share the entries.
 
 `/api/mcp/statistikk` (Streamable HTTP, stateless, read-only) offers
 `event_stats` and `event_stats_detail` with Admin scope, for internal agents
-such as the Slack bot. Requests need `Authorization: Bearer
-$STATISTICS_MCP_TOKEN`; without the token set, the route answers 404. Only
+such as the Slack bot. Requests need `Authorization: Bearer <token>`.
+The token is only in Infisical (Samfunnet Deployments `/mime`, as
+`STATISTICS_MCP_TOKEN`); the website has its SHA-256 committed in
+`features/event-statistics/server/mcp-auth.ts`, so nothing is configured on
+the website side. To rotate, put a new token in `/mime`, commit its hash, and
+deploy the website before Ludvig. For local testing, set
+`STATISTICS_MCP_TOKEN_SHA256` to the hash of a token of your own. Only
 aggregates are returned, never anything about a single visitor.
