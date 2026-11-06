@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@sanity/client"
+import { after } from "next/server"
 import { err, ok, type Result } from "@/lib/result"
 import { dataset, projectId } from "@/lib/sanity/env"
 import {
@@ -18,6 +19,7 @@ import {
   formatEventImageMaxSize,
   isAcceptedEventImageType,
 } from "../domain/imageUpload"
+import { scanPendingRequests } from "../server/crescat-check"
 import { buildEventDocument } from "../server/event-document"
 import { notifyPendingRequest } from "../server/pending-slack"
 
@@ -141,6 +143,12 @@ export async function submitEvent(
     } catch {
       /* Scheduled sync retries. */
     }
+    // Give editors the Crescat sign right away without delaying the submitter.
+    after(() =>
+      scanPendingRequests(client, { ids: [created._id] }).catch(() => {
+        /* The daily Crescat check picks it up. */
+      }),
+    )
     return ok(created._id)
   } catch {
     captureSubmitFailure(

@@ -21,6 +21,7 @@ import {
   normalizeDocumentId,
   todayInOslo,
 } from "./arrangementFilters"
+import { CrescatCheckPanel, isPendingRequest } from "./CrescatCheck"
 import { useListeningQuery } from "./useListeningQuery"
 
 const CHILD_KINDS = new Set(["seriesInstance", "festivalSession"])
@@ -235,6 +236,9 @@ export function ArrangementDocumentInput(props: ObjectInputProps) {
       <Stack gap={4}>
         {document?._id ? (
           <ArrangementStructurePanel document={document} />
+        ) : null}
+        {document?._id && isPendingRequest(document) ? (
+          <CrescatCheckPanel document={document} />
         ) : null}
         {document ? (
           <ArrangementReviewPreview

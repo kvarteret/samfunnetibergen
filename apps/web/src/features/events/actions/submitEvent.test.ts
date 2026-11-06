@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
 
 const {
+  afterMock,
   captureSubmitFailureMock,
   createClientMock,
   createMock,
@@ -9,6 +10,7 @@ const {
 } = vi.hoisted(() => {
   process.env.SANITY_WRITE_TOKEN = "test-token"
   return {
+    afterMock: vi.fn(),
     captureSubmitFailureMock: vi.fn(),
     createClientMock: vi.fn(),
     createMock: vi.fn(),
@@ -20,6 +22,8 @@ const {
 vi.mock("@sanity/client", () => ({
   createClient: createClientMock,
 }))
+
+vi.mock("next/server", () => ({ after: afterMock }))
 
 vi.mock("@/lib/posthog-server", () => ({
   getPostHogClient: () => ({ capture: posthogCaptureMock }),
@@ -56,6 +60,7 @@ describe("submitEvent", () => {
     createClientMock.mockReset()
     createClientMock.mockReturnValue({ create: createMock })
     posthogCaptureMock.mockReset()
+    afterMock.mockReset()
     rateLimitMock.mockReset()
     rateLimitMock.mockResolvedValue(false)
   })
@@ -87,6 +92,8 @@ describe("submitEvent", () => {
     expect(result).toEqual({ ok: true, value: "arrangement-123" })
     expect(createMock).toHaveBeenCalledOnce()
     expect(posthogCaptureMock).not.toHaveBeenCalled()
+    // The Crescat check runs after the response, never blocking it.
+    expect(afterMock).toHaveBeenCalledOnce()
 
     const document = createMock.mock.calls[0]?.[0] as {
       dates: Array<{ startDate: string }>

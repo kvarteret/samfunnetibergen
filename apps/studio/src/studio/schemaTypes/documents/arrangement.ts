@@ -3,6 +3,7 @@ import {
   orderRankField,
   orderRankOrdering,
 } from "@sanity/orderable-document-list"
+import { createElement } from "react"
 import {
   ALL_FIELDS_GROUP,
   type ConditionalPropertyCallbackContext,
@@ -14,6 +15,10 @@ import {
 
 import { ArrangementDatesInput } from "../../components/ArrangementDatesInput"
 import { ArrangementDocumentInput } from "../../components/ArrangementDocumentInput"
+import {
+  CrescatRequestMedia,
+  isPendingRequest,
+} from "../../components/CrescatCheck"
 import { RecurringInput } from "../../components/RecurringInput"
 import {
   localizedArrayField,
@@ -664,8 +669,12 @@ export const arrangement = defineType({
       eventStatus: "eventStatus",
       startDate: "dates.0.startDate",
       image: "image",
+      id: "_id",
+      submittedByEmail: "submittedByEmail",
     },
     prepare({
+      id,
+      submittedByEmail,
       localizedTitle,
       parentLocalizedTitle,
       status,
@@ -701,7 +710,14 @@ export const arrangement = defineType({
         ]
           .filter(Boolean)
           .join(" · "),
-        media: image,
+        // Requests show whether a matching Crescat booking was found.
+        media:
+          id && isPendingRequest({ submittedByEmail, approvalStatus: status })
+            ? createElement(CrescatRequestMedia, {
+                arrangementId: String(id).replace(/^drafts\./, ""),
+                image,
+              })
+            : image,
       }
     },
   },

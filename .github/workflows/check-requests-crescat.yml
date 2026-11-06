@@ -1,0 +1,53 @@
+name: Check pending requests against Crescat
+
+on:
+  schedule:
+    # Daily at 07:15 UTC (09:15 Oslo summer, 08:15 winter). Each request is
+    # checked once; requests that already have a check are skipped.
+    - cron: "15 7 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report what each request would get without writing checks"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # GitHub OIDC login to Infisical.
+  id-token: write
+
+concurrency:
+  group: crescat-request-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: npm
+      - run: npm ci
+      - name: Load /nettside configuration from Infisical
+        uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+        with:
+          method: oidc
+          identity-id: ${{ vars.INFISICAL_JOBS_IDENTITY_ID }}
+          oidc-audience: https://secrets.samfunnetibergen.no
+          domain: https://secrets.samfunnetibergen.no
+          project-id: faedb783-c2d7-45aa-ae13-f6607c5cca93
+          env-slug: prod
+          secret-path: /nettside
+          export-type: env
+      - name: Check pending requests in Crescat
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          args=(--verbose)
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          npm --workspace @samfunnet/web run events:check:crescat -- "${args[@]}"

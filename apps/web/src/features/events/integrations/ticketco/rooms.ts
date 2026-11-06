@@ -57,7 +57,7 @@ export function overlappingRooms(
   })
 }
 
-function tokens(text: string): Set<string> {
+export function titleTokens(text: string): Set<string> {
   if (typeof text !== "string") return new Set()
   return new Set(
     text
@@ -86,12 +86,13 @@ export function matchBookingRoom(
   title: string,
   candidates: RoomCandidate[],
 ): string | null {
-  const wanted = tokens(title)
+  const wanted = titleTokens(title)
   const ranked = candidates
     .map(candidate => ({
       candidate,
-      score: [...tokens(candidate.title)].filter(token => wanted.has(token))
-        .length,
+      score: [...titleTokens(candidate.title)].filter(token =>
+        wanted.has(token),
+      ).length,
     }))
     .filter(item => item.score > 0)
     .sort((a, b) => b.score - a.score)

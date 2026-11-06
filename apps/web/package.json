@@ -19,6 +19,7 @@
     "test": "vitest run",
     "events:import:ticketco": "tsx scripts/import-ticketco.ts",
     "events:sync:pending-slack": "tsx scripts/sync-pending-slack.ts",
+    "events:check:crescat": "tsx scripts/check-requests-crescat.ts",
     "events:weekly:canva": "tsx scripts/weekly-canva.ts",
     "canva:connect": "tsx scripts/connect-canva.ts"
   },
