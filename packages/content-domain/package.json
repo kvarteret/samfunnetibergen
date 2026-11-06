@@ -9,7 +9,8 @@
     "./resolve-event": "./resolve-event.ts",
     "./image-frame": "./image-frame.ts",
     "./faq-icons": "./faq-icons.ts",
-    "./promotion": "./promotion.ts"
+    "./promotion": "./promotion.ts",
+    "./crescat-check": "./crescat-check.ts"
   },
   "scripts": {
     "test": "vitest run --coverage",

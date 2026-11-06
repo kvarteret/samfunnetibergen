@@ -253,6 +253,28 @@ calendar, closing the intern-availability gap previously recorded here.
 Crescat-only rooms (no Sanity document) are validated against house hours alone — no room-specific
 opening hours restriction applies.
 
+### Request check (Studio traffic light)
+
+Pending Studio requests (`arrangement` with `submittedByEmail`, approval
+`pending`) are checked against the read-only calendars by
+`apps/web/src/features/events/server/crescat-check.ts`. Each request is
+checked once: right after a website submission (`after()` in `submitEvent`),
+or otherwise by the daily run of `.github/workflows/check-requests-crescat.yml`
+(`npm run events:check:crescat`), which skips requests already checked. Each result
+is stored in a private `crescatCheck.<arrangementId>` document, never on the
+arrangement itself, and Studio shows it on the request's list thumbnail and in
+the review panel:
+
+| Sign | Status | Rule (per date; dates roll up worst-case) |
+|---|---|---|
+| Green | `found` | Same room booked, covering ≥ 75 % of the time or under a similar name |
+| Orange | `maybe` | Same room only partly overlapping; a similar name booked in another room, with no room chosen, or at another time that day |
+| Red | `missing` | Nothing in the room and no similar name that day |
+
+"Similar name" means a shared word between the booking title and the request's
+title or organizer. An empty Crescat calendar aborts the scan instead of
+painting every request red.
+
 ## Known risks and edge cases
 
 ### CSRF token expiry
