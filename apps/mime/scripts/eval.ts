@@ -68,6 +68,7 @@ for (const item of cases.filter(c => !only.length || only.includes(c.id))) {
         writes: true,
         webSearch: webSearchEnabled(env),
         context: read.context,
+        stats: read.stats,
       }),
       prompt: `<@U0EVAL>: ${item.question}`,
       tools: { ...read.tools, ...planTools },

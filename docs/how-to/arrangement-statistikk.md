@@ -30,6 +30,8 @@ Website (server-only):
   `POSTHOG_CLI_PROJECT_ID`).
 - `POSTHOG_QUERY_HOST`: defaults to `https://eu.posthog.com`.
 - `PERSONAL_APP_BASE_URL`: defaults to `https://personal.samfunnetibergen.no`.
+- `STATISTICS_MCP_TOKEN`: turns on the MCP endpoint below. Any long random
+  string; Ludvig (`apps/mime`) needs the same value.
 
 Personal:
 
@@ -60,3 +62,18 @@ Source: `apps/web/src/features/event-statistics/server/statistics.ts`.
   first view until its last date or today.
 
 Visitors who decline tracking or block PostHog are not counted.
+
+## Caching
+
+Reports are built by `cached.ts` with `unstable_cache`: 15 minutes fresh,
+then the next request gets the cached report immediately while a new one is
+built in the background. The scope (Admin or the viewer's groups) is part of
+the cache key. The page and the MCP endpoint share the entries.
+
+## MCP endpoint for agents
+
+`/api/mcp/statistikk` (Streamable HTTP, stateless, read-only) offers
+`event_stats` and `event_stats_detail` with Admin scope, for internal agents
+such as the Slack bot. Requests need `Authorization: Bearer
+$STATISTICS_MCP_TOKEN`; without the token set, the route answers 404. Only
+aggregates are returned, never anything about a single visitor.

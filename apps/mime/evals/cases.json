@@ -85,5 +85,15 @@
       "plan": ["festivalen", "teglverket-helg", "3 festivaldager"],
       "anyTools": true
     }
+  },
+  {
+    "id": "ticket-clicks",
+    "note": "Answered with a privacy lecture before Ludvig had statistics.",
+    "question": "kan vi se hvor mange som klikker på billettlenkene per arrangement?",
+    "today": "2026-11-06",
+    "expect": {
+      "tools": ["event_stats"],
+      "notMentions": ["Datatilsynet", "samtykke"]
+    }
   }
 ]

@@ -152,8 +152,8 @@ Infisical `/mime` (project and `prod` environment as for `/party`) needs:
 `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`. Optional:
 `SANITY_MIME_WRITE_TOKEN`, `BROWSER_RENDERING_TOKEN` (an API token with
 *Browser Rendering: Edit* on the same account), `FEEDBACK_EXPORT_TOKEN` (any
-long random string), `POSTHOG_PROJECT_TOKEN`, `SANITY_CONTEXT_MCP_URL` and
-`SANITY_CONTEXT_TOKEN`. The
+long random string), `POSTHOG_PROJECT_TOKEN`, `SANITY_CONTEXT_MCP_URL`,
+`SANITY_CONTEXT_TOKEN` and `STATISTICS_MCP_TOKEN`. The
 CI identity must be allowed to read `/mime`.
 
 The production bot is the Slack app **Mime**, separate from the Mime app that
@@ -174,6 +174,16 @@ npm run typecheck:mime
 Two names still say Skonk because they are stored data or shared with the
 website: the Azure deployment `skonk` (the website's Luna importer uses it
 too) and the `E-tjenesten's Skonk` submitter on imported events.
+
+## Event statistics
+
+`src/stats.ts` connects to the website's MCP endpoint
+`$SITE_URL/api/mcp/statistikk` and offers its `event_stats` and
+`event_stats_detail` tools: the numbers on `/arrangementer/statistikk`, from
+the same PostHog queries and the same 15-minute cache. Set
+`STATISTICS_MCP_TOKEN` in Infisical `/mime` to the same value as in
+`/nettside`. Without it, Ludvig says it cannot see statistics and links to the
+page. See `docs/how-to/arrangement-statistikk.md`.
 
 ## Sanity Context
 

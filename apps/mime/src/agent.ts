@@ -237,6 +237,7 @@ export class MimeThread extends Agent<Env> {
           writes: Boolean(writer),
           webSearch: webSearchEnabled(this.env),
           context: read.context,
+          stats: read.stats,
         }),
         messages: [...history, user],
         tools: {
