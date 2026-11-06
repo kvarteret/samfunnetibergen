@@ -53,6 +53,7 @@
     "date-fns": "^4.4.0",
     "echarts": "^6.1.0",
     "embla-carousel-react": "^8.6.0",
+    "jose": "6.2.12",
     "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.7.0",
     "nanoid": "^6.0.1",

@@ -5,8 +5,8 @@ import { isPostHogQueryConfigured } from "@/features/event-statistics/server/pos
 
 /*
  * Read-only MCP endpoint (Streamable HTTP, stateless) with the event
- * statistics tools. Internal agents only: requests need the bearer token
- * whose hash is committed in mcp-auth.ts.
+ * statistics tools. Internal agents only: requests need a token signed by
+ * Ludvig's key (see mcp-auth.ts).
  */
 
 export const runtime = "nodejs"
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 120
 
 async function handle(request: Request) {
-  if (!statisticsTokenAccepted(request.headers.get("authorization")))
+  if (!(await statisticsTokenAccepted(request.headers.get("authorization"))))
     return new Response("Unauthorized", {
       status: 401,
       headers: { "WWW-Authenticate": "Bearer" },

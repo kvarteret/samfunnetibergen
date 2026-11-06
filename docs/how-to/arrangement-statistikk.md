@@ -72,11 +72,14 @@ the cache key. The page and the MCP endpoint share the entries.
 
 `/api/mcp/statistikk` (Streamable HTTP, stateless, read-only) offers
 `event_stats` and `event_stats_detail` with Admin scope, for internal agents
-such as the Slack bot. Requests need `Authorization: Bearer <token>`.
-The token is only in Infisical (Samfunnet Deployments `/mime`, as
-`STATISTICS_MCP_TOKEN`); the website has its SHA-256 committed in
-`features/event-statistics/server/mcp-auth.ts`, so nothing is configured on
-the website side. To rotate, put a new token in `/mime`, commit its hash, and
-deploy the website before Ludvig. For local testing, set
-`STATISTICS_MCP_TOKEN_SHA256` to the hash of a token of your own. Only
+such as the Slack bot. Requests need `Authorization: Bearer <JWT>`:
+a 15-minute EdDSA token that Ludvig signs with `STATISTICS_SIGNING_KEY`
+(a private Ed25519 JWK in Infisical Samfunnet Deployments `/mime`, nowhere
+else). The website verifies it against the public key Ludvig serves at
+`https://mime.samfunnetibergen.workers.dev/.well-known/jwks.json`
+(`features/event-statistics/server/mcp-auth.ts`), so nothing is configured on
+the website. To rotate, replace the key in `/mime` and deploy Ludvig; the
+website fetches the new public key on its own. Locally, set
+`STATISTICS_JWKS_URL` on the website to `http://localhost:1998/.well-known/jwks.json`
+(`wrangler dev`). Only
 aggregates are returned, never anything about a single visitor.

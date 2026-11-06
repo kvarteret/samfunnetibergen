@@ -1,26 +1,42 @@
-import { createHash, timingSafeEqual } from "node:crypto"
+import { createRemoteJWKSet, type JWTVerifyGetKey, jwtVerify } from "jose"
 
 /*
- * SHA-256 of the bearer token Ludvig sends to /api/mcp/statistikk. The token
- * itself lives only in Infisical (Samfunnet Deployments /mime); the website
- * needs just enough to recognise it. The token is 64 random characters, so its
- * hash is safe to publish.
- *
- * To rotate: generate a new token, put it in /mime, commit its hash here
- * (`printf %s "$TOKEN" | shasum -a 256`), and deploy the website before Ludvig.
- * STATISTICS_MCP_TOKEN_SHA256 overrides the hash, e.g. for local testing.
+ * Ludvig (apps/mime) calls /api/mcp/statistikk with short-lived tokens signed
+ * by its private key, which lives only in Infisical /mime. The website trusts
+ * the public key Ludvig serves, fetched over HTTPS and cached, so nothing is
+ * configured here and rotating the key needs no website change.
+ * STATISTICS_JWKS_URL points at another Ludvig, e.g. `wrangler dev` locally.
+ * Issuer and audience must match apps/mime/src/stats.ts.
  */
-export const STATISTICS_MCP_TOKEN_SHA256 =
-  "cf41012b091a8972bc9ddc924cd1f70982ce7049802bf70bf225e9b33e484d3e"
+const LUDVIG_JWKS_URL =
+  "https://mime.samfunnetibergen.workers.dev/.well-known/jwks.json"
+const ISSUER = "ludvig"
+const AUDIENCE = "samfunnetibergen-statistikk"
 
-export function statisticsTokenAccepted(
+let remoteKeys: JWTVerifyGetKey | undefined
+
+function ludvigKeys() {
+  remoteKeys ??= createRemoteJWKSet(
+    new URL(process.env.STATISTICS_JWKS_URL?.trim() || LUDVIG_JWKS_URL),
+  )
+  return remoteKeys
+}
+
+export async function statisticsTokenAccepted(
   authorization: string | null,
-  expectedSha256 = process.env.STATISTICS_MCP_TOKEN_SHA256?.trim() ||
-    STATISTICS_MCP_TOKEN_SHA256,
+  keys: JWTVerifyGetKey = ludvigKeys(),
 ) {
-  const sent = authorization?.match(/^Bearer (.+)$/)?.[1]
-  if (!sent) return false
-  const actual = createHash("sha256").update(sent).digest()
-  const expected = Buffer.from(expectedSha256.toLowerCase(), "hex")
-  return actual.length === expected.length && timingSafeEqual(actual, expected)
+  const token = authorization?.match(/^Bearer (.+)$/)?.[1]
+  if (!token) return false
+  try {
+    await jwtVerify(token, keys, {
+      issuer: ISSUER,
+      audience: AUDIENCE,
+      algorithms: ["EdDSA"],
+      maxTokenAge: "20m",
+    })
+    return true
+  } catch {
+    return false
+  }
 }

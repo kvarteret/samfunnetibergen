@@ -9,6 +9,7 @@ import {
   threadKey,
   verifySlackRequest,
 } from "./slack"
+import { statsJwks } from "./stats"
 
 export { MimeThread } from "./agent"
 export { MimeFeedback } from "./feedback-store"
@@ -117,6 +118,11 @@ export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url)
     if (pathname === "/health") return new Response("ok")
+    // Public key for the website to verify Ludvig's statistics tokens.
+    if (pathname === "/.well-known/jwks.json" && request.method === "GET")
+      return Response.json(await statsJwks(env), {
+        headers: { "Cache-Control": "public, max-age=300" },
+      })
     if (pathname === "/feedback" && request.method === "GET")
       return feedbackExport(request, env)
     if (pathname === "/slack/interactions" && request.method === "POST")

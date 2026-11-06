@@ -27,7 +27,7 @@ export type ModelEnv = {
   SANITY_CONTEXT_TOKEN?: string
   /** Website statistics MCP. URL defaults to SITE_URL + /api/mcp/statistikk. */
   STATISTICS_MCP_URL?: string
-  STATISTICS_MCP_TOKEN?: string
+  STATISTICS_SIGNING_KEY?: string
 }
 
 export function osloToday(now = new Date()) {
