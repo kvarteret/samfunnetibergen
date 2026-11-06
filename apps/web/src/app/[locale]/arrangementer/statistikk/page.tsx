@@ -31,8 +31,8 @@ import {
   resolveStatisticsAccess,
   type StatisticsViewer,
 } from "@/features/event-statistics/server/access"
+import { cachedStatisticsReport } from "@/features/event-statistics/server/cached"
 import { isPostHogQueryConfigured } from "@/features/event-statistics/server/posthog-query"
-import { buildStatisticsReport } from "@/features/event-statistics/server/statistics"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
 import { emitOperationalEvent } from "@/lib/observability"
 import { getOsloDateString } from "@/lib/sanity/fetch/shared"
@@ -71,7 +71,7 @@ export default async function ArrangementStatistikkPage({
 
   let report: StatisticsReport
   try {
-    report = await buildStatisticsReport(access.viewer, period)
+    report = (await cachedStatisticsReport(access.viewer, period)).value
   } catch (error) {
     emitOperationalEvent("event_statistics.report.failed", {
       failure_stage: "report",

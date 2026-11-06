@@ -61,8 +61,8 @@ jobs:
       # Exports CLOUDFLARE_API_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET,
       # SANITY_MIME_READ_TOKEN, AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY, plus the
       # optional SANITY_MIME_WRITE_TOKEN, BROWSER_RENDERING_TOKEN,
-      # FEEDBACK_EXPORT_TOKEN, SANITY_CONTEXT_MCP_URL, SANITY_CONTEXT_TOKEN and
-      # POSTHOG_PROJECT_TOKEN.
+      # FEEDBACK_EXPORT_TOKEN, SANITY_CONTEXT_MCP_URL, SANITY_CONTEXT_TOKEN,
+      # STATISTICS_SIGNING_KEY and POSTHOG_PROJECT_TOKEN.
       - name: Load Mime secrets
         uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
@@ -114,7 +114,8 @@ jobs:
           set -euo pipefail
           # SANITY_MIME_WRITE_TOKEN (an Editor token) is optional: without it
           # Mime cannot propose or run write plans. So are BROWSER_RENDERING_TOKEN,
-          # FEEDBACK_EXPORT_TOKEN and the two SANITY_CONTEXT_* values. Optional
+          # FEEDBACK_EXPORT_TOKEN, STATISTICS_SIGNING_KEY and the two
+          # SANITY_CONTEXT_* values. Optional
           # secrets are only ever set here, so removing one from Infisical
           # does not remove it from the Worker.
           jq -n \
@@ -126,6 +127,7 @@ jobs:
             --arg FEEDBACK_EXPORT_TOKEN "${FEEDBACK_EXPORT_TOKEN:-}" \
             --arg SANITY_CONTEXT_MCP_URL "${SANITY_CONTEXT_MCP_URL:-}" \
             --arg SANITY_CONTEXT_TOKEN "${SANITY_CONTEXT_TOKEN:-}" \
+            --arg STATISTICS_SIGNING_KEY "${STATISTICS_SIGNING_KEY:-}" \
             --arg POSTHOG_PROJECT_TOKEN "${POSTHOG_PROJECT_TOKEN:-}" \
             --arg AZURE_OPENAI_ENDPOINT "$AZURE_OPENAI_ENDPOINT" \
             --arg AZURE_OPENAI_API_KEY "$AZURE_OPENAI_API_KEY" \

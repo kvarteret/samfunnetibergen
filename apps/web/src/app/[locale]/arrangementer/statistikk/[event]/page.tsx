@@ -43,7 +43,7 @@ import {
   parsePeriod,
 } from "@/features/event-statistics/domain/statistics"
 import { resolveStatisticsAccess } from "@/features/event-statistics/server/access"
-import { buildEventDetail } from "@/features/event-statistics/server/event-detail"
+import { cachedEventDetail } from "@/features/event-statistics/server/cached"
 import { isPostHogQueryConfigured } from "@/features/event-statistics/server/posthog-query"
 import { Link } from "@/i18n/navigation"
 import { activateRequestLocale, resolvePageLocale } from "@/lib/app-locale"
@@ -96,7 +96,9 @@ export default async function EventStatisticsPage({
 
   let detail: EventDetail | null
   try {
-    detail = await buildEventDetail(access.viewer, slug, period, query.kampanje)
+    detail = (
+      await cachedEventDetail(access.viewer, slug, period, query.kampanje)
+    ).value
   } catch (error) {
     emitOperationalEvent("event_statistics.detail.failed", {
       failure_stage: "detail",

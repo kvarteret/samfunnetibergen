@@ -60,8 +60,8 @@ export async function runHogQL<Row extends Record<string, unknown>>(
         name: `arrangement-statistikk:${name}`,
         query: { kind: "HogQLQuery", query },
       }),
-      // These reports are explicitly refreshed by their viewers. Do not let
-      // the Next.js Data Cache keep an old PostHog response across reloads.
+      // Whole reports are cached in cached.ts; caching single responses here
+      // as well would mix query results of different ages in one report.
       cache: "no-store",
       signal: AbortSignal.timeout(20_000),
     },

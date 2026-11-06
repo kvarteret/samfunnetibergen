@@ -6,6 +6,7 @@ import type { ToolSet } from "ai"
 import { connectContext, contextOptions } from "./context"
 import { eventTools } from "./events"
 import { connectSanity } from "./sanity"
+import { connectStats, statsOptions } from "./stats"
 import { type BrowserRendering, webTools } from "./web"
 
 export type ModelEnv = {
@@ -24,6 +25,9 @@ export type ModelEnv = {
   BROWSER_RENDERING_TOKEN?: string
   SANITY_CONTEXT_MCP_URL?: string
   SANITY_CONTEXT_TOKEN?: string
+  /** Website statistics MCP. URL defaults to SITE_URL + /api/mcp/statistikk. */
+  STATISTICS_MCP_URL?: string
+  STATISTICS_SIGNING_KEY?: string
 }
 
 export function osloToday(now = new Date()) {
@@ -76,7 +80,8 @@ export function sanityScope(env: ModelEnv) {
 export async function readTools(env: ModelEnv, today: () => string) {
   const scope = sanityScope(env)
   const contextConfig = contextOptions(env)
-  const [sanity, context] = await Promise.all([
+  const statsConfig = statsOptions(env)
+  const [sanity, context, stats] = await Promise.all([
     connectSanity({
       token: env.SANITY_MIME_READ_TOKEN,
       projectId: env.SANITY_PROJECT_ID,
@@ -92,10 +97,21 @@ export async function readTools(env: ModelEnv, today: () => string) {
           return undefined
         })
       : undefined,
+    // Statistics too: without them Ludvig says it cannot see the numbers.
+    statsConfig
+      ? connectStats(statsConfig).catch(error => {
+          console.error(
+            "mime statistics unavailable",
+            error instanceof Error ? error.name : "unknown",
+          )
+          return undefined
+        })
+      : undefined,
   ])
   const tools: ToolSet = {
     ...sanity.tools,
     ...(context?.tools ?? {}),
+    ...(stats?.tools ?? {}),
     ...eventTools(scope, today),
     ...webTools({ browser: browserRendering(env) }),
     ...(webSearchEnabled(env)
@@ -115,9 +131,11 @@ export async function readTools(env: ModelEnv, today: () => string) {
   return {
     tools,
     context: Boolean(context),
+    stats: Boolean(stats),
     close: async () => {
       await sanity.close().catch(() => undefined)
       await context?.close().catch(() => undefined)
+      await stats?.close().catch(() => undefined)
     },
   }
 }
@@ -126,6 +144,8 @@ export async function readTools(env: ModelEnv, today: () => string) {
 export function toolStatus(name: string) {
   if (name === "find_events") return "Sjekker programmet…"
   if (name === "get_event") return "Leser arrangementet…"
+  if (name === "event_stats" || name === "event_stats_detail")
+    return "Teller besøk…"
   if (name === "web_search") return "Søker på nettet…"
   if (
     ["fetch_page", "page_links", "open_pages", "extract_events"].includes(name)

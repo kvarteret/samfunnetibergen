@@ -60,3 +60,26 @@ Source: `apps/web/src/features/event-statistics/server/statistics.ts`.
   first view until its last date or today.
 
 Visitors who decline tracking or block PostHog are not counted.
+
+## Caching
+
+Reports are built by `cached.ts` with `unstable_cache`: 15 minutes fresh,
+then the next request gets the cached report immediately while a new one is
+built in the background. The scope (Admin or the viewer's groups) is part of
+the cache key. The page and the MCP endpoint share the entries.
+
+## MCP endpoint for agents
+
+`/api/mcp/statistikk` (Streamable HTTP, stateless, read-only) offers
+`event_stats` and `event_stats_detail` with Admin scope, for internal agents
+such as the Slack bot. Requests need `Authorization: Bearer <JWT>`:
+a 15-minute EdDSA token that Ludvig signs with `STATISTICS_SIGNING_KEY`
+(a private Ed25519 JWK in Infisical Samfunnet Deployments `/mime`, nowhere
+else). The website verifies it against the public key Ludvig serves at
+`https://mime.samfunnetibergen.workers.dev/.well-known/jwks.json`
+(`features/event-statistics/server/mcp-auth.ts`), so nothing is configured on
+the website. To rotate, replace the key in `/mime` and deploy Ludvig; the
+website fetches the new public key on its own. Locally, set
+`STATISTICS_JWKS_URL` on the website to `http://localhost:1998/.well-known/jwks.json`
+(`wrangler dev`). Only
+aggregates are returned, never anything about a single visitor.

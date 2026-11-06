@@ -152,8 +152,8 @@ Infisical `/mime` (project and `prod` environment as for `/party`) needs:
 `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`. Optional:
 `SANITY_MIME_WRITE_TOKEN`, `BROWSER_RENDERING_TOKEN` (an API token with
 *Browser Rendering: Edit* on the same account), `FEEDBACK_EXPORT_TOKEN` (any
-long random string), `POSTHOG_PROJECT_TOKEN`, `SANITY_CONTEXT_MCP_URL` and
-`SANITY_CONTEXT_TOKEN`. The
+long random string), `POSTHOG_PROJECT_TOKEN`, `SANITY_CONTEXT_MCP_URL`,
+`SANITY_CONTEXT_TOKEN` and `STATISTICS_SIGNING_KEY`. The
 CI identity must be allowed to read `/mime`.
 
 The production bot is the Slack app **Mime**, separate from the Mime app that
@@ -174,6 +174,19 @@ npm run typecheck:mime
 Two names still say Skonk because they are stored data or shared with the
 website: the Azure deployment `skonk` (the website's Luna importer uses it
 too) and the `E-tjenesten's Skonk` submitter on imported events.
+
+## Event statistics
+
+`src/stats.ts` connects to the website's MCP endpoint
+`$SITE_URL/api/mcp/statistikk` and offers its `event_stats` and
+`event_stats_detail` tools: the numbers on `/arrangementer/statistikk`, from
+the same PostHog queries and the same 15-minute cache. Ludvig authenticates with
+short-lived tokens signed by `STATISTICS_SIGNING_KEY` (a private Ed25519 JWK
+in Infisical `/mime`, the only place it exists). The website verifies them
+against the public key at `/.well-known/jwks.json`, so rotating the key needs
+only a new value in `/mime` and a deploy. Generate one with
+`node -e "require('jose').generateKeyPair('EdDSA',{extractable:true}).then(k=>require('jose').exportJWK(k.privateKey)).then(j=>console.log(JSON.stringify(j)))"`. Without it, Ludvig says it cannot see statistics and links to the
+page. See `docs/how-to/arrangement-statistikk.md`.
 
 ## Sanity Context
 
