@@ -1,5 +1,5 @@
 import { expect, test } from "vitest"
-import { parseBookingQuestions } from "./questions"
+import { flattenBookingFaq, parseBookingQuestions } from "./questions"
 
 test("preserves Markdown answers while making questions expandable", () => {
   expect(
@@ -23,4 +23,46 @@ test("preserves Markdown answers while making questions expandable", () => {
       },
     ],
   })
+})
+
+test("uses each Studio FAQ section heading as the question category", () => {
+  expect(
+    flattenBookingFaq([
+      {
+        _key: "payment",
+        _type: "faqSection",
+        heading: "Betaling",
+        items: [
+          {
+            _key: "invoice",
+            icon: "money",
+            question: "Hvordan betaler jeg?",
+            answer: "Med faktura.",
+          },
+        ],
+      },
+      {
+        _key: "age",
+        _type: "faqItem",
+        icon: null,
+        question: "Hva er aldersgrensen?",
+        answer: "18 år.",
+      },
+    ]),
+  ).toEqual([
+    {
+      _key: "invoice",
+      icon: "money",
+      question: "Hvordan betaler jeg?",
+      answer: "Med faktura.",
+      category: "Betaling",
+    },
+    {
+      _key: "age",
+      _type: "faqItem",
+      icon: null,
+      question: "Hva er aldersgrensen?",
+      answer: "18 år.",
+    },
+  ])
 })

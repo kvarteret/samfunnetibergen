@@ -6,6 +6,9 @@ import { openingHoursProjection } from "../fragments/rooms"
 const localizedEyebrow = `coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedTitle = `coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)`
 const localizedDescription = `coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value)`
+const faqItemFields = `icon,
+    "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),
+    "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")`
 const localizedAnswer = `coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)`
 
 import {
@@ -108,9 +111,17 @@ export const pageBySlugQuery = defineQuery(`*[
     "submittedDescription": coalesce(localizedSubmittedDescription[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedDescription[language == "nb" && defined(value) && value != ""][0].value, null),
     "faq": coalesce(faq[] {
       _key,
-      icon,
-      "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),
-      "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")
+      _type,
+      _type == "faqSection" => {
+        "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, ""),
+        "items": coalesce(items[] {
+          _key,
+          ${faqItemFields}
+        }, [])
+      },
+      _type == "faqItem" => {
+        ${faqItemFields}
+      }
     }, []),
     "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")
 }`)

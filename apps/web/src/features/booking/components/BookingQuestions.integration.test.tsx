@@ -20,22 +20,19 @@ test("opens every question initially and lets readers collapse one independently
           content=""
           faq={[
             {
-              _key: "one",
-              question: "Når?",
-              answer: "I morgen.",
-              category: "Tid",
-            },
-            {
-              _key: "two",
-              question: "Hvor lenge?",
-              answer: "En time.",
-              category: "Tid",
+              _key: "time",
+              _type: "faqSection",
+              heading: "Tid",
+              items: [
+                { _key: "one", question: "Når?", answer: "I morgen." },
+                { _key: "two", question: "Hvor lenge?", answer: "En time." },
+              ],
             },
             {
               _key: "three",
+              _type: "faqItem",
               question: "Hvor?",
               answer: "Tivoli.",
-              category: "Sted",
             },
           ]}
         />,
@@ -49,6 +46,9 @@ test("opens every question initially and lets readers collapse one independently
     expect(container.textContent).toContain("I morgen.")
     expect(container.textContent).toContain("En time.")
     expect(container.textContent).toContain("Tivoli.")
+    expect(
+      Array.from(container.querySelectorAll("h2"), h2 => h2.textContent),
+    ).toEqual(["Tid"])
 
     await act(async () => triggers[0].click())
     expect(

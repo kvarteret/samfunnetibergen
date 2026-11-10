@@ -16,11 +16,11 @@ const POLICY_PAGE_SLUGS = [
   "avbestillingsvilkar",
   "krav-promo",
   "leievilkaar",
-  "sporsmal-booking",
   "vergeordningen",
   "vilkar-for-leie-av-karaoke",
 ]
 const INFORMATION_PAGE_SLUGS = ["om-kvarteret"]
+const BOOKING_FAQ_PAGE_SLUGS = ["sporsmal-booking"]
 
 function singletonListItem(
   S: StructureBuilder,
@@ -39,17 +39,22 @@ function pageListItem(
   id: string,
   title: string,
   slugs: string[],
+  icon?: React.ComponentType,
 ) {
-  return S.listItem().id(id).title(title).icon(icons.document).child(
-    S.documentList()
-      .apiVersion(STRUCTURE_API_VERSION)
-      .title(title)
-      .schemaType("page")
-      .filter("_type == 'page' && slug.current in $slugs")
-      // Page titles are localized array fields; the former scalar `title`
-      // ordering makes Sanity reject the entire list query.
-      .params({ slugs }),
-  )
+  return S.listItem()
+    .id(id)
+    .title(title)
+    .icon(icon ?? icons.document)
+    .child(
+      S.documentList()
+        .apiVersion(STRUCTURE_API_VERSION)
+        .title(title)
+        .schemaType("page")
+        .filter("_type == 'page' && slug.current in $slugs")
+        // Page titles are localized array fields; the former scalar `title`
+        // ordering makes Sanity reject the entire list query.
+        .params({ slugs }),
+    )
 }
 
 type ArrangementListOptions = {
@@ -263,6 +268,13 @@ export const structure: StructureResolver = (S, context) =>
                 "usefulInfoPage",
                 "Nyttig info",
                 icons["info-outline"],
+              ),
+              pageListItem(
+                S,
+                "booking-faq-page",
+                "Ofte stilte spørsmål",
+                BOOKING_FAQ_PAGE_SLUGS,
+                icons["help-circle"],
               ),
               singletonListItem(S, "kontaktPage", "Kontakt", icons.envelope),
               S.divider(),

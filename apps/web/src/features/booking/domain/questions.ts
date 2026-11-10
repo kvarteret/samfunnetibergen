@@ -6,6 +6,29 @@ export interface BookingQuestion {
   category?: string
 }
 
+type BookingFaqItem = Omit<BookingQuestion, "category">
+
+export type BookingFaqEntry =
+  | ({ _type: "faqItem" } & BookingFaqItem)
+  | {
+      _key: string
+      _type: "faqSection"
+      heading: string
+      items: BookingFaqItem[]
+    }
+
+/** Flatten Studio FAQ sections into questions grouped by their heading. */
+export function flattenBookingFaq(entries: BookingFaqEntry[]) {
+  return entries.flatMap((entry): BookingQuestion[] =>
+    entry._type === "faqSection"
+      ? entry.items.map(item => ({
+          ...item,
+          category: entry.heading || undefined,
+        }))
+      : [entry],
+  )
+}
+
 /** Keep existing Sanity Markdown editable while displaying each question as an accordion. */
 export function parseBookingQuestions(content: string): {
   intro: string

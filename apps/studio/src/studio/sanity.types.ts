@@ -697,24 +697,49 @@ export type Page = {
   localizedSubmittedTitle?: InternationalizedArrayString
   localizedSubmittedKaraokeTitle?: InternationalizedArrayString
   localizedSubmittedDescription?: InternationalizedArrayText
-  faq?: Array<{
-    icon?:
-      | "age"
-      | "room"
-      | "bar"
-      | "equipment"
-      | "safety"
-      | "ticket"
-      | "cleaning"
-      | "clock"
-      | "money"
-      | "contact"
-      | "info"
-    localizedQuestion: InternationalizedArrayString
-    localizedAnswer: InternationalizedArrayText
-    _type: "faqItem"
-    _key: string
-  }>
+  faq?: Array<
+    | {
+        localizedHeading: InternationalizedArrayString
+        items: Array<{
+          icon?:
+            | "age"
+            | "room"
+            | "bar"
+            | "equipment"
+            | "safety"
+            | "ticket"
+            | "cleaning"
+            | "clock"
+            | "money"
+            | "contact"
+            | "info"
+          localizedQuestion: InternationalizedArrayString
+          localizedAnswer: InternationalizedArrayText
+          _type: "faqItem"
+          _key: string
+        }>
+        _type: "faqSection"
+        _key: string
+      }
+    | {
+        icon?:
+          | "age"
+          | "room"
+          | "bar"
+          | "equipment"
+          | "safety"
+          | "ticket"
+          | "cleaning"
+          | "clock"
+          | "money"
+          | "contact"
+          | "info"
+        localizedQuestion: InternationalizedArrayString
+        localizedAnswer: InternationalizedArrayText
+        _type: "faqItem"
+        _key: string
+      }
+  >
 }
 
 export type KontaktPage = {
