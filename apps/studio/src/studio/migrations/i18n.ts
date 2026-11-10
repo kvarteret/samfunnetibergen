@@ -901,15 +901,15 @@ export async function buildI18nPatch(
       owner: Record<string, unknown>,
       ownerPath: string,
       fields: ReadonlyArray<
-        readonly [string, string, NonNullable<EnsureOptions["kind"]>]
+        readonly [string, NonNullable<EnsureOptions["kind"]>]
       >,
     ) => {
-      for (const [localized, legacy, kind] of fields) {
+      for (const [localized, kind] of fields) {
         const result = await ensureLocalized({
           field: localized,
           path: `${document._id}.${ownerPath}${localized}`,
           current: owner[localized],
-          legacy: owner[legacy],
+          legacy: undefined,
           kind,
           translate,
         })
@@ -925,8 +925,8 @@ export async function buildI18nPatch(
       }
     }
     const faqItemFields = [
-      ["localizedQuestion", "question", "string"],
-      ["localizedAnswer", "answer", "arrayText"],
+      ["localizedQuestion", "string"],
+      ["localizedAnswer", "arrayText"],
     ] as const
     for (const entry of Array.isArray(document.faq) ? document.faq : []) {
       if (!isObject(entry) || !isNonBlank(entry._key)) continue
@@ -935,9 +935,7 @@ export async function buildI18nPatch(
         await ensureNested(entry, entryPath, faqItemFields)
         continue
       }
-      await ensureNested(entry, entryPath, [
-        ["localizedHeading", "heading", "string"],
-      ])
+      await ensureNested(entry, entryPath, [["localizedHeading", "string"]])
       for (const item of Array.isArray(entry.items) ? entry.items : []) {
         if (!isObject(item) || !isNonBlank(item._key)) continue
         await ensureNested(
@@ -1243,28 +1241,20 @@ export function missingCanonicalFields(
       ["localizedQuestion", "question", true],
       ["localizedAnswer", "answer", true],
     ]
-    checkNested(
-      document.faq.filter(
-        entry => isObject(entry) && entry._type !== "faqSection",
-      ),
-      "faq",
-      faqItemFields,
-    )
-    for (const section of document.faq) {
-      if (
-        !isObject(section) ||
-        section._type !== "faqSection" ||
-        !isNonBlank(section._key)
-      )
+    for (const entry of document.faq) {
+      if (!isObject(entry) || !isNonBlank(entry._key)) continue
+      if (entry._type !== "faqSection") {
+        checkNested([entry], "faq", faqItemFields)
         continue
-      const sectionPath = `faq[${section._key}]`
+      }
+      const sectionPath = `faq[${entry._key}]`
       check(
         `${sectionPath}.localizedHeading`,
-        section.localizedHeading,
-        section.heading,
+        entry.localizedHeading,
+        undefined,
         true,
       )
-      checkNested(section.items, `${sectionPath}.items`, faqItemFields)
+      checkNested(entry.items, `${sectionPath}.items`, faqItemFields)
     }
   }
   if (type === "room") {

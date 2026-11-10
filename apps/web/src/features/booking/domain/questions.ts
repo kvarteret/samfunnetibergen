@@ -23,7 +23,7 @@ export function flattenBookingFaq(entries: BookingFaqEntry[]) {
     entry._type === "faqSection"
       ? entry.items.map(item => ({
           ...item,
-          ...(entry.heading ? { category: entry.heading } : {}),
+          category: entry.heading || undefined,
         }))
       : [entry],
   )
