@@ -4,6 +4,83 @@ import { defineArrayMember, defineField, defineType } from "sanity"
 import { isReservedPageSlug } from "../../contentPolicies"
 import { localizedArrayField } from "../shared/localizedFields"
 
+function nbValue(value: unknown) {
+  return Array.isArray(value)
+    ? value.find((item: { language?: string }) => item?.language === "nb")
+        ?.value
+    : undefined
+}
+
+const faqItem = defineArrayMember({
+  name: "faqItem",
+  title: "Spørsmål",
+  type: "object",
+  fields: [
+    defineField({
+      name: "icon",
+      title: "Ikon",
+      description: "Vises foran spørsmålet. Valgfritt.",
+      type: "string",
+      options: {
+        list: FAQ_ICONS.map(({ name, title }) => ({
+          title,
+          value: name,
+        })),
+      },
+    }),
+    localizedArrayField(
+      "localizedQuestion",
+      "Spørsmål",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    localizedArrayField(
+      "localizedAnswer",
+      "Svar",
+      "internationalizedArrayText",
+      { required: true, description: "Markdown er støttet." },
+    ),
+  ],
+  preview: {
+    select: { title: "localizedQuestion" },
+    prepare({ title }) {
+      return { title: nbValue(title) ?? "Spørsmål" }
+    },
+  },
+})
+
+const faqSection = defineArrayMember({
+  name: "faqSection",
+  title: "Tema",
+  type: "object",
+  icon: icons["chevron-down"],
+  fields: [
+    localizedArrayField(
+      "localizedHeading",
+      "Overskrift",
+      "internationalizedArrayString",
+      { required: true },
+    ),
+    defineField({
+      name: "items",
+      title: "Spørsmål",
+      type: "array",
+      of: [faqItem],
+      validation: rule => rule.required().min(1),
+    }),
+  ],
+  preview: {
+    select: { title: "localizedHeading", items: "items" },
+    prepare({ title, items }) {
+      const count = Array.isArray(items) ? items.length : 0
+      return {
+        title: nbValue(title) ?? "Tema",
+        subtitle: `${count} spørsmål`,
+      }
+    },
+  },
+})
+
 export const page = defineType({
   name: "page",
   title: "Egendefinert side",
@@ -91,52 +168,10 @@ export const page = defineType({
       name: "faq",
       title: "Spørsmål og svar",
       description:
-        "Vises som trekkspill på spørsmål om booking. Erstatter spørsmålene i Markdown når utfylt.",
+        "Vises som trekkspill på spørsmål om booking. Samle spørsmålene i temaer med overskrift. Erstatter spørsmålene i Markdown når utfylt.",
       type: "array",
       group: "content",
-      of: [
-        defineArrayMember({
-          name: "faqItem",
-          type: "object",
-          fields: [
-            defineField({
-              name: "icon",
-              title: "Ikon",
-              description: "Vises foran spørsmålet. Valgfritt.",
-              type: "string",
-              options: {
-                list: FAQ_ICONS.map(({ name, title }) => ({
-                  title,
-                  value: name,
-                })),
-              },
-            }),
-            localizedArrayField(
-              "localizedQuestion",
-              "Spørsmål",
-              "internationalizedArrayString",
-              { required: true },
-            ),
-            localizedArrayField(
-              "localizedAnswer",
-              "Svar",
-              "internationalizedArrayText",
-              { required: true, description: "Markdown er støttet." },
-            ),
-          ],
-          preview: {
-            select: { title: "localizedQuestion" },
-            prepare({ title }) {
-              return {
-                title:
-                  title?.find(
-                    (item: { language?: string }) => item.language === "nb",
-                  )?.value ?? "Spørsmål",
-              }
-            },
-          },
-        }),
-      ],
+      of: [faqSection, faqItem],
     }),
   ],
   preview: {
