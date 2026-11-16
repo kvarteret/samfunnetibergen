@@ -29,6 +29,7 @@ const event = (overrides: Partial<EventStatistic>): EventStatistic => ({
   sessions: 8,
   visitors: 7,
   ticketClicks: 2,
+  ticketProxyClicks: 0,
   facebookClicks: 0,
   medianSeconds: 30,
   ...overrides,
@@ -42,6 +43,7 @@ const report = (events: EventStatistic[]): StatisticsReport => ({
     sessions: 80,
     visitors: 70,
     ticketClicks: 9,
+    ticketProxyClicks: 0,
     facebookClicks: 1,
     medianSeconds: 40,
   },
@@ -84,6 +86,7 @@ describe("eventStatsResult", () => {
     expect(result.matchedTotals).toEqual({
       views: 55,
       ticketClicks: 11,
+      ticketProxyClicks: 0,
       facebookClicks: 0,
     })
     expect(result.events).toHaveLength(1)

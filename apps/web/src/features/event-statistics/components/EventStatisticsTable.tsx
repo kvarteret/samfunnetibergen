@@ -87,6 +87,7 @@ const NUMERIC = new Set([
   "besokende",
   "okter",
   "billettklikk",
+  "eksterne-billettklikk",
   "facebook",
   "tid",
 ])
@@ -281,6 +282,12 @@ export function EventStatisticsTable({
             cell: info => countOrMissing(info.getValue()),
           },
         ),
+        column.accessor("ticketProxyClicks", {
+          id: "eksterne-billettklikk",
+          header: "Via eksterne lenker",
+          sortDescFirst: true,
+          cell: info => count(info.getValue()),
+        }),
         column.accessor(
           row =>
             row.hasFacebookLink || row.facebookClicks > 0

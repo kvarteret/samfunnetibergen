@@ -233,17 +233,25 @@ export default async function EventStatisticsPage({
               value={totals.visitors}
             />
             <Kpi
-              caption="Klikk på billettknappen videre til billettsalget."
+              caption="Alle registrerte billettklikk, inkludert videresendinger fra eksterne lenker."
               label="Billettklikk"
               text={noTicketLink ? "N/A" : count(totals.ticketClicks)}
             />
             <Kpi
-              caption="Billettklikk delt på unike besøkende."
-              label="Billettklikk per besøkende"
+              caption="Videresendinger via /api/tickets/ fra eksterne arrangementslister. Inngår i Billettklikk. Teller klikk, ikke unike personer."
+              label="Billettklikk via eksterne lenker"
+              value={totals.ticketProxyClicks}
+            />
+            <Kpi
+              caption="Klikk på billettknappen på arrangementssiden delt på unike besøkende på siden."
+              label="Billettklikk på siden per besøkende"
               text={
                 noTicketLink
                   ? "N/A"
-                  : clickRate(totals.ticketClicks, totals.visitors)
+                  : clickRate(
+                      totals.ticketClicks - totals.ticketProxyClicks,
+                      totals.visitors,
+                    )
               }
             />
             <Kpi
@@ -282,7 +290,7 @@ export default async function EventStatisticsPage({
                 />
               </Panel>
               <Panel
-                caption={`Klikk på billettknappen og Facebook-lenken hver dag.${campaignNote}`}
+                caption={`Billettklikk, herav videresendinger fra eksterne lenker, og Facebook-klikk hver dag.${campaignNote}`}
                 title="Klikk per dag"
               >
                 <DailyTrendChart
@@ -294,6 +302,12 @@ export default async function EventStatisticsPage({
                     {
                       name: "Billettklikk",
                       values: detail.dailyClicks.map(point => point.ticket),
+                    },
+                    {
+                      name: "Via eksterne lenker",
+                      values: detail.dailyClicks.map(
+                        point => point.ticketProxy,
+                      ),
                     },
                     {
                       name: "Facebook-klikk",
@@ -510,6 +524,7 @@ export default async function EventStatisticsPage({
                 <TableHead numeric>Visninger</TableHead>
                 <TableHead numeric>Besøkende</TableHead>
                 <TableHead numeric>Billettklikk</TableHead>
+                <TableHead numeric>Via eksterne lenker</TableHead>
                 <TableHead numeric>Facebook</TableHead>
               </TableRow>
             </TableHeader>
@@ -544,6 +559,9 @@ export default async function EventStatisticsPage({
                     {instance.hasTicketLink || instance.ticketClicks > 0
                       ? count(instance.ticketClicks)
                       : "N/A"}
+                  </TableCell>
+                  <TableCell numeric>
+                    {count(instance.ticketProxyClicks)}
                   </TableCell>
                   <TableCell numeric>
                     {instance.hasFacebookLink || instance.facebookClicks > 0

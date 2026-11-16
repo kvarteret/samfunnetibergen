@@ -109,9 +109,14 @@ export default async function ArrangementStatistikkPage({
             value={report.eventTotals.sessions}
           />
           <Kpi
-            caption="Klikk på billettknappen videre til billettsalget."
+            caption="Alle registrerte billettklikk, inkludert videresendinger fra eksterne lenker."
             label="Billettklikk"
             value={report.eventTotals.ticketClicks}
+          />
+          <Kpi
+            caption="Videresendinger via /api/tickets/ fra eksterne arrangementslister. Inngår i Billettklikk. Teller klikk, ikke unike personer."
+            label="Billettklikk via eksterne lenker"
+            value={report.eventTotals.ticketProxyClicks}
           />
           <Kpi
             caption="Klikk på lenken til Facebook-arrangementet."

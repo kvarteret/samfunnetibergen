@@ -75,6 +75,7 @@ export type EventMeta = Omit<
   | "sessions"
   | "visitors"
   | "ticketClicks"
+  | "ticketProxyClicks"
   | "facebookClicks"
   | "medianSeconds"
   | "instanceCount"

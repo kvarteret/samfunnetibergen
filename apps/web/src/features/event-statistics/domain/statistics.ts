@@ -54,6 +54,7 @@ export type EventStatistic = {
   sessions: number
   visitors: number
   ticketClicks: number
+  ticketProxyClicks: number
   facebookClicks: number
   medianSeconds: number | null
 }
@@ -75,6 +76,7 @@ export type StatisticsTotals = {
   sessions: number
   visitors: number
   ticketClicks: number
+  ticketProxyClicks: number
   facebookClicks: number
   medianSeconds: number | null
 }
@@ -150,6 +152,7 @@ export const EVENT_SORT_COLUMNS = [
   "besokende",
   "okter",
   "billettklikk",
+  "eksterne-billettklikk",
   "facebook",
   "tid",
   "dato",
@@ -274,6 +277,7 @@ export function aggregateSeries(
       sessions: sum(event => event.sessions),
       visitors: sum(event => event.visitors),
       ticketClicks: sum(event => event.ticketClicks),
+      ticketProxyClicks: sum(event => event.ticketProxyClicks),
       facebookClicks: sum(event => event.facebookClicks),
       medianSeconds: median(
         members
@@ -348,7 +352,12 @@ export function deviceName(value: string | null | undefined) {
 /** `pending` marks a value that cannot exist yet, e.g. days still ahead. */
 export type NamedCount = { name: string; value: number; pending?: boolean }
 
-export type DailyClicks = { day: string; ticket: number; facebook: number }
+export type DailyClicks = {
+  day: string
+  ticket: number
+  ticketProxy: number
+  facebook: number
+}
 
 export type EventDetail = {
   event: Omit<
@@ -357,6 +366,7 @@ export type EventDetail = {
     | "sessions"
     | "visitors"
     | "ticketClicks"
+    | "ticketProxyClicks"
     | "facebookClicks"
     | "medianSeconds"
     | "daily"

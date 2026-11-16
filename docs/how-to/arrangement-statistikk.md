@@ -48,6 +48,17 @@ Source: `apps/web/src/features/event-statistics/server/statistics.ts`.
 - Views, unique sessions and unique visitors: `content_page_viewed`.
 - Ticket and Facebook clicks: `ticket_link_clicked`,
   `facebook_event_link_clicked`.
+- `Billettklikk via eksterne lenker` is the subset of `ticket_link_clicked`
+  with `source = ticket_proxy`. The `/api/tickets/<slug>` redirect sends these
+  events for external event listings. The subset is included in `Billettklikk`
+  at both the overview and event level. It counts redirects, not distinct
+  visitors: the server sends every redirect for an event under one PostHog
+  identity. It does not create a `$pageview`, so Web Analytics pageview counts
+  do not include it. Browser ticket clicks have `source = event_page` from this
+  change forward; older browser clicks have no source value.
+- [Billettklikk etter kilde](https://eu.posthog.com/project/202551/insights/OzoIbJUE)
+  is the saved PostHog insight for filtering ticket clicks by source. It uses
+  a 30-day date range and a source breakdown.
 - Time on page: median `$prev_pageview_duration` on `$pageview`/`$pageleave`
   for the arrangement path, counting visits between 1 s and 10 min, shown only with at least 10 such visits.
 
@@ -59,7 +70,15 @@ Source: `apps/web/src/features/event-statistics/server/statistics.ts`.
 - Per dag: views divided by the days the page was live in the period, from its
   first view until its last date or today.
 
-Visitors who decline tracking or block PostHog are not counted.
+Page and browser-click counts exclude visitors who decline tracking or block
+PostHog. Ticket proxy redirects are captured on the server when the redirect
+handler runs, independent of browser tracking.
+
+Historical proxy clicks are already captured by the redirect handler. The
+available Vercel CLI request logs did not include the six-day-old window checked
+on 16 November 2026 (HTTP 400), so there is no complete request export to
+reconcile against PostHog or use for a safe historical backfill. Never infer
+missing events from pageviews; the redirect need not load an arrangement page.
 
 ## Caching
 
