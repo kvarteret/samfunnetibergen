@@ -52,6 +52,7 @@ function eventRow(
     visitors: event.visitors,
     sessions: event.sessions,
     ticketClicks: event.ticketClicks,
+    ticketProxyClicks: event.ticketProxyClicks,
     facebookClicks: event.facebookClicks,
     hasTicketLink: event.hasTicketLink,
     medianSecondsOnPage: event.medianSeconds,
@@ -88,8 +89,9 @@ export function eventStatsResult(
   const sort = input.sort ?? "views"
   rows.sort((a, b) => b[sort] - a[sort] || b.views - a.views)
   const limit = Math.min(Math.max(input.limit ?? 15, 1), 50)
-  const sum = (key: "views" | "ticketClicks" | "facebookClicks") =>
-    rows.reduce((total, event) => total + event[key], 0)
+  const sum = (
+    key: "views" | "ticketClicks" | "ticketProxyClicks" | "facebookClicks",
+  ) => rows.reduce((total, event) => total + event[key], 0)
   return {
     period,
     matched: rows.length,
@@ -98,6 +100,7 @@ export function eventStatsResult(
     matchedTotals: {
       views: sum("views"),
       ticketClicks: sum("ticketClicks"),
+      ticketProxyClicks: sum("ticketProxyClicks"),
       facebookClicks: sum("facebookClicks"),
     },
     siteTotals: report.eventTotals,
@@ -144,6 +147,7 @@ export function eventDetailResult(
       firstDate: instance.firstDate,
       views: instance.views,
       ticketClicks: instance.ticketClicks,
+      ticketProxyClicks: instance.ticketProxyClicks,
     })),
     frontPage: {
       campaigns: exposure.campaigns,
@@ -175,7 +179,7 @@ export function createStatisticsMcpServer() {
     {
       title: "Arrangementsstatistikk",
       description:
-        "Besøksstatistikk for arrangementssidene på samfunnetibergen.no (PostHog), de samme tallene som /arrangementer/statistikk: visninger, unike besøkende, økter, klikk på billettlenke og Facebook-arrangement, og median tid på siden, per arrangement (serier slått sammen). Filtrer på ord i tittelen eller arrangør. Tallene er hurtigbufret i opptil 15 minutter; generatedAt sier hvor ferske de er.",
+        "Besøksstatistikk for arrangementssidene på samfunnetibergen.no (PostHog), de samme tallene som /arrangementer/statistikk: visninger, unike besøkende, økter, billettklikk (herav videresendinger via eksterne lenker), Facebook-klikk og median tid på siden, per arrangement (serier slått sammen). Filtrer på ord i tittelen eller arrangør. Tallene er hurtigbufret i opptil 15 minutter; generatedAt sier hvor ferske de er.",
       inputSchema: {
         period: PERIOD,
         text: z

@@ -26,7 +26,8 @@ import { hogqlStringList, runHogQL } from "./posthog-query"
  * - `content_page_viewed` with `content_type` "arrangement" / "group";
  *   `content_id` is the Sanity document id, `content_slug` the slug.
  * - `ticket_link_clicked` / `facebook_event_link_clicked`; `event_id` is the
- *   Sanity document id.
+ *   Sanity document id. Ticket redirects from the public API have
+ *   `source = ticket_proxy` and do not represent distinct visitors.
  * - `$pageview` / `$pageleave` carry `$prev_pageview_duration` for the page
  *   being left, which gives time spent per arrangement path.
  */
@@ -87,10 +88,12 @@ export async function buildStatisticsReport(
         id: string | null
         slug: string | null
         ticket: number
+        ticketProxy: number
         facebook: number
       }>(
         `SELECT properties.event_id AS id, properties.event_slug AS slug,
            countIf(event = 'ticket_link_clicked') AS ticket,
+           countIf(event = 'ticket_link_clicked' AND properties.source = 'ticket_proxy') AS ticketProxy,
            countIf(event = 'facebook_event_link_clicked') AS facebook
          FROM events
          WHERE event IN ('ticket_link_clicked', 'facebook_event_link_clicked')
@@ -147,12 +150,20 @@ export async function buildStatisticsReport(
       : []
 
   const views = new Map(viewRows.map(row => [row.id, row]))
-  const clicks = new Map<string, { ticket: number; facebook: number }>()
+  const clicks = new Map<
+    string,
+    { ticket: number; ticketProxy: number; facebook: number }
+  >()
   for (const row of clickRows) {
     const key = row.id ? `id:${row.id}` : row.slug ? `slug:${row.slug}` : null
     if (!key) continue
-    const current = clicks.get(key) ?? { ticket: 0, facebook: 0 }
+    const current = clicks.get(key) ?? {
+      ticket: 0,
+      ticketProxy: 0,
+      facebook: 0,
+    }
     current.ticket += toCount(row.ticket)
+    current.ticketProxy += toCount(row.ticketProxy)
     current.facebook += toCount(row.facebook)
     clicks.set(key, current)
   }
@@ -169,11 +180,12 @@ export async function buildStatisticsReport(
         return found
           ? {
               ticket: sum.ticket + found.ticket,
+              ticketProxy: sum.ticketProxy + found.ticketProxy,
               facebook: sum.facebook + found.facebook,
             }
           : sum
       },
-      { ticket: 0, facebook: 0 },
+      { ticket: 0, ticketProxy: 0, facebook: 0 },
     )
   }
   const durations = new Map(
@@ -195,6 +207,7 @@ export async function buildStatisticsReport(
         sessions: toCount(viewed?.sessions),
         visitors: toCount(viewed?.visitors),
         ticketClicks: toCount(clicked?.ticket),
+        ticketProxyClicks: toCount(clicked?.ticketProxy),
         facebookClicks: toCount(clicked?.facebook),
         medianSeconds:
           durations.get(meta.slug) ??
@@ -372,6 +385,10 @@ export async function buildStatisticsReport(
       sessions: toCount(eventTotals[0]?.sessions),
       visitors: toCount(eventTotals[0]?.visitors),
       ticketClicks: events.reduce((sum, event) => sum + event.ticketClicks, 0),
+      ticketProxyClicks: events.reduce(
+        (sum, event) => sum + event.ticketProxyClicks,
+        0,
+      ),
       facebookClicks: events.reduce(
         (sum, event) => sum + event.facebookClicks,
         0,

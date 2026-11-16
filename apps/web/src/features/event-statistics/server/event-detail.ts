@@ -143,9 +143,15 @@ export async function buildEventDetail(
          GROUP BY day ORDER BY day`,
       "detail-daily",
     ),
-    runHogQL<{ day: string; ticket: number; facebook: number }>(
+    runHogQL<{
+      day: string
+      ticket: number
+      ticketProxy: number
+      facebook: number
+    }>(
       `SELECT toDate(toTimeZone(timestamp, 'Europe/Oslo')) AS day,
            countIf(event = 'ticket_link_clicked') AS ticket,
+           countIf(event = 'ticket_link_clicked' AND properties.source = 'ticket_proxy') AS ticketProxy,
            countIf(event = 'facebook_event_link_clicked') AS facebook
          FROM events WHERE ${clicked}
          GROUP BY day ORDER BY day`,
@@ -198,10 +204,12 @@ export async function buildEventDetail(
           id: string | null
           slug: string | null
           ticket: number
+          ticketProxy: number
           facebook: number
         }>(
           `SELECT properties.event_id AS id, properties.event_slug AS slug,
                countIf(event = 'ticket_link_clicked') AS ticket,
+               countIf(event = 'ticket_link_clicked' AND properties.source = 'ticket_proxy') AS ticketProxy,
                countIf(event = 'facebook_event_link_clicked') AS facebook
              FROM events WHERE ${clicked}
              GROUP BY id, slug`,
@@ -353,6 +361,10 @@ export async function buildEventDetail(
     (sum, row) => sum + toCount(row.ticket),
     0,
   )
+  const ticketProxyClicks = dailyClicks.reduce(
+    (sum, row) => sum + toCount(row.ticketProxy),
+    0,
+  )
   const facebookClicks = dailyClicks.reduce(
     (sum, row) => sum + toCount(row.facebook),
     0,
@@ -401,6 +413,10 @@ export async function buildEventDetail(
           (sum, click) => sum + toCount(click.ticket),
           0,
         ),
+        ticketProxyClicks: clicks.reduce(
+          (sum, click) => sum + toCount(click.ticketProxy),
+          0,
+        ),
         facebookClicks: clicks.reduce(
           (sum, click) => sum + toCount(click.facebook),
           0,
@@ -431,6 +447,7 @@ export async function buildEventDetail(
       sessions: toCount(totals[0]?.sessions),
       visitors: toCount(totals[0]?.visitors),
       ticketClicks,
+      ticketProxyClicks,
       facebookClicks,
       medianSeconds: medianWhenReliable(duration[0]),
     },
@@ -438,6 +455,7 @@ export async function buildEventDetail(
     dailyClicks: days.map(({ day }) => ({
       day,
       ticket: toCount(dailyClickRows.get(day)?.ticket),
+      ticketProxy: toCount(dailyClickRows.get(day)?.ticketProxy),
       facebook: toCount(dailyClickRows.get(day)?.facebook),
     })),
     channels: ranked(channels, TRAFFIC_CHANNELS.length),

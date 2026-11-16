@@ -39,6 +39,7 @@ export function EventTicketButton({
           event_title: eventTitle,
           event_slug: eventSlug,
           ticket_url: ticketUrl,
+          source: "event_page",
           entry_surface: entrySurface([eventId, eventSlug]) ?? null,
         })
       }}
