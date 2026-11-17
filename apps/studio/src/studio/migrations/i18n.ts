@@ -896,6 +896,57 @@ export async function buildI18nPatch(
     }
   }
 
+  if (type === "page") {
+    const ensureNested = async (
+      owner: Record<string, unknown>,
+      ownerPath: string,
+      fields: ReadonlyArray<
+        readonly [string, NonNullable<EnsureOptions["kind"]>]
+      >,
+    ) => {
+      for (const [localized, kind] of fields) {
+        const result = await ensureLocalized({
+          field: localized,
+          path: `${document._id}.${ownerPath}${localized}`,
+          current: owner[localized],
+          legacy: undefined,
+          kind,
+          translate,
+        })
+        patch.missing.push(...result.missing)
+        patch.conflicts.push(...result.conflicts)
+        if (result.value)
+          setIfChanged(
+            patch.set,
+            `${ownerPath}${localized}`,
+            owner[localized],
+            result.value,
+          )
+      }
+    }
+    const faqItemFields = [
+      ["localizedQuestion", "string"],
+      ["localizedAnswer", "arrayText"],
+    ] as const
+    for (const entry of Array.isArray(document.faq) ? document.faq : []) {
+      if (!isObject(entry) || !isNonBlank(entry._key)) continue
+      const entryPath = nestedPath("faq", entry._key, "")
+      if (entry._type !== "faqSection") {
+        await ensureNested(entry, entryPath, faqItemFields)
+        continue
+      }
+      await ensureNested(entry, entryPath, [["localizedHeading", "string"]])
+      for (const item of Array.isArray(entry.items) ? entry.items : []) {
+        if (!isObject(item) || !isNonBlank(item._key)) continue
+        await ensureNested(
+          item,
+          nestedPath(`${entryPath}items`, item._key, ""),
+          faqItemFields,
+        )
+      }
+    }
+  }
+
   if (type === "sponsorsPage") {
     for (const sponsor of Array.isArray(document.sponsors)
       ? document.sponsors
@@ -1184,6 +1235,27 @@ export function missingCanonicalFields(
       ["localizedQuestion", "question", true],
       ["localizedAnswer", "answer", true],
     ])
+  }
+  if (type === "page" && Array.isArray(document.faq)) {
+    const faqItemFields: Array<[string, string, boolean?]> = [
+      ["localizedQuestion", "question", true],
+      ["localizedAnswer", "answer", true],
+    ]
+    for (const entry of document.faq) {
+      if (!isObject(entry) || !isNonBlank(entry._key)) continue
+      if (entry._type !== "faqSection") {
+        checkNested([entry], "faq", faqItemFields)
+        continue
+      }
+      const sectionPath = `faq[${entry._key}]`
+      check(
+        `${sectionPath}.localizedHeading`,
+        entry.localizedHeading,
+        undefined,
+        true,
+      )
+      checkNested(entry.items, `${sectionPath}.items`, faqItemFields)
+    }
   }
   if (type === "room") {
     checkNested(document.images, "images", [

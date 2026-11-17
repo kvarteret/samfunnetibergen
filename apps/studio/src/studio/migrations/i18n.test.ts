@@ -108,4 +108,80 @@ describe("field-level i18n migration", () => {
       "localizedDescription.en",
     ])
   })
+
+  it("translates booking FAQ sections and their questions", async () => {
+    const patch = await buildI18nPatch(
+      {
+        _id: "faq-page",
+        _type: "page",
+        localizedTitle: [{ language: "nb", value: "Spørsmål" }],
+        faq: [
+          {
+            _key: "section-1",
+            _type: "faqSection",
+            localizedHeading: [{ language: "nb", value: "Betaling" }],
+            items: [
+              {
+                _key: "item-1",
+                _type: "faqItem",
+                localizedQuestion: [{ language: "nb", value: "Hvordan?" }],
+                localizedAnswer: [{ language: "nb", value: "Med faktura." }],
+              },
+            ],
+          },
+        ],
+      },
+      translate,
+    )
+    expect(patch.set['faq[_key == "section-1"].localizedHeading']).toEqual([
+      { language: "nb", value: "Betaling" },
+      { _key: "localizedHeading-en", language: "en", value: "EN: Betaling" },
+    ])
+    expect(
+      patch.set[
+        'faq[_key == "section-1"].items[_key == "item-1"].localizedAnswer'
+      ],
+    ).toEqual([
+      { language: "nb", value: "Med faktura." },
+      {
+        _key: "localizedAnswer-en",
+        language: "en",
+        value: "EN: Med faktura.",
+      },
+    ])
+  })
+
+  it("reports missing booking FAQ headings and answers", () => {
+    expect(
+      missingCanonicalFields({
+        _id: "faq-page",
+        _type: "page",
+        localizedTitle: [
+          { language: "nb", value: "Spørsmål" },
+          { language: "en", value: "Questions" },
+        ],
+        faq: [
+          {
+            _key: "section-1",
+            _type: "faqSection",
+            items: [
+              {
+                _key: "item-1",
+                _type: "faqItem",
+                localizedQuestion: [
+                  { language: "nb", value: "Hvordan?" },
+                  { language: "en", value: "How?" },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    ).toEqual([
+      "faq[section-1].localizedHeading.nb",
+      "faq[section-1].localizedHeading.en",
+      "faq[section-1].items[item-1].localizedAnswer.nb",
+      "faq[section-1].items[item-1].localizedAnswer.en",
+    ])
+  })
 })

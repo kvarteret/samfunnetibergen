@@ -23,7 +23,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import {
-  type BookingQuestion,
+  type BookingFaqEntry,
+  flattenBookingFaq,
   parseBookingQuestions,
 } from "../domain/questions"
 
@@ -46,10 +47,11 @@ export function BookingQuestions({
   faq,
 }: {
   content: string
-  faq: BookingQuestion[]
+  faq: BookingFaqEntry[]
 }) {
   const parsed = parseBookingQuestions(content)
-  const questions = faq.length ? faq : parsed.questions
+  const structured = flattenBookingFaq(faq)
+  const questions = structured.length ? structured : parsed.questions
   const categories = Array.from(new Set(questions.map(q => q.category)))
   return (
     <section className="w-full max-w-4xl space-y-10">

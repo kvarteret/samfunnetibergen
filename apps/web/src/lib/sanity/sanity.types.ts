@@ -697,24 +697,49 @@ export type Page = {
   localizedSubmittedTitle?: InternationalizedArrayString
   localizedSubmittedKaraokeTitle?: InternationalizedArrayString
   localizedSubmittedDescription?: InternationalizedArrayText
-  faq?: Array<{
-    icon?:
-      | "age"
-      | "room"
-      | "bar"
-      | "equipment"
-      | "safety"
-      | "ticket"
-      | "cleaning"
-      | "clock"
-      | "money"
-      | "contact"
-      | "info"
-    localizedQuestion: InternationalizedArrayString
-    localizedAnswer: InternationalizedArrayText
-    _type: "faqItem"
-    _key: string
-  }>
+  faq?: Array<
+    | {
+        localizedHeading: InternationalizedArrayString
+        items: Array<{
+          icon?:
+            | "age"
+            | "room"
+            | "bar"
+            | "equipment"
+            | "safety"
+            | "ticket"
+            | "cleaning"
+            | "clock"
+            | "money"
+            | "contact"
+            | "info"
+          localizedQuestion: InternationalizedArrayString
+          localizedAnswer: InternationalizedArrayText
+          _type: "faqItem"
+          _key: string
+        }>
+        _type: "faqSection"
+        _key: string
+      }
+    | {
+        icon?:
+          | "age"
+          | "room"
+          | "bar"
+          | "equipment"
+          | "safety"
+          | "ticket"
+          | "cleaning"
+          | "clock"
+          | "money"
+          | "contact"
+          | "info"
+        localizedQuestion: InternationalizedArrayString
+        localizedAnswer: InternationalizedArrayText
+        _type: "faqItem"
+        _key: string
+      }
+  >
 }
 
 export type KontaktPage = {
@@ -3147,7 +3172,7 @@ export type PageSlugsQueryResult = Array<{
 
 // Source: ../web/src/lib/sanity/queries/pages.ts
 // Variable: pageBySlugQuery
-// Query: *[    _type == "page"    && slug.current == $slug    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ][0] {    _id,    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),    "slug": coalesce(slug.current, ""),    "submittedTitle": coalesce(localizedSubmittedTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedTitle[language == "nb" && defined(value) && value != ""][0].value, null),    "submittedKaraokeTitle": coalesce(localizedSubmittedKaraokeTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedKaraokeTitle[language == "nb" && defined(value) && value != ""][0].value, null),    "submittedDescription": coalesce(localizedSubmittedDescription[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedDescription[language == "nb" && defined(value) && value != ""][0].value, null),    "faq": coalesce(faq[] {      _key,      icon,      "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),      "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")    }, []),    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")}
+// Query: *[    _type == "page"    && slug.current == $slug    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])  ][0] {    _id,    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),    "slug": coalesce(slug.current, ""),    "submittedTitle": coalesce(localizedSubmittedTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedTitle[language == "nb" && defined(value) && value != ""][0].value, null),    "submittedKaraokeTitle": coalesce(localizedSubmittedKaraokeTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedKaraokeTitle[language == "nb" && defined(value) && value != ""][0].value, null),    "submittedDescription": coalesce(localizedSubmittedDescription[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedDescription[language == "nb" && defined(value) && value != ""][0].value, null),    "faq": coalesce(faq[] {      _key,      _type,      _type == "faqSection" => {        "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, ""),        "items": coalesce(items[] {          _key,          icon,    "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),    "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")        }, [])      },      _type == "faqItem" => {        icon,    "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),    "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")      }    }, []),    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")}
 export type PageBySlugQueryResult = {
   _id: string
   title: string | "[Mangler tittel]"
@@ -3156,25 +3181,51 @@ export type PageBySlugQueryResult = {
   submittedKaraokeTitle: string | null
   submittedDescription: string | null
   faq:
-    | Array<{
-        _key: string
-        icon:
-          | "age"
-          | "bar"
-          | "cleaning"
-          | "clock"
-          | "contact"
-          | "equipment"
-          | "info"
-          | "money"
-          | "room"
-          | "safety"
-          | "ticket"
-          | null
-        question: string | ""
-        answer: string | ""
-      }>
     | Array<never>
+    | Array<
+        | {
+            _key: string
+            _type: "faqItem"
+            icon:
+              | "age"
+              | "bar"
+              | "cleaning"
+              | "clock"
+              | "contact"
+              | "equipment"
+              | "info"
+              | "money"
+              | "room"
+              | "safety"
+              | "ticket"
+              | null
+            question: string | ""
+            answer: string | ""
+          }
+        | {
+            _key: string
+            _type: "faqSection"
+            heading: string | ""
+            items: Array<{
+              _key: string
+              icon:
+                | "age"
+                | "bar"
+                | "cleaning"
+                | "clock"
+                | "contact"
+                | "equipment"
+                | "info"
+                | "money"
+                | "room"
+                | "safety"
+                | "ticket"
+                | null
+              question: string | ""
+              answer: string | ""
+            }>
+          }
+      >
   content: string | ""
 } | null
 
@@ -3670,7 +3721,7 @@ declare global {
     '*[_type == "sponsorsPage" && _id == "sponsorsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    "sponsors": coalesce(sponsors[] {\n        _key,\n        "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler sponsornavn]"),\n        website,\n        "logoUrl": logo.asset->url,\n        "logoAlt": coalesce(localizedLogoAlt[language == $locale && defined(value) && value != ""][0].value, localizedLogoAlt[language == "nb" && defined(value) && value != ""][0].value, coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value)),\n        "description": coalesce(coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        "lqip": asset->metadata.lqip,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}': SponsorsPageQueryResult
     '*[_type == "groupsPage" && _id == "groupsPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "description": coalesce(localizedDescription[language == $locale && defined(value) && value != ""][0].value, localizedDescription[language == "nb" && defined(value) && value != ""][0].value),\n    "hasEnglishTranslation": defined(localizedEyebrow[language == "en" && defined(value) && value != ""][0].value) && defined(localizedTitle[language == "en" && defined(value) && value != ""][0].value) && defined(localizedDescription[language == "en" && defined(value) && value != ""][0].value),\n    "sections": coalesce(sections[] {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        "lqip": asset->metadata.lqip,\n        alt,\n        caption\n    }\n}, [])\n}, []),\n    "faq": coalesce(faq[] {\n        _key,\n        "hasEnglishTranslation": defined(localizedQuestion[language == "en" && defined(value) && value != ""][0].value) && defined(localizedAnswer[language == "en" && defined(value) && value != ""][0].value),\n        "question": coalesce(localizedQuestion[language == $locale && defined(value) && value != ""][0].value, localizedQuestion[language == "nb" && defined(value) && value != ""][0].value, "[Mangler sp\xF8rsm\xE5l]"),\n        "answer": select(\n          defined(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null)) => string::split(coalesce(localizedAnswer[language == $locale && defined(value) && value != ""][0].value, localizedAnswer[language == "nb" && defined(value) && value != ""][0].value, null), "\n"),\n          []\n        )\n    }, [])\n}': GroupsPageQueryResult
     '*[\n    _type == "page"\n    && defined(slug.current)\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ] {\n    "slug": slug.current\n}': PageSlugsQueryResult
-    '*[\n    _type == "page"\n    && slug.current == $slug\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ][0] {\n    _id,\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "slug": coalesce(slug.current, ""),\n    "submittedTitle": coalesce(localizedSubmittedTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedTitle[language == "nb" && defined(value) && value != ""][0].value, null),\n    "submittedKaraokeTitle": coalesce(localizedSubmittedKaraokeTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedKaraokeTitle[language == "nb" && defined(value) && value != ""][0].value, null),\n    "submittedDescription": coalesce(localizedSubmittedDescription[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedDescription[language == "nb" && defined(value) && value != ""][0].value, null),\n    "faq": coalesce(faq[] {\n      _key,\n      icon,\n      "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),\n      "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")\n    }, []),\n    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")\n}': PageBySlugQueryResult
+    '*[\n    _type == "page"\n    && slug.current == $slug\n    && !(slug.current in ["arrangementer", "grupper", "karaoke", "kontakt", "rom", "sponsorer"])\n  ][0] {\n    _id,\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "[Mangler tittel]"),\n    "slug": coalesce(slug.current, ""),\n    "submittedTitle": coalesce(localizedSubmittedTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedTitle[language == "nb" && defined(value) && value != ""][0].value, null),\n    "submittedKaraokeTitle": coalesce(localizedSubmittedKaraokeTitle[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedKaraokeTitle[language == "nb" && defined(value) && value != ""][0].value, null),\n    "submittedDescription": coalesce(localizedSubmittedDescription[language == $locale && defined(value) && value != ""][0].value, localizedSubmittedDescription[language == "nb" && defined(value) && value != ""][0].value, null),\n    "faq": coalesce(faq[] {\n      _key,\n      _type,\n      _type == "faqSection" => {\n        "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value, ""),\n        "items": coalesce(items[] {\n          _key,\n          icon,\n    "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),\n    "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")\n        }, [])\n      },\n      _type == "faqItem" => {\n        icon,\n    "question": coalesce(localizedQuestion[language == $locale][0].value, localizedQuestion[language == "nb"][0].value, ""),\n    "answer": coalesce(localizedAnswer[language == $locale][0].value, localizedAnswer[language == "nb"][0].value, "")\n      }\n    }, []),\n    "content": coalesce(localizedContent[language == $locale && defined(value) && value != ""][0].value, localizedContent[language == "nb" && defined(value) && value != ""][0].value, "")\n}': PageBySlugQueryResult
     '*[_type == "kontaktPage" && _id == "kontaktPage"][0] {\n    "visitAddress": coalesce(localizedVisitAddress[language == $locale && defined(value) && value != ""][0].value, localizedVisitAddress[language == "nb" && defined(value) && value != ""][0].value),\n    "postAddress": coalesce(localizedPostAddress[language == $locale && defined(value) && value != ""][0].value, localizedPostAddress[language == "nb" && defined(value) && value != ""][0].value),\n    "invoiceAddress": coalesce(localizedInvoiceAddress[language == $locale && defined(value) && value != ""][0].value, localizedInvoiceAddress[language == "nb" && defined(value) && value != ""][0].value),\n    invoiceEmail,\n    ehf,\n    "generalContact": coalesce(localizedGeneralContact[language == $locale && defined(value) && value != ""][0].value, localizedGeneralContact[language == "nb" && defined(value) && value != ""][0].value),\n    "pressContact": coalesce(localizedPressContact[language == $locale && defined(value) && value != ""][0].value, localizedPressContact[language == "nb" && defined(value) && value != ""][0].value),\n    "contactGroups": coalesce(contactGroups[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value, "[Mangler gruppenavn]"),\n        "persons": coalesce(persons[] {\n            _key,\n            "name": coalesce(localizedName[language == $locale && defined(value) && value != ""][0].value, localizedName[language == "nb" && defined(value) && value != ""][0].value, "[Mangler navn]"),\n            "rolle": coalesce(localizedRole[language == $locale && defined(value) && value != ""][0].value, localizedRole[language == "nb" && defined(value) && value != ""][0].value),\n            email,\n            phone,\n            "imageUrl": image.asset->url\n        }, [])\n    }, [])\n}': KontaktPageQueryResult
     '*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {\n    "eyebrow": coalesce(localizedEyebrow[language == $locale && defined(value) && value != ""][0].value, localizedEyebrow[language == "nb" && defined(value) && value != ""][0].value),\n    "title": coalesce(coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value), "Nyttig info"),\n    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),\n    "sections": coalesce(sections[] {\n        _type == "editorialSection" => {\n    _key,\n    _type,\n    "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        "lqip": asset->metadata.lqip,\n        alt,\n        caption\n    }\n}, [])\n},\n        _type == "infoAddressBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),\n    "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        "lqip": asset->metadata.lqip,\n        alt,\n        caption\n    }\n}, []),\n    "address": coalesce(localizedAddress[language == $locale && defined(value) && value != ""][0].value, localizedAddress[language == "nb" && defined(value) && value != ""][0].value),\n    mapUrl\n},\n        _type == "infoAccordionBlock" => {\n    _key,\n    _type,\n    "heading": coalesce(localizedHeading[language == $locale && defined(value) && value != ""][0].value, localizedHeading[language == "nb" && defined(value) && value != ""][0].value),\n    "intro": coalesce(localizedIntro[language == $locale && defined(value) && value != ""][0].value, localizedIntro[language == "nb" && defined(value) && value != ""][0].value),\n    "items": coalesce(items[] {\n        _key,\n        "title": coalesce(localizedTitle[language == $locale && defined(value) && value != ""][0].value, localizedTitle[language == "nb" && defined(value) && value != ""][0].value),\n        "body": coalesce(coalesce(localizedBody[language == $locale && defined(value) && value != ""][0].value, localizedBody[language == "nb" && defined(value) && value != ""][0].value, [])[] {\n    _key,\n    _type,\n    ...,\n    markDefs[] {\n        ...,\n        _type == "link" => {\n            ...,\n            "target": coalesce(target, select(blank == true => "blank", "self"))\n        }\n    },\n    _type == "image" => {\n        "imageUrl": asset->url,\n        "lqip": asset->metadata.lqip,\n        alt,\n        caption\n    }\n}, [])\n    }, [])\n}\n    }, [])\n}': UsefulInfoPageQueryResult
     '*[_type == "usefulInfoPage" && _id == "usefulInfoPage"][0] {\n    "vergeordningSection": sections[_key == "7d0eec2032cc"][0] {\n        _key\n    }\n}': UsefulInfoNavigationQueryResult
